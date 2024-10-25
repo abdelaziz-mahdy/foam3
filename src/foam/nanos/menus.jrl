@@ -1,3 +1,4 @@
+// User's own notification settings
 p({
   class: 'foam.nanos.menu.Menu',
   id: 'notification-settings',
