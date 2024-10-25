@@ -19,6 +19,9 @@ foam.CLASS({
   documentation: 'Notification model responsible for system and integrated messaging notifications.',
 
   javaImports: [
+    'foam.core.XLocator',
+    'foam.dao.DAO',
+    'static foam.mlang.MLang.EQ',
     'foam.nanos.auth.AuthService',
     'foam.nanos.auth.AuthorizationException',
     'foam.nanos.auth.Subject',
@@ -40,8 +43,7 @@ foam.CLASS({
     'notificationType',
     'broadcasted',
     'userId.id',
-    'groupId.id',
-    'emailName'
+    'groupId.id'
   ],
 
   sections: [
@@ -103,24 +105,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'template',
-      label: 'Notification Template',
-      view: function(_, X) {
-        var dao = X.notificationTemplateDAO;
-        return {
-          class: 'foam.u2.view.ModeAltView',
-          readView: { class: 'foam.u2.view.StringView' },
-          writeView: {
-            class: 'foam.u2.view.RichChoiceView',
-            sections: [
-              {
-                heading: 'Notification Templates',
-                dao: dao
-              }
-            ],
-            placeholder: '--'
-          }
-        };
-      }
+      documentation: `This is the 'id' property used to find a template.`,
     },
     {
       class: 'String',
@@ -238,7 +223,11 @@ foam.CLASS({
       of: 'foam.nanos.notification.email.EmailTemplate',
       targetDAOKey: 'emailTemplateDAO',
       label: 'Email Template',
-      documentation: 'Email template name.'
+      documentation: 'Email template name.',
+      menuKeys: [
+        'emailtemplates',
+        'notification.emailtemplates'
+      ]
     },
     {
       class: 'Boolean',
