@@ -64,7 +64,9 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'id'
+      name: 'id',
+      createVisibility: 'HIDDEN',
+      updateVisibility: 'RW'
     },
     {
       class: 'Boolean',
