@@ -38,7 +38,6 @@ foam.CLASS({
       bottom: auto; 
       transform: translateY(-50%); 
       width: 12rem; 
-      z-index: 1;
     }
   }
   `,
