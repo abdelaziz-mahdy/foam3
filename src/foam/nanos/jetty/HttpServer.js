@@ -496,11 +496,7 @@ foam.CLASS({
 
           ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
           // default protocol when there is no negotiation.
-          if ( getHttpVersion() == HttpVersion.V2 ) {
-            alpn.setDefaultProtocol(http2.getProtocol());
-          } else {
-            alpn.setDefaultProtocol(http11.getProtocol());
-          }
+          alpn.setDefaultProtocol(http11.getProtocol());
 
           SslConnectionFactory ssl = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
 
