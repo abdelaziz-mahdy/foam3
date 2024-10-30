@@ -26,7 +26,7 @@ foam.CLASS({
   ],
   messages: [
     { name: 'GROUP_OR_USERS_REQUIRED', message: 'Group or Users are required' },
-    { name: 'BODY_OR_TEMPLATE_REQUIRED', message: 'Notification body and/or template is required' },
+    { name: 'BODY_OR_TEMPLATE_OR_TOAST_REQUIRED', message: 'Notification body and/or template and/or toast required' },
     { name: 'TOAST_REQUIRED',       message: 'Toast Message is required when showing toast' },
     { name: 'NOTIFICATION_SENT',    message: 'Notification Sent' },
     { name: 'NOTIFICAITON_SUMMARY', message: 'notification to ' },
@@ -109,10 +109,11 @@ foam.CLASS({
           self.template = t.template;
         })
       },
-      validateObj: function(body, notificationTemplate) {
+      validateObj: function(body, notificationTemplate, toastMessage) {
         if ( ( ! body || ! body.length || ! body.trim() ) &&
-             ( ! notificationTemplate ) ) {
-          return this.BODY_OR_TEMPLATE_REQUIRED;
+             ( ! notificationTemplate ) &&
+             ( ! toastMessage ) ) {
+          return this.BODY_OR_TEMPLATE_OR_TOAST_REQUIRED;
         }
       }
     },
@@ -120,10 +121,11 @@ foam.CLASS({
       __copyFrom__: 'foam.nanos.notification.Notification.BODY',
       label: 'Notification Body',
       view: { class: 'foam.u2.view.RichTextView' },
-      validateObj: function(body, notificationTemplate) {
+      validateObj: function(body, notificationTemplate, toastMessage) {
         if ( ( ! body || ! body.length || ! body.trim() ) &&
-             ( ! notificationTemplate ) ) {
-          return this.BODY_OR_TEMPLATE_REQUIRED;
+             ( ! notificationTemplate ) &&
+             ( ! toastMessage ) ) {
+          return this.BODY_OR_TEMPLATE_OR_TOAST_REQUIRED;
         }
       }
     },
@@ -135,6 +137,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'showToast',
+      label: 'Show Toast (Push)',
       postSet: function(_, n) { if ( ! n ) this.toastMessage = ''; }
     },
     {
@@ -147,6 +150,13 @@ foam.CLASS({
         if ( showToast && ( ! toastMessage.length || ! toastMessage.trim() ) ) {
           return this.TOAST_REQUIRED;
         }
+      }
+    },
+    {
+      __copyFrom__: 'foam.nanos.notification.Notification.TOAST_SUB_MESSAGE',
+      onKey: true,
+      createVisibility: function(showToast) {
+        return showToast ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
     }
   ],
@@ -171,6 +181,7 @@ foam.CLASS({
           template: this.template,
           body: this.body,
           toastMessage: this.toastMessage,
+          toastSubMessage: this.toastSubMessage,
           groupId: this.groupId,
           users: this.users,
           emailArgs: this.emailArgs,
@@ -194,6 +205,7 @@ foam.CLASS({
             this.template = undefined;
             this.body = undefined;
             this.toastMessage = undefined;
+            this.toastSubMessage = undefined;
             this.showToast = undefined;
             this.groupId = undefined;
             this.users = undefined;
@@ -208,6 +220,7 @@ foam.CLASS({
               this.template = undefined;
               this.body = undefined;
               this.toastMessage = undefined;
+              this.toastSubMessage = undefined;
               this.showToast = undefined;
               this.groupId = undefined;
               this.users = undefined;
