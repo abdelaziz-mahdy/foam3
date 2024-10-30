@@ -57,7 +57,7 @@ foam.CLASS({
           }
         }
         // Rare scenario where the user gets assigned a new session but their device maintains their old endpoint
-        PushRegistration p2 = (PushRegistration) dao.find(MLang.EQ(PushRegistration.ENDPOINT, endpoint));
+        PushRegistration p2 = (PushRegistration) dao.find(MLang.EQ(PushRegistration.ENDPOINT, r.getEndpoint()));
         if ( p2 != null ) {
           // Can treat this as an invalid token and the entry can be deleted as it is about to be replaced
           dao.remove(p2);
