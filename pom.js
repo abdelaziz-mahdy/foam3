@@ -65,6 +65,7 @@ foam.POM({
       'nl.martijndwars:web-push:5.1.1', // https://github.com/web-push-libs/webpush-java
       'com.eatthepath:pushy:0.15.4',
       'com.eatthepath:fast-uuid:0.2.0',
+      'io.netty:netty-all:4.1.48.Final',
       'org.junit.jupiter:junit-jupiter-engine:5.6.0',
       'org.junit.jupiter:junit-jupiter-params:5.6.0',
       'org.junit.platform:junit-platform-launcher:1.6.0',

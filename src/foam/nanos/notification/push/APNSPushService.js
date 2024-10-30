@@ -16,6 +16,21 @@ foam.CLASS({
     'foam.nanos.auth.ServiceProviderAware'
   ],
 
+  javaCode: `
+    public void send(iOSNativePushRegistration sub, HashMap msg) {
+      send(sub, msg, 0);
+    }
+  `,
+
+  constants: [
+    {
+      type: 'int',
+      name: 'MAX_RETRY_ATTEMPTS',
+      documentation: 'Number of times service will try to deliver a notification if an exception is thrown',
+      value: 3
+    }
+  ],
+
   javaImports: [
     'foam.core.X',
     'foam.dao.*',
@@ -97,7 +112,7 @@ foam.CLASS({
     },
     {
       name: 'send',
-      args: 'iOSNativePushRegistration sub, HashMap msg',
+      args: 'iOSNativePushRegistration sub, HashMap msg, int attempt',
       type: 'Void',
       javaCode: `
           // Dont send notifications to subs that are in denied state
@@ -150,10 +165,13 @@ foam.CLASS({
                 }
             }
           } catch (final ExecutionException e) {
-           // Should retry if it fails without explanation i.e. we never get a response from apple's servers however a rejection from the apple server should be considered permanent and no retry should be attempted
+            // Should retry if it fails without explanation i.e. we never get a response from apple's servers however a rejection from the apple server should be considered permanent and no retry should be attempted
             System.err.println("Failed to send push notification.");
             e.printStackTrace();
-            send(sub, msg);
+            if ( attempt < MAX_RETRY_ATTEMPTS ) {
+              attempt++;
+              send(sub, msg, attempt);
+            } 
           } catch (final Exception e) {
             // TODO: Replace with loggers
             System.err.println("Failed to send push notification.");
