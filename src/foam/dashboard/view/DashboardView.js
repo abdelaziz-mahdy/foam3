@@ -86,27 +86,28 @@ foam.CLASS({
         return {};
       },
       description: `The map of widgets used to render the dashboard. Allows specifying different columns for various
-      widths of the dashboard container using '<displayWidth>Column'. A 0 column width implies that the number of columns should be equally split between 
-      the widgets with 0 width, this provides an equivalent to css's grid-auto-column: 1fr behaviour.
-      Ex:
+      widths of the dashboard container using '<displayWidth>Column'. This also supports percentage value config for a row of widgets.
+      It uses a similar syntax to css grid where 1fr,2fr,3fr correspond to the width of the width with respect to total "fr"s in the row.
+      Sample for fixed span columns:
         widgets: {
           <menu.id>: { column: 6, SMColumn: 12 .....}
         }
 
-      Sample for equal width columns:
+      Sample for fractional columns:
         widgets: {
-          menuA: { column: 0 }
-          menuB: { column: 0 }
+          menuA: { column: '1fr' }
+          menuB: { column: '1fr' }
           menuC: { column: 12 }
-          menuD: { column: 0 }
-          menuE: { column: 0 }
-          menuF: { column: 0 }
+          menuD: { column: '2fr' }
+          menuE: { column: '2fr' }
+          menuF: { column: '1fr' }
         }
       Resulting grid template: 
-        -menuA-- --menuB-
-        menuC menuC menuC
-        menuD menuE menuF
-      In this case, menuA and menuB will split available columns between the two of them and menu D,E,F will split the columns in row three between them.
+        menuA-menuA--- ---menuB-menuB
+        menuC menuC menuC menuC menuC
+        menuD menuD menuE menuE menuF
+      In this case, menuA and menuB will split available columns between the two of them and menu D,E,F will split the columns in row three between them
+      based on the number of "fr" available (in this case, 5) where D and E get 2 each and F gets 1.
       `
     },
     {
@@ -175,11 +176,12 @@ foam.CLASS({
         Object.keys(this.widgets).forEach(v => {
           let colConfig = this.widgets[v];
           let col = colConfig[`${cw}Column`] ?? colConfig['column'];
-          if ( col == 0 ) {
+          if ( foam.String.isInstance(col) ) {
+            let colSpan = col.indexOf('fr') != -1 ? col.split('fr')[0] : 1;
             if ( widgetSetCount == 0 )
               currentWidgetSet++;
-            widgetSetCount++;
-            cm[v] = `span calc(var(--dashboard-max-col)/var(--split-row-${currentWidgetSet}))`;
+            widgetSetCount += Number(colSpan);
+            cm[v] = `span calc(${colSpan}*var(--dashboard-max-col)/var(--split-row-${currentWidgetSet}))`;
           } else {
             if ( widgetSetCount > 0 )
               this.document.documentElement.style.setProperty(`--split-row-${currentWidgetSet}`, widgetSetCount); 
