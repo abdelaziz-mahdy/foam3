@@ -1,5 +1,12 @@
 p({
   "class": "foam.strategy.StrategyReference",
+  "id": "NotificationSetting-NotificationSetting",
+  "label":"In-App Notification",
+  "desiredModelId": "foam.nanos.notification.NotificationSetting",
+  "strategy": "foam.nanos.notification.NotificationSetting"
+})
+p({
+  "class": "foam.strategy.StrategyReference",
   "id": "NotificationSetting-EmailSetting",
   "desiredModelId": "foam.nanos.notification.NotificationSetting",
   "strategy": "foam.nanos.notification.EmailSetting"
