@@ -81,10 +81,10 @@ foam.CLASS({
       updateVisibility: 'RO',
       storageTransient: true,
       clusterTransient: true,
-      factory: function() {
+      getter: function() {
         return this.cls_.name;
       },
-      javaFactory: `
+      javaGetter: `
         return getClass().getSimpleName();
       `
     },
