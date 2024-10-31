@@ -74,7 +74,7 @@ p({
       browseTitle: "User Notification Settings",
       createPredicate: {class:"foam.mlang.predicate.True"},
       editPredicate: {class:"foam.mlang.predicate.True"},
-      deletePredicate: {class:"foam.mlang.predicate.False"}
+      deletePredicate: {class:"foam.mlang.predicate.True"}
     }
   },
   parent:"notification"
