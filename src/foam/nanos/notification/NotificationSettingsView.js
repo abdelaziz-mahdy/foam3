@@ -46,6 +46,18 @@ foam.CLASS({
       // TODO: Add topics
       // name: 'topicsMap',
       // class: 'Map'
+    },
+    {
+      name: 'relevant',
+      class: 'StringArray',
+      documentation: `Notification settings which are potentially relevant to end users.
+Or a hack to filter out slack and google.
+This is only necessary when global settings exist that are not used or relevant to the spid.`,
+      hidden: true,
+      transient: true,
+      factory: function() {
+        return ['NotificationSetting', 'EmailSetting', 'PushSetting', 'SMSSetting'];
+      }
     }
   ],
 
@@ -55,14 +67,14 @@ foam.CLASS({
       this.stack?.setCompact(true, this);
       this.stack?.setTitle(this.TITLE, this);
       await this.getImpliedNotificationSettings();
-      let label = foam.nanos.notification.NotificationSetting.model_.label
+      let label = foam.nanos.notification.NotificationSetting.model_.label;
       let keys = Object.keys(this.settingsMap).sort((a, b) => {
         return a == label ? -1 : (b == label ? 1 : 0); 
-      })
+      });
       this
         .addClass()
         .forEach(keys, function(label) {
-          let setting = self.settingsMap[label]
+          let setting = self.settingsMap[label];
           this.tag(self.NotificationSettingCitationView, { label: label, setting_: setting, of: setting?.cls_ });
         });
     }
@@ -72,7 +84,14 @@ foam.CLASS({
     {
       name: 'getImpliedNotificationSettings',
       code: async function() {
-        this.settingsMap = await this.subject.user.getImpliedNotificationSettings(this.__subContext__);
+        var map = await this.subject.user.getImpliedNotificationSettings(this.__subContext__, false);
+        for ( const key in map ) {
+          var value = map[key];
+          if ( ! this.relevant.includes(value.cls_.name) ) {
+            delete map[key];
+          }
+        }
+        this.settingsMap = map;
       }
     }
   ]
