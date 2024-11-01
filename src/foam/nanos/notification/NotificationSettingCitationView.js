@@ -23,7 +23,7 @@ foam.CLASS({
         return this.setting_.enabled;
       },
       postSet: function(o, n) {
-        if ( ! o || o == n ) return;
+        if ( o == n ) return;
         var setting = this.setting_;
         if ( setting.owner != this.subject.user.id ) {
           setting = this.setting_.clone();
