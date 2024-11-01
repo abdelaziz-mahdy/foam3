@@ -23,11 +23,20 @@ foam.CLASS({
         return this.setting_.enabled;
       },
       postSet: function(o, n) {
-        if ( o == n || n == this.setting_.enabled ) return;
-        this.setting_.enabled = n;
-        this.setting_.owner = this.subject.user.id;
+        if ( ! o || o == n ) return;
+        var setting = this.setting_;
+        if ( setting.owner != this.subject.user.id ) {
+          setting = this.setting_.clone();
+          setting.id = undefined;
+        }
+        setting.enabled = n;
+        setting.owner = this.subject.user.id;
+        setting.spid = this.subject.user.spid;
         this.controllerMode = 'VIEW';
-        this.subject.user.notificationSettings.put(this.setting_).then(() => { this.controllerMode = 'EDIT'; });
+        this.subject.user.notificationSettings.put(setting).then((s) => {
+          this.setting_.copyFrom(s);
+          this.controllerMode = 'EDIT';
+        });
       }
     },
     'setting_',

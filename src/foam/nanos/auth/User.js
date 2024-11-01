@@ -922,7 +922,10 @@ foam.CLASS({
       name: 'getImpliedNotificationSettings',
       args: 'Context x',
       type: 'java.util.HashMap',
-      code: async function(x) {
+      code: async function(x, filterDisabled = true) {
+        // filterDisabled used by NotificationSettingView to show
+        // user their settings.
+
         x = x || this.__subContext__;
         let map = {};
         // System defaults
@@ -939,10 +942,11 @@ foam.CLASS({
         (await x.notificationSettingDefaultsDAO
          .where(this.EQ(foam.nanos.notification.NotificationSetting.SPID, x.theme.spid))
          .select())?.array?.map(a => {
-           if ( a.enabled ) {
-             map[a.model_.label] = a;
+           if ( ! a.enabled &&
+                filterDisabled ) {
+             delete map[a.model_.label];
            } else {
-             map.delete(a.model_.label);
+             map[a.model_.label] = a;
            }
          });
 
@@ -955,10 +959,11 @@ foam.CLASS({
         // User Preference
         (await this.notificationSettings
          .select())?.array?.map(a => {
-           if ( a.enabled ) {
-             map[a.model_.label] = a;
+           if ( ! a.enabled &&
+                filterDisabled ) {
+             delete map[a.model_.label];
            } else {
-             map.delete(a.model_.label);
+             map[a.model_.label] = a;
            }
         });
         return map;
