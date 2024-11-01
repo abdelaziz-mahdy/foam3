@@ -50,6 +50,7 @@ foam.INTERFACE({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.nanos.client',
   name: 'BaseClientBuilderService',
@@ -91,14 +92,14 @@ foam.CLASS({
 
         // Use session context going forward as the user might have been assigned a new session
         foam.core.X newX = session.getContext();
-        
+
         Theme theme = getTheme(newX);
 
         AppConfig appConfig = getAppConfig(newX);
 
         DAO nSpecDAO = ((DAO) x.get("nSpecDAO")).inX(newX);
         nSpecDAO.where(EQ(NSpec.SERVE, true)).select(proj);
-       
+
         Map<String, Object> retMap = new HashMap<>();
         if ( sub != null ) {
           retMap.put("subject", sub);
@@ -164,7 +165,7 @@ foam.CLASS({
         try {
           return (Subject) auth.getCurrentSubject(x);
         } catch ( AuthenticationException e ) {
-          /* 
+          /*
            * No-op:
            * Suppress auth exceptions as it is normal to request and
            * not find a subject for a new session

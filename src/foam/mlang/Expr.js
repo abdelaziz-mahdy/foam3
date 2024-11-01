@@ -7,9 +7,10 @@
 foam.INTERFACE({
   package: 'foam.mlang',
   name: 'Expr',
+
   implements: [
     'foam.dao.SQLStatement',
-    'foam.mlang.F',
+    'foam.mlang.F'
   ],
 
   documentation: 'Expr interface extends F interface: partialEval -> Expr.',
@@ -23,12 +24,7 @@ foam.INTERFACE({
       name: 'authorize',
       flags: [ 'java' ],
       type: 'Void',
-      args: [
-        {
-          name: 'x',
-          type: 'Context'
-        }
-      ]
+      args: 'Context x'
     }
   ]
 });

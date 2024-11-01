@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+// TODO: Joystick
+
 foam.CLASS({
   package: 'com.google.flow',
   name: 'Clock',
@@ -78,7 +80,8 @@ foam.CLASS({
 foam.CLASS({
   package: 'com.google.flow',
   name: 'Line',
-  extends: 'foam.graphics.Line'
+  extends: 'foam.graphics.Line',
+ properties: [ [ 'endX', 500], [ 'endY', 500 ] ]
 });
 
 
@@ -201,8 +204,8 @@ foam.CLASS({
       isFramed: true,
       code: function() {
         this.children.
-            filter(function(c) { return ! com.google.flow.Halo.isInstance(c); }).
-            forEach(this.remove.bind(this));
+          filter(function(c) { return ! com.google.flow.Halo.isInstance(c); }).
+          forEach(this.remove.bind(this));
 
         this.updateCellSize();
         this.width  = this.width;
@@ -211,8 +214,10 @@ foam.CLASS({
 
         for ( var i = 0 ; i < this.rows ; i++ ) {
           for ( var j = 0 ; j < this.columns ; j++ ) {
-            var o = this.of.create(null, this.__subContext__);
-            o.x = w  * j;
+            var o = this.of.create(null, this.__subContext__.createSubContext({
+              i: i, j: j
+            }));
+            o.x = w * j;
             o.y = h * i;
             this.add(o);
           }
@@ -235,11 +240,9 @@ foam.CLASS({
   properties: [
     [ 'mass', foam.physics.Physical.INFINITE_MASS ],
     [ 'border', null ],
-    [ 'color', 'red' ],
+    [ 'color',  'red' ],
     [ 'start',  Math.PI ],
     [ 'radius', 20 ],
-    [ 'width', 42 ],
-    [ 'height', 45 ],
     { name: 'stem', hidden: true/*, view: 'foam.u2.DetailView'*/ }
   ],
 
@@ -330,8 +333,8 @@ foam.CLASS({
     {
       name: 'onMouseMove',
       code: function(evt) {
-        this.x = evt.layerX;
-        this.y = evt.layerY;
+        this.x = evt.offsetX;
+        this.y = evt.offsetY;
       }
     }
   ]
@@ -638,6 +641,60 @@ foam.CLASS({
   ]
 });
 
+foam.CLASS({
+  package: 'com.google.flow',
+  name: 'Proxy',
+  extends: 'foam.graphics.CView',
+
+  imports: [
+    'scope'
+  ],
+
+  properties: [
+    {
+      class: 'String',
+      name: 'delegate'
+    },
+    {
+      class: 'Int',
+      name: 'maxDepth',
+      value: 3
+    },
+    [ 'width', 50 ],
+    [ 'height', 50 ],
+    {
+      class: 'Int',
+      name: 'depth_',
+      hidden: true
+    }
+  ],
+
+  methods: [
+    function paintSelf(x) {
+      if ( ! this.delegate ) return;
+
+      if ( this.depth_ >= this.maxDepth ) return;
+      this.depth_++;
+
+      try {
+        this.paintChildren(x);
+
+        var obj = this.scope[this.delegate];
+
+        if ( obj ) {
+          this.width  = obj.width  || (2 * obj.r);
+          this.height = obj.height || (2 * obj.r);
+
+          obj.paintSelf(x);
+          obj.paintChildren(x);
+        }
+      } finally {
+        this.depth_--;
+      }
+    }
+  ]
+});
+
 
 foam.CLASS({
   package: 'com.google.flow',
@@ -783,11 +840,13 @@ foam.CLASS({
     },
 
     function ss() {
+      /* Save Stack */
       this.mementoStack_.push(this.memento);
       return this;
     },
 
     function rs() {
+      /* Restore Stack */
       this.memento = this.mementoStack_.pop();
       return this;
     },
@@ -824,8 +883,8 @@ foam.CLASS({
     function fd(d) {
       /* ForwarD */
       return this.gt(
-          this.x + d * Math.cos(this.rotation+Math.PI/2),
-          this.y - d * Math.sin(this.rotation+Math.PI/2));
+        this.x + d * Math.cos(this.rotation+Math.PI/2),
+        this.y - d * Math.sin(this.rotation+Math.PI/2));
     },
 
     function gt(x, y) {
@@ -1290,6 +1349,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 // foam.json.stringify(flow.memento.map(function(o) { var v = o.value; var r = {name: o.name, factory: 'function() { return ' + v.cls_.id + '.create(' + foam.json.stringify(v.instance_) + ')}'};  return r;})).replace(/\"/g,"'").replace(/\\/g,'');
 

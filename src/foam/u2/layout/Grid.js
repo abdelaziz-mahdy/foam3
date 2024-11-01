@@ -37,7 +37,7 @@ foam.CLASS({
     async function render() {
       this.SUPER();
       this.addClass();
-      this.initContainerWidth();
+      this.initContainer();
       this.style(
         { 'grid-template-columns': this.containerWidth$.map(dw => {
             dw = dw || foam.u2.layout.DisplayWidth.XL;

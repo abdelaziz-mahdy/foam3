@@ -81,6 +81,7 @@ foam.CLASS({
   imports: [ 'document', 'log' ],
 
   javaImports: [
+    'foam.core.Indexer',
     'foam.core.PropertyInfo',
     'foam.dao.index.AddIndexCommand',
     'foam.nanos.boot.NSpec',
@@ -362,14 +363,14 @@ foam.CLASS({
         if ( getPm() )
           delegate = new foam.dao.PMDAO.Builder(getX()).setNSpec(getNSpec()).setDelegate(delegate).build();
 
-        for ( PropertyInfo prop : indexes ) {
+        for ( Indexer i : indexes ) {
           AddIndexCommand cmd = new AddIndexCommand();
-          cmd.setProps(new PropertyInfo[] { prop });
+          cmd.setIndexers(new Indexer[] { i });
           Object result = delegate.cmd_(getX(), cmd);
           if ( result == null ||
               ! ( result instanceof Boolean ) ||
               ((Boolean) result).booleanValue() != true ) {
-            ((Logger) getX().get("logger")).warning(getName(), "Index not added, no access to MDAO", prop);
+            ((Logger) getX().get("logger")).warning(getName(), "Index not added, no access to MDAO", i);
           }
         }
 
@@ -1164,50 +1165,51 @@ model from which to test ServiceProvider ID (spid)`,
     {
       name: 'addPropertyIndex',
       type: 'foam.dao.EasyDAO',
-      args: 'foam.core.PropertyInfo... props',
+      args: 'foam.core.Indexer... indexers',
       code: function addPropertyIndex() {
         this.mdao && this.mdao.addPropertyIndex.apply(this.mdao, arguments);
         return this;
       },
       javaCode: `
         AddIndexCommand cmd = new AddIndexCommand();
-        cmd.setProps(props);
+        cmd.setIndexers(indexers);
         Object result = getDelegate().cmd_(getX(), cmd);
         if ( result == null ||
             ! ( result instanceof Boolean ) ||
             ((Boolean) result).booleanValue() != true ) {
-          ((Logger) getX().get("logger")).warning(getName(), "Index not added, no access to MDAO", Arrays.toString(props));
+          ((Logger) getX().get("logger")).warning(getName(), "Index not added, no access to MDAO", Arrays.toString(indexers));
         }
         return this;
       `
     },
-    // /** Only relevant if cache is true or if daoType
-    //   was set to MDAO, but harmless otherwise. Adds an existing index
-    //   to the MDAO.
-    //   @param index The index to add.
-    // */
-    // {
-    //   name: 'addIndex',
-    //   type: 'foam.dao.EasyDAO',
-    //   documentation: 'Only relavent if the cache is true or if daoType was set to MDAO, but harmless otherwise. Adds an existing index to the MDAO',
-    //   // TODO: The java Index interface conflicts with the js CLASS Index
-    //   args: [ { javaType: 'foam.dao.index.Index', name: 'index' } ],
-    //   code: function addIndex(index) {
-    //     this.mdao && this.mdao.addIndex.apply(this.mdao, arguments);
-    //     return this;
-    //   },
-    //   javaCode: `
-    //     AddIndexCommand cmd = new AddIndexCommand();
-    //     cmd.setIndex(index);
-    //     Object result = getDelegate().cmd_(getX(), cmd);
-    //     if ( result == null ||
-    //         ! ( result instanceof Boolean ) ||
-    //         ((Boolean) result).booleanValue() != true ) {
-    //       ((Logger) getX().get("logger")).warning(getName(), "Index not added, no access to MDAO");
-    //     }
-    //     return this;
-    //   `
-    // },
+    /** Only relevant if cache is true or if daoType
+      was set to MDAO, but harmless otherwise. Adds an existing index
+      to the MDAO.
+      @param index The index to add.
+    */
+    {
+      name: 'addIndex',
+      type: 'foam.dao.EasyDAO',
+      documentation: 'Only relavent if the cache is true or if daoType was set to MDAO, but harmless otherwise. Adds an existing index to the MDAO',
+      // TODO: The java Index interface conflicts with the js CLASS Index
+//      args: [ { javaType: 'foam.dao.index.Index', name: 'index' } ],
+      args: 'Object index',
+      code: function addIndex(index) {
+        this.mdao && this.mdao.addIndex.apply(this.mdao, arguments);
+        return this;
+      },
+      javaCode: `
+        AddIndexCommand cmd = new AddIndexCommand();
+        cmd.setIndex(index);
+        Object result = getDelegate().cmd_(getX(), cmd);
+        if ( result == null ||
+            ! ( result instanceof Boolean ) ||
+            ((Boolean) result).booleanValue() != true ) {
+          ((Logger) getX().get("logger")).warning(getName(), "Index not added, no access to MDAO");
+        }
+        return this;
+      `
+    },
     {
       name: 'addDecorator',
       documentation: 'Places a decorator chain ending in a null delegate at a specified point in the chain. Automatically insterts between given decorator and mdao. If "before" flag is true, decorator chain placed before the dao instead of inbetween the supplied dao and mdao. Return true on success.',

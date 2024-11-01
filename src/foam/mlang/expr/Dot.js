@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.mlang.expr',
   name: 'Dot',
   extends: 'foam.mlang.AbstractExpr',
-  implements: [ 'foam.core.Serializable' ],
+  implements: [ 'foam.core.Serializable', 'foam.core.Indexer' ],
 
   documentation: `
     A Binary Expression which evaluates arg1 and passes the result to arg2.
@@ -17,6 +17,12 @@ foam.CLASS({
     For example, to get city from user address:
 
     DOT(User.ADDRESS, Address.CITY).f(user); // return user.address.city
+
+    Since Dot implements foam.core.Indexer, it can be used as an Index
+    compoment for EasyDAO or on MDAO's directly.
+
+    Example:
+    easyDAO.addPropertyIndex(new foam.core.Indexer[] { foam.mlang.Mlang.DOT(User.ADDRESS, Address.CITY) });
   `,
 
   properties: [
@@ -43,16 +49,28 @@ foam.CLASS({
       `
     },
 
-    function toString() {
-      return this.arg1 + '.' + this.arg2;
+    {
+      name: 'toString',
+      code: function toString() { return this.arg1 + '.' + this.arg2; },
+      javaCode: 'return getArg1() + "." + getArg2();'
     },
 
+    // ???: Where is this used? Same as comparePropertyToValue ?
     function comparePropertyValues(o1, o2) {
       /**
          Compare property values using arg2's property value comparator.
          Used by GroupBy
       **/
       return this.arg2.comparePropertyValues(o1, o2);
+    },
+
+    {
+      name: 'comparePropertyToValue',
+      type: 'int',
+      args: 'Object key, Object value',
+      javaCode: `
+        return ((foam.core.Indexer) getArg2()).comparePropertyToValue(key, value);
+      `
     }
   ]
 });

@@ -63,8 +63,11 @@ foam.POM({
       'org.mongodb:mongodb-driver:3.4.2',
       'org.postgresql:postgresql:42.3.8',
       'nl.martijndwars:web-push:5.1.1', // https://github.com/web-push-libs/webpush-java
-      'com.eatthepath:pushy:0.15.4',
       'com.eatthepath:fast-uuid:0.2.0',
+      'com.eatthepath:pushy:0.15.4 -io.netty:netty-codec-http2 -io.netty:netty-handler-proxy -io.netty:netty-resolver-dns',
+      'io.netty:netty-codec-http2:4.1.114.Final',
+      'io.netty:netty-handler-proxy:4.1.114.Final',
+      'io.netty:netty-resolver-dns:4.1.114.Final',
       'org.junit.jupiter:junit-jupiter-engine:5.6.0',
       'org.junit.jupiter:junit-jupiter-params:5.6.0',
       'org.junit.platform:junit-platform-launcher:1.6.0',

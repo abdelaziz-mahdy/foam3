@@ -89,7 +89,7 @@ foam.CLASS({
   methods: [
     function render() {
       this.SUPER();
-      this.initContainerWidth();
+      this.initContainer();
       var widgetContainer = this.E()
         .addClass(this.myClass('widget-container'))
         .style({

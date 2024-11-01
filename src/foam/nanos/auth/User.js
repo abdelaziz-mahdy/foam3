@@ -29,6 +29,8 @@ foam.CLASS({
     'foam.core.X',
     'foam.dao.DAO',
     'foam.dao.ArraySink',
+    'static foam.mlang.MLang.AND',
+    'static foam.mlang.MLang.EQ',
     'foam.nanos.auth.LifecycleAware',
     'foam.nanos.auth.LifecycleState',
     'foam.nanos.notification.NotificationSetting',
@@ -39,8 +41,7 @@ foam.CLASS({
     'java.util.HashMap',
     'java.util.HashSet',
     'java.util.List',
-    'java.util.regex.Pattern',
-    'static foam.mlang.MLang.EQ'
+    'java.util.regex.Pattern'
   ],
 
   documentation: `The User represents a person or entity with the ability
@@ -925,14 +926,25 @@ foam.CLASS({
         x = x || this.__subContext__;
         let map = {};
         // System defaults
-        (await x.notificationSettingDefaultsDAO.where(this.EQ(foam.nanos.notification.NotificationSetting.SPID, '*')).select())?.array?.map(a => {
+        (await x.notificationSettingDefaultsDAO.where(
+          this.AND(
+            this.EQ(foam.nanos.notification.NotificationSetting.SPID, '*'),
+            this.EQ(foam.nanos.notification.NotificationSetting.ENABLED, true)
+          ))
+         .select())?.array?.map(a => {
            map[a.model_.label] = a;
         });
 
         // Spid defaults
-        (await x.notificationSettingDefaultsDAO.where(this.EQ(foam.nanos.notification.NotificationSetting.SPID, x.theme.spid)).select())?.array?.map(a => {
-           map[a.model_.label] = a;
-        });
+        (await x.notificationSettingDefaultsDAO
+         .where(this.EQ(foam.nanos.notification.NotificationSetting.SPID, x.theme.spid))
+         .select())?.array?.map(a => {
+           if ( a.enabled ) {
+             map[a.model_.label] = a;
+           } else {
+             map.delete(a.model_.label);
+           }
+         });
 
         // Wipe ids and spids for any defaults
         Object.keys(map).forEach(key => {
@@ -941,8 +953,13 @@ foam.CLASS({
         });
 
         // User Preference
-        (await this.notificationSettings.select())?.array?.map(a => {
-           map[a.model_.label] = a;
+        (await this.notificationSettings
+         .select())?.array?.map(a => {
+           if ( a.enabled ) {
+             map[a.model_.label] = a;
+           } else {
+             map.delete(a.model_.label);
+           }
         });
         return map;
       },
@@ -951,7 +968,11 @@ foam.CLASS({
 
         // Defaults for system
         List<NotificationSetting> settingDefaults = ((ArraySink) ((DAO) x.get("notificationSettingDefaultsDAO")).inX(x)
-          .where(EQ(foam.nanos.notification.NotificationSetting.SPID, "*"))
+          .where(
+            AND(
+              EQ(foam.nanos.notification.NotificationSetting.SPID, "*"),
+              EQ(foam.nanos.notification.NotificationSetting.ENABLED, true)
+            ))
           .select(new ArraySink()))
           .getArray();
         for ( NotificationSetting setting : settingDefaults ) {
@@ -964,13 +985,24 @@ foam.CLASS({
           .select(new ArraySink()))
           .getArray();
         for ( NotificationSetting setting : settingDefaults ) {
-          settingsMap.put(setting.getClassInfo().getId(), setting);
+          if ( setting.getEnabled() ) {
+            settingsMap.put(setting.getClassInfo().getId(), setting);
+          } else {
+            // use disabled to opt-out
+            settingsMap.remove(setting.getClassInfo().getId());
+          }
         }
 
         // User explicit settings
-        List<NotificationSetting> settings = ((ArraySink) getNotificationSettings(x).select(new ArraySink())).getArray();
+        List<NotificationSetting> settings = ((ArraySink) getNotificationSettings(x)
+          .select(new ArraySink())).getArray();
         for ( NotificationSetting setting : settings ) {
-          settingsMap.put(setting.getClassInfo().getId(), setting);
+          if ( setting.getEnabled() ) {
+            settingsMap.put(setting.getClassInfo().getId(), setting);
+          } else {
+            // use disabled to opt-out
+            settingsMap.remove(setting.getClassInfo().getId());
+          }
         }
 
         return settingsMap;

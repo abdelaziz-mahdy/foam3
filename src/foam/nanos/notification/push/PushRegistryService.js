@@ -16,7 +16,8 @@ foam.CLASS({
     'foam.nanos.auth.User',
     'foam.nanos.auth.AuthService',
     'foam.nanos.notification.push.iOSNativePushRegistration',
-    'foam.nanos.session.Session'
+    'foam.nanos.session.Session',
+    'foam.util.SafetyUtil'
   ],
 
   methods: [
@@ -56,11 +57,14 @@ foam.CLASS({
             return;
           }
         }
-        // Rare scenario where the user gets assigned a new session but their device maintains their old endpoint
-        PushRegistration p2 = (PushRegistration) dao.find(MLang.EQ(PushRegistration.ENDPOINT, endpoint));
-        if ( p2 != null ) {
-          // Can treat this as an invalid token and the entry can be deleted as it is about to be replaced
-          dao.remove(p2);
+        
+        if ( ! SafetyUtil.isEmpty(r.getEndpoint()) ) {
+          // Rare scenario where the user gets assigned a new session but their device maintains their old endpoint
+          PushRegistration p2 = (PushRegistration) dao.find(MLang.EQ(PushRegistration.ENDPOINT, r.getEndpoint()));
+          if ( p2 != null ) {
+            // Can treat this as an invalid token and the entry can be deleted as it is about to be replaced
+            dao.remove(p2);
+          }
         }
 
         // Possible issue: User A signs in and gets access to notifications then user B signs in and gets access to notifications. 

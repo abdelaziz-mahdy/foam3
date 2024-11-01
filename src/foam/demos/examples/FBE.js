@@ -125,7 +125,8 @@ foam.CLASS({
       ],
 
       properties: [
-        'dom'
+        'dom',
+        { class: 'Boolean', name: 'showOutput' }
       ],
 
       css: `
@@ -163,11 +164,14 @@ foam.CLASS({
             add(this.Example.TEXT).
             br().
             add(this.Example.CODE).
-            br().
-            start('span').style({'font-weight': 500}).add('Output:').end().
             start().
-              style({border: '1px solid black', padding: '8px'}).
-              tag('div', {}, this.dom$).
+              show(self.showOutput$).
+              br().
+              start('span').style({'font-weight': 500}).add('Output:').end().
+              start().
+                style({border: '1px solid black', padding: '8px'}).
+                tag('div', {}, this.dom$).
+              end().
             end();
 
             this.runListener();
@@ -211,6 +215,9 @@ foam.CLASS({
               add: function() {
                 return self.dom.add.apply(self.dom, arguments);
               },
+              br: function() {
+                return self.dom.br();
+              },
               start: function() {
                 return self.dom.start.apply(self.dom, arguments);
               },
@@ -223,9 +230,10 @@ foam.CLASS({
               with ( this.globalScope ) {
                 try {
                   eval(self.data.code);
+                  if ( self.dom.children.length ) self.showOutput = true;
                 } catch (x) {
-                  self.data.error = true;
                   scope.log(x.toString());
+                  self.data.error = true;
                 }
               }
             }

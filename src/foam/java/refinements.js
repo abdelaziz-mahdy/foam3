@@ -318,12 +318,21 @@ if ( ! ((foam.mlang.predicate.Predicate) parser.parse(sps,px).value()).f(obj) ) 
         }
       }
 
-      return foam.java.PropertyInfo.create({
+      var info = foam.java.PropertyInfo.create({
         includeInID: isID,
         sourceCls:   cls,
         extends:     this.javaInfoType,
         property:    this
       });
+
+      info.method({
+        name: 'toString',
+        visibility: 'public',
+        type: 'String',
+        body: 'return "' + cls.id + '.' + this.name + '";'
+      });
+
+      return info;
     },
 
     function generateSetter_() {

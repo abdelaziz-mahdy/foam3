@@ -352,3 +352,24 @@ t.errors_$.dedup().sub(() => {
   log('Nested:', errorsToString(t.errors_ || 'no errors'));
 });
 t.errors_;
+
+## Trim
+Not exactly a validation feature, but related, is the ability to mark a property
+as being trimmed. A trimmed property will remove space characters from the beginning
+and the end of a value. Trim is implemented on top of the more general normalize:
+feature is called before a value is sent to the server or after the user has left (blurred)
+from the properties text field.
+--
+foam.CLASS({
+  name: 'Example',
+
+  properties: [
+    { class: 'String', name: 'p1' },
+    {                  name: 'p2', trim: true }, // Doesn't work because it isn't class: 'String'
+    { class: 'String', name: 'p3', trim: true },
+    { class: 'String', name: 'p4', normalize: function(v) { return v.trim(); } }
+  ]
+});
+var e = Example.create();
+add(e);
+start('pre').add(e.p1$, '|', e.p2$, '|', e.p3$, '|', e.p4$ , '|');

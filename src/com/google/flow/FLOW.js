@@ -163,6 +163,7 @@ foam.CLASS({
     'com.google.flow.Ellipse',
     'com.google.flow.FLOW',
     'com.google.flow.Halo',
+    'com.google.flow.LineHalo',
     'com.google.flow.Property',
     'foam.dao.EasyDAO',
     'foam.demos.sevenguis.Cells',
@@ -213,7 +214,7 @@ foam.CLASS({
       ^ .foam-u2-ActionView { margin: 10px; }
       ^cmd { box-shadow: 3px 3px 6px 0 gray; width: 100%; margin-bottom: 8px; }
       ^properties { margin-right: 8px; height: auto; }
-      ^properties .foam-u2-view-TreeViewRow { position: relative; }
+      ^properties .foam-u2-view-TreeViewRow { position: relative; width: 200px; }
       ^properties .foam-u2-ActionView, ^properties .foam-u2-ActionView:hover {
         background: none;
         border: none;
@@ -228,8 +229,9 @@ foam.CLASS({
         right: 0;
         top: 12px;
       }
+      ^ .foam-u2-RangeView { width: 200px; }
       .foam-u2-Tabs { padding-top: 0 !important; margin-right: -8px; }
-      input[type="range"] { width: 60px; height: 15px; }
+//      input[type="range"] { width: 60px; }
       input[type="color"] { width: 60px; }
 `,
 
@@ -245,6 +247,7 @@ foam.CLASS({
           },
           clear: function() {
             self.updateMemento().then(function() {
+              // TODO: replace 4 with something more meaningful
               self.properties.skip(4).removeAll();
             });
           },
@@ -369,6 +372,8 @@ foam.CLASS({
         dao.put(com.google.flow.Strut.model_);
         dao.put(com.google.flow.Cursor.model_);
         dao.put(com.google.flow.Script.model_);
+        dao.put(com.google.flow.Proxy.model_);
+        dao.put(foam.input.Gamepad.model_);
         dao.put(foam.core.Model.model_);
         // dao.put(com.google.dxf.ui.DXFDiagram.model_);
         return dao;
@@ -404,6 +409,7 @@ foam.CLASS({
       view: function(args, x) {
         return {
           class: 'com.google.flow.TreeView',
+          draggable: true,
           relationship: com.google.flow.PropertyPropertyChildrenRelationship,
           startExpanded: true,
           formatter: function(data) {
@@ -448,6 +454,7 @@ foam.CLASS({
         this.scope.physics = this.physics;
         this.scope.timer   = this.timer;
         this.scope.cycle   = this.timer.cycle.bind(this.timer);
+        this.scope.range   = this.timer.range.bind(this.timer);
 
         return dao;
       }
@@ -511,14 +518,18 @@ foam.CLASS({
 
   methods: [
     function render() {
+      var self = this;
+
       this.timer.start();
 
       this.properties.on.put.sub(this.onPropertyPut);
       this.properties.on.remove.sub(this.onPropertyRemove);
 
       var halo = this.Halo.create();
-      var self = this;
       halo.selected$.linkFrom(this.selected$);
+
+      var lineHalo = this.LineHalo.create();
+      lineHalo.selected$.linkFrom(this.selected$);
 
       this.memento$.sub(this.onMemento);
 
@@ -702,7 +713,8 @@ foam.CLASS({
       var x = evt.offsetX, y = evt.offsetY;
       var c = this.canvas.findFirstChildAt(x, y);
 
-      if ( this.Halo.isInstance(c) ) return;
+      if ( this.Halo.isInstance(c)     ) return;
+      if ( this.LineHalo.isInstance(c) ) return;
 
       if ( c === this.canvas ) {
         var tool = this.currentTool;

@@ -27,6 +27,14 @@ foam.CLASS({
     'static foam.mlang.MLang.EQ'
   ],
 
+  properties: [
+    {
+      name: 'enabled',
+      readPermissionRequired: false,
+      writePermissionRequired: true
+    },
+  ],
+
   methods: [
     {
       name: 'resolveNotificationArguments',

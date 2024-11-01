@@ -35,7 +35,6 @@ foam.CLASS({
       display: flex;
       flex-direction: column;
       gap: 12px;
-      container: addressView / inline-size;
     }
 
     ^three-column {
@@ -50,8 +49,13 @@ foam.CLASS({
     {
       name: 'AutocompleterAddressFields',
       extends: 'foam.u2.View',
+      mixins: ['foam.u2.layout.ContainerWidth'],
 
       imports: ['placeService'],
+
+      requires: [
+        'foam.u2.layout.DisplayWidth',
+      ],
 
       css: `
         ^two-column {
@@ -60,16 +64,16 @@ foam.CLASS({
           grid-gap: 8px;
           align-items: start;
         }
-        @container addressView (width > 768px) {
-          ^two-column {
-            grid-template-columns: 2fr 1fr;
-          }
+        ^two-column.lg {
+          grid-template-columns: 2fr 1fr;
         }
       `,
       methods: [
         function render() {
           let self = this;
+          this.initContainer();
           this.start().addClass(this.myClass('two-column'))
+          .enableClass('lg', this.inlineSize$.map(v => v >= this.DisplayWidth.MD.minWidth ))
           .start(this.data.ADDRESS1.__, {
             config:  {
               view: {
@@ -83,7 +87,6 @@ foam.CLASS({
               }
             } 
           })
-            // .style({ 'grid-column': self.data$.dot('structured').map(v => v ? 'span 1' :'span 2') })
           .end()
           .add(self.slot(function(data$structured) {
             if ( data$structured ) console.warn('Using autocompleter with structured addresses may cause validation issues');

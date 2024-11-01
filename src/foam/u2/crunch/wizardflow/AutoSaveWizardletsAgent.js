@@ -12,7 +12,8 @@ foam.CLASS({
   `,
 
   imports: [
-    'wizardlets'
+    'wizardlets',
+    'wizardController'
   ],
 
   requires: [
@@ -38,8 +39,10 @@ foam.CLASS({
       name: 'autoSave',
       // Does not need idled or merged as the wizardlet data sub already does this
       // isIdled: true,
-      code: function(wizardlet) {
-        wizardlet.save({ reloadData: wizardlet.reloadOnAutoSave });
+      code: async function(wizardlet) {
+        this.wizardController.isLoading_ = true;
+        await wizardlet.save({ reloadData: wizardlet.reloadOnAutoSave });
+        this.wizardController.isLoading_ = false;
       }
     }
   ]

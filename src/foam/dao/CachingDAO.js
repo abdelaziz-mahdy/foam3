@@ -39,6 +39,7 @@ foam.CLASS({
   ],
 
   imports: [
+    'document',
     'loginSuccess?',
     'setInterval'
   ],
@@ -181,13 +182,16 @@ foam.CLASS({
 
     /** Polls updates from the source. */
     function poll() {
-      var self = this;
+      // No need to update if the tab is hidden
+      if ( this.document.hidden ) return;
 
       if ( ! this.loginSuccess ) return;
 
+      var self = this;
+
       self.delegate
         .orderBy(this.DESC(self.pollingProperty))
-        .limit(1) 
+        .limit(1)
         .select().then(function(data) {
           if ( data.array.length === 1 ) {
             self.src
