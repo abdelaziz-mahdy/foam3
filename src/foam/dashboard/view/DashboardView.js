@@ -139,8 +139,8 @@ foam.CLASS({
       .end()
       .tag(widgetContainer)
 
-      let menuLength = Object.keys(this.widgets).length
       let menuArray = Object.keys(this.widgets)
+      let menuLength = menuArray.length
       for(let step = 0; step < menuLength; step++) {
 
           let menuId = menuArray[step];
