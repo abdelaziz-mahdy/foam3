@@ -11,5 +11,6 @@ p({
   },
   code:"""
     new foam.net.ipgeo.UpdateIPGeolocationInfoAgent().execute(x);
-  """
+  """,
+  enabled: false
 })
