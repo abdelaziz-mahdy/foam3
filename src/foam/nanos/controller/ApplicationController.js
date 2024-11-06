@@ -379,8 +379,8 @@ foam.CLASS({
       postSet: function(_, n) {
         // only pushmenu on route change after the fetchsubject process has been initiated
         // as the init process will also check the route and pushmenu if required
-        if ( this.initSubject && n ) {
-          this.pushMenu_(null, n);
+        if (this.initSubject) {
+          n ? this.pushMenu_(null, n) : this.pushDefaultMenu();
         }
       }
     },
