@@ -161,12 +161,10 @@ foam.CLASS({
             if ( required && self.isDefaultValue(this[name]) ) {
               return self.REQUIRED;
             }
-            var err = null;
             for ( var i = 0 ; i < vps.length ; i++ ) {
               var vp = vps[i];
-              if ( vp.jsFunc.call(self, this) ) err = (err ? err + ' ' : '') + vp.jsErr.call(this, this);
+              if ( vp.jsFunc.call(self, this) ) return vp.jsErr.call(this, this);
             }
-            return err;
           }];
         }
 
