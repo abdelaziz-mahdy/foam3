@@ -419,7 +419,6 @@ foam.CLASS({
     sps.setString("instanceof foam.nanos.ruler.Rule");
     test(((Predicate) parser.parse(sps, px).value()).f(rule), "thisValue instanceof foam.nanos.ruler.Rule");
 
-    parser = FScriptParser.create(foam.parse.test.FScriptParserTestUser.getOwnClassInfo());
     List<LiteralIC> expressions = new ArrayList();
     expressions.add(new LiteralIC("lit_int_10", new Constant(10)));
     expressions.add(new LiteralIC("lit_int_20", new Constant(20)));
@@ -428,7 +427,7 @@ foam.CLASS({
     expressions.add(new LiteralIC("lit_float_222", new Constant(222.0)));
     expressions.add(new LiteralIC("lit_float_333", new Constant(333.0)));
     expressions.add(new LiteralIC("region", new Constant("CA-ON")));
-    parser.addExpressions(expressions);
+    parser = FScriptParser.create(foam.parse.test.FScriptParserTestUser.getOwnClassInfo(), expressions);
 
     sps.setString("if (address.regionId==region) {firstName} else {null}");
     result = (String) ((Expr)parser.parse(sps, px).value()).f(user);

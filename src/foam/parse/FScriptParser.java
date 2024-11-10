@@ -57,6 +57,17 @@ public class FScriptParser {
     return p;
   }
 
+  // Strongly consider using FScriptParser.create() instead
+  public static FScriptParser create(ClassInfo classInfo, List expressions) {
+    if ( expressions == null ||
+         expressions.size() == 0 ) {
+      return FScriptParser.create(classInfo);
+    }
+    FScriptParser p = new FScriptParser(classInfo);
+    p.addExpressions(expressions);
+    return p;
+  }
+
   ClassInfo classInfo_;
   protected List expressions;
 
@@ -66,13 +77,12 @@ public class FScriptParser {
     setup(property.getClassInfo(), props);
   }
 
-  // Strongly consider using FScriptParser.create() instead
-  public FScriptParser(ClassInfo classInfo) {
+  private FScriptParser(ClassInfo classInfo) {
     Map props = new HashMap<String, PropertyInfo>();
     setup(classInfo, props);
   }
 
-  public void addExpressions(List expressions) {
+  private void addExpressions(List expressions) {
     this.expressions.addAll(expressions);
     this.expressions.sort(Comparator.comparing(LiteralIC::getString).reversed());
     // foam.nanos.logger.StdoutLogger.instance().info(this.getClass().getSimpleName(), "expressions", this.expressions.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(",")));
