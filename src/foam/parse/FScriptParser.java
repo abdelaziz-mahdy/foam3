@@ -62,7 +62,22 @@ public class FScriptParser {
          expressions.size() == 0 ) {
       return FScriptParser.create(classInfo);
     }
-    return new FScriptParser(classInfo, expressions);
+
+    StringBuilder sb = new StringBuilder();
+    sb.append(classInfo.getId());
+    for ( Object exp : expressions ) {
+      sb.append(exp.toString());
+    }
+    String key = sb.toString();
+
+    FScriptParser p = (FScriptParser) map__.get(key);
+
+    if ( p == null ) {
+      p = new FScriptParser(classInfo, expressions);
+      map__.put(key, p);
+    }
+
+    return p;
   }
 
   protected ClassInfo classInfo_;
