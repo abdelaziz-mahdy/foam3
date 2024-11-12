@@ -718,7 +718,8 @@ foam.CLASS({
       if ( stringMenu && ! menu.includes('/') )
         menu = realMenu;
       this.menuListener(menu);
-      return menu?.launch?.(this.__subContext__);
+      await menu?.launch?.(this.__subContext__);
+      return true;
     },
 
     async function findDefaultMenu(dao) {
@@ -749,8 +750,8 @@ foam.CLASS({
         if ( defaultMenu.authenticate ) {
           this.routeTo(defaultMenu.id);
         } else {
-          await this.pushMenu_('', defaultMenu.id ?? '');
-          this.memento_.str = '';
+          let ret = await this.pushMenu(defaultMenu.id ?? '');
+          ret && (this.memento_.str = '');
         }
         return defaultMenu;
       }

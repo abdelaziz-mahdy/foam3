@@ -113,7 +113,7 @@ foam.CLASS({
               this.detachTail();
             }
                         // Even if value doesn't exist, then still set, to revert to default value
-            this.obj[p.name] = value && decodeURIComponent(value);
+            this.obj[p.name] = (value && decodeURIComponent(value)) ?? '';
           });
 
           this.tailStr = this.encodeBindings(bs);
