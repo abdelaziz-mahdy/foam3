@@ -516,7 +516,7 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
 
     if ( RUN_USER ) OPT_ARGS += ` -U${RUN_USER}`;
     if ( WEB_PORT ) OPT_ARGS += ` -W${WEB_PORT}`;
-    exec(`${APP_HOME}/bin/run.sh -Z${DAEMONIZE ? 1 : 0} -D${DEBUG ? 1 : 0} -S${DEBUG_SUSPEND ? 'y' : 'n'} -P${DEBUG_PORT} -n${PROJECT.name} -N${APP_HOME} -C${CLUSTER} -H${HOST_NAME} -j${PROFILER ? 1 : 0} -J${PROFILER_PORT} -F${FS} -V${TIMESTAMP_VERSION} ${OPT_ARGS}`);
+    exec(`${APP_HOME}/bin/run.sh -Z${DAEMONIZE ? 1 : 0} -D${DEBUG ? 1 : 0} -S${DEBUG_SUSPEND ? 'y' : 'n'} -P${DEBUG_PORT} -S${PROJECT.name} -N${APP_HOME} -C${CLUSTER} -H${HOST_NAME} -j${PROFILER ? 1 : 0} -J${PROFILER_PORT} -F${FS} -V${VERSION} ${OPT_ARGS}`);
   } else {
     MESSAGE = `Starting NANOS ${INSTANCE}`;
 
