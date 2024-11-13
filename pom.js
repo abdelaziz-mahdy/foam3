@@ -7,6 +7,12 @@
 foam.POM({
     name: 'foam-full',
     version: 3,
+    envVars: [
+      { name: 'NAME', value: 'foam'},
+      { name: 'SYSTEM_NAME', value: 'foam'},
+      { name: 'USER', value: 'foam' },
+      { name: 'USER_ID', value: 3626 }
+    ],
     excludes: [ 'node_modules' ],
     projects: [
       { name: 'src/pom' },
