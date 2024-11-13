@@ -1,10 +1,10 @@
+
 #!/bin/bash
-
-SYSTEM_NAME='foam'
+APP_NAME=
+SYSTEM_NAME=
 VERSION=
-USER='foam'
-USER_ID=3626
-
+USER=
+USER_ID=
 FOAM_TARBALL=
 FOAM_REMOTE_OUTPUT=/tmp/tar_extract
 BACKUP=true
@@ -30,10 +30,10 @@ function usage {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options are:"
+    echo "  -A name           : Application name, also jar prefix"
     echo "  -B <true | false> : disable Backup "
     echo "  -C <true | false> : Enable clustering"
     echo "  -D <path>         : Remote location of tarball"
-    echo "  -G name           : Group name"
     echo "  -O <path>         : Remote directory tarball is extracted to, default to ~/tar_extract"
     echo "  -S name           : systemd service name"
     echo "  -U name           : User and Group name"
@@ -42,8 +42,9 @@ function usage {
     echo ""
 }
 
-while getopts "B:C:D:G:O:S:U:V:Y:" opt ; do
+while getopts "A:B:C:D:O:S:U:V:Y:" opt ; do
     case $opt in
+        A) APP_NAME=${OPTARG};;
         B) BACKUP=${OPTARG};;
         C) CLUSTER=${OPTARG};;
         D) FOAM_TARBALL=${OPTARG};;
@@ -71,11 +72,6 @@ VAR_HOME=${UNIQUE_HOME}/var
 SYSTEM_SERVICE_FILE=/lib/systemd/system/$SYSTEM_NAME.service
 GROUP=$USER
 GROUP_ID=$USER_ID
-
-# if [ -z $FOAM_HOME ]; then
-#     echo "ERROR :: [$HOSTNAME] FOAM_HOME is undefined"
-#     quit
-# fi
 
 function backupFiles {
     echo "INFO :: [$HOSTNAME] Running Files backup"
@@ -327,12 +323,13 @@ function setupSystemd {
     fi
 
     SERVICE_FILE="${FOAM_HOME}/etc/${SYSTEM_NAME}.service"
-    sudo cp "${FOAM_HOME}/etc/system.service" ${SERVICE_FILE}
-    sudo sed -i -e "s/SYSTEM_NAME/${SYSTEM_NAME}/g" ${SERVICE_FILE}
-    sudo sed -i -e "s/VERSION/${VERSION}/g" ${SERVICE_FILE}
-    sudo sed -i -e "s/USER/${USER}/g" ${SERVICE_FILE}
-    sudo sed -i -e "s/GROUP/${GROUP}/g" ${SERVICE_FILE}
-#    sudo chown $USER:$GROUP ${SERVICE_FILE}
+    sudo -- sh -c "cd ${FOAM_HOME}/etc; cp system.service ${SYSTEM_NAME}.service; chown ${USER}:${GROUP} ${SYSTEM_NAME}.service"
+    sed -i -e "s/APP_NAME/${APP_NAME}/g" ${SERVICE_FILE}
+    sed -i -e "s/SYSTEM_NAME/${SYSTEM_NAME}/g" ${SERVICE_FILE}
+    sed -i -e "s/VERSION/${VERSION}/g" ${SERVICE_FILE}
+    sed -i -e "s/USER/${USER}/g" ${SERVICE_FILE}
+    sed -i -e "s/GROUP/${GROUP}/g" ${SERVICE_FILE}
+
     sudo ln -s ${SERVICE_FILE} ${SYSTEM_SERVICE_FILE}
 
     sudo systemctl daemon-reload
@@ -367,8 +364,6 @@ fi
 
 setupUser
 
-setupSystemd
-
 if [ "${BACKUP}" == "true" ]; then
     backupFiles
 fi
@@ -377,6 +372,8 @@ cleanupFiles
 installFiles
 
 setupSymLink
+
+setupSystemd
 
 restart
 

@@ -1,7 +1,11 @@
 #!/bin/bash
 
-USER='foam'
+NAME=foam
+SYSTEM_NAME=foam
+USER=foam
 USER_ID=3626
+
+source build/env.sh
 
 FOAM_TARBALL=
 FOAM_REMOTE_OUTPUT=/tmp
@@ -14,8 +18,6 @@ REMOTE_URL=
 SSH_KEY=
 BACKUP=true
 CLUSTER=false
-VERSION=$(grep version pom.js | cut -d\' -f 2);
-SYSTEM_NAME=$(grep name pom.js | cut -d\' -f 2);
 
 function quit {
     echo "ERROR :: [${REMOTE_URL}] Install Failed"
@@ -33,17 +35,13 @@ function usage {
     echo "  -I <ssh-key>       : SSH Key to use to connect to remote server"
     echo "  -O <path>          : Remote Location to put tarball, default to /tmp"
     echo "  -R <filepath>      : remoterc file to load, default to ./config/foam/remoterc"
-    echo "  -S name            : systemd service name"
     echo "  -T <tarball>       : Name of tarball, looks in target/package"
-    echo "  -U name            : User and Group name"
-    echo "  -V version         : application version"
     echo "  -W <web-address>   : Remote url to connect to"
     echo "  -X name            : Remote user to connect to"
-    echo "  -Y userId          : User and Group ID"
     echo ""
 }
 
-while getopts "B:cC:iI:O:R:S:T:U:V:W:X:Y:" opt ; do
+while getopts "B:cC:iI:O:R:T:W:X:" opt ; do
     case $opt in
         B) BACKUP=${OPTARG};;
         c) CLUSTER=true;;
@@ -52,13 +50,9 @@ while getopts "B:cC:iI:O:R:S:T:U:V:W:X:Y:" opt ; do
         I) SSH_KEY=${OPTARG};;
         O) FOAM_REMOTE_OUTPUT=${OPTARG};;
         R) RC_FILE=$OPTARG;;
-        S) SYSTEM_NAME=${OPTARG};;
         T) FOAM_TARBALL_PATH=${OPTARG};;
-        U) USER=${OPTARG};;
-        V) VERSION=${OPTARG};;
         W) REMOTE_URL=${OPTARG};;
         X) REMOTE_USER=${OPTARG};;
-        Y) USER_ID=${OPTARG};;
         ?) usage; exit 0;;
    esac
 done
@@ -71,7 +65,7 @@ fi
 echo "INFO :: [${REMOTE_URL}] $SYSTEM_NAME $VERSION"
 
 if [ -z $FOAM_TARBALL_PATH ]; then
-    FOAM_TARBALL_PATH=target/package/${SYSTEM_NAME}-deploy-${VERSION}.tar.gz
+    FOAM_TARBALL_PATH=target/package/${NAME}-deploy-${VERSION}.tar.gz
 fi
 
 FOAM_TARBALL=$(basename $FOAM_TARBALL_PATH)
@@ -116,7 +110,7 @@ if [ $INSTALL_ONLY -eq 0 ]; then
     fi
 fi
 
-ssh ${SSH_KEY_OPT} ${REMOTE} "sudo bash -s -- -D${FOAM_REMOTE_OUTPUT}/${FOAM_TARBALL} -C${CLUSTER} -B${BACKUP} -S${SYSTEM_NAME} -V${VERSION} -U${USER} -Y${USER_ID}" < ./foam3/tools/deploy/bin/install.sh
+ssh ${SSH_KEY_OPT} ${REMOTE} "sudo bash -s -- -D${FOAM_REMOTE_OUTPUT}/${FOAM_TARBALL} -C${CLUSTER} -B${BACKUP} -A${NAME} -S${SYSTEM_NAME} -V${VERSION} -U${USER} -Y${USER_ID}" < ./foam3/tools/deploy/bin/install.sh
 
 if [ ! $? -eq 0 ]; then
     quit;

@@ -349,10 +349,12 @@ task('Deploy journal files from JOURNAL_OUT to JOURNAL_HOME.', [], function depl
   copyDir(JOURNAL_OUT, JOURNAL_HOME);
 });
 
+
 task('Deploy documents, journals.', [ 'deployDocuments','deployJournals'], function deploy() {
   if ( ! RUN_JAR && ! TEST && ! BENCHMARK ) {
     deployJournals();
     deployDocuments();
+    envVars();
   }
 });
 
@@ -488,6 +490,9 @@ task('Package files into a TAR archive', [], function buildTar() {
   execSync(`tar -a -cf ${BUILD_DIR}/package/${PROJECT.name}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C ../../../ -C${BUILD_DIR} lib`);
 });
 
+task('Generate deploy details bash script.', [], function envVars() {
+  execSync(`node foam3/tools/pmake.js -makers=EnvVar -pom=${pom()}`, { stdio: 'inherit' });
+});
 
 task('Delete runtime journals.', [], function deleteRuntimeJournals() {
   info('Runtime journals deleted.');
@@ -500,11 +505,11 @@ task('Delete runtime logs.', [], function deleteRuntimeLogs() {
   emptyDir(LOG_HOME);
 });
 
-
 task('Copy required files to APP_HOME deployment directory.', [], function deployToHome() {
   copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
   copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
   copyDir(BUILD_DIR + '/lib', join(APP_HOME, 'lib'));
+  envVars();
 });
 
 
@@ -619,11 +624,6 @@ task('Show version information.', [ 'getProjectGitHash', 'getFOAMGitHash'], func
 task('Show application information.', [], function appName() {
   console.log(`Application Name: ${PROJECT.name}`);
   console.log(`Application VendorId: ${PROJECT.vendorId}`);
-});
-
-task('Show application information.', [], function deploymentDetails() {
-  console.log('User: '+pom.deploymentDetails.user);
-//  console.log(`UserID: ${PROJECT.deploymentDetails.userId}`);
 });
 
 

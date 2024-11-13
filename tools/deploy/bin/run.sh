@@ -2,6 +2,7 @@
 # Super simple launcher.
 
 HOST_NAME=`hostname -s`
+APP_NAME=foam
 SYSTEM_NAME=foam
 WEB_PORT=
 DEBUG_PORT=*:5005
@@ -34,12 +35,12 @@ function usage {
     echo "Options are:"
     echo "  -C <true>           : enable clustering"
     echo "  -D 0 or 1           : Debug mode."
+    echo "  -E <debug port>     : Port to run debugger on."
     echo "  -F <rw | ro>        : File System mode"
     echo "  -H <hostname>       : hostname "
-    echo "  -j 0 or 1           : JProfiler enabled"
-    echo "  -J PORT             : JProfiler PORT"
-    echo "  -N <app_home>       : App home directory."
-    echo "  -P <debug port>     : Port to run debugger on."
+    echo "  -J 0 or 1           : JProfiler enabled"
+    echo "  -P PORT             : JProfiler PORT"
+    echo "  -N <name>           : Application name (also name prefix on jar)"
     echo "  -S <system_name>    : System name."
     echo "  -U <user>           : User to run script as"
     echo "  -V <version>        : Version."
@@ -48,16 +49,16 @@ function usage {
     echo "  -Z <0/1>            : Daemonize."
 }
 
-while getopts "C:D:F:H:j:J:N:P:S:U:V:W:Y:Z:" opt ; do
+while getopts "C:D:E:F:H:J:N:P:S:U:V:W:Y:Z:" opt ; do
     case $opt in
         C) CLUSTER=$OPTARG;;
         D) DEBUG_DEV=$OPTARG;;
+        E) DEBUG_PORT=$OPTARG;;
         F) FS=$OPTARG;;
         H) HOST_NAME=$OPTARG;;
-        j) PROFILER=$OPTARG;;
-        J) PROFILER_PORT=$OPTARG;;
-        N) APP_HOME=$OPTARG;;
-        P) DEBUG_PORT=$OPTARG;;
+        J) PROFILER=$OPTARG;;
+        P) PROFILER_PORT=$OPTARG;;
+        N) APP_NAME=$OPTARG;;
         S) SYSTEM_NAME=$OPTARG;;
         U) RUN_USER=$OPTARG;;
         V) VERSION=$OPTARG;;
@@ -110,9 +111,9 @@ if [ "$PROFILER" -eq 1 ]; then
 fi
 
 if [ ! -z $VERSION ]; then
-    JAR="${APP_HOME}/lib/${SYSTEM_NAME}-${VERSION}.jar"
+    JAR="${APP_HOME}/lib/${APP_NAME}-${VERSION}.jar"
 else
-    JAR=$(ls ${APP_HOME}/lib/${SYSTEM_NAME}-*.jar | awk '{print $1}')
+    JAR=$(ls ${APP_HOME}/lib/${APP_NAME}-*.jar | awk '{print $1}')
 fi
 
 export RES_JAR_HOME="${JAR}"

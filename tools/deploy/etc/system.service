@@ -9,7 +9,7 @@ StartLimitBurst=3
 Type=simple
 Restart=always
 RestartSec=1
-ExecStart=/opt/SYSTEM_NAME/bin/run.sh -SSYSTEM_NAME -VVERSION -Z0
+ExecStart=/opt/SYSTEM_NAME/bin/run.sh -NAPP_NAME -SSYSTEM_NAME -VVERSION -Z0
 User=USER
 Group=GROUP
 
