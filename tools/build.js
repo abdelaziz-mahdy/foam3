@@ -528,7 +528,6 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
     // process.chdir(PROJECT_HOME);
 
     if ( HOST_NAME ) {
-      info('HOST_NAME=${HOST_NAME}');
       JAVA_OPTS += ` -Dhostname=${HOST_NAME} ${JAVA_OPTS}`;
     }
 

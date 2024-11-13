@@ -71,7 +71,7 @@ while getopts "A:C:D:E:F:H:J:P:S:U:V:W:Y:Z:" opt ; do
    esac
 done
 
-echo "run.sh HOST_NAME=$HOST_NAME"
+echo "run.sh $APP_NAME($SYSTEM_NAME) @ $HOST_NAME:$WEB_PORT"
 
 
 if [ ! -z ${RUN_USER} ] && [ "$(uname -s)" == "Linux" ] && [ "$(whoami)" != "${RUN_USER}" ]; then
