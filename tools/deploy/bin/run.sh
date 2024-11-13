@@ -17,6 +17,8 @@ RUN_USER=
 FS=rw
 #CLUSTER=false
 
+source build/env.sh
+
 MACOS='darwin*'
 LINUXOS='linux-gnu'
 
