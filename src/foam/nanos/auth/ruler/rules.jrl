@@ -59,3 +59,24 @@ p({
   "action":{ "class":"foam.nanos.auth.ruler.PreventInvalidUsernameAction" },
   "lifecycleState":1
 })
+
+p({
+  "class":"foam.nanos.ruler.Rule",
+  "id":"foam-nanos-auth-ruler-UserLifecycleTicketRule",
+  "name":"UserLifecycleTicketRule",
+  "documentation":"Manipulate User Lifecycle based on ticket request",
+  "enabled":true,
+  "saveHistory":false,
+  "ruleGroup": "auth",
+  "daoKey": "localTicketDAO",
+  "operation": 3,
+  "lifecycleState": 1,
+  "predicate": {
+    class: "foam.nanos.ruler.predicate.FScriptRulePredicate",
+    query: 'n instanceof foam.nanos.auth.ruler.UserLifecycleTicket && n.status == "OPEN"'
+  },
+  action: {
+    "class": "foam.nanos.auth.ruler.UserLifecycleTicketRuleAction"
+  }
+})
+//  "after": true,
