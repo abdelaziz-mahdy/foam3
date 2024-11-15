@@ -29,7 +29,7 @@ foam.CLASS({
     'foam.nanos.crunch.UserCapabilityJunction',
     'foam.nanos.logger.Logger',
     'foam.nanos.logger.Loggers',
-    'foam.nanos.logger.PostfixLogger',
+    'foam.nanos.logger.PrefixLogger',
     'foam.nanos.ticket.Ticket',
     'java.util.ArrayList',
     'java.util.List'
@@ -62,7 +62,7 @@ foam.CLASS({
               List updated = new ArrayList();
               updateUserAssociations(
                 rulerX
-                  .put("logger", new PostfixLogger(new Object[] { "UserLifecycleTicket", user.getId() }, (Logger) x.get("logger")))
+                  .put("logger", new PrefixLogger(new Object[] { "UserLifecycleTicket", user.getId() }, (Logger) x.get("logger")))
                   .put(UPDATED_LIST, updated),
                 user, nu);
               user = (User) user.fclone();
