@@ -104,7 +104,7 @@ public class MDAO
 
   public MDAO(ClassInfo of) {
     setOf(of);
-    index_ = new AltIndex(new TreeIndex((Indexer) this.of_.getAxiomByName("id")));
+    index_ = new AltIndex(new TreeIndex((Indexer) this.of_.getAxiomByName("id"), true));
   }
 
   public void addIndex(Index index) {
@@ -116,7 +116,7 @@ public class MDAO
   /** Add an Index which is for a unique value. Use addIndex() if the index is not unique. **/
   public void addUniqueIndex(Indexer... props) {
     Index idx = ValueIndex.instance();
-    for ( var i = props.length-1 ; i >= 0 ; i-- ) idx = new TreeIndex(props[i], idx);
+    for ( var i = props.length-1 ; i >= 0 ; i-- ) idx = new TreeIndex(props[i], idx, i == 0);
     addIndex(idx);
   }
 
@@ -125,7 +125,7 @@ public class MDAO
    **/
   public void addIndex(Indexer... props) {
     Index idx = new TreeIndex((Indexer) this.of_.getAxiomByName("id"));
-    for ( var i = props.length-1 ; i >= 0 ; i-- ) idx = new TreeIndex(props[i], idx);
+    for ( var i = props.length-1 ; i >= 0 ; i-- ) idx = new TreeIndex(props[i], idx, i == 0);
     addIndex(idx);
   }
 
@@ -212,14 +212,13 @@ public class MDAO
 
     // We handle OR logic by seperate request from MDAO. We return different plan for each parameter of OR logic.
     if ( simplePredicate instanceof Or ) {
-      Sink dependSink = new ArraySink();
-      // When we have groupBy, order, skip, limit such requirement, we can't do it separately so I replace a array sink to temporarily holde the whole data
-      // Then after the plan wa slelect we change it to the origin sink
+      // When we have groupBy, order, skip, limit such requirement, we can't do it separately so I replace a array sink to temporarily hold the whole data
+      // Then after the plan we change it to the origin sink
       int length = ((Or) simplePredicate).getArgs().length;
       List<SelectPlan> planList = new ArrayList<>();
       for ( int i = 0 ; i < length ; i++ ) {
         Predicate arg = ((Or) simplePredicate).getArgs()[i];
-        planList.add(index_.planSelect(state, dependSink, 0, AbstractDAO.MAX_SAFE_INTEGER, null, arg));
+        planList.add(index_.planSelect(state, NullSink.instance(), 0, AbstractDAO.MAX_SAFE_INTEGER, null, arg));
       }
       plan = new OrPlan(simplePredicate, planList);
     } else {

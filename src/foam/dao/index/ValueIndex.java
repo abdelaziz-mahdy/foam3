@@ -16,9 +16,6 @@ public class ValueIndex
 
   protected static ValueIndex instance_ = new ValueIndex();
 
-  protected SelectPlan plan = ValuePlan.instance();
-
-
   public static ValueIndex instance() {
     return instance_;
   }
@@ -43,7 +40,7 @@ public class ValueIndex
   }
 
   public SelectPlan planSelect(Object state, Sink sink, long skip, long limit, Comparator order, Predicate predicate) {
-    return (SelectPlan) plan;
+    return ValuePlan.instance();
   }
 
   public long size(Object state) {
@@ -58,4 +55,5 @@ public class ValueIndex
     sink.put(state, null);
   }
 
+  public String toString() { return "ValueIndex()"; }
 }

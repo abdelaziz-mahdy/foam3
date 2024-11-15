@@ -72,6 +72,7 @@ foam.CLASS({
           this.viewStart = {
             x: this.view.x,
             y: this.view.y,
+            radius: this.view.radius,
             width: this.view.width,
             height: this.view.height,
             endX: this.view.endX,
@@ -309,24 +310,20 @@ foam.CLASS({
           v.rotation = vs.rotation + startA - a;
         }}),
         this.Anchor.create({x$: this.x1$, y$: this.y1$, callback: function(v, vs, dx, dy) {
-          v.x      = vs.x + dx;
-          v.y      = vs.y + dy;
-          v.width  = vs.width  - dx;
-          v.height = vs.height - dy;
+          var sign = Math.sign(-dx-dy);
+          v.radius = vs.radius + sign*Math.sqrt(dx*dx + dy*dy)/Math.sqrt(2);
         }}),
         this.Anchor.create({x$: this.x3$, y$: this.y1$, callback: function(v, vs, dx, dy) {
-          v.y      = vs.y + dy;
-          v.width  = vs.width  + dx;
-          v.height = vs.height - dy;
+          var sign = Math.sign(dx-dy);
+          v.radius = vs.radius + sign*Math.sqrt(dx*dx + dy*dy)/Math.sqrt(2);
         }}),
         this.Anchor.create({x$: this.x1$, y$: this.y3$, callback: function(v, vs, dx, dy) {
-          v.x      = vs.x + dx;
-          v.width  = vs.width  - dx;
-          v.height = vs.height + dy;
+          var sign = Math.sign(-dx+dy);
+          v.radius = vs.radius + sign*Math.sqrt(dx*dx + dy*dy)/Math.sqrt(2);
         }}),
         this.Anchor.create({x$: this.x3$, y$: this.y3$, callback: function(v, vs, dx, dy) {
-          v.width  = vs.width  + dx;
-          v.height = vs.height + dy;
+          var sign = Math.sign(dx+dy);
+          v.radius = vs.radius + sign*Math.sqrt(dx*dx + dy*dy)/Math.sqrt(2);
         }}));
     },
 

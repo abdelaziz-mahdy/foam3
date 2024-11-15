@@ -457,4 +457,7 @@ public class TreeNode {
     return predicate != null && predicate.partialEval() != null && ! ( predicate instanceof True );
   }
 
+  public String toString() {
+    return "TreeNode(" + key + ", " + value + ", " + size + ")";
+  }
 }
