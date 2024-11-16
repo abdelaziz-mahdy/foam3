@@ -51,6 +51,10 @@ foam.CLASS({
           @Override
           public void execute(X x) {
             X rulerX = ruler.getX();
+            User admin = new User();
+            admin.setId(1);
+            admin.setGroup("admin");
+            X systemX = foam.util.Auth.sudo(ruler.getX(), admin);
             UserLifecycleTicket ticket = (UserLifecycleTicket) obj;
             DAO dao = (DAO) rulerX.get("userDAO");
             User user = (User) dao.find(ticket.getCreatedFor());
@@ -58,20 +62,26 @@ foam.CLASS({
             LifecycleState old = user.getLifecycleState();
             LifecycleState nu = ticket.getRequestedLifecycleState();
 
-            if ( old != nu ) {
-              List updated = new ArrayList();
-              updateUserAssociations(
-                rulerX
-                  .put("logger", new PrefixLogger(new Object[] { "UserLifecycleTicket", user.getId() }, (Logger) x.get("logger")))
-                  .put(UPDATED_LIST, updated),
-                user, nu);
-              user = (User) user.fclone();
-              user.setLifecycleState(nu);
-              ((Logger) x.get("logger")).info("UserLifecycleTicket", user.getId(), old, nu);
-              // ((DAO) rulerX.get("localUserDAO")).put(user);
-              // TODO: ticket.setUpdated(updated);
+            // TODO: if re-activating a user, need to check that
+            // username has not been re-used.
+
+            try {
+              if ( old != nu ) {
+                updateUserAssociations(
+                  systemX
+                    .put("logger", new PrefixLogger(new Object[] { "UserLifecycleTicket", user.getId() }, (Logger) x.get("logger")))
+                    .put(UserLifecycleTicket.class, ticket),
+                  user, nu);
+                user = (User) user.fclone();
+                user.setLifecycleState(nu);
+                ((Logger) x.get("logger")).info("UserLifecycleTicket", user.getId(), old, nu);
+                ((DAO) ruler.getX().get("localUserDAO")).put(user);
+              }
+              ticket.setMessage(null);
+              ticket.setStatus("CLOSED");
+            } catch (Throwable t) {
+              ticket.setMessage(t.getMessage());
             }
-            ticket.setStatus("CLOSED");
           }
         }, "UserLifecycleTicketRuleAction");
       `
@@ -92,34 +102,30 @@ foam.CLASS({
       name: 'updateUCJs',
       args: 'X x, User user, LifecycleState state',
       javaCode: `
-      if ( state != LifecycleState.DELETED ) return;
       ((foam.dao.ManyToManyRelationship) user.getCapabilities(x)).getDAO().select(
-        new DeleteOrDisableSink(x, "userCapabilityJunctionDAO"));
+        new UserLifecycleTicketSink(x, state, "userCapabilityJunctionDAO"));
       `
     },
     {
       name: 'updateCredentials',
       args: 'X x, User user, LifecycleState state',
       javaCode: `
-      if ( state != LifecycleState.DELETED ) return;
       user.getCredentials(x).select(
-        new DeleteOrDisableSink(x, "credentialDAO"));
+        new UserLifecycleTicketSink(x, state, "credentialDAO"));
       `
     },
     {
       name: 'updateReferralCodes',
       args: 'X x, User user, LifecycleState state',
       javaCode: `
-      if ( state != LifecycleState.DELETED ) return;
       user.getReferralCodes(x).select(
-        new DeleteOrDisableSink(x, "referralCodeDAO"));
+        new UserLifecycleTicketSink(x, state, "referralCodeDAO"));
       `
     },
     {
       name: 'updateDocuments',
       args: 'X x, User user, LifecycleState state',
       javaCode: `
-      if ( state != LifecycleState.DELETED ) return;
       // user.getRepoDocuments()
       `
     },
@@ -127,9 +133,8 @@ foam.CLASS({
       name: 'updatePushRegistrations',
       args: 'X x, User user, LifecycleState state',
       javaCode: `
-      if ( state != LifecycleState.DELETED ) return;
       user.getPushRegistrations(x).select(
-        new DeleteOrDisableSink(x, "pushRegistrationDAO"));
+        new UserLifecycleTicketSink(x, state, "pushRegistrationDAO"));
       `
     },
   ]

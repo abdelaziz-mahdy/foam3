@@ -16,7 +16,9 @@ foam.CLASS({
 
   javaImports: [
     'foam.dao.DAO',
-    'foam.nanos.auth.User'
+    'foam.nanos.auth.User',
+    'java.util.ArrayList',
+    'java.util.List'
   ],
 
   properties: [
@@ -24,6 +26,20 @@ foam.CLASS({
       name: 'status',
       order: 5,
       createVisibility: 'HIDDEN'
+    },
+    {
+      name: 'statusChoices',
+      hidden: true,
+      factory: function() {
+        var s = [];
+        if ( 'CLOSED' == this.status ) {
+          s.push(['OPEN', 'OPEN']);
+        } else {
+          s.push(this.status);
+          s.push(['CLOSED', 'CLOSED']);
+        }
+        return s;
+      }
     },
     {
       name: 'state',
@@ -41,11 +57,17 @@ foam.CLASS({
       order: 7,
       view: function(_, X) {
         X.data.state = foam.nanos.auth.LifecycleState.PENDING;
-        X.data.createdFor$.sub(function() {
+        if ( ! X.data.createdFor ) {
+          X.data.createdFor$.sub(function() {
+            X.userDAO.find(X.data.createdFor).then(function(user) {
+              X.data.state = user.lifecycleState;
+            });
+          });
+        } else {
           X.userDAO.find(X.data.createdFor).then(function(user) {
             X.data.state = user.lifecycleState;
           });
-        });
+        }
         return {
           class: 'foam.u2.view.ReadOnlyEnumView',
           of: 'foam.nanos.auth.LifecycleState',
@@ -59,7 +81,16 @@ foam.CLASS({
       of: 'foam.nanos.auth.LifecycleState',
       value: foam.nanos.auth.LifecycleState.DELETED,
       section: 'infoSection',
-      order: 8,
+      order: 8
+    },
+    {
+      name: 'message',
+      class: 'String',
+      createVisibility: 'HIDDEN',
+      updateVisibility: 'RO',
+      readVisibility: 'RO',
+      section: 'infoSection',
+      order: 9
     },
     {
       name: 'assignedTo',
@@ -72,6 +103,14 @@ foam.CLASS({
     {
       name: 'externalComment',
       hidden: true
+    },
+    {
+      name: 'updated',
+      class: 'List',
+      javaFactory: 'return new ArrayList();',
+      createVisibility: 'HIDDEN',
+      readVisibility: 'RO',
+      updateVisibility: 'RO'
     }
   ]
 })
