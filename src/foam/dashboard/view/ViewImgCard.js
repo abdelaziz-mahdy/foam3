@@ -20,6 +20,7 @@ foam.CLASS({
     padding: 3.2rem;
     overflow: hidden;
     height: fit-content;
+    min-height: 100%;
   }
   ^view-container {
     position: relative;
