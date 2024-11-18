@@ -499,23 +499,11 @@ foam.CLASS({
     },
 
     async function render() {
-      // var self = this;
-      // self.addMacroLayout();
-      // this.onClientLoad();
-      // this.initLayout.then(() => {
-      //   this.layoutInitialized = true;
-      // });
-      // window.addEventListener('resize', this.updateDisplayWidth);
-      // this.updateDisplayWidth();
-
-
-      // self.AppStyles.create();
-      // self.Fonts.create();
       this.addMacroLayout();
       this.onClientLoad();
-      if ( ! this.client || ! this.client.auth ) {
-        await this.reloadClient();
-      }
+      // if ( ! this.client || ! this.client.auth ) {
+      //   await this.reloadClient();
+      // }
       this.fetchSubject();
       // adding a listener to track the display width here as well since we don't call super
       window.addEventListener('resize', this.updateDisplayWidth);
@@ -772,11 +760,8 @@ foam.CLASS({
     function requestLogin() {
       var self = this;
       var view =  {
-        // REVIEW: BaseUnAuthBorder failing render - blank screen
-        // ...(self.loginView ?? { class: 'foam.u2.borders.BaseUnAuthBorder' }),
-        // children: [ { class: 'foam.u2.view.LoginView', mode_: 'SignIn' } ]
-        ...(self.loginView ?? { class: 'foam.u2.view.LoginView' }),
-        mode_: 'SignIn'
+        ...(self.loginView ?? { class: 'foam.u2.borders.BaseUnAuthBorder' }),
+         children: [ { class: 'foam.u2.view.LoginView', mode_: 'SignIn' } ]
       };
 
       // don't go to log in screen if going to reset password screen

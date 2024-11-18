@@ -38,7 +38,7 @@ foam.CLASS({
       class: 'String',
       name: 'imgPath',
       expression: function(loginVariables) {
-        return loginVariables.imgPath || (this.theme?.largeLogo || this.theme?.logo || "");
+        return loginVariables.imgPath || (this.theme?.largeLogo || this.theme?.logo);
       }
     },
     {
