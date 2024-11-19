@@ -771,8 +771,8 @@ foam.CLASS({
 
     function requestLogin() {
       var self = this;
-      var view =  {
-        ...(self.loginView ?? { class: 'foam.u2.borders.BaseUnAuthBorder' }),
+      var view =  self.loginView ?? {
+        ...({ class: 'foam.u2.borders.BaseUnAuthBorder' }),
          children: [ { class: 'foam.nanos.auth.login.LoginView', mode_: 0 } ]
       };
 
