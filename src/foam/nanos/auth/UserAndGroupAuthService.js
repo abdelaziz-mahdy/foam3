@@ -138,15 +138,17 @@ foam.CLASS({
         return the user in the context`,
       javaCode: `
         User user = getUniqueUserService().getUser(x, identifier);
-        
+
         if ( user == null ) {
           throw new UserNotFoundException();
         }
-        
-        if ( ! Password.verify(password, user.getPassword()) ) {
-          throw new InvalidPasswordException();
+
+        if ( user.passwordIsSet_ ) {
+          if ( ! Password.verify(password, user.getPassword()) ) {
+            throw new InvalidPasswordException();
+          }
         }
-        
+
         return getLoginService().login(x, user); 
       `
     },

@@ -85,6 +85,7 @@ foam.CLASS({
     'as ctrl',
     'crunchController',
     'currentMenu',
+    'defaultUserLanguage',
     'displayWidth',
     'group',
     'initLayout',
@@ -406,6 +407,17 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'initSubject'
+    },
+    {
+      name: 'defaultUserLanguage',
+      factory: function() {
+        let l = foam.locale.split('-');
+        let code = l[0];
+        let variant = l[1];
+        let language = foam.nanos.auth.Language.create({ code: code });
+        if ( variant ) language.variant = variant;
+        return language;
+      }
     },
     //TODO: temporary fix, remove when client signin service is fixed/added
     {
@@ -761,7 +773,7 @@ foam.CLASS({
       var self = this;
       var view =  {
         ...(self.loginView ?? { class: 'foam.u2.borders.BaseUnAuthBorder' }),
-         children: [ { class: 'foam.u2.view.LoginView', mode_: 'SignIn' } ]
+         children: [ { class: 'foam.nanos.auth.login.LoginView', mode_: 0 } ]
       };
 
       // don't go to log in screen if going to reset password screen
@@ -775,14 +787,17 @@ foam.CLASS({
       // don't go to log in screen if going to sign up password screen
       if ( location.hash && location.hash === '#sign-up' && ! self.loginSuccess ) {
         view = {
-          ...(self.loginView ?? { class: 'foam.u2.view.LoginView' }),
-          mode_: 'SignUp'
+          ...(self.loginView ?? { class: 'foam.u2.borders.BaseUnAuthBorder' }),
+            children: [ { class: 'foam.nanos.auth.login.LoginView', mode_: 1 } ]
         };
       }
+
       return new Promise(function(resolve, reject) {
+        // self.stack.push(self.StackBlock.create({ view: { ...(self.loginView ?? { class: 'foam.nanos.auth.login.LoginView' }), mode_: 0 }, parent: self }));
         self.stack.set(view, self);
         self.loginSuccess$.sub(resolve);
       });
+
     },
 
     async function login(identifier, password) {
