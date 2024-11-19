@@ -228,8 +228,8 @@ foam.CLASS({
       documentation: `
         If modelCls_ is provided, the data can be created directly from this instead of mode
       `,
-      factory: function() {
-        if ( this.mode_ === this.SIGN_UP ) {
+      expression: function(mode_) {
+        if ( mode_ === this.SIGN_UP ) {
           return this.SignUp.id;
         } else {
           return this.SignIn.id;
@@ -248,7 +248,7 @@ foam.CLASS({
   ],
 
   methods: [
-    function init() {
+    function configData() {
       // Use passed in values or default loginVariables defined on ApplicationControllers
       this.param = Object.assign(this.loginVariables, this.param);
       try {
@@ -299,7 +299,8 @@ foam.CLASS({
         .end()
         .br()
         .add(
-          this.slot(function(showAction) {
+          this.slot(function(showAction, mode_) {
+            self.configData();
             return self.E().callIf(showAction, function() {
               this
                 .startContext({ data: self })
@@ -312,7 +313,7 @@ foam.CLASS({
                 .br()
                 .br()
                 .start()
-                  .startContext({ data: self.data })
+                  .startContext({ data: self })
                   .addClass(self.myClass('center-footer'))
                   // first footer
                   .start()
@@ -415,8 +416,7 @@ foam.CLASS({
       label: 'Sign in',
       buttonStyle: 'TEXT',
       code: function(X) {
-        X.window.history.replaceState(null, null, X.window.location.origin);
-        X.stack.push(foam.u2.stack.StackBlock.create({ view: { ...(X.loginView ?? { class: 'foam.nanos.auth.login.LoginView' }), mode_: 0, topBarShow_: X.topBarShow_, param: X.param }, parent: X }));
+        X.data.mode_ = 0;
       }
     },
     {
@@ -424,8 +424,7 @@ foam.CLASS({
       label: 'Create an account',
       buttonStyle: 'TEXT',
       code: function(X) {
-        X.window.history.replaceState(null, null, X.window.location.origin);
-        X.stack.push(foam.u2.stack.StackBlock.create({ view: { ...(X.loginView ?? { class: 'foam.nanos.auth.login.LoginView' }), mode_: 1, topBarShow_: X.topBarShow_, param: X.param }, parent: X }));
+        X.data.mode_ = 1;
       }
     },
     {
@@ -459,7 +458,7 @@ foam.CLASS({
       e.preventDefault();
       var key = e.key || e.keyCode;
       if ( key === 'Enter' || key === 13 ) {
-          this.data.login();
+        this.mode_ == 0 ? this.signInAction(x) : this.signUpAction(x); 
       }
     }
   ]
