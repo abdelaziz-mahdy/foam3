@@ -37,8 +37,9 @@ foam.CLASS({
       name: 'checkAvailability',
       javaCode: `
         if ( getX().get("crunchService") == null ||
-             ( ! targetProperty.equals("userName") &&
-               ! targetProperty.equals("email") ) ) {
+             ( ! targetProperty.equals("username") &&
+               ! targetProperty.equals("email") )
+        ) {
           throw new AuthorizationException();
         }
 

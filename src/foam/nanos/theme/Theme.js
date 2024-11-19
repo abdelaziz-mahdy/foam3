@@ -207,6 +207,7 @@ foam.CLASS({
       name: 'loginView',
       documentation: `Border used to wrap unauthenticated views like loginViews. Set to nullBorder for no additional borders`,
     },
+      // value: 'foam.nanos.auth.login.LoginView'
 //      value: 'foam.u2.borders.BaseUnAuthBorder'
     {
       class: 'Image',

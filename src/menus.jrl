@@ -321,7 +321,7 @@ p({
     "class":"foam.nanos.menu.ViewMenu",
     "view":{
       class: "foam.u2.borders.BaseUnAuthBorder",
-      children: [ {"class":"foam.u2.view.LoginView", "mode_":"SignIn"} ]
+      children: [ {"class":"foam.nanos.auth.login.LoginView", "mode_":0} ]
     }
   },
   "parent":"hidden"
@@ -335,7 +335,7 @@ p({
     "class":"foam.nanos.menu.ViewMenu",
     "view":{
       class: "foam.u2.borders.BaseUnAuthBorder",
-      children: [ {"class":"foam.u2.view.LoginView", "mode_":"SignUp"} ]
+      children: [ {"class":"foam.nanos.auth.login.LoginView", "mode_":1} ]
     }
   },
   "parent":"hidden"
