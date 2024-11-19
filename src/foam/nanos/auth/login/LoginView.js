@@ -11,7 +11,7 @@ foam.CLASS({
 
   imports: [
     'appConfig',
-    'loginService',
+    'clientLoginService',
     'loginVariables',
     'memento',
     'stack',
@@ -399,7 +399,7 @@ foam.CLASS({
       label: 'Sign in',
       buttonStyle: 'PRIMARY',
       code: function(X) {
-        this.loginService.signin(X, this.data);
+        this.clientLoginService.signin(X, this.data);
       }
     },
     {
@@ -407,7 +407,7 @@ foam.CLASS({
       label: 'Get started',
       buttonStyle: 'PRIMARY',
       code: function(X) {
-        this.loginService.signup(X, this.data);
+        this.clientLoginService.signup(X, this.data);
       }
     },
     {

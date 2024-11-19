@@ -783,7 +783,7 @@ foam.POM({
     { name: "auth/login/SignIn",                                                          flags: "js|java" },
     { name: "auth/login/SignUp",                                                          flags: "js|java" },
     { name: "auth/login/ClientLoginService",                                              flags: "js" },
-    { name: "auth/login/LoginView",                                                       flags: "js" }
+    { name: "auth/login/LoginView",                                                       flags: "js" },
     { name: "http/csp/CSPFilter",                                                         flags: "java" },
     { name: "http/csp/CSPReportWebAgent",                                                 flags: "java" },
     { name: "http/csp/CSPViolation",                                                      flags: "js|java" }

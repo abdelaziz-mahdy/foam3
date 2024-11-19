@@ -113,7 +113,7 @@ foam.CLASS({
           this.notifyUser_(this.SIGNUP_SUCCESS_TITLE, this.SIGNUP_SUCCESS_MSG, this.LogLevel.INFO);
 
           var signinModel = this.SignIn.create({ identifier: data.email, username: data.username, email: data.email, password: data.desiredPassword });
-          await this.signin(x, signinModel, wizardFlow)
+          await this.signin(x, signinModel, wizardFlow);
         } else {
           this.notifyUser_(err.data, this.SIGNUP_ERR, this.LogLevel.ERROR);
         }
@@ -124,7 +124,7 @@ foam.CLASS({
       code: async function(x, email, username, password) {
         var signinModel = this.SignIn.create({ identifier: email, email: email, username: username, password: password });
         this.onDetach(this.emailVerificationService.sub('emailVerified', async () => {
-          await this.emailVerifiedListener(x, signinModel) 
+          await this.emailVerifiedListener(x, signinModel);
         }));
         this.stack.push(this.StackBlock.create({
           view: {
