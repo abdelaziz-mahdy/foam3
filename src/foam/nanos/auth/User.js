@@ -55,7 +55,8 @@ foam.CLASS({
     'id',
     'type',
     'group.id',
-    'email'
+    'email',
+    'lifecycleState'
   ],
 
   searchColumns: [
@@ -63,7 +64,7 @@ foam.CLASS({
     'type',
     'spid',
     'group',
-    'enabled',
+    'lifecycleState',
     'firstName',
     'preferredName',
     'lastName',
@@ -645,8 +646,11 @@ foam.CLASS({
       section: 'systemInformation',
       order: 40,
       gridColumns: 6,
-      value: foam.nanos.auth.LifecycleState.PENDING,
-      writePermissionRequired: true
+      value: foam.nanos.auth.LifecycleState.ACTIVE,
+      writePermissionRequired: true,
+      createVisibility: 'HIDDEN',
+      updateVisibility: 'RW',
+      readVisibility: 'RO',
     },
     {
       class: 'Reference',
@@ -672,14 +676,15 @@ foam.CLASS({
       columnPermissionRequired: true
     },
     {
+      // deprecated; use lifecycleState instead
       class: 'Boolean',
       name: 'enabled',
       documentation: 'Determines whether the User is permitted certain actions.',
-      value: true,
-      includeInDigest: true,
-      section: 'systemInformation',
-      order: 90,
-      gridColumns: 6
+      hidden: true,
+      transient: true,
+      javaGetter: `
+        return getLifecycleState() == foam.nanos.auth.LifecycleState.ACTIVE;
+      `
     },
     {
       class: 'String',
