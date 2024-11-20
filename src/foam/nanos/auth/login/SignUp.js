@@ -46,6 +46,11 @@ foam.CLASS({
           args: ['usernameAvailable'],
           query: 'usernameAvailable!="invalid"',
           errorMessage: 'USERNAME_ERR'
+        },
+        {
+          args: ['usernameAvailable'],
+          query: 'usernameAvailable!="unavailable"',
+          errorMessage: 'USERNAME_AVAILABILITY_ERR'
         }
       ]
     },
@@ -114,7 +119,7 @@ foam.CLASS({
       transient: true
     },
     {
-      class: 'Boolean',
+      class: 'String',
       name: 'usernameAvailable',
       value: true,
       hidden: true,
