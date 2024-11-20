@@ -5,13 +5,15 @@ p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"admin",targetId:"*"
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"system",targetId:"*"})
 
 // anonymous
+p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.serviceProviderDAO"})
+p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"serviceprovider.read.foam"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"auth.promptlogin"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.agentJunctionDAO"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.fileTypeDAO"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.groupDAO"})
-p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.prerequisiteCapabilityJunctionDAO"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"group.read.anonymous"})
-
+p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.prerequisiteCapabilityJunctionDAO"})
+p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.userPropertyAvailabilityService"})
 
 // basicUser
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"service.serviceProviderDAO"})
