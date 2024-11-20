@@ -55,6 +55,10 @@ foam.CLASS({
       required: false
     },
     {
+      class: 'Boolean',
+      name: 'overrideCodeData'
+    },
+    {
       class: 'Function',
       generateJava: false,
       name: 'internalIsEnabled'
@@ -89,6 +93,13 @@ foam.CLASS({
            ( this.internalIsEnabled   && ! foam.Function.withArgs(this.internalIsEnabled, data) ) ||
            ( this.isEnabled   && ! foam.Function.withArgs(this.isEnabled, data.data) ) )
       return true;
+    },
+
+    function call(x, data) {
+      if ( this.overrideCodeData ) {
+        data = data.data;
+      }
+      return this.SUPER(x, data);
     },
 
     function toE(args, X) {
