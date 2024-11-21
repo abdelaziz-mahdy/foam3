@@ -30,13 +30,15 @@ p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"currency.read.*"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.currency"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.notifications"})
-// p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.password"})
 
+// Password management
+// set-password requires email support
 // p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.set-password"}) // - requires email support
+// reset-password - allows direct single view password update. grant along with resetPasswordInsecureService and userUpdatePasswordDAO
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"service.resetPasswordInsecureService"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"service.userUpdatePasswordDAO"})
-
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.reset-password"})
+
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.set-personal"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.sign-out"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"menu.read.settings"})
