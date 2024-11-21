@@ -517,12 +517,10 @@ foam.CLASS({
       this.initLayout.then(() => {
         this.layoutInitialized = true;
       });
-      // this.fetchSubject();
+      this.fetchSubject();
       window.addEventListener('resize', this.updateDisplayWidth);
       this.updateDisplayWidth();
 
-      // foam.nanos.controller.AppStyles.create({}, this);
-      // foam.nanos.controller.Fonts.create({}, this);
       this.AppStyles.create();
       this.Fonts.create();
     },
