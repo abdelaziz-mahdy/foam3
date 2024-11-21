@@ -277,6 +277,27 @@ p({
 p({"class":"foam.nanos.boot.NSpec", "name":"resetPasswordToken",                 "serve":true,  "authenticate": false, "serviceClass":"foam.nanos.auth.resetPassword.ResetPasswordTokenService","boxClass":"foam.nanos.auth.token.TokenServiceSkeleton","client":"{\"class\":\"foam.nanos.auth.token.ClientTokenService\"}"})
 
 p({
+  "class": "foam.nanos.boot.NSpec",
+  "name": "resetPasswordInsecureService",
+  "serve": true,
+  "boxClass": "foam.nanos.auth.resetPassword.ResetPasswordServiceSkeleton",
+  "serviceClass": "foam.nanos.auth.resetPassword.ResetPasswordInsecureService",
+  "client":
+    """
+      {
+        "class": "foam.nanos.auth.resetPassword.ClientResetPasswordService",
+        "delegate": {
+          "class": "foam.box.SessionClientBox",
+          "delegate": {
+            "class": "foam.box.HTTPBox",
+            "url": "service/resetPasswordInsecureService"
+          }
+        }
+      }
+    """
+})
+
+p({
   "class":"foam.nanos.boot.NSpec",
   "name":"localPermissionDAO",
   "serviceScript":"""
@@ -502,3 +523,29 @@ p({
 //   { "class": "foam.nanos.fs.FileDAODecorator" },
 //   { "class": "foam.nanos.fs.FileArrayDAODecorator"}
 // ],
+
+p({
+  "class": "foam.nanos.boot.NSpec",
+  "name": "userUpdatePasswordDAO",
+  "serve": false,
+  "authNotes": "Hash desired password",
+  "serviceScript":
+  """
+    return new foam.dao.EasyDAO.Builder(x)
+      .setOf(foam.nanos.auth.User.getOwnClassInfo())
+      .setInnerDAO(x.get("localUserDAO"))
+      .setDecorator(
+        new foam.nanos.auth.UserRegistrationSanitationDAO(x,
+        new foam.nanos.auth.UserPasswordHashingDAO(x,
+        new foam.dao.ValidatingDAO(x,
+          new foam.dao.NullDAO(x,foam.nanos.auth.User.getOwnClassInfo()),
+          new foam.nanos.auth.validators.UserGroupAndSpidValidator()
+        ))))
+      .setAuthorize(false)
+      .setRuler(true)
+      .setPm(true)
+      .setValidated(true)
+      .setEnableInterfaceDecorators(false)
+      .build();
+  """
+})

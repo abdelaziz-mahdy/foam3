@@ -264,6 +264,23 @@ p({
   "order":100,
   "parent":"settings"
 })
+
+// Direct password reset for simple systems without email servers
+p({
+  "class":"foam.nanos.menu.Menu",
+  "id":"reset-password",
+  "label":"Change Password",
+  "handler":{
+    "class":"foam.nanos.menu.ViewMenu",
+    "view":{
+      "class":"foam.nanos.auth.ChangePasswordView",
+      "popup":false,
+      "modelOf":"foam.nanos.auth.resetPassword.ResetPasswordInsecure"
+    }
+  },
+  "order":100,
+  "parent":"settings"
+})
 p({
   "class":"foam.nanos.menu.Menu",
   "id":"sign-out",

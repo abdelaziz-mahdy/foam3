@@ -188,6 +188,8 @@ foam.POM({
     { name: "auth/resetPassword/ResetPassword",                                           flags: "js|java" },
     { name: "auth/resetPassword/ResetPasswordByCode",                                     flags: "js|java" },
     { name: "auth/resetPassword/ResetPasswordByToken",                                    flags: "js|java" },
+    { name: "auth/resetPassword/ResetPasswordInsecure",                                   flags: "js|java" },
+    { name: "auth/resetPassword/ResetPasswordInsecureService",                            flags: "js|java" },
     { name: "auth/resetPassword/SetNewPassword",                                          flags: "js|java" },
     { name: 'auth/resetPassword/ResetPasswordService',                                    flags: 'js|java' },
     { name: 'auth/resetPassword/ServerResetPasswordService',                              flags: 'js|java' },
