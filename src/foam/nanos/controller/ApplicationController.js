@@ -802,25 +802,28 @@ foam.CLASS({
     },
 
     function notify(toastMessage, toastSubMessage, severity, transient, icon) {
-      var notification = this.Notification.create();
-
-      notification.userId = this.subject && this.subject.realUser ?
-        this.subject.realUser.id : this.user && this.user.id || 0;
-      notification.toastMessage    = toastMessage;
-      notification.toastSubMessage = toastSubMessage;
-      notification.toastState      = this.ToastState.REQUESTED;
-      notification.severity        = severity || this.LogLevel.INFO;
-      notification.transient       = foam.Undefined.isInstance(transient) ? true : transient;
-      notification.icon            = icon;
-      var dao = notification.userId == 0 ?
-          this.notificationDAO || this.__subContext.notificationDAO :
-          this.myNotificationDAO || this.__subContext__.myNotificationDAO || this.notificationDAO || this.__subContext__.notificationDAO;
-      dao?.put(notification);
-    //   if ( notification.userId == 0 ) {
-    //     this.__subContext__.notificationDAO?.put(notification);
-    //   } else {
-    //     this.__subContext__.myNotificationDAO?.put(notification);
-    //   }
+      if ( transient ) {
+        this.add(this.NotificationMessage.create({
+          err: toastMessage.exception,
+          message: toastMessage.exception ? '' : toastMessage,
+          description: toastSubMessage,
+          type: severity,
+          icon: icon
+        }));
+      } else {
+        var notification = this.Notification.create();
+        notification.userId = this.subject && this.subject.realUser ?
+          this.subject.realUser.id : this.user && this.user.id || 0;
+        notification.toastMessage    = toastMessage;
+        notification.toastSubMessage = toastSubMessage;
+        notification.toastState      = this.ToastState.REQUESTED;
+        notification.severity        = severity || this.LogLevel.INFO;
+        notification.transient       = transient;
+        notification.icon            = icon;
+        var dao = notification.userId == 0 ?
+            this.__subContext__.notificationDAO : this.__subContext__.myNotificationDAO || this.__subContext__.notificationDAO;
+        dao.put(notification);
+      }
     },
 
     function displayToastMessage(sub, on, put, obj) {
@@ -964,7 +967,7 @@ foam.CLASS({
       var lastTheme = this.theme;
       try {
         this.theme = this.__subContext__.theme;
-        this.appConfig.copyFrom(this.theme.appConfig)
+        this.appConfig.copyFrom(this.theme.appConfig);
       } catch (err) {
         this.notify(this.LOOK_AND_FEEL_NOT_FOUND, '', this.LogLevel.ERROR, true);
         console.error(err);

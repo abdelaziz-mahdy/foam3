@@ -14,6 +14,8 @@ p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"group.read.anonymous"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.prerequisiteCapabilityJunctionDAO"})
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.userPropertyAvailabilityService"})
+p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.myNotificationDAO"});
+p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"anonymous",targetId:"service.notificationDAO"});
 
 // basicUser
 p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"basicUser",targetId:"service.serviceProviderDAO"})
