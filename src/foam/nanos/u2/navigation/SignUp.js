@@ -126,15 +126,11 @@ foam.CLASS({
           displayMode: X.data.disableEmail_ ? foam.u2.DisplayMode.DISABLED : foam.u2.DisplayMode.RW
         };
       },
+      required: true,
       validationPredicates: [
         {
-          args: ['email'],
-          query: 'email.len>0&&email~/\\S+@\\S+\.\\S+$/',
-          errorMessage: 'EMAIL_ERR'
-        },
-        {
-          args: ['emailAvailable'],
-          query: 'emailAvailable==true',
+          args: ['emailAvailable', 'email'],
+          query: 'emailAvailable!="unavailable"',
           errorMessage: 'EMAIL_AVAILABILITY_ERR'
         }
       ]
@@ -159,15 +155,16 @@ foam.CLASS({
           inputValidation: X.data.User.USER_NAME_MATCHER
         };
       },
+      required: true,
       validationPredicates: [
         {
-          args: ['userName'],
-          query: 'userName.len>0',
-          errorMessage: 'USERNAME_EMPTY_ERR'
+          args: ['usernameAvailable', 'userName'],
+          query: 'usernameAvailable!="invalid"',
+          errorMessage: 'USERNAME_INVALID_ERR'
         },
         {
-          args: ['usernameAvailable'],
-          query: 'usernameAvailable==true',
+          args: ['usernameAvailable', 'userName'],
+          query: 'usernameAvailable!="unavailable"',
           errorMessage: 'USERNAME_AVAILABILITY_ERR'
         }
       ]
@@ -188,20 +185,12 @@ foam.CLASS({
           isAvailable$: X.data.passwordAvailable$,
           passwordIcon: true,
           autocomplete: 'new-password'
-        };
-      },
-      validationPredicates: [
-        {
-          args: ['desiredPassword'],
-          query: 'desiredPassword exists && desiredPassword.len>10',
-          errorMessage: 'PASSWORD_ERR'
-        },
-        {
-          args: ['passwordAvailable'],
-          query: 'passwordAvailable==true',
-          errorMessage: 'WEAK_PASSWORD_ERR'
         }
-      ]
+      },
+      validateObj: function(desiredPassword, passwordAvailable) {
+        if ( ! desiredPassword || desiredPassword.length < 10 ) return this.PASSWORD_ERR;
+        if ( ! passwordAvailable ) return this.WEAK_PASSWORD_ERR;
+      }
     },
     {
       class: 'Boolean',

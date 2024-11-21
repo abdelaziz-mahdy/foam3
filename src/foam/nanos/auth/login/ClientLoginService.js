@@ -14,6 +14,7 @@ foam.CLASS({
     'defaultUserLanguage',
     'emailVerificationService',
     'loginSuccess',
+    'notify',
     'stack',
     'subject',
     'wizardController',
@@ -27,7 +28,6 @@ foam.CLASS({
     'foam.nanos.auth.login.SignIn',
     'foam.nanos.auth.UnverifiedEmailException',
     'foam.nanos.auth.User',
-    'foam.u2.dialog.NotificationMessage',
     'foam.u2.stack.StackBlock'
   ],
 
@@ -47,7 +47,7 @@ foam.CLASS({
           ctrl.groupLoadingHandled = true;
           var loginId = data.usernameRequired_ ? data.username : data.identifier;
           let logedInUser = await this.auth.login(x, loginId, data.password);
-          
+
           if ( ! logedInUser ) {
             if ( analyticable ) data.report('^fail-missing-subject', ['auth', 'error']);
             return;
@@ -95,7 +95,7 @@ foam.CLASS({
             await this.signin(x, data, wizardFlow);
             return;
           }
-          this.notifyUser_(err.data, this.SIGNIN_ERR, this.LogLevel.ERROR);
+          this.notify(err.data, this.SIGNIN_ERR, this.LogLevel.ERROR, true);
         }
       }
     },
@@ -110,12 +110,12 @@ foam.CLASS({
         });
         var user = await data.dao_.put(createdUser);
         if ( user ) {
-          this.notifyUser_(this.SIGNUP_SUCCESS_TITLE, this.SIGNUP_SUCCESS_MSG, this.LogLevel.INFO);
+          this.notify(this.SIGNUP_SUCCESS_TITLE, this.SIGNUP_SUCCESS_MSG, this.LogLevel.INFO, true);
 
           var signinModel = this.SignIn.create({ identifier: data.email, username: data.username, email: data.email, password: data.desiredPassword });
           await this.signin(x, signinModel, wizardFlow);
         } else {
-          this.notifyUser_(err.data, this.SIGNUP_ERR, this.LogLevel.ERROR);
+          this.notify(err.data, this.SIGNUP_ERR, this.LogLevel.ERROR, true);
         }
       }
     },
@@ -170,17 +170,6 @@ foam.CLASS({
             class: 'foam.nanos.auth.ChangePasswordView',
             modelOf: 'foam.nanos.auth.RetrievePassword'
           }
-        }));
-      }
-    },
-    {
-      name: 'notifyUser_',
-      code: function(err, msg, type) {
-        this.ctrl.add(this.NotificationMessage.create({
-          err: err,
-          message: msg,
-          type: type,
-          transient: true
         }));
       }
     }

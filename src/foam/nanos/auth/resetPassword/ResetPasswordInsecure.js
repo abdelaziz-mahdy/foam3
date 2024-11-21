@@ -14,13 +14,13 @@ foam.CLASS({
 
   imports: [
     'ctrl',
-    'resetPasswordInsecureService'
+    'resetPasswordInsecureService',
+    'notify'
   ],
 
   requires: [
     'foam.log.LogLevel',
     'foam.nanos.auth.User',
-    'foam.u2.dialog.NotificationMessage',
     'foam.nanos.auth.resetPassword.ResetPasswordByCode'
   ],
 
@@ -51,20 +51,9 @@ foam.CLASS({
           // this.finalRedirectionCall();
           this.window.history.replaceState(null, null, this.window.location.origin);
           this.pushMenu("");
-
-          this.ctrl.add(this.NotificationMessage.create({
-            message: this.SUCCESS_MSG_TITLE,
-            description: this.SUCCESS_MSG,
-            type: this.LogLevel.INFO,
-            transient: true
-          }));
+          this.notify(this.SUCCESS_MSG_TITLE, this.SUCCESS_MSG, this.LogLevel.INFO, true);
         }).catch((err) => {
-          this.ctrl.add(this.NotificationMessage.create({
-            err: err.data,
-            message: this.ERROR_MSG,
-            type: this.LogLevel.ERROR,
-            transient: true
-          }));
+          this.notify(err.data, this.ERROR_MSG, this.LogLevel.ERROR, true);
         });
       }
     }

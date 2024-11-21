@@ -12,21 +12,27 @@ foam.CLASS({
     'foam.nanos.auth.User'
   ],
 
+  constants: [
+    {
+      name: 'USERNAME_INVALID_ERR',
+      type: 'String',
+      factory: function() { return foam.nanos.auth.User.INVALID_USERNAME; },
+      javaValue: 'foam.nanos.auth.User.INVALID_USERNAME'
+    }
+  ],
+
   messages: [
-    { name: 'EMAIL_ERR', message: 'Valid email required' },
-    { name: 'PASSWORD_ERR', message: 'Password should be at least 10 characters' },
-    { name: 'USERNAME_EMPTY_ERR', message: 'Username required' },
-    { name: 'USERNAME_ERR', message: 'Valid username required' },
-    { name: 'USERNAME_AVAILABILITY_ERR', message: 'This username is taken. Please try another.' },
     { name: 'EMAIL_AVAILABILITY_ERR', message: 'This email is already in use. Please sign in or use a different email' },
-    { name: 'WEAK_PASSWORD_ERR', message: 'Password is weak' }
+    { name: 'EMAIL_INVALID_ERR', message: 'Valid email address required' },
+    { name: 'PASSWORD_ERR', message: 'Password should be at least 10 characters' },
+    { name: 'WEAK_PASSWORD_ERR', message: 'Password is weak' },
+    { name: 'USERNAME_AVAILABILITY_ERR', message: 'This username is taken. Please try another.' }
   ],
 
   properties: [
     {
       class: 'String',
       name: 'username',
-      label: 'Username',
       placeholder: 'example123',
       view: function(_, X) {
         return {
@@ -36,15 +42,16 @@ foam.CLASS({
           inputValidation: X.data.User.USER_NAME_MATCHER
         };
       },
+      required: true,
       validationPredicates: [
         {
-          args: ['username'],
-          query: 'username.len>0',
-          errorMessage: 'USERNAME_EMPTY_ERR'
+          args: ['usernameAvailable', 'username'],
+          query: 'usernameAvailable!="invalid"',
+          errorMessage: 'USERNAME_INVALID_ERR'
         },
         {
-          args: ['usernameAvailable'],
-          query: 'usernameAvailable==true',
+          args: ['usernameAvailable', 'username'],
+          query: 'usernameAvailable!="unavailable"',
           errorMessage: 'USERNAME_AVAILABILITY_ERR'
         }
       ]
@@ -57,22 +64,17 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.UserPropertyAvailabilityView',
           icon: 'images/checkmark-small-green.svg',
-          onKey: true,
           isAvailable$: X.data.emailAvailable$,
+          type: 'email',
           inputValidation: /\S+@\S+\.\S+/,
-          restrictedCharacters: /^[^\s]$/,
-          displayMode: foam.u2.DisplayMode.RW
+          displayMode: X.data.disableEmail_ ? foam.u2.DisplayMode.DISABLED : foam.u2.DisplayMode.RW
         };
       },
+      required: true,
       validationPredicates: [
         {
-          args: ['email'],
-          query: 'email.len>0&&email~/\\S+@\\S+\.\\S+$/',
-          errorMessage: 'EMAIL_ERR'
-        },
-        {
-          args: ['emailAvailable'],
-          query: 'emailAvailable==true',
+          args: ['emailAvailable', 'email'],
+          query: 'emailAvailable!="unavailable"',
           errorMessage: 'EMAIL_AVAILABILITY_ERR'
         }
       ]
@@ -108,15 +110,21 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
+      name: 'disableEmail_',
+      documentation: `Set this to true to disable the email input field.`,
+      hidden: true
+    },
+    {
+      class: 'String',
       name: 'emailAvailable',
-      value: true,
+      value: 'valid',
       hidden: true,
       transient: true
     },
     {
-      class: 'Boolean',
+      class: 'String',
       name: 'usernameAvailable',
-      value: true,
+      value: 'valid',
       hidden: true,
       transient: true
     },

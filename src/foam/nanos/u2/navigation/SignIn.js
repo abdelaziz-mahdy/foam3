@@ -22,6 +22,7 @@ foam.CLASS({
     'loginSuccess',
     'loginView?',
     'memento_',
+    'notify',
     'routeTo',
     'stack',
     'subject',
@@ -177,16 +178,6 @@ foam.CLASS({
       }
     },
     {
-      name: 'notifyUser',
-      code: function(err, msg, type) {
-        this.ctrl.add(this.NotificationMessage.create({
-          err: err,
-          message: msg,
-          type: type
-        }));
-      }
-    },
-    {
       name: 'signInWithOIDC',
       code: async function(provider) {
         // TODO: Validate nonce
@@ -230,7 +221,7 @@ foam.CLASS({
             let authwindow = window.open(authURL);
           });
         } catch(e) {
-          this.notifyUser(undefined, e, this.LogLevel.ERROR);
+          this.notify(e.message, '', this.LogLevel.ERROR, true);
         }
 
         this.subject = await this.auth.getCurrentSubject(x);
@@ -263,7 +254,7 @@ foam.CLASS({
       code: async function(x) {
         if ( this.identifier.length > 0 ) {
           if ( ! this.password ) {
-            this.notifyUser(undefined, this.ERROR_MSG3, this.LogLevel.ERROR);
+            this.notify(this.ERROR_MSG3, '', this.LogLevel.ERROR, true);
             return;
           }
           try {
@@ -282,7 +273,7 @@ foam.CLASS({
                 this.subject.realUser = updatedUser;
                 if ( ! this.pureLoginFunction ) await this.nextStep();
               } catch ( err ) {
-                this.notifyUser(err.data, this.ERROR_MSG, this.LogLevel.ERROR);
+                this.notify(err.data, this.ERROR_MSG, this.LogLevel.ERROR, true);
               }
             } else {
               this.subject.user = logedInUser;
@@ -324,11 +315,11 @@ foam.CLASS({
               // do not show error notification for unverified email
               return;
             }
-            this.notifyUser(err.data, this.ERROR_MSG, this.LogLevel.ERROR);
+            this.notify(err.data, this.ERROR_MSG, this.LogLevel.ERROR, true);
           }
         } else {
           // TODO: Add functionality to push to sign up if the user identifier doesnt exist
-          this.notifyUser(undefined, this.ERROR_MSG2, this.LogLevel.ERROR);
+          this.notify(this.ERROR_MSG2, '', this.LogLevel.ERROR, true);
         }
       }
     },

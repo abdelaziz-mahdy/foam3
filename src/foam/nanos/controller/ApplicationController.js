@@ -73,6 +73,7 @@ foam.CLASS({
     'analyticEventDAO',
     'capabilityDAO',
     'installCSS',
+    'myNotificationDAO',
     'notificationDAO',
     'params',
     'sessionSuccess',
@@ -448,9 +449,9 @@ foam.CLASS({
       }
     },
 
-    async function onClientLoad() {
+    function onClientLoad() {
       let self = this;
-      await this.clientPromise.then(async function(client) {
+      this.clientPromise.then(async function(client) {
         if ( self.client != client ) {
           console.log('Stale Client in ApplicationController, waiting for update.');
           await self.client.promise;
@@ -510,23 +511,16 @@ foam.CLASS({
       });
     },
 
-    async function render() {
+    function render() {
       this.addMacroLayout();
       this.onClientLoad();
-      // if ( ! this.client || ! this.client.auth ) {
-      //   await this.reloadClient();
-      // }
-      this.fetchSubject();
-      // adding a listener to track the display width here as well since we don't call super
-      window.addEventListener('resize', this.updateDisplayWidth);
-      this.updateDisplayWidth();
-
       this.initLayout.then(() => {
         this.layoutInitialized = true;
       });
+      this.fetchSubject();
+      window.addEventListener('resize', this.updateDisplayWidth);
+      this.updateDisplayWidth();
 
-      foam.nanos.controller.AppStyles.create({}, this);
-      foam.nanos.controller.Fonts.create({}, this);
       this.AppStyles.create();
       this.Fonts.create();
     },
@@ -806,20 +800,27 @@ foam.CLASS({
     },
 
     function notify(toastMessage, toastSubMessage, severity, transient, icon) {
-      var notification = this.Notification.create();
-
-      notification.userId = this.subject && this.subject.realUser ?
-        this.subject.realUser.id : this.user && this.user.id || 0;
-      notification.toastMessage    = toastMessage;
-      notification.toastSubMessage = toastSubMessage;
-      notification.toastState      = this.ToastState.REQUESTED;
-      notification.severity        = severity || this.LogLevel.INFO;
-      notification.transient       = foam.Undefined.isInstance(transient) ? true : transient;
-      notification.icon            = icon;
-      if ( notification.userId == 0 ) {
-        this.__subContext__.notificationDAO?.put(notification);
+      if ( transient ) {
+        this.add(this.NotificationMessage.create({
+          err: toastMessage.exception,
+          message: toastMessage.exception ? '' : toastMessage,
+          description: toastSubMessage,
+          type: severity,
+          icon: icon
+        }));
       } else {
-        this.__subContext__.myNotificationDAO?.put(notification);
+        var notification = this.Notification.create();
+        notification.userId = this.subject && this.subject.realUser ?
+          this.subject.realUser.id : this.user && this.user.id || 0;
+        notification.toastMessage    = toastMessage;
+        notification.toastSubMessage = toastSubMessage;
+        notification.toastState      = this.ToastState.REQUESTED;
+        notification.severity        = severity || this.LogLevel.INFO;
+        notification.transient       = transient;
+        notification.icon            = icon;
+        var dao = notification.userId == 0 ?
+            this.__subContext__.notificationDAO : this.__subContext__.myNotificationDAO || this.__subContext__.notificationDAO;
+        dao.put(notification);
       }
     },
 
@@ -964,7 +965,7 @@ foam.CLASS({
       var lastTheme = this.theme;
       try {
         this.theme = this.__subContext__.theme;
-        this.appConfig.copyFrom(this.theme.appConfig)
+        this.appConfig.copyFrom(this.theme.appConfig);
       } catch (err) {
         this.notify(this.LOOK_AND_FEEL_NOT_FOUND, '', this.LogLevel.ERROR, true);
         console.error(err);
