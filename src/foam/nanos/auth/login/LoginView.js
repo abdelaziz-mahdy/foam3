@@ -197,7 +197,7 @@ foam.CLASS({
                   name: 'signIn',
                   label: provider.description,
                   code: async function () {
-                    await self.data.signInWithOIDC(provider)
+                    await self.clientLoginService.signInWithOIDC(provider)
                   }
                 });
     
