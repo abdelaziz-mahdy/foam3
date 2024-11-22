@@ -17,7 +17,10 @@ RUN_USER=
 FS=rw
 #CLUSTER=false
 
-source build/env.sh
+# local development -u deployment
+if [ -f "build/env.sh" ]; then
+    source build/env.sh
+fi
 
 MACOS='darwin*'
 LINUXOS='linux-gnu'
