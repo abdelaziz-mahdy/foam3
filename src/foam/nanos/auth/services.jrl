@@ -515,19 +515,21 @@ p({
     {
       "of": "foam.nanos.auth.User",
       "cache": true,
-      "retryBoxMaxAttempts": 0
+      "retryBoxMaxAttempts": 0,
+      "decorators": [
+        { "class": "foam.nanos.fs.FileDAODecorator" },
+        { "class": "foam.nanos.fs.FileArrayDAODecorator"}
+      ];
     }
   """
 })
-// "decorators": [
-//   { "class": "foam.nanos.fs.FileDAODecorator" },
-//   { "class": "foam.nanos.fs.FileArrayDAODecorator"}
-// ],
 
+// only available to admin to update passwords.
 p({
   "class": "foam.nanos.boot.NSpec",
   "name": "userUpdatePasswordDAO",
-  "serve": false,
+  "serve": true,
+  "authenticate": true,
   "authNotes": "Hash desired password",
   "serviceScript":
   """
@@ -535,17 +537,19 @@ p({
       .setOf(foam.nanos.auth.User.getOwnClassInfo())
       .setInnerDAO(x.get("localUserDAO"))
       .setDecorator(
-        new foam.nanos.auth.UserRegistrationSanitationDAO(x,
         new foam.nanos.auth.UserPasswordHashingDAO(x,
-        new foam.dao.ValidatingDAO(x,
-          new foam.dao.NullDAO(x,foam.nanos.auth.User.getOwnClassInfo()),
-          new foam.nanos.auth.validators.UserGroupAndSpidValidator()
-        ))))
-      .setAuthorize(false)
-      .setRuler(true)
+          new foam.dao.NullDAO(x,foam.nanos.auth.User.getOwnClassInfo())
+        ))
+      .setRuler(false)
       .setPm(true)
-      .setValidated(true)
       .setEnableInterfaceDecorators(false)
       .build();
+  """,
+  "client": """
+    {
+      "of": "foam.nanos.auth.User",
+      "cache": false,
+      "retryBoxMaxAttempts": 0
+    }
   """
 })
