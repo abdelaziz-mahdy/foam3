@@ -646,9 +646,6 @@ foam.CLASS({
       code: function(X) {
         var assignedTicket = this.clone();
         assignedTicket.assignedTo = X.subject.user.id;
-        if ( ! assignedTicket.hasDefaultValue('assignedToGroup') ) {
-          assignedTicket.resetProperty('assignedToGroup');
-        }
 
         return this.ticketDAO.put(assignedTicket).then(req => {
           this.ticketDAO.cmd(this.AbstractDAO.PURGE_CMD);
@@ -669,12 +666,7 @@ foam.CLASS({
       },
       code: function(X) {
         var unassignedTicket = this.clone();
-        if ( ! unassignedTicket.hasDefaultValue('assignedTo') ) {
-          unassignedTicket.resetProperty('assignedTo');
-        }
-        if ( ! unassignedTicket.hasDefaultValue('assignedToGroup') ) {
-          unassignedTicket.resetProperty('assignedToGroup');
-        }
+        unassignedTicket.assignedTo = 0;
 
         return this.ticketDAO.put(unassignedTicket).then(req => {
           this.ticketDAO.cmd(this.AbstractDAO.PURGE_CMD);
