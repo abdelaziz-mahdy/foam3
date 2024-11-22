@@ -165,6 +165,7 @@ foam.CLASS({
       }
       // CREATE DATA VIEW
       this
+        .addClass(self.myClass())
         // Title txt and Data
         .callIf(self.showTitle, function() { this.start().addClass('h300').add(self.data.TITLE).end(); })
         .addClass(self.myClass('content-form'))
