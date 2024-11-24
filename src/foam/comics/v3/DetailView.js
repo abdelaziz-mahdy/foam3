@@ -278,7 +278,7 @@ foam.CLASS({
           }
           let newAction = defaultAction.clone(self).copyFrom(actionsOverrides[v]);
           if ( actionsOverrides[v].hasOwnProperty('code') )
-            newAction.overrideCodeData = true;
+            newAction.overrideCodeData$ = this.currentData_$;
           actionsOverrides[v] = newAction;
         })
         this.actionsOverrides = actionsOverrides;
