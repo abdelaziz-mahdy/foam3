@@ -18,7 +18,7 @@ foam.CLASS({
     'foam.core.X',
     'foam.dao.DAO',
     'static foam.mlang.MLang.*',
-    // 'foam.nanos.referral.ReferralCode',
+    'foam.nanos.referral.ReferralCode',
     'foam.util.SafetyUtil',
     'java.util.Objects'
   ],
@@ -50,17 +50,18 @@ foam.CLASS({
         nu.setDesiredPassword(user.getDesiredPassword());
         nu.setLanguage(user.getLanguage());
         nu.setGroup(user.getGroup());
-        // this should be a rule
-        // if ( ! SafetyUtil.isEmpty(user.getReferralCode()) ) {
-        //   DAO referralCodeDAO = (DAO) x.get("referralCodeDAO");
-        //   ReferralCode referralCode = (ReferralCode) referralCodeDAO.find(OR(
-        //     EQ(ReferralCode.ID, user.getReferralCode()),
-        //     EQ(ReferralCode.CUSTOM_REFERRAL_CODE, user.getReferralCode())
-        //   ));
-        //   if ( referralCode != null ) {
-        //     nu.setReferralCode(referralCode.getId());
-        //   }
-        // }
+
+        // FIXME: this should be a rule
+        if ( ! SafetyUtil.isEmpty(user.getReferralCode()) ) {
+          DAO referralCodeDAO = (DAO) x.get("referralCodeDAO");
+          ReferralCode referralCode = (ReferralCode) referralCodeDAO.find(OR(
+            EQ(ReferralCode.ID, user.getReferralCode()),
+            EQ(ReferralCode.CUSTOM_REFERRAL_CODE, user.getReferralCode())
+          ));
+          if ( referralCode != null ) {
+            nu.setReferralCode(referralCode.getId());
+          }
+        }
         return nu;
       `
     }
