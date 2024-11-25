@@ -23,8 +23,6 @@ public class NoPlan
   public long cost() { return Long.MAX_VALUE; }
 
   public void select(Object state, Sink sink, long skip, long limit, Comparator order, Predicate predicate) {
-    //throw new UnsupportedOperationException();
-    return;
   }
 
   public SelectPlan restate(Object state) { return this; }

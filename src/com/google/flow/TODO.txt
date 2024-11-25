@@ -1,38 +1,48 @@
+* = Needed for MVP
+
 Features
-[] Add load/save/dir DAOList as object
-[] Make "Console" into an object?
-[] Make "language" features into object or add to shell?
-[] rename properties
-[] Add Actions to DetailView
-[] Add Methods to DetailView
-[] Add Button Thing (extends Label?)
-[] A Layout tool which works like physics to keep your diagrams pretty
-help();
-save to DAO
-Jump to Sheet
-Specify Notes for Beep
-Musical Instrument
-Console / Terminal
-Timeline / Sequence / Animation
-Borders? (unnamed parents?)
-MP3 / Audio
-Document
-Create Models from Canvases
-Add created Models to Canvas
+* [] Top-Level FLOW DAO & Controller with NANOS Integration
+  [] Make "Console" into an object?
+  [] Make "language" features into object or add to shell?
+  [] Add Sections to DetailView
+  [] Add Actions to DetailView
+  [] Add Methods to DetailView
+  [] Add Button Thing (extends Label?)
+  [] A Layout tool which works like physics to keep your diagrams pretty
+  [] Port simple Graph from FOAM1
+    https://raw.githubusercontent.com/foam-framework/foam/refs/heads/master/js/foam/graphics/Graph.js
+  [] Add Sections to Tools: ie. Shapes, Physics, Architecture, Containers, Sound, etc.
+  [] Sliding StackView
+  [] Individual Property View
+  help();
+  Jump to Sheet
+  Specify Musical Notes for Beep
+  Musical Instrument
+  Console / Terminal
+  Timeline / Sequence / Animation
+  Dashboard
+  Borders? (unnamed parents?)
+  MP3 / Audio
+  Document
+  Create Models from Canvases
+  Add created Models to Canvas
 
 Input:
-Keyboard Input
-Slider
-2D Slider
-Dial
-Mixer Panel
+  Keyboard Input
+  Slider
+  2D Slider
+  Dial
+  Mixer Panel
 
 Bugs:
-[Y] Better Proxy depth
-[Y] Working Circle Halo
-[Y] Deleting Spring doesn't delete spring action
-  - caused by cloneing of Spring calling int() which attaches to PhysicsEngine
-  - switch to use initCView instead()[] Improve Halo Rotation, show originX/Y
-[Y] Fix load/save
-[Y] Can't drag shapes
-[] Fix Calculator CSS
+* [] DetailView shouldn't show deleted objects
+* [] TreeView shouldn't lose open folder state on refresh
+* [] Nested objects don't show open-close icon
+* [] Only open/close in TreeView if you click the open/close icon (is closed even useful)
+  [] Fix Calculator CSS
+  [] Units not set for MultiView
+
+FLOW Property Types like Distance, Angle, Colour, etc.
+Sliders for width and height
+
+Rename: Revolution + Reflection

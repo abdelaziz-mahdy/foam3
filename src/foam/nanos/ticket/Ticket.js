@@ -668,7 +668,6 @@ foam.CLASS({
       code: function(X) {
         var assignedTicket = this.clone();
         assignedTicket.assignedTo = X.subject.user.id;
-        assignedTicket.clearProperty('assignedToGroup');
 
         return this.ticketDAO.put(assignedTicket).then(req => {
           this.ticketDAO.cmd(this.AbstractDAO.PURGE_CMD);
@@ -689,8 +688,7 @@ foam.CLASS({
       },
       code: function(X) {
         var unassignedTicket = this.clone();
-        unassignedTicket.clearProperty('assignedTo');
-        unassignedTicket.clearProperty('assignedToGroup');
+        unassignedTicket.assignedTo = 0;
 
         return this.ticketDAO.put(unassignedTicket).then(req => {
           this.ticketDAO.cmd(this.AbstractDAO.PURGE_CMD);

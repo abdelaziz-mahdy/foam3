@@ -390,7 +390,8 @@ foam.CLASS({
         dao.put(com.google.flow.Cursor.model_);
         dao.put(com.google.flow.Script.model_);
         dao.put(com.google.flow.Proxy.model_);
-        dao.put(com.google.flow.KScope.model_);
+        dao.put(com.google.flow.Mirror.model_);
+        dao.put(com.google.flow.RadialMirror.model_);
         dao.put(foam.input.Gamepad.model_);
         dao.put(foam.core.Model.model_);
         // dao.put(com.google.dxf.ui.DXFDiagram.model_);
@@ -592,6 +593,12 @@ foam.CLASS({
             end().
 //            tag('br').
             start(foam.u2.Tabs).
+            /*
+              start(foam.u2.Tab, {label: 'FLOWs'}).
+                style({display: 'flex'}).
+                add('ADD CONTENT').
+              end().
+            */
               start(foam.u2.Tab, {label: 'canvas1'}).
                 style({display: 'flex'}).
                 start('div').

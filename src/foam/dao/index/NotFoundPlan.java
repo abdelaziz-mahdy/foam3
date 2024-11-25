@@ -23,7 +23,6 @@ public class NotFoundPlan
   public long cost() { return 0; }
 
   public void select(Object state, Sink sink, long skip, long limit, Comparator order, Predicate predicate) {
-    return;
   }
 
   public SelectPlan restate(Object state) { return this; }

@@ -162,7 +162,7 @@ foam.CLASS({
         } else {
           this.description = this.translationService.getTranslation(foam.locale, ex.id+'.'+ex.message, ex.message);
         }
-        if ( this.message == this.description ) {
+        if ( this.message === this.description ) {
           this.description = null;
         }
       }

@@ -830,7 +830,7 @@ foam.CLASS({
       var hash = this.window.location.hash;
       if ( hash ) hash = hash.substring(1);
       if ( hash && hash != 'null' /* How does it even get set to null? */ && ( hash != this.currentMenu?.id || this.currentMenu.authenticate ) ) {
-        this.window.onpopstate();
+        this.routeUpdated()
       } else {
         await this.pushDefaultMenu();
       }

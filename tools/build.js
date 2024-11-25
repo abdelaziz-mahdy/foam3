@@ -73,7 +73,6 @@ const fs       = require('fs');
 const { join } = require('path');
 const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, processSingleCharArgs, rmdir, rmfile, spawn } = require('./buildlib');
 
-
 // Build configs
 var
   PWD                       = process.cwd(),
@@ -129,6 +128,8 @@ var TASKS, EXPORTS;
 var JAVA_RELEASE = '17';
 
 var BUILD_DIR  = './build';
+console.log("post buildEnv INSTANCE", INSTANCE, "PORT", WEB_PORT);
+
 
 globalThis.foam = {
   POM: function (pom) {
@@ -519,9 +520,10 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
   if ( RUN_JAR ) {
     var OPT_ARGS = ``;
 
+    var SYSTEM_NAME = ( INSTANCE !== 'localhost' ) ? `/${PROJECT.name}_` + INSTANCE : `/${PROJECT.name}`;
     if ( RUN_USER ) OPT_ARGS += ` -U${RUN_USER}`;
     if ( WEB_PORT ) OPT_ARGS += ` -W${WEB_PORT}`;
-    exec(`${APP_HOME}/bin/run.sh -Z${DAEMONIZE ? 1 : 0} -D${DEBUG ? 1 : 0} -S${DEBUG_SUSPEND ? 'y' : 'n'} -E${DEBUG_PORT} -A${PROJECT.name} -S${PROJECT.name} -C${CLUSTER} -H${HOST_NAME} -J${PROFILER ? 1 : 0} -P${PROFILER_PORT} -F${FS} ${OPT_ARGS}`);
+    exec(`${APP_HOME}/bin/run.sh -Z${DAEMONIZE ? 1 : 0} -D${DEBUG ? 1 : 0} -Y${DEBUG_SUSPEND ? 'y' : 'n'} -E${DEBUG_PORT} -A${PROJECT.name} -S${SYSTEM_NAME} -C${CLUSTER} -H${HOST_NAME} -J${PROFILER ? 1 : 0} -P${PROFILER_PORT} -F${FS} ${OPT_ARGS}`);
   } else {
     MESSAGE = `Starting NANOS ${INSTANCE}`;
 
@@ -775,7 +777,7 @@ const ARGS = {
   m: [ "Enable Medusa clustering. Not required for 'nodes'. Same as -Ctrue",
     () => CLUSTER = true ],
   N: [ `NAME : start another instance with given instance name. Deployed to /opt/${PROJECT.name}_NAME.`,
-    args => { INSTANCE = HOST_NAME = args; NANOS_PIDFILE=`/tmp/nanos_${INSTANCE}.pid`; info('INSTANCE=' + args); } ],
+       args => { INSTANCE = HOST_NAME = args; NANOS_PIDFILE=`/tmp/nanos_${INSTANCE}.pid`; info('INSTANCE=' + args); } ],
   o: [ "Build only - don't start nanos.",
     () => BUILD_ONLY = true ],
   p: [ 'Enable profiling on default port',
