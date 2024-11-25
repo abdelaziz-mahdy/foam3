@@ -21,6 +21,16 @@ foam.CLASS({
     'java.util.List'
   ],
 
+  imports: [
+    'userDAO',
+    'sessionDAO'
+  ],
+
+  requires: [
+    'foam.nanos.auth.User',
+    'foam.nanos.session.Session'
+  ],
+
   properties: [
     {
       name: 'status',
@@ -62,10 +72,22 @@ foam.CLASS({
             X.userDAO.find(X.data.createdFor).then(function(user) {
               X.data.state = user.lifecycleState;
             });
+            X.sessionDAO.find(X.data.EQ(X.data.Session.USER_ID, X.data.createdFor)).then(function(session) {
+              if ( ! session )
+                return;
+              X.data.loggedIn = session.uses > 0 && session.remoteHost;
+              X.data.lastActivity = Date.now() - session.lastUsed.getTime();
+            });
           });
         } else {
           X.userDAO.find(X.data.createdFor).then(function(user) {
             X.data.state = user.lifecycleState;
+          });
+          X.sessionDAO.find(X.data.EQ(X.data.Session.USER_ID, X.data.createdFor)).then(function(session) {
+            if ( ! session )
+              return;
+            X.data.loggedIn = session.uses > 0 && session.remoteHost;
+            X.data.lastActivity = Date.now() - session.lastUsed.getTime();
           });
         }
         return {
@@ -76,12 +98,29 @@ foam.CLASS({
       }
     },
     {
+      name: 'loggedIn',
+      class: 'Boolean',
+      value: false,
+      transient: true,
+      visibility: 'RO',
+      section: 'infoSection',
+      order: 8
+    },
+    {
+      name: 'lastActivity',
+      class: 'Duration',
+      transient: true,
+      visibility: 'RO',
+      section: 'infoSection',
+      order: 9
+    },
+    {
       name: 'requestedLifecycleState',
       class: 'foam.core.Enum',
       of: 'foam.nanos.auth.LifecycleState',
       value: foam.nanos.auth.LifecycleState.DELETED,
       section: 'infoSection',
-      order: 8
+      order: 10
     },
     {
       name: 'message',
@@ -90,7 +129,7 @@ foam.CLASS({
       updateVisibility: 'RO',
       readVisibility: 'RO',
       section: 'infoSection',
-      order: 9
+      order: 11
     },
     {
       name: 'assignedTo',
@@ -110,7 +149,9 @@ foam.CLASS({
       javaFactory: 'return new ArrayList();',
       createVisibility: 'HIDDEN',
       readVisibility: 'RO',
-      updateVisibility: 'RO'
+      updateVisibility: 'RO',
+      section: 'infoSection',
+      order: 12
     }
   ]
 })

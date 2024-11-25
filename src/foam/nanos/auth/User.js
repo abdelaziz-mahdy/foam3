@@ -22,9 +22,15 @@ foam.CLASS({
 
   requires: [
     'foam.nanos.auth.Address',
+    'foam.nanos.auth.LifecycleState',
     'foam.nanos.auth.PriorPassword'
   ],
 
+  imports: [
+    'auth',
+    'ticketDAO'
+  ],
+  
   javaImports: [
     'foam.core.X',
     'foam.dao.DAO',
@@ -1024,16 +1030,42 @@ foam.CLASS({
         if ( getLifecycleState() != foam.nanos.auth.LifecycleState.ACTIVE ) {
           throw new AuthenticationException("User disabled");
         }
-        
+
         // check if user login enabled
         if ( ! getLoginEnabled() ) {
           throw new AccessDeniedException();
         }
-        
+
         if ( ! getEmailVerified() ) {
           throw new UnverifiedEmailException();
         }
       `
+    }
+  ],
+
+  actions: [
+    {
+      name: 'deleteUser',
+      label: 'Delete',
+      availablePermissions: ['user.remove.*'],
+      isAvailable: async function(id, lifecycleState) {
+        return id && lifecycleState != this.LifecycleState.DELETED;
+      },
+      code: function(X) {
+        if ( ! this.stack ) return;
+        var ticket = foam.nanos.auth.ruler.UserLifecycleTicket.create({
+          createdFor: this.id,
+          spid: this.spid
+        });
+        this.stack.push(this.StackBlock.create({
+          // parent: this,
+          view: {
+            class: foam.comics.v2.DAOSummaryView,
+            config: foam.comics.v2.DAOControllerConfig.create({ daoKey: 'ticketDAO' }, this),
+            data: ticket,
+          }, parent: this.__subContext__.createSubContext({ currentControllerMode: 'create' })
+        }));
+      }
     }
   ]
 });

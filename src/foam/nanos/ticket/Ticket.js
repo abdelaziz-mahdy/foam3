@@ -663,7 +663,7 @@ foam.CLASS({
       name: 'assignToMe',
       section: 'infoSection',
       isAvailable: function(subject, assignedTo, status){
-        return (subject.user.id !== assignedTo) && (status === 'OPEN');
+        return (subject?.user.id !== assignedTo) && (status === 'OPEN');
       },
       code: function(X) {
         var assignedTicket = this.clone();
@@ -684,7 +684,7 @@ foam.CLASS({
       name: 'unassignMe',
       section: 'infoSection',
       isAvailable: function(subject, assignedTo, status){
-        return (subject.user.id === assignedTo) && (status === 'OPEN');
+        return (subject?.user.id === assignedTo) && (status === 'OPEN');
       },
       code: function(X) {
         var unassignedTicket = this.clone();
