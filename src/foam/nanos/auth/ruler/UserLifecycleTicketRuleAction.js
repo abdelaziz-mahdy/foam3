@@ -22,10 +22,14 @@ foam.CLASS({
     'foam.core.X',
     'foam.dao.Sink',
     'foam.dao.DAO',
+    'static foam.mlang.MLang.AND',
+    'static foam.mlang.MLang.EQ',
+    'static foam.mlang.MLang.OR',
     'foam.nanos.auth.EnabledAware',
     'foam.nanos.auth.LifecycleAware',
     'foam.nanos.auth.LifecycleState',
     'foam.nanos.auth.User',
+    'foam.nanos.session.Session',
     'foam.nanos.crunch.UserCapabilityJunction',
     'foam.nanos.logger.Logger',
     'foam.nanos.logger.Loggers',
@@ -97,11 +101,26 @@ foam.CLASS({
       name: 'updateUserAssociations',
       args: 'X x, User user, LifecycleState state',
       javaCode: `
+      updateSessions(x, user, state);
       updateUCJs(x, user, state);
       updateCredentials(x, user, state);
       updateReferralCodes(x, user, state);
       updatePushRegistrations(x, user, state);
       updateDocuments(x, user, state);
+      `
+    },
+    {
+      name: 'updateSessions',
+      args: 'X x, User user, LifecycleState state',
+      javaCode: `
+      if ( state == LifecycleState.DISABLED ||
+           state == LifecycleState.DELETED )  {
+        ((DAO) x.get("sessionDAO")).where(
+          OR(
+            EQ(Session.USER_ID, user.getId()),
+            EQ(Session.AGENT_ID, user.getId())
+          )).removeAll();
+      }
       `
     },
     {
