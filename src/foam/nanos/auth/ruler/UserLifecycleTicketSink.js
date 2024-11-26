@@ -59,8 +59,7 @@ foam.CLASS({
       javaCode: `
       X x = getX();
       Logger logger = (Logger) x.get("logger");
-      PropertyInfo prop = (PropertyInfo) ((FObject)obj).getClassInfo().getAxiomByName("id");
-      Object id = prop != null ? prop.get(obj) : null;
+      Object id = obj instanceof Identifiable ? ((Identifiable) obj).getPrimaryKey() : null;
       UserLifecycleTicket ticket = x.get(UserLifecycleTicket.class);
       UserLifecycleTicketUpdate update = new UserLifecycleTicketUpdate();
       update.setDaoKey(getDaoKey());
