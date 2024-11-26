@@ -277,30 +277,6 @@ p({
 p({"class":"foam.nanos.boot.NSpec", "name":"resetPasswordToken",                 "serve":true,  "authenticate": false, "serviceClass":"foam.nanos.auth.resetPassword.ResetPasswordTokenService","boxClass":"foam.nanos.auth.token.TokenServiceSkeleton","client":"{\"class\":\"foam.nanos.auth.token.ClientTokenService\"}"})
 
 
-// To use, enable this nspec, and also grant permission to
-// service.resetPasswordInsecureService
-// menu.read.reset-password
-p({
-  "class": "foam.nanos.boot.NSpec",
-  "name": "resetPasswordInsecureService",
-  "serve": false,
-  "boxClass": "foam.nanos.auth.resetPassword.ResetPasswordServiceSkeleton",
-  "serviceClass": "foam.nanos.auth.resetPassword.ResetPasswordInsecureService",
-  "client":
-    """
-      {
-        "class": "foam.nanos.auth.resetPassword.ClientResetPasswordService",
-        "delegate": {
-          "class": "foam.box.SessionClientBox",
-          "delegate": {
-            "class": "foam.box.HTTPBox",
-            "url": "service/resetPasswordInsecureService"
-          }
-        }
-      }
-    """
-})
-
 p({
   "class":"foam.nanos.boot.NSpec",
   "name":"localPermissionDAO",
@@ -419,7 +395,7 @@ p({
       .setPermissioned(true)
       .setDecorator(
         new foam.dao.ValidatingDAO(x,
-          new foam.dao.NullDAO(x, foam.nanos.auth.User.getOwnClassInfo()),
+          new foam.nanos.auth.UserPasswordHashingDAO(x, new foam.dao.NullDAO(x, foam.nanos.auth.User.getOwnClassInfo())),
           new foam.nanos.auth.validators.UserGroupAndSpidValidator()
         )
       )
@@ -519,36 +495,6 @@ p({
     {
       "of": "foam.nanos.auth.User",
       "cache": true,
-      "retryBoxMaxAttempts": 0
-    }
-  """
-})
-
-// only available to admin to update passwords.
-p({
-  "class": "foam.nanos.boot.NSpec",
-  "name": "userUpdatePasswordDAO",
-  "serve": true,
-  "authenticate": true,
-  "authNotes": "Hash desired password",
-  "serviceScript":
-  """
-    return new foam.dao.EasyDAO.Builder(x)
-      .setOf(foam.nanos.auth.User.getOwnClassInfo())
-      .setInnerDAO(x.get("localUserDAO"))
-      .setDecorator(
-        new foam.nanos.auth.UserPasswordHashingDAO(x,
-          new foam.dao.NullDAO(x,foam.nanos.auth.User.getOwnClassInfo())
-        ))
-      .setRuler(false)
-      .setPm(true)
-      .setEnableInterfaceDecorators(false)
-      .build();
-  """,
-  "client": """
-    {
-      "of": "foam.nanos.auth.User",
-      "cache": false,
       "retryBoxMaxAttempts": 0
     }
   """
