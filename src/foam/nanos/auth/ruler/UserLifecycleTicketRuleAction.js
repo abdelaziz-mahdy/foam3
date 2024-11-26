@@ -20,11 +20,13 @@ foam.CLASS({
     'foam.core.FObject',
     'foam.core.PropertyInfo',
     'foam.core.X',
+    'foam.dao.AbstractSink',
     'foam.dao.Sink',
     'foam.dao.DAO',
     'static foam.mlang.MLang.AND',
     'static foam.mlang.MLang.EQ',
     'static foam.mlang.MLang.OR',
+    'foam.nanos.auth.AuthService',
     'foam.nanos.auth.EnabledAware',
     'foam.nanos.auth.LifecycleAware',
     'foam.nanos.auth.LifecycleState',
@@ -82,13 +84,13 @@ foam.CLASS({
                 ((DAO) ruler.getX().get("localUserDAO")).put(user);
               }
               ticket.setMessage(null);
-              ticket.setStatus("CLOSED");
             } catch (Throwable t) {
               ticket.setMessage(t.getMessage());
               if ( nu == LifecycleState.DISABLED ||
                    nu == LifecycleState.DELETED ) {
-                user.setLoginEnabled(false);
-                ((Logger) x.get("logger")).warning("UserLifecycleTicket", user.getId(), "disable login", t.getMessage());
+                user.setLifecycleState(LifecycleState.DISABLED);
+                updateSessions(x, user, LifecycleState.DELETED);
+                ((Logger) x.get("logger")).warning("UserLifecycleTicket", user.getId(), "Failed",ticket.getRequestedLifecycleState(), "only disabling", t.getMessage());
                 ((DAO) ruler.getX().get("localUserDAO")).put(user);
               }
             }
@@ -107,6 +109,7 @@ foam.CLASS({
       updateReferralCodes(x, user, state);
       updatePushRegistrations(x, user, state);
       updateDocuments(x, user, state);
+      // TODO: updateApprovalRequests(x, user, state);
       `
     },
     {
@@ -115,11 +118,19 @@ foam.CLASS({
       javaCode: `
       if ( state == LifecycleState.DISABLED ||
            state == LifecycleState.DELETED )  {
-        ((DAO) x.get("sessionDAO")).where(
+      AuthService auth = (AuthService) x.get("auth");
+      ((DAO) getX().get("sessionDAO")).where(
           OR(
             EQ(Session.USER_ID, user.getId()),
             EQ(Session.AGENT_ID, user.getId())
-          )).removeAll();
+          )
+        ).select(new AbstractSink() {
+          @Override
+          public void put(Object obj, Detachable sub) {
+            Session session = (Session) obj;
+            auth.logout(session.getContext());
+          }
+        });
       }
       `
     },

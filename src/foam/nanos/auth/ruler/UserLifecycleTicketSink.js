@@ -103,9 +103,12 @@ foam.CLASS({
       } else if ( getLifecycleState() == LifecycleState.DELETED ) {
         update.setPreviousState(true);
         update.setCurrentState(null);
+
+        // TODO: Enable after testing
         // dao.remove_(x, obj);
-        logger.debug(update);
-        ticket.getUpdated().add(update);
+        logger.warning("UserLifecycleTicket,DELETED,delete,disabled");
+        // logger.debug(update);
+        // ticket.getUpdated().add(update);
       }
       `
     }

@@ -447,6 +447,11 @@ foam.CLASS({
       order: 6,
       gridColumns: 6,
       view: function(_, X) {
+        if ( X.data.createdFor )
+          return {
+            class: 'foam.u2.view.ReadReferenceView'
+          };
+
         var userDAOSlot = X.data.slot(spid => {
           return X.userDAO.where(X.data.EQ(X.data.User.SPID, spid));
         });

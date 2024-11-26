@@ -52,6 +52,10 @@ foam.CLASS({
       }
     },
     {
+      name: 'createdFor',
+      gridColumns: '12'
+    },
+    {
       name: 'state',
       hidden: true,
       transient: true
@@ -65,6 +69,7 @@ foam.CLASS({
       visibility: 'RO',
       section: 'infoSection',
       order: 7,
+      gridColumns: 6,
       view: function(_, X) {
         X.data.state = foam.nanos.auth.LifecycleState.PENDING;
         if ( ! X.data.createdFor ) {
@@ -98,13 +103,23 @@ foam.CLASS({
       }
     },
     {
+      name: 'requestedLifecycleState',
+      class: 'foam.core.Enum',
+      of: 'foam.nanos.auth.LifecycleState',
+      value: foam.nanos.auth.LifecycleState.DELETED,
+      section: 'infoSection',
+      order: 8,
+      gridColumns: 6
+    },
+    {
       name: 'loggedIn',
       class: 'Boolean',
       value: false,
       transient: true,
       visibility: 'RO',
       section: 'infoSection',
-      order: 8
+      order: 9,
+      gridColumns: 6
     },
     {
       name: 'lastActivity',
@@ -112,15 +127,8 @@ foam.CLASS({
       transient: true,
       visibility: 'RO',
       section: 'infoSection',
-      order: 9
-    },
-    {
-      name: 'requestedLifecycleState',
-      class: 'foam.core.Enum',
-      of: 'foam.nanos.auth.LifecycleState',
-      value: foam.nanos.auth.LifecycleState.DELETED,
-      section: 'infoSection',
-      order: 10
+      order: 10,
+      gridColumns: 6
     },
     {
       name: 'message',

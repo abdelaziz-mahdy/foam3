@@ -60,6 +60,8 @@ foam.CLASS({
   tableColumns: [
     'id',
     'type',
+    'lifecycleState',
+    'userName',
     'group.id',
     'email'
   ],
@@ -69,7 +71,8 @@ foam.CLASS({
     'type',
     'spid',
     'group',
-    'enabled',
+    'lifecycleState',
+    'userName',
     'firstName',
     'preferredName',
     'lastName',
@@ -652,6 +655,7 @@ foam.CLASS({
       order: 40,
       gridColumns: 6,
       value: foam.nanos.auth.LifecycleState.PENDING,
+      visibility: 'RO',
       writePermissionRequired: true
     },
     {
@@ -715,20 +719,21 @@ foam.CLASS({
       displayWidth: 30,
       width: 100,
       storageTransient: true,
-      validateObj: function (password) {
-        var re = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{7,32}$/;
+      // validateObj: function (password) {
+      //   var re = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{7,32}$/;
 
-        if ( password.length > 0 && ! re.test(password) ) {
-          return 'Password must contain one lowercase letter, one uppercase letter, one digit, and be between 7 and 32 characters in length.';
-        }
-      },
+      //   if ( password.length > 0 && ! re.test(password) ) {
+      //     return 'Password must contain one lowercase letter, one uppercase letter, one digit, and be between 7 and 32 characters in length.';
+      //   }
+      // },
       createVisibility: 'RW',
       updateVisibility: 'RW',
       readVisibility: 'HIDDEN',
       section: 'systemInformation',
       order: 110,
       gridColumns: 6,
-      columnPermissionRequired: true
+      columnPermissionRequired: true,
+      writePermissionRequired: true
     },
     {
       class: 'Password',
@@ -1047,32 +1052,86 @@ foam.CLASS({
     {
       name: 'deleteUser',
       label: 'Delete',
-      availablePermissions: ['user.remove.*'],
-      isAvailable: async function(id, lifecycleState) {
-        return id && lifecycleState != this.LifecycleState.DELETED;
+      toolTip:'Open ticket to delete a user and all associated entities',
+      availablePermissions: ['user.action.delete'],
+      isAvailable: async function(id, spid, lifecycleState) {
+        // NOTE: testing spid as hack so action only available from detail view
+        return id && spid && lifecycleState != this.LifecycleState.DELETED;
       },
       code: function(X) {
         if ( ! this.stack ) return;
         var ticket = foam.nanos.auth.ruler.UserLifecycleTicket.create({
+          title: 'Delete user',
           createdFor: this.id,
           spid: this.spid
-        }, X);
+        });
         this.stack.push(this.StackBlock.create({
           parent: this,
           view: {
-            class: foam.comics.v2.DAOSummaryView,
+            class: foam.comics.v2.DAOCreateView,
             config: foam.comics.v2.DAOControllerConfig.create({ daoKey: 'ticketDAO' }, this),
             data: ticket,
-          }, parent: this.__subContext__.createSubContext({ currentControllerMode: 'create' })
+          }
         }));
-      //   this.stack.push({
-      //     class: 'foam.comics.v3.CreateView',
-      //     data: ticket,
-      //     config: foam.comics.v2.DAOControllerConfig.create({ daoKey: 'ticketDAO' }, this),
-      //     of: ticket.of
-      //   });
       }
-    }
+    },
+    {
+      name: 'disableUser',
+      label: 'Disable',
+      toolTip: 'Open ticket to disable a user and all associated entities',
+      availablePermissions: ['user.action.disable','user.action.delete'],
+      isAvailable: async function(id, spid, lifecycleState) {
+        // NOTE: testing spid as hack so action only available from detail view
+        return id && spid && ( lifecycleState != this.LifecycleState.DISABLED &&
+                               lifecycleState != this.LifecycleState.DELETED );
+      },
+      code: function(X) {
+        if ( ! this.stack ) return;
+        var ticket = foam.nanos.auth.ruler.UserLifecycleTicket.create({
+          title: 'Delete user',
+          createdFor: this.id,
+          spid: this.spid,
+          requestedLifecycleState: foam.naos.auth.LifecycleState.DISABLED
+        });
+        this.stack.push(this.StackBlock.create({
+          parent: this,
+          view: {
+            class: foam.comics.v2.DAOCreateView,
+            config: foam.comics.v2.DAOControllerConfig.create({ daoKey: 'ticketDAO' }, this),
+            data: ticket,
+          }
+        }));
+      }
+    },
+    {
+      name: 'activateUser',
+      label: 'Activate',
+      toolTip: 'Open a ticket to activate a new user or previously disabled user',
+      availablePermissions: ['user.action.activate'],
+      isAvailable: async function(id, spid, lifecycleState) {
+        // NOTE: testing spid as hack so action only available from detail view
+        return id && spid && ( lifecycleState == this.LifecycleState.DISABLED ||
+                               lifecycleState == this.LifecycleState.PENDING );
+      },
+      code: function(X) {
+        if ( ! this.stack ) return;
+        var ticket = foam.nanos.auth.ruler.UserLifecycleTicket.create({
+          title: 'Undelete user',
+          createdFor: this.id,
+          spid: this.spid,
+          requestedLifecycleState: foam.naos.auth.LifecycleState.ACTIVE
+        });
+        this.stack.push(this.StackBlock.create({
+          parent: this,
+          view: {
+            class: foam.comics.v2.DAOCreateView,
+            config: foam.comics.v2.DAOControllerConfig.create({ daoKey: 'ticketDAO' }, this),
+            data: ticket,
+          }
+        }));
+      }
+    },
+    // TOOD: undeleteUser - when UserLifecycleTicket supports it.
   ]
 });
 

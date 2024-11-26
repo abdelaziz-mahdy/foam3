@@ -69,11 +69,11 @@ p({
   "saveHistory":false,
   "ruleGroup": "auth",
   "daoKey": "localTicketDAO",
-  "operation": 3,
+  "operation": 1,
   "lifecycleState": 1,
   "predicate": {
     class: "foam.nanos.ruler.predicate.FScriptRulePredicate",
-    query: 'n instanceof foam.nanos.auth.ruler.UserLifecycleTicket && n.status == "OPEN"'
+    query: 'n instanceof foam.nanos.auth.ruler.UserLifecycleTicket && (o.status != n.status) && n.status == "CLOSED"'
   },
   action: {
     "class": "foam.nanos.auth.ruler.UserLifecycleTicketRuleAction"
