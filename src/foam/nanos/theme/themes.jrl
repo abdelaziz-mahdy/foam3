@@ -8,7 +8,7 @@ p({
   "description":"The default FOAM theme.",
   "topNavigation":"foam.nanos.u2.navigation.ResponsiveTopNav",
   "defaultMenu": ["admin.data"],
-  "logo":"images/foam_red.png",
+  "logo":"/images/foam_red.png",
   "font1":"Arial",
   "primaryColor":"#1e1f21",
   "secondaryColor":"#406dea",
@@ -29,4 +29,3 @@ p({
   "createdByAgent":1,
   "created":"2020-04-29T22:32:52.685Z"
 })
-//  "loginView":"foam.nanos.auth.login.LoginView",

@@ -36,3 +36,6 @@ Bugs:
 [Y] Fix load/save
 [Y] Can't drag shapes
 [] Fix Calculator CSS
+[Y] RadialMirror shouldn't show halo multiple times
+[] Nested objects don't show open-close icon
+[] Only open/close in TreeView if you click the open/close icon (is closed even useful)

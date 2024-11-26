@@ -9,7 +9,13 @@ foam.CLASS({
   name: 'UserRegistrationDAO',
   extends: 'foam.dao.ProxyDAO',
 
-  documentation: 'Final configuration of new user before creation',
+  documentation: `User registration occurs during sign-up and
+verifies:
+- an email address was provided
+- the username is unique in the spid
+and then
+- assigns a group according to the theme.
+`,
 
   javaImports: [
     'foam.core.X',
@@ -39,39 +45,28 @@ foam.CLASS({
     {
       name: 'put_',
       javaCode: `
-        User user = register(x, (User) obj);
-        return super.put_(getX(), user);
-      `
-    },
-    {
-      name: 'register',
-      args: 'X x, User user',
-      type: 'User',
-      javaCode: `
+        User user = (User) obj;
         if ( user == null || SafetyUtil.isEmpty(user.getEmail()) ) {
           throw new RuntimeException(EMAIL_REQUIRED);
         }
 
-        Theme theme = null;
         String spid = null;
-        if ( user != null &&
-             SafetyUtil.isEmpty(user.getSpid()) ) {
-          theme = ((Themes) x.get("themes")).findTheme(x);
-          if ( theme != null &&
-                ! SafetyUtil.isEmpty(theme.getSpid()) ) {
-            spid = theme.getSpid();
+        Theme theme = ((Themes) x.get("themes")).findTheme(x);
+        if ( theme != null &&
+              ! SafetyUtil.isEmpty(theme.getSpid()) ) {
+          spid = theme.getSpid();
+          user.setSpid(spid);
+          if ( ! SafetyUtil.isEmpty(theme.getRegistrationGroup()) ) {
+            user.setGroup(theme.getRegistrationGroup());
           } else {
-            Loggers.logger(x, this).error("Theme not found");
-            throw new RuntimeException("Theme not found for user registration");
+            throw new RuntimeException("Theme registration group not specified for user registration");
           }
+        } else {
+          Loggers.logger(x, this).error("Theme not found");
+          throw new RuntimeException("Theme not found for user registration");
         }
 
-        if ( ! SafetyUtil.isEmpty(theme.getRegistrationGroup()) ) {
-          user.setGroup(theme.getRegistrationGroup());
-        }
-
-        // User duplicate = (User) getDelegate().find_(getX(),
-        List users = (List) ((ArraySink) getDelegate()
+        List users = (List) ((ArraySink) getDelegate().inX(getX())
           .where(
             AND(
               EQ(User.USER_NAME, user.getUserName()),
@@ -79,13 +74,12 @@ foam.CLASS({
               EQ(User.SPID, user.getSpid())
             ))
            .select(new ArraySink())).getArray();
-         // if ( duplicate != null ) {
         if ( users != null && users.size() > 1 ) {
           Loggers.logger(x, this).debug("Duplicate user", user.getUserName());
-          throw new RuntimeException(DUPLICATE_USER);
+          throw new DuplicateUserNameException(DUPLICATE_USER);
         }
 
-        return user;
+        return getDelegate().put_(getX(), user);
       `
     },
     {

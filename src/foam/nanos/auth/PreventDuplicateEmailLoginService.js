@@ -28,14 +28,14 @@ foam.CLASS({
     {
       name: 'getUser',
       javaCode: `
+
+        // see nspec uniqueUserService which also adds predicate NEQ LifecycleState.DELETED.
         DAO userDAO = ((DAO) getX().get("localUserUserDAO")).where(
-          AND(
-            OR(
-              EQ(User.EMAIL, identifier.toLowerCase()),
-              EQ(User.USER_NAME, identifier)
-            ),
-            EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE)
-          ));
+          OR(
+            EQ(User.EMAIL, identifier.toLowerCase()),
+            EQ(User.USER_NAME, identifier)
+          )
+        );
 
         // TODO: this needs to be predicate on the capability which imposes unique emails.
 

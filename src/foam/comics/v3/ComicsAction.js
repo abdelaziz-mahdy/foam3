@@ -55,8 +55,9 @@ foam.CLASS({
       required: false
     },
     {
-      class: 'Boolean',
-      name: 'overrideCodeData'
+      class: 'FObjectProperty',
+      name: 'overrideCodeData',
+      documentation: 'When set, the data obj for action call will be set to this value, useful for setting the right data when Models override default code implementation for CRUD operations'
     },
     {
       class: 'Function',
@@ -97,7 +98,7 @@ foam.CLASS({
 
     function call(x, data) {
       if ( this.overrideCodeData ) {
-        data = data.data;
+        data = this.overrideCodeData;
       }
       return this.SUPER(x, data);
     },

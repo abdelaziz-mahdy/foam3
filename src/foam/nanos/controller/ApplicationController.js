@@ -610,6 +610,7 @@ foam.CLASS({
         this.fetchGroup();
       } catch (err) {
         if ( ! promptLogin || authResult ) return;
+        await this.clientPromise;
         await this.requestLogin();
         return await this.fetchSubject();
       } finally {

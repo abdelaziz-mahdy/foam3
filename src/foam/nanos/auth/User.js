@@ -650,13 +650,7 @@ foam.CLASS({
       writePermissionRequired: true,
       createVisibility: 'HIDDEN',
       updateVisibility: 'RW',
-      readVisibility: 'RO',
-      documentation: `
-        Setting default lifecyclestate as ACTIVE and moving PENDING
-        value to application refinement because foam User does not implement 
-        ApprovableAware interface, whose decorator (ApprovableAwareDAO) 
-        can be responsible for setting the lifecyclestate to ACTIVE on create.
-      `,
+      readVisibility: 'RO'
     },
     {
       class: 'Reference',
@@ -720,13 +714,13 @@ foam.CLASS({
       displayWidth: 30,
       width: 100,
       storageTransient: true,
-      validateObj: function (password) {
-        var re = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{7,32}$/;
+      // validateObj: function (password) {
+      //   var re = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{7,32}$/;
 
-        if ( password.length > 0 && ! re.test(password) ) {
-          return 'Password must contain one lowercase letter, one uppercase letter, one digit, and be between 7 and 32 characters in length.';
-        }
-      },
+      //   if ( password.length > 0 && ! re.test(password) ) {
+      //     return 'Password must contain one lowercase letter, one uppercase letter, one digit, and be between 7 and 32 characters in length.';
+      //   }
+      // },
       createVisibility: 'RW',
       updateVisibility: 'RW',
       readVisibility: 'HIDDEN',
