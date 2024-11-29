@@ -344,5 +344,16 @@ foam.CLASS({
 
       `
     }
+  ],
+
+  actions: [
+    {
+      name: 'disable',
+      availablePermissions: ['foam.nanos.cron.Schedule.disable']
+    },
+    {
+      name: 'run',
+      availablePermissions: ['foam.nanos.cron.Schedule.run']
+    }
   ]
 });
