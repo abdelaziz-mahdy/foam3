@@ -13,15 +13,13 @@ foam.CLASS({
   documentation: 'Reset Password directly without code or token. Used by simple foam apps with no acces to email server.',
 
   imports: [
-    'ctrl',
-    'resetPasswordInsecureService',
-    'notify'
+    'notify',
+    'userDAO'
   ],
 
   requires: [
     'foam.log.LogLevel',
-    'foam.nanos.auth.User',
-    'foam.nanos.auth.resetPassword.ResetPasswordByCode'
+    'foam.nanos.auth.User'
   ],
 
   messages: [
@@ -42,18 +40,14 @@ foam.CLASS({
       },
       code: function(X) {
         const user = this.User.create({
+          id: X.subject.user.id,
           desiredPassword: this.newPassword
         });
-        const rp = this.ResetPasswordByCode.create({
-          newPassword: this.newPassword
-        });
-        this.resetPasswordInsecureService.resetPassword(null, rp).then((_) => {
-          // this.finalRedirectionCall();
-          this.window.history.replaceState(null, null, this.window.location.origin);
-          this.pushMenu("");
+        return this.userDAO.put(user).then(res => {
           this.notify(this.SUCCESS_MSG_TITLE, this.SUCCESS_MSG, this.LogLevel.INFO, true);
-        }).catch((err) => {
-          this.notify(err.data, this.ERROR_MSG, this.LogLevel.ERROR, true);
+        }, e => {
+          this.throwError.pub(e);
+          this.notify(this.ERROR_MSG, this.LogLevel.ERROR, true);
         });
       }
     }

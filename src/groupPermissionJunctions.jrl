@@ -89,5 +89,4 @@ p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"foam",targetId:"ser
 // 1. Change password secured via email or token
 // p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"foam",targetId:"menu.read.set-password"})
 // 2. Change password directly via single view
-// p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"foam",targetId:"service.resetPasswordInsecureService"})
 // p({class:"foam.nanos.auth.GroupPermissionJunction",sourceId:"foam",targetId:"menu.read.reset-password"})

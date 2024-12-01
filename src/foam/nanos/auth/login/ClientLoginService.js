@@ -45,7 +45,7 @@ foam.CLASS({
       code: async function(x, data, wizardFlow) {
         var analyticable = foam.nanos.analytics.Analyticable.isInstance(data);
         try {
-          ctrl.groupLoadingHandled = true;
+          this.ctrl.groupLoadingHandled = true;
           var loginId = data.usernameRequired_ ? data.username : data.identifier;
           let logedInUser = await this.auth.login(x, loginId, data.password);
 

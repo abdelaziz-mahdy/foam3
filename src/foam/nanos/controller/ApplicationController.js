@@ -800,7 +800,7 @@ foam.CLASS({
       await this.onUserAgentAndGroupLoaded();
     },
 
-    function notify(toastMessage, toastSubMessage, severity, transient, icon) {
+    function notify(toastMessage, toastSubMessage, severity, transient=true, icon) {
       if ( transient ) {
         this.add(this.NotificationMessage.create({
           err: toastMessage.exception,
