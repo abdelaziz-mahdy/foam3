@@ -14,15 +14,16 @@ foam.CLASS({
   javaImports: [
     'foam.core.Detachable',
     'foam.core.X',
-    'foam.dao.DAO',
     'foam.dao.AbstractSink',
+    'foam.dao.DAO',
     'foam.dao.Sink',
     'static foam.mlang.MLang.*',
     'foam.nanos.auth.AuthService',
     'foam.nanos.auth.LifecycleState',
     'foam.nanos.auth.User',
     'foam.nanos.logger.Loggers',
-    'foam.nanos.session.Session'
+    'foam.nanos.session.Session',
+    'foam.nanos.ticket.Ticket'
   ],
 
   javaCode: `
@@ -37,8 +38,14 @@ foam.CLASS({
       name: 'put_',
       javaCode: `
       User user = (User) obj;
-      if ( user.getLifecycleState() != LifecycleState.DELETED ) {
-        return getDelegate().put_(x, obj);
+
+      // TODO/REVIEW: currently restricting to 'User' as
+      // this DAO is hit as a Users contacts are disabled/deleted
+
+      if ( ! user.getType().equals(User.class.getSimpleName()) ||
+           ! user.getLoginEnabled() ||
+           user.getLifecycleState() != LifecycleState.DELETED ) {
+        return getDelegate().put_(x, user);
       }
 
       User old = (User) getDelegate().find(user.getId());
@@ -47,17 +54,24 @@ foam.CLASS({
       }
 
       user.setLifecycleState(LifecycleState.DISABLED);
-
       user = (User) getDelegate().put_(x, user);
 
       try {
-        // create ticket
-        UserLifecycleTicket ticket = new UserLifecycleTicket();
-        ticket.setCreatedFor(user.getId());
-        ticket.setSpid(user.getSpid());
-        ticket.setRequestedLifecycleState(LifecycleState.DELETED);
-        ticket.setTitle("(User initiated) "+user.getNote());
-        ((DAO) getX().get("ticketDAO")).put_(getX(), ticket);
+        DAO dao = ((DAO) x.get("ticketDAO")).inX(getX());
+        UserLifecycleTicket ticket = (UserLifecycleTicket) dao.find(
+          AND(
+            EQ(Ticket.CREATED_FOR, user.getId()),
+            EQ(Ticket.STATUS, "OPEN"),
+            EQ(UserLifecycleTicket.REQUESTED_LIFECYCLE_STATE, LifecycleState.DELETED)
+          ));
+        if ( ticket == null ) {
+          ticket = new UserLifecycleTicket();
+          ticket.setCreatedFor(user.getId());
+          ticket.setSpid(user.getSpid());
+          ticket.setRequestedLifecycleState(LifecycleState.DELETED);
+          ticket.setTitle("User initiated. "+user.getNote());
+          dao.put_(getX(), ticket);
+        }
       } catch (Throwable t) {
         Loggers.logger(x, this).error("Failed to create UserLifecycleTicket", t);
       }

@@ -23,10 +23,9 @@ foam.CLASS({
     'foam.dao.AbstractSink',
     'foam.dao.Sink',
     'foam.dao.DAO',
-    'static foam.mlang.MLang.AND',
-    'static foam.mlang.MLang.EQ',
-    'static foam.mlang.MLang.OR',
+    'static foam.mlang.MLang.*',
     'foam.nanos.auth.AuthService',
+    'foam.nanos.auth.DuplicateUserNameException',
     'foam.nanos.auth.EnabledAware',
     'foam.nanos.auth.LifecycleAware',
     'foam.nanos.auth.LifecycleState',
@@ -39,14 +38,6 @@ foam.CLASS({
     'foam.nanos.ticket.Ticket',
     'java.util.ArrayList',
     'java.util.List'
-  ],
-
-  constants: [
-    {
-      name: 'UPDATED_LIST',
-      type: 'String',
-      value: "UPDATED_LIST"
-    }
   ],
 
   methods: [
@@ -62,28 +53,56 @@ foam.CLASS({
             UserLifecycleTicket ticket = (UserLifecycleTicket) obj;
             DAO dao = (DAO) ruler.getX().get("userDAO");
             User user = (User) dao.find(ticket.getCreatedFor());
-
             LifecycleState old = user.getLifecycleState();
             LifecycleState nu = ticket.getRequestedLifecycleState();
 
-            // TODO: if re-activating a user, need to check that
-            // username has not been re-used.
+            // Previous updated list is stored in current for this run,
+            // and saved back to updated if the run was aborted.
+            ticket.setCurrent(ticket.getUpdated()); // List.copyOf(ticket.getUpdated()));
+            UserLifecycleTicket.UPDATED.clear(ticket);
 
             try {
-              if ( old != nu ) {
-                updateUserAssociations(
-                  ruler.getX()
-                    .put("logger", new PrefixLogger(new Object[] { "UserLifecycleTicket", user.getId() }, (Logger) x.get("logger")))
-                    .put(UserLifecycleTicket.class, ticket),
-                  user, nu);
-                user = (User) user.fclone();
-                user.setLifecycleState(nu);
-                ((Logger) x.get("logger")).info("UserLifecycleTicket", user.getId(), old, nu);
-                ((DAO) ruler.getX().get("localUserDAO")).put(user);
+              // run if
+              // 1. state is different or
+              // 2. state is the same, but nothing was updated last run.
+              // This second case occurs if the system determines that
+              // a full DISABLED or DELETED should not occur, for example,
+              // and the user is DISABLED to block login,
+              // but nothing else is altered. The operation can be run
+              // again when the offending scenario has changed.
+              if ( old != nu ||
+                   old == nu &&
+                   ticket.getCurrent().size() == 0 ) {
+                if ( old == LifecycleState.DELETED &&
+                     nu == LifecycleState.ACTIVE ) {
+                  verifyReActivation(x, user);
+                }
+
+                if ( ticket.getIncludeRelationships() ) {
+                  updateUserAssociations(
+                    ruler.getX()
+                      .put("logger", new PrefixLogger(new Object[] { "UserLifecycleTicket", user.getId() }, (Logger) x.get("logger")))
+                      .put(UserLifecycleTicket.class, ticket),
+                    user, nu);
+                  user = (User) user.fclone();
+                  user.setLifecycleState(nu);
+                  ((Logger) x.get("logger")).info("UserLifecycleTicket", user.getId(), old, nu);
+                  ((DAO) ruler.getX().get("localUserDAO")).put(user);
+                } else if ( nu == LifecycleState.DISABLED ||
+                            nu == LifecycleState.DELETED ) {
+                  user.setLifecycleState(LifecycleState.DISABLED);
+                  updateSessions(x, user, LifecycleState.DELETED);
+                  ((DAO) ruler.getX().get("localUserDAO")).put(user);
+                } else {
+                  user.setLifecycleState(LifecycleState.ACTIVE);
+                  ((DAO) ruler.getX().get("localUserDAO")).put(user);
+                }
               }
               ticket.setMessage(null);
             } catch (Throwable t) {
               ticket.setMessage(t.getMessage());
+              ticket.setComment(old.getName()+" -> "+nu.getName()+" failed: "+t.getMessage());
+              ((Logger) x.get("logger")).warning(ticket.getComment(), t);
               if ( nu == LifecycleState.DISABLED ||
                    nu == LifecycleState.DELETED ) {
                 user.setLifecycleState(LifecycleState.DISABLED);
@@ -91,10 +110,29 @@ foam.CLASS({
                 ((Logger) x.get("logger")).warning("UserLifecycleTicket", user.getId(), "Failed",ticket.getRequestedLifecycleState(), "only disabling", t.getMessage());
                 ((DAO) ruler.getX().get("localUserDAO")).put(user);
               }
+              ticket.setUpdated(ticket.getCurrent());
               ticket.setStatus(((Ticket)oldObj).getStatus());
             }
           }
         }, "UserLifecycleTicketRuleAction");
+      `
+    },
+    {
+      documentation: 'On re-activation ensure username is still unique',
+      name: 'verifyReActivation',
+      args: 'X x, User user',
+      javaCode: `
+      User active = (User) ((DAO) x.get("localUserDAO")).find(
+        AND(
+          EQ(User.USER_NAME, user.getUserName()),
+          EQ(User.SPID, user.getSpid()),
+          NEQ(User.ID, user.getId()),
+          NEQ(User.LIFECYCLE_STATE, LifecycleState.DELETED)
+        )
+      );
+      if ( active != null ) {
+        throw new DuplicateUserNameException(String.valueOf(active.getId()));
+      }
       `
     },
     {

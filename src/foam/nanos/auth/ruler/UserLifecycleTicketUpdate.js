@@ -20,7 +20,7 @@ foam.CLASS({
       javaType: 'foam.core.ClassInfo',
     },
     {
-      name: 'id',
+      name: 'objectId',
       class: 'Object'
     },
     {
@@ -42,11 +42,22 @@ foam.CLASS({
       sb.append(",");
       sb.append(getOf());
       sb.append(",");
-      sb.append(getId());
+      sb.append(getObjectId());
       sb.append(",");
       sb.append(getPreviousState());
       sb.append(",");
       sb.append(getCurrentState());
+      return sb.toString();
+      `
+    },
+    {
+      name: 'toKey',
+      type: 'String',
+      javaCode: `
+      StringBuilder sb = new StringBuilder();
+      sb.append(getOf().getObjClass().getSimpleName());
+      sb.append(":");
+      sb.append(getObjectId());
       return sb.toString();
       `
     }

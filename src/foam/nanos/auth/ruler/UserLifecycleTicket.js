@@ -43,6 +43,7 @@ foam.CLASS({
       factory: function() {
         var s = [];
         if ( 'CLOSED' == this.status ) {
+          s.push(['CLOSED', 'CLOSED']);
           s.push(['OPEN', 'OPEN']);
         } else {
           s.push(this.status);
@@ -50,6 +51,10 @@ foam.CLASS({
         }
         return s;
       }
+    },
+    {
+      name: 'comment',
+      order: 6
     },
     {
       name: 'createdFor',
@@ -112,13 +117,33 @@ foam.CLASS({
       gridColumns: 6
     },
     {
+      name: 'includeRelationships',
+      class: 'Boolean',
+      value: true,
+      section: 'infoSection',
+      order: 9,
+      gridColumns: 6
+    },
+    {
+      name: 'revertRelationships',
+      class: 'Boolean',
+      section: 'infoSection',
+      order: 10,
+      gridColumns: 6,
+      createVisibility: 'RO',
+      readVisibility: 'RO',
+      updateVisibility: function(includeRelationships, updated) {
+        return ( includeRelationships && updated && updated.length > 0 ) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.DISABLED;
+      }
+    },
+    {
       name: 'loggedIn',
       class: 'Boolean',
       value: false,
       transient: true,
       visibility: 'RO',
       section: 'infoSection',
-      order: 9,
+      order: 11,
       gridColumns: 6
     },
     {
@@ -127,7 +152,7 @@ foam.CLASS({
       transient: true,
       visibility: 'RO',
       section: 'infoSection',
-      order: 10,
+      order: 12,
       gridColumns: 6
     },
     {
@@ -137,7 +162,26 @@ foam.CLASS({
       updateVisibility: 'RO',
       readVisibility: 'RO',
       section: 'infoSection',
-      order: 11
+      order: 13,
+      gridColumns: 12
+    },
+    {
+      name: 'updated',
+      class: 'List',
+      javaFactory: 'return new ArrayList();',
+      createVisibility: 'HIDDEN',
+      readVisibility: 'RO',
+      updateVisibility: 'RO',
+      section: 'infoSection',
+      order: 14,
+      gridColumns: 12
+    },
+    {
+      documentation: 'Holds copy of last updated list for undo processing',
+      name: 'current',
+      class: 'List',
+      transient: true,
+      hidden: true
     },
     {
       name: 'assignedTo',
@@ -150,16 +194,6 @@ foam.CLASS({
     {
       name: 'externalComment',
       hidden: true
-    },
-    {
-      name: 'updated',
-      class: 'List',
-      javaFactory: 'return new ArrayList();',
-      createVisibility: 'HIDDEN',
-      readVisibility: 'RO',
-      updateVisibility: 'RO',
-      section: 'infoSection',
-      order: 12
     }
   ],
 

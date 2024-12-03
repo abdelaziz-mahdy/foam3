@@ -25,19 +25,23 @@ foam.CLASS({
     'foam.nanos.auth.User',
     'foam.nanos.logger.Logger',
     'foam.nanos.logger.Loggers',
-    'java.util.List'
+    'java.util.HashMap',
+    'java.util.List',
+    'java.util.Map'
   ],
 
   javaCode: `
     public UserLifecycleTicketSink(X x, String daoKey) {
       setX(x);
       setDaoKey(daoKey);
+      buildUpdatedMap(x);
     }
 
     public UserLifecycleTicketSink(X x, LifecycleState state, String daoKey) {
       setX(x);
       setLifecycleState(state);
       setDaoKey(daoKey);
+      buildUpdatedMap(x);
     }
   `,
 
@@ -51,6 +55,10 @@ foam.CLASS({
       of: 'foam.nanos.auth.LifecycleState',
       name: 'lifecycleState',
       value: 'DELETED'
+    },
+    {
+      class: 'Map',
+      name: 'updatedMap'
     }
   ],
 
@@ -65,7 +73,7 @@ foam.CLASS({
       UserLifecycleTicketUpdate update = new UserLifecycleTicketUpdate();
       update.setDaoKey(getDaoKey());
       update.setOf(((FObject)obj).getClassInfo());
-      update.setId(id);
+      update.setObjectId(id);
       DAO dao = (DAO) x.get(getDaoKey());
       if ( dao == null ) {
         logger.error("DAO not found", getDaoKey(), update, "not updated");
@@ -73,10 +81,18 @@ foam.CLASS({
       }
       if ( obj instanceof LifecycleAware ) {
         LifecycleAware aware = ((LifecycleAware) obj);
-        if ( aware.getLifecycleState() != getLifecycleState() ) {
+        LifecycleState requestedState = getLifecycleState();
+        if ( ticket.getRevertRelationships() ) {
+          UserLifecycleTicketUpdate previous = (UserLifecycleTicketUpdate) getUpdatedMap().get(update.toKey());
+          if ( previous != null &&
+               previous.getPreviousState() != null ) {
+            requestedState = (LifecycleState) previous.getPreviousState();
+          }
+        }
+        if ( aware.getLifecycleState() != requestedState ) {
           aware = (LifecycleAware) ((FObject)aware).fclone();
           update.setPreviousState(aware.getLifecycleState());
-          aware.setLifecycleState(getLifecycleState());
+          aware.setLifecycleState(requestedState);
           update.setCurrentState(aware.getLifecycleState());
           dao.put_(x, (FObject) aware);
           logger.debug(update);
@@ -84,13 +100,20 @@ foam.CLASS({
         }
       } else if ( obj instanceof EnabledAware ) {
         EnabledAware aware = (EnabledAware) obj;
+        Boolean requestedEnabled = getLifecycleState() == LifecycleState.ACTIVE ? true : false;
+        if ( ticket.getRevertRelationships() ) {
+          UserLifecycleTicketUpdate previous = (UserLifecycleTicketUpdate) getUpdatedMap().get(update.toKey());
+          if ( previous != null &&
+               previous.getPreviousState() != null ) {
+            requestedEnabled = (Boolean) previous.getPreviousState();
+          }
+        }
         aware = (EnabledAware) ((FObject)aware).fclone();
         update.setPreviousState(aware.getEnabled());
-        if ( getLifecycleState() == LifecycleState.ACTIVE &&
+        if ( requestedEnabled &&
              ! aware.getEnabled() ) {
           aware.setEnabled(true);
-        } else if ( ( getLifecycleState() == LifecycleState.DELETED ||
-                      getLifecycleState() == LifecycleState.DISABLED ) &&
+        } else if ( ! requestedEnabled &&
                     aware.getEnabled() ) {
           aware.setEnabled(false);
         } else {
@@ -107,9 +130,24 @@ foam.CLASS({
         // TODO: Enable after testing
         // dao.remove_(x, obj);
         logger.warning("UserLifecycleTicket,DELETED,delete,disabled");
-        // logger.debug(update);
-        // ticket.getUpdated().add(update);
+        logger.debug(update);
+        ticket.getUpdated().add(update);
       }
+      `
+    },
+    {
+      name: 'buildUpdatedMap',
+      args: 'X x',
+      javaCode: `
+      UserLifecycleTicket ticket = x.get(UserLifecycleTicket.class);
+      Map map = new HashMap();
+      for ( var u : ticket.getCurrent() ) {
+        var updated = (UserLifecycleTicketUpdate) u;
+        if ( updated.getDaoKey().equals(getDaoKey()) ) {
+          map.put(updated.toKey(), updated);
+        }
+      }
+      setUpdatedMap(map);
       `
     }
   ]
