@@ -77,6 +77,7 @@ foam.CLASS({
       display: flex;
       justify-content: flex-end;
       padding: 16px 0px;
+      gap: 8px;
     }
     ^fullscreen ^wrapper {
       height: 100%;
