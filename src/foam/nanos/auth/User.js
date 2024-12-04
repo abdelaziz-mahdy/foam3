@@ -723,13 +723,6 @@ foam.CLASS({
       displayWidth: 30,
       width: 100,
       storageTransient: true,
-      // validateObj: function (password) {
-      //   var re = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{7,32}$/;
-
-      //   if ( password.length > 0 && ! re.test(password) ) {
-      //     return 'Password must contain one lowercase letter, one uppercase letter, one digit, and be between 7 and 32 characters in length.';
-      //   }
-      // },
       createVisibility: 'RW',
       updateVisibility: 'RW',
       readVisibility: 'HIDDEN',
@@ -737,7 +730,6 @@ foam.CLASS({
       order: 110,
       gridColumns: 6,
       columnPermissionRequired: true
-      // writePermissionRequired: true
     },
     {
       class: 'Password',
