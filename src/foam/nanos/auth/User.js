@@ -659,8 +659,8 @@ foam.CLASS({
       order: 40,
       gridColumns: 6,
       value: foam.nanos.auth.LifecycleState.PENDING,
-      visibility: 'RO',
-      writePermissionRequired: true
+      help: 'Recommend using state change actions',
+      writePermissionRequired: false
     },
     {
       class: 'Reference',

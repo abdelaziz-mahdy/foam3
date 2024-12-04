@@ -99,6 +99,7 @@ foam.CLASS({
                 }
               }
               ticket.setMessage(null);
+              ticket.setComment(old.getName()+" -> "+nu.getName()+" successful");
             } catch (Throwable t) {
               ticket.setMessage(t.getMessage());
               ticket.setComment(old.getName()+" -> "+nu.getName()+" failed: "+t.getMessage());
