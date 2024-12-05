@@ -1153,7 +1153,7 @@ foam.CLASS({
     {
       name: 'activateUser',
       label: 'Activate',
-      toolTip: 'Open a ticket to activate a new user or previously disabled user',
+      toolTip: 'Open a ticket to activate a new user or re-activate a previously disabled or deleted user',
       availablePermissions: ['user.action.activate'],
       isAvailable: async function(id, type, spid, lifecycleState) {
         // NOTE: testing spid as hack so action only available from detail view
