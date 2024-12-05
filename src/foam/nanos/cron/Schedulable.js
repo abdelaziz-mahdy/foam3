@@ -174,7 +174,10 @@ foam.CLASS({
       gridColumns: 4,
       order: 2,
       javaFactory: `
-        Date d = getSchedule().getNextScheduledTime(foam.core.XLocator.get(), new Date());
+      System.out.println("GETLASTRUN = " + this.getLastRun());
+        Date from = getLastRun();
+        if ( from == null ) from = new Date();
+        Date d = getSchedule().getNextScheduledTime(foam.core.XLocator.get(), from);
         return d != null ? d : null;
       `
     },
@@ -200,7 +203,8 @@ foam.CLASS({
     {
       name: 'lastRun',
       label: 'Last Occurrence',
-      storageTransient: false
+      storageTransient: false,
+      storageOptional: false
     },
     {
       class: 'Enum',

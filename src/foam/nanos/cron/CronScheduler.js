@@ -141,8 +141,12 @@ foam.CLASS({
       schedulableDAO.where(MLang.EQ(Schedulable.ENABLED, true)).
         select(new Sink() {
           public void put(Object obj, Detachable sub) {
+            System.out.println("!!!!!!!!" + ((foam.core.FObject)obj).getProperty("lastRun"));
             Schedulable schedulable = (Schedulable) ((FObject) obj).fclone();
-            schedulable.setScheduledTime(schedulable.getNextScheduledTime(getX()));
+            System.out.println("?????????" + schedulable.getProperty("lastRun"));
+            // getnextscheduledtime is wrong here
+            schedulable.setScheduledTime(schedulable.getSchedule().getNextScheduledTime(foam.core.XLocator.get(), (Date)schedulable.getProperty("lastRun")));
+            // System.out.println(schedulable.)
             cronJobDAO.put(schedulable);
           }
           public void remove(Object obj, Detachable sub) {}
