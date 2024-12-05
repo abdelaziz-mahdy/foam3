@@ -1058,12 +1058,12 @@ foam.CLASS({
       label: 'Delete',
       toolTip:'Open ticket to delete a user and all associated entities',
       availablePermissions: ['user.action.delete'],
-      isAvailable: async function(id, spid, lifecycleState) {
+      isAvailable: async function(id, type, spid, lifecycleState) {
         // NOTE: testing spid as hack so action only available from detail view
-        return id && spid && lifecycleState != this.LifecycleState.DELETED;
+        return id && type == 'User' && spid &&
+          lifecycleState != this.LifecycleState.DELETED;
       },
       code: function(X) {
-        if ( ! this.stack ) return;
         var self = this;
         var ticket = this.ticketDAO.find(
           this.AND(
@@ -1106,13 +1106,13 @@ foam.CLASS({
       label: 'Disable',
       toolTip: 'Open ticket to disable a user and all associated entities',
       availablePermissions: ['user.action.disable'],
-      isAvailable: async function(id, spid, lifecycleState) {
+      isAvailable: async function(id, type, spid, lifecycleState) {
         // NOTE: testing spid as hack so action only available from detail view
-        return id && spid && ( lifecycleState != this.LifecycleState.DISABLED &&
-                               lifecycleState != this.LifecycleState.DELETED );
+        return id && type == 'User' && spid &&
+          ( lifecycleState != this.LifecycleState.DISABLED &&
+            lifecycleState != this.LifecycleState.DELETED );
       },
       code: function(X) {
-        if ( ! this.stack ) return;
         var self = this;
         var ticket = this.ticketDAO.find(
           this.AND(
@@ -1155,14 +1155,14 @@ foam.CLASS({
       label: 'Activate',
       toolTip: 'Open a ticket to activate a new user or previously disabled user',
       availablePermissions: ['user.action.activate'],
-      isAvailable: async function(id, spid, lifecycleState) {
+      isAvailable: async function(id, type, spid, lifecycleState) {
         // NOTE: testing spid as hack so action only available from detail view
-        return id && spid && ( lifecycleState == this.LifecycleState.DISABLED ||
-                               lifecycleState == this.LifecycleState.DELETED ||
-                               lifecycleState == this.LifecycleState.PENDING );
+        return id && type == 'User' && spid &&
+          ( lifecycleState == this.LifecycleState.DISABLED ||
+            lifecycleState == this.LifecycleState.DELETED ||
+            lifecycleState == this.LifecycleState.PENDING );
       },
       code: function(X) {
-        if ( ! this.stack ) return;
         var self = this;
         // find existing ticket
         var ticket = this.ticketDAO.find(
