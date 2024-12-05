@@ -202,7 +202,7 @@ foam.CLASS({
       code: async function() {
         this.report('^resend-verification');
         try {
-          await this.resetPasswordService.resetPasswordByCode(null, this.email, this.username);
+          await this.resetPasswordService.resetPasswordByCode(null, this.email, this.userName);
 
           this.notify(this.INSTRUC_TITLE, this.INSTRUC, this.LogLevel.INFO, true);
         } catch(err) {
