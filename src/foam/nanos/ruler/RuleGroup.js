@@ -88,7 +88,7 @@
             && getPredicate().f(
               x.put("NEW", obj).put("OLD", oldObj)
             );
-        } catch ( Throwable t ) {
+        } catch (Throwable t) {
           try {
             return getPredicate().f(obj);
           } catch ( Throwable th ) { }

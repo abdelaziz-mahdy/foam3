@@ -1,7 +1,9 @@
 * = Needed for MVP
 
 Features
+* [] Move to own github repo
 * [] Top-Level FLOW DAO & Controller with NANOS Integration
+* [] Triangle and/or Polygon Shape
   [] Make "Console" into an object?
   [] Make "language" features into object or add to shell?
   [] Add Sections to DetailView
@@ -14,11 +16,14 @@ Features
   [] Add Sections to Tools: ie. Shapes, Physics, Architecture, Containers, Sound, etc.
   [] Sliding StackView
   [] Individual Property View
-* [] Ability to hide/show Halos
-  [] Image
   [] Ability to 'link' values
+  [] touch support
+  [] mobile sizing
+  [] Add soft-select / hover for Properties TreeView
   help();
+  anchor points + lines
   Jump to Sheet
+  Make custom Halos creatable in FLOW
   Specify Musical Notes for Beep
   Musical Instrument
   Console / Terminal
@@ -30,6 +35,8 @@ Features
   Create Models from Canvases
   Add created Models to Canvas
   Port foam1 Eyes and Dragon to be FLOW Things
+  Pencil
+  Laser Pointer
 
 Input:
   Keyboard Input
@@ -39,21 +46,21 @@ Input:
   Mixer Panel
 
 Bugs:
-* [] DetailView shouldn't show deleted objects
 * [] TreeView shouldn't lose open folder state on refresh
 * [] Nested objects don't show open-close icon
 * [] Only open/close in TreeView if you click the open/close icon (is closed even useful)
   [] Fix Calculator CSS
-  [] Units not set for MultiView
 
 FLOW Property Types like Distance, Angle, Colour, etc.
 Sliders for width and height
 
-Rename: Revolution + Reflection
-
+MotionBlur
 Gauge
 https://github.com/foam-framework/foam/blob/master/js/foam/demos/graphics/EyesDemo.js
 
 https://github.com/foam-framework/foam/blob/master/js/foam/demos/graphics/Dragon.js
 
 https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/js/foam/demos/SolarSystem.js#L20
+
+
+https://www.instructables.com/Quick-and-Dirty-Dynamic-DNS-Using-GoDaddy/

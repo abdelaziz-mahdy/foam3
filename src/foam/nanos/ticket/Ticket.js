@@ -151,7 +151,9 @@ foam.CLASS({
     {
       name: 'type',
       class: 'String',
-      visibility: 'RO',
+      createVisibility: 'HIDDEN',
+      readVisibility: 'RO',
+      updateVisibility: 'RO',
       storageTransient: true,
       section: 'infoSection',
       getter: function() {
@@ -245,7 +247,9 @@ foam.CLASS({
       value: '',
       storageTransient: true,
       section: 'infoSection',
+      createVisibility: 'HIDDEN',
       readVisibility: 'HIDDEN',
+      updateVisibility: 'RW',
       validationPredicates: [
         {
           args: ['id', 'comment', 'externalComment'],
@@ -365,6 +369,9 @@ foam.CLASS({
         Need to override getter to return "" because its trying to
         return null which breaks tests
       `,
+      factory: function() {
+        return this.subject.realUser?.spid;
+      },
       javaGetter: `
         if ( ! spidIsSet_ ) {
           return "";
@@ -438,7 +445,27 @@ foam.CLASS({
       readVisibility: 'RO',
       updateVisibility: 'RO',
       order: 6,
-      gridColumns: 6
+      gridColumns: 6,
+      view: function(_, X) {
+        if ( X.data.createdFor )
+          return {
+            class: 'foam.u2.view.ReadReferenceView'
+          };
+
+        var userDAOSlot = X.data.slot(spid => {
+          return X.userDAO.where(X.data.EQ(X.data.User.SPID, spid));
+        });
+        return {
+          class: 'foam.u2.view.RichChoiceReferenceView',
+          search: true,
+          sections: [
+            {
+              heading: 'Users',
+              dao$: userDAOSlot
+            }
+          ]
+        };
+      }
     },
     {
       class: 'String',
@@ -641,7 +668,7 @@ foam.CLASS({
       name: 'assignToMe',
       section: 'infoSection',
       isAvailable: function(subject, assignedTo, status){
-        return (subject.user.id !== assignedTo) && (status === 'OPEN');
+        return (subject?.user.id !== assignedTo) && (status === 'OPEN');
       },
       code: function(X) {
         var assignedTicket = this.clone();
@@ -662,7 +689,7 @@ foam.CLASS({
       name: 'unassignMe',
       section: 'infoSection',
       isAvailable: function(subject, assignedTo, status){
-        return (subject.user.id === assignedTo) && (status === 'OPEN');
+        return (subject?.user.id === assignedTo) && (status === 'OPEN');
       },
       code: function(X) {
         var unassignedTicket = this.clone();

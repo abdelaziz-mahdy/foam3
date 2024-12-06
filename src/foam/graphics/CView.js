@@ -381,6 +381,30 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.graphics',
+  name: 'Radians',
+  extends: 'foam.core.Float',
+
+  properties: [
+    [ 'preSet', function(_, r) {
+        var P2 = Math.PI * 2;
+        while ( r >  Math.PI ) r -= P2;
+        while ( r < -Math.PI ) r += P2;
+        return r;
+      }
+    ],
+    [ 'units', 'radians' ],
+    [ 'view', {
+        class: 'foam.u2.view.DualView',
+        viewa: { class: 'foam.u2.FloatView', precision: 4, onKey: true },
+        viewb: { class: 'foam.u2.RangeView', step: 0.00001, minValue: -Math.PI, maxValue: Math.PI, onKey: true }
+      }
+    ]
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.graphics',
   name: 'CView',
 
   documentation: 'A Canvas-View; base-class for all graphical view components.',
@@ -405,18 +429,8 @@ foam.CLASS({
       name: 'height'
     },
     {
-      class: 'Float',
-      name: 'rotation',
-      preSet: function(_, r) {
-        if ( r > 2 * Math.PI  ) return r - 2 * Math.PI;
-        if ( r < -2 * Math.PI ) return r + 2 * Math.PI;
-        return r;
-      },
-      view: {
-        class: 'foam.u2.view.DualView',
-        viewa: { class: 'foam.u2.FloatView', precision: 4, onKey: true },
-        viewb: { class: 'foam.u2.RangeView', step: 0.00001, minValue: -Math.PI*2, maxValue: Math.PI*2, onKey: true }
-      }
+      class: 'foam.graphics.Radians',
+      name: 'rotation'
     },
     {
       name: 'originX',
@@ -470,7 +484,7 @@ foam.CLASS({
     }
   },
   {
-    class: 'Float',
+    class: 'foam.graphics.Radians',
     name: 'theta',
     precision: 4,
     getter: function() {
@@ -480,16 +494,12 @@ foam.CLASS({
       var r = this.r;
       this.x = r * Math.cos(t);
       this.y = r * Math.sin(t);
-    },
-    view: {
-      class: 'foam.u2.view.DualView',
-      viewa: { class: 'foam.u2.FloatView', precision: 4, onKey: true },
-      viewb: { class: 'foam.u2.RangeView', step: 0.00001, minValue: -Math.PI*2, maxValue: Math.PI*2, onKey: true }
     }
   },
     {
-      name: 'alpha',
       class: 'Float',
+      name: 'alpha',
+      label: 'Alpha (opacity)',
       view: {
         class: 'foam.u2.view.DualView',
         viewa: { class: 'foam.u2.FloatView', precision: 4, onKey: true },
@@ -1529,6 +1539,58 @@ foam.CLASS({
           this.align === 'center' ? this.width/2 :
           this.width,
         this.height/2+10);
+
+      if ( this.border ) {
+        c.strokeStyle = this.border;
+        c.strokeRect(0, 0, this.width-1, this.height-1);
+      }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.graphics',
+  name:  'Image',
+  extends: 'foam.graphics.CView',
+
+  documentation: 'A CView which draws an image.',
+
+  properties: [
+    {
+//      class: 'URL',
+      class: 'String',
+      name:  'src',
+      postSet: function(o, n) {
+        console.log('Image:', n);
+        var self = this;
+        var image = new Image(n);
+        image.onload = function() {
+          self.width  = this.naturalWidth;
+          self.height = this.naturalHeight;
+          self.image_ = this;
+          self.invalidate();
+        };
+        image.src = n;
+      },
+      displayWidth: 80
+    },
+    {
+      name: 'image_',
+      hidden: true,
+      transient: true
+    }
+  ],
+
+  methods: [
+    function initCView() {
+      this.SUPER();
+      this.src = this.src;
+    },
+    function paintSelf(c) {
+      if ( this.image_ ) {
+        c.drawImage(this.image_, 0, 0, this.width, this.height);
+      }
 
       if ( this.border ) {
         c.strokeStyle = this.border;

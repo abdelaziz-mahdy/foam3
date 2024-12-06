@@ -65,7 +65,7 @@ foam.CLASS({
     {
       name: 'value',
       cloneProperty: function(o, m) {
-        m[this.name ] = o.cls_.create({
+        m[this.name] = o.cls_.create({
           arcWidth:    o.arcWidth,
           border:      o.border,
           code:        o.code,
@@ -187,6 +187,7 @@ foam.CLASS({
     'physics',
     'properties',
     'scope',
+    'showHalos',
     'timer',
     'updateMemento'
   ],
@@ -255,6 +256,7 @@ foam.CLASS({
       factory: function() {
         var self = this;
         var scope = {
+          this: self,
           repeat: function(n, fn) {
             for ( var i = 1 ; i <= n ; i++ ) fn.call(this, i);
             return this;
@@ -374,6 +376,7 @@ foam.CLASS({
         dao.put(com.google.flow.Circle.model_);
         dao.put(com.google.flow.Ellipse.model_);
         dao.put(com.google.flow.Text.model_);
+        dao.put(com.google.flow.Image.model_);
         dao.put(com.google.flow.Clock.model_);
         dao.put(com.google.flow.Mushroom.model_);
         dao.put(com.google.flow.Turtle.model_);
@@ -447,7 +450,7 @@ foam.CLASS({
             // We can't use the data.DELETE_ROW action directly for some reason
             var X = this.__subSubContext__;
 
-            this.start('span').start('span').on('click', () => data.deleteRow(X)).add(' X ').end().add(/*data.DELETE_ROW,*/ ' ', data.name).end();
+            this.start('span').start('span').on('click', (e) => { data.deleteRow(X); e.stopPropagation(); } ).add(' X ').end().add(/*data.DELETE_ROW,*/ ' ', data.name).end();
           }
         };
       },
@@ -552,6 +555,12 @@ foam.CLASS({
       class: 'Int',
       name: 'depth_',
       hidden: true
+    },
+    {
+      class: 'Boolean',
+      name: 'showHalos',
+      value: true,
+      postSet: function() { this.canvas.invalidate(); }
     }
   ],
 
@@ -612,6 +621,8 @@ foam.CLASS({
                   on('mouseup',     this.onMouseUp).
                   on('mousemove',   this.onMouseMove).
                   on('contextmenu', this.onRightClick).
+                  on('mouseenter',  () => self.showHalos = true).
+                  on('mouseleave',  () => self.showHalos = false).
                 end().
               end().
               start(foam.u2.Tab, {label: 'sheet1'}).
@@ -632,6 +643,8 @@ foam.CLASS({
           start('div').
             addClass(this.myClass('properties')).
             start(this.PROPERTIES, {selection$: this.selected$}).end().
+            on('mouseenter',  () => self.showHalos = true).
+            on('mouseleave',  () => self.showHalos = false).
           end().
           start().
             style({width: '100%'}).
@@ -647,7 +660,7 @@ foam.CLASS({
       console.log('**** dblclick');
     },
 
-    function addProperty(value, opt_name, opt_i, opt_parent) {
+    async function addProperty(value, opt_name, opt_i, opt_parent) {
       var self = this;
       if ( ! opt_name ) {
         var i = opt_i || 1;
@@ -665,7 +678,7 @@ foam.CLASS({
         });
         if ( opt_parent ) p.parent = opt_parent;
         value.setPrivate_('lpp_', p);
-        this.properties.put(p);
+        p = await this.properties.put(p);
         this.selected = p;
       }
     },
@@ -734,11 +747,11 @@ foam.CLASS({
     },
 
     function onPropertyRemove(_, __, ___, p) {
+      if ( p === this.selected ) this.selected = null;
+
       var o = p.value;
 
       delete this.scope[p.name];
-
-      if ( p === this.selected ) this.selected = null;
 
       if ( this.CView.isInstance(o) ) {
         if ( ! p.parent || p.parent === 'canvas1' ) {
@@ -847,20 +860,43 @@ foam.CLASS({
     {
       name: 'copyProperty',
       label: 'Copy',
-      code: async function deleteRow(X) {
-        var copy = await this.properties.put(this.selected.clone().copyFrom({name: this.createCopyName(this.selected.name)}));
-        this.selected = copy;
+      code: function(X) {
+        var copy = this.selected.clone();
+        this.addProperty(copy.value, this.createCopyName(this.selected.name), null, copy.parent);
         this.updateMemento();
       }
     },
     {
       name: 'deleteProperty',
       label: 'Delete',
-      code: function deleteRow(X) {
+      // TODO: prevents backspacing in text fields
+      // keyboardShortcuts: [ 'del', 'backspace' ],
+      code: function(X) {
         this.properties.remove(this.selected);
         this.updateMemento();
       }
+    },
+    {
+      name: 'chooseSelectMode',
+      keyboardShortcuts: [ 'esc' ],
+      code: function() {
+        this.currentTool = com.google.flow.Select.model_;
+      }
+    },
+    // ???: Should these two actions be moved to the TreeView?
+    {
+      name: 'prevProperty',
+      keyboardShortcuts: [ 'up' ],
+      code: function() {
+        console.log('prev');
+      }
+    },
+    {
+      name: 'nextProperty',
+      keyboardShortcuts: [ 'down' ],
+      code: function() {
+        console.log('next');
+      }
     }
   ]
-
 });

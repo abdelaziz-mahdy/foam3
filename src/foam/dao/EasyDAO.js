@@ -277,14 +277,6 @@ foam.CLASS({
             delegate = new foam.dao.ValidatingDAO(getX(), delegate, foam.core.ValidatableValidator.instance());
         }
 
-        if ( getLifecycleAware() ) {
-          delegate = new foam.nanos.auth.LifecycleAwareDAO.Builder(getX())
-            .setDelegate(delegate)
-            .setName(getPermissionPrefix())
-            .build();
-          indexes.add((foam.core.PropertyInfo) getOf().getAxiomByName("lifecycleState"));
-       }
-
         if ( getRuler() ) {
           String name = foam.util.SafetyUtil.isEmpty(getRulerDaoKey()) ? getName() : getRulerDaoKey();
           delegate = new foam.nanos.ruler.RulerDAO(getX(), delegate, name);
@@ -338,6 +330,14 @@ foam.CLASS({
              ! getAuthorize() &&
              ! getReadOnly() )
           logger.warning("EasyDAO", getName(), "Served DAO should be Authorized, or ReadOnly");
+
+        if ( getLifecycleAware() ) {
+          delegate = new foam.nanos.auth.LifecycleAwareDAO.Builder(getX())
+            .setDelegate(delegate)
+            .setName(getPermissionPrefix())
+            .build();
+          indexes.add((foam.core.PropertyInfo) getOf().getAxiomByName("lifecycleState"));
+        }
 
         if ( getPermissioned() &&
             ( getNSpec() != null && getNSpec().getServe() ) )

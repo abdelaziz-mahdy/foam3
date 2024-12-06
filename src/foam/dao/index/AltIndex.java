@@ -35,7 +35,7 @@ public class AltIndex
     if ( state == null ) return state;
 
     // Copy all data from first index into new index, updating state
-    final Object[] sa = toObjectArray(state);
+    final Object[] sa = cloneState(state);
     Sink sink = new AbstractSink() {
       public void put(Object obj, foam.core.Detachable sub) {
         try {
@@ -57,7 +57,7 @@ public class AltIndex
     return sa;
   }
 
-  protected Object[] toObjectArray(Object state) {
+  protected Object[] cloneState(Object state) {
     Object[] s2 = new Object[delegates_.size()];
 
     if ( state != null ) {
@@ -72,7 +72,7 @@ public class AltIndex
   }
 
   public Object put(Object state, FObject value) {
-    Object[] s = toObjectArray(state);
+    Object[] s = cloneState(state);
 
     for ( int i = 0 ; i < delegates_.size() ; i++ )
       try {
@@ -86,7 +86,7 @@ public class AltIndex
 
 
   public Object remove(Object state, FObject value) {
-    Object[] s = toObjectArray(state);
+    Object[] s = cloneState(state);
 
     for ( int i = 0 ; i < delegates_.size() ; i++ )
       try {
@@ -99,7 +99,7 @@ public class AltIndex
   }
 
   public Object removeAll() {
-    Object[] s = toObjectArray(null);
+    Object[] s = cloneState(null);
 
     for ( int i = 0 ; i < delegates_.size() ; i++ )
       try {

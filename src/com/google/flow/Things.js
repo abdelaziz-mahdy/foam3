@@ -38,6 +38,20 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'com.google.flow',
+  name: 'Image',
+  extends: 'foam.graphics.Image',
+  implements: [ 'foam.physics.Physical' ],
+  properties: [
+    [ 'src', '/images/foam_red.png' ],
+    [ 'gravity', 1 ],
+    [ 'width',   150 ],
+    [ 'height',  50 ]
+  ]
+});
+
+
+foam.CLASS({
+  package: 'com.google.flow',
   name: 'Circle',
   extends: 'foam.graphics.Circle',
   implements: [ 'foam.physics.Physical' ],
@@ -286,7 +300,10 @@ foam.CLASS({
     {
       class: 'Float',
       name: 'lineWidth',
-      view: { class: 'foam.u2.RangeView', minValue: 0, maxValue: 5, step: 1, onKey: true },
+      view: { class: 'foam.u2.MultiView', views: [
+        { class: 'foam.u2.FloatView', precision: 1, onKey: true, units: 'pixels' },
+        { class: 'foam.u2.RangeView', minValue: 0, maxValue: 10, step: 1, onKey: true }
+      ] },
       value: 1
     },
     { name: 'width',  value: 0, hidden: true },

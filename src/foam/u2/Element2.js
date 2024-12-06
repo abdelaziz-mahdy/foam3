@@ -85,6 +85,11 @@ foam.CLASS({
 
     function isLiteral(o) {
       return foam.String.isInstance(o) || foam.Number.isInstance(o) || foam.Boolean.isInstance(o) || foam.Date.isInstance(o);
+    },
+
+    function remove() {
+      this.element_.remove();
+      this.detach();
     }
   ]
 });
@@ -214,7 +219,7 @@ foam.CLASS({
         nextSibling = undefined;
         this.childNodes.forEach(n => {
           nextSibling = n.element_.nextSibling;
-          n.element_.remove();
+          n.remove();
         });
         this.childNodes = [];
         this.element_   = undefined;
@@ -451,11 +456,14 @@ foam.CLASS({
     {
       name: 'NAMED_CODES',
       value: {
-        '13': 'enter',
-        '37': 'left',
-        '38': 'up',
-        '39': 'right',
-        '40': 'down'
+        '8':   'backspace',
+        '13':  'enter',
+        '27':  'esc',
+        '37':  'left',
+        '38':  'up',
+        '39':  'right',
+        '40':  'down',
+        '127': 'del'
       }
     }
   ],
@@ -509,9 +517,7 @@ foam.CLASS({
     {
       name: 'parentNode',
       transient: true,
-      postSet: function(o, n) {
-        n.onDetach(this);
-      }
+      postSet: function(o, n) { n.onDetach(this); }
     },
     {
       class: 'Boolean',
@@ -657,8 +663,7 @@ foam.CLASS({
         // parent will remove from DOM and detach
         this.parentNode.removeChild(this);
       } else {
-        this.element_.remove();
-        this.detach();
+        this.SUPER();
       }
     },
 
@@ -760,8 +765,8 @@ foam.CLASS({
         // and keypress events.
         target.tabIndex = target.tabIndex || 1;
 
-        target.on('keydown',  this.onKeyboardShortcut);
-        target.on('keypress', this.onKeyboardShortcut);
+        target.on('keydown',  this.onKeyboardShortcut, true);
+        target.on('keypress', this.onKeyboardShortcut, true);
       }
     },
 

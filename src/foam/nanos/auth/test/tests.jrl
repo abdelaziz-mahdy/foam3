@@ -11,3 +11,7 @@ p({
   class:"foam.nanos.auth.test.GroupURLSessionTest",
   id:"GroupURLSessionTest"
 })
+p({
+  class:"foam.nanos.auth.test.UserLifecycleTicketTest",
+  id:"UserLifecycleTicketTest"
+})

@@ -89,6 +89,7 @@ if [ -f "${APP_HOME}/etc/shrc.local" ]; then
     . "${APP_HOME}/etc/shrc.local"
 fi
 
+JAVA_OPTS="${JAVA_OPTS} -DAPP_HOME=${APP_HOME}"
 JAVA_OPTS="${JAVA_OPTS} -Dresource.journals.dir=journals"
 JAVA_OPTS="${JAVA_OPTS} -Dhostname=${HOST_NAME}"
 if [ -z "`echo "${JAVA_OPTS}" | grep "http.port"`" ] && [ ! -z ${WEB_PORT} ]; then

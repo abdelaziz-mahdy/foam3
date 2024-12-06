@@ -44,6 +44,10 @@ public class NSpecFactory
     spec_ = spec;
   }
 
+  public String getNSpecName() {
+    return spec_.getName();
+  }
+
   void buildService(X x) {
     Logger logger = null;
     if ( ! "logger".equals(spec_.getName()) && ! "PM".equals(spec_.getName()) ) {

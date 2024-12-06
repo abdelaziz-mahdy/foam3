@@ -54,7 +54,7 @@ foam.CLASS({
       name: 'SAVE_DELAY',
       // TODO: once changes are made to input views to reduce property updates,
       //       this can be decreased to around 100-200ms
-      value: 1000,
+      value: 200,
       documentation: 'How long input must be idle before an auto-save'
     }
   ],
@@ -376,7 +376,8 @@ foam.CLASS({
         Useful for ignoring capabilities that duplicate data or are present in the heirarchy 
         only for gathering intermediate data from the user such as MinMax and Review/Success capabilities.
       `
-    }
+    },
+    'dataUpdateSub_'
   ],
 
   methods: [
@@ -433,6 +434,7 @@ foam.CLASS({
         This is useful for checking if a wizardlet has unsaved changes.
       `,
       code: function () {
+        if ( this.dataUpdateSub_ ) return this.dataUpdateSub_;
         var filter = foam.u2.wizard.Slot.filter;
         var s = this.SimpleSlot.create();
         var slotSlot = this.data$
@@ -459,7 +461,7 @@ foam.CLASS({
             'wizardlet update listener will not detach! ' +
             'This wizardlet my be used from an invalid context');
         }
-        return s;
+        return this.dataUpdateSub_ = s;
       }
     },
     function pushContext(m) {
