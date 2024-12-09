@@ -36,28 +36,21 @@ foam.CLASS({
     {
       name: 'checkAvailability',
       javaCode: `
-        // NOTE: query with system context, as this is usually being
-        // called anonymous during user signup
-        x = getX();
-
-        if ( x.get("crunchService") == null ||
+        if ( getX().get("crunchService") == null ||
              ( ! targetProperty.equals("username") &&
                ! targetProperty.equals("email") )
         ) {
           throw new AuthorizationException();
         }
 
-        Theme theme = (Theme) ((Themes) x.get("themes")).findTheme(x);
-        var spid = theme.getSpid();
-        DAO userDAO = ((DAO) x.get("localUserDAO")).inX(x);
+        DAO userDAO = ((DAO) getX().get("localUserDAO")).inX(x);
         if ( "email".equals(targetProperty) ) {
-          if ( PreventDuplicateEmailAction.spidPreventDuplicateEmailPermission(x, spid) ) {
+          if ( PreventDuplicateEmailAction.spidPreventDuplicateEmailPermission(getX(), String.valueOf(x.get("spid"))) ) {
             return
               userDAO
                 .find(AND(
                   EQ(User.EMAIL, value),
                   EQ(User.TYPE, "User"),
-                  EQ(User.SPID, spid),
                   NEQ(User.LIFECYCLE_STATE, LifecycleState.DELETED)
                 )) == null;
           }
@@ -68,7 +61,6 @@ foam.CLASS({
             .find(AND(
               EQ(User.USER_NAME, value),
               EQ(User.TYPE, "User"),
-              EQ(User.SPID, spid),
               NEQ(User.LIFECYCLE_STATE, LifecycleState.DELETED)
             )) == null;
       `
