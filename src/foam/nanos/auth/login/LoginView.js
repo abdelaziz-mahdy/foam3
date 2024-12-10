@@ -324,10 +324,6 @@ foam.CLASS({
       label: 'Forgot password?',
       buttonStyle: 'LINK',
       code: function(X) {
-        // X.stack.push({
-        //     class: 'foam.nanos.auth.ChangePasswordView',
-        //     modelOf: 'foam.nanos.auth.RetrievePassword'
-        //   }, X);
         const wizardRunner = this.WizardRunner.create({
           wizardType: this.WizardType.TRANSIENT,
           source: 'foam.nanos.auth.email.ResetPassword',
