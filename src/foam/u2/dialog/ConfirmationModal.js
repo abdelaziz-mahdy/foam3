@@ -36,12 +36,12 @@ foam.CLASS({
   ],
 
   methods: [
-    function addActions() {
-      var actions = this.E().startContext({ data: this });
-      if ( this.showCancel ) {
-        actions.tag(this.CANCEL, { label: this.secondaryAction ? this.secondaryAction.label : this.CANCEL_LABEL });
+    function addActions(X) {
+      var actions = this.startContext({ data: X });
+      if ( X.showCancel ) {
+        actions.tag(X.CANCEL, { label: X.secondaryAction ? X.secondaryAction.label : X.CANCEL_LABEL });
       }
-      actions.tag(this.CONFIRM, { label: this.primaryAction.label, isDestructive: this.modalStyle == 'DESTRUCTIVE' });
+      actions.tag(X.CONFIRM, { label: X.primaryAction.label, isDestructive: X.modalStyle == 'DESTRUCTIVE' });
       return actions.endContext();
     }
   ],
