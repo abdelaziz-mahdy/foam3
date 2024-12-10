@@ -70,7 +70,6 @@ foam.CLASS({
   extends: 'foam.graphics.Ellipse',
   implements: [ 'foam.physics.Physical' ],
   properties: [
-    [ 'border',   1 ],
     [ 'gravity',  1 ],
     [ 'radiusX',  25 ],
     [ 'radiusY',  25 ],

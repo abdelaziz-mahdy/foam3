@@ -20,6 +20,8 @@ Features
   [] touch support
   [] mobile sizing
   [] Add soft-select / hover for Properties TreeView
+  [] Delete key to delete object
+  [] Add Properties: Int, Float, String
   help();
   anchor points + lines
   Jump to Sheet
@@ -46,9 +48,6 @@ Input:
   Mixer Panel
 
 Bugs:
-* [] TreeView shouldn't lose open folder state on refresh
-* [] Nested objects don't show open-close icon
-* [] Only open/close in TreeView if you click the open/close icon (is closed even useful)
   [] Fix Calculator CSS
 
 FLOW Property Types like Distance, Angle, Colour, etc.

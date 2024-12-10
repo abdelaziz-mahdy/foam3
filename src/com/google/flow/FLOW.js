@@ -221,7 +221,7 @@ foam.CLASS({
       ^ .foam-u2-ActionView { margin: 10px; }
       ^cmd { box-shadow: 3px 3px 6px 0 gray; width: 100%; margin-bottom: 8px; }
       ^properties { margin-right: 8px; height: auto; }
-      ^properties .foam-u2-view-TreeViewRow { position: relative; width: 200px; }
+      ^properties .foam-u2-view-TreeViewRow { position: relative; width: 220px; }
       ^properties .foam-u2-view-TreeViewRow-heading { min-height: 30px; }
       ^properties .foam-u2-ActionView, ^properties .foam-u2-ActionView:hover {
         background: none;
@@ -242,7 +242,6 @@ foam.CLASS({
 //      input[type="range"] { width: 60px; }
       input[type="color"] { width: 60px; }
       .foam-u2-view-TreeViewRow .p-semiBold { font-weight: bold; font-size: 1rem; }
-      .child-menu { margin-left: 18px; }
       .foam-u2-view-TreeViewRow-LabelView-select-level-selected { background: #D7E4FF; }
       .property-selectedName input { width: auto; }
       .foam-u2-ActionView-copyProperty, .foam-u2-ActionView-deleteProperty  { float: right; margin: 0 0 8px 8px !important; }

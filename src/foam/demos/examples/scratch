@@ -1,0 +1,42 @@
+## Scratch Examples
+##  Scratch
+Insert temporary example here.
+--
+foam.CLASS({
+  name: 'Example',
+
+  properties: [
+  /*
+    {
+      class: 'FObjectProperty',
+      name: 'o1',
+      factory: function() { return foam.util.Timer.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      name: 'o2'
+    },
+    {
+      class: 'FObjectProperty',
+      name: 'o3',
+      of: 'foam.util.Timer'
+    },
+    */
+    {
+      class: 'FObjectProperty',
+      name: 'o4',
+      of: 'foam.util.Timer',
+      view: 'foam.u2.view.OptionalFObjectView'
+    },
+    {
+      class: 'FObjectProperty',
+      name: 'o5',
+      of: 'foam.util.Timer',
+      factory: function() { return foam.util.Timer.create(); },
+      view: 'foam.u2.view.OptionalFObjectView'
+    },
+  ]
+});
+
+globalThis.example = Example.create();
+tag(globalThis.example);

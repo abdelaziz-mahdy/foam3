@@ -247,11 +247,13 @@ foam.CLASS({
     {
       name: 'getNextScheduledTime',
       javaCode: `
+      Date from = getLastRun();
+      if ( from == null ) from = new Date();
       if ( getReattemptRequested() &&
            getReattempts() < getMaxReattempts() ) {
-        return ((SimpleIntervalSchedule) getReattemptSchedule()).calculateNextDate(x, getLastRun(), true);
+        return ((SimpleIntervalSchedule) getReattemptSchedule()).calculateNextDate(x, from, true);
       }
-      return ((SimpleIntervalSchedule) getSchedule()).calculateNextDate(x, getLastRun(), true);
+      return ((SimpleIntervalSchedule) getSchedule()).calculateNextDate(x, from, true);
       `
     },
     {

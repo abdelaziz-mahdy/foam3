@@ -138,15 +138,15 @@ foam.CLASS({
         return the user in the context`,
       javaCode: `
         User user = getUniqueUserService().getUser(x, identifier);
-        
+
         if ( user == null ) {
           throw new UserNotFoundException();
         }
-        
+
         if ( ! Password.verify(password, user.getPassword()) ) {
           throw new InvalidPasswordException();
         }
-        
+
         return getLoginService().login(x, user); 
       `
     },
@@ -291,8 +291,6 @@ foam.CLASS({
         // TODO: modify line to allow actual setting of password expiry in cases where users are required to periodically update their passwords
         user.setPasswordExpiry(null);
         user = (User) ((DAO) getLocalUserDAO()).put(user);
-        Subject subject = new Subject.Builder(x).setUser(user).build();
-        session.setContext(session.getContext().put("subject", subject).put("group", group));
         return user;
       `
     },

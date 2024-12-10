@@ -6,6 +6,7 @@ p({
   "boxClass": "foam.nanos.auth.AuthServiceSkeleton",
   "serviceScript": """
     auth = new foam.nanos.auth.UserAndGroupAuthService(x);
+    auth = new foam.nanos.auth.CapabilityAuthService.Builder(x).setDelegate(auth).build();
     auth = new foam.nanos.auth.EnabledCheckAuthService.Builder(x)
       .setDelegate(auth)
       .build();
@@ -275,6 +276,7 @@ p({
 
 p({"class":"foam.nanos.boot.NSpec", "name":"resetPasswordToken",                 "serve":true,  "authenticate": false, "serviceClass":"foam.nanos.auth.resetPassword.ResetPasswordTokenService","boxClass":"foam.nanos.auth.token.TokenServiceSkeleton","client":"{\"class\":\"foam.nanos.auth.token.ClientTokenService\"}"})
 
+
 p({
   "class":"foam.nanos.boot.NSpec",
   "name":"localPermissionDAO",
@@ -432,6 +434,8 @@ p({
   "authenticate": true,
   "boxClass": "foam.nanos.auth.UniqueUserServiceSkeleton",
   "serviceScript": """
+    x = x.put("localUserDAO", x.get("localUserDAO")
+      .where(foam.mlang.MLang.NEQ(foam.nanos.auth.User.LIFECYCLE_STATE, foam.nanos.auth.LifecycleState.DELETED)));
     ul = new foam.nanos.auth.PreventDuplicateEmailLoginService(x);
     ul = new foam.nanos.auth.FilterBySpidService.Builder(x)
       .setDelegate(ul)
@@ -458,6 +462,42 @@ p({
           "service/userQueryService"
         }
       }
+    }
+  """
+})
+
+p({
+  "class": "foam.nanos.boot.NSpec",
+  "name": "userRegistrationDAO",
+  "lazy": false,
+  "serve": true,
+  "authenticate": false,
+  "authNotes": "UserRegistrationDAO disables find, select and remove operations.",
+  "serviceScript":
+  """
+    return new foam.dao.EasyDAO.Builder(x)
+      .setOf(foam.nanos.auth.User.getOwnClassInfo())
+      .setInnerDAO(x.get("localUserDAO"))
+      .setDecorator(
+        new foam.nanos.auth.UserRegistrationSanitationDAO(x,
+        new foam.nanos.auth.UserRegistrationDAO(x,
+        new foam.nanos.auth.UserPasswordHashingDAO(x,
+        new foam.dao.ValidatingDAO(x,
+          new foam.dao.NullDAO(x,foam.nanos.auth.User.getOwnClassInfo()),
+          new foam.nanos.auth.validators.UserGroupAndSpidValidator()
+        )))))
+      .setAuthorize(false)
+      .setRuler(true)
+      .setPm(true)
+      .setValidated(true)
+      .setEnableInterfaceDecorators(false)
+      .build();
+  """,
+  "client": """
+    {
+      "of": "foam.nanos.auth.User",
+      "cache": true,
+      "retryBoxMaxAttempts": 0
     }
   """
 })

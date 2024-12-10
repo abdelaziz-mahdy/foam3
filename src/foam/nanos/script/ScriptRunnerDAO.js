@@ -46,10 +46,7 @@ foam.CLASS({
     {
       name: 'runScript',
       type: 'foam.nanos.script.Script',
-      args: [
-        { type: 'Context', name: 'x' },
-        { type: 'foam.nanos.script.Script', name: 'script' }
-      ],
+      args: 'Context x, foam.nanos.script.Script script',
       javaCode: `
           ((Agency) x.get("threadPool")).submit(x, new ContextAgent() {
             @Override
@@ -70,7 +67,8 @@ foam.CLASS({
                 script.setStatus(ScriptStatus.ERROR);
                 logger.error("agency", script.getId(), t);
               } finally {
-                ((DAO) x.get(script.getDaoKey())).put_(x, script);
+                getDelegate().put_(x, script);
+//                ((DAO) x.get(script.getDaoKey())).put_(x, script);
               }
             }
           }, "Run script: " + script.getId());

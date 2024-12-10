@@ -123,6 +123,8 @@ foam.CLASS({
       let ret = await this.SUPER(options);
       if ( this.goNextOnGranted && this.status == 'GRANTED' ) {
         this.__context__.wizardController.goNext();
+        // Make itself invisible when granted in this case so that back actions work as expected in the wizard
+        this.isVisible = false;
       }
       return ret;
     },

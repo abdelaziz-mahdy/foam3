@@ -143,7 +143,16 @@ foam.CLASS({
         select(new Sink() {
           public void put(Object obj, Detachable sub) {
             Schedulable schedulable = (Schedulable) ((FObject) obj).fclone();
-            schedulable.setScheduledTime(((SimpleIntervalSchedule) schedulable.getSchedule()).calculateNextDate(foam.core.XLocator.get(), (Date) schedulable.getProperty("lastRun"), true));
+            Date from = schedulable.getLastRun();
+            if ( from == null ) from = new Date();
+            schedulable.setScheduledTime(
+              ((SimpleIntervalSchedule) schedulable.getSchedule()).
+                calculateNextDate(
+                  foam.core.XLocator.get(),
+                  from,
+                  true
+                )
+            );
             cronJobDAO.put(schedulable);
           }
           public void remove(Object obj, Detachable sub) {}

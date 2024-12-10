@@ -330,6 +330,10 @@ foam.CLASS({
     'selected'
   ],
 
+  constants: {
+    MODULES: 'views,u2all,u2,faq,validation,examples,dao'
+  },
+
   properties: [
     { class: 'Int',    name: 'count' },
     { class: 'Int',    name: 'exampleCount' },
@@ -368,7 +372,8 @@ foam.CLASS({
         self.testData += await fetch(section).then(response => response.text()).catch(x => { debugger; });
       }
 
-      var modules = (this.params?.modules || 'views,u2all,u2,faq,validation,examples,dao').split(',');
+      // Note that you can specify modules (like 'scratch') not listed in the module with the 'modules' URL parameter
+      var modules = (this.params?.modules || this.MODULES).split(',');
 
       for ( const m of modules ) await load(m);
 

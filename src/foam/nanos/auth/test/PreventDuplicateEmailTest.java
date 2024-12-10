@@ -4,10 +4,11 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package foam.nanos.auth;
+package foam.nanos.auth.test;
 
 import foam.core.X;
 import foam.dao.DAO;
+import foam.nanos.auth.User;
 import foam.nanos.auth.ruler.PreventDuplicateEmailAction;
 import foam.nanos.crunch.Capability;
 import foam.test.TestUtils;

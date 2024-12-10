@@ -223,7 +223,7 @@ function installFiles {
 function setupUser {
     echo "INFO :: [$HOSTNAME] Verify user and group"
     if [[ $IS_LINUX -eq 1 ]]; then
-        id -u foam > /dev/null
+        id -u $USER > /dev/null
         if [ $? -eq 1 ]; then
             echo "INFO :: [$HOSTNAME] User foam not found, creating user foam"
             groupadd --force --gid $GROUP_ID $GROUP

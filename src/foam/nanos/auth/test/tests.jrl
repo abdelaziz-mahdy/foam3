@@ -15,3 +15,7 @@ p({
   class:"foam.nanos.auth.test.UserLifecycleTicketTest",
   id:"UserLifecycleTicketTest"
 })
+p({
+  class:"foam.nanos.auth.test.PreventDuplicateEmailTest",
+  id:"PreventDuplicateEmailTest"
+})

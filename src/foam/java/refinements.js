@@ -1418,7 +1418,7 @@ foam.CLASS({
           });
 
           cls.declarations = this.VALUES.map(function(v) {
-            return `${v.name}(${properties.map(p => foam.java.asJavaValue(v[p])).join(', ')})`;
+            return `${v.name}(${properties.map(p => foam.java.asJavaValue(v[p.name])).join(', ')})`;
           }).join(',\n  ');
 
           cls.method({

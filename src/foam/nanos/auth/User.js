@@ -67,7 +67,8 @@ foam.CLASS({
     'lifecycleState',
     'userName',
     'group.id',
-    'email'
+    'email',
+    'lifecycleState'
   ],
 
   searchColumns: [
@@ -658,9 +659,9 @@ foam.CLASS({
       section: 'systemInformation',
       order: 40,
       gridColumns: 6,
-      value: foam.nanos.auth.LifecycleState.PENDING,
-      help: 'Recommend using state change actions',
-      writePermissionRequired: false
+      value: foam.nanos.auth.LifecycleState.ACTIVE,
+      writePermissionRequired: false,
+      help: 'Recommend using state change actions'
     },
     {
       class: 'Reference',
@@ -686,14 +687,15 @@ foam.CLASS({
       columnPermissionRequired: true
     },
     {
+      // deprecated; use lifecycleState instead
       class: 'Boolean',
       name: 'enabled',
       documentation: 'Determines whether the User is permitted certain actions.',
-      value: true,
-      includeInDigest: true,
-      section: 'systemInformation',
-      order: 90,
-      gridColumns: 6
+      hidden: true,
+      transient: true,
+      javaGetter: `
+        return getLifecycleState() == foam.nanos.auth.LifecycleState.ACTIVE;
+      `
     },
     {
       class: 'String',
@@ -1044,10 +1046,10 @@ foam.CLASS({
         if ( ! getLoginEnabled() ) {
           throw new AccessDeniedException();
         }
-
-        if ( ! getEmailVerified() ) {
-          throw new UnverifiedEmailException();
-        }
+        // This is an application requirement, not foam's.
+        //   if ( ! getEmailVerified() ) {
+        //     throw new UnverifiedEmailException();
+        //   }
       `
     }
   ],

@@ -54,7 +54,7 @@ foam.CLASS({
       name: 'SAVE_DELAY',
       // TODO: once changes are made to input views to reduce property updates,
       //       this can be decreased to around 100-200ms
-      value: 200,
+      value: 400,
       documentation: 'How long input must be idle before an auto-save'
     }
   ],

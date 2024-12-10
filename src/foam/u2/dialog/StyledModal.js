@@ -180,4 +180,5 @@ foam.CLASS({
       actions.endContext();
     }
   ]
+});
 

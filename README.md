@@ -61,11 +61,13 @@ If deploying with **-u** or remotely, update the garbage collection configuratio
 * **-d** - debug mode allowing connection by a remote debugger
 * **-j** - delete runtime journals
 * **-Jpom1,pom2,...,pomN** - where pomN,... are found relative to the deployment folder. 
-* **-u** - build and deploy from a single Java jar file
+* **-u** - build and deploy from a single Java jar file. Intented for remote server installs.
 
 #### If building with option **-u**, then 
 
 * visit: https://localhost:8443
+
+**NOTE: this deployment uses a self-sign certificate which your browser will warn you about**
 
 <!--
 ## Running Application Controller
@@ -145,8 +147,10 @@ To run NANOS, the FOAM Java Application Server, run:
 `./build.sh -Jdemo`
 then connect to http://localhost:8080
 
-## Example FOAM Project
-An [Example FOAM Project](https://github.com/adamvy/example-foam-project) which shows how to consume/use FOAM from an external repository.
+## Example FOAM Projects
+
+- An [Example FOAM Project](https://github.com/adamvy/example-foam-project) which shows how to consume/use FOAM from an external repository.
+- [Another example FOAM Project](https://github.com/jlhughes/Journal) building on the above with more models and example data. 
 
 ## Design Patterns
 The following course is not directly about FOAM, but covers material essential for fully understanding FOAM's design:

@@ -145,7 +145,7 @@ foam.CLASS({
               .addClass(this.myClass('sectionView'))
             .end()
             .callIf(this.popup, function() {
-              let label = self.stack?.stack_[self.stack.pos - 1]?.breadcrumbTitle
+              let label = self.stack?.stack_[self.stack.pos - 1]?.breadcrumbTitle;
               this.tag(self.BACK,
                 { label: self.BACK_LABEL + ' ' +  (label || (self.theme?.appName ?? 'home')) }
               );
