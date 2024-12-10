@@ -218,27 +218,34 @@ foam.CLASS({
         .end()
         .add(this.slot(function(showAction, appConfig, mode_) {
             self.configData();
-            var disclaimer = self.E().style({ display: 'contents' }).callIf(mode_ == 1 && appConfig, function() {
+            var disclaimer = self.E().style({ display: 'contents' })
+            .callIf(mode_ == 1 && (appConfig.termsAndCondLink || appConfig.privacyUrl), function() {
               this.start()
                 .addClass(self.myClass('disclaimer'))
                 .add(self.DISCLAIMER_TEXT)
-                .start('a')
-                  .addClasses([self.myClass('tc-link'), 'h600'])
-                  .add(appConfig.termsAndCondLabel)
-                  .attrs({
-                    href: appConfig.termsAndCondLink,
-                    target: '_blank'
-                  })
-                .end()
-                .add(' and ')
-                .start('a')
-                  .addClasses([self.myClass('tc-link'), 'h600'])
-                  .add(appConfig.privacy)
-                  .attrs({
-                    href: appConfig.privacyUrl,
-                    target: '_blank'
-                  })
-                .end()
+                .callIf(appConfig.termsAndCondLink, function() {
+                  this.start('a')
+                    .addClasses([self.myClass('tc-link'), 'h600'])
+                    .add(appConfig.termsAndCondLabel)
+                    .attrs({
+                      href: appConfig.termsAndCondLink,
+                      target: '_blank'
+                    })
+                  .end();
+                })
+                .callIf(appConfig.termsAndCondLink && appConfig.privacyUrl, function() {
+                  this.add(' and ');
+                })
+                .callIf(appConfig.privacyUrl, function() {
+                  this.start('a')
+                    .addClasses([self.myClass('tc-link'), 'h600'])
+                    .add(appConfig.privacy)
+                    .attrs({
+                      href: appConfig.privacyUrl,
+                      target: '_blank'
+                    })
+                  .end();
+                })
               .end();
             });
 
