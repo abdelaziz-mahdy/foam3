@@ -21,6 +21,7 @@ Features
   [] mobile sizing
   [] Add soft-select / hover for Properties TreeView
   [] Delete key to delete object
+  [] Add Properties: Int, Float, String
   help();
   anchor points + lines
   Jump to Sheet
@@ -48,7 +49,6 @@ Input:
 
 Bugs:
   [] Fix Calculator CSS
-  [] Elipse resizing
 
 FLOW Property Types like Distance, Angle, Colour, etc.
 Sliders for width and height
