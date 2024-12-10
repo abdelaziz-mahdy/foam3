@@ -49,7 +49,7 @@ p({
 p({
   "class": "foam.nanos.boot.NSpec",
   "name": "loginService",
-  "serve": true,
+  "serve": false,
   "authenticate": false,
   "serviceScript": """
     return new foam.nanos.auth.LoginService(x)
@@ -397,7 +397,7 @@ p({
         new foam.dao.ValidatingDAO(x,
           new foam.nanos.auth.UserPasswordHashingDAO(x,
             new foam.nanos.auth.UserLifecycleStateDAO(x,
-              new foam.dao.NullDAO(x, foam.nanos.auth.User.getOwnClassInfo()))),
+            new foam.dao.NullDAO(x, foam.nanos.auth.User.getOwnClassInfo()))),
           new foam.nanos.auth.validators.UserGroupAndSpidValidator()
         )
       )
