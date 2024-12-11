@@ -1049,15 +1049,16 @@ foam.CLASS({
           throw new AccessDeniedException();
         }
 
+        Group group = null;
         try {
-          Group group = (Group) ((DAO) foam.core.XLocator.get().get("groupDAO")).find(getGroup());
-          if ( group != null &&
-               group.getEmailRequired() && ! getEmailVerified() ) {
-            throw new UnverifiedEmailException();
-          }
+          group = (Group) ((DAO) foam.core.XLocator.get().get("groupDAO")).find(getGroup());
         } catch (Throwable e) {
           foam.nanos.logger.StdoutLogger.instance().error(e);
-          throw e;
+          throw new AuthenticationException("Group not found");
+        }
+        if ( group != null &&
+             group.getEmailRequired() && ! getEmailVerified() ) {
+          throw new UnverifiedEmailException();
         }
       `
     }
