@@ -161,9 +161,9 @@ foam.CLASS({
       buttonStyle: 'TEXT',
       code: function(X) {
         if ( X.stack.pos > 0 ) {
-          X.stack.back();
+          X.stack.jump(X.stack.pos-1);
         } else {
-          X.pushMenu('', true);
+          X.pushDefaultMenu();
         }
       }
     }

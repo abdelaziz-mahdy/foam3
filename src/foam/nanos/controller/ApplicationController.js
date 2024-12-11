@@ -517,7 +517,6 @@ foam.CLASS({
       this.initLayout.then(() => {
         this.layoutInitialized = true;
       });
-      this.fetchSubject();
       window.addEventListener('resize', this.updateDisplayWidth);
       this.updateDisplayWidth();
 

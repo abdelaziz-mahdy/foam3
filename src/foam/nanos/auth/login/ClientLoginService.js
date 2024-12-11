@@ -225,12 +225,10 @@ foam.CLASS({
     {
       name: 'resetPassword',
       code: async function() {
-        this.stack.push(this.StackBlock.create({
-          view: {
+        this.stack.push({
             class: 'foam.nanos.auth.ChangePasswordView',
             modelOf: 'foam.nanos.auth.RetrievePassword'
-          }
-        }));
+        }, this);
       }
     }
   ]
