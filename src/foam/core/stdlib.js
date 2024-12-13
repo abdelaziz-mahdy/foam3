@@ -986,6 +986,21 @@ foam.LIB({
       return  ( timeFirst ? formattedTime + ' ' : '' )
             + formattedDate
             + ( ! timeFirst ? ' ' + formattedTime : '' );
+    },
+    /* Date pickers expect values to be set as as YYYY-MM-DDThh:mm
+    * Easiest way to do this without parsing it ourselves is to call toISOString but that method returns UTC timezone which
+    * and the input field is agnostic of timezones so this causes the incorrect time to be set
+    * getTimezoneOffset(): returns the offset in mins of a given date from UTC
+    * getTime(): returns millis since epoch of given date
+    * subtracting these two values gives us millis since epoch in UTC
+    * This can be parsed into a date and then converted to required string format
+    */
+    function toInputCompatibleDateTimeString(date) {
+      if ( ! ( date instanceof Date ) ) return null;
+      let offsetInMillis = date.getTimezoneOffset() * 60 * 1000;
+      let newValue = date.valueOf() - offsetInMillis;
+      date = new Date(newValue)
+      return date.toISOString().substring(0,16);
     }
   ]
 });
