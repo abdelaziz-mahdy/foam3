@@ -481,6 +481,7 @@ foam.CLASS({
 
         self.onDetach(self.__subContext__.cssTokenOverrideService?.cacheUpdated.sub(self.reloadStyles));
 
+        // group required for loginVariables before initMenu
         await self.fetchGroup();
 
         self.subToNotifications();
