@@ -1,7 +1,18 @@
 /**
  * @license
- * Copyright 2017 The FOAM Authors. All Rights Reserved.
- * http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // TODO: Add datalist support.
@@ -16,29 +27,17 @@ foam.CLASS({
   mixins: [ 'foam.u2.TextInputCSS' ],
 
   css: `
-    ^:read-only:not(:disabled) { border: none; background: rgba(0,0,0,0); margin-left: -8px; }
-    ^ { height: $inputHeight; min-width: 130px; }
+    ^ {
+      height: $inputHeight;
     }
   `,
 
-  messages: [
-    { name: 'DATE_FORMAT', message: 'yyyy-mm-dd hh:mm' }
-  ],
-
   properties: [
-    [ 'placeholder', this.DATE_FORMAT ],
+    [ 'placeholder', 'yyyy/mm/dd hh:mm' ],
     [ 'type', 'datetime-local' ]
   ],
 
   methods: [
-    function render() {
-      this.SUPER();
-
-      // Scroll listener needed because DateView generates scroll event
-      // in some foreign locales which conflicts with ScrollWizard.
-      this.on('scroll', e => { e.preventDefault(); e.stopPropagation(); });
-    },
-
     function link() {
       if ( this.linked ) return;
       this.linked = true;
@@ -47,12 +46,12 @@ foam.CLASS({
       var slot    = this.attrSlot(); //null, this.onKey ? 'input' : null);
 
       function updateSlot() {
-        if ( focused ) return;
         var date = self.data;
-        if ( foam.Number.isInstance(date) ) date = new Date(date);
         if ( ! date ) {
           slot.set('');
         } else {
+          if ( ! foam.Date.isInstance(date) )
+            date = new Date(date);
           slot.set(foam.Date.toInputCompatibleDateTimeString(date));
         }
       }

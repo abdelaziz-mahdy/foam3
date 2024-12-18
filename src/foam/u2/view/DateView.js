@@ -13,7 +13,8 @@ foam.CLASS({
 
   requires: [
     'foam.u2.DateView',
-    'foam.u2.view.date.DateTimePicker'
+    'foam.u2.view.date.DateTimePicker',
+    'foam.u2.view.ValueView'
   ],
 
   constants: [
@@ -25,8 +26,8 @@ foam.CLASS({
         var e = document.createElement('input');
         e.setAttribute('type', 'date');
         return e.type === 'text' ?
-          'foam.u2.view.date.DateTimePicker' :
-          'foam.u2.view.date.RODateView' ;
+          'foam.u2.view.date.RODateView' :
+          'foam.u2.DateView' ;
       }
     },
     {
