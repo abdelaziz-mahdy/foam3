@@ -1,4 +1,57 @@
 ## Scratch Examples
+##  Binding
+--
+
+foam.CLASS({
+  name: 'Data',
+
+  properties: [
+    {
+      class: 'String',
+      name: 'firstName'
+    },
+    {
+      class: 'String',
+      name: 'lastName'
+    },
+    {
+      class: 'Int',
+      name: 'age'
+    }
+  ],
+
+  actions: [
+    function incr() { this.age++; }
+  ]
+});
+
+foam.CLASS({
+  name: 'Example',
+  extends: 'foam.u2.View',
+
+  properties: [
+    {
+      class: 'FObjectProperty',
+      of: 'Data',
+      name: 'data',
+      factory: function() { return Data.create(); }
+    }
+  ],
+
+  methods: [
+    function render() {
+      this.SUPER();
+      this.add(this.data.FIRST_NAME.__, this.data.LAST_NAME.__, this.data.AGE.__, this.data.INCR, this.MUL);
+    }
+  ],
+
+  actions: [
+    function mul() { this.data.age *= 10; }
+  ]
+});
+
+tag(Example);
+
 ##  DynamciDynamic
 
 --
@@ -84,14 +137,22 @@ foam.CLASS({
 
   properties: [
     { class: 'Date', name: 'date1', postSet: function(o,n) { this.date2 = n; } },
-    { class: 'Date', name: 'date2' },
-    { class: 'DateTime', name: 'datetime1' },
-    { class: 'DateTime', name: 'datetime2', postSet: function(o,n) { this.date2 = n; } },
-    { class: 'String', name: 'summary', width: 100, expression: function(date2, datetime2) { return date2 + " " + datetime2; } } 
+    { class: 'Date', name: 'date2', view: 'foam.u2.DateView' },
+    { class: 'DateTime', name: 'datetime1', postSet: function(o,n) { this.datetime2 = n; } },
+    { class: 'DateTime', name: 'datetime2' },
+    { class: 'String', name: 'summary', width: 100, expression: function(date2, datetime2) { return date2 + " " + datetime2; } }
   ]
 });
 
+globalThis.e = Example.create();
+
+tag(globalThis.e);
 tag(Example);
+tag(Example);
+tag(Example);
+tag(Example);
+
+
 
 ##  Empty
 --
