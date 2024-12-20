@@ -726,7 +726,7 @@ function moreUsage() {
 
 const ARGS = {
   a: [ 'Run/launch from Java jar file.',
-    () => RUN_JAR = true; ],
+    () => RUN_JAR = true ],
   b: [ 'run all benchmarks.',
     () => {
       BENCHMARK = true;
