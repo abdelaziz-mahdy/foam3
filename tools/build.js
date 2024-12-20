@@ -501,11 +501,6 @@ task('Delete runtime journals.', [], function deleteRuntimeJournals() {
 });
 
 
-task('Delete runtime logs.', [], function deleteRuntimeLogs() {
-  info('Runtime logs deleted.');
-  emptyDir(LOG_HOME);
-});
-
 task('Copy required files to APP_HOME deployment directory.', [], function deployToHome() {
   copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
   copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
@@ -730,8 +725,8 @@ function moreUsage() {
 }
 
 const ARGS = {
-  a: [ 'Delete runtime logs.',
-    () => DELETE_RUNTIME_LOGS = true ],
+  a: [ 'Run/launch from Java jar file.',
+    () => RUN_JAR = true; ],
   b: [ 'run all benchmarks.',
     () => {
       BENCHMARK = true;
@@ -906,8 +901,6 @@ function all() {
   stopNanos();
 
   if ( DELETE_RUNTIME_JOURNALS ) deleteRuntimeJournals();
-
-  if ( DELETE_RUNTIME_LOGS     ) deleteRuntimeLogs();
 
   if ( STOP_ONLY ) quit(0);
 
