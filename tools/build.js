@@ -75,22 +75,22 @@ const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync,
 
 // Build configs
 var
-  PWD                       = process.cwd(),
+  APP_ROOT                  = '/opt',
   BENCHMARK                 = false,
   BENCHMARKS                = '',
   BUILD_ONLY                = false,
   CLEAN_BUILD               = false,
   CLUSTER                   = false,
   DAEMONIZE                 = false,
+  DEBUG                     = false,
   DEBUG_PORT                = 8000,
   DEBUG_SUSPEND             = false,
-  DEBUG                     = false,
   DELETE_RUNTIME_JOURNALS   = false,
   DELETE_RUNTIME_LOGS       = false,
   EXPLICIT_JOURNALS         = '',
   FS                        = 'rw',
+  FOAM_REVISION,
   GEN_JAVA                  = true,
-  STAGE_JS                  = true,
   HOST_NAME                 = 'localhost',
   INSTANCE                  = 'localhost',
   JOURNAL_CONFIG            = '',
@@ -100,19 +100,20 @@ var
   POM                       = 'pom',
   PROFILER                  = false,
   PROFILER_PORT             = 8849,
+  PROJECT_REVISION,
+  PWD                       = process.cwd(),
   RESTART_ONLY              = false,
   RESTART                   = false,
   RUN_JAR                   = false,
   RUN_USER                  = '',
+  STAGE_JS                  = true,
   STOP_ONLY                 = false,
   TEST                      = false,
   TESTS                     = '',
   WEB_PORT                  = null,
   VERBOSE                   = '',
   VULNERABILITY_CHECK       = false,
-  VULNERABILITY_CHECK_SCORE = 9, // CVSS score (LOW:0..5 , MEDIUM:5..7 , HIGH:7..9 , CRITICAL:9..10, IGNORE:11) to fail the build
-  FOAM_REVISION,
-  PROJECT_REVISION
+  VULNERABILITY_CHECK_SCORE = 9 // CVSS score (LOW:0..5 , MEDIUM:5..7 , HIGH:7..9 , CRITICAL:9..10, IGNORE:11) to fail the build
 ;
 
 // Top-Level Loaded POM Object, not be be confused with POM, which is the name of POM(s) to be loaded
@@ -666,7 +667,6 @@ function readFromPidFile() {
 // Environment Variables which are exported when updated
 buildEnv({
   // App resources path
-  APP_ROOT:          () => ( TEST || BENCHMARK ) ? '/tmp' : '/opt',
   APP_HOME:          () => APP_ROOT + ( ( INSTANCE !== 'localhost' ) ? `/${PROJECT.name}_` + INSTANCE : `/${PROJECT.name}`),
   JOURNAL_HOME:      () => `${APP_HOME}/journals`,
   DOCUMENT_HOME:     () => `${APP_HOME}/documents`,
@@ -799,6 +799,7 @@ const ARGS = {
       DELETE_RUNTIME_JOURNALS = true;
       JOURNAL_CONFIG = comma(JOURNAL_CONFIG, 'test');
       JOURNAL_CONFIG = comma(JOURNAL_CONFIG, '../foam3/deployment/test');
+      APP_ROOT='/tmp';
     } ],
   T: [ 'testId1,testId2,... : Run listed tests.',
     args => {
