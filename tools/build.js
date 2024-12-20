@@ -737,6 +737,7 @@ const ARGS = {
       BENCHMARK = true;
       MODE = 'BENCHMARK';
       DELETE_RUNTIME_JOURNALS = true;
+      APP_ROOT = '/opt';
     } ],
   B: [ 'benchmarkId1,benchmarkId2,... : Run listed benchmarks.',
     args => { ARGS.b[1](); BENCHMARKS = args; } ],
