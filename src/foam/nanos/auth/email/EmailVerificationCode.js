@@ -163,9 +163,6 @@ foam.CLASS({
           this.report('^verify-success', ['email-verification']);
           this.assert(verified, 'verified should be true when no exception was thrown')
           this.codeVerified = verified;
-          if ( this.wizardController ) {
-            this.wizardController.goNext();
-          }
         } catch (error) {
           this.report('^verify-failure', error);
           if ( error?.data?.exception && this.VerificationCodeException.isInstance(error.data.exception) ) {
