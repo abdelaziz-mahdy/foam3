@@ -130,7 +130,10 @@ foam.CLASS({
 
       this.client = await this.ClientBuilder.create({authenticate: false}, this).promise;
 
-      if ( ! globalThis.client ) globalThis.client = this.client;
+      if ( ! globalThis.client ) {
+        globalThis.client = this.client;
+        globalThis.x = this.client.__subContext__;
+      }
     },
     function pushMenu(menu) {
       menu && menu.launch && menu.launch(this.__subContext__);
