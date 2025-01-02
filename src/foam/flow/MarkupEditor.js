@@ -51,8 +51,8 @@ table-layout: fixed;
           attrs({ valign: 'top', width: '50%' }).
           style({'word-break': 'break-word'}).
           addClass(this.myClass('right')).
-          add(this.slot(function(preview) {
-            return preview ? preview.toE(null, this.__subSubContext__) : this.E();
+        add(this.dynamic(function(preview) {
+          if ( preview ) this.tag(preview.toE(null, this.__subSubContext__));
           })).
         end('td').
         end('tr').
