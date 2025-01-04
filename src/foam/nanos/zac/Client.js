@@ -29,13 +29,11 @@ foam.CLASS({
   properties: [
     { name: 'group',            value: '' /*getter: function() { debugger; } */},
     { name: 'sessionTimer',     getter: function() { debugger; } },
-    { name: 'crunchController', getter: function() { debugger; } }
+    { name: 'crunchController', getter: function() { debugger; } },
+    { class: 'Boolean', name: 'loginSuccess' }
   ],
 
   methods: [
-    function loginSuccess() {
-      debugger;
-    },
     function requestLogin() {
       debugger;
     }
