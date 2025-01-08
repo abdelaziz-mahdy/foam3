@@ -155,8 +155,8 @@ public class XMLSupport {
       transformer = tf.newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-    } catch (TransformerConfigurationException ex) {
-    }
+    } catch (TransformerConfigurationException ex) {}
+
     return transformer;
   }
 }
