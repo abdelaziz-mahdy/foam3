@@ -171,7 +171,8 @@ foam.CLASS({
           userName: data.username,
           email: data.email,
           desiredPassword: data.desiredPassword,
-          language: this.defaultUserLanguage
+          language: this.defaultUserLanguage,
+          referralCode: data.referralToken
         });
         var user = await data.dao_.put(createdUser);
         if ( user ) {
