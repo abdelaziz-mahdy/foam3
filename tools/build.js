@@ -87,7 +87,6 @@ var
   DEBUG_SUSPEND             = false,
   DELETE_RUNTIME_JOURNALS   = false,
   DELETE_RUNTIME_LOGS       = false,
-  EXPLICIT_JOURNALS         = '',
   FS                        = 'rw',
   FOAM_REVISION,
   GEN_JAVA                  = true,
@@ -129,7 +128,6 @@ var TASKS, EXPORTS;
 var JAVA_RELEASE = '17';
 
 var BUILD_DIR  = './build';
-console.log("post buildEnv INSTANCE", INSTANCE, "PORT", WEB_PORT);
 
 
 globalThis.foam = {
@@ -502,11 +500,6 @@ task('Delete runtime journals.', [], function deleteRuntimeJournals() {
 });
 
 
-task('Delete runtime logs.', [], function deleteRuntimeLogs() {
-  info('Runtime logs deleted.');
-  emptyDir(LOG_HOME);
-});
-
 task('Copy required files to APP_HOME deployment directory.', [], function deployToHome() {
   copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
   copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
@@ -531,7 +524,7 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
     // process.chdir(PROJECT_HOME);
 
     if ( HOST_NAME ) {
-      JAVA_OPTS += ` -Dhostname=${HOST_NAME} ${JAVA_OPTS}`;
+      JAVA_OPTS = ` -Dhostname=${HOST_NAME} ${JAVA_OPTS}`;
     }
 
     if ( PROFILER ) {
@@ -672,7 +665,7 @@ buildEnv({
   DOCUMENT_HOME:     () => `${APP_HOME}/documents`,
   LOG_HOME:          () => `${APP_HOME}/logs`,
 
-  JAR_LIB_DIR:       () => ( PACKAGE ? `${PROJECT_HOME}/${BUILD_DIR}` : `${APP_HOME}` ) + `/lib/`,
+  JAR_LIB_DIR:       () => ( PACKAGE ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib',
   JAR_OUT:           () => `${JAR_LIB_DIR}/${PROJECT.name}-${VERSION}.jar`,
 
   // Project resources path
@@ -730,8 +723,8 @@ function moreUsage() {
 }
 
 const ARGS = {
-  a: [ 'Delete runtime logs.',
-    () => DELETE_RUNTIME_LOGS = true ],
+  a: [ 'Run/launch from Java jar file.',
+    () => RUN_JAR = true ],
   b: [ 'run all benchmarks.',
     () => {
       BENCHMARK = true;
@@ -754,8 +747,6 @@ const ARGS = {
       warning('Skipping genJava task');
       GEN_JAVA = false;
     } ],
-  E: [ 'EXPLICIT_JOURNALS :',
-    args => EXPLICIT_JOURNALS = '-E' + args ],
   F: [ '<rw | ro> : File System Read-Write (default) or Read-Only',
     args => FS = args ],
   g: [ 'Output running/notrunning status of daemonized nanos.',
@@ -764,11 +755,8 @@ const ARGS = {
     () => { install(); quit(0); } ],
   j: [ 'Delete runtime journals, build, and run app as usual.',
     () => DELETE_RUNTIME_JOURNALS = true ],
-  J: [ 'JOURNAL_CONFIG : additional journal configuration. See find.sh - deployment/CONFIG i.e. deployment/staging',
-    args => {
-//      POM = POM ? POM + ',' args : args;
-      JOURNAL_CONFIG = comma(JOURNAL_CONFIG, args) ;
-    } ],
+  J: [ 'JOURNALS_CONFIG : additional journals.',
+    args => { JOURNAL_CONFIG = comma(JOURNAL_CONFIG, args); } ],
   k: [ 'Package up a deployment tarball.',
     () => { BUILD_ONLY = PACKAGE = true; } ],
   l: [ 'turn on build logging/verbose mode', () => VERBOSE = '-flags=verbose' ],
@@ -908,8 +896,6 @@ function all() {
   stopNanos();
 
   if ( DELETE_RUNTIME_JOURNALS ) deleteRuntimeJournals();
-
-  if ( DELETE_RUNTIME_LOGS     ) deleteRuntimeLogs();
 
   if ( STOP_ONLY ) quit(0);
 

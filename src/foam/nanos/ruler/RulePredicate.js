@@ -37,6 +37,7 @@ foam.CLASS({
       type: 'Boolean',
       args: 'Context x, foam.core.FObject o, foam.core.FObject n',
       code: 'return this.f(n);',
+//      javaCode: 'return f(n);'
       javaCode: 'return f(x.put("OLD", o).put("NEW", n));'
     }
   ]
@@ -91,13 +92,46 @@ foam.CLASS({
   ]
 });
 
+
+foam.RULE_PREDICATE_ = function(m, internal) {
+  m.extends = 'foam.mlang.predicate.AbstractPredicate';
+
+    //        implements: [ 'foam.nanos.ruler.RulePredicate' ],
+  m.javaImports = (m.javaImports || []);
+  m.javaImports.push('static foam.mlang.MLang.*');
+  m.javaImports.push('foam.util.SafetyUtil');
+  m.methods     = (m.methods     || []);
+  m.methods.push({
+    name: 'ruleF',
+    args: internal ? 'foam.core.X x, FObject o_, FObject n_' : 'foam.core.X x, FObject o, FObject n',
+    javaCode: m.ruleF
+  });
+
+  if ( m.properties && m.properties.length ) {
+    m.javaGenerateConvenienceConstructor = true;
+  } else {
+    m.javaCode = `
+      private static ${m.name} instance__ = new ${m.name}();
+      public  static ${m.name} instance() { return instance__; }
+    `;
+  }
+
+  delete m['ruleF'];
+
+  return m;
+};
+
+foam.RULE_PREDICATE = function(m) {
+  return foam.CLASS(foam.RULE_PREDICATE_(m));
+}
+
 /*
   TODO:
 
   Make into a Model/Class instead? Then it can be added to classes: instead of axioms:
     Any way to auto-populate 'of'?
   Better support for Java Singletons
-  Ability to remove Builder generation.
+  Ability to remove Builder generation. Might cause issues with asJavaValue and serialization.
 */
 foam.CLASS({
   package: 'foam.nanos.ruler',
@@ -145,40 +179,13 @@ foam.CLASS({
         }
       `;
 
-      var model = {
-        name: this.name,
-        extends: 'foam.mlang.predicate.AbstractPredicate',
-//        implements: [ 'foam.nanos.ruler.RulePredicate' ],
-        javaImports: [ 'static foam.mlang.MLang.*' ],
-        methods: [
-          {
-            name: 'ruleF',
-            args: 'foam.core.X x, FObject o_, FObject n_',
-            javaCode: javaCode
-          }
-        ]
-      };
-
-      // TODO: add ability to specify not to generate Builder
-
-      if ( this.properties.length ) {
-        model.javaGenerateConvenienceConstructor = true;
-        model.properties = this.properties;
-      } else {
-        model.javaCode = `
-          private static ${this.name} instance__ = new ${this.name}();
-          public  static ${this.name} instance() { return instance__; }
-        `;
-      }
+      var model = foam.RULE_PREDICATE_({
+        name:       this.name,
+        ruleF:      javaCode,
+        properties: this.properties || []
+      }, true);
 
       foam.core.InnerClass.create({model: model}).buildJavaClass(cls);
-      /*
-      cls.constant({
-        name: foam.String.constantize(this.name),
-        type: 'foam.nanos.ruler.RulePredicate',
-        value: ${javaCode}
-      });
-      */
     }
   ]
 });

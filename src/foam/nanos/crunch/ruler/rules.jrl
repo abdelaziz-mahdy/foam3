@@ -53,7 +53,7 @@ p({
   predicate: {
     class: 'foam.mlang.predicate.And',
     args: [
-      { class: "foam.nanos.crunch.UserCapabilityJunction$DataChanged" },
+      { class: "foam.nanos.crunch.UserCapabilityJunction.DataChanged" },
       {
         class: 'foam.nanos.ruler.predicate.FScriptRulePredicate',
         query: 'n.status==foam.nanos.crunch.CapabilityJunctionStatus.GRANTED'

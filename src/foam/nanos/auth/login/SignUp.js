@@ -147,6 +147,15 @@ foam.CLASS({
       value: true,
       hidden: true,
       transient: true
+    },
+    {
+      class: 'String',
+      name: 'referralToken',
+      factory: function() {
+        var searchParams = new URLSearchParams(location.search);
+        return searchParams.get('referral');
+      },
+      hidden: true
     }
   ]
 });

@@ -41,19 +41,19 @@ exports.visitPOM = function(pom) {
       }
     });
   }
-  if ( ! properties['NAME'] ) {
+  if ( ! properties['NAME'] && pom.name ) {
     properties['NAME']=pom.name;
   }
-  if ( ! properties['VERSION'] ) {
+  if ( ! properties['VERSION'] && pom.version ) {
     properties['VERSION']=pom.version;
-  }
-  if ( ! properties['SYSTEM_NAME'] &&
-       properties['NAME'] ) {
-    properties['SYSTEM_NAME'] = properties['NAME'];
   }
 }
 
 exports.end = function() {
+  if ( ! properties['SYSTEM_NAME'] && properties['NAME'] ) {
+    properties['SYSTEM_NAME'] = properties['NAME'];
+  }
+
   var sh = '#!/bin/bash\n';
   for ( var key in properties ) {
     sh += key+'=';

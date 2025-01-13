@@ -422,11 +422,13 @@ foam.CLASS({
   properties: [
     {
       class: 'Float',
-      name: 'width'
+      name: 'width',
+      shortName: 'w',
     },
     {
       class: 'Float',
-      name: 'height'
+      name: 'height',
+      shortName: 'h'
     },
     {
       class: 'foam.graphics.Radians',

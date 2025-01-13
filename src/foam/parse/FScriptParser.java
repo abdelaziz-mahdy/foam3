@@ -529,7 +529,7 @@ public class FScriptParser {
       Object[] vals = (Object[]) val;
       ClassInfo cls = (ClassInfo) vals[1];
       IsInstanceOf pred = new IsInstanceOf();
-      pred.setTargetClass(cls);
+      pred.setOf(cls);
       if ( vals[0] != null ) {
         pred.setPropExpr((Expr) vals[0]);
       }
@@ -546,7 +546,7 @@ public class FScriptParser {
       Object[] vals = (Object[]) val;
       ClassInfo cls = (ClassInfo) vals[1];
       IsClassOf pred = new IsClassOf();
-      pred.setTargetClass(cls);
+      pred.setOf(cls);
       if ( vals[0] != null ) {
         pred.setPropExpr((Expr) vals[0]);
       }

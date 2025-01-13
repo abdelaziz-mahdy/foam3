@@ -359,7 +359,7 @@ foam.CLASS({
           }
         } catch (Throwable t) {
           try {
-            // System.err.println("**************************** UNEXPECTED NON RulePredicate " + getPredicate());
+          //  System.err.println("**************************** UNEXPECTED NON RulePredicate " + getPredicate());
             return getPredicate().f(n);
           } catch ( Throwable th ) { }
           // ((Logger) x.get("logger")).debug(this.getClass().getSimpleName(), "id", getId(), "\\nrule", this, "\\nobj", obj, "\\nold", oldObj, "\\n", t);

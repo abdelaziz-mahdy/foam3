@@ -8,8 +8,7 @@ foam.POM({
   name: "foam",
   version: 3,
   excludes: [
-    'DatastoreDAO.java',
-    'com/google/flow/scripts.flow'
+    'DatastoreDAO.java'
   ],
   licenses: [
     `
@@ -278,7 +277,7 @@ foam.POM({
     { name: "foam/dao/ResetListener",                                 flags: "js|java" },
     { name: "foam/dao/DAOSlot",                                       flags: "js|java" },
     { name: "foam/dao/QuickSink",                                     flags: "js|java" },
-    { name: "foam/dao/AnonymousSink",                                 flags: "js|java" },
+    { name: "foam/dao/AnonymousSink",                                 flags: "js" },
     { name: "foam/dao/PredicatedSink",                                flags: "js|java" },
     { name: "foam/dao/LimitedSink",                                   flags: "js|java" },
     { name: "foam/dao/SkipSink",                                      flags: "js|java" },

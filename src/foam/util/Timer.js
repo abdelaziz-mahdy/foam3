@@ -28,6 +28,7 @@ foam.CLASS({
       name: 'interval',
       help: 'Interval of time between updating time.',
       // units: 'ms',
+      hidden: true,
       value: 10
     },
     {
