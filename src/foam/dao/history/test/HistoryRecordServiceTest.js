@@ -31,7 +31,7 @@ foam.CLASS({
       javaCode: `
         User testUser1 = null;
         User testUser2 = null;
-        DAO userDAO = (DAO) x.get("bareUserDAO");
+        DAO userDAO = (DAO) x.get("localUserDAO");
         DAO userHistoryDAO = (DAO) x.get("userHistoryDAO");
         HistoryRecordService historyRecordService = (HistoryRecordService) x.get("historyRecordService");
 
