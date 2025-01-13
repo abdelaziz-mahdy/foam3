@@ -21,19 +21,21 @@ public class ModelParserFactory {
   protected final static Parser OPTIONAL_COMMENTS = new Optional(COMMENTS);
 
   public static Parser getInstance(Class c) {
-    if ( parsers_.containsKey(c) ) return parsers_.get(c);
+    // Sync is required to avoid building one parser per AssemblyLine thread.
+    synchronized ( c ) {
+      if ( parsers_.containsKey(c) ) return parsers_.get(c);
+      ClassInfo info = null;
 
-    ClassInfo info = null;
+      try {
+        info = (ClassInfo) c.getMethod("getOwnClassInfo").invoke(null);
+      } catch(NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
+        throw new RuntimeException("Failed to build parser ", e);
+      }
 
-    try {
-      info = (ClassInfo) c.getMethod("getOwnClassInfo").invoke(null);
-    } catch(NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
-      throw new RuntimeException("Failed to build parser ", e);
+      Parser parser = buildInstance_(info);
+      parsers_.put(c, parser);
+      return parser;
     }
-
-    Parser parser = buildInstance_(info);
-    parsers_.put(c, parser);
-    return parser;
   }
 
   public static Parser buildInstance_(ClassInfo info) {
