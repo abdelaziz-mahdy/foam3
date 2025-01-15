@@ -77,6 +77,7 @@ foam.CLASS({
     'agent',
     'appConfig',
     'as ctrl',
+    'checkGeneralCapability',
     'crunchController',
     'currentMenu',
     'defaultUserLanguage',

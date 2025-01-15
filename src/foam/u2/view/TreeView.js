@@ -485,7 +485,7 @@ foam.CLASS({
             self.selection = obj;
             isFirstSet = true;
           }
-          this.tag({
+          return this.E().tag({
             class:        foam.u2.view.TreeViewRow,
             data:         obj,
             relationship: self.relationship,
