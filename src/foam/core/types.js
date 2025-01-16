@@ -767,7 +767,14 @@ foam.CLASS({
   methods: [
     function installInProto(proto) {
       this.SUPER(proto);
-      foam.CSS.returnTokenValue(this.backgroundColor, this.cls_, this.__subContext__);
+      /**
+       * Color properties can accept CSSToken values which start with a $.
+       * In order to resolve these tokens to values that can be used in vanilla CSS
+       * we need to parse them with foam.CSS.returnTokenValue().
+       * This process is simplified below by overriding the default property getter and
+       * automatically running the returnTokenValue() when the value stored in the color property is a token.
+       * the raw value of the property can still be accessed using <propName>$raw
+      */
       let self = this;
       let descriptor = Object.getOwnPropertyDescriptor(proto, this.name);
       let oldGetter = descriptor.get;
