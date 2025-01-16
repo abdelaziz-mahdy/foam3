@@ -353,7 +353,6 @@ task('Deploy documents, journals.', [ 'deployDocuments','deployJournals'], funct
   if ( ! BUILD_JAR && ! TEST && ! BENCHMARK ) {
     deployJournals();
     deployDocuments();
-    envVars();
   }
 });
 
@@ -489,10 +488,6 @@ task('Package files into a TAR archive', [], function buildTar() {
   execSync(`tar -a -cf ${BUILD_DIR}/package/${PROJECT.name}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C ../../../ -C${BUILD_DIR} lib`);
 });
 
-task('Generate deploy details bash script.', [], function envVars() {
-  execSync(`node foam3/tools/pmake.js -makers=EnvVar -pom=${pom()}`, { stdio: 'inherit' });
-});
-
 task('Delete runtime journals.', [], function deleteRuntimeJournals() {
   info('Runtime journals deleted.');
   emptyDir(JOURNAL_HOME);
@@ -503,7 +498,6 @@ task('Copy required files to APP_HOME deployment directory.', [], function deplo
   copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
   copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
   copyDir(BUILD_DIR + '/lib', join(APP_HOME, 'lib'));
-  envVars();
 });
 
 
