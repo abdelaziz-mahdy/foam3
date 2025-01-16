@@ -46,8 +46,6 @@ tools by doing the following.
 
 If using a version less than 21, change the `java: 21` property in the root pom.js.
 
-If deploying with **-u** or remotely, update the garbage collection configuration in `tools/deploy/etc/shrc.local`. 
-
 ### Build and run Java webserver
 
 `./build.sh [options]`
@@ -61,13 +59,6 @@ If deploying with **-u** or remotely, update the garbage collection configuratio
 * **-d** - debug mode allowing connection by a remote debugger
 * **-j** - delete runtime journals
 * **-Jpom1,pom2,...,pomN** - where pomN,... are found relative to the deployment folder. 
-* **-u** - build and deploy from a single Java jar file. Intented for remote server installs.
-
-#### If building with option **-u**, then 
-
-* visit: https://localhost:8443
-
-**NOTE: this deployment uses a self-sign certificate which your browser will warn you about**
 
 <!--
 ## Running Application Controller
@@ -76,14 +67,6 @@ The FOAM Application Controller allows you to access components of your foam
 app by using the browser & displaying it as a GUI.
 To access, run the following in the parent directory of foam3:
 -->
-
-## Remote deployment
-
-To build and deploy to a remote linux instance
-
-1. build: `./build.sh -uck[Jpom...]`
-1. deploy: `foam3/tools/bin/install.sh hostname`
-1. visit: https://hostname:8443
 
 ## Style Guide
 
