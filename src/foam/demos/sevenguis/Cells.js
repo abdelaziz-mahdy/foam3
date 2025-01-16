@@ -200,6 +200,7 @@ foam.CLASS({
           padding-left: 2px;
           width: 100%;
         }
+        ^ .foam-u2-HTMLView { white-space: nowrap; }
       `,
 
       properties: [
