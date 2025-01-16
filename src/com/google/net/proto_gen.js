@@ -16,7 +16,6 @@
  */
 
 /* global window */
-/* jshint evil: true */
 require('../../../foam');
 require('./OAuth2');
 require('./ProtobufParser');

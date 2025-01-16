@@ -200,6 +200,7 @@ foam.CLASS({
           padding-left: 2px;
           width: 100%;
         }
+        ^ .foam-u2-HTMLView { white-space: nowrap; }
       `,
 
       properties: [
@@ -240,7 +241,7 @@ foam.CLASS({
 
         function toWriteE() {
           this.formula$.sub(this.onDataLoad);
-          var e = this.Input.create(); //this.E('input');
+          var e = this.Input.create().attr('size', 3);
           e.data$ = this.formula$;
           return e;
         }
@@ -254,7 +255,7 @@ foam.CLASS({
       font: 13px roboto, arial, sans-serif;
     }
     ^ tr { height: 26px; }
-    ^cell { min-width: 102px; }
+    ^cell { display: block; min-width: 82px; }
     ^, ^ th, ^ td { border: 1px solid #ccc; }
     ^ td { height: 100%; }
     ^ th, ^ td {

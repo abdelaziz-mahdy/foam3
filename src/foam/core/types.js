@@ -763,7 +763,38 @@ foam.CLASS({
   name: 'Color',
   extends: 'String',
   label: 'Color',
-  properties: [ [ 'displayWidth', 20 ] ]
+  properties: [ [ 'displayWidth', 20 ] ],
+  methods: [
+    function installInProto(proto) {
+      this.SUPER(proto);
+      /**
+       * Color properties can accept CSSToken values which start with a $.
+       * In order to resolve these tokens to values that can be used in vanilla CSS
+       * we need to parse them with foam.CSS.returnTokenValue().
+       * This process is simplified below by overriding the default property getter and
+       * automatically running the returnTokenValue() when the value stored in the color property is a token.
+       * the raw value of the property can still be accessed using <propName>$raw
+      */
+      let self = this;
+      let descriptor = Object.getOwnPropertyDescriptor(proto, this.name);
+      let oldGetter = descriptor.get;
+      Object.defineProperty(proto, self.name, {
+        get: function resolveTokenGetter() {
+          let value = oldGetter.apply(this);
+          if ( foam.String.isInstance(value) && value.startsWith('$') ) {
+            value = foam.CSS.returnTokenValue(value, this.cls_, this.__subContext__);
+          }
+          return value;
+        },
+        configurable: true
+      });
+      Object.defineProperty(proto, self.name + '$raw', {
+        get: oldGetter,
+        set: descriptor.set,
+        configurable: true
+      });
+    }
+  ]
 });
 
 

@@ -109,7 +109,7 @@ foam.CLASS({
           } else {
             slot = currentProp.validateObj ?
               this.data.slot(currentProp.validateObj) :
-              this.data.slot(currentProp.internalValidateObj);
+              ( currentProp.internalValidateObj ? this.data.slot(currentProp.internalValidateObj) : this.SimpleSlot.create({ value: false }));
           }
 
           errorSlot.follow(slot);

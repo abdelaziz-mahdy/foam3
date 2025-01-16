@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.nanos.script.Script',
 
   imports: [
-    'cronDAO'
+    'cronJobDAO'
   ],
 
   topics: [
@@ -292,9 +292,9 @@ foam.CLASS({
         var cron = this.clone();
         cron.enabled = false;
 
-        this.cronDAO.put(cron).then(req => {
-          this.cronDAO.cmd(this.AbstractDAO.PURGE_CMD);
-          this.cronDAO.cmd(this.AbstractDAO.RESET_CMD);
+        this.cronJobDAO.put(cron).then(req => {
+          this.cronJobDAO.cmd(this.AbstractDAO.PURGE_CMD);
+          this.cronJobDAO.cmd(this.AbstractDAO.RESET_CMD);
           this.finished.pub();
           X.notify(this.SUCCESS_DISABLED, '', this.LogLevel.INFO, true);
         }, e => {
@@ -312,9 +312,9 @@ foam.CLASS({
         var cron = this.clone();
         cron.enabled = true;
 
-        this.cronDAO.put(cron).then(req => {
-          this.cronDAO.cmd(this.AbstractDAO.PURGE_CMD);
-          this.cronDAO.cmd(this.AbstractDAO.RESET_CMD);
+        this.cronJobDAO.put(cron).then(req => {
+          this.cronJobDAO.cmd(this.AbstractDAO.PURGE_CMD);
+          this.cronJobDAO.cmd(this.AbstractDAO.RESET_CMD);
           this.finished.pub();
           X.notify(this.SUCCESS_ENABLED, '', this.LogLevel.INFO, true);
         }, e => {
