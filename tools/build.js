@@ -734,6 +734,8 @@ const ARGS = {
        args => { INSTANCE = HOST_NAME = args; NANOS_PIDFILE=`/tmp/nanos_${INSTANCE}.pid`; info('INSTANCE=' + args); } ],
   o: [ "Build only - don't start nanos.",
     () => BUILD_ONLY = true ],
+  P: [ "pom file : name and path of the root pom file. Defaults to 'pom' at the root of the project.",
+     args => { POM = args; info('POM=' + POM); } ],
   r: [ 'Run NANOS with whatever was last built.',
     () => RESTART_ONLY = true ],
   R: [ 'Set app deployment root directory',
