@@ -7,9 +7,6 @@
 foam.POM({
   name: "foam",
   version: 3,
-  excludes: [
-    'DatastoreDAO.java'
-  ],
   licenses: [
     `
     Copyright 2024 The FOAM Authors. All Rights Reserved.
