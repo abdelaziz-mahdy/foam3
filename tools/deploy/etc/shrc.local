@@ -8,7 +8,7 @@
 #########################
 
 if [ -z "${DEBUG_PORT}" ]; then
-  DEBUG_PORT=*:5005
+  DEBUG_PORT=127.0.0.1:5005
 fi
 
 if [ -z "${DEBUG_SUSPEND}" ]; then
@@ -84,8 +84,6 @@ fi
 #DEBUG_DEV=1 - enable in shrc.custom
 
 if [ "${DEBUG}" = "1" -o "${DEBUG_DEV}" = "1" ]; then
-  JAVA_OPTS="${JAVA_OPTS} -Xdebug"
-  JAVA_OPTS="${JAVA_OPTS} -Xnoagent"
   JAVA_OPTS="${JAVA_OPTS} -agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND},address=${DEBUG_PORT}"
 fi
 
