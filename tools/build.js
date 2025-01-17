@@ -17,7 +17,6 @@
 //
 // Directory Structure:
 //   /deployments
-//     /u           - default deployment if not JOURNAL_CONFIG not specified with -J
 //     /resources   - deployment speicific resources
 //   /build
 //     /src         - java source files created by genJava
@@ -78,7 +77,6 @@ var
   APP_ROOT                  = '/opt',
   BENCHMARK                 = false,
   BENCHMARKS                = '',
-  BUILD_JAR                 = false,
   BUILD_ONLY                = false,
   CLEAN_BUILD               = false,
   DAEMONIZE                 = false,
@@ -103,7 +101,7 @@ var
   PWD                       = process.cwd(),
   RESTART_ONLY              = false,
   RESTART                   = false,
-  RUN_USER                  = '',
+  RUN_JAR                   = false,
   STAGE_JS                  = true,
   STOP_ONLY                 = false,
   TEST                      = false,
@@ -284,7 +282,7 @@ task('Build web root directory for inclusion in JAR.', [], function jarWebroot()
 
   execSync(__dirname + `/pmake.js -makers=Webroot -pom=${pom()} -builddir=${BUILD_DIR}`, {stdio: 'inherit'});
 
-  if ( PACKAGE || BUILD_JAR ) {
+  if ( PACKAGE || RUN_JAR ) {
     execSync(`cp foam-bin-* ${webroot + '/'}`, {stdio: 'inherit'});
   }
 });
@@ -350,7 +348,7 @@ task('Deploy journal files from JOURNAL_OUT to JOURNAL_HOME.', [], function depl
 
 
 task('Deploy documents, journals.', [ 'deployDocuments','deployJournals'], function deploy() {
-  if ( ! BUILD_JAR && ! TEST && ! BENCHMARK ) {
+  if ( ! RUN_JAR && ! TEST && ! BENCHMARK ) {
     deployJournals();
     deployDocuments();
   }
@@ -376,7 +374,7 @@ task('Clean build files, include pom.xml and java libraries. Cleaner than clean.
 
 
 task('Remove generated files.', [], function clean() {
-  if ( BUILD_JAR || TEST || BENCHMARK ) {
+  if ( RUN_JAR || TEST || BENCHMARK ) {
     emptyDir(`${APP_HOME}/bin`);
     emptyDir(`${APP_HOME}/lib`);
   }
@@ -414,7 +412,7 @@ task("Call pmake with JS Maker to build 'foam-bin.js'.", [], function genJS() {
 
 task('Generate Java and JS packages.', [ 'genJava', 'genJS' ], function packageFOAM() {
   genJava();
-  if ( BUILD_JAR ) {
+  if ( RUN_JAR ) {
     genJS();
   }
 });
@@ -434,7 +432,7 @@ task('Call pmake to collect journals.', [], function genJournals() {
 });
 
 task('Check dependencies for known vulnerabilities.', [], function checkDeps(score) {
-  execSync(`node foam3/tools/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
+  execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
     execSync(`mvn dependency-check:check -DfailBuildOnCVSS=${score || VULNERABILITY_CHECK_SCORE}`, { stdio: 'inherit' });
   } catch (_) {
@@ -443,7 +441,7 @@ task('Check dependencies for known vulnerabilities.', [], function checkDeps(sco
 });
 
 task('Show JAR structure.', [], function showJARStructure(value) {
-  execSync(`node foam3/tools/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
+  execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
     execSync(`mvn dependency:tree `, { stdio: 'inherit' });
   } catch (_) {
@@ -452,7 +450,7 @@ task('Show JAR structure.', [], function showJARStructure(value) {
 });
 
 task('Get Maven java sources.', [], function mavenGetSources(value) {
-  execSync(`node foam3/tools/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
+  execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
     execSync(`mvn dependency:sources -DincludeArtifactIds=${value} `, { stdio: 'inherit' });
   } catch (_) {
@@ -495,72 +493,73 @@ task('Copy required files to APP_HOME deployment directory.', [], function deplo
 task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
   setenv();
 
-    MESSAGE = `Starting NANOS ${INSTANCE}`;
+  MESSAGE = `Starting NANOS ${INSTANCE}`;
 
-    // process.chdir(PROJECT_HOME);
+  // process.chdir(PROJECT_HOME);
 
-    if ( HOST_NAME ) {
-      JAVA_OPTS = ` -Dhostname=${HOST_NAME} ${JAVA_OPTS}`;
-    }
+  if ( HOST_NAME ) {
+    JAVA_OPTS = ` -Dhostname=${HOST_NAME} ${JAVA_OPTS}`;
+  }
 
-    if ( PROFILER ) {
+  if ( PROFILER ) {
 
-    } else if ( DEBUG ) {
-      JAVA_OPTS = `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND ? 'y' : 'n'},address=*:${DEBUG_PORT} ${JAVA_OPTS}`;
-    }
+  } else if ( DEBUG ) {
+    JAVA_OPTS = `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND ? 'y' : 'n'},address=*:${DEBUG_PORT} ${JAVA_OPTS}`;
+  }
 
-    if ( WEB_PORT ) {
-      JAVA_OPTS += ` -Dhttp.port=${WEB_PORT}`;
-    }
+  if ( WEB_PORT ) {
+    JAVA_OPTS += ` -Dhttp.port=${WEB_PORT}`;
+  }
 
-    JAVA_OPTS += ` -Dnanos.webroot=${PROJECT_HOME}`;
+  JAVA_OPTS += ` -Dnanos.webroot=${PROJECT_HOME}`;
 
-    CLASSPATH = `${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes/java/main`;
+  CLASSPATH = `${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes/java/main`;
 
-    logLevelLower = 'info';
-    if ( LOG_LEVEL ) {
-      JAVA_OPTS = ` -Dlog.level=${LOG_LEVEL} ${JAVA_OPTS}`;
-      logLevelLower = `${LOG_LEVEL}`.toLowerCase();
-    }
-    JAVA_OPTS = ` -Dorg.slf4j.simpleLogger.defaultLogLevel=${logLevelLower} ${JAVA_OPTS}`;
+  logLevelLower = 'info';
+  if ( LOG_LEVEL ) {
+    JAVA_OPTS = ` -Dlog.level=${LOG_LEVEL} ${JAVA_OPTS}`;
+    logLevelLower = `${LOG_LEVEL}`.toLowerCase();
+  }
+  JAVA_OPTS = ` -Dorg.slf4j.simpleLogger.defaultLogLevel=${logLevelLower} ${JAVA_OPTS}`;
 
-    if ( TEST || BENCHMARK ) {
-      JAVA_OPTS += ' -Dresource.journals.dir=journals';
-      JAVA_OPTS += ' -DRES_JAR_HOME=' + JAR_OUT;
-
-      if ( TEST ) {
-        MESSAGE = 'Running tests...';
-        JAVA_OPTS += ' -Dfoam.main=testRunnerScript';
-        if ( TESTS ) JAVA_OPTS += ' -Dfoam.tests=' + TESTS;
-      } else if ( BENCHMARK ) {
-        MESSAGE = 'Running benchmarks...';
-        JAVA_OPTS += ' -Dfoam.main=benchmarkRunnerScript';
-        if ( BENCHMARKS ) JAVA_OPTS += ' -Dfoam.benchmarks=' + BENCHMARKS;
-      }
-
-    info('JAVA_OPTS:' + JAVA_OPTS);
-    info(MESSAGE);
+  if ( TEST || BENCHMARK ) {
+    // TODO: move to pom task
+    JAVA_OPTS += ' -Dresource.journals.dir=journals';
+    JAVA_OPTS += ' -DRES_JAR_HOME=' + JAR_OUT;
 
     if ( TEST ) {
-      try {
-        exec(`java -jar ${JAR_OUT}`);
-      } catch ( e ) {
-        // Failing tests, no need to throw
-      }
-      process.exit(0);
+      MESSAGE = 'Running tests...';
+      JAVA_OPTS += ' -Dfoam.main=testRunnerScript';
+      if ( TESTS ) JAVA_OPTS += ' -Dfoam.tests=' + TESTS;
     } else if ( BENCHMARK ) {
-      exec(`java -jar ${JAR_OUT}`);
-    } else if ( DAEMONIZE ) {
-      var proc = spawn(`java -cp ${CLASSPATH} foam.nanos.boot.Boot`);
-      writeToPidFile(proc.pid);
-      console.log('Nanos started successfully');
-    } else {
-      //             exec java -cp "$CLASSPATH" foam.nanos.boot.Boot
-
-      // info('Environment'); console.log(process.env);
-      // ??? What environmental variables does this use?
-       exec(`java -cp "${CLASSPATH}" foam.nanos.boot.Boot`);
+      MESSAGE = 'Running benchmarks...';
+      JAVA_OPTS += ' -Dfoam.main=benchmarkRunnerScript';
+      if ( BENCHMARKS ) JAVA_OPTS += ' -Dfoam.benchmarks=' + BENCHMARKS;
     }
+  }
+
+  info('JAVA_OPTS:' + JAVA_OPTS);
+  info(MESSAGE);
+
+  if ( TEST ) {
+    try {
+      exec(`java -jar ${JAR_OUT}`);
+    } catch ( e ) {
+      // Failing tests, no need to throw
+    }
+    process.exit(0);
+  } else if ( BENCHMARK ) {
+    exec(`java -jar ${JAR_OUT}`);
+  } else if ( DAEMONIZE ) {
+    var proc = spawn(`java -cp ${CLASSPATH} foam.nanos.boot.Boot`);
+    writeToPidFile(proc.pid);
+    console.log('Nanos started successfully');
+  } else {
+    //             exec java -cp "$CLASSPATH" foam.nanos.boot.Boot
+
+    // info('Environment'); console.log(process.env);
+    // ??? What environmental variables does this use?
+    exec(`java -cp "${CLASSPATH}" foam.nanos.boot.Boot`);
   }
 });
 
@@ -699,7 +698,7 @@ function moreUsage() {
 
 const ARGS = {
   a: [ 'Run/launch from Java jar file.',
-    () => BUILD_JAR = true ],
+    () => RUN_JAR = true ],
   b: [ 'run all benchmarks.',
     () => {
       BENCHMARK = true;
@@ -711,8 +710,6 @@ const ARGS = {
     args => { ARGS.b[1](); BENCHMARKS = args; } ],
   c: [ 'Clean generated code before building.  Required if generated classes have been removed.',
     () => CLEAN_BUILD = true ],
-  C: [ '<true | false> Enable Medusa clustering.',
-    args => CLUSTER = args ],
   d: [ 'Run with JDPA debugging enabled on port 8000',
     () => DEBUG = true ],
   D: [ 'PORT : JDPA debugging enabled on port PORT.',
@@ -767,8 +764,6 @@ const ARGS = {
       ARGS.t[1]();
       TESTS = args;
     } ],
-  U: [ 'User to run as',
-    args => RUN_USER = args ],
   v: [ 'show versions.',
     () => {
       versions();
@@ -871,7 +866,7 @@ function all() {
   setupDirs();
 
   if ( ! RESTART_ONLY ) {
-    if ( PACKAGE || BUILD_JAR || TEST || BENCHMARK ) {
+    if ( PACKAGE || RUN_JAR || TEST || BENCHMARK ) {
       packageFOAM();
     }
 
@@ -879,7 +874,7 @@ function all() {
     deploy();
 
     // ???: Why is this?
-    if ( BUILD_JAR || TEST || BENCHMARK ) {
+    if ( RUN_JAR || TEST || BENCHMARK ) {
       buildJar();
       deployToHome();
     }
@@ -900,12 +895,31 @@ if ( TASKS ) {
   TASKS.forEach(f => task(f));
 
   // Exports local variables and functions for POM tasks
+  var poms = pom();
   EXPORTS = {
+    APP_HOME,
     BUILD_DIR,
+    DAEMONIZE,
+    DEBUG,
+    DEBUG_PORT,
+    DEBUG_SUSPEND,
+    FS,
+    HOST_NAME,
+    INSTANCE,
+    PACKAGE,
+    PROFILER,
+    PROFILER_PORT,
     JOURNAL_CONFIG,
+    PROJECT,
+    RUN_JAR,
+    WEB_PORT,
+    VERSION,
     copyDir,
     copyFile,
-    execSync
+    ensureDir,
+    exec,
+    execSync,
+    poms
   }
 };
 
