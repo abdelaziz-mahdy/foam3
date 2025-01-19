@@ -81,7 +81,7 @@ exports.end = function() {
   license = license.split('\n').map(l => '// ' + l).join('\n');
 
   console.log(`[JS] Version: ${version}, Licenses: ${Object.keys(licenses).length}, Files: ${Object.keys(files).length}, Stage: ${X.stage}`);
-  var result = uglify_.minify(
+  var result = Object.keys(files).length && uglify_.minify(
     files,
     {
       compress: false,
@@ -93,11 +93,11 @@ exports.end = function() {
       }
     });
 
-  if (result.error) {
+  if (result && result.error) {
     console.log("[JS] Error: ", result.error);
     process.exit(1);
   }
-  var code = result.code;
+  var code = result && result.code;
 
   if ( ! code ) {
     console.log('No output for stage:', X.stage);
