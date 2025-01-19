@@ -86,7 +86,7 @@ var
   PROJECT_REVISION,
   PWD                       = process.cwd(),
   RESTART_ONLY              = false,
-  BUILD_JAR                   = false,
+  BUILD_JAR                 = false,
   STAGE_JS                  = true,
   TEST                      = false,
   TESTS                     = '',
