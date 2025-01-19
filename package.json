@@ -5,5 +5,8 @@
   "dependencies": {
     "container-query-polyfill": "^1.0.2",
     "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "uglify-js": "^3.19.3"
   }
 }

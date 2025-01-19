@@ -80,7 +80,7 @@ const MAKERS = X.makers.split(',').map(m => {
   try {
     task = require(X.path + taskName + 'Maker');
   } catch (x) {
-    task = require(path_.join(__dirname, taskName + 'Maker'));
+    task = require(path_.join(process.cwd(), taskName + 'Maker'));
   }
 
   if ( task && task.init ) task.init(taskArgs);

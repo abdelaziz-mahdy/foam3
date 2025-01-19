@@ -56,6 +56,11 @@ foam.CLASS({
       value: 'foam.nanos.controller.ApplicationController'
     },
     {
+      class: "Boolean",
+      name: 'html5',
+      value: false
+    },
+    {
       class: 'Map',
       name: 'headerParameters'
     }
@@ -221,8 +226,11 @@ foam.CLASS({
         }
 
         PrintWriter out = response.getWriter();
-        out.println("<!DOCTYPE>"); // quirk mode
-        // out.println("<!DOCTYPE html>"); // strict mode
+        if (getHtml5()) {
+            out.println("<!DOCTYPE html>"); // strict mode
+        } else {
+            out.println("<!DOCTYPE>"); // quirk mode?
+        }
 
         out.println("<html lang=\\"en\\">");
         out.println("<head>");
