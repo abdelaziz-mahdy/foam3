@@ -79,8 +79,7 @@ public class ServiceWebAgent
 
       if ( ((AppConfig) x.get("appConfig")).getMode() != Mode.PRODUCTION ) {
         resp.setHeader("Access-Control-Allow-Origin", "*");
-      } else if ( ! foam.util.SafetyUtil.isEmpty(req.getHeader("Origin")) &&
-                  ! "null".equals(req.getHeader("Origin")) ) {
+      } else if ( ! foam.util.SafetyUtil.isEmpty(req.getHeader("Origin")) && ! "null".equals(req.getHeader("Origin")) ) {
         URL url = new URL(req.getHeader("Origin"));
         if ( http.containsHostDomain(url.getHost()) )
           resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
@@ -105,17 +104,19 @@ public class ServiceWebAgent
         count += read;
       }
 
+      String str = builder.toString();
+
       FObject result;
       try {
         // logger.debug("parseString", builder.toString());
-        result = requestContext.create(JSONParser.class).parseString(builder.toString());
+        result = requestContext.create(JSONParser.class).parseString(str);
       } catch (RuntimeException t) {
         try {
           String message = getParsingError(x, builder.toString());
-          logger.error("Unable to parse", message, "input", builder.toString());
+          logger.error("Unable to parse", message, "input", str);
         } catch (RuntimeException r) {
           // noop
-          logger.error("Unable to parse", t.getMessage(), "input", builder.toString(), t);
+          logger.error("Unable to parse", t.getMessage(), "input", str, t);
         }
         resp.setStatus(resp.SC_BAD_REQUEST);
         out.flush();
@@ -125,7 +126,7 @@ public class ServiceWebAgent
       if ( result == null ) {
         resp.setStatus(resp.SC_BAD_REQUEST);
         String message = getParsingError(x, builder.toString());
-        logger.error("Unable to parse", message, "input", builder.toString());
+        logger.error("Unable to parse", message, "input", str);
         out.flush();
         return;
       }
@@ -137,6 +138,8 @@ public class ServiceWebAgent
         out.flush();
         return;
       }
+
+      str = null; // free memory
 
       foam.box.Message msg = (foam.box.Message) result;
       SessionServerBox.send(x, skeleton_, authenticate_, msg);
