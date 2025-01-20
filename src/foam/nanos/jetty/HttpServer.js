@@ -20,7 +20,6 @@ foam.CLASS({
     'static foam.mlang.MLang.EQ',
     'static foam.mlang.MLang.TRUE',
     'foam.nanos.fs.File',
-    'foam.nanos.fs.ResourceStorage',
     'foam.nanos.http.HttpVersion',
     'foam.nanos.jetty.JettyThreadPoolConfig',
     'foam.nanos.logger.Logger',
@@ -100,12 +99,6 @@ foam.CLASS({
       name: 'disableSNIHostCheck',
       documentation: 'Server Name Indication (SNI) enforces a match between hostname and TLS certificate domains, and does not allow localhost or self-sign certificates.  When true, enable test for development hostnames - localhost and other domain names without a TLD.',
       value: true
-    },
-    {
-      class: 'Boolean',
-      name: 'isResourceStorage',
-      documentation: `If set to true, generate index file from jar file resources.`,
-      value: false
     },
     {
       name: 'keystoreFileName',
@@ -270,10 +263,6 @@ foam.CLASS({
           if ( foam.nanos.servlet.ImageServlet.class.getName().equals(mapping.getClassName()) && 
               getImageDirs().length() > 0 ) {
             holder.setInitParameter("paths", getImageDirs());
-          }
-
-          if ( getIsResourceStorage() ) {
-            holder.setInitParameter("isResourceStorage", "true");
           }
         }
 
