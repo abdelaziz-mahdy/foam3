@@ -72,7 +72,6 @@ if [ -z "${NAME}" ]; then
 fi
 if [ -z "${VERSION}" ]; then
     VERSION=$(./build.sh -Xversions | grep "Application Version" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
-    #VENDOR=$(./build.sh -XappName | grep "Application VendorId" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
 fi
 
 if [ -f $RC_FILE ]; then
