@@ -294,24 +294,6 @@ task('Show POM structure.', [], function showPOMStructure() {
 });
 
 
-// TODO: remove/replace - np specific
-// task('Install npm and git hooks.', [], function install() {
-//   process.chdir(PROJECT_HOME);
-
-//   execSync('npm install');
-//   process.chdir('foam3');
-//   execSync('npm install');
-//   process.chdir('..');
-
-//   ensureDir(join(APP_HOME, 'journals'));
-//   ensureDir(join(APP_HOME, 'logs'));
-
-//   // git hooks
-//   execSync('git config core.hooksPath .githooks');
-//   execSync('git config submodule.recurse true');
-// });
-
-
 task('Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', [], function deployDocuments() {
   console.log('DOCUMENT_OUT: ', DOCUMENT_OUT);
   console.log('DOCUMENT_HOME:', DOCUMENT_HOME);
@@ -632,7 +614,6 @@ buildEnv({
   LOG_HOME:          () => `${APP_HOME}/logs`,
 
   JAR_LIB_DIR:       () => ( PACKAGE ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib',
-//  JAR_NAME:          () => `${PROJECT.name}-${VERSION}.jar`,
   JAR_NAME:          () => `${APP_NAME}-${VERSION}.jar`,
   JAR_OUT:           () => `${JAR_LIB_DIR}/${JAR_NAME}`,
   // Project resources path
