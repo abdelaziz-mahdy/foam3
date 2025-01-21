@@ -297,7 +297,6 @@ task('Show POM structure.', [], function showPOMStructure() {
 task('Install npm tools that foam and the build use.', [], function install() {
   process.chdir(PROJECT_HOME);
   execSync('npm install');
-  ensureDir(join(APP_HOME, 'journals'));
   ensureDir(join(APP_HOME, 'logs'));
 });
 
@@ -311,10 +310,19 @@ task('Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', [], function deploy
 
 
 task('Deploy journal files from JOURNAL_OUT to JOURNAL_HOME.', [], function deployJournals() {
+  if ( DELETE_RUNTIME_JOURNALS ) deleteRuntimeJournals();
+
   console.log('JOURNAL_OUT: ', JOURNAL_OUT);
   console.log('JOURNAL_HOME:', JOURNAL_HOME);
 
+  ensureDir(JOURNAL_HOME);
   copyDir(JOURNAL_OUT, JOURNAL_HOME);
+});
+
+
+task('Delete runtime journals.', [], function deleteRuntimeJournals() {
+  info('Runtime journals deleted.');
+  emptyDir(JOURNAL_HOME);
 });
 
 
@@ -457,13 +465,7 @@ task('Package files into a TAR archive', [], function buildTar() {
 });
 
 
-task('Delete runtime journals.', [], function deleteRuntimeJournals() {
-  info('Runtime journals deleted.');
-  emptyDir(JOURNAL_HOME);
-});
-
-
-task('Copy required files to APP_HOME deployment directory.', [], function deployToHome() {
+task('Copy required files to APP_HOME deployment directory.', [], function deploytohome() {
   copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
   copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
   copyDir(BUILD_DIR + '/lib', join(APP_HOME, 'lib'));
@@ -788,7 +790,7 @@ task('Stop running NANOS server.', [], function stopNanos() {
 
 task(
 'Build everything specified by flags.',
-  [ 'clean', 'setenv', 'deleteRuntimeJournals', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deploy', 'buildJar', 'deployToHome', 'buildTar', 'startNanos' ],
+  [ 'clean', 'setenv', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deleteRuntimeJournals', 'deploy', 'buildJar', 'deployToHome', 'buildTar', 'startNanos' ],
 function all() {
   processSingleCharArgs(ARGS, moreUsage);
   setenv();
@@ -797,7 +799,6 @@ function all() {
     stopNanos();
   }
 
-  if ( DELETE_RUNTIME_JOURNALS ) deleteRuntimeJournals();
 
   if ( CLEAN_BUILD && ! RESTART_ONLY ) {
     clean();
