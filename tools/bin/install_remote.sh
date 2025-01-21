@@ -68,10 +68,10 @@ if [ -z "${REMOTE_URL}" ]; then
 fi
 
 if [ -z "${NAME}" ]; then
-    NAME=$(./build.sh -XappName | grep "Application Name" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
+    NAME=$(./foam3/tools/build.js -XappName | grep "Application Name" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
 fi
 if [ -z "${VERSION}" ]; then
-    VERSION=$(./build.sh -Xversions | grep "Application Version" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
+    VERSION=$(./foam3/tools/build.js -Xversions | grep "Application Version" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
 fi
 
 if [ -f $RC_FILE ]; then
