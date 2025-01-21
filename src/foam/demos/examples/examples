@@ -493,6 +493,58 @@ var o = AdaptPrePostTest.create();
 o.a = 1;
 o.a = 10;
 
+##  Reusing Property Definitions from Other Models (__copyFrom__)
+Sometimes it is useful to copy a property definition from one Model into another.
+You could just cut & paste the property, but then if you changed the definition
+in the source model, your copied version wouldn't also be updated.
+Instead, you can use __copyFrom__ to specify the source of where you would like
+to copy the property's definition from, without the perils of cut&paste.
+Note that the constantized version of the property name is used rather than the
+actual name. Ex. PROP1 instead of prop1.
+--
+foam.CLASS({
+  name: 'ModelA',
+  properties: [
+    {
+      class: 'String',
+      name: 'prop1',
+      label: 'Property 1',
+      help: 'help1',
+      tooltip: 'tooltip1',
+      value: 'default'
+    }
+  ]
+});
+
+foam.CLASS({
+  name: 'ModelB',
+  properties: [
+    // Cut&Paste from ModelA
+    {
+      class: 'String',
+      name: 'prop1Copy',
+      label: 'Property 1',
+      help: 'help1',
+      tooltip: 'tooltip1',
+      value: 'default'
+    },
+    // Copied from ModelA, but with an override
+    {
+      __copyFrom__: 'ModelA.PROP1', // PROP1 not prop1
+      label: 'Updated Prop1 Label'
+    },
+    // A Normal Property
+    {
+      class: 'String',
+      name: 'prop2',
+      help: 'help2',
+      tooltip: 'tooltip2'
+    }
+  ]
+});
+
+tag({class: 'ModelB'});
+
 
 ##  Create constant test
 Classes can define Constants
