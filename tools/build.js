@@ -294,6 +294,14 @@ task('Show POM structure.', [], function showPOMStructure() {
 });
 
 
+task('Install npm tools that foam and the build use.', [], function install() {
+  process.chdir(PROJECT_HOME);
+  execSync('npm install');
+  ensureDir(join(APP_HOME, 'journals'));
+  ensureDir(join(APP_HOME, 'logs'));
+});
+
+
 task('Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', [], function deployDocuments() {
   console.log('DOCUMENT_OUT: ', DOCUMENT_OUT);
   console.log('DOCUMENT_HOME:', DOCUMENT_HOME);
