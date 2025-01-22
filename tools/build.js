@@ -483,7 +483,7 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
     if ( DEBUG_SUSPEND ) OPT_ARGS += ` -s`;
     if ( PROFILER ) OPT_ARGS += ` -P${PROFILER_PORT}`;
     if ( CLUSTER ) OPT_ARGS += ` -m`;
-    if ( HOST_NAME && HOST_NAME !== 'localhost' ) OPT_ARGS += ` -H${HOSTNAME}`;
+    if ( HOST_NAME && HOST_NAME !== 'localhost' ) OPT_ARGS += ` -H${HOST_NAME}`;
 
     exec(`${APP_HOME}/bin/run.sh -N${APP_NAME} -V${VERSION} ${OPT_ARGS}`);
   } else {
@@ -694,7 +694,7 @@ const ARGS = {
       GEN_JAVA = false;
     } ],
   H: [ 'Hostname',
-       () => HOST_NAME = args ],
+       args => HOST_NAME = args ],
   j: [ 'Delete runtime journals, build, and run app as usual.',
     () => DELETE_RUNTIME_JOURNALS = true ],
   J: [ 'JOURNALS_CONFIG : additional journals.',
@@ -705,6 +705,8 @@ const ARGS = {
   L: [ 'in combination with tTbB, set JVM log level to WARN, INFO, DEBUG. Defaults to ERROR.',
        args => { LOG_LEVEL = args; }
      ],
+  m: [ 'Run as medusa mediator',
+       () => CLUSTER = true ],
   N: [ `NAME : start another instance with given instance name. Deployed to /opt/NAME.`,
        args => { APP_NAME = args; NANOS_PIDFILE=`/tmp/nanos_${APP_NAME}.pid`; info('APP_NAME=' + args); } ],
   o: [ "Build only - don't start nanos.",
