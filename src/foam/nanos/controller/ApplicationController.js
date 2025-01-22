@@ -69,14 +69,7 @@ foam.CLASS({
   ],
 
   imports: [
-    'auth',
-    'analyticEventDAO',
-    'capabilityDAO',
     'installCSS',
-    'myNotificationDAO',
-    'notificationDAO',
-    'params',
-    'sessionSuccess',
     'window'
   ],
 
@@ -84,6 +77,7 @@ foam.CLASS({
     'agent',
     'appConfig',
     'as ctrl',
+    'checkGeneralCapability',
     'crunchController',
     'currentMenu',
     'defaultUserLanguage',
@@ -520,7 +514,7 @@ foam.CLASS({
       this.initLayout.then(() => {
         this.layoutInitialized = true;
       });
-      window.addEventListener('resize', this.updateDisplayWidth);
+      this.window.addEventListener('resize', this.updateDisplayWidth);
       this.updateDisplayWidth();
 
       this.AppStyles.create();
@@ -1001,7 +995,7 @@ foam.CLASS({
         this.displayWidth = foam.u2.layout.DisplayWidth.VALUES
           .concat()
           .sort((a, b) => b.minWidth - a.minWidth)
-          .find(o => o.minWidth <= Math.min(window.innerWidth, window.screen.width) );
+          .find(o => o.minWidth <= Math.min(this.window.innerWidth, this.window.screen.width) );
       }
     },
     function replaceStyleTag(text, eid) {

@@ -17,7 +17,11 @@ public class FObjectParser
   private final static Map    map__      = new ConcurrentHashMap();
   private final static Parser instance__ = new FObjectParser();
 
-  public static Parser instance() { return instance__ == null ? new ProxyParser() { public Parser getDelegate() { return instance__; } } : instance__; }
+  public static Parser instance() {
+    return instance__ == null ?
+      new ProxyParser() { public Parser getDelegate() { return instance__; } } :
+      instance__;
+  }
 
   /**
    * Implement the multiton pattern so we don't create the same
@@ -58,9 +62,22 @@ public class FObjectParser
 
             Class c = null;
             if ( ps1 != null ) {
+              var className = ps1.value().toString();
               try {
-                c = Class.forName(ps1.value().toString());
-              } catch (ClassNotFoundException t) { /* NOP */ }
+                c = Class.forName(className);
+              } catch (ClassNotFoundException t) {
+                // Maybe it's an inner-class, which replace the last . with a $ in Java
+
+                try {
+                  int i = className.lastIndexOf('.');
+                  if ( i != -1 ) {
+                    StringBuilder sb = new StringBuilder(className);
+                    sb.setCharAt(i, '$');
+                    className = sb.toString();
+                    c = Class.forName(className);
+                  }
+                } catch (ClassNotFoundException t2) { /* NOP */ }
+              }
             } else {
               c = defaultClass;
             }

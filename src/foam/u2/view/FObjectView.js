@@ -219,7 +219,7 @@ foam.CLASS({
                 return arr;
               }
 
-              return arr.concat([[sr.strategy.id, sr.strategy.model_.label]]);
+              return arr.concat([[sr.strategy.id, sr.label || sr.strategy.model_.label]]);
             }, [])
             .filter(x => x);
 

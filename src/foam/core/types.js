@@ -285,7 +285,7 @@ foam.CLASS({
   label: 'Time',
 
   properties: [
-    [ 'type', 'Time' ]
+    [ 'type', 'time' ]
   ]
 });
 
@@ -735,7 +735,19 @@ foam.CLASS({
   extends: 'URL',
   label: 'Link to nano service (eg. /service/serviceA) or menu (eg. #menu_1) in the app.',
   help: 'Do not inclulde domain name in the link as it will be resolved on the client.',
-  properties: [ [ 'displayWidth', 80 ] ]
+  properties: [ [ 'displayWidth', 80 ] ],
+  methods: [
+    function installInProto(proto) {
+      this.SUPER(proto);
+      var self = this;
+      Object.defineProperty(proto, self.name + '$completeURL', {
+        get: function completeURL() {
+          return this.__context__.window.location.origin + this[self.name];
+        },
+        configurable: true
+      });
+    }
+  ]
 });
 
 foam.CLASS({
@@ -751,7 +763,38 @@ foam.CLASS({
   name: 'Color',
   extends: 'String',
   label: 'Color',
-  properties: [ [ 'displayWidth', 20 ] ]
+  properties: [ [ 'displayWidth', 20 ] ],
+  methods: [
+    function installInProto(proto) {
+      this.SUPER(proto);
+      /**
+       * Color properties can accept CSSToken values which start with a $.
+       * In order to resolve these tokens to values that can be used in vanilla CSS
+       * we need to parse them with foam.CSS.returnTokenValue().
+       * This process is simplified below by overriding the default property getter and
+       * automatically running the returnTokenValue() when the value stored in the color property is a token.
+       * the raw value of the property can still be accessed using <propName>$raw
+      */
+      let self = this;
+      let descriptor = Object.getOwnPropertyDescriptor(proto, this.name);
+      let oldGetter = descriptor.get;
+      Object.defineProperty(proto, self.name, {
+        get: function resolveTokenGetter() {
+          let value = oldGetter.apply(this);
+          if ( foam.String.isInstance(value) && value.startsWith('$') ) {
+            value = foam.CSS.returnTokenValue(value, this.cls_, this.__subContext__);
+          }
+          return value;
+        },
+        configurable: true
+      });
+      Object.defineProperty(proto, self.name + '$raw', {
+        get: oldGetter,
+        set: descriptor.set,
+        configurable: true
+      });
+    }
+  ]
 });
 
 
@@ -933,7 +976,17 @@ foam.CLASS({
       value: function(value, cloneMap, opt_X) {
         cloneMap[this.name] = value && value.clone ? value.clone(opt_X) : value;
       }
-    }
+    },
+    // Override copyFrom behaviour
+    ['copyValueFrom', function copyValueFrom(targetObj, sourceObj) {
+        var name = this.name;
+        if ( targetObj[name] && sourceObj[name] ) {
+          targetObj[name].copyFrom(sourceObj[name]);
+          return true;
+        }
+        return false;
+      }
+    ],
   ],
 
   methods: [
@@ -972,15 +1025,6 @@ foam.CLASS({
 
       // TODO: Only hook up the subscription when somebody listens to us.
       if ( obj[name] ) attach(obj[name]);
-    },
-    // Override copyFrom behaviour
-    function copyValueFrom(targetObj, sourceObj) {
-      var name = this.name;
-      if ( targetObj[name] && sourceObj[name] ) {
-        targetObj[name].copyFrom(sourceObj[name]);
-        return true;
-      }
-      return false;
     }
   ]
 });

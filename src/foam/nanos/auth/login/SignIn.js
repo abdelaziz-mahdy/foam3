@@ -36,7 +36,7 @@ foam.CLASS({
       name: 'password',
       required: true,
       validationTextVisible: false,
-      view: { class: 'foam.u2.view.PasswordView', passwordIcon: true }
+      view: { class: 'foam.u2.view.PasswordView', autocomplete: 'current-password', passwordIcon: true }
     },
     {
       class: 'Boolean',

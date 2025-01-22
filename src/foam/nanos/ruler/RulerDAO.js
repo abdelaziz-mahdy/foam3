@@ -199,7 +199,7 @@ if ( ret != null ) {
   }
 
   // Test for changes during 'after' rule
-  if ( before.diff(ret).size() > 0 ) {
+  if ( ! before.equals(ret) ) {
     ret = getDelegate().put_(x, ret);
   }
 }

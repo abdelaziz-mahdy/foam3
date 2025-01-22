@@ -215,15 +215,13 @@ foam.CLASS({
         // Retrieve the password policy from theme.
         Theme theme = ((Themes) x.get("themes")).findTheme(x);
         passwordPolicy = theme.getPasswordPolicy();
-        passwordPolicy.setX(x);
         // Use the default password policy if nothing is found
         if ( passwordPolicy == null || ! passwordPolicy.getEnabled() ) {
           passwordPolicy = new PasswordPolicy();
           passwordPolicy.setEnabled(true);
-          passwordPolicy.setX(x);
         }
         // Validate the password against the password policy
-        passwordPolicy.validate(user, potentialPassword);
+        passwordPolicy.validate(x, user, potentialPassword);
       `
     },
     {

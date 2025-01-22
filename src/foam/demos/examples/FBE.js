@@ -365,7 +365,6 @@ foam.CLASS({
   methods: [
     async function render() {
       this.SUPER();
-
       var self = this;
 
       async function load(section) {
@@ -391,8 +390,8 @@ foam.CLASS({
             select(this.data, function(e) {
               self.count++;
               if ( e.error ) self.errorCount++;
-              if ( e.code ) self.exampleCount++;
-              return this.E('a')
+              if ( e.code  ) self.exampleCount++;
+              this.start('a')
                 .attrs({href: '#' + e.id})
                 .enableClass('error', e.error$)
                 .show(self.query$.map(function(q) {

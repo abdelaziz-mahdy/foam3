@@ -49,12 +49,21 @@ foam.CLASS({
       PStream ps = sps;
       ParserContext x = new ParserContextImpl();
       ps = parser.parse(ps, x);
-      if (ps == null)
-        return null;
+      if ( ps == null ) {
+        foam.lib.parse.ErrorReportingPStream eps = new foam.lib.parse.ErrorReportingPStream(sps);
+        parser.parse(eps, x);
+        int pos = eps.getErrorPosition();
+
+        System.err.println("FScript Syntax Error:: class: " + obj.getClass() + ", error: " + eps.getMessage());
+        System.err.println("input: " + getQuery().substring(0, pos) + "<ERROR>" + getQuery().substring(pos));
+
+        return Boolean.FALSE;
+      }
 
       if ( ps.value() instanceof foam.mlang.Expr ) {
         return ((foam.mlang.Expr) ps.value()).f(obj);
       }
+
       return ((foam.mlang.predicate.Predicate) ps.value()).f(obj);
       `
     }

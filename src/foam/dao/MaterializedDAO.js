@@ -69,11 +69,6 @@ foam.CLASS({
       name: 'initialized'
     },
     {
-      documentation: 'true when autoStart loading',
-      class: 'Boolean',
-      name: 'initializing'
-    },
-    {
       class: 'Object',
       javaType: 'foam.mlang.predicate.Predicate',
       generateJava: true,
@@ -175,32 +170,24 @@ foam.CLASS({
       javaType: 'void',
       synchronized: true,
       javaCode: `
-        // Immediate return
         if ( getInitialized() ) return;
 
-        // Blocking return
-        if ( getInitializing() ) {
-          while ( getInitializing() ) {
-            try {
-              wait();
-            } catch (InterruptedException e) {
-            }
-          }
-          return;
-        }
+        Logger logger = Loggers.logger(getX(), this, getSourceDAO().getOf().getObjClass().getSimpleName(), "start");
+        logger.info("initializing");
 
-        setInitializing(true);
+        setInitialized(true);
 
         Thread t = new Thread(this);
         t.setName("MaterializedDAO Processor: " + getDelegate());
         t.setDaemon(true);
         t.start();
 
-        if ( ! getAutoStart() ) addIndex();
+        // Could take a long time
+        AddIndexCommand cmd = new AddIndexCommand();
+        cmd.setIndex(new MaterializedDAOIndex(this));
+        getSourceDAO().cmd(cmd);
 
-        setInitialized(true);
-        setInitializing(false);
-        notifyAll();
+        logger.info("initialized");
 
         String[] daoKeys = getObservedDAOs();
         if ( daoKeys.length != 0 ) {
@@ -310,57 +297,8 @@ foam.CLASS({
       `
     },
     {
-      name: 'addIndex',
-      javaCode: `
-        AddIndexCommand cmd = new AddIndexCommand();
-        cmd.setIndex(new MaterializedDAOIndex(this));
-        getSourceDAO().cmd(cmd);
-      `
-    },
-    {
       name: 'start',
-      javaCode: `
-      if ( getAutoStart() ) {
-        Logger logger = Loggers.logger(getX(), this, getSourceDAO().getOf().getObjClass().getSimpleName(), "start");
-
-        foam.core.XLocator.set(getX());
-
-        try {
-          long count = ((Count) getSourceDAO().select(new Count())).getValue();
-          logger.info("initializing", count);
-          long processed = 0L;
-
-          addIndex();
-
-          AssemblyLine line = new AsyncAssemblyLine(getX(), this.getClass().getSimpleName());
-
-          // KGR: There is an unlikely race-condition with this design because an object could be
-          // deleted between when we do the Count and when we add the Index. Not very likely
-          // but possible. One fix would be to modify the Index interface so that the owning DAO
-          // would report to the Index when it is done feeding it with initial data. This would
-          // allow Indices to optimize that phase of the loading (like we're doing here).
-          // However, a much simpler fix is just to subtract some number from the count. Say:
-          count -= 100;
-          // It is very very unlikely the system could delete more than a hundred objects between
-          // two statements.
-
-          while ( processed < count ) {
-            try {
-              process((Object[]) getQueue().take());
-              processed += 1;
-            } catch (InterruptedException e) {
-              break;
-            }
-          }
-          line.shutdown();
-          logger.info("initialized", processed);
-        } catch (Throwable t) {
-          logger.error(t);
-        } finally {
-          maybeInit();
-        }
-      }
-      `
+      javaCode: 'if ( getAutoStart() ) maybeInit();'
     }
   ]
 });

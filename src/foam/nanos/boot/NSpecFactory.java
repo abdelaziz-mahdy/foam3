@@ -75,6 +75,9 @@ public class NSpecFactory
     try {
       logger.info("Creating Service", spec_.getName());
       var service = spec_.createService(nx.put(NSpec.class, spec_).put("logger", logger), null);
+      if (service == null) {
+        throw new RuntimeException("createService returned null");
+      }
       setNS(service);
       logger.info("Created Service", spec_.getName());
     } catch (Throwable t) {

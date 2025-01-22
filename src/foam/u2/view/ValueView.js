@@ -11,6 +11,12 @@ foam.CLASS({
 
   documentation: 'Just shows the value of data as a string.',
 
+  css: `
+    ^ {
+      display: block;
+    }
+  `,
+
   properties: [
     [ 'nodeName', 'SPAN' ],
     {
@@ -26,6 +32,7 @@ foam.CLASS({
 
     function render() {
       this.SUPER();
+      this.addClass();
       var self = this;
       var prop = this.prop;
       if ( prop && prop.unitPropValueToString ) {
@@ -33,7 +40,7 @@ foam.CLASS({
         this.add(
           unitPropSlot ?
           unitPropSlot.map(unitProp => this.slot(function(data) {
-              return prop.unitPropValueToString.call(self.__subContext__.objData, self.__subContext__, data, unitProp);
+            return prop.unitPropValueToString.call(self.__subContext__.objData, self.__subContext__, data, unitProp);
           })) :
           this.slot(function(data) {
             return prop.unitPropValueToString.call(self.__subContext__.objData, self.__subContext__, data, self.__subContext__.objData[prop.unitPropName]);

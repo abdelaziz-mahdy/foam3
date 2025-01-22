@@ -202,21 +202,26 @@ foam.CLASS({
           }))
         .end()
         .start().style({ display: 'contents' })
-          .callIf(self.oidcProviderDAO, function() {
-            this.
-              select(self.oidcProviderDAO, function(provider) {
-                if ( ! provider ) return;
-                let action = foam.core.Action.create({
-                  name: 'signIn',
-                  label: provider.description,
-                  code: async function () {
-                    await self.clientLoginService.signInWithOIDC(provider);
-                  }
-                });
+          .add(self.slot(function(mode_) {
+            if ( mode_ != self.SIGN_IN ) {
+              return this.E();
+            }
 
-                return self.E().style({ display: 'contents' }).startContext({ data: self.data }).add(action).endContext();
-              });
-          })
+            return this.E()
+                .style({ display: 'contents' })
+                .select(self.oidcProviderDAO, function (provider) {
+                  if ( !provider ) return;
+                  let action = foam.core.Action.create({
+                    name: 'signIn',
+                    label: provider.description,
+                    code: async function () {
+                      await self.clientLoginService.signInWithOIDC(provider);
+                    }
+                  });
+
+                  this.startContext({ data: self.data }).add(action).endContext();
+                });
+          }))
         .end()
         .add(this.slot(function(showAction, appConfig, mode_) {
             self.configData();

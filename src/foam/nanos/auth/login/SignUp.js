@@ -41,13 +41,14 @@ foam.CLASS({
           icon: 'images/checkmark-small-green.svg',
           isAvailable$: X.data.emailAvailable$,
           type: 'email',
-          inputValidation: /\S+@\S+\.\S+/
+          inputValidation: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
         };
       },
       validateObj: function(disableEmail_, email, emailAvailable) {
         if ( ! disableEmail_ ) {
-          if ( ! email ) return "Required";
-          if ( emailAvailable != true ) return this.EMAIL_AVAILABLE_ERR;
+          if ( ! email ) return foam.core.Property.REQUIRED;
+          if ( emailAvailable == 'invalid' ) return this.EMAIL_INVALID_ERR;
+          if ( emailAvailable == 'unavailable' ) return this.EMAIL_AVAILABLE_ERR;
         }
       },
       validationPredicates: [
@@ -99,6 +100,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.PasswordView',
           isAvailable$: X.data.passwordAvailable$,
+          autocomplete: 'new-password',
           passwordIcon: true
         }
       },
@@ -146,6 +148,15 @@ foam.CLASS({
       value: true,
       hidden: true,
       transient: true
+    },
+    {
+      class: 'String',
+      name: 'referralToken',
+      factory: function() {
+        var searchParams = new URLSearchParams(location.search);
+        return searchParams.get('referral');
+      },
+      hidden: true
     }
   ]
 });

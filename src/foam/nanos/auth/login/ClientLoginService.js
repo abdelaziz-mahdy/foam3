@@ -11,16 +11,17 @@ foam.CLASS({
   imports: [
     'auth',
     'ctrl',
+    'checkGeneralCapability',
     'defaultUserLanguage',
     'emailVerificationService',
+    'initLayout',
     'loginSuccess',
     'notify',
     'stack',
     'subject',
-    'wizardController',
-    'wizardletId',
-    'wizardlets',
-    'onUserAgentAndGroupLoaded'
+    'onUserAgentAndGroupLoaded',
+    'sessionID',
+    'window',
   ],
 
   requires: [
@@ -69,6 +70,9 @@ foam.CLASS({
 
           if ( ! wizardFlow ) {
             await this.onUserAgentAndGroupLoaded();
+          } else {
+            await this.checkGeneralCapability();
+            this.initLayout.resolve();
           }
         } catch (err) {
           let e = err && err.data ? err.data.exception : err;
@@ -108,7 +112,7 @@ foam.CLASS({
     },
     {
       name: 'signInWithOIDC',
-      code: async function(provider) {
+      code: async function(provider, signUp = false, signUpUsername = '') {
         // TODO: Validate nonce
         var nonce = crypto.randomUUID();
 
@@ -121,15 +125,21 @@ foam.CLASS({
           state: foam.json.Network.stringify(this.OIDCLoginState.create({
             sessionId: this.sessionID,
             oidcProvider: provider.id,
-            returnToApp: false
-          }), this.OIDCLoginState),
+            returnToApp: true,
+            returnToUrl: this.window.location.toString(),
+            signUp,
+            signUpUsername,
+          }), foam.nanos.auth.oidc.OIDCLoginState),
+          // TODO: opt_cls here should be this.OIDCLoginState but that causes the outputter to output the
+          // class name.
         }
 
         let authURL = provider.authURL + '?' + Object.entries(reqParams).map(v => v.map(p => encodeURIComponent(p)).join('=')).join('&')
+        this.window.location = authURL;
 
-        // If you want to run the login flow in the same window with a redirect
-        // set returnToApp: true in the above OICDLoginState and redirect the current
-        // page to the authURL
+        return;
+        // If you want to run the login flow in a separate window
+        // set returnToApp: false in the above OIDCLoginState open a window to authURL
 
         try {
           await new Promise((resolve, reject) => {
@@ -137,11 +147,11 @@ foam.CLASS({
               if (e.origin == location.origin && e.data && e.data.sessionID == this.sessionID) {
                 window.removeEventListener('message', listener);
                 if (e.data.msg == "success") {
+                  authwindow.close();
                   resolve();
                 } else {
                   reject(e.data.error)
                 }
-                authwindow.close();
               }
             };
 
@@ -166,7 +176,8 @@ foam.CLASS({
           userName: data.username,
           email: data.email,
           desiredPassword: data.desiredPassword,
-          language: this.defaultUserLanguage
+          language: this.defaultUserLanguage,
+          referralCode: data.referralToken
         });
         var user = await data.dao_.put(createdUser);
         if ( user ) {

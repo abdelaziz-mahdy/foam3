@@ -32,7 +32,7 @@ foam.CLASS({
     'auth',
     'notify',
     'routeTo',
-    'ticketDAO'
+    'ticketDAO?'
   ],
 
   javaImports: [

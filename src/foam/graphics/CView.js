@@ -422,11 +422,13 @@ foam.CLASS({
   properties: [
     {
       class: 'Float',
-      name: 'width'
+      name: 'width',
+      shortName: 'w',
     },
     {
       class: 'Float',
-      name: 'height'
+      name: 'height',
+      shortName: 'h'
     },
     {
       class: 'foam.graphics.Radians',
@@ -682,40 +684,44 @@ foam.CLASS({
 
       x.save();
 
-      var
-        alpha       = this.alpha,
-        border      = this.border,
-        color       = this.color,
-        shadowColor = this.shadowColor,
-        shadowBlur  = this.shadowBlur;
+      try {
+        var
+          alpha       = this.alpha,
+          border      = this.border,
+          color       = this.color,
+          shadowColor = this.shadowColor,
+          shadowBlur  = this.shadowBlur;
 
-      if ( alpha !== 1 ) {
-        x.globalAlpha *= alpha;
+        if ( alpha !== 1 ) {
+          x.globalAlpha *= alpha;
+        }
+
+        if ( border ) {
+          x.strokeStyle = border.toCanvasStyle ?
+            border.toCanvasStyle(x) :
+            border ;
+        }
+
+        if ( color ) {
+          x.fillStyle = color.toCanvasStyle ?
+            color.toCanvasStyle(x) :
+            color ;
+        }
+
+        this.doTransform(x);
+
+        if ( shadowColor && shadowBlur ) {
+          x.shadowColor = shadowColor;
+          x.shadowBlur  = shadowBlur;
+        }
+
+        x.save();
+          this.paintSelf(x);
+        x.restore();
+        this.paintChildren(x);
+      } finally {
+        x.restore();
       }
-
-      if ( border ) {
-        x.strokeStyle = border.toCanvasStyle ?
-          border.toCanvasStyle(x) :
-          border ;
-      }
-
-      if ( color ) {
-        x.fillStyle = color.toCanvasStyle ?
-          color.toCanvasStyle(x) :
-          color ;
-      }
-
-      this.doTransform(x);
-
-      if ( shadowColor && shadowBlur ) {
-        x.shadowColor = shadowColor;
-        x.shadowBlur  = shadowBlur;
-      }
-
-      this.paintSelf(x);
-      this.paintChildren(x);
-
-      x.restore();
     },
 
     function doTransform(x) {
@@ -917,9 +923,7 @@ foam.CLASS({
       }
 
       if ( this.border && this.borderWidth ) {
-        console.log('******', this.lineDash);
-        if ( this.lineDash ) { x.setLineDash(this.lineDash);
-        }
+        if ( this.lineDash ) x.setLineDash(this.lineDash);
         x.lineWidth = this.borderWidth;
         x.stroke();
       }
@@ -1521,11 +1525,6 @@ foam.CLASS({
       class: 'Color',
       name:  'color',
       value: '#000000'
-    },
-    {
-      class: 'Color',
-      name: 'border',
-      label: 'Border Color'
     },
     {
       class: 'Float',

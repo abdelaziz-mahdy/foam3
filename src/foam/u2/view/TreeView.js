@@ -161,7 +161,6 @@ foam.CLASS({
         } else if ( this.hasChildren ) {
           this.collapsed[this.data.id] = true;
         }
-        console.log('collapsed:', this.collapsed);
       }
     },
     {
@@ -486,7 +485,7 @@ foam.CLASS({
             self.selection = obj;
             isFirstSet = true;
           }
-          return this.E().tag({
+          var t = {
             class:        foam.u2.view.TreeViewRow,
             data:         obj,
             relationship: self.relationship,
@@ -495,7 +494,21 @@ foam.CLASS({
             query:        self.query,
             onClickAddOn: self.onClickAddOn,
             level:        1
-          });
+          };
+          if ( this.U3 ) {
+            this.tag({
+              class:        foam.u2.view.TreeViewRow,
+              data:         obj,
+              relationship: self.relationship,
+              expanded:     self.startExpanded,
+              formatter:    self.formatter,
+              query:        self.query,
+              onClickAddOn: self.onClickAddOn,
+              level:        1
+            });
+          } else {
+            return this.E().tag(t);
+          }
         });
     },
 

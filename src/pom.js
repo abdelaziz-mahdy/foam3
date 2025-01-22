@@ -7,10 +7,6 @@
 foam.POM({
   name: "foam",
   version: 3,
-  excludes: [
-    'DatastoreDAO.java',
-    'com/google/flow/scripts.flow'
-  ],
   licenses: [
     `
     Copyright 2024 The FOAM Authors. All Rights Reserved.
@@ -198,7 +194,7 @@ foam.POM({
     { name: "foam/util/test/DummyNuid",                               flags: "js|java" },
     { name: "foam/util/test/UIDGeneratorTest",                        flags: "js|java" },
     { name: "foam/util/test/UIDUniquenessTest",                       flags: "js|java" },
-    { name: "foam/util/test/SafetyUtilTest",                          flags: "java" },
+    { name: "foam/util/test/SafetyUtilTest",                          flags: "js|java" },
     { name: "foam/util/uid/GlobalSearchService",                      flags: "js|java" },
     { name: "foam/util/uid/FuidSearchService",                        flags: "js|java" },
     { name: "foam/util/uid/ClientGlobalSearchService",                flags: "js|java" },
@@ -278,7 +274,7 @@ foam.POM({
     { name: "foam/dao/ResetListener",                                 flags: "js|java" },
     { name: "foam/dao/DAOSlot",                                       flags: "js|java" },
     { name: "foam/dao/QuickSink",                                     flags: "js|java" },
-    { name: "foam/dao/AnonymousSink",                                 flags: "js|java" },
+    { name: "foam/dao/AnonymousSink",                                 flags: "js" },
     { name: "foam/dao/PredicatedSink",                                flags: "js|java" },
     { name: "foam/dao/LimitedSink",                                   flags: "js|java" },
     { name: "foam/dao/SkipSink",                                      flags: "js|java" },
@@ -339,7 +335,7 @@ foam.POM({
     { name: "foam/dao/ArrayDAO",                                      flags: "js|java" },
     { name: "foam/dao/CopyOnWriteDAO",                                flags: "js|java" },
     { name: "foam/dao/CopyOnWriteDAOJsTest",                          flags: "js" },
-    { name: "foam/dao/CopyOnWriteDAOJavaTest",                        flags: "java" },
+    { name: "foam/dao/CopyOnWriteDAOJavaTest",                        flags: "js|java" },
     { name: "foam/dao/TimestampDAO",                                  flags: "js" },
     { name: "foam/dao/CopyFromDAO",                                   flags: "js|java" },
     { name: "foam/dao/GUIDDAO",                                       flags: "js|java" },
@@ -1124,18 +1120,7 @@ foam.POM({
     { name: "foam/net/IPSupport",                                     flags: "js|java" },
     { name: "foam/box/AbstractSkeleton",                              flags: "js|java" },
     { name: "com/google/auth/TokenVerifier",                          flags: "js|java" },
-    { name: "foam/box/sf/SFBOX",                                      flags: "js|java" },
-    { name: "foam/box/sf/SFSink",                                     flags: "js|java" },
-    { name: "foam/box/sf/SFDAO",                                      flags: "js|java" },
-    { name: "foam/box/sf/DUGSFRuleAction",                            flags: "js|java" },
-    { name: "foam/box/sf/DUGSFRule",                                  flags: "js|java" },
-    { name: "foam/box/sf/SFEntry",                                    flags: "js|java" },
-    { name: "foam/box/sf/SFManager",                                  flags: "js|java" },
-    { name: "foam/box/sf/SF",                                         flags: "js|java" },
-    { name: "foam/box/sf/SFFileJournal",                              flags: "js|java" },
-    { name: "foam/box/sf/SFException",                                flags: "js|java" },
-    { name: "foam/box/sf/SFMonitorDAO",                               flags: "js|java" },
-    { name: "foam/box/sf/SFMonitor",                                  flags: "js|java" },
+    { name: "com/google/auth/GoogleSignInButton",                     flags: "web" },
     { name: "foam/box/socket/BoxHolder",                              flags: "js|java" },
     { name: "foam/box/socket/SocketConnectionBox",                    flags: "js|java" },
     { name: "foam/box/socket/SocketConnectionReplyBox",               flags: "js|java" },
