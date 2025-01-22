@@ -64,11 +64,18 @@ foam.CLASS({
       return this.save_(wizardlet, options);
     },
     function cancel(wizardlet) {
-      let p = this.subject ? this.crunchService.updateJunctionFor(
-        null, wizardlet.capability.id, null, null, this.subject.user, this.subject.realUser
-      ) : this.crunchService.updateJunction(
+       if ( this.subject &&
+           this.subject.realUser &&
+           this.subject.user &&
+           this.subject.realUser.id != this.subject.user.id ) {
+        console.warn("Not supported update of user capabilities on behalf of another user");
+      }
+      // Currently we don't support capabilities update buy the user who don't get the cupabilitie. E.g. user.id != realUser.Id
+      // this.crunchService.updateJunctionFor was removed
+      let p = this.crunchService.updateJunction(
         null, wizardlet.capability.id, null, null
       );
+
       return p.then(ucj => { return ucj; })
         .catch(this.reportNetworkFailure.bind(this, wizardlet, 'cancel', null));
     },
@@ -90,12 +97,20 @@ foam.CLASS({
       if ( wizardlet.reloadAfterSave && options.reloadData ) {
         wizardlet.loadingLevel = this.LoadingLevel.LOADING;
       }
-      let p = this.subject ? this.crunchService.updateJunctionFor(
-        null, wizardlet.capability.id, wData, null,
-        this.subject.user, this.subject.realUser
-      ) : this.crunchService.updateJunction(null,
+
+      if ( this.subject &&
+           this.subject.realUser &&
+           this.subject.user &&
+           this.subject.realUser.id != this.subject.user.id ) {
+        console.warn("Not supported update of user capabilities on behalf of another user");
+      }
+
+      // Currently we don't support capabilities update buy the user who don't get the cupabilitie. E.g. user.id != realUser.Id
+      // this.crunchService.updateJunctionFor was removed
+      let p = this.crunchService.updateJunction(null,
         wizardlet.capability.id, wData, null
       );
+
       p = p.then((ucj) => {
         if ( wizardlet.reloadAfterSave && options.reloadData ) {
           wizardlet.loadingLevel = this.LoadingLevel.IDLE;
