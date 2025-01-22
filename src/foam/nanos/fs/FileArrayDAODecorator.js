@@ -74,7 +74,7 @@ foam.CLASS({
       var props2 = obj.cls_.getAxiomsByClass(foam.core.FObjectProperty).filter((p) => ! foam.dao.DAOProperty.isInstance(p));
       for ( let prop of props2 ) {
         var subFObject = prop.f(obj);
-        if ( ! subFObject ) continue;
+        if ( ! subFObject || subFObject.cls_ == undefined ) continue;
         await this.processFiles(subFObject);
       }
       return obj;
