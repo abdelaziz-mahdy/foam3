@@ -49,6 +49,7 @@ foam.CLASS({
   axioms: [
     {
       class: 'foam.comics.v2.CannedQuery',
+      name: 'DAOS',
       label: 'DAOs',
       predicateFactory: function(e, cls) {
         return e.ENDS_WITH(cls.NAME, 'DAO');
@@ -56,6 +57,7 @@ foam.CLASS({
     },
     {
       class: 'foam.comics.v2.CannedQuery',
+      name: 'SERVED_DAOS',
       label: 'Served DAOs',
       predicateFactory: function(e, cls) {
         return e.AND(
@@ -65,14 +67,16 @@ foam.CLASS({
     },
     {
       class: 'foam.comics.v2.CannedQuery',
-      label: 'Servcies',
+      name: 'SERVICES',
+      label: 'Services',
       predicateFactory: function(e, cls) {
         return e.NOT(e.ENDS_WITH(cls.NAME, 'DAO'));
       }
     },
     {
       class: 'foam.comics.v2.CannedQuery',
-      label: 'Served Servcies',
+      name: 'SERVED_SERVICES',
+      label: 'Served Services',
       predicateFactory: function(e, cls) {
         return e.AND(
           e.EQ(cls.SERVE, e.True),
