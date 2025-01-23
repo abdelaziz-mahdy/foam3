@@ -615,6 +615,7 @@ foam.POM({
     { name: "ruler/predicate/ContextContainsPredicate",                                   flags: "js|java" },
     { name: "ruler/predicate/FScriptRulePredicate",                                       flags: "js|java" },
     { name: "ruler/predicate/PropertyIsSetPredicate",                                     flags: "js|java" },
+    { name: "ruler/predicate/ApprovalReputPredicate",                                     flags: "js|java" },
     { name: "ruler/action/AbstractCheckDAOforMatching",                                   flags: "js|java" },
     { name: "ruler/action/ChangePropertyAction",                                          flags: "js|java" },
     { name: "test/EchoService",                                                           flags: "js|java" },
