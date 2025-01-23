@@ -344,13 +344,11 @@ foam.CLASS({
     {
       name: 'orderChoice',
       view: function(_, X) {
-        var choices = [ '--' ];
-        X.data.dao.of.getAxiomsByClass(foam.core.Property).forEach(p => {
-          if ( p.hidden ) return;
-          choices.push(p.name);
-          choices.push('-' + p.name);
-        });
-        return { class: 'foam.u2.view.ChoiceView', choices: choices };
+        return {
+          class: 'foam.nanos.console.PropertyChoiceView',
+          of: X.data.dao.of,
+          allowEmptyChoice: true
+        };
       },
       postSet: function(o, n) {
         if ( n == '--' ) return;
