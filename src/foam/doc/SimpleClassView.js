@@ -41,6 +41,10 @@ foam.CLASS({
       expression: function(data) {
         return this.AxiomDAO.create({modelIds: [data.id]});
       }
+    },
+    {
+      class: 'Boolean',
+      name: 'showUML'
     }
   ],
 
@@ -71,6 +75,11 @@ foam.CLASS({
           add('Class ').
           add(model.name).
         end().
+        callIf(this.showUML, function() {
+          this.start().
+            tag({class: 'foam.doc.UMLDiagram', data: cls}).
+          end();
+        }).
         callIf(model.documentation, function() {
           this.start('b').
             add(model.documentation).

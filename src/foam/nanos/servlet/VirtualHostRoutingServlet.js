@@ -56,6 +56,11 @@ foam.CLASS({
       value: 'foam.nanos.controller.ApplicationController'
     },
     {
+      class: "Boolean",
+      name: 'html5',
+      value: false
+    },
+    {
       class: 'Map',
       name: 'headerParameters'
     }
@@ -94,7 +99,6 @@ foam.CLASS({
       HashMap    headConfig          = (HashMap)   theme.getHeadConfig();
       AppConfig  appConfig           = (AppConfig) x.get("appConfig");
       String     queryString         = ((HttpServletRequest)request).getQueryString();
-      HttpServer server              = (HttpServer) this.getServletConfig().getServletContext().getAttribute("httpServer");
 
       Boolean    customFavIconFailed = false;
       Boolean    customScriptsFailed = false;
@@ -122,7 +126,8 @@ foam.CLASS({
 
       // default scripts
       if ( headConfig == null || ! headConfig.containsKey("customScripts") || customScriptsFailed ) {
-        if ( server.getIsResourceStorage() ) {
+        if ( x.get(foam.nanos.fs.Storage.class) instanceof foam.nanos.fs.ResourceStorage  ) {
+          // running from jar file
           out.println("<script async fetchpriority='high' language='javascript' type='text/javascript' src='/foam-bin-"+appConfig.getVersion()+".js' ></script>");
         } else {
           // development
@@ -221,8 +226,11 @@ foam.CLASS({
         }
 
         PrintWriter out = response.getWriter();
-        out.println("<!DOCTYPE>"); // quirk mode
-        // out.println("<!DOCTYPE html>"); // strict mode
+        if (getHtml5()) {
+            out.println("<!DOCTYPE html>"); // strict mode
+        } else {
+            out.println("<!DOCTYPE>"); // quirk mode?
+        }
 
         out.println("<html lang=\\"en\\">");
         out.println("<head>");

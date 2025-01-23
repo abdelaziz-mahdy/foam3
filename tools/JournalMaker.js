@@ -86,8 +86,5 @@ p({
     fs_.writeFileSync(X.journaldir + f + '.0', journalOutput[f]);
   });
 
-  // Write to journal_files is not needed, just for backward compatibility with find.sh
-  fs_.writeFileSync(X.builddir + '/journal_files', journalFiles.join('\n') + '\n');
-
   console.log(`[Journal Maker] Generating ${Object.keys(journalOutput).length} journal files from ${journalFiles.length} sources.`);
 }

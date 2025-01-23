@@ -81,16 +81,23 @@ exports.end = function() {
   license = license.split('\n').map(l => '// ' + l).join('\n');
 
   console.log(`[JS] Version: ${version}, Licenses: ${Object.keys(licenses).length}, Files: ${Object.keys(files).length}, Stage: ${X.stage}`);
-  var code = uglify_.minify(
+  var result = Object.keys(files).length && uglify_.minify(
     files,
     {
       compress: false,
       mangle:   false,
+      module:   false,
       output:   {
         semicolons: false,
         preamble: `// Generated: ${new Date()}\n\n${license}\n` + ((X.stage === undefined || X.stage === '0') ? `globalThis.foam = { main: function() { /* prevent POM loading since code is in-lined below */ } };\n` : '')
       }
-    }).code;
+    });
+
+  if (result && result.error) {
+    console.log("[JS] Error: ", result.error);
+    process.exit(1);
+  }
+  var code = result && result.code;
 
   if ( ! code ) {
     console.log('No output for stage:', X.stage);

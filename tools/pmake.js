@@ -38,7 +38,8 @@ var [argv, X, flags] = require('./processArgs.js')(
     d:           './build/classes/java/main', // TODO: build/classes should be sufficient, but doesn't work with rest of build
     builddir:    './build',
     pom:         'pom',
-    makers:      '' // TODO: doc, swift
+    makers:      '', // TODO: doc, swift,
+    path:        './'
   },
   {
     // TODO: it would be better if the Makers specified if they needed files loaded or not
@@ -77,9 +78,9 @@ const MAKERS = X.makers.split(',').map(m => {
   var [_, taskName, _, taskArgs] = m.match(/([a-zA-Z0-9]*)(\((.*)\))?/);
 
   try {
-    task = require('./' + taskName + 'Maker');
+    task = require(X.path + taskName + 'Maker');
   } catch (x) {
-    task = require(path_.join(__dirname, taskName + 'Maker'));
+    task = require(path_.join(process.cwd(), taskName + 'Maker'));
   }
 
   if ( task && task.init ) task.init(taskArgs);

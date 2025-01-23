@@ -113,7 +113,8 @@ foam.CLASS({
             Null: function(value) {}
           }, function(value) {
             this.outputValue_(value.toString());
-        }),
+          }
+        ),
       javaCode: `
         if ( value instanceof String ) {
           if ( ((String)value).contains(",") )
@@ -126,6 +127,9 @@ foam.CLASS({
           } else {
             getSb().append(value.toString());
           }
+        } else if ( value instanceof String[] ) {
+          // TODO: escape | character in values
+          outputValue(String.join("|", (String[]) value));
         } else if ( value == null ) {
         } else {
           outputValue_(value.toString());

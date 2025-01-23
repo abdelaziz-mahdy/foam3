@@ -441,20 +441,18 @@ foam.CLASS({
       var fip         = 0;
 
       if ( GENERATE_FACTORY_WARNINGS ) {
-        if ( factory && (
-             factory.toString().indexOf('/* ignoreWarning */') == -1) && (
-             factory.toString().indexOf('then(') != -1 ||
-             factory.toString().indexOf('await') != -1 ) )
-        {
-          console.error('Invalid Asynchronous Function', proto.cls_.id + '.' + prop.name + '.factory=', factory);
+        function checkFactory(f, name) {
+          if ( f && (
+            f.toString().indexOf('/* ignoreWarning */') == -1) && (
+            f.toString().indexOf('then(') != -1 ||
+            f.toString().indexOf('await') != -1 ) )
+          {
+            console.error('Invalid Asynchronous Function', proto.cls_.id + '.' + prop.name + '.' + name + '=', factory);
+            console.error('Add /* ignoreWarning */ to ' + name + ' to supress this warning.');
+          }
         }
-        if ( eFactory && (
-             eFactory.toString().indexOf('/* ignoreWarning */') == -1) && (
-             eFactory.toString().indexOf('then(') != -1 ||
-             eFactory.toString().indexOf('await') != -1 ) )
-        {
-          console.error('Invalid Asynchronous Function', proto.cls_.id + '.' + prop.name + '.expression=', eFactory);
-        }
+        checkFactory(factory,  'factory');
+        checkFactory(eFactory, 'expression');
       }
 
       // Factory In Progress (FIP) Support

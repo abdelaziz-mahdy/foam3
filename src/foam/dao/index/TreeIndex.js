@@ -120,8 +120,7 @@ foam.CLASS({
     'foam.mlang.predicate.In',
     'foam.mlang.predicate.Contains',
     'foam.mlang.predicate.ContainsIC',
-    'foam.mlang.sink.Count',
-    'foam.mlang.sink.Explain',
+    'foam.mlang.sink.Count'
   ],
 
   constants: {

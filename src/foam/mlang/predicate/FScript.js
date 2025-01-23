@@ -50,7 +50,13 @@ foam.CLASS({
       ParserContext x = new ParserContextImpl();
       ps = parser.parse(ps, x);
       if ( ps == null ) {
-        System.err.println("FScript Syntax Error: " + getQuery() + " for Class: " + obj.getClass());
+        foam.lib.parse.ErrorReportingPStream eps = new foam.lib.parse.ErrorReportingPStream(sps);
+        parser.parse(eps, x);
+        int pos = eps.getErrorPosition();
+
+        System.err.println("FScript Syntax Error:: class: " + obj.getClass() + ", error: " + eps.getMessage());
+        System.err.println("input: " + getQuery().substring(0, pos) + "<ERROR>" + getQuery().substring(pos));
+
         return Boolean.FALSE;
       }
 

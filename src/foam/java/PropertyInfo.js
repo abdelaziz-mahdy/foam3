@@ -204,7 +204,8 @@ foam.CLASS({
           }
         ];
 
-        var primitiveType = [ 'boolean', 'long', 'byte', 'double', 'float', 'short', 'int' ];
+        var numberType    = [ 'long', 'byte', 'double', 'float', 'short', 'int' ];
+        var primitiveType = [ ...numberType, 'boolean' ];
 
         if ( ! ( primitiveType.includes(this.propType) || this.propType == 'Object' || this.propType == 'String' ) ) {
           m.push({
@@ -304,7 +305,18 @@ foam.CLASS({
             body: this.comparePropertyToValue,
           });
         }
-        if ( ! ( primitiveType.includes(this.propType) || this.propType  == 'java.util.Date' || this.propType == 'String' || this.propType == 'Object' || this.extends == 'foam.core.AbstractFObjectPropertyInfo' || this.extends == 'foam.core.AbstractFObjectArrayPropertyInfo') ) {
+        if ( numberType.includes(this.propType) ) {
+          if ( this.propValue != '0' ) {
+            m.push({
+              name: 'isDefaultValue',
+              visibility: 'public',
+              type: 'boolean',
+              args: [{ name: 'o', type: 'Object' }],
+              /* TODO: revise when/if expression support is added to Java */
+              body: `return foam.util.SafetyUtil.compare(get_(o), ${this.propValue}) == 0;`
+            });
+          }
+        } else if ( this.propType != 'boolean' && this.propType != 'java.util.Date' && this.propType != 'String' && this.propType != 'Object' && this.extends != 'foam.core.AbstractFObjectPropertyInfo' && this.extends != 'foam.core.AbstractFObjectArrayPropertyInfo' ) {
           m.push({
             name: 'isDefaultValue',
             visibility: 'public',
@@ -313,6 +325,7 @@ foam.CLASS({
             /* TODO: revise when/if expression support is added to Java */
             body: `return foam.util.SafetyUtil.compare(get_(o), ${this.propValue}) == 0;`
           });
+        }
           // TODO: We could reduce the amount a Enum PropertyInfo code we output
           if ( this.extends != 'foam.core.AbstractEnumPropertyInfo' ) {
             m.push({
@@ -332,7 +345,6 @@ foam.CLASS({
               body: 'formatter.output(get_(obj));'
             });
           }
-        }
 
         m.push({
           name: 'getNetworkTransient',
