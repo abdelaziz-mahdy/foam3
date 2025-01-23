@@ -22,6 +22,8 @@ foam.POM({
     u3: true
   },
 
+  javaSourceRoot: true,
+
   files: [
     { name: "foam/core/lib",                                          flags: "js" },
     { name: "foam/core/stdlib",                                       flags: "js" },

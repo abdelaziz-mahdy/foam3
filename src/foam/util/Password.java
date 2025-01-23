@@ -111,7 +111,7 @@ public class Password {
   public static void main(String argv[]) {
     /** To generate a password hash for use in a journal file, cd into
      *  your build directory and then execute:
-     *  java -cp "lib/*:classes/java/main" foam.util.Password password
+     *  java -cp "lib/*:classes" foam.util.Password password
      **/
     if ( argv.length != 1 ) {
       System.out.println("Password - generate a password hash.");

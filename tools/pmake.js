@@ -35,7 +35,7 @@ require('../src/foam_node.js');
 var [argv, X, flags] = require('./processArgs.js')(
   '',
   {
-    d:           './build/classes/java/main', // TODO: build/classes should be sufficient, but doesn't work with rest of build
+    d:           './build/classes', // TODO: build/classes should be sufficient, but doesn't work with rest of build
     builddir:    './build',
     pom:         'pom',
     makers:      '', // TODO: doc, swift,

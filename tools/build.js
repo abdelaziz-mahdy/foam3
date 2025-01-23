@@ -400,13 +400,17 @@ task('Generate Java and JS packages.', [ 'genJava', 'genJS' ], function packageF
 task('Call pmake to generate & compile java, collect journals, call Maven and copy documents.', [], function genJava() {
 //   commandLine 'bash', './gen.sh', "${project.genJavaDir}", "${project.findProperty("pom")?:"pom" }"
   var makers = VERBOSE ? 'Verbose,' : '';
-  makers += GEN_JAVA ? 'Java,Maven,Javac' : 'Maven' ;
+  makers += GEN_JAVA ? 'Java,Maven' : 'Maven' ;
   makers += ',Journal,Doc';
-  execSync(__dirname + `/pmake.js -makers=${makers} ${VERBOSE} -d=${BUILD_DIR}/classes/java/main -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -javacParams='--release ${JAVA_RELEASE} -proc:none' -pom=${pom()}`, { stdio: 'inherit' });
+  execSync(__dirname + `/pmake.js -makers=${makers} ${VERBOSE} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -javaRelease='${JAVA_RELEASE}' -pom=${pom()}`, { stdio: 'inherit' });
+
+  if ( GEN_JAVA ) {
+    execSync(`mvn compile`, { stdio: 'inherit' });
+  }
 });
 
 task('Call pmake to collect journals.', [], function genJournals() {
-  execSync(__dirname + `/pmake.js -makers=Journal ${VERBOSE} -d=${BUILD_DIR}/classes/java/main -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -pom=${pom()}`, { stdio: 'inherit' });
+  execSync(__dirname + `/pmake.js -makers=Journal ${VERBOSE} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -pom=${pom()}`, { stdio: 'inherit' });
 });
 
 task('Check dependencies for known vulnerabilities.', [], function checkDeps(score) {
@@ -453,7 +457,7 @@ task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function
   jarJournals();
 
   fs.writeFileSync(BUILD_DIR + '/MANIFEST.MF', manifest());
-  execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF -C ${BUILD_DIR} documents ${JAR_INCLUDES} -C ${BUILD_DIR}/classes/java/main .`);
+  execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF -C ${BUILD_DIR} documents ${JAR_INCLUDES} -C ${BUILD_DIR}/classes .`);
 });
 
 
@@ -502,7 +506,7 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
 
     JAVA_OPTS += ` -Dnanos.webroot=${PROJECT_HOME}`;
 
-    CLASSPATH = `${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes/java/main`;
+    CLASSPATH = `${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes`;
 
     logLevelLower = 'info';
     if ( LOG_LEVEL ) {

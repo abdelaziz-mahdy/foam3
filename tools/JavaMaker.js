@@ -27,6 +27,7 @@ exports.init = function() {
   // Turns on loading of foam/java/* models needed for java code generation.
   flags.genjava   = true;
   flags.loadFiles = true;
+  X.javaFiles = [];
 }
 
 
