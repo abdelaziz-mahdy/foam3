@@ -332,12 +332,14 @@ foam.CLASS({
     {
       class: 'String',
       name: 'where',
-      displayWidth: 55
+      displayWidth: 55,
+      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
       class: 'String',
       name: 'order',
-      displayWidth: 60
+      displayWidth: 60,
+      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
       name: 'select'
