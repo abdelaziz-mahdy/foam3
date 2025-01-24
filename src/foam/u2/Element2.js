@@ -156,8 +156,6 @@ foam.CLASS({
         var update_ = val => {
           var n;
 
-          if ( foam.core.Slot.isInstance(val) ) { console.warn('Unexpected Slot in update.'); }
-
           if ( val === undefined || val === null ) {
             n = foam.u2.Text.create({}, this);
           } else if ( this.isLiteral(val) ) {
@@ -167,6 +165,8 @@ foam.CLASS({
           } else if ( foam.Array.isInstance(val) ) {
             n = foam.u2.Element.create({nodeName:'span'}, this);
             n.add.apply(n, val);
+          } else if ( foam.core.Slot.isInstance(val) ) {
+            n = this.cls_.create({ slot: val });
           } else if ( val.then ) {
             val.then(n => update_(n));
             return;
