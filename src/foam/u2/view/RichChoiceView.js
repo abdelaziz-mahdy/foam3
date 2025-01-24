@@ -780,7 +780,7 @@ foam.CLASS({
             if ( fullObject ) {
               this.tag(self.CitationView, { data: fullObject });
             } else {
-              this.start().addClass(self.myClass('paddingWrapper')).add(this.defaultSelectionPrompt).end();
+              this.start().addClass(self.myClass('paddingWrapper')).add(self.defaultSelectionPrompt).end();
             }
           }));
         }

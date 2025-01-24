@@ -13,12 +13,10 @@ foam.CLASS({
     'foam.u2.crunch.CapabilityFeatureView'
   ],
 
-  imports: [
-    'memento'
-  ],
-
   css: `
+    foreignObject^{pointer-events:none;}
     ^div {
+      position: absolute;
       top: 15px;
       left: 15px;
 
@@ -83,10 +81,7 @@ foam.CLASS({
         .attrs({
           ...dims,
         })
-        .start('div')
-          .attrs({
-            xmlns: 'http://www.w3.org/1999/xhtml',
-          })
+        .start('div', { namespace: 'http://www.w3.org/1999/xhtml' })
           .addClass(this.myClass('div'))
           .style({
             width: this.size[0],

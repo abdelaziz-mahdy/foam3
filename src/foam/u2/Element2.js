@@ -540,7 +540,7 @@ foam.CLASS({
       class: 'String',
       name: 'namespace',
       factory: function() {
-        return this.__context__['namespace'] || this.nodeName === 'svg' ? 'http://www.w3.org/2000/svg' : '';
+        return this.__context__['namespace'] || (this.nodeName === 'svg' ? 'http://www.w3.org/2000/svg' : '');
       }
     },
     {
