@@ -14,6 +14,7 @@ foam.CLASS({
 
   properties: [
     'dao',
+    'unlimitedDAO',
     {
       name: 'of',
       factory: function() { return this.dao.of; }
@@ -49,7 +50,7 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      e.tag({class: 'foam.u2.table.TableView', data: this.dao});
+      e.tag({class: 'foam.u2.table.TableView', data: this.unlimitedDAO});
     }
   ]
 });
@@ -156,7 +157,7 @@ foam.CLASS({
   methods: [
     function execute(e) {
       return this.dao.select(o => {
-        e.tag({class: 'foam.comics.v3.DAOView', data: this.dao});
+        e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
       });
     }
   ]
@@ -223,7 +224,7 @@ foam.CLASS({
         if ( a == 'All' ) return;
 
         var cls = foam.lookup(this.cls_.package + '.' + a + 'DAOAgent');
-        var agent = cls.create({dao: this.dao});
+        var agent = cls.create({dao: this.dao, unlimitedDAO: this.unlimitedDAO});
         e.start('h2').add(a).end().start().call(function () { agent.execute(this); });
       });
     }
@@ -437,7 +438,6 @@ foam.CLASS({
           dao = dao.where(this.whereChoice);
         }
         if ( this.where ) dao = dao.where(this.MQL(this.where));
-        if ( this.limit ) dao = dao.limit(this.limit);
         if ( this.skip  ) dao = dao.skip(this.skip);
         if ( this.order ) {
           // TODO: Move this logic somewhere more reusable (to QueryParser maybe?)
@@ -463,8 +463,10 @@ foam.CLASS({
           this.order = s;
           if ( c ) dao = dao.orderBy(c);
         }
+        var unlimitedDAO = dao;
+        if ( this.limit ) dao = dao.limit(this.limit);
         var cls   = foam.lookup(this.cls_.package + '.' + this.selectChoice + 'DAOAgent');
-        var agent = cls.create({dao: dao});
+        var agent = cls.create({dao: dao, unlimitedDAO: unlimitedDAO});
         var out   = this.content.start();
         await agent.execute(out);
         this.previousOutput?.remove();
