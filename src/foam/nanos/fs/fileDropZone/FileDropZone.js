@@ -9,7 +9,21 @@ foam.CLASS({
   name: 'FileDropZone',
   extends: 'foam.u2.Controller',
 
-  documentation: 'A default zone to drag & drop files',
+  documentation: `
+    A default view to drag & drop files
+    This view behaves slightly differently from other FOAM views in that it doesnt use a 'data' property 
+    in order to avoid confusion. Instead it uses two properties:
+    - files: A property of type FileArray that stores File objects
+    - filePaths: StringArray that stores the paths to files at the corresponding index in the 'files' property
+
+    filePaths is only for external use. When provided before rendering the view, it is used to populate the files
+    array. 
+
+    When a file is added by a user, 'onFilesChanged' is called, if provided, which can be used to immediately upload the 
+    file to fileDAO and populate the filePath property or perform any other operation with that file.
+
+    For examples look at foam.nanos.crunch.document.Document
+  `,
 
   requires: [
     'foam.log.LogLevel',
@@ -163,7 +177,7 @@ foam.CLASS({
     },
     {
       class: 'StringArray',
-      name: 'data',
+      name: 'filePaths',
       adapt: function(_, v) {
         if ( Array.isArray(v) ) return v;
         return [v];
@@ -173,8 +187,8 @@ foam.CLASS({
 
   methods: [
     function init() {
-      this.onDetach(this.data$.sub(this.dataChanged));
-      this.dataChanged();
+      this.onDetach(this.data$.sub(this.filePathsChanged));
+      this.filePathsChanged();
     },
 
     async function render() {
@@ -401,7 +415,7 @@ foam.CLASS({
       this.onFilesChanged(this.files);
     },
 
-    function dataChanged() {
+    function filePathsChanged() {
       for ( var i = 0; i < this.data.length; i++ ) {
         const fileId = this.data[i].replace('/service/file/', '');
         this.maybeUpdateFile(i, fileId);
