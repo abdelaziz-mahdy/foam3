@@ -1044,8 +1044,11 @@ foam.CLASS({
           throw new AuthenticationException("User disabled");
         }
 
+        boolean anonymous = ((AuthService)x.get("auth")).isUserAnonymous(x, getId());
+
         // check if user login enabled
-        if ( ! getLoginEnabled() ) {
+        if ( ! getLoginEnabled() &&
+             ! anonymous ) {
           throw new AccessDeniedException();
         }
 
@@ -1057,6 +1060,7 @@ foam.CLASS({
           throw new AuthenticationException("Group not found");
         }
         if ( group != null &&
+             ! anonymous &&
              group.getEmailRequired() && ! getEmailVerified() ) {
           throw new UnverifiedEmailException();
         }
