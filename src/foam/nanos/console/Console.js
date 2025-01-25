@@ -372,6 +372,7 @@ YYYY-MM-DDTHH:MM
 
     },
 
+    // TODO: break into two different function
     async function services(opt_query, opt_nameQuery) {
       var dao = this.nSpecDAO.where(this.EQ(this.NSpec.SERVE, this.True));
       if ( opt_query ) dao = dao.where(opt_query);
@@ -390,6 +391,11 @@ YYYY-MM-DDTHH:MM
                 this.add(n.name);
                 sdao = undefined;
               }
+            }).end().
+            start('td').attr('align', 'left').call(function() {
+              if ( ! sdao ) return;
+              var of = sdao.of;
+              self.outputLink('+', () => self.eval_('daoCreate("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
               if ( ! sdao ) return;
