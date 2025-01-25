@@ -364,8 +364,13 @@ foam.CLASS({
       view: function(_, X) {
         var choices = [ '--' ];
         X.data.dao.of.getAxiomsByClass(foam.core.Property).forEach(p => {
-          if ( p.hidden ) return;
-          choices.push(p.name);
+          if ( p.hidden || p.networkTransient ) return;
+          if ( foam.core.Boolean.isInstance(p) ) {
+            choices.push('is:'  + p.name);
+            choices.push('-is:' + p.name);
+          } else {
+            choices.push(p.name);
+          }
         });
         return { class: 'foam.u2.view.ChoiceView', choices: choices };
       },
@@ -440,7 +445,12 @@ foam.CLASS({
         if ( this.whereChoice && typeof this.whereChoice != 'string' ) {
           dao = dao.where(this.whereChoice);
         }
+
+        // Version which compiles on the Server
         if ( this.where ) dao = dao.where(this.MQL(this.where));
+
+        // Version which compiles on the Client
+        // if ( this.where) dao = dao.where(this.QueryParser.create({of: dao.of}).parseString(this.where));
         if ( this.skip  ) dao = dao.skip(this.skip);
         if ( this.order ) {
           // TODO: Move this logic somewhere more reusable (to QueryParser maybe?)
