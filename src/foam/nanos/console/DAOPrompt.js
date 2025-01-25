@@ -397,6 +397,7 @@ foam.CLASS({
     },
     'content',
     'rowCount',
+    'executionTime',
     { class: 'Boolean', name: 'hasRun' }
   ],
 
@@ -421,7 +422,7 @@ foam.CLASS({
       start().
         style({'padding-top': '10px'}).
         // show(this.rowCount$.map(c=>c !== undefined)).
-        add('Count: ', this.rowCount$).
+        add('Count: ', this.rowCount$, ', Execution time: ', this.executionTime$).
       end().br().
       start('div', {}, this.content$).end().br();
     }
@@ -470,7 +471,10 @@ foam.CLASS({
         var cls   = foam.lookup(this.cls_.package + '.' + this.selectChoice + 'DAOAgent');
         var agent = cls.create({dao: dao, unlimitedDAO: unlimitedDAO});
         var out   = this.content.start().style({display: 'none'});
+        var startTime = Date.now();
         await agent.execute(out);
+        this.executionTime = foam.core.Duration.duration(Date.now() - startTime);
+
         this.setTimeout(() => {
           this.previousOutput?.remove();
           this.previousOutput = out;
