@@ -41,6 +41,7 @@ foam.CLASS({
 
   requires: [
     'foam.nanos.console.Link',
+    'foam.nanos.console.DAOCreate',
     'foam.nanos.console.DAOPrompt',
     'foam.nanos.console.DocumentReadWriteView',
     'foam.dao.ArrayDAO',
@@ -139,6 +140,7 @@ foam.CLASS({
           mqlhelp:  this.mqlHelp.bind(this),
           help:     this.help.bind(this),
           dao:      this.dao.bind(this),
+          daoCreate:this.daoCreate.bind(this),
           this:     this,
           cls:      this.cls.bind(this),
           daos:     this.services.bind(this, this.NSpec.SERVED_DAOS),
@@ -209,6 +211,10 @@ foam.CLASS({
 
     function dao(daoKey) {
       this.outputDiv.tag(this.DAOPrompt.create({daoKey: daoKey}));
+    },
+
+    function daoCreate(daoKey) {
+      this.outputDiv.tag(this.DAOCreate.create({daoKey: daoKey}));
     },
 
     function describeClass(cls) {
@@ -322,6 +328,7 @@ YYYY-MM-DDTHH:MM
     function help() {
       var self = this;
       this.outputDiv.tag('br');
+      // TODO: store commands in a DAO
       var cmds = [
         [ 'help',     'Display help' ],
         [ 'mqlhelp',  'Display MQL help', true ],
@@ -338,6 +345,7 @@ YYYY-MM-DDTHH:MM
         [ 'flows',    'Display saved flows', true ],
         [ 'cls',      'Clear console output', true ],
         [ 'dao',      'Perform DAO operation' ], // ???: Combine with daos with args?
+        [ 'daoCreate','Add a new object to a DAO' ], // ???: Combine with daos with args?
         [ 'daos',     'Display availabe DAO services', true ],
         [ 'history',  'Display past executed commands', true ],
         [ 'load',     'Load a specified flow' ],
