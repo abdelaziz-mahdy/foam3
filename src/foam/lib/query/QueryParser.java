@@ -6,8 +6,9 @@ import foam.lib.parse.Parser;
 import foam.lib.parse.ParserContext;
 
 public class QueryParser
-  extends foam.lib.parse.ProxyParser {
-  private foam.core.ClassInfo info_;
+  extends foam.lib.parse.ProxyParser
+{
+  protected foam.core.ClassInfo info_;
 
   public QueryParser(foam.core.ClassInfo classInfo) {
     info_ = classInfo;
@@ -18,7 +19,7 @@ public class QueryParser
 
     int i = 0;
     for ( Object prop : properties ) {
-      foam.core.PropertyInfo info = (foam.core.PropertyInfo)prop;
+      foam.core.PropertyInfo info = (foam.core.PropertyInfo) prop;
 
       expressions[i++] = PropertyExpressionParser.create(info);
     }
