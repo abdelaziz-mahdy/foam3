@@ -345,7 +345,8 @@ foam.CLASS({
       view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
-      name: 'select'
+      name: 'select',
+      placeholder: '*'
     },
     {
       name: 'orderChoice',

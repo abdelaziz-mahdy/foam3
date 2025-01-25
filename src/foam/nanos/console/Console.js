@@ -395,7 +395,7 @@ YYYY-MM-DDTHH:MM
             start('td').attr('align', 'left').call(function() {
               if ( ! sdao ) return;
               var of = sdao.of;
-              self.outputLink('+', () => self.eval_('daoCreate("' + n.name + '")'), this);
+              self.outputLink('create', () => self.eval_('daoCreate("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
               if ( ! sdao ) return;
