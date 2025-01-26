@@ -2174,6 +2174,11 @@ foam.CLASS({
   refines: 'foam.core.IDAlias',
   // flags: ['java'],
   properties: [
+    { name: 'type',            factory: function() { return this.targetProperty.type; } },
+    { name: 'javaType',        factory: function() { return this.targetProperty.javaType; } },
+    { name: 'javaJSONParser',  factory: function() { return this.targetProperty.javaJSONParser; } },
+    { name: 'javaQueryParser', factory: function() { return this.targetProperty.javaQueryParser; } },
+    { name: 'javaInfoType',    factory: function() { return this.targetProperty.javaInfoType; } },
     {
       name: 'javaGetter',
       factory: function() {
