@@ -58,6 +58,7 @@ foam.CLASS({
     {
       name: 'data',
       factory: function() {
+        /* ignoreWarning */
         var dao = this.EasyDAO.create({
           of: this.Medal,
           seqNo: true,
