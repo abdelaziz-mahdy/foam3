@@ -7,7 +7,7 @@
 foam.CLASS({
   package: 'foam.nanos.console',
   name: 'DAOCreate',
-  extends: 'foam.u2.View',
+  extends: 'foam.u2.Controller',
 
   implements: [
     'foam.mlang.Expressions'
@@ -54,7 +54,7 @@ foam.CLASS({
       this.addClass();
 
       this.tag(this.DetailView, { data: this.data });
-      this.add(this.SAVE, this.RESET);
+      this.add(this.SAVE, ' ', this.RESET);
     }
   ],
 
