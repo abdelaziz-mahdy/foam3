@@ -220,9 +220,17 @@ foam.CLASS({
 
         if ( getEnableHttp() ) {
           getLogger().info("Starting,HTTP,port", port);
+          
+          // Play nice behind reverse proxies
+          // Respect X-Forwarded-For and X-Forwarded-Proto
+          HttpConfiguration config = new HttpConfiguration();
+          ForwardedRequestCustomizer forwarded = new ForwardedRequestCustomizer();
+          config.addCustomizer(forwarded);
+          config.setSendServerVersion(false);
+
           ServerConnector connector = new ServerConnector(
             server,
-            new HttpConnectionFactory());
+            new HttpConnectionFactory(config));
           connector.setPort(port);
           connector.addBean(stats);
           server.addConnector(connector);
@@ -460,7 +468,8 @@ foam.CLASS({
             keyStore.load(bais, this.getKeystorePassword().toCharArray());
           }
 
-          // Enable https
+          // Play nice behind reverse proxies
+          // Respect X-Forwarded-For and X-Forwarded-Proto
           HttpConfiguration config = new HttpConfiguration();
           ForwardedRequestCustomizer forwarded = new ForwardedRequestCustomizer();
           config.addCustomizer(forwarded);

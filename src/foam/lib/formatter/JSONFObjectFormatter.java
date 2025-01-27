@@ -471,6 +471,11 @@ public class JSONFObjectFormatter
   }
 
   public void output(FObject o, ClassInfo defaultClass, PropertyInfo parentProp) {
+    if ( o == null ) {
+      append("null");
+      return;
+    }
+
     if ( o instanceof foam.lib.json.OutputJSON ) {
       ((foam.lib.json.OutputJSON) o).formatJSON(this);
       return;

@@ -50,6 +50,13 @@ foam.CLASS({
       javaFactory: `return new java.util.ArrayList();`
     },
     {
+      name: 'value',
+      transient: true,
+      getter: function() {
+        return this.array;
+      }
+    },
+    {
       class: 'Class',
       name: 'of'
     },

@@ -12,6 +12,7 @@ const fs_      = require('fs');
 const path_    = require('path');
 const uglify_  = require('uglify-js');
 const zlib_    = require('zlib');
+const { adaptOrCreateArgs, ensureDir } = require("./buildlib");
 
 const licenses = {};
 var version    = '';
@@ -22,7 +23,17 @@ function addLicense(l) {
   licenses[l] = true;
 }
 
+exports.args = [
+  {
+    // Isn't used directly by this Maker, but is used in java/refinements.js
+    name: 'outdir',
+    description: 'location to write foam-bin files, default: {builddir}/js',
+    factory: () => path_.resolve(path_.normalize(X.outdir || (X.builddir + '/js')))
+  }
+];
+
 exports.init = function() {
+  adaptOrCreateArgs(X, exports.args);
   flags.java      = false;
   flags.web       = true;
   flags.loadFiles = true;
@@ -173,11 +184,12 @@ if ( ! foam.flags.skipStage2 ) {
 
   var filename = fn(X.stage);
   console.log('[JS] Writing', filename + '.js');
-  fs_.writeFileSync(filename + '.js', code);
+  ensureDir(X.outdir);
+  fs_.writeFileSync(X.outdir + "/" + filename + '.js', code);
   console.log('[JS] Writing', filename + '.js.gz');
   zlib_.gzip(code, (err, buffer) => {
     if ( ! err ) {
-      fs_.writeFileSync(filename + '.js.gz', buffer);
+      fs_.writeFileSync(X.outdir + "/" + filename + '.js.gz', buffer);
     } else {
       console.error(err);
     }

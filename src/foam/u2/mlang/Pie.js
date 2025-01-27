@@ -8,10 +8,12 @@ foam.CLASS({
   package: 'foam.u2.mlang',
   name: 'Pie',
   extends: 'foam.mlang.sink.GroupBy',
+
   requires: [
     'foam.graphics.DataSource',
-    'foam.graphics.PieGraph',
+    'foam.graphics.PieGraph'
   ],
+
   properties: [
     // TODO: When these defaults are no longer necessary, move these args into
     // their own class and add them as a trait to this model so any new args
@@ -23,7 +25,6 @@ foam.CLASS({
     [ 'width', 150 ],
     [ 'x', 50 ],
     [ 'y', 50 ],
-
     {
       name: 'graph_',
       expression: function(groups) {
@@ -34,9 +35,10 @@ foam.CLASS({
         var p = this.PieGraph.create(this);
         p.seriesValues = seriesValues;
         return p;
-      },
-    },
+      }
+    }
   ],
+
   methods: [
     function toE(_, x) {
       return x.E().add(this.graph_$);

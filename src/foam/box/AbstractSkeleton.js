@@ -56,5 +56,14 @@ return x == null ? getX() : x;`
       args: [ { type: 'Object', name: 'o' } ],
       javaCode: `return ((Number) o).shortValue();`
     }
-  ]
+  ],
+
+  javaCode: `
+    public <T> T[] toArray(Object o, T[] a) {
+      if ( o == null || ! o.getClass().isArray() ) return null;
+
+      Object[] arr = (Object[]) o;
+      return (T[]) java.util.Arrays.copyOf(arr, arr.length, a.getClass());
+    }
+  `
 });

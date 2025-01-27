@@ -4,18 +4,15 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-foam.CLASS({
+foam.RULE_PREDICATE({
   package: 'foam.nanos.ruler.predicate',
   name: 'NewEqOld',
-  extends: 'foam.mlang.predicate.AbstractPredicate',
-  implements: ['foam.core.Serializable'],
 
-  documentation: 'Returns true if NEW_OBJ equals OLD_OBJ.',
+  documentation: 'Returns true if the new and old objects passed to the rule engine are equal.',
 
   javaImports: [
-    'foam.core.FObject',
     'foam.core.PropertyInfo',
-    'static foam.mlang.MLang.*',
+    'java.util.HashSet'
   ],
 
   properties: [
@@ -27,28 +24,21 @@ foam.CLASS({
     }
   ],
 
-  methods: [
-    {
-      name: 'f',
-      javaCode: `
-        FObject nu  = (FObject) NEW_OBJ.f(obj);  
-        FObject old = (FObject) OLD_OBJ.f(obj);
-        if ( old == null ) {
-          return nu == null;
-        }
+  ruleF: `
+    if ( o == null                    ) return n == null;
+    if ( o.getClass() != n.getClass() ) return false;
 
-        // clear ignored properties on NEW and OLD objects before comparing
-        nu  = nu.fclone();
-        old = old.fclone();
-        for ( String propName : getIgnores().split("\\\\s*,\\\\s*") ) {
-          PropertyInfo prop = (PropertyInfo) nu.getClassInfo().getAxiomByName(propName);
-          if ( prop != null ) {
-            prop.clear(nu);
-            prop.clear(old);
-          }
-        }
-        return nu.equals(old);
-      `
+    var clsInfo = n.getClassInfo();
+    var ignores = new HashSet<PropertyInfo>();
+    for ( var propName : getIgnores().split("\\\\s*,\\\\s*") ) {
+      var prop = (PropertyInfo) clsInfo.getAxiomByName(propName);
+      if ( prop != null ) ignores.add(prop);
     }
-  ]
+
+    for ( var prop : clsInfo.getAxiomsByClass(PropertyInfo.class) ) {
+      if ( ignores.contains(prop) ) continue;
+      if ( prop.compare(o, n) != 0 ) return false;
+    }
+    return true;
+  `
 });
