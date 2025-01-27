@@ -187,7 +187,7 @@ foam.CLASS({
 
   methods: [
     function init() {
-      this.onDetach(this.data$.sub(this.filePathsChanged));
+      this.onDetach(this.filePaths$.sub(this.filePathsChanged));
       this.filePathsChanged();
     },
 
@@ -416,8 +416,8 @@ foam.CLASS({
     },
 
     function filePathsChanged() {
-      for ( var i = 0; i < this.data.length; i++ ) {
-        const fileId = this.data[i].replace('/service/file/', '');
+      for ( var i = 0; i < this.filePaths.length; i++ ) {
+        const fileId = this.filePaths[i].replace('/service/file/', '');
         this.maybeUpdateFile(i, fileId);
       }
     }
