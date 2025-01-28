@@ -998,22 +998,22 @@ foam.CLASS({
               pollingInterval: this.pollingInterval,
               pollingProperty: this.pollingProperty
             });
-          }
+          } else {
+            // TTL find cache
+            if ( this.ttlPurgeTime > 0 )  {
+              dao = this.TTLCachingDAO.create({
+                delegate: dao,
+                purgeTime: this.ttlPurgeTime
+              });
+            }
 
-          // TTL find cache
-          if ( this.ttlPurgeTime > 0 )  {
-            dao = this.TTLCachingDAO.create({
-              delegate: dao,
-              purgeTime: this.ttlPurgeTime
-            });
-          }
-
-          // TTL select cache
-          if ( this.ttlSelectPurgeTime > 0 ) {
-            dao = this.TTLSelectCachingDAO.create({
-              delegate: dao,
-              purgeTime: this.ttlSelectPurgeTime
-            });
+            // TTL select cache
+            if ( this.ttlSelectPurgeTime > 0 ) {
+              dao = this.TTLSelectCachingDAO.create({
+                delegate: dao,
+                purgeTime: this.ttlSelectPurgeTime
+              });
+            }
           }
         }
       }
