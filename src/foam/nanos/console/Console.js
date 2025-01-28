@@ -370,6 +370,13 @@ YYYY-MM-DDTHH:MM
         [ 'services', 'Display available services', true ],
         [ 'save',     'Save the current flow to a specified name' ]
       ];
+      var shortcuts = [
+        [ 'ESC',     'Toggle prompt display' ],
+        [ 'Up',  'Previous from history' ],
+        [ 'Down',  'Next from history' ],
+        [ 'CMD + k / CTRL + k',  'Clear console' ],
+        [ 'CTRL + `',  'Focus input' ],
+      ]
       this.outputDiv.start('h3').add('Commands').end().
       start('table').attr('width', '100%').
         forEach(cmds, function(c) {
@@ -386,7 +393,11 @@ YYYY-MM-DDTHH:MM
         br().
         start('h3').add('Keyboard Shortcuts').end().
         start('table').attr('width', '100%').
-          start('tr').start('th').attr('align', 'left').add('ESC').end().start('td').add('Toggle prompt display');
+          forEach(shortcuts, function(c) {
+            this.start('tr').start('th').attr('align', 'left').add(c[0]).end().start('td').add(c[1]);
+          }).
+        end();
+          
 
     },
 
