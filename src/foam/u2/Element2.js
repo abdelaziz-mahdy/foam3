@@ -436,21 +436,16 @@ foam.CLASS({
       factory: function() { return foam.u2.DefaultValidator.create(); }
     },
     {
-      documentation: `Keys which respond to keydown but not keypress`,
-      name: 'KEYPRESS_CODES',
-      value: { 8: true, 13: true, 27: true, 33: true, 34: true, 37: true, 38: true, 39: true, 40: true }
-    },
-    {
       name: 'NAMED_CODES',
       value: {
         '8':   'backspace',
         '13':  'enter',
-        '27':  'esc',
-        '37':  'left',
-        '38':  'up',
-        '39':  'right',
-        '40':  'down',
-        '127': 'del'
+        '27':  'escape',
+        '37':  'arrowleft',
+        '38':  'arrowup',
+        '39':  'arrowright',
+        '40':  'arrowdown',
+        '127': 'delete'
       }
     }
   ],
@@ -683,9 +678,7 @@ foam.CLASS({
       if ( evt.ctrlKey  ) s += 'ctrl-';
       if ( evt.shiftKey && evt.type === 'keydown' ) s += 'shift-';
       if ( evt.metaKey  ) s += 'meta-';
-      s += evt.type === 'keydown' ?
-          this.NAMED_CODES[evt.which] || String.fromCharCode(evt.which) :
-          String.fromCharCode(evt.charCode);
+      s += evt.key.toLowerCase() || this.NAMED_CODES[evt.keyCode];
       return s;
     },
 
@@ -1447,7 +1440,6 @@ foam.CLASS({
           to your $$DOC{ref:'foam.ui.View'}.
       `,
       code: function(evt) {
-        if ( evt.type === 'keydown' && ! this.KEYPRESS_CODES[evt.which] ) return;
         var action = this.keyMap_[this.evtToCharCode(evt)];
         if ( action ) {
           action();

@@ -52,27 +52,35 @@ foam.CLASS({
 
   imports: [ 'flowDAO', 'nSpecDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'eval_', 'modelDAO' ],
+  exports: [ 'eval_', 'modelDAO', 'scrollToBottom' ],
 
   css: `
     ^ {
+      display: flex;
+      flex-direction: column;
       box-shadow: 3px 3px 6px 0 gray;
-      overflow-y: auto;
       width: 100%;
-      height: 90%;
+      height: 100%;
       margin-bottom: 4px;
-      padding-left: 8px;
-      width: 800px;
-      max-height: 800px;
+      padding: 0 8px;
+    }
+    ^input-field {
+      margin-block-end: 0;
+      display: inline-flex;
+      width: 100%;
+      align-items: center;
+      position: sticky;
+      bottom: 0;
+    }
+    ^input-field, ^input-field ^input {
+      background: $grey50;
     }
     ^output {
       font-family: monospace;
       text-align: left;
-    }
-    ^input {
-      padding-right: 20px;
-      display: block;
-      margin-bottom: 12px;
+      align-content: flex-end;
+      flex: 1;
+      overflow: auto;
     }
     ^ .property-input {
       border: none !important;
@@ -89,9 +97,11 @@ foam.CLASS({
     {
       class: 'String',
       name: 'input',
-      view: 'foam.u2.TextField', // Avoids ModeAltView focus() issue
-      width: 105
-//      view: { class: 'foam.u2.tag.TextArea', rows: 2, cols: 80 }
+      view: { 
+        class: 'foam.u2.TextField', // Avoids ModeAltView focus() issue
+        autocomplete: 'off',
+        onKey: true
+      },
     },
     'input_',
     {
@@ -117,6 +127,11 @@ foam.CLASS({
       class: 'Int',
       name: 'historyLength',
       value: 50
+    },
+    {
+      class: 'Int',
+      name: 'historyPosition',
+      value: 0
     },
     {
       name: 'localScope',
@@ -165,16 +180,17 @@ foam.CLASS({
         addClass(this.myClass()).
         start('div', null, this.outputDiv$).addClass(this.myClass('output')).end().
         start('span').
-          style({display: 'inline-flex', float: 'left'}).
-          start('b').style({'margin-top': '6px', 'margin-right': '4px', display: 'flex', 'white-space': 'pre'}).
+          addClass(this.myClass('input-field')).
+          start('b').style({ display: 'flex', 'white-space': 'pre'}).
             start(this.Link).add('help').on('click',    () => self.eval_('help'),    this).end().add(', ').
             start(this.Link).add('history').on('click', () => self.eval_('history'), this).end().add(' >').
           end().
-          start(this.INPUT, null, this.input_$).focus().addClass(this.myClass('input')).end().
+          start(this.INPUT, null, this.input_$).
+          addClass(this.myClass('input')).
+          end().
+          tag(this.ON_INPUT).
         end();
-        /* on('click', this.onClick) causes issues with embedded views that need focus */
-
-       this.input$.sub(this.onInput);
+        this.setTimeout(this.focusInput.bind(this), 500);
     },
 
     function log(...args) {
@@ -186,7 +202,7 @@ foam.CLASS({
 
     function scrollToBottom() {
       if ( this.U3 ) {
-        this.element_.scrollTop = this.element_.scrollHeight;
+        this.outputDiv.element_.scrollTop = this.outputDiv.element_.scrollHeight;
       }
     },
 
@@ -400,7 +416,7 @@ YYYY-MM-DDTHH:MM
               self.outputLink('create', () => self.eval_('daoCreate("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
-              if ( ! sdao ) return;
+              if ( ! sdao || ! sdao.of ) return;
               var of = sdao.of;
               self.outputLink(of.id, () => self.eval_('describe(' + of.id + ')'), this);
             }).end().
@@ -413,12 +429,14 @@ YYYY-MM-DDTHH:MM
     async function eval_(cmd) {
       var self = this;
       cmd = cmd.trim();
+      this.clearProperty('historyPosition');
       if ( ! cmd ) return;
       this.addHistory(cmd);
       this.outputDiv.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
 
       with ( this.scope || {} ) {
         with ( this.localScope ) {
+          let scope = { ...(this.scope || {} ), ...this.localScope };
           var r, arg
           try {
             r = eval(cmd);
@@ -427,7 +445,9 @@ YYYY-MM-DDTHH:MM
             if ( i != -1 ) {
               arg = cmd.substring(i+1);
               cmd = cmd.substring(0,i);
-              r = this.localScope[cmd];
+              r = scope[cmd];
+            } else {
+              r = scope[cmd];
             }
           }
           if ( typeof r === 'function' ) {
@@ -440,6 +460,7 @@ YYYY-MM-DDTHH:MM
       }
 
       this.log(r);
+      this.input_.focus();
       // TODO: this is a bit hackish, do some better way.
       this.setTimeout(this.scrollToBottom.bind(this), 60);
 
@@ -448,18 +469,55 @@ YYYY-MM-DDTHH:MM
 
   actions: [
     {
+      name: 'focusInput',
+      code: function() { this.input_.focus(); },
+      keyboardShortcuts: [ 'ctrl-`' ]
+    },
+    {
       name: 'togglePrompts',
       code: function() { this.showPrompts = ! this.showPrompts; },
-      keyboardShortcuts: [ 'esc' ]
+      keyboardShortcuts: [ 'escape' ]
+    },
+    {
+      name: 'stepUpHistory',
+      code: function() { 
+        this.historyPosition = foam.Number.clamp(0, this.historyPosition+1, this.history_.length);
+        this.input = this.history_[this.history_.length - this.historyPosition] ?? '';
+      },
+      keyboardShortcuts: [ 'arrowup' ]
+    },
+    {
+      name: 'stepDownHistory',
+      code: function() { 
+        this.historyPosition--;
+        this.input = this.history_[this.history_.length - this.historyPosition] ?? '';
+      },
+      keyboardShortcuts: [ 'arrowdown' ]
+    },
+    {
+      name: 'onInput',
+      label: '',
+      themeIcon: 'next',
+      size: 'SMALL',
+      buttonStyle: 'TEXT',
+      code: function() { 
+        var input = this.input;
+        this.input = '';
+        this.eval_(input);
+      },
+      keyboardShortcuts: [ 'enter' ]
+    },
+    {
+      name: 'clear',
+      code: function() { 
+        this.cls();
+        this.focusInput();
+      },
+      keyboardShortcuts: [ 'meta-k', 'ctrl-k' ]
     }
   ],
 
   listeners: [
-    function onInput() {
-      var input = this.input;
-      this.input = '';
-      this.eval_(input);
-    },
     {
       name: 'onClick',
       // TODO: introduce a merge delay so that cut&paste still works
