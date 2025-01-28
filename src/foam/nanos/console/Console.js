@@ -41,6 +41,7 @@ foam.CLASS({
 
   requires: [
     'foam.nanos.console.Link',
+    'foam.nanos.console.DAOCreate',
     'foam.nanos.console.DAOPrompt',
     'foam.nanos.console.DocumentReadWriteView',
     'foam.dao.ArrayDAO',
@@ -139,11 +140,12 @@ foam.CLASS({
           mqlhelp:  this.mqlHelp.bind(this),
           help:     this.help.bind(this),
           dao:      this.dao.bind(this),
+          daoCreate:this.daoCreate.bind(this),
           this:     this,
           cls:      this.cls.bind(this),
           daos:     this.services.bind(this, this.NSpec.SERVED_DAOS),
           services: this.services.bind(this, this.NSpec.SERVED_SERVICES),
-          output:   this.output
+          output:   this.outputDiv
         };
       }
     }
@@ -211,6 +213,10 @@ foam.CLASS({
       this.outputDiv.tag(this.DAOPrompt.create({daoKey: daoKey}));
     },
 
+    function daoCreate(daoKey) {
+      this.outputDiv.tag(this.DAOCreate.create({daoKey: daoKey}));
+    },
+
     function describeClass(cls) {
       if ( foam.String.isInstance(cls) ) {
         cls = foam.lookup(cls);
@@ -247,8 +253,10 @@ foam.CLASS({
       this.outputDiv.removeAllChildren();
     },
 
-    function history() {
+    function history(q) {
+      if ( q ) q = q.toLowerCase();
       this.history_.forEach(h => {
+        if ( q != undefined && h.toLowerCase().indexOf(q) == -1 ) return;
         this.outputDiv.tag('br');
         this.outputLink(h, () => this.eval_(h));
       });
@@ -322,6 +330,7 @@ YYYY-MM-DDTHH:MM
     function help() {
       var self = this;
       this.outputDiv.tag('br');
+      // TODO: store commands in a DAO
       var cmds = [
         [ 'help',     'Display help' ],
         [ 'mqlhelp',  'Display MQL help', true ],
@@ -338,6 +347,7 @@ YYYY-MM-DDTHH:MM
         [ 'flows',    'Display saved flows', true ],
         [ 'cls',      'Clear console output', true ],
         [ 'dao',      'Perform DAO operation' ], // ???: Combine with daos with args?
+        [ 'daoCreate','Add a new object to a DAO' ], // ???: Combine with daos with args?
         [ 'daos',     'Display availabe DAO services', true ],
         [ 'history',  'Display past executed commands', true ],
         [ 'load',     'Load a specified flow' ],
@@ -364,6 +374,7 @@ YYYY-MM-DDTHH:MM
 
     },
 
+    // TODO: break into two different function
     async function services(opt_query, opt_nameQuery) {
       var dao = this.nSpecDAO.where(this.EQ(this.NSpec.SERVE, this.True));
       if ( opt_query ) dao = dao.where(opt_query);
@@ -382,6 +393,11 @@ YYYY-MM-DDTHH:MM
                 this.add(n.name);
                 sdao = undefined;
               }
+            }).end().
+            start('td').attr('align', 'left').call(function() {
+              if ( ! sdao ) return;
+              var of = sdao.of;
+              self.outputLink('create', () => self.eval_('daoCreate("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
               if ( ! sdao ) return;

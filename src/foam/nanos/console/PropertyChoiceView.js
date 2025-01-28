@@ -21,7 +21,7 @@ foam.CLASS({
         var choices = [ ];
         if ( this.allowEmptyChoice ) choices.push('--');
         this.of.getAxiomsByClass(foam.core.Property).forEach(p => {
-          if ( p.hidden ) return;
+          if ( p.hidden || p.networkTransient ) return;
           choices.push(p.name);
           choices.push('-' + p.name);
         });

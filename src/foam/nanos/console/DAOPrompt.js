@@ -4,233 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'AbstractDAOAgent',
-
-  implements: [
-    'foam.mlang.Expressions'
-  ],
-
-  properties: [
-    'dao',
-    'unlimitedDAO',
-    {
-      name: 'of',
-      factory: function() { return this.dao.of; }
-    }
-  ],
-
-  methods: [
-    function addConfigToE() {},
-    function execute() { }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'CountDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      return this.dao.select(this.COUNT()).then(c => {
-        e.start('b').add('Count: ').end().add(c.value).br();
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'ScrollTableDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      e.tag({class: 'foam.u2.table.TableView', data: this.unlimitedDAO});
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'TableDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      return this.dao.select(foam.u2.mlang.Table.create({}, this)).then(t => {
-        e.add(t);
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'CSVDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  requires: [ 'foam.dao.CSVSink' ],
-
-  methods: [
-    function execute(e) {
-      var csv = this.CSVSink.create({of: this.of});
-      return this.dao.select(csv).then(c => {
-        e.start('pre').add(c.csv);
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'XMLDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      return this.dao.select().then(a => {
-        e.start('pre').add(foam.xml.Pretty.stringify(a.array));
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'JSONDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      return this.dao.select().then(a => {
-        e.start('pre').add(foam.json.Pretty.stringify(a.array));
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'ViewDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      e = e.startContext({controllerMode: foam.u2.ControllerMode.VIEW});
-      return this.dao.select(o => e.add(o));
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'EditDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      return this.dao.select(o => {
-        var data = foam.comics.DAOUpdateController.create({data: o, dao: this.dao}, this);
-        e.tag({class: 'foam.comics.DAOUpdateControllerView', controllerMode: foam.u2.ControllerMode.EDIT, detailView: 'foam.u2.DetailView', dao: this.dao, data: data });
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'ControllerDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  methods: [
-    function execute(e) {
-      return this.dao.select(o => {
-        e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'CitationDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  requires: [ 'foam.u2.CitationView' ],
-
-  methods: [
-    function execute(e) {
-      return this.dao.select(o => e.tag(this.CitationView, {data: o}));
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'CellsDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  requires: [ 'foam.demos.sevenguis.Cells' ],
-
-  methods: [
-    function execute(e) {
-      var ps  = this.of.getAxiomsByClass(foam.core.Property).
-          filter(p => ! p.networkTransient && ! p.hidden);
-      var cs  = {};
-      var row = 1;
-      for ( var i = 0 ; i < ps.length ; i++ ) {
-        cs[String.fromCharCode(65+i) + 0] = '<b>' + ps[i].label + '</b';
-      }
-      this.dao.select(o => {
-        for ( var i = 0 ; i < ps.length ; i++ ) {
-          cs[String.fromCharCode(65+i) + row] = ps[i].get(o);
-        }
-        row++;
-      }).then(() => {
-        var cells = this.Cells.create({rows: row+2, columns: ps.length+2}, this);
-        cells.loadCells(cs);
-        e.tag(cells);
-      });
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.nanos.console',
-  name: 'AllDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
-
-  requires: [ 'foam.u2.CitationView' ],
-
-  methods: [
-    function execute(e) {
-      foam.nanos.console.DAOPrompt.AGENTS.forEach(a => {
-        a = a[0];
-        if ( a == 'All' ) return;
-
-        var cls = foam.lookup(this.cls_.package + '.' + a + 'DAOAgent');
-        var agent = cls.create({dao: this.dao, unlimitedDAO: this.unlimitedDAO});
-        e.start('h2').add(a).end().start().call(function () { agent.execute(this); });
-      });
-    }
-  ]
-});
-
 
 foam.CLASS({
   package: 'foam.nanos.console',
@@ -244,10 +17,11 @@ foam.CLASS({
   requires: [
     'foam.nanos.console.Link',
     'foam.parse.QueryParser',
-    'foam.u2.DetailView'
+    'foam.u2.DetailView',
+    'foam.u2.tag.CircleIndicator'
   ],
 
-  imports: [ 'eval_' ],
+  imports: [ 'eval_', 'setTimeout' ],
 
   css: `
     ^ .foam-u2-TextInputCSS {
@@ -258,40 +32,9 @@ foam.CLASS({
       width: 130px;
     }
     ^ .property-skip { display: inline-flex; }
+    ^helper-icon svg { fill: currentColor; }
+    ^helper-icon { vertical-align: sub; }
   `,
-
-  constants: {
-    AGENTS: [
-      // Value  Label
-      [ 'CSV', 'CSV' ],
-      [ 'XML', 'XML' ],
-      [ 'JSON', 'JSON' ],
-      [ 'Citation', 'Citation' ],
-      [ 'View', 'View' ],
-      [ 'Edit', 'Edit' ],
-      [ 'Controller', 'Controller' ],
-      [ 'Table', 'Table' ],
-      [ 'ScrollTable', 'ScrollTable' ],
-      [ 'Cells', 'Cells' ],
-      [ 'Count', 'COUNT' ],
-      [ 'All', 'All' ]
-    ]
-        /*
-        'CONTROLLER',
-        'GROUP_BY',
-        'GRID_BY',
-        'PIE',
-        'SEQUENCE',
-        'TEMPLATE',
-        'FUNCTION',
-        'JS',
-        'TREE'
-        'Cost'
-        // A..Z Grid
-        // PROJECTION ? Same as Sequence?
-        // Array (store in variable?
-        */
-  },
 
   properties: [
     {
@@ -342,9 +85,6 @@ foam.CLASS({
       view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
-      name: 'select'
-    },
-    {
       name: 'orderChoice',
       view: function(_, X) {
         return {
@@ -364,8 +104,13 @@ foam.CLASS({
       view: function(_, X) {
         var choices = [ '--' ];
         X.data.dao.of.getAxiomsByClass(foam.core.Property).forEach(p => {
-          if ( p.hidden ) return;
-          choices.push(p.name);
+          if ( p.hidden || p.networkTransient ) return;
+          if ( foam.core.Boolean.isInstance(p) ) {
+            choices.push('is:'  + p.name);
+            choices.push('-is:' + p.name);
+          } else {
+            choices.push(p.name);
+          }
         });
         return { class: 'foam.u2.view.ChoiceView', choices: choices };
       },
@@ -391,12 +136,14 @@ foam.CLASS({
       }
     },
     {
-      name: 'selectChoice',
-      factory: function() { return this.AGENTS[0][0]; },
-      view: function(_, X) { return { class: 'foam.u2.view.ChoiceView', choices: X.data.AGENTS }; }
+      name: 'select',
+      view: function(_, X) {
+        return { class: 'foam.nanos.console.SinkView', dao: X.data.dao };
+      }
     },
     'content',
     'rowCount',
+    { name: 'executionTime', value: '-' },
     { class: 'Boolean', name: 'hasRun' }
   ],
 
@@ -413,15 +160,23 @@ foam.CLASS({
         start('blockquote').style({'margin-top': '0', 'margin-left': '20px'}).
         add('skip(',    this.SKIP,  ').').br().
         add('limit(',   this.LIMIT, ').').br().
-        add('where(').start(this.WHERE_CHOICE).style({'display': 'inline-flex'}).end().add(' ', this.WHERE, ' ').start(this.PROPERTY_CHOICE).style({'display': 'inline-flex'}).end().add(').').br().
+        add('where(').
+        start(this.WHERE_CHOICE).
+          style({'display': 'inline-flex'}).
+        end().
+        add(' ', this.WHERE, ' ').
+        start(this.PROPERTY_CHOICE).style({'display': 'inline-flex'}).end().
+        add('). ').
+        start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).addClass(this.myClass('helper-icon')).on('click', () => this.eval_('mqlhelp')).end().
+        br().
         add('orderBy(', this.ORDER, ' ').start(this.ORDER_CHOICE).style({'display': 'inline-flex'}).end().add(').').br().
-        add('select(').start(this.SELECT_CHOICE).style({'display': 'inline-flex'}).end().add(' ',  this.SELECT, ')').
+        add('select(').add(this.SELECT, ')').
       end().
       add(this.RUN, ' ', this.CLEAR).br().
       start().
         style({'padding-top': '10px'}).
         // show(this.rowCount$.map(c=>c !== undefined)).
-        add('Count: ', this.rowCount$).
+        add('Count: ', this.rowCount$, ', Execution time: ', this.executionTime$).
       end().br().
       start('div', {}, this.content$).end().br();
     }
@@ -439,7 +194,17 @@ foam.CLASS({
         if ( this.whereChoice && typeof this.whereChoice != 'string' ) {
           dao = dao.where(this.whereChoice);
         }
-        if ( this.where ) dao = dao.where(this.MQL(this.where));
+
+        // Version which compiles on the Server
+        // if ( this.where ) dao = dao.where(this.MQL(this.where));
+
+        // Version which compiles on the Client
+        if ( this.where) {
+          var p = this.QueryParser.create({of: dao.of}).parseString(this.where);
+          dao = dao.where(p);
+          // TODO: display syntax error if didn't parse
+        }
+
         if ( this.skip  ) dao = dao.skip(this.skip);
         if ( this.order ) {
           // TODO: Move this logic somewhere more reusable (to QueryParser maybe?)
@@ -468,11 +233,20 @@ foam.CLASS({
         var unlimitedDAO = dao;
         if ( this.limit ) dao = dao.limit(this.limit);
         var cls   = foam.lookup(this.cls_.package + '.' + this.selectChoice + 'DAOAgent');
-        var agent = cls.create({dao: dao, unlimitedDAO: unlimitedDAO});
-        var out   = this.content.start();
+        var agent = this.select;
+        agent.dao          = dao;
+        agent.unlimitedDAO = unlimitedDAO;
+
+        var out       = this.content.start().style({display: 'none'});
+        var startTime = Date.now();
         await agent.execute(out);
-        this.previousOutput?.remove();
-        this.previousOutput = out;
+        this.executionTime = foam.core.Duration.duration(Date.now() - startTime);
+
+        this.setTimeout(() => {
+          this.previousOutput?.remove();
+          this.previousOutput = out;
+          out.style({display: 'block'});
+        }, 17)
       }
     },
     function clear() {

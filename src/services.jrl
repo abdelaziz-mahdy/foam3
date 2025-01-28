@@ -160,13 +160,13 @@ p({
       .setOf(foam.nanos.export.ExportDriverRegistry.getOwnClassInfo())
       .build();
   """,
-  "client":"{\"of\":\"foam.nanos.export.ExportDriverRegistry\"}"
+  "client":"""{"of":"foam.nanos.export.ExportDriverRegistry","cache":true,"ttlSelectPurgeTime":0,"ttlPurgeTime":0}"""
 })
 
 p({
   "class": "foam.nanos.boot.NSpec",
-  "name" :"menuDAO",
-  "serve" :true,
+  "name": "menuDAO",
+  "serve": true,
   "authenticate": false,
   "serviceScript":
   """
@@ -194,9 +194,9 @@ p({
           "name": "label"
         }
       ],
+      "cache": true,
       "ttlSelectPurgeTime": 0,
-      "ttlPurgeTime": 0,
-      "cache": true
+      "ttlPurgeTime": 0
     }
   """
 })

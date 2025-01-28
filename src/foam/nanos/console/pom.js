@@ -5,6 +5,9 @@ foam.POM({
     { name: "Link",                   flags: "js" },
     { name: "PropertyChoiceView",     flags: "js" },
     { name: "Console",                flags: "js" },
+    { name: "DAOCreate",              flags: "js" },
+    { name: "AbstractDAOAgent",       flags: "js" },
+    { name: "SinkView",               flags: "js" },
     { name: "DAOPrompt",              flags: "js" },
     { name: "DocumentReadWriteView",  flags: "js" },
     { name: 'ConsoleZACClient',       flags: 'js' }

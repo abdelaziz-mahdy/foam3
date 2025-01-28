@@ -1169,7 +1169,6 @@ foam.POM({
     { name: "foam/nanos/fs/TempFileDAO",                              flags: "js|java" },
     { name: "foam/nanos/dig/FieldNameMapGrammar",                     flags: "js|java" },
     { name: "foam/lib/query/TestModel",                               flags: "js|java" },
-    { name: "foam/lib/query/FooEnum",                                 flags: "js|java" },
     { name: "foam/nanos/ruler/RulerData",                             flags: "js|java" },
     { name: "foam/nanos/actioncommand/ActionCommandDAO",              flags: "js|java" },
     { name: "foam/nanos/audit/AuditDAO",                              flags: "js|java" },

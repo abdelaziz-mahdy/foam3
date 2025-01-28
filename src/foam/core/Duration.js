@@ -24,7 +24,8 @@ foam.CLASS({
       code: function(value, precision = 2, useShort = true) {
         var negative = value < 0;
         value = Math.abs(value);
-        var ts = ctrl.__subContext__.translationService;
+        // TODO: it is wrong to use 'ctrl' which may not exist
+        var ts = ctrl?.__subContext__?.translationService || { getTranslation: function(_, _, s) { return s; } };
         var values = [];
         // precision should be atleast one
         precision < 1 && ( precision = 1 );

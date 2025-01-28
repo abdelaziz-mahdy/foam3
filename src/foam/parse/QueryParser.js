@@ -259,7 +259,7 @@ foam.CLASS({
         }
 
         fields.sort(function(a, b) {
-          var d = b.length - a.length;
+          var d = b.lower.length - a.lower.length;
           if ( d !== 0 ) return d;
           if ( a.lower === b.lower ) return 0;
           return a.lower < b.lower ? 1 : -1;

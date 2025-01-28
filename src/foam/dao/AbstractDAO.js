@@ -226,10 +226,8 @@ throw new UnsupportedOperationException();
     {
       name: 'listen',
       code: function(sink) {
-        if ( ! foam.core.FObject.isInstance(sink) ) {
-          sink = foam.dao.AnonymousSink.create({ sink: sink }, this);
-        }
-        return this.listen_(this.__context__, sink, undefined);
+        if ( ! sink ) return;
+        return this.listen_(this.__context__, this.prepareSink_(sink), undefined);
       },
       swiftCode: 'return try listen_(__context__, sink)',
       javaCode: 'this.listen_(this.getX(), sink, predicate);',
@@ -449,21 +447,22 @@ this.removeAll_(this.getX(), 0, this.MAX_SAFE_INTEGER, null, null);
     function prepareSink_(sink) {
       if ( ! sink ) return foam.dao.ArraySink.create();
 
-      if ( foam.Function.isInstance(sink) )
+      if ( foam.Function.isInstance(sink) ) {
         sink = {
           put: sink,
           eof: function() {}
         };
-      else if ( sink == console || sink == console.log )
+      } else if ( sink == console || sink == console.log ) {
         sink = {
           put: function(o) { console.log(o, foam.json.Pretty.stringify(o)); },
           eof: function() {}
         };
-      else if ( sink == globalThis.document )
+      } else if ( sink == globalThis.document ) {
         sink = {
           put: function(o) { foam.u2.DetailView.create({data: o}).write(document); },
           eof: function() {}
         };
+      }
 
       if ( ! foam.core.FObject.isInstance(sink) ) {
         sink = foam.dao.AnonymousSink.create({ sink: sink });

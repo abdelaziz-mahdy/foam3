@@ -141,7 +141,6 @@ foam.CLASS({
       type: 'foam.nanos.app.AppConfig',
       async: true,
       javaCode: `
-        Logger logger = Loggers.logger(x, this);
         return (foam.nanos.app.AppConfig) x.get("appConfig");
       `
     },
@@ -170,6 +169,7 @@ foam.CLASS({
            * Suppress auth exceptions as it is normal to request and
            * not find a subject for a new session
           */
+          // foam.nanos.logger.Loggers.logger(x, this).warning("Subject not found", e);
           return null;
         }
       `
