@@ -2,7 +2,7 @@ p({
   "class": "foam.nanos.boot.NSpec",
   "name": "helloWorld",
   "authenticate": false,
-  "lazyClient": false,
+  "lazyClient": true,
   "serve": true,
   "client":"""{"class":"foamdev.demo.zac.HelloWorld"}"""
 })

@@ -41,7 +41,7 @@ PORTING U2 to U3:
   - remove entity() support
   - remove addBefore()
   - remove insertAt_()
-  - remove insertBefore()
+  - remove insertBefore() (put back)
   - remove insertAfter()
   - remove slotE_()
   - remove initTooltip
@@ -156,8 +156,6 @@ foam.CLASS({
         var update_ = val => {
           var n;
 
-          if ( foam.core.Slot.isInstance(val) ) { console.warn('Unexpected Slot in update.'); }
-
           if ( val === undefined || val === null ) {
             n = foam.u2.Text.create({}, this);
           } else if ( this.isLiteral(val) ) {
@@ -167,6 +165,8 @@ foam.CLASS({
           } else if ( foam.Array.isInstance(val) ) {
             n = foam.u2.Element.create({nodeName:'span'}, this);
             n.add.apply(n, val);
+          } else if ( foam.core.Slot.isInstance(val) ) {
+            n = this.cls_.create({ slot: val });
           } else if ( val.then ) {
             val.then(n => update_(n));
             return;
@@ -540,7 +540,7 @@ foam.CLASS({
       class: 'String',
       name: 'namespace',
       factory: function() {
-        return this.__context__['namespace'] || this.nodeName === 'svg' ? 'http://www.w3.org/2000/svg' : '';
+        return this.__context__['namespace'] || (this.nodeName === 'svg' ? 'http://www.w3.org/2000/svg' : '');
       }
     },
     {
@@ -975,7 +975,6 @@ foam.CLASS({
         if ( cs[i] === oldE ) {
           cs[i] = newE;
           newE.parentNode = this;
-          debugger;
           oldE.element_.parentNode.replaceChild(oldE.element_, newE.element_);
 //          oldE.element_.outerHTML = '<' + this.nodeName + '></' + this.nodeName + '>';
           newE.load && newE.load();
@@ -1319,15 +1318,6 @@ foam.CLASS({
       return this;
     },
 
-    // function addBefore(reference) { /*, vargs */
-    //   /* Add a variable number of children before the reference element. */
-    //   var children = [];
-    //   for ( var i = 1 ; i < arguments.length ; i++ ) {
-    //     children.push(arguments[i]);
-    //   }
-    //   return this.insertAt_(children, reference, true);
-    // },
-
     function setChildren(slot) {
       this.removeAllChildren();
       this.add(slot);
@@ -1388,38 +1378,18 @@ foam.CLASS({
       return this.cls_.id + '(id=' + this.id + ', nodeName=' + this.nodeName + ')';
     },
 
-    // function insertAt_(children, reference, before) {
-    //   // (Element[], Element, Boolean)
-    //
-    //   var i = this.childNodes.indexOf(reference);
-    //
-    //   if ( i === -1 ) {
-    //     this.__context__.warn("Reference node isn't a child of this.");
-    //     return this;
-    //   }
-    //
-    //   if ( ! Array.isArray(children) ) children = [ children ];
-    //
-    //   var Y = this.__subSubContext__;
-    //   children = children.map(e => {
-    //     e = e.toE ? e.toE(null, Y) : e;
-    //     e.parentNode = this;
-    //     return e;
-    //   });
-    //
-    //   var index = before ? i : (i + 1);
-    //   this.childNodes.splice.apply(this.childNodes, [index, 0].concat(children));
-    //
-    //   /*
-    //   this.state.onInsertChildren.call(
-    //     this,
-    //     children,
-    //     reference,
-    //     before ? 'beforebegin' : 'afterend');
-    //     */
-    //
-    //   return this;
-    // },
+    function insertBefore(e, reference) {
+      /* Add a single element before another reference element. */
+      var i = this.childNodes.indexOf(reference);
+      if ( i == -1 ) return this;
+      e = e.toE ? e.toE(null, this.__subSubContext__) : e;
+      e.parentNode = this;
+      this.childNodes.splice(i, 0, e);
+      this.element_.insertBefore(e.element_, reference.element_);
+      e?.load();
+
+      return this;
+    },
 
     function addClass_(oldClass, newClass) {
       /* Replace oldClass with newClass. Called by cls(). */

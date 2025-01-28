@@ -481,9 +481,8 @@ foam.CLASS({
       javaFactory: `
       if ( foam.nanos.auth.Authorizable.class.isAssignableFrom(getOf().getObjClass()) ) {
         return new foam.nanos.auth.AuthorizableAuthorizer(getPermissionPrefix());
-      } else {
-        return new foam.nanos.auth.StandardAuthorizer(getPermissionPrefix());
       }
+      return new foam.nanos.auth.StandardAuthorizer(getPermissionPrefix());
       `
     },
     {
@@ -984,10 +983,12 @@ foam.CLASS({
 
             var cache = this.mdao;
             if ( this.dedup ) cache = this.DeDupDAO.create({delegate: cache});
-            if ( Array.isArray(this.order) && this.order.length > 0 ) cache = this.OrderedDAO.create({
-              delegate: cache,
-              comparator: foam.compare.toCompare(this.order)
-            });
+            if ( Array.isArray(this.order) && this.order.length > 0 ) {
+              cache = this.OrderedDAO.create({
+                delegate: cache,
+                comparator: foam.compare.toCompare(this.order)
+              });
+            }
 
             // Full cache
             dao = this.CachingDAO.create({

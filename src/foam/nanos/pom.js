@@ -19,15 +19,16 @@ foam.POM({
     `
   ],
   projects: [
-    { name: "app/pom"},
-    { name: "crunch/pom"},
-    { name: "er/pom"},
-    { name: "jetty/pom"},
-    { name: "pii/pom"},
-    { name: "place/pom"},
+    { name: "app/pom" },
+    { name: "crunch/pom" },
+    { name: "er/pom" },
+    { name: "jetty/pom" },
+    { name: "medusa/pom" },
+    { name: "place/pom" },
     { name: "referral/pom" },
-    { name: "ruler/pom"},
-    { name: "so/pom"},
+    { name: "ruler/pom" },
+    { name: "so/pom" },
+    { name: "console/pom" }
   ],
   files: [
     { name: "client/ClientBuilder",                                                       flags: "js" },
@@ -615,6 +616,7 @@ foam.POM({
     { name: "ruler/predicate/ContextContainsPredicate",                                   flags: "js|java" },
     { name: "ruler/predicate/FScriptRulePredicate",                                       flags: "js|java" },
     { name: "ruler/predicate/PropertyIsSetPredicate",                                     flags: "js|java" },
+    { name: "ruler/predicate/ApprovalReputPredicate",                                     flags: "js|java" },
     { name: "ruler/action/AbstractCheckDAOforMatching",                                   flags: "js|java" },
     { name: "ruler/action/ChangePropertyAction",                                          flags: "js|java" },
     { name: "test/EchoService",                                                           flags: "js|java" },

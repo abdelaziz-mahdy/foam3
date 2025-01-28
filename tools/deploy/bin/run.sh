@@ -5,7 +5,7 @@ HOST_NAME=`hostname -s`
 APP_HOME=$(dirname $(dirname $0))
 APP_ROOT=$(echo $APP_HOME | cut -d "/" -f2)
 APP_NAME=$(echo $APP_HOME | cut -d "/" -f3)
-WEB_PORT=8080
+WEB_PORT=
 export DEBUG=0
 export DEBUG_SUSPEND=n
 export DEBUG_PORT=8000
@@ -27,7 +27,7 @@ function usage {
     echo "  -p                  : Profiling enabled, default 8849"
     echo "  -R path             : Application root path, default /opt"
     echo "  -s                  : Debug enabled, suspend on launch"
-    echo "  -W port             : HTTP Port (default 8080)"
+    echo "  -W port             : HTTP Port (defaults to http:8080 | https:8443)"
     echo "  -V version          : Version"
 }
 
@@ -51,7 +51,9 @@ while getopts "D:dH:mN:P:pR:sW:V:" opt ; do
         R) APP_ROOT=${OPTARG};;
         s) DEBUG=1;
            DEBUG_SUSPEND=y;;
-        W) WEB_PORT=${OPTARG};;
+        W) if [ -n ${OPTARG} ] && [ ${OPTARG} -ne 0 ]; then
+               WEB_PORT=${OPTARG}
+           fi;;
         V) VERSION=${OPTARG};;
         ?) usage ; exit 0 ;;
    esac

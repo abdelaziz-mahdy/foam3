@@ -111,6 +111,9 @@ foam.CLASS({
         %>getMessageX(message)<%
       } else if ( foam.core.AbstractEnum.isSubClass(this.__context__.maybeLookup(m.args[j].type)) ) {
         %>rpc.getArgs() != null && rpc.getArgs().length > <%= j %> ? (<%= m.args[j].javaType %>) rpc.getArgs()[<%= j %>] : null<%
+      } else if ( m.args[j].javaType?.endsWith('[]') ) {
+        const arrType = m.args[j].javaType.substring(0, m.args[j].javaType.indexOf('[]'));
+        %>toArray((rpc.getArgs() != null && rpc.getArgs().length > <%= j %> ? rpc.getArgs()[<%= j %>] : null), new <%= arrType %>[0])<%
       } else {
         if ( {byte: 1, double: 1, float: 1, int: 1, long: 1, short: 1 }[m.args[j].javaType] ) {
           %>to<%= m.args[j].javaType %><%

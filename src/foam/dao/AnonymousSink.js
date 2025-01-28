@@ -9,6 +9,12 @@ foam.CLASS({
   name: 'AnonymousSink',
   implements: [ 'foam.dao.Sink' ],
 
+  documentation: `
+    A Sink which takes a JS map/object which might only contain some of the Sink methods.
+    Can be used to implement only part of the Sink interface.
+    Predates AbstractSink and is similar to AnonymousSink.
+  `,
+
   axioms: [
     {
       class: 'foam.box.Remote',
@@ -19,24 +25,10 @@ foam.CLASS({
   properties: [ 'sink' ],
 
   methods: [
-    function put(obj, sub) {
-      var s = this.sink;
-      s && s.put && s.put(obj, sub);
-    },
-    function remove(obj, sub) {
-      var s = this.sink;
-      s && s.remove && s.remove(obj, sub);
-    },
-    function eof() {
-      var s = this.sink;
-      s && s.eof && s.eof();
-    },
-    function reset(sub) {
-      var s = this.sink;
-      s && s.reset && s.reset(sub);
-    },
-    function toE() {
-      return '';
-    }
+    function put(obj, sub) { this.sink?.put?.(obj, sub); },
+    function remove(obj, sub) { this.sink.remove?.(obj, sub); },
+    function eof() { this.sink?.eof?.(); },
+    function reset(sub) { this.sink?.reset?.(sub); },
+    function toE() { return ''; }
   ]
 });

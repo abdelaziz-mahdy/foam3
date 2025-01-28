@@ -3,7 +3,7 @@ NAME=
 VESION=
 USER=foam
 USER_ID=3626
-WEB_PORT=8080
+WEB_PORT=
 FOAM_TARBALL=
 FOAM_REMOTE_OUTPUT=/tmp
 INSTALL_ONLY=0
@@ -127,7 +127,11 @@ if [ $INSTALL_ONLY -eq 0 ]; then
     fi
 fi
 
-ssh ${SSH_KEY_OPT} ${REMOTE} "sudo bash -s -- -T${FOAM_REMOTE_OUTPUT}/${FOAM_TARBALL} -C${CLUSTER} -B${BACKUP} -N${NAME} -V${VERSION} -U${USER} -Y${USER_ID} -W${WEB_PORT}" < ./foam3/tools/deploy/bin/install.sh
+OPT_ARGS="-C${CLUSTER} -B${BACKUP} -N${NAME} -V${VERSION} -U${USER} -Y${USER_ID}";
+if [ -n "${WEB_PORT}" ]; then
+    OPT_ARGS += " -W${WEB_PORT}"
+fi
+ssh ${SSH_KEY_OPT} ${REMOTE} "sudo bash -s -- -T${FOAM_REMOTE_OUTPUT}/${FOAM_TARBALL} ${OPT_ARGS}" < ./foam3/tools/deploy/bin/install.sh
 
 if [ ! $? -eq 0 ]; then
     quit;

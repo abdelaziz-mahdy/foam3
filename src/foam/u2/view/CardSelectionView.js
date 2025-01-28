@@ -107,7 +107,7 @@ foam.CLASS({
                     selection = choice;
                 }
 
-                return self.E()
+                return self.E().style({ display: 'content' })
                   .addClass(self.myClass('innerFlexer'))
                   .style({
                     'width': self.isVertical ? '100%' : `${100 / self.numCols}%`

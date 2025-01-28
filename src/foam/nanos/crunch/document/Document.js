@@ -31,14 +31,7 @@ foam.CLASS({
   sections: [
     {
       name: 'documentUploadSection',
-      title: 'Document Upload',
-      subTitle: function(evaluateMessage) {
-        let capDescription = this.translationService.getTranslation(foam.locale, `${this.capability.id}.description`, this.capability.description);
-        return capDescription ? capDescription : evaluateMessage(this.DOC_UPLOAD_SECTION);
-      },
-      help: function(capability) {
-        return `${this.SECTION_HELP_MSG} ${capability.name}`;
-      }
+      title: ''
     }
   ],
 
@@ -49,8 +42,11 @@ foam.CLASS({
       label: '',
       section: 'documentUploadSection',
       gridColumns: 6,
-      view: function(_, X) {
-        return foam.nanos.fs.fileDropZone.FileDropZone.create({ files$: X.data.documents$ }, X);
+      view: function(args, X) {
+        return {
+          class: 'foam.nanos.fs.fileDropZone.FileDropZone',
+          files$: X.data.documents$
+        };
       },
       validateObj: function(documents, isRequired) {
         if ( isRequired && documents.length === 0 ) {
