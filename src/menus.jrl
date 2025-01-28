@@ -375,7 +375,7 @@ p({
   "label":"FUID Search",
   "handler":{
     "class":"foam.nanos.menu.ViewMenu",
-    "view":{"class":"foam.u2.view.FUIDSearch"}}
+    "view":{"class":"foam.u2.view.FUIDSearch"}
   },
   "parent":"admin"
 })
@@ -388,4 +388,16 @@ p({
   handler:{
     class:"foam.nanos.menu.RedirectMenu"
   }
+})
+
+p({
+  "class":"foam.nanos.menu.Menu",
+  "id":"console",
+  "label":"Console",
+  "keyboardShortcut": "meta-k",
+  "handler":{
+    "class":"foam.nanos.menu.ViewMenu",
+    "view":{"class":"foam.nanos.console.Console"}
+  },
+  "parent":"admin"
 })

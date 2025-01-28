@@ -21,7 +21,7 @@ foam.CLASS({
     'foam.u2.tag.CircleIndicator'
   ],
 
-  imports: [ 'eval_', 'setTimeout' ],
+  imports: [ 'eval_', 'setTimeout', 'scrollToBottom' ],
 
   css: `
     ^ .foam-u2-TextInputCSS {
@@ -246,6 +246,7 @@ foam.CLASS({
           this.previousOutput?.remove();
           this.previousOutput = out;
           out.style({display: 'block'});
+          this.scrollToBottom();
         }, 17)
       }
     },
