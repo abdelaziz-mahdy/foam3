@@ -13,7 +13,6 @@ foam.CLASS({
     'foam.core.Method',
     'foam.core.Property',
     'foam.dao.ArrayDAO',
-    'foam.dao.QuickSink',
     'foam.doc.MethodAxiom',
     'foam.doc.PropertyAxiom',
     'foam.doc.dao.PropertyPermissionCheckDecorator'
