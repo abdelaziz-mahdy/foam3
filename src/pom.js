@@ -281,7 +281,7 @@ foam.POM({
     { name: "foam/dao/OrderedSink",                                   flags: "js|java" },
     { name: "foam/dao/DedupSink",                                     flags: "js|java" },
     { name: "foam/dao/DescribeSink",                                  flags: "js|java" },
-    { name: "foam/dao/FnSink",                                        flags: "js|java" },
+    { name: "foam/dao/FnSink",                                        flags: "js" },
     { name: "foam/dao/FramedSink",                                    flags: "js|java" },
     { name: "foam/dao/DAOSink",                                       flags: "js|java" },
     { name: "foam/dao/JournalSink",                                   flags: "js|java" },
