@@ -16,11 +16,6 @@ foam.CLASS({
     {
       class: 'Long',
       name: 'value'
-    },
-    {
-      class: 'String',
-      name: 'label',
-      value: 'Count'
     }
   ],
 
