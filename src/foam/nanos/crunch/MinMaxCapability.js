@@ -43,7 +43,7 @@ foam.CLASS({
     {
       name: 'min',
       class: 'Int',
-      value: 0
+      value: 1
     },
     {
       name: 'max',
