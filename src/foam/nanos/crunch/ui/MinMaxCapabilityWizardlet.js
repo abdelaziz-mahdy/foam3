@@ -250,7 +250,7 @@ foam.CLASS({
       // This needs to happen on load as this MinMax might be a child of another MinMax
       // Skip this wizardlet if only one choice is available and max is 1
       const choiceWizardlets = this.choiceWizardlets;
-      if ( choiceWizardlets.length === 1 && this.max == 1 ) {
+      if ( choiceWizardlets.length === 1 && this.max == 1 && this.min != 0 ) {
         this.data.selectedData = [choiceWizardlets[0].capability.id];
         this.isVisible = false;
       }
@@ -340,7 +340,7 @@ foam.CLASS({
       documentation: 'If one choice available skip the wizardlet',
       code: function() {
         const choiceWizardlets = this.choiceWizardlets;
-        if ( choiceWizardlets.length === 1 ) {
+        if ( choiceWizardlets.length === 1 && this.min != 0) {
           this.capability.goNextOnValid = true;
           this.isVisible = false;
         }
