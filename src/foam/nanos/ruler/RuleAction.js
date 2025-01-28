@@ -7,7 +7,7 @@
  foam.INTERFACE({
   package: 'foam.nanos.ruler',
   name: 'RuleAction',
-  documentation: `Interface to be implemented for 'action' and 'asyncAction' properties on a Rule object.
+  documentation: `Interface to be implemented for 'action' property on a Rule object.
 
   RuleAction.applyAction is applied during dao operations such as put/remove and cmd.
   We use cmd for probing purposes. To probe a dao operation client would need to submit an object on a dao
@@ -42,25 +42,13 @@
           User user = (User) userDAO.find(888).fclone();
           user.setFirstName("Jimmy");
 
-          // using lambda makes it shorter but doesn't provide system context
           agency.submit(x, x1 -> {
-            DAO crudUserDAO = x1.get("userDAO); // CRUD DAO
-            crudUserDAO.put(user); }, "Updating user's first name"
-            );
-
-          // if you need system context for your code use ContextAwareAgent, it will be populated with user X internally
-          agency.submit(x, new ContextAwareAgent() {
-            @Override
-            public void execute(X x) {
-              DAO crudUserDAO = x.get("userDAO");
+              DAO crudUserDAO = x1.get("userDAO); // CRUD DAO
               crudUserDAO.put(user);
-            }
-          }, "Updating user's first name"
-            );
+            },
+            "Updating user's first name"
+          );
         };
-
-  Rule.AsyncAction
-    Async specific rule action can be implemented without use of agency. The passed agency is AsyncAgency and executes agents immediately.
   `,
 
   methods: [
