@@ -8,8 +8,10 @@ foam.CLASS({
   package: 'foam.dao',
   name: 'FnSink',
   implements: [ 'foam.dao.Sink' ],
+
   documentation: `Converts all sink events to call to a singular function.
       Useful for subscribing a listener method to a DAO`,
+
   flags: [],
 
   axioms: [
