@@ -547,11 +547,6 @@ foam.CLASS({
       factory: function() { return []; }
     },
     {
-      name: 'elListeners',
-      documentation: 'DOM listeners of this Element. Stored as topic then listener.',
-      factory: function() { return []; }
-    },
-    {
       name: 'children',
       documentation: 'Virtual property of non-String childNodes.',
       transient: true,
@@ -972,21 +967,11 @@ foam.CLASS({
 
     function addEventListener(topic, listener, opt_args) {
       /* Add DOM listener. */
-      this.elListeners.push(topic, listener, opt_args);
       this.addEventListener_(topic, listener, opt_args);
     },
 
     function removeEventListener(topic, listener) {
-      /* Remove DOM listener. */
-      var ls = this.elListeners;
-      for ( var i = 0 ; i < ls.length ; i += 3 ) {
-        var t = ls[i], l = ls[i+1];
-        if ( t === topic && l === listener ) {
-          ls.splice(i, 3);
-          this.element_.removeEventListener(topic, listener);
-          return;
-        }
-      }
+      this.element_.removeEventListener(topic, listener);
     },
 
     function setID(id) {
