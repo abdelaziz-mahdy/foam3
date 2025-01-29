@@ -158,12 +158,12 @@ foam.CLASS({
   ],
 
   methods: [
-    async function render() {
+    function render() {
       this.SUPER();
 
       this.addClass();
 
-      this.rowCount = (await this.dao.select(this.COUNT())).value;
+      this.dao.select(this.COUNT()).then(v => this.rowCount = v.value);
 
       this.
         start(this.Link).add(this.daoKey$, '.').on('click', this.describe).end().
@@ -255,7 +255,6 @@ foam.CLASS({
           this.previousOutput?.remove();
           this.previousOutput = out;
           out.style({display: 'block'});
-          this.scrollToBottom();
         }, 17)
       }
     },

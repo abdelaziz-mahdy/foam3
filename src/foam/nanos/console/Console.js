@@ -178,7 +178,8 @@ foam.CLASS({
 
       this.
         addClass(this.myClass()).
-        start('div', null, this.outputDiv$).addClass(this.myClass('output')).end().
+        start('div', null, this.outputDiv$)
+        .addClass(this.myClass('output')).end().
         start('span').
           addClass(this.myClass('input-field')).
           start('b').style({ display: 'flex', 'white-space': 'pre'}).
@@ -190,14 +191,38 @@ foam.CLASS({
           end().
           tag(this.ON_INPUT).
         end();
-        this.setTimeout(this.focusInput.bind(this), 500);
+
+        // These observers might cause scroll issues later when queries in the console can be edited
+        // In that case there should be an explicit flag to only do the scroll when the query is submitted 
+        // from the main console input
+        const resizeObserver = new ResizeObserver(this.scrollToBottom.bind(this));
+        var observer = new MutationObserver(function(mutations) {
+          for (const record of mutations) {
+            for (const addedNode of record.addedNodes) {
+              if ( addedNode.nodeType === Node.ELEMENT_NODE )
+                resizeObserver.observe(addedNode);
+            }
+            for (const removedNode of record.removedNodes) {
+              if ( removedNode.nodeType === Node.ELEMENT_NODE )
+                resizeObserver.unobserve(removedNode);
+            }
+            if (record.target.childNodes.length === 0) {
+              resizeObserver.disconnect();
+              observer.disconnect();
+            }
+          }
+        });
+        var config = { attributes: true, childList: true, characterData: true };
+
+        observer.observe(this.outputDiv.element_, config);
+        this.onDetach(() => observer.disconnect());
+        this.setTimeout(this.focusInput.bind(this), 500) 
     },
 
     function log(...args) {
       if ( args.length == 0 ) return;
       this.outputDiv.tag('br');
       this.outputDiv.add(args.join(' '));
-      this.scrollToBottom();
     },
 
     function scrollToBottom() {
@@ -472,8 +497,6 @@ YYYY-MM-DDTHH:MM
 
       this.log(r);
       this.input_.focus();
-      // TODO: this is a bit hackish, do some better way.
-      this.setTimeout(this.scrollToBottom.bind(this), 60);
 
     }
   ],
