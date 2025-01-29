@@ -966,8 +966,7 @@ foam.CLASS({
     },
 
     function addEventListener(topic, listener, opt_args) {
-      /* Add DOM listener. */
-      this.addEventListener_(topic, listener, opt_args);
+      this.element_.addEventListener(topic, listener, opt_args || false);
     },
 
     function removeEventListener(topic, listener) {
@@ -1397,10 +1396,6 @@ foam.CLASS({
       this.css[key] = value;
       this.element_.style[key] = value;
       return this;
-    },
-
-    function addEventListener_(topic, listener, opt_args) {
-      this.element_.addEventListener(topic, listener, opt_args || false);
     },
 
     function removeEventListener_(topic, listener) {
