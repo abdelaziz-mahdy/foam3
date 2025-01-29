@@ -217,21 +217,6 @@ foam.CLASS({
   ],
 
   methods: [
-    function addEventListener(topic, listener, capture) {
-      // custom support of special before/after render events
-      if ( topic === 'beforerender' || topic === "afterrender") {
-        let unsub = this.sub(topic, listener);
-        return;
-      }
-      this.SUPER(topic, listener, opt_args);
-    },
-    function removeEventListener(topic, listener) {
-      if ( topic === 'beforerender' || topic === "afterrender") {
-        // TODO: support this.
-        return;
-      }
-      this.SUPER(topic, listener);
-    },
     function render() {
       if ( ! this.parentNode ) { this.detach(); return; }
       this.parentNode.appendChild_(this.endElement_);
@@ -239,7 +224,6 @@ foam.CLASS({
 
       // Before rendering, remove all children between dynamic and /dynamic
       this.fn.pre = () => {
-        this.pub('beforerender', this);
         var endElement_ = this.endElement_;
 
         for ( var i = 0 ; i < this.childNodes.length ; i++ ) {
@@ -257,9 +241,7 @@ foam.CLASS({
 
         return this;
       };
-      this.fn.post = () => {
-        this.pub('afterrender', this);
-      };
+
       this.onDetach(this.fn);
     },
 
@@ -288,6 +270,8 @@ foam.CLASS({
   properties: [
     'dao',
     'code',
+    'before',
+    'after',
     {
       class: 'Int',
       name: 'batch',
@@ -300,7 +284,9 @@ foam.CLASS({
     {
       name: 'fn',
       factory: function() {
+        var self = this;
         return this.dynamic(function(data_) {
+          self.before?.call(this);
           data_.forEach(d => {
             this.startContext({ data: d });
 
@@ -313,6 +299,7 @@ foam.CLASS({
 
             this.endContext()
           })
+          self.after?.call(this);
         });
       }
     }
@@ -1368,18 +1355,14 @@ foam.CLASS({
      * @param {Boolean} update True if you'd like changes to each record to be put to
      * the DAO
      */
-    function select(dao, f, update) {
-      this.startSelect(dao, f, update);
-      return this;
-    },
-
-    function startSelect(dao, f, update) {
-      var c = foam.u2.DAOSelectNode.create({
+    function select(dao, f, before, after) {
+      this.add(foam.u2.DAOSelectNode.create({
         dao:  dao,
-        code: f
-      }, this);
-      this.add(c);
-      return c;
+        code: f,
+        before,
+        after,
+      }, this));
+      return this;
     },
 
     function write() {
