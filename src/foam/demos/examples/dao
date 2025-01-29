@@ -132,14 +132,14 @@ Sets up Accounts DAO with example account, by select()ing into a sink
 accountPuts = [];
 // Generate accounts for each customer. Select into an in-line
 // sink to process results as they come in.
-return app.customerDAO.select(foam.dao.QuickSink.create({
-  putFn: function(customer) {
+return app.customerDAO.select(foam.dao.ProxySink.create({delegate: {
+  put: function(customer) {
     // create accounts, add to accountDAO, save the promises for later
     // so we know all the puts have completed.
     accountPuts.push(customer.accounts.put(app.Account.create({ type: 'chq' })));
     accountPuts.push(customer.accounts.put(app.Account.create({ type: 'sav' })));
   }
-})).then(function() {
+}})).then(function() {
   return Promise.all(accountPuts);
 });
 
@@ -215,12 +215,12 @@ foam.u2.TableView.create({ of: app.Transaction, data: tdao }).write();
 return app.customerDAO.find(2)
   .then(function(customer) {
     var transactionSelectPromises = [];
-    return customer.accounts.select(foam.dao.QuickSink.create({
-      putFn: function(account) {
+    return customer.accounts.select(foam.dao.ProxySink.create({delegate: {
+      put: function(account) {
         // no route to return promise here, since Sink.put doesn't return a promise...
         transactionSelectPromises.push(account.transactions.select(tsink));
       }
-    })).then(function() {
+    }})).then(function() {
       return Promise.all(transactionSelectPromises);
     })
   });

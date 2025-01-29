@@ -43,7 +43,6 @@ const GENERATE_FACTORY_WARNINGS = (function() { /* XXX */ }).toString().indexOf(
 foam.CLASS({
   package: 'foam.core',
   name: 'Property',
-  extends: 'FObject',
 
   requires: [
     'foam.core.internal.PropertySlot'

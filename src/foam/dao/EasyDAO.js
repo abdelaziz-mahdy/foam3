@@ -429,9 +429,10 @@ foam.CLASS({
       class: 'Property'
     },
     {
-      documentation: 'Enable local in-memory caching of the DAO',
+      // For a full-cache set both ttlPurgeTime and ttlSelectPurgeTime to 0
       class: 'Boolean',
       name: 'cache',
+      documentation: 'Enable local in-memory caching of the DAO',
       generateJava: false
     },
     {
@@ -442,23 +443,25 @@ foam.CLASS({
       generateJava: false
     },
     {
-      documentation: 'Set polling property for the caching DAO',
       class: 'FObjectProperty',
-      of: 'foam.core.Property',
       name: 'pollingProperty',
+      documentation: 'Set polling property for the caching DAO',
+      of: 'foam.core.Property',
       generateJava: false
     },
     {
-      documentation: 'Time to wait before purging cache on find().',
+      // Default is changed to 15000 (15s) in ClientBuilder
       class: 'Long',
       name: 'ttlPurgeTime',
+      documentation: 'Time to wait before purging cache on find().',
       units: 'ms',
       generateJava: false
     },
     {
-      documentation: 'Time to wait before purging cache on select().',
+      // Default is changed to 15000 (15s) in ClientBuilder
       class: 'Long',
       name: 'ttlSelectPurgeTime',
+      documentation: 'Time to wait before purging cache on select().',
       units: 'ms',
       generateJava: false
     },
@@ -682,19 +685,22 @@ foam.CLASS({
         // TODO: This should come from the server via a lookup from a NamedBox.
         var box = this.TimeoutBox.create({
           delegate: this.remoteListenerSupport ?
-            this.WebSocketBox.create({ uri: this.serviceName }) :
-            this.HTTPBox.create({ url: this.serviceName })
+            this.WebSocketBox.create({uri: this.serviceName}) :
+            this.HTTPBox.create({url: this.serviceName})
         });
+
         if ( this.crunchBoxEnabled ) {
-          box = this.CrunchClientBox.create({ delegate: box });
+          box = this.CrunchClientBox.create({delegate: box});
         }
+
         if ( this.retryBoxMaxAttempts != 0 ) {
           box = this.RetryBox.create({
             maxAttempts: this.retryBoxMaxAttempts,
-            delegate: box,
+            delegate: box
           });
         }
-        return this.SessionClientBox.create({ delegate: box });
+
+        return this.SessionClientBox.create({delegate: box});
       }
     },
     {
@@ -998,22 +1004,22 @@ foam.CLASS({
               pollingInterval: this.pollingInterval,
               pollingProperty: this.pollingProperty
             });
-          }
+          } else {
+            // TTL find cache
+            if ( this.ttlPurgeTime > 0 )  {
+              dao = this.TTLCachingDAO.create({
+                delegate: dao,
+                purgeTime: this.ttlPurgeTime
+              });
+            }
 
-          // TTL find cache
-          if ( this.ttlPurgeTime > 0 )  {
-            dao = this.TTLCachingDAO.create({
-              delegate: dao,
-              purgeTime: this.ttlPurgeTime
-            });
-          }
-
-          // TTL select cache
-          if ( this.ttlSelectPurgeTime > 0 ) {
-            dao = this.TTLSelectCachingDAO.create({
-              delegate: dao,
-              purgeTime: this.ttlSelectPurgeTime
-            });
+            // TTL select cache
+            if ( this.ttlSelectPurgeTime > 0 ) {
+              dao = this.TTLSelectCachingDAO.create({
+                delegate: dao,
+                purgeTime: this.ttlSelectPurgeTime
+              });
+            }
           }
         }
       }

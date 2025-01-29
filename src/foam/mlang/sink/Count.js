@@ -16,11 +16,6 @@ foam.CLASS({
     {
       class: 'Long',
       name: 'value'
-    },
-    {
-      class: 'String',
-      name: 'label',
-      value: 'Count'
     }
   ],
 
@@ -41,6 +36,8 @@ foam.CLASS({
       code: function() { this.value = 0 },
       swiftCode: 'value = 0',
     },
-    function toString() { return 'COUNT()'; }
+    function toString() { return 'COUNT()'; },
+    function toSummary() { return this.value; },
+    function addToE(e) { e.add(this.value); }
   ]
 });

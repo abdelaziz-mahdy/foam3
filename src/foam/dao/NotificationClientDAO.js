@@ -14,8 +14,7 @@ foam.CLASS({
   requires: [
     'foam.box.SkeletonBox',
     'foam.core.Serializable',
-    'foam.dao.ArraySink',
-    'foam.dao.ClientSink'
+    'foam.dao.ArraySink'
   ],
 
   methods: [

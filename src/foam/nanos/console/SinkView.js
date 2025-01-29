@@ -11,6 +11,8 @@ foam.CLASS({
 
   exports: [ 'AGENTS' ],
 
+  imports: [ 'dao' ],
+
   constants: {
     AGENTS: [
       // Value  Label
@@ -47,23 +49,30 @@ foam.CLASS({
     {
       name: 'choice',
       factory: function() { return this.AGENTS[0][0]; },
-      postSet: function(o, n) {
-        var cls = foam.lookup(this.cls_.package + '.' + n + 'DAOAgent');
-        this.data = cls.create({dao: this.dao});
-      },
       view: function(_, X) {
         return { class: 'foam.u2.view.ChoiceView', choices: X.AGENTS };
+      }
+    },
+    {
+      name: 'data',
+      expression: function(choice) {
+        var cls = foam.lookup(this.cls_.package + '.' + choice + 'DAOAgent');
+        return cls.create({}, this);
       }
     }
   ],
 
   methods: [
     function render() {
-      this.choice = this.choice;
+      var self = this;
       this.
         addClass().
         style({'display': 'inline-flex'}).
-        startContext({data: this}).add(this.CHOICE);
+        startContext({data: this}).
+        add(this.CHOICE, ' ', self.dynamic(function (data) {
+          if ( ! self.dao ) return;
+          data.addToE(this);
+        }));
     }
   ]
 });

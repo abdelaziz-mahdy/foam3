@@ -7,12 +7,25 @@
 foam.CLASS({
   package: 'foam.box',
   name: 'Remote',
+
+  documentation: `
+    Marker interface for objects that can be remoted over the network.
+    Remoted objects aren't Serialized when sent across the network,
+    but are instead replaced with a ClientStub which calls back to
+    a ServerSkeleton registered to receive network calls for the original
+    Remote object.
+
+    Useful for general P2P programming, but currently only used when
+    performing dao.listen(sink) over a WebSocket.
+  `,
+
   properties: [
     {
       class: 'String',
       name: 'clientClass'
     }
   ],
+
   methods: [
     function installInClass(cls) {
       var clientClass = this.clientClass || cls.getAxiomsByClass(foam.core.Implements)[0].path;

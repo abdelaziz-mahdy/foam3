@@ -6,7 +6,7 @@
 
 foam.CLASS({
   package: 'foam.nanos.console',
-  name: 'PropertyChoiceView',
+  name: 'PropertyOrderChoiceView',
   extends: 'foam.u2.view.ChoiceView',
 
   properties: [
@@ -15,9 +15,11 @@ foam.CLASS({
       name: 'choices',
       factory: function(of) {
         var choices = [ ];
+        choices.push('--');
         this.of.getAxiomsByClass(foam.core.Property).forEach(p => {
           if ( p.hidden || p.networkTransient ) return;
-          choices.push([p, p.name]);
+          choices.push(p.name);
+          choices.push('-' + p.name);
         });
         return choices;
       }

@@ -221,12 +221,12 @@ foam.CLASS({
       name: 'code',
       expression: function(name, property, type, delegate) {
         return delegate ?
-            function delegate() {
-              return this[property][name].apply(this, arguments);
-            } :
-            function forward() {
-              return this[property][name].apply(this[property], arguments);
-            } ;
+          function delegate() {
+            return this[property][name]?.apply(this, arguments);
+          } :
+          function forward() {
+            return this[property][name]?.apply(this[property], arguments);
+          } ;
       }
     }
   ]

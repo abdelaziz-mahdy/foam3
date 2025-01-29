@@ -21,7 +21,8 @@ foam.CLASS({
     },
     {
       class: 'foam.mlang.SinkProperty',
-      name: 'arg2'
+      name: 'arg2',
+      factory: function() { return foam.mlang.sink.Count.create(); }
     },
     {
       class: 'Int',

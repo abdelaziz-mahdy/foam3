@@ -398,13 +398,6 @@ foam.CLASS({
       3. an implementation of the 'cleanup' method.
   `,
 
-  axioms: [
-    {
-      class: 'foam.box.Remote',
-      clientClass: 'foam.dao.ClientSink'
-    }
-  ],
-
   properties: [
     {
       class: 'foam.dao.DAOProperty',

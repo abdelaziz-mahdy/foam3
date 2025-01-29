@@ -12,12 +12,12 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
+  imports: [ 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
+
   properties: [
-    'dao',
-    'unlimitedDAO',
     {
       name: 'of',
-      factory: function() { return this.dao.of; }
+      factory: function() { return this.referenceDAO.of; }
     }
   ],
 
@@ -127,20 +127,18 @@ foam.CLASS({
   requires: [ 'foam.nanos.console.PropertyChoiceView' ],
 
   properties: [
-    {
-      name: 'prop'
-    }
+    'prop'
   ],
 
   methods: [
     function execute(e) {
-      return this.dao.select(this.GROUP_BY(foam.demos.olympics.Medal.COLOR, this.COUNT())).then(s => {
+      return this.dao.select(this.GROUP_BY(this.prop, this.COUNT())).then(s => {
         e.add(s);
       });
     },
 
     function addToE(e) {
-      e.tag(this.PropertyChoiceView, { of: this.of });
+      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop$ });
     }
   ]
 });
@@ -151,12 +149,23 @@ foam.CLASS({
   name: 'GridByDAOAgent',
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
+  requires: [ 'foam.nanos.console.PropertyChoiceView' ],
+
+  properties: [
+    'prop1', 'prop2'
+  ],
+
   methods: [
     function execute(e) {
-      return this.dao.select(this.GROUP_BY(foam.demos.olympics.Medal.GENDER, this.GROUP_BY(foam.demos.olympics.Medal.COLOR, this.COUNT()))).then(s => {
-//      return this.dao.select(this.GROUP_BY(foam.demos.olympics.Medal.COLOR, foam.demos.olympics.Medal.GENDER, this.COUNT())).then(s => {
+      return this.dao.select(this.GROUP_BY(this.prop1, this.GROUP_BY(this.prop2))).then(s => {
         e.add(s);
       });
+    },
+
+    function addToE(e) {
+      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop1$ });
+      e.add(', ');
+      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop2$ });
     }
   ]
 });
@@ -165,15 +174,14 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.nanos.console',
   name: 'PieDAOAgent',
-  extends: 'foam.nanos.console.AbstractDAOAgent',
+  extends: 'foam.nanos.console.GroupByDAOAgent',
 
   requires: [ 'foam.u2.mlang.Pie' ],
 
   methods: [
     function execute(e) {
       return this.dao.select(this.Pie.create({
-        arg1: foam.demos.olympics.Medal.COLOR,
-        arg2: this.COUNT()
+        arg1: this.prop
       })).then(s => {
         e.add(s);
       });
@@ -219,9 +227,7 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      return this.dao.select(o => {
-        e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
-      });
+      e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
     }
   ]
 });
@@ -284,12 +290,15 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      foam.nanos.console.DAOPrompt.AGENTS.forEach(a => {
+      foam.nanos.console.SinkView.AGENTS.forEach(a => {
         a = a[0];
         if ( a == 'All' ) return;
+        if ( a == 'GroupBy' ) return;
+        if ( a == 'GridBy' ) return;
+        if ( a == 'Pie' ) return;
 
         var cls = foam.lookup(this.cls_.package + '.' + a + 'DAOAgent');
-        var agent = cls.create({dao: this.dao, unlimitedDAO: this.unlimitedDAO});
+        var agent = cls.create({}, this);
         e.start('h2').add(a).end().start().call(function () { agent.execute(this); });
       });
     }
