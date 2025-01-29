@@ -213,10 +213,25 @@ foam.CLASS({
     {
       name: 'endElement_',
       factory: function() { return this.document.createComment('/dynamic'); }
-    }
+    },
   ],
 
   methods: [
+    function addEventListener(topic, listener, capture) {
+      // custom support of special before/after render events
+      if ( topic === 'beforerender' || topic === "afterrender") {
+        let unsub = this.sub(topic, listener);
+        return;
+      }
+      this.SUPER(topic, listener, opt_args);
+    },
+    function removeEventListener(topic, listener) {
+      if ( topic === 'beforerender' || topic === "afterrender") {
+        // TODO: support this.
+        return;
+      }
+      this.SUPER(topic, listener);
+    },
     function render() {
       if ( ! this.parentNode ) { this.detach(); return; }
       this.parentNode.appendChild_(this.endElement_);
@@ -224,6 +239,7 @@ foam.CLASS({
 
       // Before rendering, remove all children between dynamic and /dynamic
       this.fn.pre = () => {
+        this.pub('beforerender', this);
         var endElement_ = this.endElement_;
 
         for ( var i = 0 ; i < this.childNodes.length ; i++ ) {
@@ -240,6 +256,9 @@ foam.CLASS({
         rm(this.element_.nextSibling);
 
         return this;
+      };
+      this.fn.post = () => {
+        this.pub('afterrender', this);
       };
       this.onDetach(this.fn);
     },
@@ -984,23 +1003,12 @@ foam.CLASS({
       }
     },
 
-    function addEventListener(topic, listener, opt_args) {
-      /* Add DOM listener. */
-      this.elListeners.push(topic, listener, opt_args);
-      this.addEventListener_(topic, listener, opt_args);
+    function addEventListener(topic, listener, capture = false) {
+      this.element_.addEventListener(topic, listener, capture);
     },
 
     function removeEventListener(topic, listener) {
-      /* Remove DOM listener. */
-      var ls = this.elListeners;
-      for ( var i = 0 ; i < ls.length ; i += 3 ) {
-        var t = ls[i], l = ls[i+1];
-        if ( t === topic && l === listener ) {
-          ls.splice(i, 3);
-          this.element_.removeEventListener(topic, listener);
-          return;
-        }
-      }
+      this.element_.removeEventListener(topic, listener);
     },
 
     function setID(id) {
@@ -1361,11 +1369,17 @@ foam.CLASS({
      * the DAO
      */
     function select(dao, f, update) {
-      this.add(foam.u2.DAOSelectNode.create({
+      this.startSelect(dao, f, update);
+      return this;
+    },
+
+    function startSelect(dao, f, update) {
+      var c = foam.u2.DAOSelectNode.create({
         dao:  dao,
         code: f
-      }, this));
-      return this;
+      }, this);
+      this.add(c);
+      return c;
     },
 
     function write() {
@@ -1426,15 +1440,6 @@ foam.CLASS({
       this.css[key] = value;
       this.element_.style[key] = value;
       return this;
-    },
-
-    function addEventListener_(topic, listener, opt_args) {
-      this.element_.addEventListener(topic, listener, opt_args || false);
-    },
-
-    function removeEventListener_(topic, listener) {
-      var el = this.el_();
-      el && el.removeEventListener(topic, listener);
     }
   ],
 
