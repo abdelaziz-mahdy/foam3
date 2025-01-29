@@ -23,6 +23,12 @@ foam.CLASS({
 
   imports: [ 'eval_', 'setTimeout', 'scrollToBottom' ],
 
+  exports: [
+    'dao',
+    'sinkDAO',
+    'sinkUnlimitedDAO'
+  ],
+
   css: `
     ^ .foam-u2-TextInputCSS {
       width: auto;
@@ -52,6 +58,12 @@ foam.CLASS({
       factory: function() {
         return this.__context__[this.daoKey];
       }
+    },
+    {
+      name: 'sinkDAO'
+    },
+    {
+      name: 'sinkUnlimitedDAO'
     },
     {
       class: 'Int',
@@ -88,7 +100,7 @@ foam.CLASS({
       name: 'orderChoice',
       view: function(_, X) {
         return {
-          class: 'foam.nanos.console.PropertyChoiceView',
+          class: 'foam.nanos.console.PropertyOrderChoiceView',
           of: X.data.dao.of,
           allowEmptyChoice: true
         };
@@ -137,9 +149,7 @@ foam.CLASS({
     },
     {
       name: 'select',
-      view: function(_, X) {
-        return { class: 'foam.nanos.console.SinkView', dao: X.data.dao };
-      }
+      view: 'foam.nanos.console.SinkView'
     },
     'content',
     'rowCount',
@@ -230,15 +240,14 @@ foam.CLASS({
           this.order = s;
           if ( c ) dao = dao.orderBy(c);
         }
-        var unlimitedDAO = dao;
+        this.sinkUnlimitedDAO = dao;
         if ( this.limit ) dao = dao.limit(this.limit);
-        var cls   = foam.lookup(this.cls_.package + '.' + this.selectChoice + 'DAOAgent');
-        var agent = this.select;
-        agent.dao          = dao;
-        agent.unlimitedDAO = unlimitedDAO;
+        this.sinkDAO = dao;
 
+        var agent     = this.select;
         var out       = this.content.start().style({display: 'none'});
         var startTime = Date.now();
+
         await agent.execute(out);
         this.executionTime = foam.core.Duration.duration(Date.now() - startTime);
 

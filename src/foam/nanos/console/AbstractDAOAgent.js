@@ -12,12 +12,12 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
+  imports: [ 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedAO as unlimitedDAO' ],
+
   properties: [
-    'dao',
-    'unlimitedDAO',
     {
       name: 'of',
-      factory: function() { return this.dao.of; }
+      factory: function() { return this.referenceDAO.of; }
     }
   ],
 
@@ -134,13 +134,13 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      return this.dao.select(this.GROUP_BY(foam.demos.olympics.Medal.COLOR, this.COUNT())).then(s => {
+      return this.dao.select(this.GROUP_BY(this.prop, this.COUNT())).then(s => {
         e.add(s);
       });
     },
 
     function addToE(e) {
-      e.tag(this.PropertyChoiceView, { of: this.of });
+      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop$ });
     }
   ]
 });
@@ -219,9 +219,7 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      return this.dao.select(o => {
-        e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
-      });
+      e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
     }
   ]
 });
@@ -284,12 +282,12 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      foam.nanos.console.DAOPrompt.AGENTS.forEach(a => {
+      foam.nanos.console.SinkView.AGENTS.forEach(a => {
         a = a[0];
         if ( a == 'All' ) return;
 
         var cls = foam.lookup(this.cls_.package + '.' + a + 'DAOAgent');
-        var agent = cls.create({dao: this.dao, unlimitedDAO: this.unlimitedDAO});
+        var agent = cls.create({}, this);
         e.start('h2').add(a).end().start().call(function () { agent.execute(this); });
       });
     }
