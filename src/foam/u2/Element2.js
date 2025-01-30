@@ -206,6 +206,8 @@ foam.CLASS({
 
   properties: [
     'fn', // a foam.core.DynamicFunction
+    'before',
+    'after',
     {
       name: 'element_',
       factory: function() { return this.document.createComment('dynamic'); }
@@ -224,6 +226,7 @@ foam.CLASS({
 
       // Before rendering, remove all children between dynamic and /dynamic
       this.fn.pre = () => {
+        this.before?.call(this);
         var endElement_ = this.endElement_;
 
         for ( var i = 0 ; i < this.childNodes.length ; i++ ) {
@@ -241,6 +244,11 @@ foam.CLASS({
 
         return this;
       };
+      
+      this.fn.post = () => {
+        this.after?.call(this);
+      };
+
       this.onDetach(this.fn);
     },
 
@@ -278,7 +286,6 @@ foam.CLASS({
       factory: function() {
         var self = this;
         return this.dynamic(function(data_) {
-          self.before?.call(this);
           data_.forEach(d => {
             this.startContext({ data: d });
 
@@ -291,7 +298,6 @@ foam.CLASS({
 
             this.endContext()
           })
-          self.after?.call(this);
         });
       }
     }
