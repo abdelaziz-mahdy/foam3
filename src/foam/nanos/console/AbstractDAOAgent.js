@@ -110,16 +110,17 @@ foam.CLASS({
   name: 'GroupByDAOAgent',
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
-  requires: [ 'foam.nanos.console.PropertyChoiceView' ],
-
   properties: [
-    'prop'
+    { name: 'prop', view: function(_, X) {
+      return { class: 'foam.nanos.console.PropertyChoiceView', of: X.data.of };
+    }},
+    { name: 'sink', view: 'foam.nanos.console.SinkView' }
   ],
 
   methods: [
-    function createSink() { return this.GROUP_BY(this.prop, this.COUNT()); },
+    function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
     function addToE(e) {
-      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop$ });
+      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP, ', ', this.SINK);
     }
   ]
 });
