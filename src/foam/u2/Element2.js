@@ -226,7 +226,7 @@ foam.CLASS({
 
       // Before rendering, remove all children between dynamic and /dynamic
       this.fn.pre = () => {
-        this.before?.call(this);
+        this.before?.call?.(this);
         var endElement_ = this.endElement_;
 
         for ( var i = 0 ; i < this.childNodes.length ; i++ ) {
@@ -244,9 +244,9 @@ foam.CLASS({
 
         return this;
       };
-      
+
       this.fn.post = () => {
-        this.after?.call(this);
+        this.after?.call?.(this);
       };
 
       this.onDetach(this.fn);
