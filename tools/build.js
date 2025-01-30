@@ -90,6 +90,7 @@ var
   STAGE_JS                  = true,
   TEST                      = false,
   TESTS                     = '',
+  TIMESTAMP_FOAM_BIN        = true,
   WEB_PORT                  = null,
   VERBOSE                   = '',
   VULNERABILITY_CHECK       = false,
@@ -102,7 +103,6 @@ var PROJECT;
 // Short-form of PROJECT.version
 var VERSION;
 var TIMESTAMP;
-var TIMESTAMP_VERSION;
 
 // Root POM tasks and exports
 var TASKS, EXPORTS;
@@ -117,7 +117,6 @@ globalThis.foam = {
     PROJECT = pom;
     TIMESTAMP = Date.now();
     VERSION = pom.version;
-    TIMESTAMP_VERSION = `${VERSION}-${TIMESTAMP}`;
     TASKS   = pom.tasks;
     JAVA_RELEASE = pom.java || JAVA_RELEASE;
     APP_NAME = PROJECT.name;
@@ -225,7 +224,7 @@ Manifest-Version: 1.0
 Main-Class: foam.nanos.boot.Boot
 Class-Path: ${jars}
 Implementation-Title: ${APP_NAME}
-Implementation-Version: ${TIMESTAMP_VERSION}
+Implementation-Version: ${foamBinVersion()}
 Specification-Version: ${PROJECT_REVISION}
 Implementation-Timestamp: ${TIMESTAMP}
 ${APP_NAME}-Revision: ${PROJECT_REVISION}
@@ -379,12 +378,13 @@ task('Copy Java libraries from BUILD_DIR/lib to APP_HOME/lib.', [], function cop
 
 task("Call pmake with JS Maker to build 'foam-bin.js'.", [], function genJS() {
   execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
+  var version = foamBinVersion();
   if ( STAGE_JS ) {
-    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${TIMESTAMP_VERSION} -pom=${pom()} -builddir=${BUILD_DIR} -stage=0`, { stdio: 'inherit' });
-    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${TIMESTAMP_VERSION} -pom=${pom()} -builddir=${BUILD_DIR} -stage=1`, { stdio: 'inherit' });
-    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${TIMESTAMP_VERSION} -pom=${pom()} -builddir=${BUILD_DIR} -stage=2`, { stdio: 'inherit' });
+    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=0`, { stdio: 'inherit' });
+    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=1`, { stdio: 'inherit' });
+    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=2`, { stdio: 'inherit' });
   } else {
-    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${TIMESTAMP_VERSION} -pom=${pom()} -builddir=${BUILD_DIR}`, { stdio: 'inherit' });
+    execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR}`, { stdio: 'inherit' });
   }
 });
 
@@ -649,6 +649,9 @@ task('Set environmental variables needed by Java.', [], function setenv() {
   JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
 });
 
+function foamBinVersion() {
+  return TIMESTAMP_FOAM_BIN ? `${VERSION}-${TIMESTAMP}` : `${VERSION}`;
+}
 
 function moreUsage() {
   console.log('\nTasks:');
@@ -693,6 +696,8 @@ const ARGS = {
       warning('Skipping genJava task');
       GEN_JAVA = false;
     } ],
+  g: [ 'Do not timestamp foam-bin javascript file to retain breakpoints during development cycle.',
+    () => TIMESTAMP_FOAM_BIN = false ],
   H: [ 'Hostname',
        args => HOST_NAME = args ],
   j: [ 'Delete runtime journals, build, and run app as usual.',
