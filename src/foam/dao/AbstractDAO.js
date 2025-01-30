@@ -430,7 +430,7 @@ return decorateSink(getX(), sink, skip, limit, order, predicate);
         return this.remove_(this.__context__, obj);
       },
       swiftCode: 'return try remove_(__context__, obj)',
-      javaCode: `return this.remove_(this.getX(), obj);`,
+      javaCode: 'return this.remove_(this.getX(), obj);',
     },
 
     {
