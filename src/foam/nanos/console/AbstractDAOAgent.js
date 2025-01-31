@@ -225,13 +225,10 @@ foam.CLASS({
   name: 'CitationDAOAgent',
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
-  requires: [ 'foam.u2.CitationView' ],
+  requires: [ 'foam.nanos.console.CitationSink' ],
 
   methods: [
-    function execute(e) {
-      // TODO:
-      return this.dao.select(o => e.tag(this.CitationView, {data: o}));
-    }
+    function createSink() { return this.CitationSink.create({of: this.of}); }
   ]
 });
 

@@ -9,6 +9,7 @@ foam.POM({
     { name: "DAOCreate",               flags: "js" },
     { name: "AbstractDAOAgent",        flags: "js" },
     { name: "CellsSink",               flags: "js|java" },
+    { name: "CitationSink",            flags: "js|java" },
     { name: "JSONSink",                flags: "js|java" },
     { name: "XMLSink",                 flags: "js|java" },
     { name: "SinkView",                flags: "js" },
