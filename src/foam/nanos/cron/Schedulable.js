@@ -357,7 +357,7 @@ foam.CLASS({
           if ( ! DateUtils.isSameDay(schedule.getEndsOn(), today) ) return today.before(schedule.getEndsOn());
         }
 
-        return alreadyRanToday;
+        return ! alreadyRanToday;
       `
     }
   ]
