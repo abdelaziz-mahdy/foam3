@@ -111,9 +111,12 @@ foam.CLASS({
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
   properties: [
-    { name: 'prop', view: function(_, X) {
-      return { class: 'foam.nanos.console.PropertyChoiceView', of: X.data.of };
-    }},
+    {
+      name: 'prop',
+      view: function(_, X) {
+       return { class: 'foam.nanos.console.PropertyChoiceView', of: X.data.of };
+      }
+    },
     { name: 'sink', view: 'foam.nanos.console.SinkView' }
   ],
 
@@ -134,15 +137,25 @@ foam.CLASS({
   requires: [ 'foam.nanos.console.PropertyChoiceView' ],
 
   properties: [
-    'prop1', 'prop2'
+    {
+      name: 'prop1',
+      view: function(_, X) {
+       return { class: 'foam.nanos.console.PropertyChoiceView', of: X.data.of };
+      }
+    },
+    {
+      name: 'prop2',
+      view: function(_, X) {
+       return { class: 'foam.nanos.console.PropertyChoiceView', of: X.data.of };
+      }
+    },
+    { name: 'sink', view: 'foam.nanos.console.SinkView' }
   ],
 
   methods: [
-    function createSink() { return this.GROUP_BY(this.prop1, this.GROUP_BY(this.prop2)); },
+    function createSink() { return this.GROUP_BY(this.prop1, this.GROUP_BY(this.prop2, this.sink.createSink())); },
     function addToE(e) {
-      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop1$ });
-      e.add(', ');
-      e.tag(this.PropertyChoiceView, { of: this.of, data$: this.prop2$ });
+      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP1, ', ', this.PROP2, ', ', this.SINK);
     }
   ]
 });
