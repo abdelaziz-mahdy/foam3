@@ -42,9 +42,7 @@ foam.CLASS({
       name: 'groupKeys',
       transient: true,
       javaFactory: 'return new java.util.ArrayList(this.getGroups().keySet());',
-      factory: function() {
-        return Object.keys(this.groups);
-      },
+      factory: function() { return Object.keys(this.groups); },
     },
     {
       class: 'Boolean',
@@ -77,27 +75,14 @@ return getGroupKeys();`
     },
     {
       name: 'putInGroup_',
-      args: [
-        {
-          name: 'sub',
-          type: 'foam.core.Detachable'
-        },
-        {
-          name: 'key',
-          type: 'Object'
-        },
-        {
-          name: 'obj',
-          type: 'Object'
-        }
-      ],
+      args: 'foam.core.Detachable sub, Object key, Object obj',
       code: function putInGroup_(sub, key, obj) {
         var group = this.groups.hasOwnProperty(key) && this.groups[key];
         if ( ! group ) {
           group = this.arg2.clone();
-          this.groups[key] = group;
           if ( ! this.groupKeys.includes(key) )
             this.groupKeys.push(key);
+          this.groups[key] = group;
         }
         group.put(obj, sub);
         this.pub('propertyChange', 'groups');
