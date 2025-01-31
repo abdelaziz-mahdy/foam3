@@ -244,29 +244,10 @@ foam.CLASS({
   name: 'CellsDAOAgent',
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
-  requires: [ 'foam.demos.sevenguis.Cells' ],
+  requires: [ 'foam.nanos.console.CellsSink' ],
 
   methods: [
-    function execute(e) {
-      var ps  = this.of.getAxiomsByClass(foam.core.Property).
-        filter(p => ! p.networkTransient && ! p.hidden);
-      var cs  = {};
-      var row = 1;
-      for ( var i = 0 ; i < ps.length ; i++ ) {
-        cs[String.fromCharCode(65+i) + 0] = '<b>' + ps[i].label + '</b';
-      }
-      // TODO: limit to 30k until Cells can handle more
-      this.dao.limit(30000).select(o => {
-        for ( var i = 0 ; i < ps.length ; i++ ) {
-          cs[String.fromCharCode(65+i) + row] = ps[i].get(o);
-        }
-        row++;
-      }).then(() => {
-        var cells = this.Cells.create({rows: row+2, columns: ps.length+2}, this);
-        cells.loadCells(cs);
-        e.tag(cells);
-      });
-    }
+    function createSink() { return this.CellsSink.create({of: this.of}); }
   ]
 });
 
