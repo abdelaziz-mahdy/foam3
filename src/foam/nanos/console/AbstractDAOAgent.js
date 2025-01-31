@@ -95,12 +95,10 @@ foam.CLASS({
   name: 'JSONDAOAgent',
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
+  requires: [ 'foam.nanos.console.JSONSink' ],
+
   methods: [
-    function execute(e) {
-      return this.dao.select(this.createSink()).then(a => {
-        e.start('pre').add(foam.json.Pretty.stringify(a.array));
-      });
-    }
+    function createSink() { return this.JSONSink.create({of: this.of}); }
   ]
 });
 
