@@ -23,9 +23,7 @@ foam.CLASS({
     'java.util.HashMap',
     'foam.util.SafetyUtil',
     'nl.martijndwars.webpush.Notification',
-    'org.bouncycastle.jce.provider.BouncyCastleProvider',
-    'foam.nanos.notification.push.iOSNativePushRegistration',
-    'foam.nanos.notification.push.APNSPushService'
+    'org.bouncycastle.jce.provider.BouncyCastleProvider'
   ],
 
   properties: [
@@ -78,26 +76,18 @@ foam.CLASS({
       System.err.println("        auth: " + sub.getAuth());
       */
         try {
-          if ( sub instanceof foam.nanos.notification.push.iOSNativePushRegistration ) {
-            APNSPushService APNSpushService = (APNSPushService) getX().get("APNSpushService");
-            if ( APNSpushService == null ) {
-              throw new RuntimeException("Missing Apple Push Notification Service in Context");
-            }
-            APNSpushService.send((iOSNativePushRegistration) sub, msgMap);
-          } else { 
-            if ( SafetyUtil.isEmpty(sub.getEndpoint()) ) {
-              return;
-            }
-            String msg  = "{\\"title\\":\\"" + msgMap.get("title") + "\\",\\"body\\":\\"" + msgMap.get("body") + "\\"}";
-            Notification n = new Notification(
-              sub.getEndpoint(),
-              sub.getKey(),  // sub.getUserPublicKey(),
-              sub.getAuth(), // sub.getAuthAsBytes(),
-              msg
-            );
-
-            ((nl.martijndwars.webpush.PushService) getPushService()).sendAsync(n);
+          if ( SafetyUtil.isEmpty(sub.getEndpoint()) ) {
+            return;
           }
+          String msg  = "{\\"title\\":\\"" + msgMap.get("title") + "\\",\\"body\\":\\"" + msgMap.get("body") + "\\"}";
+          Notification n = new Notification(
+            sub.getEndpoint(),
+            sub.getKey(),  // sub.getUserPublicKey(),
+            sub.getAuth(), // sub.getAuthAsBytes(),
+            msg
+          );
+
+          ((nl.martijndwars.webpush.PushService) getPushService()).sendAsync(n);
         } catch (Throwable t) {
           //TODO: add alarm
           t.printStackTrace();
