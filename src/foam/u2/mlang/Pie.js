@@ -19,8 +19,8 @@ foam.CLASS({
     // their own class and add them as a trait to this model so any new args
     // used by PieGraph are automatically picked up by this model.
     [ 'graphColors', [ '#d81e05', '$black', '#59a5d5', '#2cab70' ] ],
-    { name: 'width',  factory: function() { return this.radius * 3; }, transient: true },
-    { name: 'height', factory: function() { return this.radius * 3; }, transient: true },
+    { name: 'width',  factory: function() { return this.radius * 3.5; }, transient: true },
+    { name: 'height', factory: function() { return this.radius * 3.5; }, transient: true },
     [ 'margin', 1.5 ],
     { class: 'Int', name: 'radius', value: 50 },
     { name: 'x', factory: function() { return this.radius * 0.75; }, transient: true },
