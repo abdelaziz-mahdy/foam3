@@ -140,7 +140,6 @@ foam.CLASS({
     function ABS(arg1) { return this.Absolute.create({ delegate: arg1 }); },
     function ARRAY() { return this.ArraySink.create() },
     function MUX(cond, a, b) { return this.Mux.create({ cond: cond, a: a, b: b }); },
-    function PARTITION_BY(arg1, delegate) { return this.Partition.create({ arg1: arg1, delegate: delegate }); },
     function SEQ() { return this._nary_("Sequence", arguments); },
     function PROJECTION(exprs) {
       return this.Projection.create({
