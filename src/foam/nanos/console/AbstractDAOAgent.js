@@ -65,6 +65,30 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.nanos.console',
+  name: 'MaxDAOAgent',
+  extends: 'foam.nanos.console.MinDAOAgent',
+  methods: [ function createSink() { return this.MAX(this.prop); } ]
+});
+
+
+foam.CLASS({
+  package: 'foam.nanos.console',
+  name: 'AvgDAOAgent',
+  extends: 'foam.nanos.console.MinDAOAgent',
+  methods: [ function createSink() { return this.AVG(this.prop); } ]
+});
+
+
+foam.CLASS({
+  package: 'foam.nanos.console',
+  name: 'SumDAOAgent',
+  extends: 'foam.nanos.console.MinDAOAgent',
+  methods: [ function createSink() { return this.SUM(this.prop); } ]
+});
+
+
+foam.CLASS({
+  package: 'foam.nanos.console',
   name: 'ScrollTableDAOAgent',
   extends: 'foam.nanos.console.AbstractDAOAgent',
 
