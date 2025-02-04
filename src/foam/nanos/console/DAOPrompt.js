@@ -34,6 +34,9 @@ foam.CLASS({
       width: auto;
       height: 22px;
     }
+    ^ .foam-u2-TextInputCSS,.foam-u2-TextArea {
+      height: auto;
+    }
     ^ select[name="selectChoice"] {
       width: 130px;
     }
