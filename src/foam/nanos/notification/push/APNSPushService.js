@@ -12,7 +12,6 @@ foam.CLASS({
   TODO: not very msp friendly at the moment, there is no way for WebPushService to find the right apnsPushService for a given app`,
 
   implements: [
-    'foam.nanos.notification.push.PushService',
     'foam.nanos.auth.ServiceProviderAware'
   ],
 
@@ -71,43 +70,29 @@ foam.CLASS({
       class: 'String',
       name: 'apnsCredentialId',
       documentation: 'credential id to find for host and key data'
-    },
-    {
-      class: 'Object',
-      of: 'foam.nanos.notification.push.APNSCredential',
-      name: 'apnsCredential',
-      transient: true,
-      javaFactory: `
-        return getCredentials(getX());
-      `
     }
   ],
 
   methods: [
     {
-      name: 'sendPushById',
-      javaCode:
-      `
-        //NO-OP
-        return false;
-      `
-    },
-    {
-      name: 'sendPush',
-      javaCode:
-      `
-        //NO-OP
-        return false;
-      `
-    },
-    {
       name: 'buildClient',
       type: 'ApnsClient',
-      throws: 'IOException',
-      javaCode:
-      `
-      return null;
-        // Implement in a refinement, based on certificate and pub priv key location
+      javaCode: `
+      try {
+        var decoder = org.apache.commons.codec.binary.Base64.builder()
+          .get();
+
+        var credential = getCredentials(getX());
+        return new ApnsClientBuilder()
+          .setApnsServer(credential.getHost())
+          .setClientCredentials(
+            new java.io.ByteArrayInputStream(
+              decoder.decode(credential.getP12Base64())),
+              credential.getP12Password())
+          .build();
+      } catch ( Throwable e ) {
+        throw new RuntimeException(e);
+      }
       `
     },
     {
@@ -120,11 +105,7 @@ foam.CLASS({
             return;
           } 
 
-          APNSCredential cred = (APNSCredential) getApnsCredential();
-          if ( getApnsClient() == null || cred == null) {
-            // TODO: replace with alarm
-            System.err.println("Missing APNS Client/Credential");
-          }
+          var cred = getCredentials(getX());
 
           final ApnsPayloadBuilder payloadBuilder = new SimpleApnsPayloadBuilder();
           payloadBuilder.setAlertBody((String) msg.get("body"));
@@ -149,7 +130,7 @@ foam.CLASS({
             final PushNotificationResponse<SimpleApnsPushNotification> pushNotificationResponse = sendNotificationFuture.get();
             if (pushNotificationResponse.isAccepted()) {
                 // TODO: Replace with log
-                System.out.println("Push notification accepted by APNs gateway.");
+                System.out.println("Push notification accepted by APNs gateway." + pushNotificationResponse.getApnsId());
             } else {
                 //TODO: Replace with alarms
                 System.out.println("Notification rejected by the APNs gateway: " +

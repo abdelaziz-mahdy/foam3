@@ -15,6 +15,8 @@ foam.INTERFACE({
   name: 'PushService',
 
   proxy:    true,
+  client:   true,
+  skeleton: true,
 
   methods: [
     {

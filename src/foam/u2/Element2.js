@@ -206,6 +206,8 @@ foam.CLASS({
 
   properties: [
     'fn', // a foam.core.DynamicFunction
+    'before',
+    'after',
     {
       name: 'element_',
       factory: function() { return this.document.createComment('dynamic'); }
@@ -224,6 +226,7 @@ foam.CLASS({
 
       // Before rendering, remove all children between dynamic and /dynamic
       this.fn.pre = () => {
+        this.before?.call?.(this);
         var endElement_ = this.endElement_;
 
         for ( var i = 0 ; i < this.childNodes.length ; i++ ) {
@@ -241,6 +244,11 @@ foam.CLASS({
 
         return this;
       };
+
+      this.fn.post = () => {
+        this.after?.call?.(this);
+      };
+
       this.onDetach(this.fn);
     },
 
@@ -262,6 +270,8 @@ foam.CLASS({
   properties: [
     'dao',
     'code',
+    'before',
+    'after',
     {
       class: 'Int',
       name: 'batch',
@@ -274,6 +284,7 @@ foam.CLASS({
     {
       name: 'fn',
       factory: function() {
+        var self = this;
         return this.dynamic(function(data_) {
           data_.forEach(d => {
             this.startContext({ data: d });
@@ -966,8 +977,8 @@ foam.CLASS({
       }
     },
 
-    function addEventListener(topic, listener, opt_args) {
-      this.element_.addEventListener(topic, listener, opt_args || false);
+    function addEventListener(topic, listener, opt_options) {
+      this.element_.addEventListener(topic, listener, opt_options || false);
     },
 
     function removeEventListener(topic, listener) {
@@ -1335,10 +1346,12 @@ foam.CLASS({
      * @param {Boolean} update True if you'd like changes to each record to be put to
      * the DAO
      */
-    function select(dao, f, update) {
+    function select(dao, f, before, after) {
       this.add(foam.u2.DAOSelectNode.create({
         dao:  dao,
-        code: f
+        code: f,
+        before,
+        after,
       }, this));
       return this;
     },
@@ -1401,11 +1414,6 @@ foam.CLASS({
       this.css[key] = value;
       this.element_.style[key] = value;
       return this;
-    },
-
-    function removeEventListener_(topic, listener) {
-      var el = this.el_();
-      el && el.removeEventListener(topic, listener);
     }
   ],
 

@@ -34,6 +34,15 @@ foam.CLASS({
       class: 'String',
       name: 'session'
     }
+  ],
+
+  actions: [
+    {
+      name: 'sendTestPush',
+      code: function(x) {
+        x.pushService.sendPushById(this.user, "test", "push")
+      }
+    }
   ]
 });
 

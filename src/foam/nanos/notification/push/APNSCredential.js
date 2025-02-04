@@ -24,6 +24,16 @@ foam.CLASS({
     },
     {
       class: 'String',
+      name: 'p12Base64',
+      documentation: 'base64 encoded p12 file'
+    },
+    {
+      class: 'String',
+      name: 'p12Password',
+      documentation: 'password for p12 file'
+    },
+    {
+      class: 'String',
       name: 'certificateAlias'
     },
     {
