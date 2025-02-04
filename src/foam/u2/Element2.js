@@ -2232,6 +2232,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'css',
+      label: 'CSS',
+      view: { class: 'foam.u2.tag.TextArea', rows: 20, cols: 80 },
       postSet: function(_, code) {
         var css = foam.u2.CSS.create({code: code});
         css.name = css.name + '-' + this.id;
@@ -2241,6 +2243,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'inheritCSS',
+      hidden: true,
       value: true
     },
     {
