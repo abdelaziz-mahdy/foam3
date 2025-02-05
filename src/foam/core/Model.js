@@ -31,6 +31,7 @@ foam.CLASS({
         return this.package ? this.package + '.' + this.name : this.name;
       }
     },
+    'abstract',
     {
       name: 'package',
       factory: function() {
@@ -41,7 +42,6 @@ foam.CLASS({
         return '';
       }
     },
-    'abstract',
     {
       name: 'name',
       factory: function() {
@@ -52,6 +52,9 @@ foam.CLASS({
         return '';
       }
     },
+    [ 'extends', 'FObject' ],
+    'javaExtends',
+    'refines',
     {
       name: 'flags',
       documentation: `
@@ -65,11 +68,13 @@ foam.CLASS({
         return foam.String.labelize(name_);
       }
     },
-    [ 'extends', 'FObject' ],
-    'refines',
-    'javaExtends',
-    'order',
-    { name: 'documentation', adapt: function(_, d) { return typeof d === 'function' ? foam.String.multiline(d).trim() : d; } },
+    { name: 'order', hidden: true, documentation: 'Order Model is used.' },
+    {
+      name: 'documentation',
+      adapt: function(_, d) {
+        return typeof d === 'function' ? foam.String.multiline(d).trim() : d;
+      }
+    },
     {
       // List of all axioms, including methods, properties, listeners,
       // etc. and 'axioms'.

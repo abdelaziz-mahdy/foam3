@@ -421,8 +421,6 @@ YYYY-MM-DDTHH:MM
             this.start('tr').start('th').attr('width', '250').attr('align', 'left').add(c[0]).end().start('td').add(c[1]);
           }).
         end();
-
-
     },
 
     // TODO: break into two different function

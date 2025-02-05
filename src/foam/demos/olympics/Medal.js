@@ -75,6 +75,7 @@ foam.CLASS({
       shortName: 'g',
       aliases: [ 'sex' ],
       value: 'Men',
+      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'Men', 'Women' ] },
       searchView: {
         class: 'foam.u2.search.GroupBySearchView',
         viewSpec: {

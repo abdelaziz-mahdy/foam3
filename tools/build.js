@@ -130,10 +130,6 @@ process.on('unhandledRejection', e => {
   process.exit(1);
 });
 
-function jarName() {
-  return `${APP_NAME}-${VERSION}.jar`;
-}
-
 
 var summary = [];
 var depth   = 1;
@@ -222,7 +218,7 @@ function error(msg) {
 function manifest() {
   versions();
   var jars = execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`).toString()
-      .replaceAll(`${BUILD_DIR}/lib/`, '  lib/').trim();
+      .replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
   var m = `
 Manifest-Version: 1.0
 Main-Class: foam.nanos.boot.Boot
@@ -375,11 +371,6 @@ task('Remove generated files.', [], function clean() {
 });
 
 
-task('Copy Java libraries from BUILD_DIR/lib to APP_HOME/lib.', [], function copyLib() {
-  copyDir(join(BUILD_DIR, 'lib'), join(APP_HOME, 'lib'));
-});
-
-
 task("Call pmake with JS Maker to build 'foam-bin.js'.", [], function genJS() {
   execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
   var version = foamBinVersion();
@@ -440,15 +431,15 @@ task('Get Maven java sources.', [], function mavenGetSources(value) {
   }
 });
 
-task('Generate and compile java source.', [ 'genJava', 'copyLib' ], function buildJava() {
+task('Generate and compile java source.', [ 'genJava' ], function buildJava() {
   genJava();
-  copyLib();
 });
 
 
 task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function buildJar() {
   // remove any previous timestamped versions
-  execSync(`rm -f ${BUILD_DIR}/${APP_NAME}-*.jar >/dev/null 2>&1`);
+  execSync(`rm -f ${JAR_LIB_DIR}/${APP_NAME}-*.jar >/dev/null 2>&1`);
+  execSync(`rm -f ${BUILD_DIR}/lib/${APP_NAME}-*.jar >/dev/null 2>&1`);
 
   versions();
   jarWebroot();
@@ -456,7 +447,7 @@ task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function
   jarJournals();
 
   fs.writeFileSync(BUILD_DIR + '/MANIFEST.MF', manifest());
-  execSync(`jar cfm ${BUILD_DIR}/${jarName()} ${BUILD_DIR}/MANIFEST.MF -C ${BUILD_DIR} documents ${JAR_INCLUDES} -C ${BUILD_DIR}/classes .`);
+  execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF -C ${BUILD_DIR} documents ${JAR_INCLUDES} -C ${BUILD_DIR}/classes .`);
 });
 
 
@@ -464,11 +455,13 @@ task('Package files into a TAR archive', [], function buildTar() {
   // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
   // switches the current directory.
   ensureDir(BUILD_DIR + '/package');
-  execSync(`tar -a -cf ${BUILD_DIR}/package/${APP_NAME}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C ../../../ -C${BUILD_DIR} ${jarName()} lib`);
+  execSync(`tar -a -cf ${BUILD_DIR}/package/${APP_NAME}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C${require('path').resolve(BUILD_DIR)} lib`);
 });
 
 
-task('Copy required files to APP_HOME deployment directory.', [], function deployToHome() {
+task('Copy deployment files to APP_HOME deployment directory.', [], function deploy() {
+  deployJournals();
+  deployDocuments();
   copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
   copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
   copyDir(BUILD_DIR + '/lib', join(APP_HOME, 'lib'));
@@ -518,7 +511,7 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
     if ( TEST || BENCHMARK ) {
       // TODO: move to pom task
       JAVA_OPTS += ' -Dresource.journals.dir=journals';
-      JAVA_OPTS += ` -DRES_JAR_HOME=${BUILD_DIR}/${jarName()}`;
+      JAVA_OPTS += ' -DRES_JAR_HOME=' + JAR_OUT;
 
       if ( TEST ) {
         MESSAGE = 'Running tests...';
@@ -536,13 +529,13 @@ task('Start NANOS application server.', [ 'setenv' ], function startNanos() {
 
     if ( TEST ) {
       try {
-        exec(`java -jar ${BUILD_DIR}/${jarName()}`);
+        exec(`java -jar ${JAR_OUT}`);
       } catch ( e ) {
         // Failing tests, no need to throw
       }
       process.exit(0);
     } else if ( BENCHMARK ) {
-      exec(`java -jar ${BUILD_DIR}/${jarName()}`);
+      exec(`java -jar ${JAR_OUT}`);
     } else {
       // Acquires environment variables via JAVA_TOOL_OPTIONS (JAVA_OPTS)
       exec(`java -cp "${CLASSPATH}" foam.nanos.boot.Boot`);
@@ -585,20 +578,22 @@ task('Show application information.', [], function appName() {
 
 task('Create empty build and deployment directory structures if required.', [], function setupDirs() {
   try {
-    ensureDir(APP_HOME);
-    if ( ensureDir(BUILD_DIR + '/lib') ) {
+    if ( ! BUILD_ONLY ) {
+      ensureDir(APP_HOME);
+      ensureDir(`${APP_HOME}/lib`);
+      ensureDir(`${APP_HOME}/bin`);
+      ensureDir(`${APP_HOME}/etc`);
+      ensureDir(LOG_HOME);
+      ensureDir(JOURNAL_HOME);
+      ensureDir(DOCUMENT_HOME);
+    }
+    if (ensureDir(BUILD_DIR + '/lib')) {
       // Remove stale pom.xml if the /lib dir needed to be created
       // Wouldn't be necessary if pom.xml were written into the BUILD_DIR but then
       // you couldn't check it in to get dependbot warnings.
       rmfile('pom.xml');
     }
-    ensureDir(`${APP_HOME}/lib`);
-    ensureDir(`${APP_HOME}/bin`);
-    ensureDir(`${APP_HOME}/etc`);
-    ensureDir(LOG_HOME);
     ensureDir(JOURNAL_OUT);
-    ensureDir(JOURNAL_HOME);
-    ensureDir(DOCUMENT_HOME);
     ensureDir(DOCUMENT_OUT);
   } catch ( e ) {
     console.log(e);
@@ -626,6 +621,9 @@ buildEnv({
   DOCUMENT_HOME:     () => `${APP_HOME}/documents`,
   LOG_HOME:          () => `${APP_HOME}/logs`,
 
+  JAR_LIB_DIR:       () => ( PACKAGE ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib',
+  JAR_NAME:          () => `${APP_NAME}-${VERSION}.jar`,
+  JAR_OUT:           () => `${JAR_LIB_DIR}/${JAR_NAME}`,
   // Project resources path
   PROJECT_HOME:      PWD,
   JOURNAL_OUT:       () => `${PROJECT_HOME}/${BUILD_DIR}/journals`,
@@ -819,12 +817,14 @@ function all() {
     }
 
     buildJava();
-    deploy();
 
-    // Tests and benchmarks run from jar file
     if ( PACKAGE || BUILD_JAR || TEST || BENCHMARK ) {
       buildJar();
-      deployToHome();
+    }
+
+    // Tests and benchmarks run from a deployed jar
+    if ( BUILD_JAR || TEST || BENCHMARK ) {
+      deploy();
     }
 
     if ( PACKAGE ) {

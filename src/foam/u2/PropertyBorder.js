@@ -70,7 +70,14 @@ foam.CLASS({
 
     function render() {
       var self = this;
+      var oldProp = this.prop;
       var prop = this.prop = this.prop.clone(this.__subContext__).copyFrom(this.config);
+      if ( ! prop.name ) {
+        // Needed because some properties aren't bootstrapped properly and don't nave
+        // 'name' in instance_.
+        // Ex.: package, flags, extends, refines, javaExtends, order
+        prop.name = oldProp.name;
+      }
 
       this.SUPER();
 

@@ -443,6 +443,7 @@ foam.CLASS({
       'Moorthy Rathinasamy': 'Moorthy Rathinasamy',
       'moorthy': 'Moorthy Rathinasamy',
       'Moorthy': 'Moorthy Rathinasamy',
+      'Mykola': 'Mykola Kolombet',
       'Mykola Kolombet': 'Mykola Kolombet',
       'Mykola97': 'Mykola Kolombet',
       'nanoArtur': 'Artur Linnik',
@@ -780,6 +781,7 @@ var commits = this.commits.filter(c => this.match(c, this.query, this.author, '/
       this.SUPER();
       // TODO: make this configurable
       this.loadYear(2023);
+//      this.loadYear(2024);
     },
 
     function loadYear(year) {
