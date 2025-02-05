@@ -131,7 +131,6 @@ function cleanupFiles {
     if [ -d ${FOAM_HOME}/lib ]; then
         sudo rm -rf ${FOAM_HOME}/lib
     fi
-    sudo rm -f ${FOAM_HOME}/${APP_NAME}-*.jar
 }
 
 function installFiles {

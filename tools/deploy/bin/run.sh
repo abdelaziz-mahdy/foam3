@@ -93,7 +93,7 @@ if [[ ${JAVA_OPTS} != *"CLUSTER"* ]]; then
     fi
 fi
 
-JAR=$(ls ${APP_HOME}/${APP_NAME}-${VERSION}.jar | awk '{print $1}')
+JAR=$(ls ${APP_HOME}/lib/${APP_NAME}-${VERSION}.jar | awk '{print $1}')
 
 export RES_JAR_HOME="${JAR}"
 
