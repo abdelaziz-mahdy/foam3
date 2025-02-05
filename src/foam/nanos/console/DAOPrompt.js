@@ -152,7 +152,7 @@ foam.CLASS({
     },
     {
       name: 'select',
-      view: 'foam.nanos.console.SinkView'
+      view: { class: 'foam.nanos.console.SinkView', sinksOnly: false }
     },
     'content',
     'rowCount',
