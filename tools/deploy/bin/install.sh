@@ -148,7 +148,6 @@ function installFiles {
     chmod 750 ${FOAM_HOME}/lib
 
     cp -r ${FOAM_REMOTE_OUTPUT}/lib/* ${FOAM_HOME}/lib
-    cp -r ${FOAM_REMOTE_OUTPUT}/${APP_NAME}*.jar ${FOAM_HOME}
 
     if [ ! -d ${FOAM_HOME}/bin ]; then
         mkdir -p ${FOAM_HOME}/bin
