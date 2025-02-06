@@ -427,7 +427,11 @@ YYYY-MM-DDTHH:MM
     async function services(opt_query, opt_nameQuery) {
       var dao = this.nSpecDAO.where(this.EQ(this.NSpec.SERVE, this.True));
       if ( opt_query ) dao = dao.where(opt_query);
-      if ( opt_nameQuery ) dao = dao.where(this.CONTAINS_IC(this.NSpec.NAME, opt_nameQuery));
+      if ( opt_nameQuery ) dao = dao.where(
+        this.OR(
+          this.CONTAINS_IC(this.NSpec.NAME, opt_nameQuery),
+          this.CONTAINS_IC(this.NSpec.KEYWORDS, opt_nameQuery)
+        ));
       var self = this;
       var sdao;
       this.outputDiv.tag('br');

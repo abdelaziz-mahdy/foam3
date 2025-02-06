@@ -187,7 +187,9 @@ foam.CLASS({
             setProperty(getSeqPropertyName()).
             setStartingValue(getSeqStartingValue()).
             build();
-        } else if ( getGuid() ) {
+        }
+
+        if ( getGuid() ) {
           delegate = new foam.dao.GUIDDAO(getX(), delegate);
         }
 

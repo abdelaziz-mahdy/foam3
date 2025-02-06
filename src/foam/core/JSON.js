@@ -248,6 +248,11 @@ foam.CLASS({
       value: true
     },
     {
+      class: 'String',
+      name: 'defaultPackage',
+      //value: 'foam.core.'
+    },
+    {
       class: 'Function',
       name: 'propertyPredicate',
       value: function(o, p) { return ! p.transient; }
@@ -407,11 +412,15 @@ foam.CLASS({
       }
     },
 
+    function classId_(cls) {
+      return cls.package === this.defaultPackage ? cls.name : cls.id;
+    },
+
     function outputFObject_(o, opt_cls) {
       /** Output an FObject without checking if it implements outputJSON. **/
       this.start('{');
       var cls = this.getCls(opt_cls);
-      var outputClassName = this.outputClassNames && o.cls_ !== cls;
+      var outputClassName = this.outputClassNames && o.cls_.id !== cls?.id;
 //      console.log('************* class', o.cls_.name);
       if ( outputClassName ) {
         this.out(
@@ -419,7 +428,7 @@ foam.CLASS({
           ':',
           this.postColonStr,
           '"',
-          o.cls_.id,
+          this.classId_(o.cls_),
           '"');
       }
       var ps = o.cls_.getAxiomsByClass(foam.core.Property);
@@ -532,8 +541,8 @@ foam.CLASS({
         FObject: function(o, opt_cls) {
           var m = {};
           var cls = this.getCls(opt_cls);
-          if ( this.outputClassNames && o.cls_ !== cls ) {
-            m.class = o.cls_.id;
+          if ( this.outputClassNames && o.cls_.id !== cls?.id ) {
+            m.class = this.classId_(o.cls_);
           }
           var ps = o.cls_.getAxiomsByClass(foam.core.Property);
           for ( var i = 0 ; i < ps.length ; i++ ) {
