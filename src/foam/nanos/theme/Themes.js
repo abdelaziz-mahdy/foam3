@@ -128,47 +128,52 @@ Later themes:
       },
       javaCode: `
       // TODO:  cache domain/theme and update on ThemeDAO changes.
-      Logger logger = (Logger) x.get("logger");
-      DAO themeDAO = ((DAO) x.get("themeDAO"));
-      Theme theme = null;
-      ThemeDomain td = null;
-      String domain = null;
-      User user = ((Subject) x.get("subject")).getUser();
-      HttpServletRequest req = x.get(HttpServletRequest.class);
+      Logger             logger   = (Logger) x.get("logger");
+      DAO                themeDAO = ((DAO) x.get("themeDAO"));
+      Theme              theme    = null;
+      ThemeDomain        td       = null;
+      String             domain   = null;
+      User               user     = ((Subject) x.get("subject")).getUser();
+      HttpServletRequest req      = x.get(HttpServletRequest.class);
+      final boolean      DEBUG    = true;
+
       if ( req != null ) {
         domain = req.getServerName();
-        // logger.debug("Themes", "domain", domain);
-     }
+        if ( DEBUG ) logger.debug("Themes", "domain", domain);
+      }
 
       // Find theme from themeDomain via domain
       if ( domain != null ) {
         var themeDomainDAO = (DAO) x.get("themeDomainDAO");
+
         td = (ThemeDomain) themeDomainDAO.find(domain);
-        // if ( td == null ) {
-        //   logger.debug("Themes", "ThemeDomain not found", domain);
-        // }
+        if ( DEBUG && td == null ) {
+           logger.debug("Themes", "ThemeDomain not found", domain);
+        }
         if ( td == null && ! "localhost".equals(domain) ) {
           td = (ThemeDomain) themeDomainDAO.find("localhost");
-          // if ( td == null ) {
-          //   logger.debug("Themes", "ThemeDomain not found", "localhost");
-          // }
+          if ( DEBUG && td == null ) {
+            logger.debug("Themes", "ThemeDomain not found", "localhost");
+          }
         }
         if ( td != null ) {
-          // logger.debug("Themes", "ThemeDomain found", domain, td.getId());
+          if ( DEBUG ) logger.debug("Themes", "ThemeDomain found", domain, td.getId());
           theme = (Theme) themeDAO.find(
             MLang.AND(
               MLang.EQ(Theme.ID, td.getTheme()),
               MLang.EQ(Theme.ENABLED, true)
             ));
-          // if ( theme == null ) {
-          //   logger.debug("Themes", "Theme not found", td.getTheme());
-          // }
+          if ( DEBUG && theme == null ) {
+            logger.debug("Themes", "Theme not found", td.getTheme());
+          }
           if ( theme != null ) {
-            // logger.debug("Themes", "Theme found", domain, theme.getId());
+            if ( DEBUG ) logger.debug("Themes", "Theme found", domain, theme.getId());
             theme = (Theme) theme.fclone();
           }
         }
       }
+
+      Theme originalTheme = theme;
 
       // Find theme from user via SPID
       if ( user != null &&
@@ -176,14 +181,18 @@ Later themes:
            ( theme == null || ! td.getId().equals(domain) || ! user.getSpid().equals(theme.getSpid()) )
       ) {
         var spid = user.getSpid();
+
         while ( ! SafetyUtil.isEmpty(spid) ) {
+          if ( DEBUG ) logger.debug("Themes", "Finding theme by spid", spid);
+
           theme = (Theme) themeDAO.find(
             MLang.AND(
-              MLang.EQ(Theme.SPID, spid),
+              MLang.EQ(Theme.SPID,    spid),
               MLang.EQ(Theme.ENABLED, true)
             )
           );
           if ( theme != null ) {
+            if ( DEBUG ) logger.debug("Themes", "Found for spid", spid);
             theme = (Theme) theme.fclone();
             break;
           }
@@ -193,8 +202,10 @@ Later themes:
         }
       }
 
+      if ( theme == null ) theme = originalTheme;
+
       if ( theme == null ) {
-        // logger.debug("Themes", "fallback");
+        if ( DEBUG ) logger.debug("Themes", "fallback");
         theme = (Theme) themeDAO.find(
           MLang.AND(
             MLang.EQ(Theme.NAME, "foam")
@@ -241,6 +252,7 @@ Later themes:
         appConfig = new AppConfig();
         theme.setAppConfig(appConfig);
       }
+
       if ( ! AppConfig.URL.isSet(appConfig) ||
            // isDefaultValue does not test the models default property
            // AppConfig.URL.isDefaultValue(appConfig) )  {
@@ -252,7 +264,7 @@ Later themes:
         }
       }
 
-      // logger.debug("Themes", "domain", domain, "user", (user != null ? user.getId() : "null"), "group", (group != null ? group.getId() : "null") , "theme", theme.getId());
+      if ( DEBUG ) logger.debug("Themes", "domain", domain, "user", (user != null ? user.getId() : "null"), "group", (group != null ? group.getId() : "null") , "theme", theme.getId());
 
       return theme;
       `
