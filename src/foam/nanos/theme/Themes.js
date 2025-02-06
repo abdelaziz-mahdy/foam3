@@ -135,7 +135,7 @@ Later themes:
       String             domain   = null;
       User               user     = ((Subject) x.get("subject")).getUser();
       HttpServletRequest req      = x.get(HttpServletRequest.class);
-      final boolean      DEBUG    = true;
+      final boolean      DEBUG    = false;
 
       if ( req != null ) {
         domain = req.getServerName();
