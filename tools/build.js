@@ -823,8 +823,8 @@ function all() {
     }
 
     // Tests and benchmarks run from a deployed jar
-    if ( TEST || BENCHMARK ) {
-      deploy()
+    if ( BUILD_JAR || TEST || BENCHMARK ) {
+      deploy();
     }
 
     if ( PACKAGE ) {
