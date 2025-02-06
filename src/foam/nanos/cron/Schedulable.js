@@ -348,7 +348,6 @@ foam.CLASS({
 
         if ( lastRun == null ) return true;
 
-        var alreadyRanToday = DateUtils.isSameDay(lastRun, today);
         if ( DateUtils.isSameDay(lastRun, today) ) return false;
 
         if ( schedule.getEnds() == ScheduleEnd.AFTER ) {
