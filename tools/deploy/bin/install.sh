@@ -129,7 +129,7 @@ function backupFiles {
 
 function cleanupFiles {
     if [ -d ${FOAM_HOME}/lib ]; then
-        sudo rm -rf ${FOAM_HOME/lib/ }
+        sudo rm -rf ${FOAM_HOME}/lib
     fi
 }
 
