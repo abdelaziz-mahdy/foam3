@@ -11,10 +11,6 @@ foam.CLASS({
 
   documentation: 'Generate a PII Report for a user',
 
-  // implements: [
-  //   'foam.mlang.Expressions'
-  // ],
-
   javaImports: [
     'foam.nanos.fs.File'
   ],
