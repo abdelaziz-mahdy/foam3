@@ -20,6 +20,21 @@ foam.CLASS({
     'foam.nanos.pii.PIIReportTicket'
   ],
 
+  css: `
+    ^ {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      gap: 1rem;
+      padding: 2.4rem 3.2rem;
+      width: clamp(400px, 100%, 700px);
+      max-width: 90vw;
+      text-align: center;
+      margin: auto;
+    }
+  `,
+
   messages: [
     { name: 'TITLE', message: 'PII Report Request' },
     { name: 'MSG', message: 'A PII Report has been emailed to ${email}.', template: true }
