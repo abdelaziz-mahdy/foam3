@@ -39,3 +39,7 @@
 
 <h2>Data Collection</h2>
 <p>PII data collection is implemented in rule <b>PIIReportTicketRuleAction</b>. The FOAM rule collects <b>User</b> and <b>UserCapabilityJunction</b> data. An application can add it's own rule, overriding rule id <b>foam-nanos-pii-PIIReportTicketRule</b> with it's own rule action extending the FOAM action and calling <b>super.addData</b>.</p>
+
+<h2>Email</h2>
+<p>When the <b>PIIReportTicket</b> is <b>CLOSED</b> the <b>PIIReportTicketSendRuleAction</b> will send an email with all documents attached.</p>
+<p>As an operator - to resend the email, simply <b>OPEN</b> and <b>CLOSED</b> the ticket.</p>
