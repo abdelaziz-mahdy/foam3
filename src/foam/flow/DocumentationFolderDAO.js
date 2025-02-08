@@ -78,21 +78,40 @@ try {
 
 for ( String path : paths ) {
   if ( sub.getDetached() ) break;
-
-  foam.flow.Document obj = new foam.flow.Document();
   String id = path.substring(0, path.lastIndexOf(".flow"));
-
-  obj.setId(id);
-
-  // TODO: We could parse the markup on the server to get the embedded title.
-
-  obj.setMarkup(new String(storage.getBytes(path), StandardCharsets.UTF_8));
+  var obj = loadDocument(id);
   decorated.put(obj, sub);
 }
 
 decorated.eof();
 
 return sink;`
+    },
+    {
+      name: 'loadDocument',
+      type: 'foam.flow.Document',
+      args: [
+        {
+          name: 'id',
+          type: 'Object'
+        }
+      ],
+      javaCode: `
+        var obj       = new foam.flow.Document();
+        var sanitized = verifyId(id);
+        var storage   = getStorage();
+        var path      = id + ".flow";
+
+        obj.setId(sanitized);
+        var content = new String(storage.getBytes(path), StandardCharsets.UTF_8);
+        if (content.startsWith("<title>") && content.indexOf("</title>") != -1) {
+          obj.setTitle(content.substring(7, content.indexOf("</title>")));
+        }
+
+        obj.setMarkup(content);
+
+        return obj;
+      `
     },
     {
       name: 'verifyId',
@@ -135,21 +154,7 @@ return obj;`
     },
     {
       name: 'find_',
-      javaCode: `
-// TODO: Escape/sanitize file name
-String idStr = verifyId(id);
-
-Storage storage = getStorage();
-String path = idStr + ".flow";
-
-foam.flow.Document obj = new foam.flow.Document();
-obj.setId(idStr);
-
-// TODO: We could parse the markup on the server to get the embedded title.
-
-obj.setMarkup(new String(storage.getBytes(path), StandardCharsets.UTF_8));
-
-return obj;`
+      javaCode: `return loadDocument(id);`
     }
   ]
 });
