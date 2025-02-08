@@ -285,7 +285,7 @@ foam.CLASS({
             .setReason(foam.nanos.alarming.AlarmReason.UNSPECIFIED)
             .setNote(getId() + " " + e.getMessage())
             .build());
-        } 
+        }
       `
     },
     {
@@ -347,16 +347,16 @@ foam.CLASS({
         var today = new Date();
 
         if ( lastRun == null ) return true;
-        var alreadyRanToday = DateUtils.isSameDay(lastRun, today);
+
+        if ( DateUtils.isSameDay(lastRun, today) ) return false;
 
         if ( schedule.getEnds() == ScheduleEnd.AFTER ) {
-          return ! alreadyRanToday && schedule.getEndsAfter() > 0;
+          return schedule.getEndsAfter() > 0;
         } else if ( schedule.getEnds() == ScheduleEnd.ON ) {
           if ( ! DateUtils.isSameDay(schedule.getEndsOn(), today) ) return today.before(schedule.getEndsOn());
-          return ! alreadyRanToday;
-        } else {
-          return ! alreadyRanToday;
         }
+
+        return true;
       `
     }
   ]

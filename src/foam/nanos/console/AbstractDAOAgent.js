@@ -312,6 +312,10 @@ foam.CLASS({
         if ( a == 'GroupBy' ) return;
         if ( a == 'GridBy' ) return;
         if ( a == 'Pie' ) return;
+        if ( a == 'Min' ) return;
+        if ( a == 'Max' ) return;
+        if ( a == 'Sum' ) return;
+        if ( a == 'Avg' ) return;
 
         var cls = foam.lookup(this.cls_.package + '.' + a + 'DAOAgent');
         var agent = cls.create({}, this);
