@@ -208,7 +208,7 @@ foam.CLASS({
             // Per-Month Details
             forEach(authorCounts[a[0]], function(c, i) {
               var salary = 0;
-              try { salary = salaries[a[0]][i]; } catch (x) {}
+              try { salary = salaries[a[0]][i]; } catch (x) { console.log('***** Missing Salary for',  a[0]); }
               total       += c;
               allTotal    += allAuthorCounts[a[0]][i];
               salaryTotal += salary;
@@ -780,8 +780,8 @@ var commits = this.commits.filter(c => this.match(c, this.query, this.author, '/
     function init() {
       this.SUPER();
       // TODO: make this configurable
-      this.loadYear(2023);
-//      this.loadYear(2024);
+//      this.loadYear(2023);
+      this.loadYear(2024);
     },
 
     function loadYear(year) {
