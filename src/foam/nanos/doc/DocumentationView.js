@@ -11,6 +11,9 @@ foam.CLASS({
   mixins: ['foam.u2.memento.Memorable'],
 
   css: `
+    ^ {
+      max-width: 800px;
+    }
     ^ table { width: 100%; }
     ^ td , ^ th {
       text-align: left;
