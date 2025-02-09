@@ -1,18 +1,7 @@
 /**
- * NANOPAY CONFIDENTIAL
- *
- * [2020] nanopay Corporation
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of nanopay Corporation.
- * The intellectual and technical concepts contained
- * herein are proprietary to nanopay Corporation
- * and may be covered by Canadian and Foreign Patents, patents
- * in process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from nanopay Corporation.
+ * @license
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
  */
 
 foam.CLASS({
@@ -37,6 +26,7 @@ foam.CLASS({
     {
       name: 'runTest',
       javaCode: `
+        // see deployment/test/users.jrl
         User user = (User) ((DAO) x.get("userDAO")).find(185426801L);
         PIIReportTicket ticket = new PIIReportTicket();
         ticket.setCreatedFor(user.getId());
@@ -64,9 +54,11 @@ foam.CLASS({
         dao = dao.where(EQ(EmailMessage.USER, user.getId()));
         List<EmailMessage> messages = (List) ((ArraySink) dao.select(new ArraySink())).getArray();
         for ( EmailMessage message : messages ) {
-          if ( "PII Report".equals(message.getSubject()) ) {
-            found = true;
-            break;
+          if ( "Personal Identifiable Information Report".equals(message.getSubject()) ) {
+            if ( message.getBody().contains("data attached") ) {
+              found = true;
+              break;
+            }
           }
         }
         test ( found, "Email found");
