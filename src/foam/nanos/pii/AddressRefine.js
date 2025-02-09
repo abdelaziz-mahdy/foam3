@@ -11,5 +11,13 @@ foam.CLASS({
 
   implements: [
     'foam.nanos.pii.PIIAware'
+  ],
+
+  methods: [
+    {
+      name: 'piiSummary',
+      code: function() { this.toSummary(); },
+      javaCode: 'return toSummary();'
+    }
   ]
 });

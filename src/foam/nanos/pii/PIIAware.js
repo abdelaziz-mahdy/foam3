@@ -8,12 +8,18 @@ foam.INTERFACE({
   package: 'foam.nanos.pii',
   name: 'PIIAware',
 
+  documenation: `Models with pii data that is more sensibly reported
+as a single text block should implement PIIAware rather than use per
+property containsPII.
+An example is the Address model where the many address properties can
+be summerized into a single line.
+`,
+
   methods: [
     {
+      documentation: 'Return a concatenation of the models pii data.',
       name: 'piiSummary',
-      type: 'String',
-      code: function() { return this.toSummary(); },
-      javaCode: 'return ((foam.core.FObject) this).toSummary();'
+      type: 'String'
     }
   ]
 });
