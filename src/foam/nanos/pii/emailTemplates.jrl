@@ -5,10 +5,10 @@ p({
   "group": "*",
   "locale": "en",
   "displayName": "{{appName}}",
-  "subject": "PII Report",
+  "subject": "Personal Identifiable Information Report",
   "body": """
 Dear {{user.legalName}}<br>
-Please find your PII Report data attached.<br>
+Please find your Personal Identifiable Information data attached.<br>
 <br>
 Application: {{appName}}<br>
 User: {{user.legalName}}<br>
@@ -23,7 +23,7 @@ p({
   "group": "*",
   "locale": "en",
   "displayName": "{{appName}}",
-  "subject": "PII Key-Value Report",
+  "subject": "Personal Identifiable Information Key-Value Report",
   "body": """
 <b>Personal Identifiable Information Report</b>
 <br>
