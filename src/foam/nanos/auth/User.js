@@ -265,9 +265,9 @@ foam.CLASS({
       tableWidth: 160,
       validateObj: function(firstName) {
         var invalidMatcher = new RegExp(foam.nanos.auth.User.INVALID_MATCHER, 'ug');
-        var invalidMatch = firstName.match(invalidMatcher)
+        var invalidMatch = firstName.match(invalidMatcher);
         if ( invalidMatch ) {
-          var invalidChars = [...new Set(invalidMatch.join(''))].join(', ')
+          var invalidChars = [...new Set(invalidMatch.join(''))].join(', ');
           return foam.nanos.auth.User.INVALID_FIRST_NAME + invalidChars;
         }
       },
@@ -308,9 +308,9 @@ foam.CLASS({
         if ( ! middleName.trim() ) return;
 
         var invalidMatcher = new RegExp(foam.nanos.auth.User.INVALID_MATCHER, 'ug');
-        var invalidMatch = middleName.match(invalidMatcher)
+        var invalidMatch = middleName.match(invalidMatcher);
         if ( invalidMatch ) {
-          var invalidChars = [...new Set(invalidMatch.join(''))].join(', ')
+          var invalidChars = [...new Set(invalidMatch.join(''))].join(', ');
           return foam.nanos.auth.User.INVALID_MIDDLE_NAME + invalidChars;
         }
       },
@@ -337,9 +337,9 @@ foam.CLASS({
       tableWidth: 160,
       validateObj: function(lastName) {
         var invalidMatcher = new RegExp(foam.nanos.auth.User.INVALID_MATCHER, 'ug');
-        var invalidMatch = lastName.match(invalidMatcher)
+        var invalidMatch = lastName.match(invalidMatcher);
         if ( invalidMatch ) {
-          var invalidChars = [...new Set(invalidMatch.join(''))].join(', ')
+          var invalidChars = [...new Set(invalidMatch.join(''))].join(', ');
           return foam.nanos.auth.User.INVALID_LAST_NAME + invalidChars;
         }
       },
@@ -361,7 +361,7 @@ foam.CLASS({
       order: 100,
       gridColumns: 6,
       includeInDigest: false,
-      containsPII: true,
+      containsPII: false,
       columnPermissionRequired: true,
       trim: true,
       transient: true,
@@ -400,7 +400,7 @@ foam.CLASS({
       class: 'Date',
       name: 'birthday',
       includeInDigest: false,
-      containsPII: false,
+      containsPII: true,
       documentation: 'The date of birth of the individual person, or real user.',
       section: 'userInformation',
       order: 120,
@@ -1083,9 +1083,9 @@ foam.CLASS({
         var self = this;
         var ticket = this.ticketDAO.find(
           this.AND(
+            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.cls_.name),
             this.EQ(this.Ticket.CREATED_FOR, this.id),
             this.EQ(this.Ticket.SPID, this.spid),
-            this.EQ(this.Ticket.STATUS, "OPEN"),
             this.OR(
               this.EQ(this.UserLifecycleTicket.REQUESTED_LIFECYCLE_STATE, this.LifecycleState.DELETED),
               this.EQ(this.UserLifecycleTicket.REQUESTED_LIFECYCLE_STATE, this.LifecycleState.DISABLED)
@@ -1132,9 +1132,9 @@ foam.CLASS({
         var self = this;
         var ticket = this.ticketDAO.find(
           this.AND(
+            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.cls_.name),
             this.EQ(this.Ticket.CREATED_FOR, this.id),
             this.EQ(this.Ticket.SPID, this.spid),
-            this.EQ(this.Ticket.STATUS, "OPEN"),
             this.OR(
               this.EQ(this.UserLifecycleTicket.REQUESTED_LIFECYCLE_STATE, this.LifecycleState.DELETED),
               this.EQ(this.UserLifecycleTicket.REQUESTED_LIFECYCLE_STATE, this.LifecycleState.DISABLED)
@@ -1183,6 +1183,7 @@ foam.CLASS({
         // find existing ticket
         var ticket = this.ticketDAO.find(
           this.AND(
+            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.cls_.name),
             this.EQ(this.Ticket.CREATED_FOR, this.id),
             this.EQ(this.Ticket.SPID, this.spid)
           )

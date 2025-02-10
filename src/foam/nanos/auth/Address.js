@@ -9,14 +9,14 @@ foam.CLASS({
   name: 'Address',
 
   documentation: 'The base model for the postal address.',
-  
+
   axioms: [ foam.pattern.Faceted.create({ ofProperty: 'countryId' }) ],
 
   implements: [
     {
       path: 'foam.mlang.Expressions',
       flags: ['js'],
-    },
+    }
   ],
 
   requires: [
@@ -728,7 +728,7 @@ foam.CLASS({
       code: function() {
         return [this.getShortAddress(), this.city, this.regionId, this.countryId, this.postalCode]
           .filter(s => s)
-          .join(', ')
+          .join(', ');
       },
       javaCode: `
         StringBuilder sb = new StringBuilder();

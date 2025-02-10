@@ -125,8 +125,6 @@ foam.INTERFACE({
     'void setStatementValue(IndexedPreparedStatement stmt, FObject o) throws java.sql.SQLException',
     'void setFromResultSet(java.sql.ResultSet resultSet, int index, FObject o) throws java.sql.SQLException',
     'void cloneProperty(FObject source, FObject dest) { set(dest, foam.util.SafetyUtil.deepClone(get(source))); }',
-    'boolean containsPII() { return false; }',
-    'boolean containsDeletablePII() { return false; }',
     `void validateObj(foam.core.X x, foam.core.FObject obj) {
        /* Template Method: override in subclass if required. */
        if ( getRequired() && (! isSet(obj) || isDefaultValue(obj)) ) {

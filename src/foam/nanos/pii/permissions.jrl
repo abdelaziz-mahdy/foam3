@@ -1,0 +1,12 @@
+p({
+  class:"foam.nanos.auth.Permission",
+  id:"user.action.pii"
+})
+p({
+  class:"foam.nanos.auth.Permission",
+  id:"strategyreference.read.foam_nanos_pii_PIIReportTicket"
+})
+p({
+  class:"foam.nanos.auth.Permission",
+  id:"menu.read.pii-report"
+})
