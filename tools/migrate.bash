@@ -1,5 +1,6 @@
 #!/bin/bash
-echo "If this doesn't work, do: git reset --hard"
+echo "If this doesn't work, do: git reset --hard; cd foam3; git reset --hard"
+echo "Good luck!"
 
 find ./ -type f \( \
      -name "*.js"   -o \
@@ -17,5 +18,6 @@ find ./ -type f \( \
    -exec perl -p -i -e 's/nanos/core/g'          \{} \; \
    -exec perl -p -i -e 's/NANOS/CORE/g'          \{} \;
 
- git mv foam3/src/foam/core  foam3/src/foam/lang
- git mv foam3/src/foam/nanos foam3/src/foam/core
+cd foam3/src/foam
+git mv core  lang
+git mv nanos core
