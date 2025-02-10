@@ -1,4 +1,6 @@
 #!/bin/bash
+echo "If this doesn't work, do: git reset --hard"
+
 find ./ -type f \( \
      -name "*.js"   -o \
      -name "*.java" -o \
