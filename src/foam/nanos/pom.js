@@ -21,14 +21,15 @@ foam.POM({
   projects: [
     { name: "app/pom" },
     { name: "crunch/pom" },
+    { name: "console/pom" },
     { name: "er/pom" },
     { name: "jetty/pom" },
     { name: "medusa/pom" },
     { name: "place/pom" },
+    { name: "pii/pom" },
     { name: "referral/pom" },
     { name: "ruler/pom" },
-    { name: "so/pom" },
-    { name: "console/pom" }
+    { name: "so/pom" }
   ],
   files: [
     { name: "client/ClientBuilder",                                                       flags: "js" },

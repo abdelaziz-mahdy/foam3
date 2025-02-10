@@ -1,0 +1,12 @@
+p({
+  "class":"foam.nanos.menu.Menu",
+  "id":"pii-report",
+  "label":"PII Report",
+  "handler":{
+    "class":"foam.nanos.menu.ViewMenu","view":{
+      "class":"foam.nanos.pii.PIIReportRequestView"
+    }
+  },
+  "order":10000,
+  "parent":"settings"
+})

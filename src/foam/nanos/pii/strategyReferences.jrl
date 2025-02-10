@@ -1,0 +1,6 @@
+p({
+  "class":"foam.strategy.StrategyReference",
+  "id":"foam_nanos_pii_PIIReportTicket",
+  "desiredModelId":"foam.nanos.ticket.Ticket",
+  "strategy":"foam.nanos.pii.PIIReportTicket"
+})
