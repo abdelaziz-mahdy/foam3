@@ -16,7 +16,9 @@ find ./ -type f \( \
    -exec perl -p -i -e 's/foam\/core/foam\/lang/g' \{} \; \
    -exec perl -p -i -e 's/NSpec/COREService/g'     \{} \; \
    -exec perl -p -i -e 's/nSpec/service/g'         \{} \; \
-   -exec perl -p -i -e 's/JDBCConnectioservice/JDBCConnectionSpec/g' \{} \; \
+   -exec perl -p -i -e 's/JDBCConnectioservice/JDBCoCnnectionSpec/g' \{} \; \
+   -exec perl -p -i -e 's/getCOREService/getService/g' \{} \; \
+   -exec perl -p -i -e 's/setCOREService/setService/g' \{} \; \
    -exec perl -p -i -e 's/nanos/core/g'            \{} \; \
    -exec perl -p -i -e 's/NANOS/CORE/g'            \{} \;
 
