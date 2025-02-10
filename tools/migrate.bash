@@ -12,23 +12,24 @@ find ./ -type f \( \
      -name "*.txt"  -o \
      -name "*.html" -o \
      -name "*.md" \) \
-   -exec perl -p -i -e 's/foam\.core/foam\.lang/g' \{} \; \
-   -exec perl -p -i -e 's/foam\/core/foam\/lang/g' \{} \; \
-   -exec perl -p -i -e 's/NSpec/COREService/g'     \{} \; \
-   -exec perl -p -i -e 's/nSpec/service/g'         \{} \; \
-   -exec perl -p -i -e 's/JDBCConnectioservice/JDBCConnectionSpec/g' \{} \; \
-   -exec perl -p -i -e 's/getCOREService/getService/g' \{} \; \
-   -exec perl -p -i -e 's/setCOREService/setService/g' \{} \; \
-   -exec perl -p -i -e 's/clearCOREService/clearService/g' \{} \; \
-   -exec perl -p -i -e 's/nanos/core/g'            \{} \; \
-   -exec perl -p -i -e 's/NANOS/CORE/g'            \{} \;
+   -exec perl -p -i -e 's/foam\.core/foam\.lang/g'   \{} \; \
+   -exec perl -p -i -e 's/foam\/core/foam\/lang/g'   \{} \; \
+   -exec perl -p -i -e 's/NanoService/COREService/g' \{} \; \
+   -exec perl -p -i -e 's/nSpec/cSpec/g'             \{} \; \
+   -exec perl -p -i -e 's/NSpec/CSpec/g'             \{} \; \
+   -exec perl -p -i -e 's/nanos/core/g'              \{} \; \
+   -exec perl -p -i -e 's/NANOS/CORE/g'              \{} \;
 
 cd foam3/src/foam
 git mv core  lang
 git mv nanos core
 
-cd core/boot
-git mv NSpec.js          COREService.js
-git mv NSpecAware.js     COREServiceAware.js
-git mv NSpecFactory.java COREServiceFactory.java
-git mv DAONSpecMenu.js   DAOCOREServiceMenu.js
+cd core
+git mv NanoService.js COREService.js
+git mv box/NanoServiceRouter.java box/COREServiceRouter.java
+
+cd boot
+git mv NSpec.js          CSpec.js
+git mv NSpecAware.js     CSpecAware.js
+git mv NSpecFactory.java CSpecFactory.java
+git mv DAONSpecMenu.js   DAOCSpecMenu.js
