@@ -254,7 +254,7 @@ foam.LIB({
         // arg => ...
         match = str.match(/^(\(([^)]*)\)[^=]*|([^=]+))=>/) :
         // function (...args...) { ...body... }
-        match = str.match(/^(async )?function(\s+[_$\w]+|\s*)\((.*?)\)/);
+        match = str.match(/^(async )?function(\s+[_$\w]+|\s*)\s*\((.*?)\)/);
 
       if ( ! match ) {
         /* istanbul ignore next */
