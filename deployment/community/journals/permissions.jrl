@@ -1,0 +1,2 @@
+p({"class":"foam.nanos.auth.Permission","id":"menu.read.foamdocs","description":"FOAM Documentation Menu"})
+p({"class":"foam.nanos.auth.Permission","id":"flow.read.*","description":"Read all docs"})
