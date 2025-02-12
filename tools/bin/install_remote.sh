@@ -129,8 +129,9 @@ fi
 
 OPT_ARGS="-C${CLUSTER} -B${BACKUP} -N${NAME} -V${VERSION} -U${USER} -Y${USER_ID}";
 if [ -n "${WEB_PORT}" ]; then
-    OPT_ARGS += " -W${WEB_PORT}"
+    OPT_ARGS="${OPT_ARGS} -W${WEB_PORT}"
 fi
+
 ssh ${SSH_KEY_OPT} ${REMOTE} "sudo bash -s -- -T${FOAM_REMOTE_OUTPUT}/${FOAM_TARBALL} ${OPT_ARGS}" < ./foam3/tools/deploy/bin/install.sh
 
 if [ ! $? -eq 0 ]; then
