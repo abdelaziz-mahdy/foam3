@@ -6,6 +6,21 @@
 
 foam.CLASS({
   package: 'foam.core.console',
+  name: 'PropertyRefinement',
+  refines: 'Property',
+
+  properties: [
+    {
+      class: 'Boolean',
+      name: 'showInPropertyChoice',
+      factory: function() { return ! this.hidden && ! this.networkTransient; }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console',
   name: 'PropertyChoiceView',
   extends: 'foam.u2.view.ChoiceView',
 
@@ -16,7 +31,7 @@ foam.CLASS({
       factory: function(of) {
         var choices = [ ];
         this.of.getAxiomsByClass(foam.lang.Property).forEach(p => {
-          if ( p.hidden || p.networkTransient ) return;
+          if ( ! p.showInPropertyChoice ) return;
           choices.push([p, p.name]);
         });
         if ( choices.length ) this.data = choices[0][0];
