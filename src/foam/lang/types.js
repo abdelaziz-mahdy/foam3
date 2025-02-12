@@ -1085,7 +1085,7 @@ foam.CLASS({
     {
       name: 'adapt',
       value: function(oldValue, newValue, prop) {
-        return prop.of.isInstance(newValue) ?
+        return (prop || this).of.isInstance(newValue) ?
           newValue.id :
           newValue ;
       }
