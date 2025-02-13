@@ -844,6 +844,7 @@ foam.POM({
     { name: "foam/doc/CodeTabs",                                      flags: "js" },
     { name: "foam/doc/ClassList",                                     flags: "dev&web" },
     { name: "foam/doc/DocBrowser",                                    flags: "dev&web" },
+    { name: "foam/doc/UMLDiagram",                                    flags: "dev&web" },
     { name: "foam/doc/ModelBrowser",                                  flags: "dev&web" },
     { name: "com/google/net/node/Google2LOAuthAgent",                 flags: "node&gcloud" },
     { name: "com/google/firebase/DefaultFirestoreDocumentID",         flags: "node&firebase" },
