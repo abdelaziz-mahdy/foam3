@@ -65,14 +65,20 @@ foam.CLASS({
       javaType: 'java.util.List',
       args: 'foam.mlang.order.Comparator comparator',
       code: function sortedKeys(opt_comparator) {
-        this.groupKeys.sort(opt_comparator || this.arg1.comparePropertyValues);
+        var a1 = this.arg1;
+        // Use the property as a comparator but adapt to the correct type since number types will be stored as String values
+        this.groupKeys.sort(opt_comparator || ((o1,o2) => a1.comparePropertyValues(a1.adapt(null, o1, a1), a1.adapt(null, o2, a1))));
         return this.groupKeys;
       },
       javaCode:
 `if ( comparator != null ) {
   java.util.Collections.sort(getGroupKeys(), comparator);
 } else {
-  java.util.Collections.sort(getGroupKeys());
+  if ( getArg1() instanceof java.util.Comparator ) {
+    java.util.Collections.sort(getGroupKeys(), (java.util.Comparator) getArg1());
+  } else {
+    java.util.Collections.sort(getGroupKeys());
+  }
 }
 return getGroupKeys();`
     },
