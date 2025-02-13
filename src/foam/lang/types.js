@@ -285,7 +285,7 @@ foam.CLASS({
   label: 'Time',
 
   properties: [
-    [ 'type', 'time' ]
+//    [ 'type', 'time' ]
   ]
 });
 
