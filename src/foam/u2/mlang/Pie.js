@@ -39,7 +39,8 @@ foam.CLASS({
     {
       name: 'graph_',
       expression: function(groups) {
-        var keys     = Object.keys(groups);
+        var keys = Object.keys(groups);
+        var l    = keys.length;
         this.graphColors = keys.map((k,i) => {
           var c = this.arg1?.colorMap[k] ;
           if ( c ) return c;
@@ -55,6 +56,7 @@ foam.CLASS({
   ],
 
   methods: [
+    function hsl(h, s, l) { return 'hsl(' + h + ',' + s + '%,' + l + '%)'; },
     function toE(_, x) { return x.E().add(this.graph_$); },
     function addToE(e) { e.add(this.graph_$); }
   ]
