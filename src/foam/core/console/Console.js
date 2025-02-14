@@ -36,14 +36,197 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console',
+  name: 'Flowable',
+
+  properties: [
+    'flowParent',
+    {
+      class: 'String',
+      name: 'flowName'
+    },
+    {
+      class: 'List',
+      name: 'flowChildren'
+    }
+  ],
+
+  methods: [
+    function addFlowChild(f) {
+      this.flowChildren = this.flowChildren.concat([f]);
+    },
+    function removeFlowChild(f) {
+      console.log('**** remove:', f);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console',
+  name: 'FlowableTree',
+  extends: 'foam.u2.View',
+
+  css: `
+    ^ {
+      width: 100%;
+    }
+    ^ table {
+      width: 100%;
+    }
+    ^ tabel tr {
+      padding: 4px;
+    }
+    ^ table td:nth-of-type(2) {
+      width: 40px;
+      text-align: right;
+    }
+    ^selected {
+      outline: 2px solid #ccc;
+    }
+  `,
+
+  properties: [
+    'selected'
+  ],
+
+  methods: [
+    function render() {
+      this.
+        addClass().
+        start('table').
+        attr('cellpadding', '4').
+        call(this.branch, [this, this.data, 0]);
+    },
+
+    function branch(self, data, depth) {
+      this.add(data.dynamic(function (flowName) {
+        this.start('tr').
+          enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
+          on('click', () => self.selected = data).
+          start('td').
+            style({'paddingLeft': (4 + depth * 12) + 'px'}).
+            add(flowName).
+          end().
+          start('td').
+            callIf(data.flowParent, function() {
+              this.start().on('click', () => data.flowParent.removeFlowChild(data)).add('X');
+            }).
+          end();
+      }));
+      this.add(data.dynamic(function (flowChildren) {
+        this.forEach(flowChildren, d => {
+          this.call(self.branch, [self, d, depth+1]);
+        });
+      }));
+    }
+  ]
+});
+
+
+// Would 'Block' be a better name?
+foam.CLASS({
+  package: 'foam.core.console',
+  name: 'Block',
+  extends: 'foam.u2.Controller',
+
+  mixins: [ 'foam.core.console.Flowable' ],
+
+  exports: [
+    'output'
+  ],
+
+  css: `
+    ^ {
+      border: 1px solid blue;
+    }
+    ^output {
+      border: 1px solid pink;
+    }
+  `,
+
+  properties: [
+    {
+      class: 'String',
+      name: 'prompt'
+    },
+    'output'
+  ],
+
+  methods: [
+    function render() {
+      this.
+        addClass().
+        add(this.PROMPT, this.DEL).
+        start('div', {}, this.output$).
+          addClass(this.myClass('output')).
+        end();
+    }
+  ],
+
+  actions: [
+    function del() {
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console',
+  name: 'Layout',
+  extends: 'foam.u2.Element',
+
+  css: `
+    ^ {
+      display: flex;
+      height: 100%;
+    }
+    ^l {
+      box-shadow: 3px 3px 6px 0 gray;
+      height: 100%;
+      width: 400px;
+      padding: 4px;
+    }
+    ^m {
+    }
+    ^r {
+      box-shadow: 3px 3px 6px 0 gray;
+      width: 50%;
+    }
+  `,
+
+  properties: [
+    'left',
+    'middle',
+    'right'
+  ],
+
+  methods: [
+    function render() {
+      this.
+        addClass().
+        start('div', {}, this.left$  ).addClass(this.myClass('l')).end().
+        start('div', {}, this.middle$).addClass(this.myClass('m')).end().
+        start('div', {}, this.right$ ).addClass(this.myClass('r')).end();
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console',
   name: 'Console',
   extends: 'foam.u2.Controller',
 
+  mixins: [ 'foam.core.console.Flowable' ],
+
   requires: [
+    'foam.core.console.Layout',
     'foam.core.console.Link',
     'foam.core.console.DAOCreate',
     'foam.core.console.DAOPrompt',
     'foam.core.console.DocumentReadWriteView',
+    'foam.core.console.FlowableTree',
+    'foam.core.console.Block',
     'foam.dao.ArrayDAO',
     'foam.demos.sevenguis.Cells',
     'foam.flow.Document',
@@ -171,27 +354,36 @@ foam.CLASS({
     function render() {
       this.SUPER();
 
-      var self = this;
+      this.flowName = 'Unnamed';
+      this.addFlowChild(this.Block.create({flowName: 'Prompt 1', flowParent: this}));
 
+      var layout = this.start(this.Layout);
+
+      layout.left.tag(this.FlowableTree, {data: this});
+      layout.middle.call(this.renderSelf, [this]);
+    },
+
+    function renderSelf(self) {
       this.
-        addClass(this.myClass()).
-        start('div', null, this.outputDiv$)
-        .addClass(this.myClass('output')).end().
+        addClass(self.myClass()).
+        start('div', null, self.outputDiv$)
+        .addClass(self.myClass('output')).end().
         start('span').
-          addClass(this.myClass('input-field')).
+          addClass(self.myClass('input-field')).
           start('b').style({ display: 'flex', 'white-space': 'pre'}).
-            start(this.Link).add('help').on('click',    () => self.eval_('help'),    this).end().add(', ').
-            start(this.Link).add('history').on('click', () => self.eval_('history'), this).end().add(' >').
+            start(self.Link).add('help').on('click',    () => self.eval_('help'),    this).end().add(', ').
+            start(self.Link).add('history').on('click', () => self.eval_('history'), this).end().add(' >').
           end().
-          start(this.INPUT, null, this.input_$).
-          addClass(this.myClass('input')).
+          start(self.INPUT, null, self.input_$).
+          addClass(self.myClass('input')).
           end().
-          tag(this.ON_INPUT).
+          tag(self.ON_INPUT).
         end();
 
         // These observers might cause scroll issues later when queries in the console can be edited
         // In that case there should be an explicit flag to only do the scroll when the query is submitted
-        // from the main console input
+      // from the main console input
+      /*
         const resizeObserver = new ResizeObserver(this.scrollToBottom.bind(this));
         var observer = new MutationObserver(function(mutations) {
           for (const record of mutations) {
@@ -214,6 +406,7 @@ foam.CLASS({
         observer.observe(this.outputDiv.element_, config);
         this.onDetach(() => observer.disconnect());
         this.setTimeout(this.focusInput.bind(this), 500)
+        */
     },
 
     function log(...args) {
@@ -498,7 +691,6 @@ YYYY-MM-DDTHH:MM
 
       this.log(r);
       this.input_.focus();
-
     }
   ],
 
