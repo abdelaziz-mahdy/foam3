@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.core.console.cmd',
   name: 'Command',
 
-  imports: [ 'log' ],
+  imports: [ 'log', 'out' ],
 
   properties: [
     { class: 'String', name: 'id' },
@@ -35,10 +35,36 @@ foam.CLASS({
 
   methods: [
     function execute() {
-      this.log('Help');
-      this.commandDAO.select(c => {
-        this.log(c.id);
-      });
+      var shortcuts = [
+        [ 'F1',      'Help' ],
+        [ 'ESC',     'Toggle prompt display' ],
+        [ 'Up',      'Previous from history' ],
+        [ 'Down',    'Next from history' ],
+        [ 'CMD + k / CTRL + k',  'Clear console' ],
+        [ 'CTRL + `', 'Focus input' ]
+      ];
+
+      this.out.start('h3').add('Commands').end().
+      start('table').style({width: 'max-content'}).
+        select(this.commandDAO, function(c) {
+          this.start('tr').
+            start('th').attr('width', '250').attr('align', 'left').call(function() {
+              if ( c.linkable ) {
+                self.outputLink(c.id, () => self.eval_(cid), this);
+              } else {
+                this.add(c.id);
+              }
+            }).end().
+            start('td').attr('align', 'left').add(c.description);
+        }).
+        end().
+        br().
+        start('h3').add('Keyboard Shortcuts').end().
+        start('table').style({width: 'max-content'}).
+          forEach(shortcuts, function(c) {
+            this.start('tr').start('th').attr('width', '250').attr('align', 'left').add(c[0]).end().start('td').add(c[1]);
+          }).
+        end();
     }
   ]
 });

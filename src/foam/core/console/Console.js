@@ -587,62 +587,6 @@ YYYY-MM-DDTHH:MM
 
     function help() {
       foam.core.console.cmd.Help.create({}, this.flowChildren[this.flowChildren.length-1]).execute();
-      return;
-      var self = this;
-      this.out.tag('br');
-      // TODO: store commands in a DAO
-      var cmds = [
-        [ 'help',     'Display help' ],
-        [ 'mqlhelp',  'Display MQL help', true ],
-        [ '#',        'Heading 1' ],
-        [ '##',       'Heading 2' ],
-        [ '##',       'Heading 3' ],
-        [ '**',       'Bold' ],
-        [ '*',        'Italic' ],
-        [ '>',        'Blocquote' ],
-        [ 'models',   'Browse Models', true ],
-        [ 'cells',    'Embed spreadsheet', true ],
-        [ 'describe', 'Describe a Class' ],
-        [ 'doc',      'Embed document', true ],
-        [ 'flows',    'Display saved flows', true ],
-        [ 'cls',      'Clear console output', true ],
-        [ 'dao',      'Perform DAO operation' ], // ???: Combine with daos with args?
-        [ 'daoCreate','Add a new object to a DAO' ], // ???: Combine with daos with args?
-        [ 'daos',     'Display availabe DAO services', true ],
-        [ 'history',  'Display past executed commands', true ],
-        [ 'load',     'Load a specified flow' ],
-        [ 'services', 'Display available services', true ],
-        [ 'save',     'Save the current flow to a specified name' ]
-      ];
-      var shortcuts = [
-        [ 'F1',      'Help' ],
-        [ 'ESC',     'Toggle prompt display' ],
-        [ 'Up',      'Previous from history' ],
-        [ 'Down',    'Next from history' ],
-        [ 'CMD + k / CTRL + k',  'Clear console' ],
-        [ 'CTRL + `', 'Focus input' ]
-      ];
-      this.out.start('h3').add('Commands').end().
-      start('table').style({width: 'max-content'}).
-        forEach(cmds, function(c) {
-          this.start('tr').
-            start('th').attr('width', '250').attr('align', 'left').call(function() {
-              if ( c[2] ) {
-                self.outputLink(c[0], () => self.eval_(c[0]), this);
-              } else {
-                this.add(c[0]);
-              }
-            }).end().
-            start('td').attr('align', 'left').add(c[1]);
-        }).
-        end().
-        br().
-        start('h3').add('Keyboard Shortcuts').end().
-        start('table').style({width: 'max-content'}).
-          forEach(shortcuts, function(c) {
-            this.start('tr').start('th').attr('width', '250').attr('align', 'left').add(c[0]).end().start('td').add(c[1]);
-          }).
-        end();
     },
 
     // TODO: break into two different function
@@ -692,8 +636,7 @@ YYYY-MM-DDTHH:MM
       if ( ! cmd ) return;
       this.addHistory(cmd);
 
-
-      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
+//      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
       var block = this.Block.create({flowName: 'prompt1', cmd: cmd, flowParent: this});
       this.addFlowChild(block);
 
