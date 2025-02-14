@@ -1,6 +1,6 @@
 p({
   "class": "foam.core.boot.CSpec",
-  "name": "cmdDAO",
+  "name": "commandDAO",
   "description": "Console Commands.",
   "serve": true,
   "authenticate": false,
