@@ -16,10 +16,10 @@ p({
   "client": """
     {
       "of":"foam.core.console.cmd.Command",
-      "xcache": true,
-      "xttlSelectPurgeTime": 0,
-      "xttlPurgeTime": 0
+      "cache": true,
+      "ttlSelectPurgeTime": 0,
+      "ttlPurgeTime": 0
     }
   """,
-  "documentation": "Merchant Codes."
+  "documentation": "Console Commands."
 })

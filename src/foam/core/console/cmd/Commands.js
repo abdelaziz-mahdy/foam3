@@ -246,7 +246,8 @@ foam.CLASS({
   ],
 
   methods: [
-    function execute() {
+    function execute(t) {
+      this.out.start('h1').add(t);
     }
   ]
 });

@@ -260,9 +260,9 @@ foam.CLASS({
     'foam.core.boot.CSpec'
   ],
 
-  imports: [ 'flowDAO', 'cSpecDAO', 'scope?', 'window', 'setTimeout' ],
+  imports: [ 'commandDAO', 'flowDAO', 'cSpecDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'eval_', 'scrollToBottom', 'outputLink' ],
+  exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'outputLink' ],
 
   css: `
     ^ {
@@ -343,32 +343,9 @@ foam.CLASS({
     {
       name: 'localScope',
       factory: function() {
-        // TODO: include DAOs in scope
-        // TODO: include MLang's from foam.mlang.Expressions in scope
-        // TODO: add 'doc'
         return {
-          'h1':     this.h1.bind(this),
-          'h2':     this.h2.bind(this),
-          'h3':     this.h3.bind(this),
-          'bold':   this.bold.bind(this),
-          'italic': this.italic.bind(this),
-          'quote':  this.blockquote.bind(this),
-          models:   this.models.bind(this),
-          cells:    this.cells.bind(this),
-          describe: this.describeClass.bind(this),
-          doc:      this.doc.bind(this),
-          history:  this.history.bind(this),
-          log:      this.log.bind(this),
-          flows:    this.listFlows.bind(this),
-          mqlhelp:  this.mqlHelp.bind(this),
-          help:     this.help.bind(this),
-          dao:      this.dao.bind(this),
-          daoCreate:this.daoCreate.bind(this),
-          this:     this,
-          cls:      this.cls.bind(this),
-          daos:     this.services.bind(this, this.CSpec.SERVED_DAOS),
-          services: this.services.bind(this, this.CSpec.SERVED_SERVICES),
-          output:   this.out
+          this:   this,
+          output: this.out
         };
       }
     }
@@ -379,8 +356,13 @@ foam.CLASS({
       return this.cls_.id + '_HISTORY';
     },
 
-    function render() {
+    async function render() {
       this.SUPER();
+
+      var cmds = await this.commandDAO.select();
+      cmds.array.forEach(c => {
+        this.localScope[c.id] = c.execute.bind(c.clone(this));
+      });
 
       this.flowName = 'Unnamed';
 
