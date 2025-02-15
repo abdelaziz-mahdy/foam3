@@ -11,8 +11,9 @@ foam.CLASS({
   imports: [ 'log', 'out' ],
 
   properties: [
-    { class: 'String', name: 'id' },
-    { class: 'String', name: 'description' }
+    { class: 'String',  name: 'id' },
+    { class: 'String',  name: 'description' },
+    { class: 'Boolean', name: 'linkable', value: true }
   ],
 
   methods: [
@@ -26,15 +27,16 @@ foam.CLASS({
   name: 'Help',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ 'commandDAO' ],
+  imports: [ 'commandDAO', 'outputLink' ],
 
   properties: [
     { name: 'id',          value: 'help' },
-    { name: 'description', value: 'Show help text' }
+    [ 'description', 'Display help' ]
   ],
 
   methods: [
     function execute() {
+      var self = this;
       var shortcuts = [
         [ 'F1',      'Help' ],
         [ 'ESC',     'Toggle prompt display' ],
@@ -77,6 +79,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Bold' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -90,6 +96,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Embed spreadsheet' ]
+  ],
 
   methods: [
     function execute() {
@@ -105,6 +115,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Clear console output' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -118,6 +132,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Perform DAO operation' ]
+  ],
 
   methods: [
     function execute() {
@@ -133,6 +151,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Add an object to a DAO' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -146,6 +168,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Display avaiable DAO services' ]
+  ],
 
   methods: [
     function execute() {
@@ -161,6 +187,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Describe a class' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -174,6 +204,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Embed document text' ]
+  ],
 
   methods: [
     function execute() {
@@ -189,6 +223,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Display saved flows' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -202,6 +240,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Header 1' ]
+  ],
 
   methods: [
     function execute() {
@@ -217,6 +259,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Header 2' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -230,6 +276,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Header 3' ]
+  ],
 
   methods: [
     function execute() {
@@ -245,6 +295,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Display previously executed commands' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -258,6 +312,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Italic' ]
+  ],
 
   methods: [
     function execute() {
@@ -273,6 +331,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Load a specified flow' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -286,6 +348,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Display MQL Help' ]
+  ],
 
   methods: [
     function execute() {
@@ -301,6 +367,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Browse Models' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -314,6 +384,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Blockquote' ]
+  ],
 
   methods: [
     function execute() {
@@ -329,6 +403,10 @@ foam.CLASS({
 
   imports: [ ],
 
+  properties: [
+    [ 'description', 'Save the current flow to a specified name' ]
+  ],
+
   methods: [
     function execute() {
     }
@@ -342,6 +420,10 @@ foam.CLASS({
   extends: 'foam.core.console.cmd.Command',
 
   imports: [ ],
+
+  properties: [
+    [ 'description', 'Display available services' ]
+  ],
 
   methods: [
     function execute() {

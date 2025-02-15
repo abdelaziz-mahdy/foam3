@@ -262,7 +262,7 @@ foam.CLASS({
 
   imports: [ 'flowDAO', 'cSpecDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'eval_', 'scrollToBottom' ],
+  exports: [ 'eval_', 'scrollToBottom', 'outputLink' ],
 
   css: `
     ^ {
