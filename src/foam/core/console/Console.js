@@ -9,36 +9,6 @@
 
 foam.CLASS({
   package: 'foam.core.console',
-  name: 'AxiomInf',
-
-  ids: [ 'name' ],
-
-  properties: [
-    {
-      class: 'String',
-      name: 'type',
-      label: 'Axiom Type'
-    },
-    {
-      class: 'String',
-      name: 'source',
-      label: 'Source Class'
-    },
-    {
-      class: 'String',
-      name: 'name'
-    },
-    {
-      class: 'String',
-      name: 'path',
-      label: 'Source Path'
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.console',
   name: 'Flowable',
 
   properties: [
@@ -257,9 +227,9 @@ foam.CLASS({
     'foam.flow.Document'
   ],
 
-  imports: [ 'commandDAO', 'flowDAO', 'scope?', 'window', 'setTimeout' ],
+  imports: [ 'commandDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'outputLink' ],
+  exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'outputLink', 'history_' ],
 
   css: `
     ^ {
@@ -307,7 +277,7 @@ foam.CLASS({
         onKey: true
       },
     },
-    'input_',
+    'input_', // Element pointer
     {
       name: 'out'
     },
@@ -427,15 +397,6 @@ foam.CLASS({
       }
     },
 
-    function history(q) {
-      if ( q ) q = q.toLowerCase();
-      this.history_.forEach(h => {
-        if ( q != undefined && h.toLowerCase().indexOf(q) == -1 ) return;
-        this.out.tag('br');
-        this.outputLink(h, () => this.eval_(h));
-      });
-    },
-
     function addHistory(cmd) {
       if ( cmd.startsWith('history') || cmd.startsWith('help') ) return;
       // avoid adjacent duplicates
@@ -454,16 +415,6 @@ foam.CLASS({
         'text-decoration': 'underline'
       }).on('click', action).add(text).end();
       return this;
-    },
-
-    function listFlows() {
-      return this.flowDAO.select({
-        put: o => {
-          this.out.tag('br');
-          // TODO: fix since load() isn't in scope anymore
-          this.outputLink(o.name, () => this.scope.load(o.name));
-        }
-      }).then(function() { return undefined; });
     },
 
     // TODO: better to add newlines after

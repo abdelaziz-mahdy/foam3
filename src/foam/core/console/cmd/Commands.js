@@ -221,6 +221,36 @@ foam.CLASS({
   ]
 });
 
+/*
+  foam.CLASS({
+  package: 'foam.core.console',
+  name: 'AxiomInfo',
+
+  ids: [ 'name' ],
+
+  properties: [
+    {
+      class: 'String',
+      name: 'type',
+      label: 'Axiom Type'
+    },
+    {
+      class: 'String',
+      name: 'source',
+      label: 'Source Class'
+    },
+    {
+      class: 'String',
+      name: 'name'
+    },
+    {
+      class: 'String',
+      name: 'path',
+      label: 'Source Path'
+    }
+  ]
+});
+*/
 
 foam.CLASS({
   package: 'foam.core.console.cmd',
@@ -294,7 +324,7 @@ foam.CLASS({
   name: 'Flows',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
+  imports: [ 'flowDAO' ],
 
   properties: [
     [ 'description', 'Display saved flows' ]
@@ -302,6 +332,12 @@ foam.CLASS({
 
   methods: [
     function execute() {
+      return this.flowDAO.select({
+        put: o => {
+          this.out.tag('br');
+          this.outputLink(o.name, () => this.eval_('load(' + o.name + ')'));
+        }
+      }).then(function() { return undefined; });
     }
   ]
 });
@@ -363,14 +399,20 @@ foam.CLASS({
   name: 'History',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
+  imports: [ 'history_' ],
 
   properties: [
     [ 'description', 'Display previously executed commands' ]
   ],
 
   methods: [
-    function execute() {
+    function execute(q) {
+      if ( q ) q = q.toLowerCase();
+      this.history_.forEach(h => {
+        if ( q != undefined && h.toLowerCase().indexOf(q) == -1 ) return;
+        this.out.tag('br');
+        this.outputLink(h, () => this.eval_(h));
+      });
     }
   ]
 });
@@ -406,6 +448,7 @@ foam.CLASS({
 
   methods: [
     function execute() {
+      // TODO:
     }
   ]
 });
@@ -512,6 +555,7 @@ foam.CLASS({
 
   methods: [
     function execute() {
+      // TODO:
     }
   ]
 });
