@@ -16,6 +16,7 @@
 //  ? how are Commands different than flows?
 
 
+// ???: Would it be better to have compose rather than mixing Flowable?
 foam.CLASS({
   package: 'foam.core.console',
   name: 'Flowable',
@@ -40,6 +41,10 @@ foam.CLASS({
     function removeFlowChild(f) {
       this.flowChildren = this.flowChildren.filter(c => c != f);
       this.removeFlowChild_ && this.removeFlowChild_(f);
+    },
+    function removeAllFlowChildren() {
+      this.removeFlowChild_ && this.flowChildren.forEach(c => this.removeFlowChild_(c));
+      this.flowChildren = [];
     }
   ]
 });
@@ -243,7 +248,7 @@ foam.CLASS({
 
   imports: [ 'commandDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'showPrompts', 'outputLink', 'history_' ],
+  exports: [ 'clearFlow', 'out', 'log', 'eval_', 'scrollToBottom', 'showPrompts', 'outputLink', 'history_' ],
 
   css: `
     ^ {
@@ -334,9 +339,8 @@ foam.CLASS({
   ],
 
   methods: [
-    function clear() {
-      // TODO: also clear flowChildren
-      this.out.removeAllChildren();
+    function clearFlow() {
+      this.removeAllFlowChildren();
     },
 
     function historyKey() {

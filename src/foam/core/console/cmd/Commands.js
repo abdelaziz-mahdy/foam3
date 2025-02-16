@@ -124,7 +124,7 @@ foam.CLASS({
   name: 'Clear',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ 'clear' ],
+  imports: [ 'clearFlow as clear' ],
 
   properties: [
     [ 'description', 'Clear console output' ]
