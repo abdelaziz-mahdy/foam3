@@ -6,6 +6,15 @@
 
 // Bugs:
 //  - Command.execute_ Action doesn't work in TableView because it has the wrong Context
+//  - eval_ doesn't execute in correct context because localScope is pre-built
+//  - clear doesn't clear children
+//  - no flowDAO or working flows/save/load
+//  - shows extra line between blocks
+
+// Features:
+//  - ability to create script Commands
+//  ? how are Commands different than flows?
+
 
 foam.CLASS({
   package: 'foam.core.console',
@@ -106,10 +115,9 @@ foam.CLASS({
 
   mixins: [ 'foam.core.console.Flowable' ],
 
-  exports: [
-    'log',
-    'out'
-  ],
+  imports: [ 'showPrompts' ],
+
+  exports: [ 'log', 'out' ],
 
   css: `
     ^ {
@@ -118,7 +126,8 @@ foam.CLASS({
     ^output {
     }
     ^:hover {
-      border: 1px solid red;
+      background: #eee;
+      // border: 1px solid red;
     }
     ^prompt {
       font-weight: bold;
@@ -126,7 +135,7 @@ foam.CLASS({
       padding-right: 4px;
     }
     ^ span .property-cmd { width: inherit; }
-    ^ .foam-u2-ActionView-del { border: none; }
+    ^ .foam-u2-ActionView-del { border: none; background: transparent; }
   `,
 
   properties: [
@@ -142,6 +151,7 @@ foam.CLASS({
       this.
         addClass().
         start('span').
+          show(this.showPrompts$).
           style({display: 'flex', width: '100%'}).
           start().addClass(this.myClass('prompt')).add('> ').end().
           add(this.CMD, this.DEL).
@@ -153,7 +163,8 @@ foam.CLASS({
 
     function log(...args) {
       if ( args.length == 0 ) return;
-      this.out.tag('br');
+      if ( ! this.seen ) this.out.tag('br');
+      this.seen = true;
       this.out.add(args.join(' '));
     }
   ],
@@ -229,7 +240,7 @@ foam.CLASS({
 
   imports: [ 'commandDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'outputLink', 'history_' ],
+  exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'showPrompts', 'outputLink', 'history_' ],
 
   css: `
     ^ {
@@ -315,10 +326,16 @@ foam.CLASS({
           output: this.out
         };
       }
-    }
+    },
+    'currentBlock'
   ],
 
   methods: [
+    function clear() {
+      // TODO: also clear flowChildren
+      this.out.removeAllChildren();
+    },
+
     function historyKey() {
       return this.cls_.id + '_HISTORY';
     },
@@ -328,7 +345,9 @@ foam.CLASS({
 
       var cmds = await this.commandDAO.select();
       cmds.array.forEach(c => {
-        this.localScope[c.id] = c.execute.bind(c.clone(this));
+        this.localScope[c.id] = () => {
+          c.clone(this.currentBlock).execute.apply(this, arguments);
+        }
       });
 
       this.flowName = 'Unnamed';
@@ -386,6 +405,8 @@ foam.CLASS({
     },
 
     function log(...args) {
+      this.currentBlock.log.apply(this.currentBlock, args);
+      return;
       if ( args.length == 0 ) return;
       this.out.tag('br');
       this.out.add(args.join(' '));
@@ -427,7 +448,7 @@ foam.CLASS({
       this.addHistory(cmd);
 
 //      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
-      var block = this.Block.create({flowName: 'prompt1', cmd: cmd, flowParent: this});
+      var block = this.currentBlock = this.Block.create({flowName: 'prompt1', cmd: cmd, flowParent: this});
       this.addFlowChild(block);
 
       with ( this.scope || {} ) { with ( this.localScope ) { with ( { log: block.log.bind(block), out: block.out } ) {

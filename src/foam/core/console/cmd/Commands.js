@@ -124,14 +124,15 @@ foam.CLASS({
   name: 'Clear',
   extends: 'foam.core.console.cmd.Command',
 
+  imports: [ 'clear' ],
+
   properties: [
     [ 'description', 'Clear console output' ]
   ],
 
   methods: [
     function execute() {
-      // TODO: also clear flowChildren
-      this.out.removeAllChildren();
+      this.clear();
     }
   ]
 });
