@@ -126,8 +126,7 @@ foam.CLASS({
     ^output {
     }
     ^:hover {
-      background: #eee;
-      // border: 1px solid red;
+      background: #f6f6f6;
     }
     ^prompt {
       font-weight: bold;
@@ -137,8 +136,9 @@ foam.CLASS({
       height: 20px;
     }
     ^ span .property-cmd { width: inherit; }
-    ^ .foam-u2-ActionView-del { font-size: smaller; border: none; background: transparent; height: 20px; }
+    ^ .foam-u2-ActionView-del { font-weight: lighter; font-size: smaller; border: none; background: transparent; height: 20px; }
     ^ .foam-u2-TextField-cmd { border: none; height: 20px; }
+    ^:hover .foam-u2-TextField-cmd { background: #f6f6f6; }
   `,
 
   properties: [
