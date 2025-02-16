@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.core.console.cmd',
   name: 'Command',
 
-  imports: [ 'log', 'out' ],
+  imports: [ 'log', 'out', 'outputLink' ],
 
   tableColumns: [ 'id', 'description' /*, 'execute_' */ ],
 
@@ -38,7 +38,7 @@ foam.CLASS({
   name: 'Help',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ 'commandDAO', 'outputLink' ],
+  imports: [ 'commandDAO', 'eval_' ],
 
   properties: [
     { name: 'id', value: 'help' },
@@ -63,7 +63,7 @@ foam.CLASS({
           this.start('tr').
             start('th').attr('width', '250').attr('align', 'left').call(function() {
               if ( c.linkable ) {
-                self.outputLink(c.id, () => self.eval_(cid), this);
+                self.outputLink(c.id, () => self.eval_(c.id), this);
               } else {
                 this.add(c.id);
               }
@@ -173,14 +173,15 @@ foam.CLASS({
   name: 'DAOCreate',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
+  requires: [ 'foam.core.console.DAOCreate' ],
 
   properties: [
     [ 'description', 'Add an object to a DAO' ]
   ],
 
   methods: [
-    function execute() {
+    function execute(daoKey) {
+      this.out.tag(this.DAOCreate.create({daoKey: daoKey}));
     }
   ]
 });
@@ -191,14 +192,42 @@ foam.CLASS({
   name: 'DAOS',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
+  requires: [ 'foam.core.boot.CSpec' ],
+
+  imports: [ 'cSpecDAO' ],
 
   properties: [
     [ 'description', 'Display avaiable DAO services' ]
   ],
 
   methods: [
-    function execute() {
+    function execute(opt_query, opt_nameQuery) {
+      var self = this;
+      var dao  = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
+      if ( opt_query ) dao = dao.where(opt_query);
+      if ( opt_nameQuery ) dao = dao.where(
+        this.OR(
+          this.CONTAINS_IC(this.CSpec.NAME,     opt_nameQuery),
+          this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
+        ));
+      this.out.tag('br');
+      this.out.start('table').attr('width', '100%').
+        select(dao, function(n) {
+          var sdao = self.__context__[n.name];
+          this.start('tr').
+            start('th').attr('align', 'left').call(function() {
+              self.outputLink(n.name, () => self.eval_('dao("' + n.name + '")'), this);
+            }).end().
+            start('td').attr('align', 'left').call(function() {
+              var of = sdao.of;
+              self.outputLink('create', () => self.eval_('daoCreate("' + n.name + '")'), this);
+            }).end().
+            start('td').attr('align', 'left').call(function() {
+              var of = sdao.of;
+              self.outputLink(of.id, () => self.eval_('describe(' + of.id + ')'), this);
+            }).end().
+            start('td').attr('align', 'left').add(n.description);
+        });
     }
   ]
 });
@@ -372,14 +401,44 @@ foam.CLASS({
   name: 'MQLHelp',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
-
   properties: [
     [ 'description', 'Display MQL Help' ]
   ],
 
   methods: [
     function execute() {
+      this.out.start('pre').style({'font-family': 'monospace'}).add(`
+key:value                  key contains "value"
+key=value                  key exactly matches "value"
+key:value1,value2          key contains "value1" OR "value2"
+key:(value1|value2)        "
+key1:value key2:value      key1 contains value AND key2 contains "value"
+key1:value AND key2:value  "
+key1:value and key2:value  "
+key1:value OR key2:value   key1 contains value OR key2 contains "value"
+key1:value or key2:value   "
+key:(-value)               key does not contain "value"
+(expr)                     groups expression
+-expr                      not expression, ie. -pri:1
+NOT expr                   not expression, ie. NOT pri:1
+has:key                    key has a value
+is:key                     key is a boolean TRUE value
+key>value                  key is greater than value
+key-after:value            "
+key<value                  key is less than value
+key-before:value           "
+date:YY/MM/DD              date specified
+date:today                 date of today
+date-after:today-7         date newer than 7 days ago
+date:d1..d2                date within range d1 to d2, inclusive
+key:me                     key is the current user
+
+Date formats:
+YYYY-MM
+YYYY-MM-DD
+YYYY-MM-DDTHH
+YYYY-MM-DDTHH:MM
+`);
     }
   ]
 });
@@ -448,14 +507,35 @@ foam.CLASS({
   name: 'Services',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
+  requires: [ 'foam.core.boot.CSpec' ],
+
+  imports: [ 'cSpecDAO' ],
+
 
   properties: [
     [ 'description', 'Display available services' ]
   ],
 
   methods: [
-    function execute() {
+    function execute(opt_query, opt_nameQuery) {
+      var self = this;
+      var dao  = this.cSpecDAO.where(this.CSpec.SERVED_SERVICES);
+      if ( opt_query ) dao = dao.where(opt_query);
+      if ( opt_nameQuery ) dao = dao.where(
+        this.OR(
+          this.CONTAINS_IC(this.CSpec.NAME,     opt_nameQuery),
+          this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
+        ));
+      this.out.tag('br');
+      this.out.start('table').attr('width', '100%').
+        select(dao, function(n) {
+          var sdao = self.__context__[n.name];
+          this.start('tr').
+            start('th').attr('align', 'left').call(function() {
+              this.add(n.name);
+            }).end().
+            start('td').attr('align', 'left').add(n.description);
+        });
     }
   ]
 });

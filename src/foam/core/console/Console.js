@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+// Bugs:
+//  - Command.execute_ Action doesn't work in TableView because it has the wrong Context
 
 foam.CLASS({
   package: 'foam.core.console',
@@ -249,16 +251,13 @@ foam.CLASS({
   requires: [
     'foam.core.console.Layout',
     'foam.core.console.Link',
-    'foam.core.console.DAOCreate',
-    'foam.core.console.DAOPrompt',
     'foam.core.console.FlowableTree',
     'foam.core.console.Block',
     'foam.dao.ArrayDAO',
-    'foam.flow.Document',
-    'foam.core.boot.CSpec'
+    'foam.flow.Document'
   ],
 
-  imports: [ 'commandDAO', 'flowDAO', 'cSpecDAO', 'scope?', 'window', 'setTimeout' ],
+  imports: [ 'commandDAO', 'flowDAO', 'scope?', 'window', 'setTimeout' ],
 
   exports: [ 'out', 'log', 'eval_', 'scrollToBottom', 'outputLink' ],
 
@@ -428,10 +427,6 @@ foam.CLASS({
       }
     },
 
-    function daoCreate(daoKey) {
-      this.out.tag(this.DAOCreate.create({daoKey: daoKey}));
-    },
-
     function describeClass(cls) {
       if ( foam.String.isInstance(cls) ) {
         cls = foam.lookup(cls);
@@ -500,83 +495,6 @@ foam.CLASS({
           this.outputLink(o.name, () => this.scope.load(o.name));
         }
       }).then(function() { return undefined; });
-    },
-
-    function mqlHelp() {
-      this.out.start('pre').style({'font-family': 'monospace'}).add(`
-key:value                  key contains "value"
-key=value                  key exactly matches "value"
-key:value1,value2          key contains "value1" OR "value2"
-key:(value1|value2)        "
-key1:value key2:value      key1 contains value AND key2 contains "value"
-key1:value AND key2:value  "
-key1:value and key2:value  "
-key1:value OR key2:value   key1 contains value OR key2 contains "value"
-key1:value or key2:value   "
-key:(-value)               key does not contain "value"
-(expr)                     groups expression
--expr                      not expression, ie. -pri:1
-NOT expr                   not expression, ie. NOT pri:1
-has:key                    key has a value
-is:key                     key is a boolean TRUE value
-key>value                  key is greater than value
-key-after:value            "
-key<value                  key is less than value
-key-before:value           "
-date:YY/MM/DD              date specified
-date:today                 date of today
-date-after:today-7         date newer than 7 days ago
-date:d1..d2                date within range d1 to d2, inclusive
-key:me                     key is the current user
-
-Date formats:
-YYYY-MM
-YYYY-MM-DD
-YYYY-MM-DDTHH
-YYYY-MM-DDTHH:MM
-`);
-    },
-
-    function help() {
-      foam.core.console.cmd.Help.create({}, this.flowChildren[this.flowChildren.length-1]).execute();
-    },
-
-    // TODO: break into two different function
-    async function services(opt_query, opt_nameQuery) {
-      var dao = this.cSpecDAO.where(this.EQ(this.CSpec.SERVE, this.True));
-      if ( opt_query ) dao = dao.where(opt_query);
-      if ( opt_nameQuery ) dao = dao.where(
-        this.OR(
-          this.CONTAINS_IC(this.CSpec.NAME, opt_nameQuery),
-          this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
-        ));
-      var self = this;
-      var sdao;
-      this.out.tag('br');
-      this.out.start('table').attr('width', '100%').
-        select(dao, function(n) {
-          this.start('tr').
-            start('th').attr('align', 'left').call(function() {
-              if ( n.name.endsWith('DAO') ) {
-                self.outputLink(n.name, () => self.eval_('dao("' + n.name + '")'), this);
-                sdao = self.__context__[n.name];
-              } else {
-                this.add(n.name);
-                sdao = undefined;
-              }
-            }).end().
-            start('td').attr('align', 'left').call(function() {
-              if ( ! sdao ) return;
-              var of = sdao.of;
-              self.outputLink('create', () => self.eval_('daoCreate("' + n.name + '")'), this);
-            }).end().
-            start('td').attr('align', 'left').call(function() {
-              if ( ! sdao || ! sdao.of ) return;
-              var of = sdao.of;
-              self.outputLink(of.id, () => self.eval_('describe(' + of.id + ')'), this);
-            }).end().
-            start('td').attr('align', 'left').add(n.description);
-        });
     },
 
     // TODO: better to add newlines after
