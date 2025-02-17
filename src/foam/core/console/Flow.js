@@ -8,6 +8,13 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'Flow',
 
+  implements: [
+    'foam.core.auth.CreatedAware',
+    // 'foam.core.auth.CreatedByAware',
+    'foam.core.auth.LastModifiedAware',
+    // 'foam.core.auth.LastModifiedByAware'
+  ],
+
   ids: [ 'name' ],
 
   axioms: [
