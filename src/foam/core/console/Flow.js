@@ -14,16 +14,12 @@ foam.CLASS({
     {
       class: 'foam.comics.v2.CannedQuery',
       label: 'Public',
-      predicateFactory: function(e) {
-        return e.EQ(this.IS_PUBLIC, e.TRUE);
-      }
+      predicateFactory: function(e, cls) { return e.EQ(cls.IS_PUBLIC, true); }
     },
     {
       class: 'foam.comics.v2.CannedQuery',
       label: 'Private',
-      predicateFactory: function(e) {
-        return e.EQ(this.IS_PUBLIC, e.FALSE);
-      }
+      predicateFactory: function(e, cls) { return e.EQ(cls.IS_PUBLIC, false); }
     }
   ],
 
