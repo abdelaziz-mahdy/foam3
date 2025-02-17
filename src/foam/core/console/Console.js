@@ -127,6 +127,7 @@ foam.CLASS({
   css: `
     ^ {
       padding: 4px;
+      padding-right: 0;
     }
     ^output {
     }
@@ -205,6 +206,7 @@ foam.CLASS({
       padding: 4px;
     }
     ^m {
+      padding-right: 0;
     }
     ^r {
       box-shadow: 3px 3px 6px 0 gray;
