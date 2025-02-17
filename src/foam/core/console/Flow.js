@@ -38,6 +38,12 @@ foam.CLASS({
       width: 80
     },
     {
+      class: 'String',
+      name: 'notes',
+      width: 80,
+      view: { class: 'foam.u2.tag.TextArea', rows: 8, cols: 78 }
+    },
+    {
       class: 'Boolean',
       name: 'isPublic',
       value: true
