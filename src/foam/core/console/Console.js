@@ -30,7 +30,8 @@ foam.CLASS({
     {
       class: 'List',
       name: 'flowChildren'
-    }
+    },
+    'value'
   ],
 
   methods: [
@@ -211,14 +212,15 @@ foam.CLASS({
     }
     ^l {
       box-shadow: 3px 3px 6px 0 gray;
-      width: 400px;
       padding: 4px;
+      width: 400px;
     }
     ^m {
       padding-right: 0;
     }
     ^r {
       box-shadow: 3px 3px 6px 0 gray;
+      padding: 4px 4px 4px 8px;
       width: 50%;
     }
   `,
@@ -249,10 +251,12 @@ foam.CLASS({
   mixins: [ 'foam.core.console.Flowable' ],
 
   requires: [
+    'foam.core.console.Block',
+    'foam.core.console.Flow',
+    'foam.core.console.FlowableTree',
     'foam.core.console.Layout',
     'foam.core.console.Link',
-    'foam.core.console.FlowableTree',
-    'foam.core.console.Block',
+    'foam.core.console.ReactiveDetailView',
     'foam.dao.ArrayDAO',
     'foam.flow.Document'
   ],
@@ -346,7 +350,23 @@ foam.CLASS({
         };
       }
     },
-    'currentBlock'
+    'currentBlock',
+    {
+      name: 'selected',
+      postSet: function(_, n) {
+        console.log('******** selected', n);
+        this.selectedValue = n.value;
+      }
+    },
+    {
+      name: 'selectedValue'
+    },
+    {
+      name: 'value',
+      factory: function() {
+        return this.Flow.create({name: 'Unnamed'});
+      }
+    }
   ],
 
   methods: [
@@ -371,12 +391,13 @@ foam.CLASS({
         }
       });
 
-      this.flowName = 'Unnamed';
+      this.flowName$ = this.value.name$;
 
       var layout = this.start(this.Layout);
 
-      layout.left.tag(this.FlowableTree, {data: this});
+      layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$});
       layout.middle.call(this.renderSelf, [this]);
+      layout.right.tag(this.ReactiveDetailView, {data$: this.selectedValue$});
     },
 
     function renderSelf(self) {
