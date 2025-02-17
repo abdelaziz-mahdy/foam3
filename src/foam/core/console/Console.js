@@ -220,6 +220,7 @@ foam.CLASS({
     }
     ^r {
       box-shadow: 3px 3px 6px 0 gray;
+      overflow-y: auto;
       padding: 4px 4px 4px 8px;
       width: 50%;
     }
@@ -263,7 +264,7 @@ foam.CLASS({
 
   imports: [ 'commandDAO', 'scope?', 'window', 'setTimeout' ],
 
-  exports: [ 'clearFlow', 'out', 'log', 'eval_', 'scrollToBottom', 'showPrompts', 'outputLink', 'history_' ],
+  exports: [ 'currentBlock', 'clearFlow', 'out', 'log', 'eval_', 'scrollToBottom', 'showPrompts', 'outputLink', 'history_' ],
 
   css: `
     ^ {

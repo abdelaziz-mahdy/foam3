@@ -12,7 +12,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.console.Link' ],
 
-  imports: [ 'log', 'out', 'outputLink', 'eval_' ],
+  imports: [ 'currentBlock', 'log', 'out', 'outputLink', 'eval_' ],
 
   tableColumns: [ 'id', 'description' /*, 'execute_' */ ],
 
