@@ -216,7 +216,7 @@ foam.CLASS({
               self.outputLink(n.name, () => self.eval_('dao("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
-              self.outputLink('create', () => self.eval_('daoCreate("' + n.name + '")'), this);
+              self.outputLink('create', () => self.eval_('add("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
               self.outputLink(of.id, () => self.eval_('describe(' + of.id + ')'), this);
