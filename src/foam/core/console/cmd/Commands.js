@@ -459,8 +459,7 @@ foam.CLASS({
 
   methods: [
     function execute() {
-      this.out.start('pre').style({'font-family': 'monospace'}).add(`
-key:value                  key contains "value"
+      this.out.start('pre').style({'font-family': 'monospace'}).add(`key:value                  key contains "value"
 key=value                  key exactly matches "value"
 key:value1,value2          key contains "value1" OR "value2"
 key:(value1|value2)        "
@@ -489,8 +488,7 @@ Date formats:
 YYYY-MM
 YYYY-MM-DD
 YYYY-MM-DDTHH
-YYYY-MM-DDTHH:MM
-`);
+YYYY-MM-DDTHH:MM`);
     }
   ]
 });
