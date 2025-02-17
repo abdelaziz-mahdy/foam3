@@ -361,7 +361,7 @@ foam.CLASS({
     async function render() {
       this.SUPER();
 
-      this.input$.sub(this.onInput.bind(this));
+//      this.input$.sub(this.onInput.bind(this));
 
       var cmds = await this.commandDAO.select();
       cmds.array.forEach(c => {
@@ -391,7 +391,8 @@ foam.CLASS({
             start(self.Link).add('history').on('click', () => self.eval_('history'), this).end().*/add(' >').
           end().
           start(self.INPUT, null, self.input_$).
-          addClass(self.myClass('input')).
+            addClass(self.myClass('input')).
+            on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
           end().
           tag(self.ON_INPUT).
         end();
