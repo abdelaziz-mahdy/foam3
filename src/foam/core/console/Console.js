@@ -213,7 +213,7 @@ foam.CLASS({
     ^l {
       box-shadow: 3px 3px 6px 0 gray;
       padding: 4px;
-      width: 400px;
+      width: 350px;
     }
     ^m {
       padding-right: 0;
@@ -222,7 +222,7 @@ foam.CLASS({
       box-shadow: 3px 3px 6px 0 gray;
       overflow-y: auto;
       padding: 4px 4px 4px 8px;
-      width: 50%;
+      width: 55%;
     }
   `,
 
@@ -520,6 +520,8 @@ foam.CLASS({
           r = await r;
         }
       }}}
+
+      this.selected = block;
 
       if ( r ) this.log(r);
       this.input_.focus();
