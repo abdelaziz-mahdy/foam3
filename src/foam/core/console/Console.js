@@ -36,9 +36,9 @@ foam.CLASS({
 
   methods: [
     function createFlowChildName(prefix) {
-      for ( var i = 2, name = prefix ; ; name = prefix + i++ ) {
+      for ( var i = 1, name = prefix ; ; ) {
+        name = prefix + i++;
         if ( ! this.findFlowChildByName(name) ) return name;
-        name = prefix + i;
       }
     },
     function findFlowChildByName(n) {
@@ -222,7 +222,7 @@ foam.CLASS({
       box-shadow: 3px 3px 6px 0 gray;
       overflow-y: auto;
       padding: 4px 4px 4px 8px;
-      width: 55%;
+      width: 60%;
     }
   `,
 
@@ -353,11 +353,7 @@ foam.CLASS({
     },
     'currentBlock',
     {
-      name: 'selected',
-      postSet: function(_, n) {
-        console.log('******** selected', n);
-        this.selectedValue = n.value;
-      }
+      name: 'selected'
     },
     {
       name: 'selectedValue'
@@ -382,7 +378,7 @@ foam.CLASS({
     async function render() {
       this.SUPER();
 
-//      this.input$.sub(this.onInput.bind(this));
+      this.selectedValue$.follow(this.selected$.dot('value'));
 
       var cmds = await this.commandDAO.select();
       cmds.array.forEach(c => {

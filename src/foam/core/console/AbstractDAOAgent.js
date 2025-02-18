@@ -12,7 +12,7 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
-  imports: [ 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
+  imports: [ 'currentBlock', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
 
   properties: [
     {
@@ -22,8 +22,14 @@ foam.CLASS({
   ],
 
   methods: [
+    function value(s) { return null; },
     function createSink() { return foam.dao.ArraySink.create(); },
-    function execute(e) { return this.dao.select(this.createSink()).then(s => e.add(s)); },
+    function execute(e) {
+      return this.dao.select(this.createSink()).then(s => {
+        this.currentBlock.value = this.value(s);
+        e.add(s);
+      });
+    },
     function addToE() {}
   ]
 });
@@ -35,6 +41,7 @@ foam.CLASS({
   extends: 'foam.core.console.AbstractDAOAgent',
 
   methods: [
+    function value(s) { return s; },
     function createSink() { return this.COUNT(); }
   ]
 });
@@ -55,6 +62,7 @@ foam.CLASS({
   ],
 
   methods: [
+    function value(s) { return s; },
     function createSink() { return this.MIN(this.prop); },
     function addToE(e) {
       e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP);
@@ -67,7 +75,10 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'MaxDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
-  methods: [ function createSink() { return this.MAX(this.prop); } ]
+  methods: [
+    function value(s) { return s; },
+    function createSink() { return this.MAX(this.prop); }
+  ]
 });
 
 
@@ -75,7 +86,10 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'AvgDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
-  methods: [ function createSink() { return this.AVG(this.prop); } ]
+  methods: [
+    function value(s) { return s; },
+    function createSink() { return this.AVG(this.prop); }
+  ]
 });
 
 
@@ -83,7 +97,10 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'SumDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
-  methods: [ function createSink() { return this.SUM(this.prop); } ]
+  methods: [
+    function value(s) { return s; },
+    function createSink() { return this.SUM(this.prop); }
+  ]
 });
 
 
