@@ -384,7 +384,7 @@ foam.CLASS({
       cmds.array.forEach(c => {
         this.localScope[c.id] = (...args) => {
           var cmd = c.clone(this.currentBlock);
-          cmd.execute.apply(cmd, args);
+          return cmd.execute.apply(cmd, args);
         }
       });
 
@@ -520,7 +520,13 @@ foam.CLASS({
       this.selected = block;
 
       if ( r ) this.log(r);
+
       this.input_.focus();
+
+      this.setTimeout(() => this.scrollToBottom(), 16);
+      this.setTimeout(() => this.scrollToBottom(), 32);
+      this.setTimeout(() => this.scrollToBottom(), 64);
+      this.setTimeout(() => this.scrollToBottom(), 96);
     },
 
     function addFlowChild_(c) {

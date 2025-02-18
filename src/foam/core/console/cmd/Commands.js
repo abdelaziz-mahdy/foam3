@@ -192,7 +192,7 @@ foam.CLASS({
 
   mixins: [ 'foam.mlang.Expressions' ],
 
-  requires: [ 'foam.core.boot.CSpec' ],
+  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
 
   imports: [ 'cSpecDAO' ],
 
@@ -202,8 +202,8 @@ foam.CLASS({
 
   methods: [
     function execute(opt_nameQuery) {
-      var self = this;
-      var dao  = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
+      var self  = this;
+      var dao   = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
       if ( opt_nameQuery ) dao = dao.where(
         this.OR(
           this.CONTAINS_IC(this.CSpec.NAME,     opt_nameQuery),
