@@ -51,6 +51,7 @@ foam.CLASS({
       name: 'color',
       shortName: 'c',
       aliases: [ 'colour', 'medal' ],
+      colorMap: { GOLD: 'gold', SILVER: 'silver', BRONZE: 'brown' },
       tableCellView: function(medal, e) {
         return e.E('span').addClass(medal.color.label).add(medal.color.label);
       },
