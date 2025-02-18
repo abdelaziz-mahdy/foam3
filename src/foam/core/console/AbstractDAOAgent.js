@@ -12,7 +12,7 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
-  imports: [ 'currentBlock', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
+  imports: [ 'block', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
 
   properties: [
     {
@@ -26,7 +26,7 @@ foam.CLASS({
     function createSink() { return foam.dao.ArraySink.create(); },
     function execute(e) {
       return this.dao.select(this.createSink()).then(s => {
-        this.currentBlock.value = this.value(s);
+        this.block.value = this.value(s);
         e.add(s);
       });
     },
@@ -41,7 +41,13 @@ foam.CLASS({
   extends: 'foam.core.console.AbstractDAOAgent',
 
   methods: [
-    function value(s) { return s; },
+    function value(s) {
+      if ( this.block.value && s.cls_ === this.block.value.cls_ ) {
+        this.block.value.copyFrom(s);
+        return this.block.value;
+      }
+      return s;
+    },
     function createSink() { return this.COUNT(); }
   ]
 });

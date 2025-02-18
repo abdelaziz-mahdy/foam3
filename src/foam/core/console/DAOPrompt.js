@@ -24,6 +24,7 @@ foam.CLASS({
   imports: [ 'eval_', 'setTimeout', 'scrollToBottom' ],
 
   exports: [
+    'block',
     'dao',
     'sinkDAO',
     'sinkUnlimitedDAO'
@@ -157,12 +158,15 @@ foam.CLASS({
     'content',
     'rowCount',
     { name: 'executionTime', value: '-' },
-    { class: 'Boolean', name: 'hasRun' }
+    { class: 'Boolean', name: 'hasRun' },
+    'block'
   ],
 
   methods: [
     async function render() {
       this.SUPER();
+
+      this.block = this.__context__.currentBlock;
 
       this.addClass();
 
