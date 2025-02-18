@@ -26,12 +26,14 @@ foam.CLASS({
 
   properties: [
     'of',
+    'predicate',
     {
       name: 'choices',
       factory: function(of) {
         var choices = [ ];
         this.of.getAxiomsByClass(foam.lang.Property).forEach(p => {
           if ( ! p.showInPropertyChoice ) return;
+          if ( this.predicate && ! this.predicate(p) ) return;
           choices.push([p, p.name]);
         });
         if ( choices.length ) this.data = choices[0][0];

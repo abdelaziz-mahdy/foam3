@@ -85,6 +85,22 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'AvgDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
+
+  properties: [
+    {
+      name: 'prop',
+      view: function(_, X) {
+        return {
+          class: 'foam.core.console.PropertyChoiceView',
+          of: X.data.of,
+          predicate: function(p) {
+            return foam.lang.Int.isInstance(p) || foam.lang.Float.isInstance(p);
+          }
+        };
+      }
+    }
+  ],
+
   methods: [
     function createSink() { return this.AVG(this.prop); }
   ]
@@ -94,7 +110,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.console',
   name: 'SumDAOAgent',
-  extends: 'foam.core.console.MinDAOAgent',
+  extends: 'foam.core.console.AvgDAOAgent',
   methods: [
     function createSink() { return this.SUM(this.prop); }
   ]
