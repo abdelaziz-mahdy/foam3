@@ -709,7 +709,10 @@ return sb.toString();`
             visibility: 'public',
             name: cls.name,
             type: '',
-            body: ''
+            // Set the bock to this comment so that the code generator doesn't think
+            // this has the same implementation as its parent if a class extends another
+            // class with the same name but a different package and then not output it.
+            body: '/*' + this.model_.package + '*/'
           });
 
           // Context-oriented constructor
