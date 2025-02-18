@@ -76,7 +76,6 @@ foam.CLASS({
   name: 'MaxDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
   methods: [
-    function value(s) { return s; },
     function createSink() { return this.MAX(this.prop); }
   ]
 });
@@ -87,7 +86,6 @@ foam.CLASS({
   name: 'AvgDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
   methods: [
-    function value(s) { return s; },
     function createSink() { return this.AVG(this.prop); }
   ]
 });
@@ -98,7 +96,6 @@ foam.CLASS({
   name: 'SumDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
   methods: [
-    function value(s) { return s; },
     function createSink() { return this.SUM(this.prop); }
   ]
 });

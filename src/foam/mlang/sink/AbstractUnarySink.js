@@ -18,7 +18,8 @@ foam.CLASS({
   properties: [
     {
       class: 'foam.mlang.ExprProperty',
-      name: 'arg1'
+      name: 'arg1',
+      hidden: true
     }
   ],
 
