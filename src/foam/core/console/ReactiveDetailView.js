@@ -19,6 +19,7 @@ foam.CLASS({
       searchable: false,
       hidden: true,
       shortName: 'r_',
+      transient: true,
       factory: function() { return {}; },
       postSet: function(_, rs) {
         // Only start reactions if in the proper context
