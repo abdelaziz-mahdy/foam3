@@ -556,7 +556,8 @@ foam.CLASS({
           }
         }
         if ( typeof r === 'function' ) {
-          block.flowName = this.createFlowChildName(cmd);
+          if ( ! block.flowName.startsWith(cmd) )
+            block.flowName = this.createFlowChildName(cmd);
           r = arg ? r(arg) : r();
         }
         if ( r instanceof Promise ) {
