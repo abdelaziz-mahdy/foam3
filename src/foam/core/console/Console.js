@@ -223,6 +223,7 @@ foam.CLASS({
       width: 350px;
     }
     ^m {
+      overflow-x: auto;
       padding-right: 0;
     }
     ^r {
