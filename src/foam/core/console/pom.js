@@ -23,6 +23,7 @@ foam.POM({
     { name: 'ConsoleZACClient',        flags: 'js' },
     { name: "Flow",                    flags: "js|java" },
     { name: 'ReactiveDetailView',      flags: 'js' },
+    { name: 'Signature',               flags: 'js' },
     { name: "cmd/Commands",            flags: "js|java" }
   ]
 });
