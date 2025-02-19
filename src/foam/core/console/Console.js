@@ -573,10 +573,10 @@ foam.CLASS({
       if ( r ) {
         if ( foam.String.isInstance(r) ) {
           block.value = foam.lang.StringHolder.create({value: r});
-          this.out.add(block.value.value$);
+          block.out.add(block.value.value$);
         } else if ( foam.Number.isInstance(r) ) {
           block.value = foam.lang.FloatHolder.create({value: r});
-          this.out.add(block.value.value$);
+          block.out.add(block.value.value$);
         } else {
           this.log(r);
         }
@@ -649,7 +649,7 @@ foam.CLASS({
     {
       name: 'clear',
       code: function() {
-        this.localScope.clear();
+        this.clearFlow();
         this.focusInput();
       },
       keyboardShortcuts: [ 'meta-k', 'ctrl-k' ]
