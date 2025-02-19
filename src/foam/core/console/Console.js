@@ -31,7 +31,7 @@ foam.CLASS({
       class: 'List',
       name: 'flowChildren'
     },
-    'value'
+    { name: 'value' }
   ],
 
   methods: [
@@ -169,6 +169,7 @@ foam.CLASS({
       class: 'String',
       name: 'cmd'
     },
+    [ 'value', null ],
     'out'
   ],
 
@@ -396,6 +397,7 @@ foam.CLASS({
     },
     {
       name: 'value',
+      // The Console's Flow Value, which is the Flow object it is saved as
       factory: function() {
         return this.Flow.create({name: 'Unnamed'});
       }
