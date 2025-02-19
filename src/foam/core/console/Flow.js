@@ -10,9 +10,9 @@ foam.CLASS({
 
   implements: [
     'foam.core.auth.CreatedAware',
-    // 'foam.core.auth.CreatedByAware',
+    'foam.core.auth.CreatedByAware',
     'foam.core.auth.LastModifiedAware',
-    // 'foam.core.auth.LastModifiedByAware'
+    'foam.core.auth.LastModifiedByAware'
   ],
 
   ids: [ 'name' ],
@@ -62,6 +62,14 @@ foam.CLASS({
       class: 'Boolean',
       name: 'readOnly'
     },
+    {
+      name: 'lastModifiedByAgent',
+      hidden: true
+    },
+    {
+      name: 'createdByAgent',
+      hidden: true
+    }
     /*
     {
       class: 'FObjectArray',
