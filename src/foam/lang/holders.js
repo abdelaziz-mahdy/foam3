@@ -70,6 +70,32 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.lang',
+  name: 'DateTimeHolder',
+
+  properties: [
+    {
+      name: 'value',
+      class: 'DateTime'
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.lang',
+  name: 'DateHolder',
+
+  properties: [
+    {
+      name: 'value',
+      class: 'Date'
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.lang',
   name: 'RequiredBooleanHolder',
   extends: 'foam.lang.BooleanHolder',
 
