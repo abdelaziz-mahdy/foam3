@@ -20,7 +20,8 @@ foam.CLASS({
   ],
 
   mixins: [
-    'foam.core.crunch.CapabilityJunctionPayload',
+    // Make sure this mixin gets installed first so it doesnt override toSummary
+    { path: 'foam.core.crunch.CapabilityJunctionPayload', priority: 200 },
     'foam.core.crunch.lite.CapableObjectData'
   ],
 
