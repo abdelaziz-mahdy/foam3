@@ -570,7 +570,17 @@ foam.CLASS({
 
       this.selected = block;
 
-      if ( r ) this.log(r);
+      if ( r ) {
+        if ( foam.String.isInstance(r) ) {
+          block.value = foam.lang.StringHolder.create({value: r});
+          this.out.add(block.value.value$);
+        } else if ( foam.Number.isInstance(r) ) {
+          block.value = foam.lang.FloatHolder.create({value: r});
+          this.out.add(block.value.value$);
+        } else {
+          this.log(r);
+        }
+      }
 
       this.input_.focus();
 
