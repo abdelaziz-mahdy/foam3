@@ -405,6 +405,11 @@ foam.CLASS({
     async function render() {
       this.SUPER();
 
+      this.flowName$.sub(() => this.refreshFlowScope());
+      this.value$.sub(() => this.refreshFlowScope());
+
+      globalThis.shell = this; // for debugging
+
       this.selectedValue$.follow(this.selected$.dot('value'));
 
       // Add commands to localScope
@@ -476,15 +481,8 @@ foam.CLASS({
     },
 
     function log(...args) {
-      console.log('******************** log', args);
       debugger;
       this.currentBlock.log.apply(this.currentBlock, args);
-      /*
-      return;
-      if ( args.length == 0 ) return;
-      this.out.tag('br');
-      this.out.add(args.join(' '));
-      */
     },
 
     function scrollToBottom() {
@@ -515,10 +513,16 @@ foam.CLASS({
 
     function refreshFlowScope() {
       var s = this.flowScope;
+
+      // Remove old bindings
       for ( var x in s )
         if ( s.hasOwnProperty(x) )
           delete s[x];
 
+      // Add binding for this
+      s[this.flowName] = this.value;
+
+      // Add bindings for children
       this.flowChildren.forEach(c => {
         if ( c.value ) s[c.flowName] = c.value;
       });
@@ -532,8 +536,6 @@ foam.CLASS({
       this.clearProperty('historyPosition');
       if ( ! cmd ) return;
       this.addHistory(cmd);
-
-      this.refreshFlowScope();
 
 //      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
       var block = this.currentBlock = this.Block.create({flowName: this.createFlowChildName('a'), cmd: cmd, flowParent: this});
@@ -601,6 +603,9 @@ foam.CLASS({
     },
 
     function addFlowChild_(c) {
+      this.refreshFlowScope();
+      c.flowName$.sub(() => this.refreshFlowScope());
+      c.value$.sub(() => this.refreshFlowScope());
       this.out.add(c);
     },
 
