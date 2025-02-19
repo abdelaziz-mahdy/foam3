@@ -588,7 +588,7 @@ foam.CLASS({
           block.value = foam.lang.DateTimeHolder.create({value: r});
           block.out.add(block.value.value$);
         } else {
-          this.log(r);
+          block.log(r);
         }
       }
 
