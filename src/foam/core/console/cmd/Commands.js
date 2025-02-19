@@ -24,9 +24,11 @@ foam.CLASS({
   ],
 
   methods: [
-    function execute() {
+    function execute(...args) {
       with ( this ) {
-        eval(this.script);
+        with ( { args: args } ) {
+          eval(this.script);
+        }
       }
     }
   ],
