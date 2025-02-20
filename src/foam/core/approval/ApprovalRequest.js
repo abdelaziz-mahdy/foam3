@@ -190,7 +190,13 @@ foam.CLASS({
       columnPermissionRequired: true,
       documentation: 'id of the object that needs approval.',
       tableWidth: 150,
-      javaFormatJSON: 'formatter.output(String.valueOf(get_(obj)));'
+      javaFormatJSON: 'formatter.output(String.valueOf(get_(obj)));',
+      view: function(_, X) {
+        return {
+          class: 'foam.u2.view.ReferenceLinkView',
+          targetDAO: X.data.daoKey
+        };
+      }
     },
     {
       class: 'Enum',
