@@ -9,10 +9,6 @@ foam.CLASS({
   name: 'FObjectReactiveDetailViewRefinement',
   refines: 'FObject',
 
-  imports: [
-    'setTimeout'
-  ],
-
   properties: [
     {
       name: 'reactions_',
@@ -47,7 +43,7 @@ foam.CLASS({
     function startReaction_(name, formula) {
       // HACK: delay starting reaction in case we're loading a file
       // and dependent variables haven't loaded yet.
-      this.setTimeout(function() {
+      window.setTimeout(function() {
         var self = this;
         var f;
 
