@@ -14,7 +14,8 @@ foam.CLASS({
     'foam.lang.ContextAgent',
     'foam.lang.X',
     'foam.core.analytics.AnalyticEvent',
-    'foam.net.ipgeo.GeolocationSupport',
+    'foam.net.ipgeo.IPGeolocationService',
+    'foam.net.ipgeo.IPGeolocationInfo',
     'java.util.Iterator',
     'org.json.JSONException',
     'org.json.JSONObject'
@@ -28,7 +29,7 @@ foam.CLASS({
           @Override
           public void execute(X x) {
             AnalyticEvent event = (AnalyticEvent) obj;
-    
+
             // build message
             JSONObject props = new JSONObject();
             props.put("$event_id", event.getId());
@@ -50,10 +51,14 @@ foam.CLASS({
               props.put("$event_extra", event.getExtra());
             }
 
-            // TODO: figure out file location when running from jar
-            // GeolocationSupport location = GeolocationSupport.instance();
-            // props.put("mp_country_code", location.getCountry());
-            // props.put("$city", location.getCity());
+            IPGeolocationService service = (IPGeolocationService) x.get("ipGeolocationService");
+            if ( service != null ) {
+              IPGeolocationInfo info = service.resolveLocation(x);
+              if ( info != null ) {
+                props.put("mp_country_code", info.getCountry());
+                props.put("$city", info.getCity());
+              }
+            }
             ((MixpanelService) x.get("mixpanelService")).sendMixpanelEvent(x, event, props);
           }
         }, "Send message to mixpanel");

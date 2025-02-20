@@ -20,12 +20,14 @@ foam.CLASS({
     'foam.core.session.Session',
     'foam.core.pm.PM',
     'foam.core.om.OMLogger',
-    'static foam.mlang.MLang.EQ',
     'foam.core.logger.Loggers',
     'foam.core.place.*',
+    'foam.lib.json.JSONParser',
+    'static foam.mlang.MLang.EQ',
+    'foam.net.ipgeo.IPGeolocationInfo',
+    'foam.net.ipgeo.IPGeolocationService',
     'java.util.Arrays',
     'java.util.ArrayList',
-    'foam.lib.json.JSONParser',
     'org.apache.http.HttpEntity',
     'org.apache.http.HttpHeaders',
     'org.apache.http.client.utils.URIBuilder',
@@ -33,7 +35,7 @@ foam.CLASS({
     'org.apache.http.client.methods.HttpGet',
     'org.apache.http.impl.client.CloseableHttpClient',
     'org.apache.http.impl.client.HttpClients',
-    'org.apache.http.util.EntityUtils',
+    'org.apache.http.util.EntityUtils'
   ],
 
   methods: [
@@ -71,18 +73,28 @@ foam.CLASS({
               countries = new String[]{preferCountry};
           }
           for (int i = 0; i < countries.length; i++) {
-            countries[i] = "country:" + countries[i]; 
+            countries[i] = "country:" + countries[i];
           }
-          Loggers.logger(x, this).debug("placeAutocomplete url2", Arrays.asList(countries));
+          // Loggers.logger(x, this).debug("placeAutocomplete url2", Arrays.asList(countries));
+
           var uri = new URIBuilder("https://maps.googleapis.com/maps/api/place/autocomplete/json")
                       .addParameter("input", input)
                       .addParameter("language", "en")
                       .addParameter("components", String.join("|", countries))
-                      .addParameter("types", String.join("|", config.getPlaceAutocompleteTypes()))
                       .addParameter("sessiontoken", session != null ? session.getId() : "")
                       .addParameter("key", config.getApiKey());
 
-          Loggers.logger(x, this).debug("placeAutocomplete url", uri.toString());
+          if ( config.getPlaceAutocompleteTypes().length > 0 ) {
+            uri = uri.addParameter("types", String.join("|", config.getPlaceAutocompleteTypes()));
+          }
+          IPGeolocationInfo geoInfo = ((IPGeolocationService) x.get("ipGeolocationService")).resolveLocation(x);
+          if ( geoInfo != null &&
+               geoInfo.getAccuracyRadius() > 0 ) {
+            uri = uri.addParameter("location", geoInfo.getLatitude()+","+geoInfo.getLongitude());
+            uri = uri.addParameter("radius", String.valueOf(geoInfo.getAccuracyRadius()));
+          }
+
+          // Loggers.logger(x, this).debug("placeAutocomplete url", uri.toString());
           HttpGet request = new HttpGet(uri.toString());
 
           try (CloseableHttpClient httpClient = HttpClients.createDefault();
