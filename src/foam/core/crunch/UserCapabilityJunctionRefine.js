@@ -70,7 +70,13 @@ foam.CLASS({
     {
       name: '_defaultSection', title: 'General Information'
     },
-    { name: 'renewableSection' }
+    { name: 'renewableSection' },
+    { 
+      name: 'opsSection',
+      title: 'Operations Data',
+      properties: ['sourceId', 'targetId', 'status', 'data']
+
+    }
   ],
 
   axioms: [
