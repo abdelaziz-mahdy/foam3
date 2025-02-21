@@ -547,6 +547,9 @@ foam.CLASS({
         var r, arg;
         try {
           r = eval(cmd);
+          // For commands like 'cells(2,3)' pickout 'cells' as the block name
+          var m = cmd.match(/^\s*([a-zA-Z][a-zA-Z0-9_\$]*)\(/);
+          if ( m ) block.flowName = this.createFlowChildName(m[1]);
         } catch (x) {
           var i = cmd.indexOf(' ');
           if ( i != -1 ) {
