@@ -1064,7 +1064,7 @@ foam.CLASS({
           // TODO: add support for being able to pick if multiple menus have the same obj
           // menus.push(menuDAOs[i]);
       }
-      console.log('No menu found for dao', dao, id);
+      console.error('No menu found for dao', dao, id);
     },
     function logAnalyticEvent(evt) {
       this.__subContext__.analyticEventDAO?.put(this.AnalyticEvent.create(evt), this);
