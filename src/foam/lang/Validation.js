@@ -600,7 +600,7 @@ foam.CLASS({
       name: 'internalValidationPredicates',
       // TODO: Not required for JS, so maybe just make work for Java.
       factory: function() {
-        var query = 'thisValue !exists||thisValue<=' + foam.Date.MAX_DATE.toISOString().slice(1,13) + '&&thisValue>=' + foam.Date.MIN_DATE.toISOString().slice(0,13);
+        var query = 'thisValue !exists||thisValue<=maxDate&&thisValue>=minDate'
         return [
           {
             args: [ this.name ],
