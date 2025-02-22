@@ -672,6 +672,8 @@ foam.CLASS({
     },
 
     function evtToCharCode(evt) {
+      if ( ! evt.key ) return '';
+
       /* Maps an event keycode to a string */
       var s = '';
       if ( evt.altKey   ) s += 'alt-';
