@@ -96,6 +96,7 @@ foam.CLASS({
 
     function focus() {
       if ( this.realView ) this.realView.focus();
+      return this;
     },
 
     function fromProperty(prop) {

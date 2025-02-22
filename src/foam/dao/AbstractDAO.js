@@ -497,7 +497,7 @@ return this.select_(this.getX(), sink, 0, this.MAX_SAFE_INTEGER, null, null);
           return (await this.limit(1).select()).array[0] ?? null;
         }
 
-        if ( this.of && this?.of.ID?.adapt ) id = this.of.ID.adapt(null, id, this.of.ID);
+        if ( foam.String.isInstance(id) && this.of && this?.of.ID?.adapt ) id = this.of.ID.adapt(null, id, this.of.ID);
 
         return await this.find_(this.__context__, id);
       },

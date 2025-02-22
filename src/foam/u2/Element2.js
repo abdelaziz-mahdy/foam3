@@ -159,7 +159,7 @@ foam.CLASS({
           if ( val === undefined || val === null ) {
             n = foam.u2.Text.create({}, this);
           } else if ( this.isLiteral(val) ) {
-            n = foam.u2.Text.create({text: val}, this);
+            n = foam.u2.Text.create({text: '' + val}, this);
           } else if ( foam.u2.Element.isInstance(val) ) {
             n = val;
           } else if ( foam.Array.isInstance(val) ) {

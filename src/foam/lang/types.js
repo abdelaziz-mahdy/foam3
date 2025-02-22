@@ -729,6 +729,7 @@ foam.CLASS({
   properties: [ [ 'displayWidth', 80 ] ]
 });
 
+
 foam.CLASS({
   package: 'foam.lang',
   name: 'InternalLink',
@@ -749,6 +750,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.lang',

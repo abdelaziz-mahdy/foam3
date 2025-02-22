@@ -12,7 +12,7 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
-  imports: [ 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
+  imports: [ 'block', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
 
   properties: [
     {
@@ -22,8 +22,14 @@ foam.CLASS({
   ],
 
   methods: [
+    function value(s) { return null; },
     function createSink() { return foam.dao.ArraySink.create(); },
-    function execute(e) { return this.dao.select(this.createSink()).then(s => e.add(s)); },
+    function execute(e) {
+      return this.dao.select(this.createSink()).then(s => {
+        this.block.value = this.value(s);
+        e.add(s);
+      });
+    },
     function addToE() {}
   ]
 });
@@ -35,6 +41,13 @@ foam.CLASS({
   extends: 'foam.core.console.AbstractDAOAgent',
 
   methods: [
+    function value(s) {
+      if ( this.block.value && s.cls_ === this.block.value.cls_ ) {
+        this.block.value.copyFrom(s);
+        return this.block.value;
+      }
+      return s;
+    },
     function createSink() { return this.COUNT(); }
   ]
 });
@@ -55,6 +68,7 @@ foam.CLASS({
   ],
 
   methods: [
+    function value(s) { return s; },
     function createSink() { return this.MIN(this.prop); },
     function addToE(e) {
       e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP);
@@ -67,7 +81,9 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'MaxDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
-  methods: [ function createSink() { return this.MAX(this.prop); } ]
+  methods: [
+    function createSink() { return this.MAX(this.prop); }
+  ]
 });
 
 
@@ -75,15 +91,35 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'AvgDAOAgent',
   extends: 'foam.core.console.MinDAOAgent',
-  methods: [ function createSink() { return this.AVG(this.prop); } ]
+
+  properties: [
+    {
+      name: 'prop',
+      view: function(_, X) {
+        return {
+          class: 'foam.core.console.PropertyChoiceView',
+          of: X.data.of,
+          predicate: function(p) {
+            return foam.lang.Int.isInstance(p) || foam.lang.Float.isInstance(p);
+          }
+        };
+      }
+    }
+  ],
+
+  methods: [
+    function createSink() { return this.AVG(this.prop); }
+  ]
 });
 
 
 foam.CLASS({
   package: 'foam.core.console',
   name: 'SumDAOAgent',
-  extends: 'foam.core.console.MinDAOAgent',
-  methods: [ function createSink() { return this.SUM(this.prop); } ]
+  extends: 'foam.core.console.AvgDAOAgent',
+  methods: [
+    function createSink() { return this.SUM(this.prop); }
+  ]
 });
 
 

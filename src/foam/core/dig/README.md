@@ -101,7 +101,7 @@ For more than a row, It should be below
 
 
 
-The Service Unified GAteway Relay (SUGAR) is an end-point which allows to access and invoke on NANOPAY services.
+The Service Unified GAteway Relay (SUGAR) is an end-point which allows to access and invoke on FOAM services.
 It generally interacts with non Data Access Objects (non DAOs).
 With an HTTP post submitted to the web-callback URL, It is queried and returned values from services.
 

@@ -38,9 +38,6 @@ foam.CLASS({
       code: async function(x, capabilityId, data, status) {
         let ucj = await this.crunchService.getJunction(x, capabilityId);
 
-        if ( ucj.status == this.CapabilityJunctionStatus.AVAILABLE && status == null ) {
-          ucj.status = this.CapabilityJunctionStatus.ACTION_REQUIRED;
-        }
 
         if ( data != null ) {
           ucj.data = data;

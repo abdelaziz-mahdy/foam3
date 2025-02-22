@@ -51,8 +51,8 @@ ln -s /Volumes/RAM_DISK /path/to/project/build2
 
 diskutil erasevolume HFS+ 'RAMDisk' `hdiutil attach -nomount ram://848000`
 mkdir /Volumes/RamDisk/build
-rm -rf ~/NANOPAY/build
-ln -s /Volumes/RamDisk/build ~/NANOPAY/build
+rm -rf ~/foam3/build
+ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
 const fs       = require('fs');

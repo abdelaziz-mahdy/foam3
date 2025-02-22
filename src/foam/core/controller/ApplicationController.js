@@ -1037,7 +1037,9 @@ foam.CLASS({
     },
     async function routeToDAO(dao, id) {
       // Check if current menu has object
-      if ( id && foam.core.menu.DAOMenu2.isInstance(this.currentMenu.handler) ) {
+      if ( id && foam.core.menu.DAOMenu2.isInstance(this.currentMenu.handler)
+        // Going to a reference from the current menu is not where we need to go - so check if the current menu is the correct menu
+        && this.currentMenu.handler.config.daoKey == dao.serviceName.split('/')[1] ) {
         try {
           let result = await this.currentMenu.handler.config_.dao.find(id);
           if ( result ) {
@@ -1062,6 +1064,7 @@ foam.CLASS({
           // TODO: add support for being able to pick if multiple menus have the same obj
           // menus.push(menuDAOs[i]);
       }
+      console.error('No menu found for dao', dao, id);
     },
     function logAnalyticEvent(evt) {
       this.__subContext__.analyticEventDAO?.put(this.AnalyticEvent.create(evt), this);

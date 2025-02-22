@@ -630,6 +630,7 @@ foam.POM({
     { name: "foam/u2/view/CollapseableDetailView",                    flags: "web" },
     { name: "foam/u2/view/ReferenceCitationView",                     flags: "web" },
     { name: "foam/u2/view/ReadReferenceView",                         flags: "web" },
+    { name: "foam/u2/view/ReferenceLinkView",                         flags: "web" },
     { name: "foam/u2/view/ReadManyToManyRelationshipPropertyView",    flags: "web" },
     { name: "foam/u2/view/ReferenceArrayView",                        flags: "web" },
     { name: "foam/u2/view/DraftDetailView",                           flags: "web" },

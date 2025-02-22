@@ -10,8 +10,21 @@ foam.CLASS({
 
   properties: [
     {
-      name: 'value',
-      class: 'Int'
+      class: 'Int',
+      name: 'value'
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.lang',
+  name: 'FloatHolder',
+
+  properties: [
+    {
+      class: 'Float',
+      name: 'value'
     }
   ]
 });
@@ -57,6 +70,32 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.lang',
+  name: 'DateTimeHolder',
+
+  properties: [
+    {
+      name: 'value',
+      class: 'DateTime'
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.lang',
+  name: 'DateHolder',
+
+  properties: [
+    {
+      name: 'value',
+      class: 'Date'
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.lang',
   name: 'RequiredBooleanHolder',
   extends: 'foam.lang.BooleanHolder',
 
@@ -91,6 +130,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.lang',
   name: 'RawMapHolder',
@@ -108,6 +148,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.lang',

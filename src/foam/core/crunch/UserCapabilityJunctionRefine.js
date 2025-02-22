@@ -20,7 +20,8 @@ foam.CLASS({
   ],
 
   mixins: [
-    'foam.core.crunch.CapabilityJunctionPayload',
+    // Make sure this mixin gets installed first so it doesnt override toSummary
+    { path: 'foam.core.crunch.CapabilityJunctionPayload', priority: 200 },
     'foam.core.crunch.lite.CapableObjectData'
   ],
 
@@ -69,7 +70,13 @@ foam.CLASS({
     {
       name: '_defaultSection', title: 'General Information'
     },
-    { name: 'renewableSection' }
+    { name: 'renewableSection' },
+    { 
+      name: 'opsSection',
+      title: 'Operations Data',
+      properties: ['sourceId', 'targetId', 'status', 'data']
+
+    }
   ],
 
   axioms: [
