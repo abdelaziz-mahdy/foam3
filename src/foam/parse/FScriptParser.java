@@ -599,6 +599,8 @@ public class FScriptParser {
 
     grammar.addSymbol("DATE", new Alt(
       Literal.create("now"),
+      Literal.create("minDate"),
+      Literal.create("maxDate"),
       new Seq(
         grammar.sym("NUMBER"),
         new Alt(Literal.create("-"), Literal.create("/")),
@@ -634,6 +636,10 @@ public class FScriptParser {
     ));
     grammar.addAction("DATE", (val, x) -> {
       if ( "now".equals(val) ) return MLang.NOW;
+      // min-date and max-date should be kept consistent with js version
+      // in stdlib.js
+      if ( "minDate".equals(val) ) return new Date(-8640000000000000L);
+      if ( "maxDate".equals(val) ) return new Date(8640000000000000L);
       Calendar start = new GregorianCalendar();
       start.clear();
       start.setTimeZone(TimeZone.getTimeZone("UTC"));
