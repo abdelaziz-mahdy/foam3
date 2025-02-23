@@ -4,7 +4,6 @@ p({"class":"foam.core.console.cmd.DAO", "id": "dao"})
 p({"class":"foam.core.console.cmd.DAOCreate", "id": "add"})
 p({"class":"foam.core.console.cmd.DAOS", "id": "daos"})
 p({"class":"foam.core.console.cmd.Describe", "id": "describe"})
-p({"class":"foam.core.console.cmd.Doc", "id": "doc"})
 p({"class":"foam.core.console.cmd.Flows", "id": "flows"})
 p({"class":"foam.core.console.cmd.Help", "id": "help"})
 p({"class":"foam.core.console.cmd.History", "id": "history"})
@@ -74,4 +73,10 @@ p({
   "id": "i",
   "description": "Italic",
   "script": "addValue(foam.core.console.Header.create({type:'i', text: args.join(' ')}, this));"
+})
+p({
+  "class":"foam.core.console.cmd.Command",
+  "id": "doc",
+  "description": "Insert Document",
+  "script": "addValue(foam.core.console.Doc.create({text: args.join(' ')}, this));"
 })

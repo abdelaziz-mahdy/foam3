@@ -299,27 +299,6 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console.cmd',
-  name: 'Doc',
-  extends: 'foam.core.console.cmd.Command',
-
-  requires: [
-    'foam.core.console.DocumentReadWriteView',
-  ],
-
-  properties: [
-    [ 'description', 'Embed document text' ]
-  ],
-
-  methods: [
-    function execute() {
-      this.out.tag(this.DocumentReadWriteView.create({data: '<i>insert text here</i>'}));
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.console.cmd',
   name: 'Flows',
   extends: 'foam.core.console.cmd.Command',
 
