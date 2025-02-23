@@ -55,8 +55,8 @@ public class OAuthWebAgent implements WebAgent {
             }
 
             String clientId = state.getString("provider");
-            foam.dao.DAO oauthProviderDAO = (foam.dao.DAO) x.get("oauthProviderDAO");
-            var provider = (OAuthProvider) oauthProviderDAO.find(clientId);
+            foam.dao.DAO oAuthProviderDAO = (foam.dao.DAO) x.get("oAuthProviderDAO");
+            var provider = (OAuthProvider) oAuthProviderDAO.find(clientId);
 
             // Exchange authorization code for access/refresh tokens
             String response = provider.getTokenForCode(x, code, req.getRequestURL().toString());
@@ -92,8 +92,8 @@ public class OAuthWebAgent implements WebAgent {
                     .setRefreshToken(refreshToken)
                     .setScopes(scopes)
                     .build();
-            var oauthCredentialsDAO = (foam.dao.DAO) x.get("oauthCredentialDAO");
-            oauthCredentialsDAO.put(credential);
+            var oAuthCredentialsDAO = (foam.dao.DAO) x.get("oAuthCredentialDAO");
+            oAuthCredentialsDAO.put(credential);
 
             handleOAuthCredential(x, userX, credential);
 

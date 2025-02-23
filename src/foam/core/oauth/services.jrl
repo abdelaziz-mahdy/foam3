@@ -10,7 +10,7 @@ p({
 
 p({
   "class":"foam.core.boot.CSpec",
-  "name":"oauthProviderDAO",
+  "name":"oAuthProviderDAO",
   "lazy":true,
   "serve":true,
   "authenticate": false,
@@ -28,7 +28,7 @@ p({
 
 p({
   "class":"foam.core.boot.CSpec",
-  "name":"oauthCredentialDAO",
+  "name":"oAuthCredentialDAO",
   "lazy":true,
   "serve":true,
   "authenticate": true,

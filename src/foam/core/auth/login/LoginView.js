@@ -15,7 +15,7 @@ foam.CLASS({
     'currentMenu?',
     'loginVariables',
     'logAnalyticEvent',
-    'oauthProviderDAO',
+    'oAuthProviderDAO',
     'params',
     'stack'
   ],
@@ -209,7 +209,7 @@ foam.CLASS({
 
             return this.E()
                 .style({ display: 'contents' })
-                .select(self.oauthProviderDAO, function (provider) {
+                .select(self.oAuthProviderDAO, function (provider) {
                   if ( !provider ) return;
                   let action = foam.lang.Action.create({
                     name: 'signIn',
