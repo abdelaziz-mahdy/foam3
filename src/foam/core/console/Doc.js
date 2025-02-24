@@ -21,7 +21,7 @@ foam.CLASS({
       this.
         addClass().
         show(this.data.visible$).
-        tag(this.HTMLView, {data$: this.data.text$});
+        tag(this.HTMLView, {data$: this.data.richText$});
     }
   ]
 });
@@ -39,7 +39,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'text',
+      name: 'richText',
       label: '',
       view: 'foam.u2.view.RichTextView'
     }

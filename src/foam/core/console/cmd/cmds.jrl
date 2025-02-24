@@ -84,5 +84,5 @@ p({
   "class":"foam.core.console.cmd.Command",
   "id": "doc",
   "description": "Insert Document",
-  "script": "addValue(foam.core.console.Doc.create({text: args.join(' ')}, this));"
+  "script": "addValue(foam.core.console.Doc.create({richText: args.join(' ')}, this));"
 })
