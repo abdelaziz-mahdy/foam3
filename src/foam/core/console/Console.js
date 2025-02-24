@@ -324,6 +324,7 @@ foam.CLASS({
     ^ .foam-u2-view-ValueView {
       min-width: 220px;
     }
+    .foam-core-console-Layout-r .foam-core-console-PropertyBorder-text .foam-core-console-PropertyBorder-propHolder { margin-left: -85px; }
   `,
 
   properties: [

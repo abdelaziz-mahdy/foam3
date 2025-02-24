@@ -13,13 +13,14 @@ foam.CLASS({
   requires: [ 'foam.u2.HTMLView' ],
 
   css: `
+    ^ { margin-right: 10px; }
   `,
 
   methods: [
     function render() {
       this.
         addClass().
-        show(this.visible$).
+        show(this.data.visible$).
         tag(this.HTMLView, {data$: this.data.text$});
     }
   ]
