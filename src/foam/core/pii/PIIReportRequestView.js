@@ -33,6 +33,7 @@ foam.CLASS({
         {
           name: 'generate',
           label: 'Generate and Send',
+          buttonStyle: 'PRIMARY',
           code: function(X) {
             var self = this;
             let user = this.subject.user;
