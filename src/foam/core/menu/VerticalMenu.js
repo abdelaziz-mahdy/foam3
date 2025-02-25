@@ -145,6 +145,7 @@ foam.CLASS({
           selection$: self.currentMenu$.map(m => m),
           formatter: function(data) {
             this.translate(data.id + '.label', data.label);
+            if ( data.tooltip ) this.tooltip = data.tooltip;
           },
           defaultRoot: self.theme.navigationRootMenu
         })

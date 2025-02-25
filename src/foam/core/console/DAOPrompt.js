@@ -274,7 +274,8 @@ foam.CLASS({
   listeners: [
     {
       name: 'onSkip',
-      isFramed: true,
+      isMerged: true,
+      delay: 64,
       code: function() { this.run(); }
     },
     function describe() {

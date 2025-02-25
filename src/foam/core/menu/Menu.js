@@ -53,6 +53,11 @@
       tableWidth: 80
     },
     {
+      class: 'String',
+      name: 'tooltip',
+      documentation: 'Tooltip for menu item.'
+    },
+    {
       class: 'FObjectProperty',
 //      of: 'foam.core.menu.AbstractMenu',
       name: 'handler',
