@@ -84,7 +84,7 @@ foam.CLASS({
     { name: 'HELP_TEXT_2', message: 'The report will be emailed to ${email}.', template: true },
     { name: 'HELP_TEXT_3', message: 'Only one report will be generated in a ${requestTtl} hour period.', template: true },
     { name: 'MSG_CONFIRMATION', message: 'A PII Report has been emailed to ${email}.', template: true },
-    { name: 'MSG_ALREADY', message: 'A PII Report has been requested recently, you can request another tomorrow.' }
+    { name: 'MSG_ALREADY', message: 'A PII Report has been requested recently, you can request another in ${retryHours} hours.', template: true }
   ],
 
   properties: [
@@ -106,18 +106,28 @@ foam.CLASS({
     {
       name: 'sent',
       value: false
-    },
-    {
-      name: 'alreadySent',
-      value: false
     }
   ],
 
   methods: [
-    function render() {
-      var self = this;
+    async function render() {
       this.SUPER();
+      var self = this;
       let user = this.subject.user;
+      var t = await this.ticketDAO.orderBy(
+        this.DESC(this.Ticket.CREATED)
+      ).find(
+        this.AND(
+          this.EQ(this.Ticket.TYPE, this.PIIReportTicket.name),
+          this.EQ(this.Ticket.CREATED_FOR, user.id)
+        )
+      );
+      var delta = 0;
+      if ( t ) {
+        delta = Math.ceil(this.requestTtl - ((new Date().getTime() - t.created.getTime()) / 3600000));
+      }
+      var alreadySent = ( delta > 0 && delta <= this.requestTtl );
+
       this
         .addClass()
         .start().addClass('h400').add(this.TITLE).end()
@@ -134,38 +144,18 @@ foam.CLASS({
         .end()
         .start()
         .addClass('p')
-        .add(this.dynamic(function(sent, alreadySent) {
-          this.removeAllChildren()
+        .add(this.slot(function(sent) {
+          let e = this.E();
           if ( alreadySent ) {
-            this.add(self.MSG_ALREADY);
+            e.add(self.MSG_ALREADY({retryHours: delta}));
           } else if ( sent ) {
-            this.add(self.MSG_CONFIMATION);
+            e.add(self.MSG_CONFIRMATION({email: user.email}));
           } else {
-            this.tag(self.data.GENERATE);
+            e.tag(self.data.GENERATE);
           }
+          return e;
         }))
         .end();
-
-      var dao = this.ticketDAO.orderBy(
-        this.DESC(this.Ticket.CREATED)
-      );
-      var ticket = this.ticketDAO
-          .orderBy(
-            this.DESC(this.Ticket.CREATED)
-          ).find(
-            this.AND(
-              this.EQ(this.Ticket.TYPE, this.PIIReportTicket.name),
-              this.EQ(this.Ticket.CREATED_FOR, user.id)
-            )
-          ).then(t => {
-            var delta = 0;
-            if ( t ) {
-              delta = (new Date().getTime() - t.created.getTime()) / 3600000;
-            }
-            self.alreadySent = ( delta > 0 && delta < self.requestTtl );
-          }, e => {
-            self.notify(e, '', self.LogLevel.ERROR);
-          });
     }
   ]
 });
