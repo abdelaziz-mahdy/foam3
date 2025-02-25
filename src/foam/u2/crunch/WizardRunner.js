@@ -29,7 +29,7 @@ foam.CLASS({
       adapt: function(o, n) {
         if ( foam.String.isInstance(n) ) return n;
         if ( foam.lang.FObject.isInstance(n) ) return n;
-        return foam.json.parse(n);
+        return foam.json.parse(n, null, this.__subContext__);
       },
       documentation: `
         Either a capability, string, or WizardFlow
