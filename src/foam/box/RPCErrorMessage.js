@@ -33,5 +33,9 @@ foam.CLASS({
         return this.data && ( this.data.message || this.data.id );
       }
     }
+  ],
+
+  methods: [
+    function toString() { return this.message; }
   ]
 });
