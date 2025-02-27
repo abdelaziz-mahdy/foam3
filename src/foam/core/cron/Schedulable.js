@@ -63,6 +63,7 @@ foam.CLASS({
     {
       name: 'history',
       title: 'History',
+      permissionRequired: true,
       order: 5
     }
   ],
