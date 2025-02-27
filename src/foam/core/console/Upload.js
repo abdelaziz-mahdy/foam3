@@ -49,9 +49,14 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'limit',
-      value: 10,
+      value: 0,
       placeholder: '',
       size: 5
+    },
+    {
+      class: 'Int',
+      name: 'processing',
+      visibility: 'RO'
     },
     {
       class: 'Int',
@@ -66,7 +71,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'input',
-      view: { class: 'foam.u2.tag.TextArea', rows: 20, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 20, cols: 90 }
     },
     {
       class: 'String',
@@ -99,7 +104,7 @@ foam.CLASS({
 
     async function process(real) {
       this.clear();
-      var a = this.input.split('\n');
+      var a = this.input.trim().split('\n');
       if ( ! a ) { this.rows = 0; return; }
       this.rows = a.length-1;
 
@@ -110,10 +115,11 @@ foam.CLASS({
 
         var parser = this.CSVParser.create({});
 
-        for ( var i = 1 ; i < a.length-1 && i <= this.limit ; i++ ) {
+        for ( var i = 1 ; i < a.length-1 && ( this.limit == 0 || i <= this.limit ) ; i++ ) {
           var row = a[i];
           var obj = this.dao.of.create();
-          this.progress = Math.floor(100 * i / a.length);
+          this.processing = i;
+          this.progress   = Math.floor(100 * i / a.length);
           var csv = parser.parseString(row, this.delimiter);
           for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
             var value = csv[j];
@@ -131,9 +137,6 @@ foam.CLASS({
           } else if ( this.limit < 100 ) {
             this.output += 'created ' + obj + '\n';
             console.log(obj);
-          }
-          if ( i % 100 == 0 ) {
-            this.output += 'created ' + i + ' objects\n';
           }
         }
         this.progress = 100;
