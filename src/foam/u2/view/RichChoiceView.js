@@ -487,6 +487,8 @@ foam.CLASS({
 
   methods: [
     function render() {
+      this.SUPER();
+
       var self = this;
 
       if ( ! Array.isArray(this.sections) || this.sections.length === 0 ) {
