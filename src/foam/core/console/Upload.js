@@ -115,11 +115,11 @@ foam.CLASS({
 
         var parser = this.CSVParser.create({});
 
-        for ( var i = 1 ; i < a.length-1 && ( this.limit == 0 || i <= this.limit ) ; i++ ) {
+        for ( var i = 1 ; i < a.length && ( this.limit == 0 || i <= this.limit ) ; i++ ) {
           var row = a[i];
           var obj = this.dao.of.create();
-          this.processing = i;
-          this.progress   = Math.floor(100 * i / a.length);
+          this.processing = Math.max(this.processing, i);
+          this.progress   = Math.max(this.progress, Math.floor(100 * i / a.length));
           var csv = parser.parseString(row, this.delimiter);
           for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
             var value = csv[j];
@@ -129,9 +129,12 @@ foam.CLASS({
           }
           if ( real ) {
             try {
-              await this.dao.put(obj);
+              if ( i % 250 == 1 ) {
+                await this.dao.put(obj);
+              } else {
+                this.dao.put(obj);
+              }
             } catch (x) {
-              debugger;
               throw `Unable to put row ${row} with response "${x}"`
             }
           } else if ( this.limit < 100 ) {
