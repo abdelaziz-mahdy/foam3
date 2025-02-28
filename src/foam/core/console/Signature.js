@@ -24,7 +24,7 @@ foam.CLASS({
         add(this.data.label$, ' Signature: ').
         start('span').
           show(this.data.signor$).
-          style({border: '4px solid black', padding: '3px' }).
+          style({border: '3px solid black', padding: '0 3px' }).
           add(this.data.signor$).
         end().
         add(' ', this.data.timestamp$.map(ts => ts ? '' + ts : ''), ' ')
@@ -39,12 +39,14 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.console',
   name: 'Signature',
-//  extends: 'foam.u2.Controller',
 
   properties: [
     {
       class: 'String',
-      name: 'label'
+      name: 'label',
+      visibility: function(signed) {
+        return signed ? foam.u2.DisplayMode.RO : foam.u2.DisplayMode.RW;
+      }
     },
     {
       class: 'Boolean',
@@ -63,11 +65,17 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'prerequisite'
+      name: 'prerequisite',
+      visibility: function(signed) {
+        return signed ? foam.u2.DisplayMode.RO : foam.u2.DisplayMode.RW;
+      }
     },
     {
       class: 'String',
-      name: 'permission'
+      name: 'permission',
+      visibility: function(signed) {
+        return signed ? foam.u2.DisplayMode.RO : foam.u2.DisplayMode.RW;
+      }
     }
   ],
 
