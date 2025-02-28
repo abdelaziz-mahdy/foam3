@@ -502,6 +502,9 @@ foam.CLASS({
       }
     },
     {
+      name: 'extraStyle'
+    },
+    {
       name: 'parentNode',
       transient: true,
       postSet: function(o, n) { n.onDetach(this); }
@@ -654,6 +657,7 @@ foam.CLASS({
     },
 
     function render() {
+      if ( this.extraStyle ) this.style(this.extraStyle);
     },
 
     async function observeScrollHeight() {
