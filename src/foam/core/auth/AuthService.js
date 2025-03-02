@@ -40,12 +40,7 @@ foam.INTERFACE({
       type: 'foam.core.auth.Subject',
       javaThrows: ['foam.core.auth.AuthenticationException'],
       swiftThrows: true,
-      args: [
-        {
-          name: 'x',
-          type: 'Context'
-        }
-      ]
+      args: 'Context x'
     },
     {
       name: 'getCurrentGroup',
@@ -59,12 +54,7 @@ foam.INTERFACE({
       `,
       async: true,
       type: 'foam.core.auth.Group',
-      args: [
-        {
-          name: 'x',
-          type: 'Context'
-        }
-      ]
+      args: 'Context x'
     },
     {
       name: 'login',
@@ -103,12 +93,7 @@ foam.INTERFACE({
         'foam.core.auth.AuthorizationException',
         'foam.core.auth.AuthenticationException'
       ],
-      args: [
-        {
-          name: 'x',
-          type: 'Context'
-        }
-      ]
+      args: 'Context x'
     },
     // TODO: This should be removed. We have more appropriate places to perform
     // validation checks now. See the 'Validatable' interface and ValidatingDAO.
@@ -261,24 +246,14 @@ foam.INTERFACE({
       async: true,
       type: 'Void',
       swiftThrows: true,
-      args: [
-        {
-          name: 'x',
-          type: 'Context'
-        }
-      ]
+      args: 'Context x'
     },
     {
       name: 'isAnonymous',
       documentation: 'Is the current user anonymous user',
       async: true,
       type: 'Boolean',
-      args: [
-        {
-          name: 'x',
-          type: 'Context'
-        }
-      ]
+      args: 'Context x'
     },
     {
       name: 'isUserAnonymous',
