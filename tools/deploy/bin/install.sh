@@ -228,14 +228,14 @@ function setupUser {
     if [[ $IS_LINUX -eq 1 ]]; then
         id -u $USER > /dev/null
         if [ $? -eq 1 ]; then
-            echo "INFO :: [$HOSTNAME] User foam not found, creating user foam"
+            echo "INFO :: [$HOSTNAME] User $USER not found, creating user"
             groupadd --force --gid $GROUP_ID $GROUP
             useradd -g $USER --uid $USER_ID -m -s /bin/false $USER
             usermod -L $USER
         fi
 
         # test and set umask
-        USER_HOME="$(grep foam /etc/passwd | cut -d':' -f6)"
+        USER_HOME="$(grep "$USER" /etc/passwd | cut -d':' -f6)"
         BASHRC="$USER_HOME/.bashrc"
         if [ ! -f "$BASHRC" ]; then
             touch "$BASHRC"

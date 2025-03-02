@@ -177,6 +177,7 @@ foam.POM({
     { name: "foam/json2/Deserializer",                                flags: "swift" },
     { name: "foam/java/Util",                                         flags: "js|java" },
     { name: "foam/lang/Fluent",                                       flags: "js" },
+    { name: "foam/util/Base64",                                       flags: "js" },
     { name: "foam/util/FObjectSpec",                                  flags: "js" },
     { name: "foam/util/FluentSpec",                                   flags: "js|java" },
     { name: "foam/util/Timer",                                        flags: "js" },

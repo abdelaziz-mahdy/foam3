@@ -77,11 +77,12 @@ const MAKERS = X.makers.split(',').map(m => {
   var task;
   var [_, taskName, _, taskArgs] = m.match(/([a-zA-Z0-9]*)(\((.*)\))?/);
 
-  try {
-    task = require(X.path + taskName + 'Maker');
-  } catch (x) {
-    task = require(path_.join(process.cwd(), taskName + 'Maker'));
+  var loc = path_.join(__dirname, X.path, taskName + "Maker.js");
+  
+  if (!fs_.existsSync(loc)) {
+    loc = path_.join(process.cwd(), x.path, taskName + "Maker.js");
   }
+  task = require(loc);
 
   if ( task && task.init ) task.init(taskArgs);
 
