@@ -39,6 +39,8 @@ foam.CLASS({
     'foam.dao.SkipSink'
   ],
 
+  javaImports: [ 'foam.lang.ContextAgent' ],
+
   topics: [
     {
       name: 'on',
@@ -520,13 +522,19 @@ return this.find_(this.getX(), id);
         return undefined;
       },
       javaCode: `
-      if ( obj != null && obj instanceof String ) {
-        String s = (String) obj;
-        if ( s.startsWith("CLASS? ") ) {
-          try {
-            if ( Class.forName(s.substring(7)).isAssignableFrom(getClass()) ) return true;
-          } catch (ClassNotFoundException e) {
+      if ( obj != null ) {
+        if ( obj instanceof String ) {
+          String s = (String) obj;
+          if ( s.startsWith("CLASS? ") ) {
+            try {
+              if ( Class.forName(s.substring(7)).isAssignableFrom(getClass()) ) return true;
+            } catch (ClassNotFoundException e) {
+            }
           }
+        } else if ( obj instanceof ContextAgent ) {
+          ContextAgent agent = (ContextAgent) obj;
+          agent.execute(x.put("DAO", this));
+          return agent;
         }
       }
 
