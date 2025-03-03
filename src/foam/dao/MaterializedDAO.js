@@ -29,6 +29,7 @@ foam.CLASS({
     'foam.mlang.predicate.True',
     'foam.core.logger.Logger',
     'foam.core.logger.Loggers',
+    'foam.core.pm.PM',
     'foam.util.concurrent.AbstractAssembly',
     'foam.util.concurrent.AssemblyLine',
     'foam.util.concurrent.AsyncAssemblyLine'
@@ -183,10 +184,11 @@ foam.CLASS({
         t.start();
 
         // Could take a long time
+        PM pm = new PM("MaterializedDAO", "initializing", getSourceDAO().getOf().getObjClass().getSimpleName());
         AddIndexCommand cmd = new AddIndexCommand();
         cmd.setIndex(new MaterializedDAOIndex(this));
         getSourceDAO().cmd(cmd);
-
+        pm.log(getX());
         logger.info("initialized");
 
         String[] daoKeys = getObservedDAOs();
