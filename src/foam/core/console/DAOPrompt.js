@@ -43,6 +43,11 @@ foam.CLASS({
     ^ .property-skip { display: inline-flex; }
     ^helper-icon svg { fill: currentColor; }
     ^helper-icon { vertical-align: sub; }
+    ^content {
+      max-height: 700px;
+      overflow-y: auto;
+      border: 1px solid gray;
+    }
   `,
 
   properties: [
@@ -206,7 +211,8 @@ foam.CLASS({
         // show(this.rowCount$.map(c=>c !== undefined)).
         add('Count: ', this.rowCount$, ', Execution time: ', this.executionTime$).
       end().br().
-      start('div', {}, this.content$).end().br();
+      start('div').style({fontSize: 'smaller', textDecoration: 'underline'}).on('click', this.copyToClipboard).add('copy').end().
+      start('div', {}, this.content$).addClass(this.myClass('content')).style({fontSize: 'smaller'}).end();
     }
   ],
 
@@ -290,6 +296,12 @@ foam.CLASS({
     },
     function describe() {
       this.eval_('describe ' + this.dao.of.id);
+    },
+    function copyToClipboard() {
+      var range = document.createRange();
+      range.selectNode(this.content.element_);
+      window.getSelection().empty();
+      window.getSelection().addRange(range);
     }
   ]
 });
