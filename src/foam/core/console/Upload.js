@@ -48,8 +48,9 @@ foam.CLASS({
       this.addClass().
       start('table').start('tr').
         start('td').style({fontWeight: 'bold'}).add('Column').end().
-        start('td').style({fontWeight: 'bold'}).add('Mapping').end().
+        start('td').style({fontWeight: 'bold'}).add('Handler').end().
         start('td').style({fontWeight: 'bold'}).add('Type').end().
+        start('td').style({fontWeight: 'bold'}).add('Required').end().
       end().
       add(function(data) {
         this.forEach(data, function(d) {
@@ -58,7 +59,8 @@ foam.CLASS({
             start('tr').
               start('td').add(d.id).end().
               start('td').add(d.HANDLER).end().
-              start('td').add(d.handler.cls_.name).end();
+              start('td').add(d.handler.cls_.name).end().
+              start('td').add(d.handler.required).end();
         });
       });
     }
@@ -114,13 +116,6 @@ foam.CLASS({
     },
     {
       class: 'Int',
-      name: 'limit',
-      value: 0,
-      placeholder: '',
-      size: 5
-    },
-    {
-      class: 'Int',
       name: 'processing',
       visibility: 'RO'
     },
@@ -149,6 +144,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'output',
+      label: 'Errors',
       view: {
         class: 'foam.u2.HTMLView',
         nodeName: 'pre'
@@ -180,6 +176,7 @@ foam.CLASS({
     },
 
     async function process(real) {
+      var ids = {};
       this.clear();
       var a = this.input.trim().split('\n');
       if ( ! a ) { this.rows = 0; return; }
@@ -192,10 +189,8 @@ foam.CLASS({
         this.rows = a.length-1;
 
         var parser = this.CSVParser.create({});
-        var limit = a.length;
-        if ( this.limit ) limit = Math.min(end, this.limit);
         var agent;
-        for ( var i = 1 ; i < limit ; i++ ) {
+        for ( var i = 1 ; i < a.length ; i++ ) {
           if ( ! agent ) agent = this.UploadAgent.create();
           var row = a[i];
           var obj = this.dao.of.create();
@@ -207,6 +202,13 @@ foam.CLASS({
             if ( value !== '' ) {
               obj[props[j].name] = value.value
             }
+          }
+          if ( ids[obj.id] ) {
+            this.output += '<span style="color:red">Duplicate Records for id "' + obj.id + '":<br>' + ids[obj.id] + '<br>' + row + '</span>';
+          }
+          ids[obj.id] = row;
+          if ( obj.errors_ ) {
+            this.output += '<span style="color:red">' + obj.errors_ + ', row: ' + i + '<br>' + row + '</span>';
           }
           if ( real ) {
             agent.data.push(obj);
@@ -230,16 +232,12 @@ foam.CLASS({
               throw `Unable to put row ${row} with response "${x}"`
               }
               */
-          } else if ( this.limit < 100 ) {
-            this.output += 'created ' + obj + '\n';
-            console.log(obj);
           }
         }
         if ( agent ) this.dao.cmd(agent);
 
         this.progress = 100;
       } catch (x) {
-        debugger;
         this.output += '<span style="color:red">ERROR: ' + x + '</span>';
       }
       console.timeEnd('upload');
