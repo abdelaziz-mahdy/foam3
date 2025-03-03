@@ -151,11 +151,12 @@ foam.CLASS({
 
   methods: [
     function execute(dao, opt_label) {
-      if ( foam.String.isInstance(dao) ) {
-        this.out.tag(this.DAOPrompt.create({daoKey: dao}));
-      } else {
-        this.out.tag(this.DAOPrompt.create({dao: dao, daoKey: opt_label || dao.of.model_.plural}));
-      }
+      var p = foam.String.isInstance(dao) ?
+        this.DAOPrompt.create({daoKey: dao}) :
+        this.DAOPrompt.create({dao: dao, daoKey: opt_label || dao.of.model_.plural}) ;
+
+      this.out.tag(p);
+      this.currentBlock.obj = p;
     }
   ]
 });
