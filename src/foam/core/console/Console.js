@@ -142,9 +142,6 @@ foam.CLASS({
     }
     ^output {
     }
-    ^:hover {
-      background: #f6f6f6;
-    }
     ^prompt {
       display: flex;
       font-weight: bold;
@@ -156,7 +153,7 @@ foam.CLASS({
     ^ span .property-cmd { width: inherit; }
     ^ .foam-u2-ActionView-del { font-weight: lighter; font-size: smaller; border: none; background: transparent; height: 20px; }
     ^ .foam-u2-TextField-cmd { border: none; height: 20px; }
-    ^:hover .foam-u2-TextField-cmd { background: #f6f6f6; }
+    ^:hover { background: #f4f4f4; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^ .foam-u2-ReadWriteView .foam-u2-TextField { height: 20px; }
   `,
