@@ -59,6 +59,7 @@ foam.CLASS({
     {
       name: 'choice',
       factory: function() { return this.AGENTS[0][0]; },
+      postSet: function() { this.data = undefined; },
       view: function(_, X) {
         var choices = X.data.sinksOnly ? X.AGENTS.filter(s => s[2]) : X.AGENTS;
         return { class: 'foam.u2.view.ChoiceView', choices: choices };
