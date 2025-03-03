@@ -219,6 +219,9 @@ foam.CLASS({
               self.outputLink('add', () => self.eval_('add("' + n.name + '")'), this);
             }).end().
             start('td').attr('align', 'left').call(function() {
+              self.outputLink('upload', () => self.eval_('upload("' + n.name + '")'), this);
+            }).end().
+            start('td').attr('align', 'left').call(function() {
               self.outputLink(of.id, () => self.eval_('describe(' + of.id + ')'), this);
             }).end().
             start('td').attr('align', 'left').add(n.description);
