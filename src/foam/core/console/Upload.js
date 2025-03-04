@@ -8,7 +8,22 @@
 
 foam.CLASS({
   package: 'foam.core.console',
+  name: 'DAOHolder',
+
+  properties: [
+    { name: 'preview', hidden: true }
+  ]
+});
+
+
+
+foam.CLASS({
+  package: 'foam.core.console',
   name: 'UploadMapping',
+
+  constants: {
+    UNKNOWN: { name: '--', set: function() {}, cls_: { name: '--' } }
+  },
 
   properties: [
     {
@@ -18,7 +33,7 @@ foam.CLASS({
     {
       name: 'handler',
       view: function(_, X) {
-       return { class: 'foam.core.console.PropertyChoiceView', of: X.data.of };
+        return { class: 'foam.core.console.PropertyChoiceView', optionalChoice: [ this.UNKNOWN, '--' ], of: X.data.of };
       }
     },
     {
@@ -59,8 +74,8 @@ foam.CLASS({
             start('tr').
               start('td').add(d.id).end().
               start('td').add(d.HANDLER).end().
-              start('td').add(d.handler.cls_.name).end().
-              start('td').add(d.handler.required).end();
+              start('td').add(d.handler$.map(h => h.cls_.name)).end().
+              start('td').add(d.handler$.map(h => h.required)).end();
         });
       });
     }
@@ -73,11 +88,15 @@ foam.CLASS({
   name: 'Upload',
 
   requires: [
+    'foam.dao.MDAO',
     'foam.lib.csv.CSVParser',
     'foam.parse.QueryParser',
+    'foam.core.console.DAOHolder',
     'foam.core.console.UploadMapping',
     'foam.core.console.UploadAgent'
   ],
+
+  imports: [ 'currentBlock', 'eval_' ],
 
   properties: [
     {
@@ -150,32 +169,48 @@ foam.CLASS({
         nodeName: 'pre'
       },
       visibility: 'RO'
-    }
+    },
+    {
+      class: 'foam.dao.DAOProperty',
+      name: 'data',
+      factory: function() {
+        return this.MDAO.create({of: this.dao.of});
+      },
+      hidden: true
+    },
+    { name: 'block', hidden: true, postSet: function(o, n) { if ( ! n ) debugger; } }
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+
+      this.block = this.currentBlock;
+      this.block.value = this.DAOHolder.create({preview: this.data});
+    },
+
     function parseColumns(s) {
+      if ( s === this.lastColumns ) return this.mappings;
       var parser   = this.QueryParser.create({of: this.dao.of});
-      var props    = [];
       var mappings = [];
 
       s.trim().split(',').forEach(c => {
         var prop = parser.parseString(c, 'fieldname');
-        if ( prop ) {
-          mappings.push(this.UploadMapping.create({id: c, handler: prop, of: this.dao.of}));
-//          this.output += `<span style="color:green">Mapping</span> <b>${c}</b> to <b>${prop.name}</b>\n`;
-          props.push(prop);
-        } else {
-          throw `Unknown property <b>'${c}'</b>`;
+        mappings.push(this.UploadMapping.create({id: c, handler: prop || foam.core.console.UploadMapping.UNKNOWN, of: this.dao.of}));
+        if ( ! prop ) {
+          this.output += '<span style="color:red">Unknown property: ' + c + '</span>';
         }
       });
 
       this.mappings = mappings;
+      this.lastColumns = s;
 
-      return props;
+      return this.mappings;
     },
 
     async function process(real) {
+      await this.data.removeAll();
+
       var ids = {};
       this.clear();
       var a = this.input.trim().split('\n');
@@ -198,9 +233,10 @@ foam.CLASS({
           this.progress   = Math.max(this.progress, Math.floor(100 * i / a.length));
           var csv = parser.parseString(row, this.delimiter);
           for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
+            var prop  = props[j].handler;
             var value = csv[j];
-            if ( value !== '' ) {
-              obj[props[j].name] = value.value
+            if ( value !== '' ) { // TODO: this line is probably wrong
+              prop.set(obj, value.value);
             }
           }
           if ( ids[obj.id] ) {
@@ -232,6 +268,8 @@ foam.CLASS({
               throw `Unable to put row ${row} with response "${x}"`
               }
               */
+          } else {
+            this.data.put(obj);
           }
         }
         if ( agent ) this.dao.cmd(agent);
@@ -241,6 +279,18 @@ foam.CLASS({
         this.output += '<span style="color:red">ERROR: ' + x + '</span>';
       }
       console.timeEnd('upload');
+
+      if ( ! real ) {
+        var block = this.block;
+        this.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+        var block2 = this.currentBlock;
+        block2.flowName = block.flowName + 'data';
+        block2.obj.limit = 10;
+        setTimeout(() => {
+          // Needed because it is the SinkView which creates the 'select' object
+          block2.obj.run();
+        }, 32);
+      }
     }
   ],
 
