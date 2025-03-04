@@ -251,7 +251,7 @@ foam.CLASS({
             if ( i && i % 1000 === 0 ) {
               var oldAgent = agent;
               agent = undefined;
-              if ( i && i % 100000 === 0 ) {
+              if ( i && i % 10000 === 0 ) {
                 await this.dao.cmd(oldAgent);
               } else {
                 this.dao.cmd(oldAgent);
