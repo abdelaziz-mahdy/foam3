@@ -193,7 +193,7 @@ foam.CLASS({
   imports: [ 'cSpecDAO' ],
 
   properties: [
-    [ 'description', 'Display avaiable DAO services' ]
+    [ 'description', 'Display available DAO services' ]
   ],
 
   methods: [
