@@ -210,21 +210,47 @@ foam.CLASS({
 
     async function process(real) {
       await this.data.removeAll();
-
-      var ids = {};
       this.clear();
+      console.time('upload');
+
+      if ( this.format === 'CSV' ) {
+        this.processCSV(real);
+      } else if ( this.format === 'XML' ) {
+        this.processXML(real);
+      }
+
+      console.timeEnd('upload');
+
+      if ( ! real ) {
+        var block = this.block;
+        this.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+        var block2 = this.currentBlock;
+        block2.flowName = block.flowName + 'data';
+        block2.obj.limit = 10;
+        setTimeout(() => {
+          // Needed because it is the SinkView which creates the 'select' object
+          block2.obj.run();
+        }, 100);
+      }
+    },
+
+    async function processXML(real) {
+
+    },
+
+    async function processCSV(real) {
+      var ids = {};
       var a = this.input.trim().split('\n');
       if ( ! a ) { this.rows = 0; return; }
       this.rows = a.length-1;
 
-      console.time('upload');
       try {
-        var props = this.parseColumns(a[0]);
+        var props  = this.parseColumns(a[0]);
+        var parser = this.CSVParser.create({});
+        var agent;
 
         this.rows = a.length-1;
 
-        var parser = this.CSVParser.create({});
-        var agent;
         for ( var i = 1 ; i < a.length ; i++ ) {
           if ( ! agent ) agent = this.UploadAgent.create();
           var row = a[i];
@@ -277,19 +303,6 @@ foam.CLASS({
         this.progress = 100;
       } catch (x) {
         this.output += '<span style="color:red">ERROR: ' + x + '</span>';
-      }
-      console.timeEnd('upload');
-
-      if ( ! real ) {
-        var block = this.block;
-        this.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
-        var block2 = this.currentBlock;
-        block2.flowName = block.flowName + 'data';
-        block2.obj.limit = 10;
-        setTimeout(() => {
-          // Needed because it is the SinkView which creates the 'select' object
-          block2.obj.run();
-        }, 100);
       }
     }
   ],
