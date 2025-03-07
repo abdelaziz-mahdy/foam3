@@ -62,7 +62,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'region',
+      name: 'geographicRegion',
       documentation: "The country's region"
     }
   ],
