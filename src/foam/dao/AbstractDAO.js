@@ -533,7 +533,7 @@ return this.find_(this.getX(), id);
           }
         } else if ( obj instanceof ContextAgent ) {
           ContextAgent agent = (ContextAgent) obj;
-          agent.execute(x.put("DAO", this));
+          agent.execute(x.put("AGENTDAO", this.inX(x)));
           return agent;
         }
       }
