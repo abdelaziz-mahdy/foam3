@@ -64,7 +64,7 @@ foam.CLASS({
       class: 'String',
       name: 'region',
       documentation: "The country's region"
-    },
+    }
   ],
 
   methods: [
