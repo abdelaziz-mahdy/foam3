@@ -322,7 +322,8 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'maxRetry',
-      documentation: 'The number of max retry when failed to execute the action. Only applicable to async rule.',
+      documentation: 'The number of max retry when failed to execute the action. Only applicable to async rule. Default to -1, which falls back to "ruleRetryStrategy" service.',
+      value: -1,
       visibility: function(async) {
         return async ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
@@ -438,7 +439,7 @@ foam.CLASS({
           ((OMLogger) x.get("OMLogger")).log("Rule", (SafetyUtil.isEmpty(getName()) ? getId() : getName()), "AsyncAction");
           apply(x, obj, oldObj, ruler, rule, new DirectAgency());
         } catch ( Exception e ) {
-          var strategy = getMaxRetry() > 0 ?
+          var strategy = getMaxRetry() >= 0 ?
             new SimpleRetryStrategy(getMaxRetry(), getRetryDelay()) :
             (RetryStrategy) x.get("ruleRetryStrategy");
 
