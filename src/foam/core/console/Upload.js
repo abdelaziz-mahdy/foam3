@@ -196,6 +196,12 @@ foam.CLASS({
 
       s.trim().split(',').forEach(c => {
         var prop = parser.parseString(c, 'fieldname');
+
+        if ( ! prop ) {
+          c = c.split(' ').map((n, i) => { n = n.toLowerCase(); if ( i ) n = foam.String.capitalize(n); return n; }).join('');
+          prop = parser.parseString(c, 'fieldname');
+        }
+
         mappings.push(this.UploadMapping.create({id: c, handler: prop || foam.core.console.UploadMapping.UNKNOWN, of: this.dao.of}));
         if ( ! prop ) {
           this.output += '<span style="color:red">Unknown property: ' + c + '</span>';
@@ -265,10 +271,12 @@ foam.CLASS({
               prop.set(obj, value.value);
             }
           }
+          /*
           if ( ids[obj.id] ) {
             this.output += '<span style="color:red">Duplicate Records for id "' + obj.id + '":<br>' + ids[obj.id] + '<br>' + row + '</span>';
           }
           ids[obj.id] = row;
+          */
           if ( obj.errors_ ) {
             this.output += '<span style="color:red">' + obj.errors_ + ', row: ' + i + '<br>' + row + '</span>';
           }
