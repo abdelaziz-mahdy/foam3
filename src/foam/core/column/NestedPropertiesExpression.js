@@ -112,7 +112,7 @@ foam.CLASS({
         }
       ],
       code: function (clsof, propName, i, expr) {
-        clsof = foam.maybeLookup(clsof);
+        if ( foam.String.isInstance(clsof) ) clsof = foam.maybeLookup(clsof);
         var prop = clsof.getAxiomByName(propName[i]);
         if ( ! prop ) return null;
 
