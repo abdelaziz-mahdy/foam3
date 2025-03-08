@@ -439,7 +439,10 @@ foam.CLASS({
           ((OMLogger) x.get("OMLogger")).log("Rule", (SafetyUtil.isEmpty(getName()) ? getId() : getName()), "AsyncAction");
           apply(x, obj, oldObj, ruler, rule, new DirectAgency());
         } catch ( Exception e ) {
-          var strategy = getMaxRetry() >= 0 ?
+          if ( getMaxRetry() == 0 )
+            throw e;
+
+          var strategy = getMaxRetry() > 0 ?
             new SimpleRetryStrategy(getMaxRetry(), getRetryDelay()) :
             (RetryStrategy) x.get("ruleRetryStrategy");
 
