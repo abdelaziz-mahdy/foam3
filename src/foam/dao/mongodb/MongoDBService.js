@@ -86,8 +86,6 @@ foam.CLASS({
       args: 'X x',
       javaCode: `
         Logger logger = Loggers.logger(x, this, getDbName());
-        // logger.info("initialize");
-        // Construct a ServerApi instance using the ServerApi.builder() method
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
                 .build();
