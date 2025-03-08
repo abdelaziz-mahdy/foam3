@@ -14,9 +14,9 @@ foam.CLASS({
   // Notes on 'id'
   // MongoDB automatically generates a unique id with name _id.
   // Uncessful thus far configuing MongoDB to map/use the models' id.
-  // One approach is to refine all models with and _id property (see
-  // test/MongoTestObject.js).  But even with an id mapping, there
-  // will still be two table ids: id and _id, so no space saved.
+  // One approach is to refine all models with an _id property.
+  // But even with an id mapping, there will still be two
+  // table ids: id and _id, so no space saved.
   //
   // Future considerations for performance
   // see https://medium.com/mongodb/how-to-efficiently-get-json-from-mongodb-using-spring-data-and-java-1e083f620a44
@@ -285,6 +285,10 @@ foam.CLASS({
       `
     },
     {
+      documentation: `Create Filter for ID properties.
+Future: BsonDocuments can be reused via clear|remove and put. Potentailly
+ThreadLocals could be created for each PropertyInfo BsonDocument.
+see: https://javadoc.io/doc/org.mongodb/mongo-java-driver/latest/org/bson/BsonDocument.html`,
       name: 'buildIDFilter',
       args: 'X x, Object obj',
       javaType: 'BsonDocument',
