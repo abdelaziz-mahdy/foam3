@@ -1,0 +1,34 @@
+p({
+  "class":"foam.core.boot.CSpec",
+  "name":"mongoTestObjectDAO",
+  "serviceScript":`
+    of = foam.dao.mongodb.test.MongoTestObject.getOwnClassInfo();
+    name = "mongoTestObjects";
+
+    return new foam.dao.EasyDAO.Builder(x)
+      .setOf(of)
+      .setFuid(true)
+      .setRuler(false)
+      .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
+      .setJournalName(name)
+      .build();
+    `,
+  "client":"{\"of\":\"foam.dao.mongodb.test.MongoTestObject\"}"
+})
+p({
+  "class":"foam.core.boot.CSpec",
+  "name":"mongoMultipartIDTestObjectDAO",
+  "serviceScript":`
+    of = foam.dao.mongodb.test.MongoMultipartIDTestObject.getOwnClassInfo();
+    name = "mongoMultipartIDTestObjects";
+
+    return new foam.dao.EasyDAO.Builder(x)
+      .setOf(of)
+      .setFuid(true)
+      .setRuler(false)
+      .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
+      .setJournalName(name)
+      .build();
+    `,
+  "client":"{\"of\":\"foam.dao.mongodb.test.MongoMultipartIDTestObject\"}"
+})

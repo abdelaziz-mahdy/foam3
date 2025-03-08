@@ -1,0 +1,13 @@
+p({
+  class:"foam.dao.mongodb.test.MongoDAOTest",
+  id:"MongoDAOTest",
+  description:"Tests MongoDB through the MongoDAO"
+})
+
+// NOTE: id explicitly named TestBenchmark rather than BenchmarkTest so
+// the test runner runs the MongoDAOTest first.
+p({
+  class:"foam.dao.mongodb.test.MongoDAOBenchmarkTest",
+  id:"MongoDAOTestBenchmark",
+  description:"Report duration of crud operations through the MongoDAO"
+})

@@ -1,0 +1,11 @@
+p({
+  "class": "foam.core.boot.CSpec",
+  "name": "mongoDBService",
+  "lazy": false,
+  "serve": true,
+  "serviceScript":
+  """
+    return new foam.dao.mongodb.MongoDBService(x);
+  """,
+  "client": "{\"of\":\"foam.dao.mongodb.MongoDBService\"\}"
+})
