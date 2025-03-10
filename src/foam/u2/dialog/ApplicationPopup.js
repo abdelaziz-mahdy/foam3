@@ -183,6 +183,10 @@ foam.CLASS({
       padding-top: 0.4rem;
     }
 
+    ^ .foam-u2-ProgressView {
+      height: 2px;
+    }
+
     @media only screen and (min-width: /*%DISPLAYWIDTH.MD%*/ 768px) {
       ^header {
         padding: 12px;
@@ -368,6 +372,7 @@ foam.CLASS({
           .end()
           .add(this.slot(function(progressView) {
             return this.E()
+              .addClass(self.myClass('progressBar'))
               .tag(progressView, {
                 max$: self.progressMax$,
                 data$: self.progressValue$
