@@ -461,44 +461,6 @@ foam.CLASS({
       throw new Error('Class not provided');
     },
 
-    function objectify2(doc, cls) {
-      var obj      = cls.create();
-      var children = doc.children;
-      var nodes    = {};
-
-      for ( var i = 0 ; i < children.length ; i++ ) {
-        // fetch property based on xml tag name since they may not be in order
-        var node = children[i];
-        console.log('***********', node.tagName, node);
-//        nodes[node.tagName] = node;
-      }
-
-//      console.log('*****XML', nodes);
-
-      return obj;
-    },
-
-    function parseString2(str, cls, tagName) {
-      var parser   = new DOMParser();
-      var doc      = parser.parseFromString(str, 'text/xml');
-      var root     = doc.firstChild;
-      var children = root.children;
-      var objs     = [];
-
-      // lookup class if given a string
-      if ( foam.String.isInstance(cls) )
-        cls = foam.lookup(cls);
-
-      for ( var i = 0 ; i < children.length ; i++ ) {
-        var node = children[i];
-        if ( tagName && node.tagName !== tagName ) continue;
-        console.log('***', i, node);
-        objs.push(this.objectify2(node, cls));
-      }
-
-      return objs;
-    },
-
     function getCls(opt_cls) {
       return foam.String.isInstance(opt_cls);
     }

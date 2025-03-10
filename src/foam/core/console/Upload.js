@@ -250,8 +250,40 @@ foam.CLASS({
       }
     },
 
+    function objectifyXML(doc, cls) {
+      var obj      = cls.create();
+      var children = doc.children;
+      var nodes    = {};
+
+      for ( var i = 0 ; i < children.length ; i++ ) {
+        // fetch property based on xml tag name since they may not be in order
+        var node = children[i];
+        console.log('***********', node.tagName, node);
+//        nodes[node.tagName] = node;
+      }
+
+//      console.log('*****XML', nodes);
+
+      return obj;
+    },
+
     async function processXML(real) {
-      foam.xml.Pretty.parseString2(this.input, this.dao.of, this.tagName);
+//      foam.xml.Pretty.parseString2(this.input, this.dao.of, this.tagName);
+      var parser   = new DOMParser();
+      var doc      = parser.parseFromString(this.input, 'text/xml');
+      var root     = doc.firstChild;
+      var children = root.children;
+      var objs     = [];
+      var cls      = this.dao.of;
+
+      for ( var i = 0 ; i < children.length ; i++ ) {
+        var node = children[i];
+        if ( this.tagName && node.tagName !== this.tagName ) continue;
+        console.log('***', i, node);
+        objs.push(this.objectifyXML(node, cls));
+      }
+
+      return objs;
     },
 
     async function processCSV(real) {
