@@ -4,6 +4,12 @@
 
 <h2>Requirements</h2>
 <p>Obviously, a MongoDB must be accessible.</p>
+<h3>MacOS</h3>
+<p>MongoDB installation</p>
+https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-os-x/
+<p>Compass UI for DB inspection</p>
+<code>brew tap mongodb/brew</code>
+https://www.geeksforgeeks.org/how-to-install-mongodb-compass-on-macos/
 
 <h2>Configuration</h2>
 <p>Connection settings are managed via the MongoDBService, found through CSpec service <b>mongoDBService</b>.<br/>
