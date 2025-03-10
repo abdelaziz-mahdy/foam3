@@ -18,7 +18,7 @@ See <code>deployment/mongodb/services.jrl</code>
 
 <h2>Inclusion in Project</h2>
 <p>The pom is isolated and must be explicitly referenced:<br/>
-<b>-Jmongodb</b><br/>
+<b>-Pfoam3/src/foam/dao/mongodb/pom -J../../foam3/deployment/mongodb</b><br/>
 See <code>deployment/mongodb/run.sh</code>
 The MongoDAO installs itself via refinement to EasyDAO.<br/>
 A MongoDAO will be installed for each EasyDAO setup which satisfies the following:<br/>
@@ -27,6 +27,18 @@ A MongoDAO will be installed for each EasyDAO setup which satisfies the followin
 <li>is not ReadOnly</li>
 <li>is not WriteOnly</li>
 </ol>
-The MongoDAO is installed with an OrDAO which decorates a JDAO configured to only read the .0 (dot zero) build generated jourals files.<br/>
-The dot zero journals are read to an MDAO. The OrDAO queries first on the MongoDAO and falls back to the OrDAO. This maintains the normal FOAM behaviour of runtime data superseding shipped journal data.
+The DAO stack consists of an MDAO backed by the MongoDAO. Finds and selects are served MDAO, puts are written to both.
+This maintains the normal FOAM behaviour of runtime data superseding shipped journal data.<br/>
+On startup .0 journals are read into the MDAO, and then the DB is read into the MDAO.
 </p>
+
+<h2>Ingesting Existing Data</h2>
+<p>Run script <b>MongoDBLoad</b> to replay runtime journals into MongoDB.</p>
+<ol>
+<li>Configure system to use MongoDB by referencing the mongdb pom <b>-Jmongodb</b></li>
+<li>Start system</li>
+<li>Inspect that system is connected to MongoDB</li>
+<li>Execute script <b>MongoDBLoad</b></li>
+<li>Restart</li>
+</ol>
+<p>See further notes in <code>foam.dao.mongodb.LoadingAgent</code></p>

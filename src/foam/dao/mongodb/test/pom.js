@@ -1,6 +1,10 @@
 foam.POM({
   name: "test",
 
+  projects: [
+    { name: "../pom-all" }
+  ],
+
   files: [
     { name: "MongoDAOTest",
       flags: "js|java" },

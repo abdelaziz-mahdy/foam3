@@ -2,11 +2,13 @@ foam.POM({
   name: "mongodb",
 
   files: [
-    { name: "EasyDAORefines",
-      flags: "js|java" },
+    { name: "DDAORefines",
+      flags: "java" },
     { name: "MongoDAO",
-      flags: "js|java" },
+      flags: "java" },
     { name: "MongoDBService",
-      flags: "js|java" }
+      flags: "js|java" },
+    { name: "LoadingAgent",
+      flags: "java" }
   ]
 });

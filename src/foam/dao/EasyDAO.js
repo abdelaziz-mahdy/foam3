@@ -83,11 +83,13 @@ foam.CLASS({
   javaImports: [
     'foam.lang.Indexer',
     'foam.lang.PropertyInfo',
+    'foam.lang.X',
     'foam.dao.index.AddIndexCommand',
     'foam.core.boot.CSpec',
     'foam.core.logger.PrefixLogger',
     'foam.core.logger.Logger',
     'foam.core.logger.Loggers',
+    'foam.util.SafetyUtil',
     'java.util.ArrayList',
     'java.util.Arrays',
     'java.util.List'
@@ -569,6 +571,19 @@ foam.CLASS({
       name: 'journal'
     },
     {
+      class: 'foam.lang.Enum',
+      of: 'foam.dao.DatabaseType',
+      name: 'databaseType',
+      value: 'NONE'
+    },
+    {
+      class: 'String',
+      name: 'databaseTableName',
+      javaFactory: `
+      return getJournalName();
+      `
+    },
+    {
       documentation: 'Enable logging on the DAO',
       class: 'Boolean',
       name: 'logging'
@@ -882,19 +897,24 @@ foam.CLASS({
     },
     {
       name: 'getJournalDelegate',
-      args: [
-        {
-          type: 'Context',
-          name: 'x'
-        },
-        {
-          type: 'foam.dao.DAO',
-          name: 'delegate'
-        }
-      ],
+      args: 'Context x, foam.dao.DAO delegate',
       type: 'foam.dao.DAO',
       javaCode: `
-        if ( getJournalType().equals(JournalType.SINGLE_JOURNAL) ) {
+        if ( getDatabaseType() != DatabaseType.NONE &&
+             ! SafetyUtil.isEmpty(getDatabaseTableName()) &&
+             getInnerDAO() == null &&
+             ! getWriteOnly() &&
+             ! getReadOnly() &&
+             ! getNullify() ) {
+
+          DDAO ddao = new DDAO(x);
+          ddao.setDatabaseType(getDatabaseType());
+          ddao.setDatabaseTableName(getDatabaseTableName());
+          ddao.setJournalName(getJournalName());
+          ddao.setWaitReplay(getWaitReplay());
+          ddao.setDelegate(delegate);
+          delegate = ddao;
+        } else if ( getJournalType().equals(JournalType.SINGLE_JOURNAL) ) {
           if ( getWriteOnly() ) {
             delegate = new foam.dao.WriteOnlyJDAO(x, delegate, getOf(), getJournalName());
           } else {

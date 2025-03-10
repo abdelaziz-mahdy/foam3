@@ -44,6 +44,11 @@ foam.CLASS({
       name: 'url',
       class: 'String',
       value: 'mongodb://localhost:27017/'
+    },
+    {
+      name: 'cluster',
+      class: 'Boolean',
+      value: false
     }
   ],
 

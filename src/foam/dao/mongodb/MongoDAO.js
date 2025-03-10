@@ -152,6 +152,17 @@ foam.CLASS({
             toBson(x, obj),
             UPSERT
           );
+        } catch ( com.mongodb.MongoWriteException e ) {
+          getLogger().error("put_", obj.toSummary(), e.getMessage());
+          if ( e.getMessage().contains("duplicate key error") ) {
+            try {
+              long count = collection.countDocuments(buildIDFilter(x, obj));
+              getLogger().error("put_ duplicate count found", count);
+            } catch ( Exception ex ) {
+              getLogger().error("put_ duplicate count failed", ex.getMessage());
+            }
+          }
+          throw new RuntimeException(e);
         } catch ( Exception e ) {
           pm.error(x);
           getLogger().error("put_", obj.toSummary(), e.getMessage(), e);
