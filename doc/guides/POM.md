@@ -8,7 +8,7 @@ For pre-packaged JS web apps, the tools build.sh/pmake.js will read a pom and cr
 
 For non-packaged JS web apps, the web app will download and process the POM directly.
 
-For server-side Java apps, genjava.js will process to POM and compile the resulting body
+For server-side Java apps, build.sh/pmake.js will process to POM and compile the resulting body
 of .java source files.
 
 ## POM Attributes
