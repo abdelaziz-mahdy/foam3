@@ -2,6 +2,9 @@
 <h1>MongoDAO (incomplete)</h1>
 <p>A DAO backed by MongoDB</p>
 
+<h2>Important</h2>
+A MongoDB is not a journal and hence does not support models which calculate non-persistent property values during replay.
+
 <h2>Requirements</h2>
 <p>Obviously, a MongoDB must be accessible.</p>
 <h3>MacOS</h3>
