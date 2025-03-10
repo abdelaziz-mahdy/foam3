@@ -42,3 +42,14 @@ On startup .0 journals are read into the MDAO, and then the DB is read into the 
 <li>Restart</li>
 </ol>
 <p>See further notes in <code>foam.dao.mongodb.LoadingAgent</code></p>
+
+<h2>Cluster / Replica Sets</h2>
+<p>MongoDB supports change notification.  A listener can be
+notified of database or collection chaanges in a <b>Replica Set</b></p>
+see: https://www.mongodb.com/docs/drivers/java/sync/current/usage-examples/watch/
+<p>What is unknown is if the event carries information to
+distinguish each host, else we'll get events from ourselves.
+</p>
+<p>Each MongoDAO or DDAO, on startup, could register itself with the MongoDBService.
+The MongoDBService could implement the <b>watch</b> operation and update
+the appropriate MDAO.</p>
