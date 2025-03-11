@@ -129,7 +129,7 @@ Use of COREService retains lazy loading until first context request.
       type: 'DAO',
       javaCode: `
       if ( getDatabaseType() == DatabaseType.MONGODB ) {
-        return getMongoDB(x);
+        return getMongoDAO(x);
       } else {
         Loggers.logger(x, this).error(getDatabaseTableName(), "Unsupported DatabaseType", getDatabaseType());
         throw new RuntimeException("Unsupported DatabaseType "+getDatabaseType());

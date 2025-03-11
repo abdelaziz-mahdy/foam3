@@ -11,7 +11,7 @@ foam.CLASS({
 
   methods: [
     {
-      name: 'getMongoDB',
+      name: 'getMongoDAO',
       args: 'X x',
       type: 'DAO',
       javaCode: `

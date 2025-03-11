@@ -130,7 +130,6 @@ foam.CLASS({
       args: 'X x',
       javaCode: `
       addIDIndex(x);
-      ((MongoDBService) x.get(getMongoDBServiceName())).register(getCollectionName(), this);
       `
     },
     {
