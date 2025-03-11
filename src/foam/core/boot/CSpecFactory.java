@@ -12,6 +12,7 @@ import foam.dao.ProxyDAO;
 import foam.core.*;
 import foam.core.auth.ProxyAuthService;
 import foam.core.logger.Logger;
+import foam.core.logger.Loggers;
 import foam.core.logger.StdoutLogger;
 import foam.core.pm.PM;
 import foam.util.SafetyUtil;
@@ -51,7 +52,7 @@ public class CSpecFactory
   void buildService(X x) {
     Logger logger = null;
     if ( ! "logger".equals(spec_.getName()) && ! "PM".equals(spec_.getName()) ) {
-      logger = (Logger) x.get("logger");
+      logger = Loggers.logger(x);
     }
     if ( logger == null ) {
       logger = StdoutLogger.instance();
@@ -91,7 +92,7 @@ public class CSpecFactory
   void initService(X x) {
     Logger logger = null;
     if ( ! "logger".equals(spec_.getName()) && ! "PM".equals(spec_.getName()) ) {
-      logger = (Logger) x.get("logger");
+      logger = Loggers.logger(x);
     }
     if ( logger == null ) {
       logger = StdoutLogger.instance();
@@ -206,6 +207,35 @@ public class CSpecFactory
         // all of the cached versions will still be out there un-updated
         ((FObject) ns_).copyFrom((FObject) ns);
       }
+    }
+  }
+
+  void shutdown() {
+    Logger logger = null;
+    if ( ! "logger".equals(spec_.getName()) && ! "PM".equals(spec_.getName()) ) {
+      logger = Loggers.logger(x_);
+    }
+    if ( logger == null ) {
+      logger = StdoutLogger.instance();
+    }
+    Object ns = ns_;
+    try {
+      while ( ns != null ) {
+        if ( ns instanceof COREService )  {
+          logger.info("Stopping Service", spec_.getName(), ns.getClass().getName());
+          ((COREService) ns).stop();
+          logger.info("Stopped Service", spec_.getName(), ns.getClass().getName());
+        }
+        if ( ns instanceof ProxyDAO ) {
+          ns = ((ProxyDAO) ns).getDelegate();
+        } else if ( ns instanceof ProxyAuthService ) {
+          ns = ((ProxyAuthService) ns).getDelegate();
+        } else {
+          ns = null;
+        }
+      }
+    } catch (Throwable t) {
+      logger.error("Error Stopping Service", spec_.getName(), t);
     }
   }
 }

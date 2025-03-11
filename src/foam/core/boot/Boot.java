@@ -60,7 +60,6 @@ public class Boot {
     }
     root_.put(foam.core.fs.Storage.class, readStorage);
 
-
     // Used for all the services that will be required when Booting
     foam.dao.MDAO mdao = new foam.dao.MDAO(CSpec.getOwnClassInfo());
     mdao.addIndex(CSpec.SERVE);
@@ -127,6 +126,8 @@ public class Boot {
         factories_.get(sp.getName()).invalidate(sp);
       }
     }, null);
+
+    new ShutdownHook(root_, factories_);
 
     // Use an XFactory so that the root context can contain itself.
     root_.putFactory(ROOT, new XFactory() {
