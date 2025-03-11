@@ -609,4 +609,15 @@ public class JSONFObjectFormatter
     append(val);
     if ( quoteKeys_ ) appendQuote();
   }
+
+  public void output(float val, int precision) {
+    // TODO: faster
+    append(String.format("%." + precision + "f", val));
+  }
+
+  public void output(double val, int precision) {
+    // TODO: faster
+    append(String.format("%." + precision + "f", val));
+  }
+
 }

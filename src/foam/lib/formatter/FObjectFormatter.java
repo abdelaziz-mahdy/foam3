@@ -48,7 +48,11 @@ public interface FObjectFormatter
 
   public void output(float val);
 
+  public void output(float val, int precision);
+
   public void output(double val);
+
+  public void output(double val, int precision);
 
   public void output(boolean val);
 

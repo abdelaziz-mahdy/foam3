@@ -41,6 +41,11 @@ foam.CLASS({
       }
     },
     {
+      class: 'Int',
+      name: 'precision',
+      factory: function() { return this.property.precision; }
+    },
+    {
       class: 'Boolean',
       name: 'networkTransient',
       factory: function() { return this.property.networkTransient; }
@@ -326,25 +331,34 @@ foam.CLASS({
             body: `return foam.util.SafetyUtil.compare(get_(o), ${this.propValue}) == 0;`
           });
         }
-          // TODO: We could reduce the amount a Enum PropertyInfo code we output
-          if ( this.extends != 'foam.lang.AbstractEnumPropertyInfo' ) {
-            m.push({
-              name: 'format',
-              visibility: 'public',
-              type: 'void',
-              args: [
-                {
-                  name: 'formatter',
-                  type: 'foam.lib.formatter.FObjectFormatter'
-                },
-                {
-                  name: 'obj',
-                  type: 'foam.lang.FObject'
-                }
-              ],
-              body: 'formatter.output(get_(obj));'
-            });
+
+        // TODO: We could reduce the amount a Enum PropertyInfo code we output
+        if ( this.extends != 'foam.lang.AbstractEnumPropertyInfo' ) {
+          var body = 'formatter.output(get_(obj));';
+
+          // Double extends Float, so just checking for Float catches both
+          if ( foam.lang.Float.isInstance(this.property) && this.precision ) {
+            var precision = this.precision;
+            var body = `formatter.output(get_(obj), ${precision});`;
           }
+
+          m.push({
+            name: 'format',
+            visibility: 'public',
+            type: 'void',
+            args: [
+              {
+                name: 'formatter',
+                type: 'foam.lib.formatter.FObjectFormatter'
+              },
+              {
+                name: 'obj',
+                type: 'foam.lang.FObject'
+              }
+            ],
+            body: body
+          });
+        }
 
         m.push({
           name: 'getNetworkTransient',

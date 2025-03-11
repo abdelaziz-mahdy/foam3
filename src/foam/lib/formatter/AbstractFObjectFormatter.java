@@ -56,6 +56,15 @@ public abstract class AbstractFObjectFormatter
     builder().setLength(0);
   }
 
+
+  public void output(float val, int precision) {
+    output(val);
+  }
+
+  public void output(double val, int precision) {
+    output(val);
+  }
+
   public String stringify(FObject obj) {
     reset();
     output(obj);
