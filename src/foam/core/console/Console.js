@@ -141,6 +141,7 @@ foam.CLASS({
       padding-right: 0;
     }
     ^output {
+      overflow-x: scroll;
     }
     ^prompt {
       display: flex;
@@ -169,7 +170,7 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.
+      this.start(foam.u2.borders.FoldingSection, {title: this.cmd}).
         addClass().
         start('span').
           show(this.showPrompts$).
@@ -179,7 +180,8 @@ foam.CLASS({
         end().
         start('div', {}, this.out$).
           addClass(this.myClass('output')).
-        end();
+        end().
+      end();
     },
 
     function addValue(o, skipOutput) {
