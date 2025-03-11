@@ -495,7 +495,7 @@ foam.LIB({
       outputDefinedValues: false,
       // TODO: No deserialization support for shortnames yet.
       //      useShortNames: true,
-      useShortNames: false,
+      useShortNames: false
     })
   },
 
