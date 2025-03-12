@@ -180,7 +180,7 @@ foam.CLASS({
         try {
           var record = collection.find(buildIDFilter(x, id)).first();
           if ( record != null ) {
-            result = parser_.get().parseString(record.toJson(), getOf().getObjClass());
+            result = parser_.get().parseString(record.toJson());
           }
         } catch ( Exception e ) {
           pm.error(x);
@@ -213,11 +213,16 @@ foam.CLASS({
 
         MongoCollection<BsonDocument> collection = getDatabase(x).getCollection(getCollectionName(), BsonDocument.class);
 
-        try ( MongoCursor<BsonDocument> cursor = collection.find().cursor() ) {
+        try ( MongoCursor<BsonDocument> cursor = collection.find().projection(Projections.excludeId()).cursor() ) {
           while ( cursor.hasNext() ) {
             if ( sub.getDetached() ) break;
 
-            FObject obj = parser_.get().parseString(cursor.next().toJson(), getOf().getObjClass());
+            String json = cursor.next().toJson();
+            FObject obj = parser_.get().parseString(json);
+            if ( obj == null ) {
+              getLogger().warning("select_", "unable to parse", json);
+              continue;
+            }
 
             if ( ( predicate == null ) || predicate.f(obj) ) {
               decorated.put(obj, sub);
