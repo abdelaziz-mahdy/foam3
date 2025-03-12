@@ -54,6 +54,10 @@ Use of COREService retains lazy loading until first context request.
       class: 'Boolean',
       name: 'waitReplay',
       value: true
+    },
+    {
+      class: 'Boolean',
+      name: 'initialized'
     }
   ],
 
@@ -71,6 +75,11 @@ Use of COREService retains lazy loading until first context request.
     {
       name: 'start',
       javaCode: `
+      // database is already initialized, return
+      if ( getInitialized() ) {
+        return;
+      }
+
       initialize();
 
       // replay .0 into MDAO
@@ -99,6 +108,7 @@ Use of COREService retains lazy loading until first context request.
           }
         }, this.getClass().getSimpleName()+"-replay");
       }
+      setInitialized(true);
       `
     },
     {
