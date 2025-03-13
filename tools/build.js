@@ -271,6 +271,9 @@ task('Build web root directory for inclusion in JAR.', [], function jarWebroot()
   }
 });
 
+task('Build web root directory for inclusion in JAR.', [], function copy() {
+  execSync(__dirname + `/pmake.js -makers=Copy -pom=${pom()} -builddir=${BUILD_DIR}`, {stdio: 'inherit'});
+});
 
 task('Copy images from src sub directories to BUILD_DIR/images.', [], function jarImages() {
   JAR_INCLUDES += ` -C ${BUILD_DIR} images `;
@@ -281,7 +284,6 @@ task('Copy images from src sub directories to BUILD_DIR/images.', [], function j
 task('Include journals in jar.', [], function jarJournals() {
   JAR_INCLUDES += ` -C ${BUILD_DIR} journals `;
 });
-
 
 task('Display generated JAR manifest file.', [], function showManifest() {
   console.log('Manifest:', manifest());
@@ -438,6 +440,7 @@ task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function
   jarWebroot();
   jarImages();
   jarJournals();
+  copy();
 
   fs.writeFileSync(BUILD_DIR + '/MANIFEST.MF', manifest());
   execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF -C ${BUILD_DIR} documents ${JAR_INCLUDES} -C ${BUILD_DIR}/classes .`);
@@ -454,6 +457,7 @@ task('Package files into a TAR archive', [], function buildTar() {
 
 task('Copy runtime data to deployment dir APP_HOME', [], function deployData() {
   deployJournals();
+  copy();
   deployDocuments();
 });
 
@@ -701,7 +705,13 @@ const ARGS = {
   j: [ 'Delete runtime journals, build, and run app as usual.',
     () => DELETE_RUNTIME_JOURNALS = true ],
   J: [ 'JOURNALS_CONFIG : additional journals.',
-    args => { JOURNAL_CONFIG = comma(JOURNAL_CONFIG, args); } ],
+       args => {
+         JOURNAL_CONFIG = comma(JOURNAL_CONFIG, args);
+         args.split(',').forEach(j => {
+           POM = comma(POM, 'deployment/'+j+'/pom');
+         });
+       }
+     ],
   k: [ 'Package up a deployment tarball.',
     () => { BUILD_JAR = BUILD_ONLY = PACKAGE = true; } ],
   l: [ 'turn on build logging/verbose mode', () => VERBOSE = '-flags=verbose' ],
