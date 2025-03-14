@@ -693,7 +693,7 @@ foam.LIB({
       outputDefaultValues: true,
       // TODO: No deserialization support for shortnames yet.
       //      useShortNames: true,
-      useShortNames: false,
+      useShortNames: true,
       // TODO: Currently faster to use strict JSON and native JSON.parse
       convertUnserializableToStubs: true,
       propertyPredicate: function(o, p) { return ! p.networkTransient; }
