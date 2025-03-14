@@ -856,10 +856,10 @@ foam.CLASS({
       await this.fetchTheme();
       var hash = this.window.location.hash;
       if ( hash ) hash = hash.substring(1);
-      if ( hash && hash != 'null' /* How does it even get set to null? */ && ( hash != this.currentMenu?.id || this.currentMenu.authenticate ) ) {
-        this.routeUpdated()
-      } else {
+      if ( ! hash || hash == 'null' /* How does it even get set to null? */ ) {
         await this.pushDefaultMenu();
+      } else if ( hash != this.currentMenu?.id || this.currentMenu.authenticate ) {
+        this.routeUpdated()
       }
       this.initLayout.resolve();
 
