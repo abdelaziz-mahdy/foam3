@@ -1202,6 +1202,11 @@ foam.POM({
     { name: "foam/css/TokenUtils",                                    flags: "web" },
     { name: "foam/demos/u2/AllViews",                                 flags: "web" },
     { name: "foam/lib/json/StringToStringArrayParserTest",            flags: "js|java" },
-    { name: "foam/lib/json/RawMapParserTest",                         flags: "js|java" }
+    { name: "foam/lib/json/RawMapParserTest",                         flags: "js|java" },
+    { name: "foam/core/fs/FSFile",                                    flags: "js|java" },
+    { name: "foam/core/fs/FSFileContent",                             flags: "js|java" },
+    { name: "foam/core/fs/FSFileDAO",                                 flags: "java" },
+    { name: "foam/core/fs/FSFileContentDAO",                          flags: "java" },
+    { name: "foam/core/fs/Relationships",                             flags: "js|java" }
   ]
 });

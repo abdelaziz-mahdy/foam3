@@ -91,3 +91,48 @@ p({
       .build();
   """
 })
+
+
+
+p({
+  "class":"foam.core.boot.CSpec",
+  "name":"FSFileDAO",
+  "serve":true,
+  "serviceScript":"""
+    // --- should set the root of FSFileDAO here ---
+    nulldao = new foam.dao.NullDAO.Builder(x).setOf(foam.core.fs.FSFile.getOwnClassInfo()).build();
+    fsdao = new foam.core.fs.FSFileDAO.Builder(x).setDelegate(nulldao).build();
+    return new foam.dao.EasyDAO.Builder(x)
+      .setOf(foam.core.fs.FSFile.getOwnClassInfo())
+      .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
+      .setJournalName("fsFiles")
+      .setDecorator(fsdao)
+      .build();
+  """,
+  "client":"""
+    {
+      "of":"foam.core.fs.FSFile"
+    }
+  """
+})
+
+p({
+  "class":"foam.core.boot.CSpec",
+  "name":"FSFileContentDAO",
+  "serve":true,
+  "serviceScript":"""
+    nulldao = new foam.dao.NullDAO.Builder(x).setOf(foam.core.fs.FSFileContent.getOwnClassInfo()).build();
+    dao = new foam.core.fs.FSFileContentDAO.Builder(x).setDelegate(nulldao).build();
+    return new foam.dao.EasyDAO.Builder(x)
+      .setOf(foam.core.fs.FSFileContent.getOwnClassInfo())
+      .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
+      .setJournalName("fsFileContents")
+      .setDecorator(dao)
+      .build();
+  """,
+  "client":"""
+    {
+      "of":"foam.core.fs.FSFileContent"
+    }
+  """
+})
