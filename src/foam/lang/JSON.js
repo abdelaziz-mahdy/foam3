@@ -680,8 +680,6 @@ foam.LIB({
       strict: false,
       formatDatesAsNumbers: true,
       outputDefaultValues: false,
-      // TODO: No deserialization support for shortnames yet.
-      //      useShortNames: true,
       useShortNames: false
     }),
 
