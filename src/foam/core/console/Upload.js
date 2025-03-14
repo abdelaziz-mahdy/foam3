@@ -160,7 +160,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'progress',
-//      view: { class: 'foam.u2.ProgressView' }
+      view: { class: 'foam.u2.ProgressView' }
     },
     {
       class: 'Int',
@@ -209,7 +209,7 @@ foam.CLASS({
       transient: true,
       hidden: true,
       expression: function (of) {
-        return this.QueryParser.create({of: of});
+        return this.QueryParser.create({of: of, allowShortNames: false});
       }
     },
   ],
@@ -219,8 +219,9 @@ foam.CLASS({
       this.SUPER();
 
       if ( this.currentBlock ) {
-        this.block = this.currentBlock;
-        this.block.value = this.DAOHolder.create({preview: this.data});
+        this.block        = this.currentBlock;
+        this.block.upload = this;
+        this.block.value  = this.DAOHolder.create({preview: this.data});
       }
     },
 
@@ -230,12 +231,11 @@ foam.CLASS({
       var mappings = [];
 
       s.trim().split(',').forEach(c => {
-        var prop = parser.parseString(c, 'fieldname');
-
-        if ( ! prop ) {
+        if ( c.indexOf(' ') != -1 ) {
           c = c.split(' ').map((n, i) => { n = n.toLowerCase(); if ( i ) n = foam.String.capitalize(n); return n; }).join('');
-          prop = parser.parseString(c, 'fieldname');
         }
+
+        var prop = parser.parseString(c, 'fieldname');
 
         mappings.push(this.Mapping.create({id: c, handler: prop || this.Mapping.UNKNOWN, of: this.of}));
         if ( ! prop ) {
@@ -262,7 +262,7 @@ foam.CLASS({
       var sink = {
         put: async function(o) {
           self.processing = Math.max(self.processing, i);
-          self.progress   = Math.max(self.progress, Math.floor(100 * i / this.rows));
+          self.progress   = this.rows ? Math.max(self.progress, Math.floor(100 * i / this.rows)) : 0;
 
           if ( o.errors_ ) {
             self.output += '<span style="color:red">' + o.errors_ + ', row: ' + i + '<br>' + row + '</span>';
