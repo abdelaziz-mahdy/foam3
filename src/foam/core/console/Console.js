@@ -545,6 +545,7 @@ foam.CLASS({
       this.addFlowChild(block);
 
       var innerScope = {
+        // shell: this,
         eval_: this.eval_.bind(this),
         addValue: block.addValue.bind(block),
         log: block.log.bind(block),
@@ -613,6 +614,8 @@ foam.CLASS({
       this.setTimeout(() => this.scrollToBottom(), 32);
       this.setTimeout(() => this.scrollToBottom(), 64);
       this.setTimeout(() => this.scrollToBottom(), 96);
+
+      return block;
     },
 
     function addFlowChild_(c) {
