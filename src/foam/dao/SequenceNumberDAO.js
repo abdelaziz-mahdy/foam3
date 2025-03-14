@@ -126,7 +126,14 @@ foam.CLASS({
       `,
       javaCode: `
         synchronized ( this ) {
-          long id = (long) getProperty_().get(obj);
+          Object value = getProperty_().get(obj);
+          long id = 0;
+          if ((value instanceof Integer) || (value instanceof Long)) {
+            id = (value instanceof Integer) ? ((Integer) value).longValue() : (long) value;
+          }
+          else {
+            throw new RuntimeException("Invalid id type. Expecting 'Integer' or 'Long', got '" + value.getClass().getSimpleName() + "'.");
+          }
           if ( id == 0 ) {
             getProperty_().set(obj, getValue_());
             setValue_(getValue_() + 1);
