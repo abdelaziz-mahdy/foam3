@@ -92,11 +92,10 @@ p({
   """
 })
 
-
-
 p({
   "class":"foam.core.boot.CSpec",
   "name":"FSFileDAO",
+  "enabled":false,
   "serve":true,
   "serviceScript":"""
     // --- should set the root of FSFileDAO here ---
@@ -119,6 +118,7 @@ p({
 p({
   "class":"foam.core.boot.CSpec",
   "name":"FSFileContentDAO",
+  "enabled":false,
   "serve":true,
   "serviceScript":"""
     nulldao = new foam.dao.NullDAO.Builder(x).setOf(foam.core.fs.FSFileContent.getOwnClassInfo()).build();
