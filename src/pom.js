@@ -336,6 +336,7 @@ foam.POM({
     { name: "foam/dao/CopyOnWriteDAO",                                flags: "js|java" },
     { name: "foam/dao/CopyOnWriteDAOJsTest",                          flags: "js" },
     { name: "foam/dao/CopyOnWriteDAOJavaTest",                        flags: "js|java" },
+    { name: "foam/dao/DDAO",                                          flags: "js|java" },
     { name: "foam/dao/TimestampDAO",                                  flags: "js" },
     { name: "foam/dao/CopyFromDAO",                                   flags: "js|java" },
     { name: "foam/dao/GUIDDAO",                                       flags: "js|java" },
@@ -356,6 +357,7 @@ foam.POM({
     { name: "foam/dao/RoutingJournalTest",                            flags: "js|java" },
     { name: "foam/dao/RoutingJDAO",                                   flags: "js|java" },
     { name: "foam/dao/JournalType",                                   flags: "js|java" },
+    { name: "foam/dao/DatabaseType",                                  flags: "js|java" },
     { name: "foam/dao/Relationship",                                  flags: "js|java" },
     { name: "foam/dao/RelationshipDAO",                               flags: "js|java" },
     { name: "foam/dao/ManyToManyRelationshipDAO",                     flags: "js|java" },
@@ -1202,6 +1204,11 @@ foam.POM({
     { name: "foam/css/TokenUtils",                                    flags: "web" },
     { name: "foam/demos/u2/AllViews",                                 flags: "web" },
     { name: "foam/lib/json/StringToStringArrayParserTest",            flags: "js|java" },
-    { name: "foam/lib/json/RawMapParserTest",                         flags: "js|java" }
+    { name: "foam/lib/json/RawMapParserTest",                         flags: "js|java" },
+    { name: "foam/core/fs/FSFile",                                    flags: "js|java" },
+    { name: "foam/core/fs/FSFileContent",                             flags: "js|java" },
+    { name: "foam/core/fs/FSFileDAO",                                 flags: "java" },
+    { name: "foam/core/fs/FSFileContentDAO",                          flags: "java" },
+    { name: "foam/core/fs/Relationships",                             flags: "js|java" }
   ]
 });

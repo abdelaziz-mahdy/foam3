@@ -4,12 +4,17 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
- foam.CLASS({
+foam.CLASS({
   package: 'foam.dao',
   name: 'DAOCopySink',
   extends: 'foam.dao.AbstractSink',
 
   documentation: 'Puts all objects in the sink into a different DAO',
+
+  javaImports: [
+    'foam.dao.DAO',
+    'foam.lang.ClassInfo'
+  ],
 
   properties: [
     {
@@ -17,16 +22,31 @@
       name: 'of'
     },
     {
-      class: 'Object',
-      name: 'outputDAO',
-      javaType: 'foam.dao.DAO',
+      class: 'foam.dao.DAOProperty',
+      name: 'outputDAO'
     },
     {
       class: 'Boolean',
       name: 'cloneOnPut',
       value: true
+    },
+    {
+      class: 'Long',
+      name: 'count'
     }
   ],
+
+  javaCode: `
+  public DAOCopySink(ClassInfo of, DAO delegate) {
+    setOf(of);
+    setOutputDAO(delegate);
+  }
+  public DAOCopySink(ClassInfo of, DAO delegate, boolean cloneOnPut) {
+    setOf(of);
+    setOutputDAO(delegate);
+    setCloneOnPut(cloneOnPut);
+  }
+  `,
 
   methods: [
     {
@@ -36,7 +56,9 @@
       },
       javaCode: `
       var fobj = (foam.lang.FObject) obj;
-      getOutputDAO().put(getCloneOnPut() ? fobj.fclone() : fobj);`
+      getOutputDAO().put(getCloneOnPut() ? fobj.fclone() : fobj);
+      setCount(getCount()+1);
+      `
     }
   ]
 });

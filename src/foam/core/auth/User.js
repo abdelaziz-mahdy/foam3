@@ -1083,7 +1083,7 @@ foam.CLASS({
         var self = this;
         var ticket = this.ticketDAO.find(
           this.AND(
-            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.cls_.name),
+            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.name),
             this.EQ(this.Ticket.CREATED_FOR, this.id),
             this.EQ(this.Ticket.SPID, this.spid),
             this.OR(
@@ -1132,7 +1132,7 @@ foam.CLASS({
         var self = this;
         var ticket = this.ticketDAO.find(
           this.AND(
-            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.cls_.name),
+            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.name),
             this.EQ(this.Ticket.CREATED_FOR, this.id),
             this.EQ(this.Ticket.SPID, this.spid),
             this.OR(
@@ -1183,7 +1183,7 @@ foam.CLASS({
         // find existing ticket
         var ticket = this.ticketDAO.find(
           this.AND(
-            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.cls_.name),
+            this.EQ(this.Ticket.TYPE, this.UserLifecycleTicket.name),
             this.EQ(this.Ticket.CREATED_FOR, this.id),
             this.EQ(this.Ticket.SPID, this.spid)
           )

@@ -116,9 +116,9 @@ foam.CLASS({
           assemblyLine.shutdown();
           pm.log(x);
           if ( getFailCount() == 0 ) {
-            getLogger().info("Replay complete", getFilename(), "processed", getPassCount(), "of", getFailCount()+getPassCount(), "in", Duration.ofMillis(pm.getTime()));
+            getLogger().info("Replay complete", getFilename(), "processed", passCount.get(), "of", failCount.get()+passCount.get(), "in", Duration.ofMillis(pm.getTime()));
           } else {
-            getLogger().warning("Replay complete", getFilename(), "processed", getPassCount(), "of", getFailCount()+getPassCount(), "in", Duration.ofMillis(pm.getTime()));
+            getLogger().warning("Replay complete", getFilename(), "processed", passCount.get(), "of", failCount.get()+passCount.get(), "in", Duration.ofMillis(pm.getTime()));
           }
         }
       `

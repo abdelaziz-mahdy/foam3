@@ -6,18 +6,7 @@ It also acts as a working example of configuring a FOAM application for SSL and 
 <h2>Local development use</h2>
 To enable HTTPS during local development:
 
-<ol>
-<li>acquire the foam-https repository.<br/>
-    From your application root directory
-
-<code>git clone https://github.com/kgrgreer/foam-http.git</code>
-</li>
-<li>include the following build directive
-
 <code>-a -J../foam-https/deployment/https</code>
-</li>
-<li>Build clean</li>
-</ol>
 
 On next deployment your application web site will be hosted at
 
