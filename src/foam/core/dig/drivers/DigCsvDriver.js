@@ -46,7 +46,7 @@ foam.CLASS({
       name: 'parseFObjects',
       javaCode: `
       ArraySink arraySink = new ArraySink();
-      InputStream is = new ByteArrayInputStream(data.toString().getBytes());;
+      InputStream is = new ByteArrayInputStream(data.toString().getBytes());
 
       ClassInfo cInfo = dao.getOf();
       CSVSupport csvSupport = new CSVSupport();

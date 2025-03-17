@@ -616,7 +616,7 @@ foam.CLASS({
 
       var json = JSON.parse(str);
 
-      var references = foam.json.references(x, json);;
+      var references = foam.json.references(x, json);
 
       return Promise.all/*Settled*/(references).then(() => {
         return foam.json.parse(json, undefined, opt_ctx || this.creationContext);

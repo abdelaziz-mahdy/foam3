@@ -1060,7 +1060,7 @@ foam.CLASS({
 
       if ( ! lastError ) return "No error.";
 
-//      return "Error at", lastError[0].pos, lastError[0].getIntroString());;
+//      return "Error at", lastError[0].pos, lastError[0].getIntroString());
 
       // Determine valid characters
       var validChars = [];

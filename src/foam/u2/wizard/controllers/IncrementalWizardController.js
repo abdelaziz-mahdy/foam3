@@ -381,7 +381,7 @@ foam.CLASS({
         }
 
         this.onWizardletCompleted(wizardlet);
-        this.activePosition = nextPosition;;
+        this.activePosition = nextPosition;
 
         // Re-calculate next position and next wizardlet
         // (in case an inline wizard was added while saving)
