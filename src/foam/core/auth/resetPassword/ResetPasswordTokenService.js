@@ -14,7 +14,7 @@ foam.CLASS({
   imports: [
     'appConfig',
     'Email email',
-    'DAO localUserDAO',
+    'DAO userDAO',
     'DAO tokenDAO'
   ],
 
@@ -24,6 +24,7 @@ foam.CLASS({
     'foam.dao.Sink',
     'foam.mlang.MLang',
     'foam.core.app.AppConfig',
+    'foam.core.auth.LifecycleState',
     'foam.core.auth.Subject',
     'foam.core.auth.User',
     'foam.core.auth.UserNotFoundException',
@@ -55,7 +56,7 @@ foam.CLASS({
         Subject subject = new Subject.Builder(x).setUser(systemUser).build();
         x = x.put("subject", subject);
 
-        DAO userDAO = (DAO) getLocalUserDAO();
+        DAO userDAO = (DAO) getUserDAO();
         DAO tokenDAO = (DAO) getTokenDAO();
 
         // check if email invalid
@@ -64,8 +65,14 @@ foam.CLASS({
         }
 
         Sink sink = new ArraySink();
-        sink = userDAO.where(MLang.EQ(User.EMAIL, user.getEmail()))
-           .limit(1).select(sink);
+        sink = userDAO.where(
+          MLang.AND(
+            MLang.EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE),
+            MLang.EQ(User.LOGIN_ENABLED, true),
+            MLang.EQ(User.SPID, x.get("spid")),
+            MLang.EQ(User.EMAIL, user.getEmail())
+          ))
+          .limit(1).select(sink);
 
         List list = ((ArraySink) sink).getArray();
         if ( list == null || list.size() == 0 ) {
@@ -120,7 +127,7 @@ foam.CLASS({
         String newPassword = user.getDesiredPassword();
         String url = appConfig.getUrl().replaceAll("/$", "");
 
-        DAO userDAO = (DAO) getLocalUserDAO();
+        DAO userDAO = (DAO) getUserDAO();
         DAO tokenDAO = (DAO) getTokenDAO();
         Calendar calendar = Calendar.getInstance();
 
