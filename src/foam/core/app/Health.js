@@ -18,6 +18,7 @@ foam.CLASS({
     'static foam.mlang.MLang.EQ',
     'foam.mlang.sink.Count',
     'foam.core.alarming.Alarm',
+    'foam.util.SafetyUtil',
     'java.lang.Runtime'
   ],
 
@@ -208,14 +209,18 @@ foam.CLASS({
     super();
     setX(x);
 
+    AppConfig appConfig = (AppConfig) x.get("appConfig");
+    setMode(appConfig.getMode());
+    setName(appConfig.getName());
+
     String id = System.getProperty("hostname", "localhost");
     if ( "localhost".equals(id) ) {
       id = System.getProperty("user.name");
     }
+    if ( ! SafetyUtil.isEmpty(getName()) ) {
+      id += "-"+getName();
+    }
     setId(id);
-
-    AppConfig appConfig = (AppConfig) x.get("appConfig");
-    setMode(appConfig.getMode());
 
     StringBuilder sb = new StringBuilder();
     String version = this.getClass().getPackage().getImplementationVersion();

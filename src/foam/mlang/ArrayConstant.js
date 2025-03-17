@@ -104,9 +104,7 @@ builder.append(s);
     {
       name: 'toString',
       code: function() {
-        return Array.isArray(this.value) ? '[' + this.value.map(this.toString_.bind(this)).join(', ') + ']' :
-          this.value.toString ? this.value.toString :
-          x;
+        return Array.isArray(this.value) ? '[' + this.value.toString() + ']' : this.value?.toString() ;
       },
       javaCode: `
         return Arrays.toString(getValue());
