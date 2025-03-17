@@ -14,6 +14,7 @@
     'foam.dao.DAO',
     'foam.core.auth.AuthorizationException',
     'foam.core.auth.DuplicateEmailException',
+    'foam.core.auth.LifecycleState',
     'foam.core.auth.email.EmailVerificationService',
     'foam.core.auth.Subject',
     'foam.core.auth.User',
@@ -45,6 +46,7 @@
         DAO userDAO = ((DAO) x.get("localUserDAO")).where(
           AND(
             identifierPredicate,
+            EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE),
             EQ(User.LOGIN_ENABLED, true),
             EQ(User.SPID, x.get("spid"))
           ))
@@ -84,7 +86,7 @@
           User user = findUser(x, newPasswordObj.getEmail(), newPasswordObj.getUserName());
           user = (User) user.fclone();
           user.setDesiredPassword(desiredPassword);
-          ((DAO) x.get("localUserDAO")).put_(x, user);
+          ((DAO) x.get("userDAO")).put_(x, user);
         } else {
           throw new AuthorizationException("Email verification failed");
         }

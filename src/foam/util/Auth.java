@@ -11,6 +11,7 @@ import foam.lang.X;
 import foam.dao.DAO;
 import foam.core.auth.Group;
 import foam.core.auth.GroupPermissionJunction;
+import foam.core.auth.LifecycleState;
 import foam.core.auth.Subject;
 import foam.core.auth.User;
 import foam.core.session.Session;
@@ -46,8 +47,9 @@ public class Auth {
   */
   public static X sudo(X x, String email) {
     return sudo(x, (User) ((DAO) x.get("userDAO")).inX(x).find(AND(
-      EQ(User.EMAIL, email),
-      EQ(User.LOGIN_ENABLED, true)
+      EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE),
+      EQ(User.LOGIN_ENABLED, true),
+      EQ(User.EMAIL, email)
     )));
   }
 
