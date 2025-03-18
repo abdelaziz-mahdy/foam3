@@ -129,9 +129,30 @@ foam.CLASS({
     {
       class: 'String',
       name: 'format',
-      // value: 'CSV',
       value: 'AUTO',
-      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'AUTO', 'CSV', 'JSON', 'XML' ] }
+      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'AUTO', 'DAO', 'CSV', 'JSON', 'XML' ] }
+    },
+    {
+      class: 'String',
+      name: 'sourceDAOKey',
+      label: 'Source DAO',
+      adapt: function(o, n) {
+        if ( this.__context__[n] ) return n;
+        if ( this.__context__[n + 'DAO'] ) return n + 'DAO';
+        if ( n.endsWith('s') ) return n.substring(0, n.length-1) + 'DAO';
+        return n;
+      },
+      visibility: function(format) { return format === 'DAO' ?
+        foam.u2.DisplayMode.RW :
+        foam.u2.DisplayMode.HIDDEN ;
+      }
+    },
+    {
+      name: 'sourceDAO',
+      hidden: true,
+      expression: function(sourceDAOKey) {
+        return this.__context__[sourceDAOKey];
+      }
     },
     {
       class: 'String',
@@ -319,7 +340,9 @@ foam.CLASS({
         }
       }
 
-      if ( this.format === 'CSV' ) {
+      if ( this.format === 'DAO' ) {
+        this.processDAO(sink);
+      } else if ( this.format === 'CSV' ) {
         this.processCSV(sink);
       } else if ( this.format === 'XML' ) {
         this.processXML(sink);
@@ -355,7 +378,6 @@ foam.CLASS({
       return this.mappings_[key];
     },
 
-
     function objectifyXML(doc) {
       var parser   = this.columnParser;
       var obj      = this.of.create();
@@ -379,6 +401,14 @@ foam.CLASS({
       }
 
       return obj;
+    },
+
+    async function processDAO(sink) {
+      var a = (await this.sourceDAO.select()).array;
+      for ( var i = 0 ; i < a.length ; i++ ) {
+        await sink.put(a[i]);
+      }
+      sink.eof();
     },
 
     async function processXML(sink) {
