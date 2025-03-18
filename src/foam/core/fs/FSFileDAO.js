@@ -30,7 +30,15 @@ foam.CLASS({
     {
       class: 'String',
       name: 'root',
-      value: "."
+      value: "./public",
+      javaSetter: `
+        assertNotFrozen();
+        if ( val.contains("../") || val.contains("..\\\\") ) {
+          return;
+        }
+        root_ = val;
+        rootIsSet_ = true;
+      `
     },
     {
       class: 'Boolean',
