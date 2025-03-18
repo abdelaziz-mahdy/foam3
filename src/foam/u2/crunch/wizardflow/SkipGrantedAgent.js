@@ -20,7 +20,6 @@ foam.CLASS({
     'foam.core.crunch.CapabilityJunctionStatus',
     'foam.u2.crunch.wizardflow.SkipMode',
     'foam.core.crunch.ui.CapabilityWizardlet',
-    'foam.core.crunch.ui.MinMaxCapabilityWizardlet',
     'foam.u2.wizard.WizardPosition',
     'foam.u2.wizard.wizardflow.AddFacadeWizardlet.FacadeWizardlet'
   ],
@@ -59,14 +58,6 @@ foam.CLASS({
           (! this.CapabilityWizardlet.isInstance(wizardlet) && ! this.FacadeWizardlet.isInstance(wizardlet)) ) continue;
         let isGranted = ['GRANTED','PENDING'].some(status =>
           this.CapabilityJunctionStatus[status] == wizardlet.status);
-        // if a MinMaxCapability is in PENDING we need to load it to find the real first wizardlet
-        // This might be a limitation in the future as the user might have to click through an extra wizardlet
-        // but in current scenarios where goNextOnValid is set to true for most MinMax wizardlets this doesnt present
-        // a problem
-        if ( wizardlet.status == 'PENDING' && this.MinMaxCapabilityWizardlet.isInstance(wizardlet) ) {
-          foundFirstWizardlet = true;
-          continue;
-        }
         if ( ! isGranted ||  
           (wizardlet.capability && await this.crunchService.isRenewable(this.__subContext__, wizardlet.capability.id))
         ) {
