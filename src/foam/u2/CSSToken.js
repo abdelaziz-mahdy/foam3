@@ -53,7 +53,8 @@ foam.CLASS({
         cls,
         foam.String.constantize(this.name),
         {
-          get: function() { return axiom; }
+          get: function() { return axiom; },
+          configurable: true
         }
       );
     },

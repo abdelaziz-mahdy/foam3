@@ -143,7 +143,7 @@ foam.CLASS({
   ],
 
   exports: [
-    'of'
+    'of', 'rowView'
   ],
 
   messages: [
@@ -740,7 +740,7 @@ foam.CLASS({
 
       requires: ['foam.u2.CitationView'],
       imports: [
-        'of'
+        'of', 'rowView'
       ],
 
       css:`
@@ -781,7 +781,7 @@ foam.CLASS({
 
           this.add(this.dynamic(function(fullObject) {
             if ( fullObject ) {
-              this.tag(self.CitationView, { data: fullObject });
+              this.tag((self.rowView || self.CitationView), { data: fullObject });
             } else {
               this.start().addClass(self.myClass('paddingWrapper')).add(self.defaultSelectionPrompt).end();
             }

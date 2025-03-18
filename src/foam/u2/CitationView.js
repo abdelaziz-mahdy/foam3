@@ -13,9 +13,16 @@ foam.CLASS({
     foam.pattern.Faceted.create({inherit: true})
   ],
 
+  cssTokens: [
+    {
+      name: 'padding',
+      value: '4px 8px'
+    }
+  ],
+
   css: `
     ^rw {
-      padding: 3px 6px;
+      padding: $padding;
       color: $black;
     }
 
