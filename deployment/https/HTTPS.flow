@@ -1,4 +1,4 @@
-<title>FOAM SSL/HTTPS</title>
+<title>HTTPS</title>
 <h1>FOAM SSL/HTTPS</h1>
 <b><i>This repo is intended for developer localhost use.</i></b><br/>
 It also acts as a working example of configuring a FOAM application for SSL and HTTPS.
