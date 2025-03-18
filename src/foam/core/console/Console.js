@@ -551,7 +551,6 @@ foam.CLASS({
           var m = cmd.match(/^\s*([a-zA-Z][a-zA-Z0-9_\$]*)\(/);
           if ( m ) block.flowName = this.createFlowChildName(m[1]);
         } catch (x) {
-          console.log(x);
           var i = cmd.indexOf(' ');
           if ( i != -1 ) {
             arg = cmd.substring(i+1);
@@ -563,6 +562,7 @@ foam.CLASS({
           if ( r ) {
             block.flowName = this.createFlowChildName(cmd);
           } else {
+            console.log(x);
             block.flowName = this.createFlowChildName('error');
           }
         }
