@@ -335,6 +335,7 @@ foam.CLASS({
   },
 
   properties: [
+    { class: 'String', name: 'exampleRoot', hidden: true },
     { class: 'Int',    name: 'count' },
     { class: 'Int',    name: 'exampleCount' },
     { class: 'Int',    name: 'errorCount' },
@@ -368,7 +369,7 @@ foam.CLASS({
       var self = this;
 
       async function load(section) {
-        self.testData += await fetch(section).then(response => response.text()).catch(x => { debugger; });
+        self.testData += await fetch(self.exampleRoot + section).then(response => response.text()).catch(x => { debugger; });
       }
 
       // Note that you can specify modules (like 'scratch') not listed in the module with the 'modules' URL parameter
