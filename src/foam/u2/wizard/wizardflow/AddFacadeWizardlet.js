@@ -78,20 +78,17 @@ foam.CLASS({
       description: 'Allows proving overrides for the facade model props'
     },
     {
+      class: 'Array',
+      name: 'additionalFacadeProperties',
+      documentation: 'Array of additional arbritary properties to add to the facade model'
+    },
+    {
       name: 'wizardletCls',
       value: 'foam.u2.wizard.wizardflow.AddFacadeWizardlet.FacadeWizardlet'
     },
     {
       class: 'Map',
       name: 'wizardlets_'
-    },
-    {
-      class: 'Map',
-      name: 'factoryArgs',
-      description: `Used to set up initial values of facade properties
-      Expected format: {
-        <capaId>: {<list of property: value pairs>}
-      }`
     }
   ],
   methods: [
@@ -143,7 +140,8 @@ foam.CLASS({
             name: 'realWizardlets',
             hidden: true,
             transient: true
-          }
+          },
+          ...(this.additionalFacadeProperties ?? [])
         ],
         methods: [
           function init() {
@@ -152,7 +150,11 @@ foam.CLASS({
               // console.log(v, self.wizardlets_[v].getDataUpdateSub(), (self.wizardlets_[v].getDataUpdateSub()).$UID);
               let w = self.wizardlets_[v];
               this.onDetach(w.getDataUpdateSub().sub(() => {
+                // console.log('Updating facade prop', v, this[self.createPropertyName(v)], w.data);
                 this[self.createPropertyName(v)] = w.data;
+                // Need to do this manually since wizardlet data are FObjectProperties and the change is not made to the FObjectProperty itself
+                // but some nested property of it
+                this.pub('propertyChange', self.createPropertyName(v), this[self.createPropertyName(v)+'$']);
               }))
             });
             if ( status ) this.status = status;
