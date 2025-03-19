@@ -64,6 +64,16 @@ foam.CLASS({
       class: 'String',
       name: 'geographicRegion',
       documentation: "The country's region"
+    },
+    {
+      class: 'String',
+      name: 'phoneCode',
+      documentation: 'The country\'s phone code.'
+    },
+    {
+      class: 'String',
+      name: 'emoji',
+      documentation: 'The country\'s flag emoji.'
     }
   ],
 
@@ -79,7 +89,7 @@ foam.CLASS({
       `
     },
     function toSummary() {
-      return this.name;
+      return this.emoji + ' ' + this.name;
     }
   ]
 });
