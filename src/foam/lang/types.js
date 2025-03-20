@@ -1180,6 +1180,17 @@ foam.CLASS({
         this.add(prop.label$);
       }
     },
+    {
+      class: 'I18NString',
+      name: 'supportingLabel',
+      documentation: `A supporting label for the property. Useful when the label is not enough to describe the property to end users.
+      Different from help in that this is a short description of the property that is typically always visible, not a detailed explanation.
+      Similar to Supporting Text in Material Design: https://m3.material.io/components/text-fields/guidelines#6aeaf1ef-d864-455d-9758-d0a0a6c0269e. 
+      See foam.u2.PropertyBorder for implementation.
+      
+      String for now, can be upgraded to allow a formatter like label does in the future.
+      `
+    },
     { class: 'String', name: 'shortName' }
   ]
 });

@@ -148,6 +148,10 @@ foam.CLASS({
           el.call(prop.labelFormatter, [data, prop]) :
           ( prop$reserveLabelSpace ? el : this.E().style({ display: 'contents' }) )
       });
+      var supportingLabelSlot = this.slot(function(prop$supportingLabel) {
+        let el = this.E().addClass(this.myClass('supportingLabel'), this.myClass('supportingLabel' + '-' + prop.name), 'p-legal');
+        return prop$supportingLabel ? el.add(prop$supportingLabel) : this.E().style({ display: 'contents' }) 
+      });
 
       var viewSlot = prop.view$.map(v => {
         // Add the Property's View
@@ -159,7 +163,7 @@ foam.CLASS({
         return this.E().addClass(self.myClass('view')).add(e).enableClass('error', errorSlot.and(colorSlot));
       });
 
-      this.layout(prop, visibilitySlot, modeSlot, labelSlot, viewSlot, colorSlot, errorSlot);
+      this.layout(prop, visibilitySlot, modeSlot, labelSlot, viewSlot, colorSlot, errorSlot, supportingLabelSlot);
     }
   ]
 });
@@ -190,7 +194,14 @@ foam.CLASS({
       line-height: 1;
       min-height: 1em;
       width: 100%;
-      color: $grey600;
+      color: $grey700;
+    }
+    ^supportingLabel {
+      display: contents;
+      line-height: 1;
+      min-height: 1em;
+      width: 100%;
+      color: $grey500;
     }
     ^errorText {
       display: flex;
@@ -234,13 +245,14 @@ foam.CLASS({
   `,
 
   methods: [
-    function layout(prop, visibilitySlot, modeSlot, labelSlot, viewSlot, colorSlot, errorSlot) {
+    function layout(prop, visibilitySlot, modeSlot, labelSlot, viewSlot, colorSlot, errorSlot, supportingLabelSlot) {
       var self = this;
 
       this.
         addClass().
         show(visibilitySlot).
         add(labelSlot).
+        add(supportingLabelSlot).
         start().
           addClass(this.myClass('propHolder')).
           start('span').
