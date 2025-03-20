@@ -238,11 +238,13 @@ foam.CLASS({
     },
     {
       name: 'resetPassword',
-      code: async function() {
-        this.stack.push({
-            class: 'foam.core.auth.ChangePasswordView',
-            modelOf: 'foam.core.auth.RetrievePassword'
-        }, this);
+      code: async function(X) {
+        const wizardRunner = foam.u2.crunch.WizardRunner.create({
+          wizardType: foam.u2.wizard.WizardType.TRANSIENT,
+          source: 'foam.core.auth.email.ResetPassword',
+          options: {inline: false, returnCompletionPromise: true}
+        }, X);
+        wizardRunner.launch();
       }
     }
   ]

@@ -94,7 +94,7 @@ foam.CLASS({
       hidden: true
     },
     {
-      class: 'String',
+      class: 'foam.util.FObjectSpec',
       name: 'modelOf',
       documentation: `Password model used for this view.
         Pass this property along when you create this view.
@@ -110,8 +110,8 @@ foam.CLASS({
       name: 'data',
       documentation: 'instance of password model used for this view',
       factory: function() {
-        return foam.lookup(this.modelOf)
-          .create({ isHorizontal: this.isHorizontal }, ctrl);
+        return foam.lookup(this.modelOf.class)
+          .create({ ...this.modelOf, isHorizontal: this.isHorizontal }, this);
       },
       view: { class: 'foam.u2.detail.VerticalDetailView' }
     },
