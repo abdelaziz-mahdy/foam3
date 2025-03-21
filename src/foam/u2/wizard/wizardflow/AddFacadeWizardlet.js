@@ -45,6 +45,10 @@ foam.CLASS({
       extends: 'foam.u2.wizard.data.CreateLoader',
 
       imports: ['wizardlet', 'createPropertyName'],
+
+      requires: [
+        'foam.u2.wizard.wao.NoLoadWAO'
+      ],
     
       methods: [
         async function load(o) {
@@ -54,12 +58,43 @@ foam.CLASS({
             console.error('Facade loader called without wizardlet or realwizardlets map');
           await Promise.all(Object.keys(this.spec.realWizardlets).map(async v => {
             let w = this.spec.realWizardlets[v];
-            await w.load();
+            await w.load({ enableLoad: true });
             this.args[foam.u2.wizard.Wizardlet.camelCaseCapabilityId(v)] = w.data;
           }))
-          data = sup(o);
+          data = await sup(o);
           this.wizardlet.populateStatus();
           return data;
+        }
+      ]
+    },
+    {
+      name: 'FacadeSaver',
+      extends: 'foam.u2.wizard.data.ProxySaver',
+
+      imports: ['wizardlet', 'createPropertyName'],
+
+      requires: [
+        'foam.u2.wizard.wao.NoLoadWAO'
+      ],
+
+      properties: [
+        {
+          name: 'realWizardlets'
+        }
+      ],
+    
+      methods: [
+        async function save(o) {
+          // Remove loaders from any wizardlets that are facaded
+          // This is done to prevent the wizardlet from trying to override data that has already been 
+          // input by the facade
+          if ( ! this.wizardlet && ! this.realWizardlets ) 
+            console.error('Facade loader called without wizardlet or realwizardlets map');
+          Object.keys(this.realWizardlets).map(async v => {
+            let w = this.realWizardlets[v];
+            w.wao = this.NoLoadWAO.create({ delegate: w.wao });
+          })
+          return await this.delegate.save(o);
         }
       ]
     }
@@ -183,6 +218,11 @@ foam.CLASS({
       facadeWizardlet.wao.loader = {
         class: 'foam.u2.wizard.wizardflow.AddFacadeWizardlet.FacadeLoader',
         spec: { class: facadeClass.id, realWizardlets: self.wizardlets_ }
+      }
+
+      facadeWizardlet.wao.saver = {
+        class: 'foam.u2.wizard.wizardflow.AddFacadeWizardlet.FacadeSaver',
+        realWizardlets: self.wizardlets_
       }
 
       return facadeWizardlet;
