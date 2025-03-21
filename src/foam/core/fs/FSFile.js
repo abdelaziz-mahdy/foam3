@@ -21,7 +21,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'fullPath',
+      name: 'path',
       documentation: 'absolute path'
     },
     {

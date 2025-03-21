@@ -30,7 +30,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'root',
-      value: "./public",
+      value: "./pub",
       javaSetter: `
         assertNotFrozen();
         if ( val.contains("../") || val.contains("..\\\\") ) {
@@ -81,9 +81,9 @@ foam.CLASS({
       javaType: 'FSFile',
       javaCode: `
         FSFile fsFile = new FSFile.Builder(x)
-          .setId(file.getName())
+          .setId(file.getPath())
           .setDir(dir.getName())
-          .setFullPath(file.getAbsolutePath())
+          .setPath(file.getName())
           .setIsDirectory(file.isDirectory())
           .build();
         return (FSFile) getDelegate().put_(x, fsFile);
