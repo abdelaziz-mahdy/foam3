@@ -23,7 +23,8 @@ foam.CLASS({
     'foam.core.fs.AbstractStorage',
     'foam.dao.Sink',
     'foam.lang.X',
-    'java.io.File'
+    'java.io.File',
+    'org.apache.commons.io.FilenameUtils'
   ],
 
   properties: [
@@ -85,6 +86,7 @@ foam.CLASS({
           .setDir(dir.getName())
           .setPath(file.getName())
           .setIsDirectory(file.isDirectory())
+          .setExtension(FilenameUtils.getExtension(file.getPath()))
           .build();
         return (FSFile) getDelegate().put_(x, fsFile);
       `

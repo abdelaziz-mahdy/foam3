@@ -35,19 +35,19 @@ foam.CLASS({
 
           FSFile file = (FSFile) ((DAO) x.get("FSFileDAO")).find((String) id);
           if ( file.getIsDirectory() ) {
-            Loggers.logger(x, this).error("Error getting content: ", (String) file.getFullPath(), "file is a directory");
+            Loggers.logger(x, this).error("Error getting content: ", (String) file.getId(), "file is a directory");
             return null;
           }
 
 
           FSFileContent fsContent = new FSFileContent.Builder(x).setFileName((String) id).build();
-          Path path = Paths.get(file.getFullPath());
+          Path path = Paths.get(file.getId());
 
           try {
             String content = Files.readString(path);
             fsContent.setContent(content);
           } catch (IOException e) {
-            Loggers.logger(x, this).error("Failed reading file: ", (String) file.getFullPath(), e);
+            Loggers.logger(x, this).error("Failed reading file: ", (String) file.getId(), e);
             fsContent.setContent("Error: could not read file");
           }
           fsContent = (FSFileContent) getDelegate().put_(x, fsContent);

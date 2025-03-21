@@ -12,7 +12,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'id',
-      documentation: 'the name of the file or directory'
+      documentation: 'path of file relative to the root'
     },
     {
       class: 'Boolean',
@@ -22,7 +22,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'path',
-      documentation: 'absolute path'
+      documentation: 'the file name'
     },
     {
       class: 'Reference',
@@ -32,6 +32,10 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'isDirectory'
+    },
+    {
+      class: 'String',
+      name: 'extension'
     }
   ]
 });
