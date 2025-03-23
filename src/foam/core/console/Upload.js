@@ -105,7 +105,7 @@ foam.CLASS({
     'foam.core.console.UploadAgent'
   ],
 
-  imports: [ 'currentBlock', 'eval_' ],
+  imports: [ 'currentBlock?', 'eval_?' ],
 
   properties: [
     {
