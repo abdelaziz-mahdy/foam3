@@ -40,6 +40,8 @@ tools by doing the following.
 * Run `npm install` in the root of the FOAM repository, where
   package.json is found.
 
+See [INSTALL.md](INSTALL.md) for more detailed installation notes.
+
 ## Building Java
 
 **NOTE: default configuration is setup for Java 21** 
