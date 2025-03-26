@@ -130,6 +130,25 @@ foam.CLASS({
     { name: 'REQUIRED', message: 'Required' }
   ],
 
+  axioms: [
+    { 
+      name: 'invalidateInternalValidateObj',
+      order: 1000,
+      installInClass: function(cls) {
+        let oldCode = cls.prototype.createChildProperty_;
+        let newChildProptery_ = foam.lang.Method.create({ 
+          name: 'createChildProperty_', 
+          code: function(child) { 
+            let ret = oldCode.call(this, child); 
+            ret.clearProperty('internalValidateObj');
+            return ret;
+          }
+        }, this);
+        cls.installAxiom(newChildProptery_);
+      }
+    }
+  ],
+
   properties: [
     {
       class: 'ValidationPredicateArray',
@@ -146,7 +165,9 @@ foam.CLASS({
     },
     {
       name: 'internalValidateObj',
-      factory: function(prop) {
+      factory: function(forClass_) {
+        if ( this.name == 'regionId' ) 
+          console.log('CALLLEDDDD', this.name, this.forClass_);
         var name     = this.name;
         var label    = this.label;
         var required = this.required;
