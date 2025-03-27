@@ -151,7 +151,6 @@
       `,
       transient: true,
       hidden: true,
-      javaFactory: 'return true;',
       javaPostSet: `
         setAuthorizationStatus(val ? AuthorizationStatus.AUTHENTICATED : AuthorizationStatus.PUBLIC);
       `
@@ -169,7 +168,8 @@
       class: 'Enum',
       of: 'foam.core.menu.AuthorizationStatus',
       name: 'authorizationStatus',
-      documentation: 'See. AuthorizationStatus'
+      documentation: 'See. AuthorizationStatus',
+      value: 'AUTHENTICATED'
     }
   ],
 
