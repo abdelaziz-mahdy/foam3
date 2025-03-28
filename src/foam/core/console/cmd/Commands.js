@@ -164,34 +164,6 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console.cmd',
-  name: 'DAO2',
-  extends: 'foam.core.console.cmd.Command',
-
-  requires: [ 'foam.core.console.DAOPrompt' ],
-
-  imports: [ 'addValue' ],
-
-  properties: [
-    [ 'description', 'Perform DAO operation' ]
-  ],
-
-  methods: [
-    function execute(dao, opt_label) {
-      var p = foam.String.isInstance(dao) ?
-        this.DAOPrompt.create({daoKey: dao}) :
-        this.DAOPrompt.create({dao: dao, daoKey: opt_label || dao.of.model_.plural}) ;
-
-      this.addValue(p);
-      // this.currenBlock.obj = p;
-      // this.out.tag(p);
-      this.currentBlock.obj = p;
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.console.cmd',
   name: 'DAOCreate',
   extends: 'foam.core.console.cmd.Command',
 

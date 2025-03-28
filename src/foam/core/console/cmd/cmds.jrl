@@ -1,7 +1,6 @@
 p({"class":"foam.core.console.cmd.Cells", "id": "cells"})
 p({"class":"foam.core.console.cmd.Clear", "id": "clear"})
 p({"class":"foam.core.console.cmd.DAO", "id": "dao"})
-p({"class":"foam.core.console.cmd.DAO2", "id": "dao2"})
 p({"class":"foam.core.console.cmd.DAOCreate", "id": "add"})
 p({"class":"foam.core.console.cmd.DAOS", "id": "daos"})
 p({"class":"foam.core.console.cmd.Describe", "id": "describe"})
