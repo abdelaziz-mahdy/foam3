@@ -313,6 +313,34 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console',
+  name: 'SequenceDAOAgent',
+  extends: 'foam.core.console.AbstractDAOAgent',
+
+  requires: [ 'foam.mlang.sink.Sequence' ],
+
+  properties: [
+    { name: 'sink1', view: 'foam.core.console.SinkView' },
+    { name: 'sink2', view: 'foam.core.console.SinkView' }
+  ],
+
+  methods: [
+    function createSink() {
+      return this.Sequence.create({
+        args: [ this.sink1.createSink(), this.sink2.createSink() ]
+      });
+    },
+    function addToE(e) {
+      e.startContext({data: this}).
+        start().
+          style({display: 'flex'}).
+          add(this.SINK1, ', ', this.SINK2);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console',
   name: 'PieDAOAgent',
   extends: 'foam.core.console.GroupByDAOAgent',
 
