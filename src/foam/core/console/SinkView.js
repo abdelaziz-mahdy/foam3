@@ -36,6 +36,7 @@ foam.CLASS({
       [ 'Controller', 'Controller', false ],
       [ 'ScrollTable', 'ScrollTable', false ],
       [ 'Script', 'Script', true ],
+      [ 'Sequence', 'Sequence', true ],
       [ 'All', 'All', false ]
     ]
         /*
