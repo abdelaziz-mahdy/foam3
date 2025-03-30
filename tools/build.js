@@ -345,10 +345,11 @@ task('Call pmake to generate & compile java, collect journals, call Maven and co
   execSync(__dirname + `/pmake.js -makers=${makers} -flags=${flags} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -javacParams='--release ${JAVA_RELEASE} -proc:none' -pom=${pom()}`, { stdio: 'inherit' });
 });
 
-task('Check dependencies for known vulnerabilities.', [], function checkDeps(score) {
+task('Check Java dependencies for known vulnerabilities (via maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', [], function checkDeps(score) {
+  score = score || 9;
   execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
-    execSync(`mvn dependency-check:check -DfailBuildOnCVSS=${score || VULNERABILITY_CHECK_SCORE}`, { stdio: 'inherit' });
+    execSync(`mvn dependency-check:check -DfailBuildOnCVSS=${score}`, { stdio: 'inherit' });
   } catch (_) {
     // maven build error will be output to the console, no need to throw
   }
@@ -596,8 +597,8 @@ task('Stop running CORE server.', [], function stopCORE() {
 
 // Environment Variables which are exported when updated
 const ENVS = {
-  APP_HOME:          ['Application root directory',() => APP_ROOT + '/' + APP_NAME],
-  APP_NAME:          ['Application name,default to name in root pom',APP_NAME],
+  APP_HOME:          ['Application root directory. To symultaniously deploy multiple applications, give each a unique APP_NAME and WEB_PORT',() => APP_ROOT + '/' + APP_NAME],
+  APP_NAME:          ['Application name, defaults to name in root pom. see APP_HOME',APP_NAME],
   APP_ROOT:          ['Application root directory','/opt'],
   BENCHMARK:         ['Run benchmarks when true',false],
   BENCHMARKS:        ['Set of benchmarks to run, run all when empty',''],
@@ -631,7 +632,6 @@ const ENVS = {
   JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
   LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
   LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -LINFO',null],
-  MODE:              ['Internal flag set to TEST or BENCHMARK',''],
   POMS:              ['CSV list of pom files to process,minus any suffix','pom'],
   PROFILER:          ['Enable JVM profiling',false],
   PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
@@ -640,32 +640,30 @@ const ENVS = {
   PROJECT_REVISION:  ['Project revision ?',null],
   RESTART:           ['Only execute JVM starting procedure, without a new build',false],
   STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
-  STOP:              ['Stop CORE Server', [], true],
+  STOP:              ['Stop CORE Server',true],
   TAR:               ['Generate a tar file for remote Application installation', false],
   TEST:              ['Run test cases',false],
   TESTS:             ['Set of test cases to run. Run all when empty'],
   TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files',Date.now()],
   TIMESTAMP_FOAM_BIN:['foam-bin files are timestamped by default. Disable timestamp to retain breakpoints during development cycle.',true],
   WEB_PORT:          ['HTTP port to start web server on. HTTP defaults to 8080, HTTPS defaults to 8443'],
-  VERBOSE:           ['Verbosity level of build itself'],
+  VERBOSE:           ['Enable VerboseMaker to log additional info during build',false],
   VENDOR:            ['Java Manifest Vendor',VENDOR || APP_NAME],
   VENDOR_ID:         ['Java Manifest Vendor ID',VENDOR_ID],
-  VERSION:           ['Application version',VERSION || '1.0.0'],
-  VULNERABILITY_CHECK: ['Run maven and npm library vulnerability checks',false],
-  VULNERABILITY_CHECK_SCORE: ['Vulnerability score required to pass',9] // CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11) to fail the build
+  VERSION:           ['Application version',VERSION || '1.0.0']
 };
 
 task('Set build environmental variables.', [], function setBuildEnv() {
   buildEnv(ENVS);
 });
 
+// Convenience build flags.
 const ARGS = {
   a: [ 'Run/launch from Java jar file.',
     () => JAR = true ],
   b: [ 'run all benchmarks.',
     () => {
       BENCHMARK = true;
-      MODE = 'BENCHMARK';
       DELETE_RUNTIME_JOURNALS = true;
       APP_ROOT = '/tmp';
     } ],
@@ -675,13 +673,6 @@ const ARGS = {
     () => CLEAN = true ],
   d: [ 'Run with JDPA debugging enabled on port 8000.',
     () => DEBUG = true ],
-  D: [ 'PORT : Run with JDPA debugging enabled on port PORT.',
-    args => { ARGS.d[1](); DEBUG_PORT = args; info('DEBUG_PORT=' + DEBUG_PORT); } ],
-  e: [ 'Skipping genJava task.',
-    () => {
-      warning('Skipping genJava task');
-      GEN_JAVA = false;
-    } ],
   E: [ 'Set environment variables. Example: -EJAVA_OPTS=-Xmx8g,APP_NAME=demo',
        args => {
          var a = args;
@@ -702,11 +693,9 @@ const ARGS = {
      ],
   g: [ 'Do not timestamp foam-bin javascript file to retain breakpoints during development cycle.',
     () => TIMESTAMP_FOAM_BIN = false ],
-  H: [ 'Hostname',
-       args => HOST_NAME = args ],
-  j: [ 'Delete runtime journals, build, and run app as usual.',
+  j: [ 'Delete runtime journals.',
     () => DELETE_RUNTIME_JOURNALS = true ],
-  J: [ 'JOURNALS_CONFIG : additional journals.',
+  J: [ 'JOURNALS : comma seperated list of additional journal directories, relateive to deployment/ from the root project.',
        args => {
          JOURNALS = comma(JOURNALS, args);
          args.split(',').forEach(j => {
@@ -716,28 +705,22 @@ const ARGS = {
      ],
   k: [ 'Package up a deployment tarball.',
     () => { JAR = BUILD_ONLY = TAR = true; } ],
-//  l: [ 'turn on build logging/verbose mode', () => VERBOSE = '-flags=verbose' ],
-  L: [ 'in combination with TEST, set JVM log level to WARN, INFO, DEBUG. Defaults to ERROR.',
-       args => { LOG_LEVEL = args; }
-     ],
-  m: [ 'Run as medusa mediator',
-       () => CLUSTER = true ],
-  N: [ `NAME : start another instance with given instance name. Deployed to /opt/NAME.`,
+  N: [ `NAME : Used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.`,
        args => { APP_NAME = args; CORE_PIDFILE=`/tmp/core_${APP_NAME}.pid`; info('APP_NAME=' + args); } ],
-  o: [ "Build only - don't start core.",
+  o: [ "Build only - don't start CORE server.",
     () => BUILD_ONLY = true ],
-  P: [ "pom file : name and path of the root pom file. Defaults to 'pom' at the root of the project.",
+  P: [ "comma seperated list of pom files. Defaults to 'pom' at the root of the project.",
      args => { POMS = args; info('POMS=' + POMS); } ],
-  r: [ 'Run CORE with whatever was last built. (restart)',
+  r: [ 'Restart CORE Server from last build.',
     () => RESTART = true ],
-  R: [ 'Set app deployment root directory',
-       args => APP_ROOT = args ],
-  s: [ 'When debugging, start suspended.',
-    () => DEBUG_SUSPEND = true ],
+  s: [ 'Start JDPA debugging in suspend state.',
+    ()  => {
+      DEBUG = true;
+      DEBUG_SUSPEND = true;
+    } ],
   t: [ 'Run All tests.',
     () => {
       TEST = true;
-      MODE = 'test';
       DELETE_RUNTIME_JOURNALS = true;
       JOURNALS = comma(JOURNALS, 'test');
       APP_ROOT='/tmp';
@@ -747,29 +730,9 @@ const ARGS = {
       ARGS.t[1]();
       TESTS = args;
     } ],
-  v: [ 'show versions.',
-    () => {
-      versions();
-      quit(0);
-    } ],
-  V: [ 'VERSION : Updates the project version in POM file to the given version in major.minor.path.hotfix format',
-    args => {
-      VERSION = args;
-      info('VERSION=' + VERSION);
-    } ],
-  w: [ 'Without stages. Only generate a single foam-bin file.',
-      () => {
-        STAGE_JS = false;
-      } ],
-  W: [ 'PORT : HTTP Port. NOTE: WebSocketServer will use PORT+1',
+  W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
     args => { WEB_PORT = args; info('WEB_PORT=' + WEB_PORT); } ],
-  x: [ 'Check dependencies for known vulnerabilities.',
-    args => {
-      VULNERABILITY_CHECK = true;
-      checkDeps(args);
-      quit(0);
-    } ],
-  X: [ 'Execute a list of tasks.',
+  X: [ 'Explicitly execute tasks. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9',
     args => {
       args.split(',').forEach(t => {
         // Support build task with args eg. -XcheckDeps:5 will execute checkDeps(5)
@@ -781,7 +744,6 @@ const ARGS = {
           console.log('Unknown Command:', t);
         }
       });
-      quit(0);
     } ]
 };
 
