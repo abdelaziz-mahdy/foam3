@@ -102,12 +102,14 @@ function buildEnv(m) {
   globalThis.ENV = m;
 
   Object.keys(m).forEach(k => {
-    let val = m[k];
+    let [doc, val] = m[k];
     Object.defineProperty(globalThis, k, {
       get: function()  { return typeof val === 'function' ? val() : val; },
       set: function(v) { val = v; }
     });
-    globalThis[k] = val;
+    if ( val ) {
+      globalThis[k] = val;
+    }
   });
 }
 
@@ -218,6 +220,7 @@ exports.emptyDir              = emptyDir;
 exports.ensureDir             = ensureDir;
 exports.exec                  = exec;
 exports.execSync              = execSync;
+exports.exportEnvs            = exportEnvs;
 exports.isExcluded            = isExcluded;
 exports.processSingleCharArgs = processSingleCharArgs;
 exports.rmdir                 = rmdir;
