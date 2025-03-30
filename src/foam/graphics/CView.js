@@ -795,10 +795,11 @@ foam.CLASS({
     },
 
     function toE(args, X) {
-      return this.Canvas.create({ cview: this }, X).attrs({
-        width:  this.slot(function(x, width,  scaleX) { return x + width*scaleX; }),
-        height: this.slot(function(y, height, scaleY) { return y + height*scaleY; })
-      });
+      return this.Canvas.create({
+        cview: this,
+        width$:  this.slot(function(x, width,  scaleX) { return x + width*scaleX; }),
+        height$: this.slot(function(y, height, scaleY) { return y + height*scaleY; })
+      }, X);
     },
 
     function intersects(c) {
@@ -1386,13 +1387,23 @@ foam.CLASS({
     'foam.input.Pointer'
   ],
 
+  imports: [
+    'window'
+  ],
+
   properties: [
     [ 'nodeName', 'CANVAS' ],
+    'width',
+    'height',
     {
       name: 'context',
       factory: function() {
         return this.el_().getContext('2d');
       }
+    },
+    {
+      name: 'devicePixelRatio',
+      factory: function() { return this.window.devicePixelRatio; }
     },
     {
       name: 'context3D',
@@ -1404,12 +1415,6 @@ foam.CLASS({
       name: 'cview',
       postSet: function(o, n) {
         n.canvas = this;
-
-        if ( this.getAttribute('width') === undefined || this.getAttribute('height') === undefined ) {
-          this.setAttribute('width',  n.width);
-          this.setAttribute('height', n.height);
-        }
-
         this.paint();
       }
     },
@@ -1424,6 +1429,25 @@ foam.CLASS({
   methods: [
     function render() {
       this.SUPER();
+      const mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
+      const media = matchMedia(mqString);
+
+      this.style({
+        width: this.width$,
+        height: this.height$
+      });
+
+      const callback = () => {
+        this.devicePixelRatio = window.devicePixelRatio;
+        this.paint();
+      };
+      
+      media.addEventListener("change", callback);
+      this.onDetach(() => {
+        media.removeEventListener("change", callback);
+      });
+
+      
       this.sub('onload', this.paint);
       this.cview$.valueSub('invalidated', this.paint);
     },
@@ -1446,6 +1470,7 @@ foam.CLASS({
         if ( this.cview.paint3D ) {
           this.cview.paint3D(ctx);
         } else {
+          ctx.scale(this.devicePixelRatio, this.devicePixelRatio);
           this.cview.paint(ctx);
         }
       }
