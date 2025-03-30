@@ -807,7 +807,7 @@ function moreUsage() {
   console.log('\nEnvironment variables:');
   depth = 1;
   Object.keys(ENVS).sort().forEach(k => {
-    var [ desc, dep, val ] = ENVS[k];
+    var [ desc, val ] = ENVS[k];
     var v = val;
     if ( typeof val === 'function' )
        v = val();
