@@ -1429,27 +1429,33 @@ foam.CLASS({
   methods: [
     function render() {
       this.SUPER();
-      const mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
-      const media = matchMedia(mqString);
 
+      // Set canvas width/height in css pixels
       this.style({
         width: this.width$,
         height: this.height$
       });
 
+      // internal width/height in device pixels (css pixels * device pixel ratio)
+      this.attrs({
+        width: this.slot(function(devicePixelRatio, width) { return width * devicePixelRatio; }),
+        height: this.slot(function(devicePixelRatio, height) { return height * devicePixelRatio; })
+      });
+
+      const mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
+      const media = matchMedia(mqString);
       const callback = () => {
         this.devicePixelRatio = window.devicePixelRatio;
-        this.paint();
       };
-      
+
       media.addEventListener("change", callback);
       this.onDetach(() => {
         media.removeEventListener("change", callback);
       });
-
       
       this.sub('onload', this.paint);
       this.cview$.valueSub('invalidated', this.paint);
+      this.devicePixelRatio$.sub(this.paint);
     },
 
     function erase() {
