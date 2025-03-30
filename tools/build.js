@@ -61,8 +61,6 @@ const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync,
 
 var PWD                       = process.cwd();
 
-// Top-Level Loaded POM Object, not be be confused with POM, which is the name of POM(s) to be loaded
-var PROJECT;
 // Root POM tasks and exports
 var TASKS, EXPORTS;
 
@@ -147,12 +145,10 @@ function showSummary() {
   info(s);
 }
 
-
 function quit(code) {
   showSummary();
   process.exit(code);
 }
-
 
 function info(msg) {
   console.log('\x1b[0;34mINFO ::', msg, '\x1b[0;0m');
@@ -168,7 +164,6 @@ function error(msg) {
   console.log('\x1b[0;31mERROR ::', msg, '\x1b[0;0m');
   quit(1);
 }
-
 
 function manifest() {
   versions();
@@ -195,21 +190,21 @@ Implementation-Vendor: ${VENDOR}
 };
 
 function pom() {
-  var pom    = {};
+  var poms    = {};
   var addPom = fn => {
     if ( ! fs.existsSync(fn + '.js') )
       error('File not found ' + fn + '.js');
     else
-      pom[fn] = true;
+      poms[fn] = true;
   };
 
-  if ( POM )
-    POM.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/${c}`));
+  if ( POMS )
+    POMS.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/${c}`));
 
-  if ( JOURNAL_CONFIG )
-    JOURNAL_CONFIG.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/deployment/${c}/pom`));
+  if ( JOURNALS )
+    JOURNALS.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/deployment/${c}/pom`));
 
-  return Object.keys(pom).join(',');
+  return Object.keys(poms).join(',');
 }
 
 
@@ -221,7 +216,7 @@ task('Build web root directory for inclusion in JAR.', [], function jarWebroot()
 
   execSync(__dirname + `/pmake.js -makers=Webroot -pom=${pom()} -builddir=${BUILD_DIR}`, {stdio: 'inherit'});
 
-  if ( PACKAGE || BUILD_JAR ) {
+  if ( TAR || JAR ) {
     execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${webroot + '/'}`, {stdio: 'inherit'});
   }
 });
@@ -245,7 +240,7 @@ task('Display generated JAR manifest file.', [], function showManifest() {
 });
 
 
-task('Show POM structure.', [], function showPOMStructure() {
+task('Show POM structure.', [], function showPOMs() {
   execSync(__dirname + `/pmake.js -flags=web,java -makers=Verbose -pom=${pom()}`, {stdio: 'inherit'});
 });
 
@@ -301,7 +296,7 @@ task('Clean build files, include pom.xml and java libraries. Cleaner than clean.
 
 
 task('Remove generated files.', [], function clean() {
-  if ( BUILD_JAR || TEST || BENCHMARK ) {
+  if ( JAR || TEST || BENCHMARK ) {
     emptyDir(`${APP_HOME}/bin`);
     emptyDir(`${APP_HOME}/lib`);
   }
@@ -335,22 +330,19 @@ task("Call pmake with JS Maker to build 'foam-bin.js'.", [], function genJS() {
 
 task('Generate Java and JS packages.', [ 'genJava', 'genJS' ], function packageFOAM() {
   genJava();
-  if ( PACKAGE || BUILD_JAR ) {
+  if ( TAR || JAR ) {
     genJS();
   }
 });
 
 
 task('Call pmake to generate & compile java, collect journals, call Maven and copy documents.', [], function genJava() {
-//   commandLine 'bash', './gen.sh', "${project.genJavaDir}", "${project.findProperty("pom")?:"pom" }"
+  //   commandLine 'bash', './gen.sh', "${project.genJavaDir}", "${project.findProperty("pom")?:"pom" }"
+  var flags = VERBOSE ? 'verbose' : '';
   var makers = VERBOSE ? 'Verbose,' : '';
   makers += GEN_JAVA ? 'Java,Maven,Javac' : 'Maven' ;
   makers += ',Journal,Doc';
-  execSync(__dirname + `/pmake.js -makers=${makers} ${VERBOSE} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -javacParams='--release ${JAVA_RELEASE} -proc:none' -pom=${pom()}`, { stdio: 'inherit' });
-});
-
-task('Call pmake to collect journals.', [], function genJournals() {
-  execSync(__dirname + `/pmake.js -makers=Journal ${VERBOSE} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -pom=${pom()}`, { stdio: 'inherit' });
+  execSync(__dirname + `/pmake.js -makers=${makers} -flags=${flags} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -javacParams='--release ${JAVA_RELEASE} -proc:none' -pom=${pom()}`, { stdio: 'inherit' });
 });
 
 task('Check dependencies for known vulnerabilities.', [], function checkDeps(score) {
@@ -362,7 +354,7 @@ task('Check dependencies for known vulnerabilities.', [], function checkDeps(sco
   }
 });
 
-task('Show JAR structure.', [], function showJARStructure(value) {
+task('Show JAR structure.', [], function showJARs(value) {
   execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
     execSync(`mvn dependency:tree `, { stdio: 'inherit' });
@@ -374,7 +366,7 @@ task('Show JAR structure.', [], function showJARStructure(value) {
 task('Get Maven java sources.', [], function mavenGetSources(value) {
   execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
-    execSync(`mvn dependency:sources -DincludeArtifactIds=${value} `, { stdio: 'inherit' });
+    execSync(`mvn dependency:resolve-sources -DincludeArtifactIds=${value} `, { stdio: 'inherit' });
   } catch (_) {
     // maven build error will be output to the console, no need to throw
   }
@@ -385,7 +377,6 @@ task('Generate and compile java source.', [ 'genJava' ], function buildJava() {
   execSync(`rm -f ${BUILD_DIR}/lib/${APP_NAME}-*.jar >/dev/null 2>&1`);
   genJava();
 });
-
 
 task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function buildJar() {
   // remove any previous timestamped versions
@@ -424,11 +415,11 @@ task('Copy deployment files to APP_HOME deployment directory.', [], function dep
 });
 
 
-task('Start CORE application server.', [ 'setJavaEnv', 'deployData', 'deployApp' ], function startNanos() {
+task('Start CORE application server.', [ 'setJavaEnv', 'deployData', 'deployApp' ], function startCORE() {
   setJavaEnv();
   deployData();
 
-  if ( BUILD_JAR ) {
+  if ( JAR ) {
     // When running JARs we run the app from the deployment dir
     deployApp();
     var OPT_ARGS = ``;
@@ -587,8 +578,8 @@ function foamBinVersion() {
   return TIMESTAMP_FOAM_BIN ? `${VERSION}-${TIMESTAMP}` : `${VERSION}`;
 }
 
-task('Stop running CORE server.', [], function stopNanos() {
-  console.log('Stopping Nanos server...');
+task('Stop running CORE server.', [], function stopCORE() {
+  console.log('Stopping CORE server...');
 
   var pid = readFromPidFile();
   try {
@@ -596,68 +587,72 @@ task('Stop running CORE server.', [], function stopNanos() {
       execSync(`kill -9 ${pid} &>/dev/null`);
       rmfile(CORE_PIDFILE);
     }
-    console.log('Nanos server stopped successfully.');
+    console.log('CORE server stopped successfully.');
   } catch (e) {
-    console.log('Nanos server not running, or failed to stop');
+    console.log('CORE server not running, or failed to stop');
   }
 });
 
 
 // Environment Variables which are exported when updated
 const ENVS = {
-  APP_HOME:          ['Application root directory', () => APP_ROOT + '/' + APP_NAME],
-  APP_NAME:          ['Application name, default to name in root pom', APP_NAME],
-  APP_ROOT:          ['Application root directory', '/opt'],
-  BENCHMARK:         ['Run benchmarks when true', false],
-  BENCHMARKS:        ['Set of benchmarks to run, run all when empty', ''],
-  BUILD_DIR:         ['Build directory, relative to project root', 'build'],
-  BUILD_ONLY:        ['Only execute java generation and java compilation build steps', false],
-  CLEAN_BUILD:       ['Clear out previous build artifacts before building again', false],
-  CLUSTER:           ['Deploy JVM as a Medusa Mediator', false],
-  CORE_PIDFILE:      ['Java JVM process ID file', '/tmp/core.pid'],
-  DEBUG:             ['Enable JVM debugging', false],
-  DEBUG_PORT:        ['Port JVM will listen on for debuggers to connect', 8000],
-  DEBUG_SUSPEND:     ['JVM will suspend on startup until a Debugger connects', false],
-  DELETE_RUNTIME_JOURNALS: ['Delete application journals', false],
-  DELETE_RUNTIME_LOGS: ['Delete application logs', false],
-  DOCUMENT_HOME:     ['Appplication documents directory', () => `${APP_HOME}/documents`],
-  DOCUMENT_OUT:      ['Build documents directory', () => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
-  FOAM_REVISION:     ['FOAM Revision ?', ''],
-  GEN_JAVA:          ['Generate Java from model files', true],
-  HOST_NAME:         ['Hostname set in JVM application', 'localhost'],
-  JAR_INCLUDES:      ['Additional directories to include Java jar', ''],
-  JAR_LIB_DIR:       ['Deployment lib directory', () => ( PACKAGE ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib'],
-  JAR_NAME:          ['Java jar name', () => `${APP_NAME}-${VERSION}.jar`],
-  JAR_OUT:           ['Java jar path and name', () => `${JAR_LIB_DIR}/${JAR_NAME}`],
-  JAVA_OPTS:         ['Additional JVM options', ''],
-  JAVA_RELEASE:      ['Java target version', JAVA_RELEASE || 17],
-  JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS', () => JAVA_OPTS],
-  JOURNAL_CONFIG:    ['Deployment poms to include in build',''],
-  JOURNAL_HOME:      ['Application journals directory', () => `${APP_HOME}/journals`],
-  JOURNAL_OUT:       ['Build journals directory', () => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
-  LOG_HOME:          ['Application logs directory', () => `${APP_HOME}/logs`],
-  LOG_LEVEL:         ['Log level for test cases, defaults to ERROR. example: -LINFO', null],
-  MODE:              ['Internal flag set to TEST or BENCHMARK', ''],
-  PACKAGE:           ['Generate a tar file for remote Application installation', false],
-  POM:               ['CSV list of pom files to process, minus any suffix', 'pom'],
-  PROFILER:          ['Enable JVM profiling', false],
-  PROFILER_PORT:     ['Port JVM will listen on for profiler to connect', 8849],
-  PROJECT_HOME:      ['Project directory', PWD],
-  PROJECT_REVISION:  ['Project revision ?', null],
-  RESTART:           ['Only execute JVM starting procedure, without a new build', false],
-  BUILD_JAR:         ['Start Application from Java jar file', false],
-  STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time', true],
-  TEST:              ['Run test cases', false],
+  APP_HOME:          ['Application root directory',() => APP_ROOT + '/' + APP_NAME],
+  APP_NAME:          ['Application name,default to name in root pom',APP_NAME],
+  APP_ROOT:          ['Application root directory','/opt'],
+  BENCHMARK:         ['Run benchmarks when true',false],
+  BENCHMARKS:        ['Set of benchmarks to run, run all when empty',''],
+  BUILD_DIR:         ['Build directory, relative to project root','build'],
+  BUILD_ONLY:        ['Only execute java generation and java compilation build steps',false],
+  CLEAN:             ['Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',false],
+  CLEAN_ALL:         ['Clean application lib/, and remove build/ directory',false],
+  CLUSTER:           ['Deploy JVM as a Medusa Mediator',false],
+  CORE_PIDFILE:      ['JVM process ID file','/tmp/core.pid'],
+  DEBUG:             ['Launch JVM with JDPA debugging enabled',false],
+  DEBUG_PORT:        ['Port JVM will listen on for debuggers to connect',8000],
+  DEBUG_SUSPEND:     ['JVM will suspend on startup until a Debugger connects',false],
+  DELETE_RUNTIME_JOURNALS: ['Delete application journals',false],
+  DELETE_RUNTIME_LOGS: ['Delete application logs',false],
+  DOCUMENT_HOME:     ['Appplication documents directory',() => `${APP_HOME}/documents`],
+  DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
+  // FLAGS:             ['pmake flags',''], // TODO
+  FOAM_REVISION:     ['FOAM Revision ?',''],
+  GEN_JAVA:          ['Generate Java from model files',true],
+  HOST_NAME:         ['Hostname set in JVM application','localhost'],
+  JAR:               ['Start Application from Java jar file',false],
+  JAR_INCLUDES:      ['Additional directories to include Java jar',''],
+  JAR_LIB_DIR:       ['Deployment lib directory',() => ( TAR ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib'],
+  JAR_NAME:          ['Java jar name',() => `${APP_NAME}-${VERSION}.jar`],
+  JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
+  JAVA_OPTS:         ['Additional JVM options',''],
+  JAVA_RELEASE:      ['Java target version',JAVA_RELEASE || 17],
+  JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
+  JOURNALS:    ['Deployment poms to include in build',''],
+  JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
+  JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
+  LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
+  LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -LINFO',null],
+  MODE:              ['Internal flag set to TEST or BENCHMARK',''],
+  POMS:              ['CSV list of pom files to process,minus any suffix','pom'],
+  PROFILER:          ['Enable JVM profiling',false],
+  PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
+  PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded'],
+  PROJECT_HOME:      ['Project directory',PWD],
+  PROJECT_REVISION:  ['Project revision ?',null],
+  RESTART:           ['Only execute JVM starting procedure, without a new build',false],
+  STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
+  STOP:              ['Stop CORE Server', [], true],
+  TAR:               ['Generate a tar file for remote Application installation', false],
+  TEST:              ['Run test cases',false],
   TESTS:             ['Set of test cases to run. Run all when empty'],
-  TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files', Date.now()],
-  TIMESTAMP_FOAM_BIN:['Add a timestamp to generated foam-bin files. - more about how this ensures lastest is always used', true],
+  TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files',Date.now()],
+  TIMESTAMP_FOAM_BIN:['foam-bin files are timestamped by default. Disable timestamp to retain breakpoints during development cycle.',true],
   WEB_PORT:          ['HTTP port to start web server on. HTTP defaults to 8080, HTTPS defaults to 8443'],
   VERBOSE:           ['Verbosity level of build itself'],
-  VENDOR:            ['Java Manifest Vendor', VENDOR || APP_NAME],
-  VENDOR_ID:         ['Java Manifest Vendor ID', VENDOR_ID],
-  VERSION:           ['Application version', VERSION || '1.0.0'],
-  VULNERABILITY_CHECK: ['Run maven and npm library vulnerability checks', false],
-  VULNERABILITY_CHECK_SCORE: ['Vulnerability score required to pass', 9] // CVSS score (LOW:0..5 , MEDIUM:5..7 , HIGH:7..9 , CRITICAL:9..10, IGNORE:11) to fail the build
+  VENDOR:            ['Java Manifest Vendor',VENDOR || APP_NAME],
+  VENDOR_ID:         ['Java Manifest Vendor ID',VENDOR_ID],
+  VERSION:           ['Application version',VERSION || '1.0.0'],
+  VULNERABILITY_CHECK: ['Run maven and npm library vulnerability checks',false],
+  VULNERABILITY_CHECK_SCORE: ['Vulnerability score required to pass',9] // CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11) to fail the build
 };
 
 task('Set build environmental variables.', [], function setBuildEnv() {
@@ -666,7 +661,7 @@ task('Set build environmental variables.', [], function setBuildEnv() {
 
 const ARGS = {
   a: [ 'Run/launch from Java jar file.',
-    () => BUILD_JAR = true ],
+    () => JAR = true ],
   b: [ 'run all benchmarks.',
     () => {
       BENCHMARK = true;
@@ -677,7 +672,7 @@ const ARGS = {
   B: [ 'benchmarkId1,benchmarkId2,... : Run listed benchmarks.',
     args => { ARGS.b[1](); BENCHMARKS = args; } ],
   c: [ 'Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',
-    () => CLEAN_BUILD = true ],
+    () => CLEAN = true ],
   d: [ 'Run with JDPA debugging enabled on port 8000.',
     () => DEBUG = true ],
   D: [ 'PORT : Run with JDPA debugging enabled on port PORT.',
@@ -713,16 +708,16 @@ const ARGS = {
     () => DELETE_RUNTIME_JOURNALS = true ],
   J: [ 'JOURNALS_CONFIG : additional journals.',
        args => {
-         JOURNAL_CONFIG = comma(JOURNAL_CONFIG, args);
+         JOURNALS = comma(JOURNALS, args);
          args.split(',').forEach(j => {
-           POM = comma(POM, 'deployment/'+j+'/pom');
+           POMS = comma(POMS, 'deployment/'+j+'/pom');
          });
        }
      ],
   k: [ 'Package up a deployment tarball.',
-    () => { BUILD_JAR = BUILD_ONLY = PACKAGE = true; } ],
-  l: [ 'turn on build logging/verbose mode', () => VERBOSE = '-flags=verbose' ],
-  L: [ 'in combination with tTbB, set JVM log level to WARN, INFO, DEBUG. Defaults to ERROR.',
+    () => { JAR = BUILD_ONLY = TAR = true; } ],
+//  l: [ 'turn on build logging/verbose mode', () => VERBOSE = '-flags=verbose' ],
+  L: [ 'in combination with TEST, set JVM log level to WARN, INFO, DEBUG. Defaults to ERROR.',
        args => { LOG_LEVEL = args; }
      ],
   m: [ 'Run as medusa mediator',
@@ -732,7 +727,7 @@ const ARGS = {
   o: [ "Build only - don't start core.",
     () => BUILD_ONLY = true ],
   P: [ "pom file : name and path of the root pom file. Defaults to 'pom' at the root of the project.",
-     args => { POM = args; info('POM=' + POM); } ],
+     args => { POMS = args; info('POMS=' + POMS); } ],
   r: [ 'Run CORE with whatever was last built. (restart)',
     () => RESTART = true ],
   R: [ 'Set app deployment root directory',
@@ -744,7 +739,7 @@ const ARGS = {
       TEST = true;
       MODE = 'test';
       DELETE_RUNTIME_JOURNALS = true;
-      JOURNAL_CONFIG = comma(JOURNAL_CONFIG, 'test');
+      JOURNALS = comma(JOURNALS, 'test');
       APP_ROOT='/tmp';
     } ],
   T: [ 'testId1,testId2,... : Run listed tests.',
@@ -812,7 +807,7 @@ function moreUsage() {
   console.log('\nEnvironment variables:');
   depth = 1;
   Object.keys(ENVS).sort().forEach(k => {
-    var [ desc, val ] = ENVS[k];
+    var [ desc, dep, val ] = ENVS[k];
     var v = val;
     if ( typeof val === 'function' )
        v = val();
@@ -827,57 +822,59 @@ function moreUsage() {
 
 task(
 'Build everything specified by flags.',
-  [ 'clean', 'setBuildEnv', 'setJavaEnv', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deleteRuntimeJournals', 'deployData', 'deployApp', 'buildJar', 'buildTar', 'startNanos' ],
-function all() {
-  setBuildEnv();
-  processSingleCharArgs(ARGS, moreUsage);
-  setJavaEnv();
+  [ 'clean', 'cleanAll', 'setBuildEnv', 'setJavaEnv', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deleteRuntimeJournals', 'deployData', 'deployApp', 'buildJar', 'buildTar', 'startCORE', 'stopCORE' ],
+  function all() {
+    processSingleCharArgs(ARGS, moreUsage);
+    setJavaEnv();
 
-  if ( VERBOSE ) {
-    exportEnvs();
-  }
-
-  if( ! ( PACKAGE || BUILD_ONLY ) ) {
-    stopNanos();
-  }
-
-
-  if ( CLEAN_BUILD && ! RESTART ) {
-    clean();
-  }
-
-  setupDirs();
-
-  if ( ! RESTART ) {
-    if ( PACKAGE || BUILD_JAR || TEST || BENCHMARK ) {
-      packageFOAM();
+    if( STOP && ! ( TAR || BUILD_ONLY ) ) {
+      stopCORE();
     }
 
-    buildJava();
-
-    if ( PACKAGE || BUILD_JAR || TEST || BENCHMARK ) {
-      buildJar();
+    if ( ( CLEAN || CLEAN_ALL ) && ! RESTART ) {
+      clean();
+      if ( CLEAN_ALL ) {
+        cleanAll();
+      }
     }
 
-    // Tests and benchmarks run from a deployed jar
-    if ( BUILD_JAR || TEST || BENCHMARK ) {
-      deployData();
-      deployApp();
+    setupDirs();
+
+    if ( ! RESTART ) {
+      if ( TAR || JAR || TEST || BENCHMARK ) {
+        packageFOAM();
+      }
+
+      buildJava();
+
+      if ( TAR || JAR || TEST || BENCHMARK ) {
+        buildJar();
+      }
+
+      // Tests and benchmarks run from a deployed jar
+      if ( JAR || TEST || BENCHMARK ) {
+        deployData();
+        deployApp();
+      }
+
+      if ( TAR ) {
+        buildTar();
+      }
     }
 
-    if ( PACKAGE ) {
-      buildTar();
+    if ( ! ( TAR || BUILD_ONLY ) ) {
+      startCORE();
     }
   }
+);
 
-  if( ! ( PACKAGE || BUILD_ONLY ) ) {
-    startNanos();
-  }
-});
+// Configure build.  Must be run before TASKS, otherwise
+// globleThis.foam.POM is not defined, and pom() failes.
+setBuildEnv();
 
 // Install POM tasks
+// TODO: make a task
 if ( TASKS ) {
-
   TASKS.forEach(f => task(f));
 
   // Exports local variables and functions for POM tasks
@@ -885,7 +882,7 @@ if ( TASKS ) {
   EXPORTS = {
     APP_NAME,
     BUILD_DIR,
-    JOURNAL_CONFIG,
+    JOURNALS,
     PROJECT,
     VERSION,
     copyDir,
@@ -894,7 +891,7 @@ if ( TASKS ) {
     exec,
     execSync,
     poms
-  }
+  };
 };
 
 all();
