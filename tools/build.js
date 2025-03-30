@@ -62,16 +62,16 @@ const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync,
 var PWD                       = process.cwd();
 
 // Root POM tasks and exports
-var TASKS, EXPORTS;
+var POM_TASKS, EXPORTS;
 
 globalThis.foam = {
   POM: function (pom) {
-    PROJECT = pom;
-    VERSION = pom.version;
-    TASKS   = pom.tasks;
+    PROJECT   = pom;
+    VERSION   = pom.version;
+    POM_TASKS = pom.tasks;
     JAVA_RELEASE = pom.java;
-    APP_NAME = pom.name;
-    VENDOR = pom.vendor;
+    APP_NAME  = pom.name;
+    VENDOR    = pom.vendor;
     VENDOR_ID = pom.vendorId;
   }
 };
@@ -594,7 +594,6 @@ task('Stop running CORE server.', [], function stopCORE() {
   }
 });
 
-
 // Environment Variables which are exported when updated
 const ENVS = {
   APP_HOME:          ['Application root directory. To symultaniously deploy multiple applications, give each a unique APP_NAME and WEB_PORT',() => APP_ROOT + '/' + APP_NAME],
@@ -633,6 +632,7 @@ const ENVS = {
   LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
   LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -LINFO',null],
   POMS:              ['CSV list of pom files to process,minus any suffix','pom'],
+  POM_TASKS:         ['CSV list of tasks from the root pom'],
   PROFILER:          ['Enable JVM profiling',false],
   PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded'],
@@ -642,6 +642,7 @@ const ENVS = {
   STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
   STOP:              ['Stop CORE Server',true],
   TAR:               ['Generate a tar file for remote Application installation', false],
+  TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
   TEST:              ['Run test cases',false],
   TESTS:             ['Set of test cases to run. Run all when empty'],
   TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files',Date.now()],
@@ -675,18 +676,12 @@ const ARGS = {
     () => DEBUG = true ],
   E: [ 'Set environment variables. Example: -EJAVA_OPTS=-Xmx8g,APP_NAME=demo',
        args => {
-         var a = args;
-         if ( a.startsWith("\"") ) {
-           a = a.substring(1, a.length -1);
-         }
-         a.split(',').forEach(b => {
+         args.split(',').forEach(b => {
            var c = b.split('=');
-           if ( c.length != 2 ) {
-             console.log("Invalid format, expecting -Ea=b,c=d");
-           } else if ( c[0] in globalThis ) {
-             globalThis[c[0]] = c[1];
-           } else {
+           if ( ! c[0] in globalThis ) {
              console.log('Unknown environment variable:', c[0]);
+           } else if ( c.length == 2 ) {
+             globalThis[c[0]] = c[1];
            }
          });
        }
@@ -733,18 +728,11 @@ const ARGS = {
   W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
     args => { WEB_PORT = args; info('WEB_PORT=' + WEB_PORT); } ],
   X: [ 'Explicitly execute tasks. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9',
-    args => {
-      args.split(',').forEach(t => {
-        // Support build task with args eg. -XcheckDeps:5 will execute checkDeps(5)
-        var s = t.split(':');
-        var f = globalThis[s[0]];
-        if ( f ) {
-          f(...s.slice(1));
-        } else {
-          console.log('Unknown Command:', t);
-        }
-      });
-    } ]
+       args => {
+         if ( TASKS === 'all' )
+           TASKS = '';
+         TASKS=args;
+       } ]
 };
 
 function moreUsage() {
@@ -786,7 +774,6 @@ task(
 'Build everything specified by flags.',
   [ 'clean', 'cleanAll', 'setBuildEnv', 'setJavaEnv', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deleteRuntimeJournals', 'deployData', 'deployApp', 'buildJar', 'buildTar', 'startCORE', 'stopCORE' ],
   function all() {
-    processSingleCharArgs(ARGS, moreUsage);
     setJavaEnv();
 
     if( STOP && ! ( TAR || BUILD_ONLY ) ) {
@@ -830,14 +817,14 @@ task(
   }
 );
 
-// Configure build.  Must be run before TASKS, otherwise
+// Configure build.  Must be run before POM_TASKS, otherwise
 // globleThis.foam.POM is not defined, and pom() failes.
 setBuildEnv();
+processSingleCharArgs(ARGS, moreUsage);
 
-// Install POM tasks
-// TODO: make a task
-if ( TASKS ) {
-  TASKS.forEach(f => task(f));
+// execute POM tasks
+if ( POM_TASKS ) {
+  POM_TASKS.forEach(f => task(f));
 
   // Exports local variables and functions for POM tasks
   var poms = pom();
@@ -856,6 +843,15 @@ if ( TASKS ) {
   };
 };
 
-all();
+TASKS.split(',').forEach(t => {
+  var s = t.split(':');
+  var f = globalThis[s[0]];
+  if ( f ) {
+    f(...s.slice(1));
+  } else {
+    console.log('Unknown Command:', t);
+    quit(1);
+  }
+});
 
 quit(0);
