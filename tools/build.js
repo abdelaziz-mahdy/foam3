@@ -91,6 +91,7 @@ var running = {};
 
 
 function task(desc, dep, f) {
+  warning("task", desc, dep, f);
   if ( arguments.length == 1 ) {
     f    = desc;
     desc = '';
@@ -214,8 +215,6 @@ task('Build web root directory for inclusion in JAR.', [], function jarWebroot()
 
   var webroot = BUILD_DIR + '/webroot';
   ensureDir(webroot);
-
-  execSync(__dirname + `/pmake.js -makers=Webroot -pom=${pom()} -builddir=${BUILD_DIR}`, {stdio: 'inherit'});
 
   if ( TAR || JAR ) {
     execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${webroot + '/'}`, {stdio: 'inherit'});
@@ -374,7 +373,7 @@ task('Generate and compile java source.', [ 'genJava' ], function buildJava() {
   genJava();
 });
 
-task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function buildJar() {
+task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages', 'jarJournals', 'copy' ], function buildJar() {
   // remove any previous timestamped versions
   execSync(`rm -f ${JAR_LIB_DIR}/${APP_NAME}-*.jar >/dev/null 2>&1`);
 
@@ -389,7 +388,7 @@ task('Build Java JAR file.', [ 'versions', 'jarWebroot', 'jarImages' ], function
 });
 
 
-task('Package files into a TAR archive', [], function buildTar() {
+task('Package files into a TAR archive', ['buildJar'], function buildTar() {
   // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
   // switches the current directory.
   ensureDir(BUILD_DIR + '/package');
@@ -397,7 +396,7 @@ task('Package files into a TAR archive', [], function buildTar() {
 });
 
 
-task('Copy runtime data to deployment dir APP_HOME', [], function deployData() {
+task('Copy runtime data to deployment dir APP_HOME', ['deployJournals', 'copy', 'deployDocuments'], function deployData() {
   deployJournals();
   copy();
   deployDocuments();
@@ -624,7 +623,7 @@ const ENVS = {
   LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
   LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -LINFO',null],
   POMS:              ['CSV list of pom files to process,minus any suffix','pom'],
-  // POM_TASKS:         ['CSV list of tasks from the root pom'],
+  // POM_TASKS:         ['CSV list of tasks from the root pom',{}],
   PROFILER:          ['Enable JVM profiling',false],
   PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded'],
@@ -815,6 +814,7 @@ setBuildEnv();
 processSingleCharArgs(ARGS, moreUsage);
 
 // Install POM tasks
+warning('POM_TASKS', POM_TASKS);
 if ( POM_TASKS ) {
   POM_TASKS.forEach(f => task(f));
 
@@ -826,13 +826,15 @@ if ( POM_TASKS ) {
     JAVA_OPTS,
     JOURNALS,
     PROJECT,
+    TASKS,
     VERSION,
     copyDir,
     copyFile,
     ensureDir,
     exec,
     execSync,
-    poms
+    poms,
+    task
   };
 };
 
