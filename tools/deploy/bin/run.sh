@@ -63,7 +63,10 @@ APP_HOME="/${APP_ROOT}/${APP_NAME}"
 
 echo "starting $APP_NAME @ $HOST_NAME:$WEB_PORT"
 
-JAVA_OPTS=""
+if [[ -z "${JAVA_OPTS}" ]]; then
+    JAVA_OPTS=""
+fi
+
 export JOURNAL_HOME="${APP_HOME}/journals"
 export DOCUMENT_HOME="${APP_HOME}/documents"
 export LOG_HOME="${APP_HOME}/logs"

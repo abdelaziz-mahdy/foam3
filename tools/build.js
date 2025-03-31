@@ -59,19 +59,19 @@ const fs       = require('fs');
 const { join } = require('path');
 const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, processSingleCharArgs, rmdir, rmfile, spawn } = require('./buildlib');
 
-var PWD                       = process.cwd();
+const PWD      = process.cwd();
 
-// Root POM tasks and exports
-var TASKS, EXPORTS;
+var EXPORTS; // Build variables which will be exported to pom tasks.
+var POM_TASKS; // NOTE: not working as an environment variable.
 
 globalThis.foam = {
   POM: function (pom) {
-    PROJECT = pom;
-    VERSION = pom.version;
-    TASKS   = pom.tasks;
+    PROJECT   = pom;
+    VERSION   = pom.version;
+    POM_TASKS = pom.tasks;
     JAVA_RELEASE = pom.java;
-    APP_NAME = pom.name;
-    VENDOR = pom.vendor;
+    APP_NAME  = pom.name;
+    VENDOR    = pom.vendor;
     VENDOR_ID = pom.vendorId;
   }
 };
@@ -150,17 +150,18 @@ function quit(code) {
   process.exit(code);
 }
 
-function info(msg) {
+function info(...args) {
+  let msg = args.join(' ');
   console.log('\x1b[0;34mINFO ::', msg, '\x1b[0;0m');
 }
 
-
-function warning(msg) {
+function warning(...args) {
+  let msg = args.join(' ');
   console.log('\x1b[0;33mWARNING ::', msg, '\x1b[0;0m');
 }
 
-
-function error(msg) {
+function error(...args) {
+  let msg = args.join(' ');
   console.log('\x1b[0;31mERROR ::', msg, '\x1b[0;0m');
   quit(1);
 }
@@ -253,18 +254,12 @@ task('Install npm tools that foam and the build use.', [], function install() {
 
 
 task('Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', [], function deployDocuments() {
-  console.log('DOCUMENT_OUT: ', DOCUMENT_OUT);
-  console.log('DOCUMENT_HOME:', DOCUMENT_HOME);
-
   copyDir(DOCUMENT_OUT, DOCUMENT_HOME);
 });
 
 
 task('Deploy journal files from JOURNAL_OUT to JOURNAL_HOME.', [], function deployJournals() {
   if ( DELETE_RUNTIME_JOURNALS ) deleteRuntimeJournals();
-
-  console.log('JOURNAL_OUT: ', JOURNAL_OUT);
-  console.log('JOURNAL_HOME:', JOURNAL_HOME);
 
   ensureDir(JOURNAL_HOME);
   copyDir(JOURNAL_OUT, JOURNAL_HOME);
@@ -436,11 +431,11 @@ task('Start CORE application server.', [ 'setJavaEnv', 'deployData', 'deployApp'
   } else {
 
     if ( HOST_NAME ) {
-      JAVA_OPTS = ` -Dhostname=${HOST_NAME} ${JAVA_OPTS}`;
+      JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
     }
 
     if ( DEBUG ) {
-      JAVA_OPTS = `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT} ${JAVA_OPTS}`;
+      JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
     }
 
     if ( WEB_PORT ) {
@@ -453,10 +448,10 @@ task('Start CORE application server.', [ 'setJavaEnv', 'deployData', 'deployApp'
 
     logLevelLower = 'info';
     if ( LOG_LEVEL ) {
-      JAVA_OPTS = ` -Dlog.level=${LOG_LEVEL} ${JAVA_OPTS}`;
+      JAVA_OPTS += ` -Dlog.level=${LOG_LEVEL}`;
       logLevelLower = `${LOG_LEVEL}`.toLowerCase();
     }
-    JAVA_OPTS = ` -Dorg.slf4j.simpleLogger.defaultLogLevel=${logLevelLower} ${JAVA_OPTS}`;
+    JAVA_OPTS += ` -Dorg.slf4j.simpleLogger.defaultLogLevel=${logLevelLower}`;
 
     MESSAGE = `Starting CORE ${APP_NAME}`;
     if ( TEST || BENCHMARK ) {
@@ -475,8 +470,6 @@ task('Start CORE application server.', [ 'setJavaEnv', 'deployData', 'deployApp'
       }
     }
 
-    // Increase memory here, should be a command-line option:
-    // JAVA_OPTS += ' -Xms12000m -Xmx12000m ';
     info('JAVA_OPTS:' + JAVA_OPTS);
     info(MESSAGE);
 
@@ -549,8 +542,7 @@ task('Create empty build and deployment directory structures if required.', [], 
     ensureDir(JOURNAL_OUT);
     ensureDir(DOCUMENT_OUT);
   } catch ( e ) {
-    console.log(e);
-    error(`Directory is not writable! Please run 'sudo chown -R $USER ${APP_ROOT}' first.`);
+    error(`Directory is not writable! Please run 'sudo chown -R $USER ${APP_ROOT}' first.`, e);
   }
 });
 
@@ -568,7 +560,7 @@ function readFromPidFile() {
 task('Set Java environmental variables.', [], function setJavaEnv() {
   if ( TEST || BENCHMARK ) {
     rmdir(APP_HOME);
-    JAVA_OPTS = '-enableassertions ' + JAVA_OPTS;
+    JAVA_OPTS += ' -enableassertions';
   }
 
   JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;
@@ -580,7 +572,7 @@ function foamBinVersion() {
 }
 
 task('Stop running CORE server.', [], function stopCORE() {
-  console.log('Stopping CORE server...');
+  info('Stopping CORE server...');
 
   var pid = readFromPidFile();
   try {
@@ -588,12 +580,11 @@ task('Stop running CORE server.', [], function stopCORE() {
       execSync(`kill -9 ${pid} &>/dev/null`);
       rmfile(CORE_PIDFILE);
     }
-    console.log('CORE server stopped successfully.');
+    info('CORE server stopped successfully.');
   } catch (e) {
-    console.log('CORE server not running, or failed to stop');
+    warning('CORE server not running, or failed to stop');
   }
 });
-
 
 // Environment Variables which are exported when updated
 const ENVS = {
@@ -633,6 +624,7 @@ const ENVS = {
   LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
   LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -LINFO',null],
   POMS:              ['CSV list of pom files to process,minus any suffix','pom'],
+  // POM_TASKS:         ['CSV list of tasks from the root pom'],
   PROFILER:          ['Enable JVM profiling',false],
   PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded'],
@@ -642,6 +634,7 @@ const ENVS = {
   STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
   STOP:              ['Stop CORE Server',true],
   TAR:               ['Generate a tar file for remote Application installation', false],
+  TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
   TEST:              ['Run test cases',false],
   TESTS:             ['Set of test cases to run. Run all when empty'],
   TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files',Date.now()],
@@ -673,20 +666,14 @@ const ARGS = {
     () => CLEAN = true ],
   d: [ 'Run with JDPA debugging enabled on port 8000.',
     () => DEBUG = true ],
-  E: [ 'Set environment variables. Example: -EJAVA_OPTS=-Xmx8g,APP_NAME=demo',
+  E: [ 'Set environment variables. Example: -EJAVA_OPTS:-Xmx8g,APP_NAME:demo',
        args => {
-         var a = args;
-         if ( a.startsWith("\"") ) {
-           a = a.substring(1, a.length -1);
-         }
-         a.split(',').forEach(b => {
-           var c = b.split('=');
-           if ( c.length != 2 ) {
-             console.log("Invalid format, expecting -Ea=b,c=d");
-           } else if ( c[0] in globalThis ) {
+         args.split(',').forEach(b => {
+           var c = b.split(':');
+           if ( ! ( c[0] in globalThis ) ) {
+             error('Unknown environment variable:', c[0]);
+           } else if ( c.length == 2 ) {
              globalThis[c[0]] = c[1];
-           } else {
-             console.log('Unknown environment variable:', c[0]);
            }
          });
        }
@@ -733,18 +720,11 @@ const ARGS = {
   W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
     args => { WEB_PORT = args; info('WEB_PORT=' + WEB_PORT); } ],
   X: [ 'Explicitly execute tasks. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9',
-    args => {
-      args.split(',').forEach(t => {
-        // Support build task with args eg. -XcheckDeps:5 will execute checkDeps(5)
-        var s = t.split(':');
-        var f = globalThis[s[0]];
-        if ( f ) {
-          f(...s.slice(1));
-        } else {
-          console.log('Unknown Command:', t);
-        }
-      });
-    } ]
+       args => {
+         if ( TASKS === 'all' )
+           TASKS = '';
+         TASKS=args;
+       } ]
 };
 
 function moreUsage() {
@@ -784,12 +764,11 @@ function moreUsage() {
 
 task(
 'Build everything specified by flags.',
-  [ 'clean', 'cleanAll', 'setBuildEnv', 'setJavaEnv', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deleteRuntimeJournals', 'deployData', 'deployApp', 'buildJar', 'buildTar', 'startCORE', 'stopCORE' ],
+  [ 'clean', 'cleanAll', 'setJavaEnv', 'deleteRuntimeLogs', 'setupDirs', 'packageFOAM', 'buildJava', 'deleteRuntimeJournals', 'deployData', 'deployApp', 'buildJar', 'buildTar', 'startCORE', 'stopCORE' ],
   function all() {
-    processSingleCharArgs(ARGS, moreUsage);
     setJavaEnv();
 
-    if( STOP && ! ( TAR || BUILD_ONLY ) ) {
+    if ( STOP && ! ( TAR || BUILD_ONLY ) ) {
       stopCORE();
     }
 
@@ -830,20 +809,21 @@ task(
   }
 );
 
-// Configure build.  Must be run before TASKS, otherwise
+// Configure build.  Must be run before POM_TASKS, otherwise
 // globleThis.foam.POM is not defined, and pom() failes.
 setBuildEnv();
+processSingleCharArgs(ARGS, moreUsage);
 
 // Install POM tasks
-// TODO: make a task
-if ( TASKS ) {
-  TASKS.forEach(f => task(f));
+if ( POM_TASKS ) {
+  POM_TASKS.forEach(f => task(f));
 
   // Exports local variables and functions for POM tasks
   var poms = pom();
   EXPORTS = {
     APP_NAME,
     BUILD_DIR,
+    JAVA_OPTS,
     JOURNALS,
     PROJECT,
     VERSION,
@@ -856,6 +836,14 @@ if ( TASKS ) {
   };
 };
 
-all();
+TASKS.split(',').forEach(t => {
+  var s = t.split(':');
+  var f = globalThis[s[0]];
+  if ( f ) {
+    f(...s.slice(1));
+  } else {
+    error('Unknown task:', t);
+  }
+});
 
 quit(0);
