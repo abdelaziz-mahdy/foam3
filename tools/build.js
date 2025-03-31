@@ -768,7 +768,7 @@ task(
   function all() {
     setJavaEnv();
 
-    if( STOP && ! ( TAR || BUILD_ONLY ) ) {
+    if ( STOP && ! ( TAR || BUILD_ONLY ) ) {
       stopCORE();
     }
 
