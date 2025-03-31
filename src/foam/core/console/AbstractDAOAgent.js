@@ -313,12 +313,18 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console',
-  name: 'SequenceDAOAgent',
+  name: 'ColumnDAOAgent',
   extends: 'foam.core.console.AbstractDAOAgent',
 
   requires: [ 'foam.mlang.sink.Sequence' ],
 
   properties: [
+    /*
+    {
+      name: 'orientation',
+      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'Row', 'Column' ] }
+      },
+      */
     {
       name: 'sinks',
       factory: function() { return []; },
@@ -342,7 +348,23 @@ foam.CLASS({
       e.startContext({data: this}).
         start().
           style({display: 'flex'}).
-          add(this.SINKS);
+          add(this.ORIENTATION, this.SINKS);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console',
+  name: 'RowDAOAgent',
+  extends: 'foam.core.console.ColumnDAOAgent',
+
+  methods: [
+    function createSink() {
+      return this.Sequence.create({
+        horizontal: true,
+        args: this.sinks.map(s => s.createSink())
+      });
     }
   ]
 });
