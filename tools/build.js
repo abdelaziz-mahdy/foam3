@@ -661,7 +661,6 @@ task('Create empty build and deployment directory structures if required.', [], 
     ensureDir(DOCUMENT_OUT);
   } catch ( e ) {
     error(`Directory is not writable! Please run 'sudo chown -R $USER ${APP_ROOT}' first.`, e);
-  info("executeTask,task", t, task);
   }
 });
 
