@@ -66,7 +66,7 @@ process.on('unhandledRejection', e => {
   process.exit(1);
 });
 
-var EXPORTS; // Build variables which will be exported to pom tasks.
+// var EXPORTS; // Build variables which will be exported to pom tasks.
 
 var summary = [];
 var depth   = 1;
@@ -215,7 +215,7 @@ const ENVS = {
   DEBUG_SUSPEND:     ['JVM will suspend on startup until a Debugger connects',false],
   DELETE_RUNTIME_JOURNALS: ['Delete application journals',false],
   DOCUMENT_HOME:     ['Appplication documents directory',() => `${APP_HOME}/documents`],
-  DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
+  DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],   EXPORTS:           ['Build environment variables which will be exported to pom tasks.'],
   // FLAGS:             ['pmake flags',''], // TODO
   FOAM_REVISION:     ['FOAM Revision ?'],
   FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
@@ -309,7 +309,7 @@ const ARGS = {
          if ( t ) {
            console.log(args,':',t[0]);
          } else {
-           console.log('Topic not found', args);
+           error('Topic not found - ', args);
          }
          quit(0);
        }
