@@ -198,7 +198,7 @@ function pom() {
 // Environment Variables which are exported when updated
 const ENVS = {
   APP_HOME:          ['Application root directory. To symultaniously deploy multiple applications, give each a unique APP_NAME and WEB_PORT',() => APP_ROOT + '/' + APP_NAME],
-  APP_NAME:          ['Application name. Defaults to \'name\' in root pom.', () => APP_NAME ],
+  APP_NAME:          ['Application name. Defaults to \'name\' in root pom.'],
   APP_ROOT:          ['Application root directory','/opt'],
   BENCHMARK:         ['Run benchmarks when true',false],
   BENCHMARKS:        ['Set of benchmarks to run, run all when empty'],
@@ -224,7 +224,7 @@ const ENVS = {
   JAR_NAME:          ['Java jar name',() => `${APP_NAME}-${VERSION}.jar`],
   JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
   JAVA_OPTS:         ['Additional JVM options',''],
-  JAVA_RELEASE:      ['Java target version. Can also be set in root pom. ex: java: \'11\'', () => JAVA_RELEASE || 17],
+  JAVA_RELEASE:      ['Java target version. Can also be set in root pom. ex: java: \'11\'', 17],
   JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
   JOURNALS:          ['Deployment poms to include in build',''],
   JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
@@ -249,29 +249,13 @@ const ENVS = {
   TIMESTAMP_FOAM_BIN:['foam-bin files are timestamped by default. Disable timestamp to retain breakpoints during development cycle.',true],
   WEB_PORT:          ['HTTP port to start web server on. HTTP defaults to 8080, HTTPS defaults to 8443'],
   VERBOSE:           ['Enable VerboseMaker to log additional info during build',false],
-  VENDOR:            ['Java Manifest Vendor. Defaults to APP_NAME', () => VENDOR],
-  VENDOR_ID:         ['Java Manifest Vendor ID', () => VENDOR_ID],
-  VERSION:           ['Application version', () => VERSION || '1.0.0']
+  VENDOR:            ['Java Manifest Vendor. Defaults to APP_NAME'],
+  VENDOR_ID:         ['Java Manifest Vendor ID'],
+  VERSION:           ['Application version', '1.0.0']
 };
 
 // Configure build variables
-// NOTE: Must be run before require(..  pom.js), which invokes
-// globleThis.foam.POM which sets POM_TASKS
 buildEnv(ENVS);
-
-globalThis.foam = {
-  POM: function (pom) {
-    PROJECT   = pom;
-    VERSION   = pom.version;
-    POM_TASKS = pom.tasks;
-    JAVA_RELEASE = pom.java;
-    APP_NAME  = pom.name;
-    VENDOR    = pom.vendor;
-    VENDOR_ID = pom.vendorId;
-  }
-};
-
-require(PWD + '/pom.js');
 
 // Convenience build flags.
 const ARGS = {
@@ -327,11 +311,11 @@ const ARGS = {
   k: [ 'Package up a deployment tarball.',
     () => { TAR = true; } ],
   N: [ `NAME : Used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.`,
-       args => { APP_NAME = args; CORE_PIDFILE=`/tmp/core_${APP_NAME}.pid`; info('APP_NAME=' + args); } ],
+       args => { APP_NAME = args; CORE_PIDFILE=`/tmp/core_${APP_NAME}.pid`;} ],
   o: [ "Build only - don't start CORE server.",
     () => BUILD_ONLY = true ],
   P: [ "comma seperated list of pom files. Defaults to 'pom' at the root of the project.",
-     args => { POMS = args; info('POMS=' + POMS); } ],
+     args => { POMS = args; } ],
   r: [ 'Restart CORE Server from last build.',
     () => RESTART = true ],
   s: [ 'Start JDPA debugging in suspend state.',
@@ -811,6 +795,23 @@ task('Build everything specified by flags.', [], function all() {
 // Process command line arguments
 processSingleCharArgs(ARGS, moreUsage);
 
+globalThis.foam = {
+  POM: function (pom) {
+    PROJECT   = pom;
+    POM_TASKS = pom.tasks;
+    APP_NAME  = pom.name || APP_NAME;
+    JAVA_RELEASE = pom.java || JAVA_RELEASE;
+    VERSION   = pom.version || VERSION;
+    VENDOR    = pom.vendor || VENDOR;
+    VENDOR_ID = pom.vendorId || VENDOR_ID;
+  }
+};
+
+// Load the root/first pom - invokes globalThis.foam above.
+let rootPom = POMS.split(',')[0]+'.js';
+info('Loading '+rootPom);
+require(PWD + '/'+rootPom);
+
 // Install POM tasks
 if ( POM_TASKS ) {
   POM_TASKS.forEach(f => task(f));
@@ -834,6 +835,7 @@ if ( POM_TASKS ) {
   };
 };
 
+// start the build
 TASKS.split(',').forEach(t => {
   var s = t.split(':');
   execute(s[0]);
