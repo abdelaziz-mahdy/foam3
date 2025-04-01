@@ -240,6 +240,7 @@ const ENVS = {
   PROJECT_REVISION:  ['Root project git revision. Will be set JVM Manifest',null],
   RESTART:           ['Only execute JVM starting procedure, without a new build',false],
   RUN_ARGS:          ['Arguments which will be passed to run.sh to when starting CORE server from JAR',''],
+  STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
   TAR:               ['Generate a tar file for remote Application installation', false],
   TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
   TEST:              ['Run test cases',false],
@@ -350,6 +351,10 @@ const ARGS = {
       ARGS.t[1]();
       TESTS = args;
     } ],
+  w: [ 'Without stages. Only generate a single foam-bin file.',
+      () => {
+        STAGE_JS = false;
+      } ],
   W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
     args => { WEB_PORT = args; info('WEB_PORT=' + WEB_PORT); } ],
   X: [ 'Explicitly execute tasks. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9',
