@@ -239,7 +239,7 @@ const ENVS = {
   PROJECT_HOME:      ['Project directory',PWD],
   PROJECT_REVISION:  ['Root project git revision. Will be set JVM Manifest',null],
   RESTART:           ['Only execute JVM starting procedure, without a new build',false],
-  RUN_ARGS:          ['Arguments which will be passed to run.sh to when starting CORE server from JAR'],
+  RUN_ARGS:          ['Arguments which will be passed to run.sh to when starting CORE server from JAR',''],
   TAR:               ['Generate a tar file for remote Application installation', false],
   TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
   TEST:              ['Run test cases',false],
