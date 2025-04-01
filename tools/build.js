@@ -305,7 +305,7 @@ const ARGS = {
      ],
   H: [ 'Help on a particular topic',
        args => {
-         var t = ARGS[args] || tasks[args];
+         var t = ARGS[args] || tasks[args] || ENVS[args];
          if ( t ) {
            console.log(args,':',t[0]);
          } else {
