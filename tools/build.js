@@ -126,7 +126,7 @@ function task(desc, dep, f) {
 function x(t) {
   let task = tasks[t];
   if ( ! task ) {
-    error('task not found', t);
+    error('Task not found', t);
   }
 
   let dep = task[1];
@@ -141,15 +141,14 @@ function x(t) {
 
   var f = globalThis[t];
   if ( f ) {
-    info('task execute', t);
     f(...t.slice(1));
   } else {
-    error('task not found', t);
+    error('Task not found', t);
   }
 }
 
 function showSummary() {
-  var s = 'Execution Summary:\n';
+  var s = '';
   summary.forEach(e => {
     if ( e[1] === undefined ) {
       var end = Date.now();
@@ -158,7 +157,9 @@ function showSummary() {
     }
     s += e[0].padEnd(25) + ' ' + e[1].padStart(15) + 's\n';
   });
-  info(s);
+  if ( s ) {
+    info('Execution Summary:\n', s);
+  }
 }
 
 function quit(code) {
@@ -225,6 +226,7 @@ const ENVS = {
   DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
   // FLAGS:             ['pmake flags',''], // TODO
   FOAM_REVISION:     ['FOAM Revision ?'],
+  FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
   GEN_JAVA:          ['Generate Java from model files',true],
   HOST_NAME:         ['Hostname set in JVM', () => os.hostname()],
   JAR:               ['Start Application from Java jar file',false],
@@ -249,7 +251,6 @@ const ENVS = {
   PROJECT_REVISION:  ['Root project git revision. Will be set JVM Manifest',null],
   RESTART:           ['Only execute JVM starting procedure, without a new build',false],
   STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
-  STOP:              ['Stop CORE Server',true],
   TAR:               ['Generate a tar file for remote Application installation', false],
   TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
   TEST:              ['Run test cases',false],
@@ -310,6 +311,17 @@ const ARGS = {
          });
        }
      ],
+  H: [ 'Help on a particular topic',
+       args => {
+         var t = ARGS[args] || tasks[args];
+         if ( t ) {
+           console.log(args,':',t[0]);
+         } else {
+           console.log('Topic not found', args);
+         }
+         quit(0);
+       }
+     ],
   g: [ 'Do not timestamp foam-bin javascript file to retain breakpoints during development cycle.',
     () => TIMESTAMP_FOAM_BIN = false ],
   j: [ 'Delete runtime journals.',
@@ -323,7 +335,7 @@ const ARGS = {
        }
      ],
   k: [ 'Package up a deployment tarball.',
-    () => { JAR = BUILD_ONLY = TAR = true; } ],
+    () => { TAR = true; } ],
   N: [ `NAME : Used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.`,
        args => { APP_NAME = args; CORE_PIDFILE=`/tmp/core_${APP_NAME}.pid`; info('APP_NAME=' + args); } ],
   o: [ "Build only - don't start CORE server.",
@@ -397,9 +409,7 @@ function moreUsage() {
 
 task('Copy foam-bin into webroot for inclusion in JAR.', ['setupDirs'], function jarWebroot() {
   JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
-
-  let webroot = BUILD_DIR + '/webroot';
-  execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${webroot + '/'}`, {stdio: 'inherit'});
+  execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/}`, {stdio: 'inherit'});
 });
 
 task('Run pom copy[] tasks for inclusion in JAR.', [], function copy() {
@@ -408,7 +418,6 @@ task('Run pom copy[] tasks for inclusion in JAR.', [], function copy() {
 
 task('Copy images from src sub directories to BUILD_DIR/images.', [], function jarImages() {
   JAR_INCLUDES += ` -C ${BUILD_DIR} images `;
-
   execSync(__dirname + `/pmake.js -makers=Image -pom=${pom()} -builddir=${BUILD_DIR}`, {stdio: 'inherit'});
 });
 
@@ -416,8 +425,7 @@ task('Include journals in jar.', [], function jarJournals() {
   JAR_INCLUDES += ` -C ${BUILD_DIR} journals `;
 });
 
-task('Generate JVM Manifest', ['versions'], function genManifest() {
-  // versions();
+task('Generate JVM Manifest', ['versions', 'genFoamBinVersion'], function genManifest() {
   var jars = execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`).toString()
       .replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
   var m = `
@@ -425,7 +433,7 @@ Manifest-Version: 1.0
 Main-Class: foam.core.boot.Boot
 Class-Path: ${jars}
 Implementation-Title: ${APP_NAME}
-Implementation-Version: ${foamBinVersion()}
+Implementation-Version: ${FOAM_BIN_VERSION}
 Specification-Version: ${PROJECT_REVISION}
 Implementation-Timestamp: ${TIMESTAMP}
 ${APP_NAME}-Revision: ${PROJECT_REVISION}
@@ -449,29 +457,24 @@ task('Show POM structure.', [], function showPOMs() {
   execSync(__dirname + `/pmake.js -flags=web,java -makers=Verbose -pom=${pom()}`, {stdio: 'inherit'});
 });
 
-
 task('Install npm tools that foam and the build use.', [], function install() {
   process.chdir(PROJECT_HOME);
   execSync('npm install');
   ensureDir(join(APP_HOME, 'logs'));
 });
 
-
 task('Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', ['setupDirs'], function deployDocuments() {
   copyDir(DOCUMENT_OUT, DOCUMENT_HOME);
 });
-
 
 task('Deploy journal files from JOURNAL_OUT to JOURNAL_HOME.', ['setupDirs'], function deployJournals() {
   copyDir(JOURNAL_OUT, JOURNAL_HOME);
 });
 
-
 task('Delete runtime journals.', [], function deleteRuntimeJournals() {
   info('Runtime journals deleted.');
   emptyDir(JOURNAL_HOME);
 });
-
 
 task('Remove pom.xml and java lib directory.', [], function cleanLib() {
   rmfile('pom.xml');
@@ -497,12 +500,12 @@ task('Remove generated files', [], function clean() {
 task('Clean build files, include pom.xml and java libraries. Cleaner than clean.', [ 'cleanLib', 'clean' ], function cleanAll() {
 });
 
-task('Generate and compile java source.', [], function cleanFOAM() {
+task('Remove foam-bin files.', [], function cleanFOAM() {
   execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
 });
 
-task("Call pmake with JS Maker to build 'foam-bin.js'.", ['cleanFOAM'], function genJS() {
-  var version = foamBinVersion();
+task("Call pmake with JS Maker to build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion'], function genJS() {
+  let version = FOAM_BIN_VERSION;
   if ( STAGE_JS ) {
     execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=0`, { stdio: 'inherit' });
     execSync(__dirname + `/pmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=1`, { stdio: 'inherit' });
@@ -512,12 +515,10 @@ task("Call pmake with JS Maker to build 'foam-bin.js'.", ['cleanFOAM'], function
   }
 });
 
-
-task('Generate Java and JS packages.', [/*'genJava',*/ 'genJS'], function packageFOAM() {
+task('Generate Java and JS packages.', ['genJS'], function packageFOAM() {
 });
 
-
-task('Call pmake to generate & compile java, collect journals, call Maven and copy documents.', ['cleanJava'], function genJava() {
+task('Call pmake to generate & compile java (via Maven).', ['cleanJava'], function genJava() {
   //   commandLine 'bash', './gen.sh', "${project.genJavaDir}", "${project.findProperty("pom")?:"pom" }"
   var flags = VERBOSE ? 'verbose' : '';
   var makers = VERBOSE ? 'Verbose,' : '';
@@ -526,7 +527,7 @@ task('Call pmake to generate & compile java, collect journals, call Maven and co
   execSync(__dirname + `/pmake.js -makers=${makers} -flags=${flags} -d=${BUILD_DIR}/classes -builddir=${BUILD_DIR} -outdir=${BUILD_DIR}/src/java -javacParams='--release ${JAVA_RELEASE} -proc:none' -pom=${pom()}`, { stdio: 'inherit' });
 });
 
-task('Check Java dependencies for known vulnerabilities (via maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', [], function checkDeps(score) {
+task('Check Java dependencies for known vulnerabilities (via Maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', [], function checkDeps(score) {
   score = score || 9;
   execSync(__dirname + `/pmake.js -makers=Maven -pom=${pom()}`, { stdio: 'inherit' });
   try {
@@ -554,7 +555,7 @@ task('Get Maven java sources.', [], function mavenGetSources(value) {
   }
 });
 
-task('Generate and compile java source.', [], function cleanJava() {
+task('Remove previously generated JAR.', [], function cleanJava() {
   // remove previous app jar in build directory to fix classes resolution for non-jar run
   execSync(`rm -f ${BUILD_DIR}/lib/${APP_NAME}-*.jar >/dev/null 2>&1`);
 });
@@ -601,7 +602,6 @@ task('Extract project git hash.', [], function getProjectGitHash() {
   PROJECT_REVISION = out.toString().trim();
 });
 
-
 task('Extract FOAM git hash.', [], function getFOAMGitHash() {
   FOAM_REVISION = execSync('git -C foam3 rev-parse --short HEAD').toString().trim();
 });
@@ -616,7 +616,6 @@ task('Show version information.', [ 'getProjectGitHash', 'getFOAMGitHash'], func
 //   console.log(`Application Name: ${APP_NAME}`);
 //   console.log(`Application VendorId: ${PROJECT.vendorId}`);
 // });
-
 
 task('Create empty build and deployment directory structures if required.', [], function setupDirs() {
   try {
@@ -646,7 +645,7 @@ task('Create empty build and deployment directory structures if required.', [], 
 });
 
 
-task('Set Java environmental variables.', [], function setTestEnv() {
+task('Set Java environmental variables specific to running test cases.', [], function setTestEnv() {
   rmdir(APP_HOME);
   JAVA_OPTS += ' -enableassertions';
 });
@@ -656,9 +655,9 @@ task('Set Java environmental variables.', [], function setJavaEnv() {
   JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
 });
 
-function foamBinVersion() {
-  return TIMESTAMP_FOAM_BIN ? `${VERSION}-${TIMESTAMP}` : `${VERSION}`;
-}
+task('Generate version string for the foam-bin, with our without a timestamp', [], function genFoamBinVersion() {
+  FOAM_BIN_VERSION = TIMESTAMP_FOAM_BIN ? `${VERSION}-${TIMESTAMP}` : `${VERSION}`;
+});
 
 function writeToPidFile(pid) {
   fs.writeFileSync(CORE_PIDFILE, pid.toString());
