@@ -206,7 +206,6 @@ const ENVS = {
   BUILD_ONLY:        ['Only execute java generation and java compilation build steps',false],
   CLEAN:             ['Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',false],
   CLEAN_ALL:         ['Clean application lib/, and remove build/ directory',false],
-  CLUSTER:           ['Deploy JVM as a Medusa Mediator',false],
   CORE_PIDFILE:      ['JVM process ID file','/tmp/core.pid'],
   DEBUG:             ['Launch JVM with JDPA debugging enabled',false],
   DEBUG_PORT:        ['Port JVM will listen on for debuggers to connect',8000],
@@ -240,7 +239,7 @@ const ENVS = {
   PROJECT_HOME:      ['Project directory',PWD],
   PROJECT_REVISION:  ['Root project git revision. Will be set JVM Manifest',null],
   RESTART:           ['Only execute JVM starting procedure, without a new build',false],
-  STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
+  RUN_ARGS:          ['Arguments which will be passed to run.sh to when starting CORE server from JAR'],
   TAR:               ['Generate a tar file for remote Application installation', false],
   TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
   TEST:              ['Run test cases',false],
@@ -681,15 +680,16 @@ function readFromPidFile() {
     return fs.readFileSync(CORE_PIDFILE).toString().trim();
 }
 
-task('Start CORE server (JAR).', [ 'setJavaEnv', 'stopCORE', 'deployData', 'deployBin', 'deployLib' ], function startCOREJar() {
-  var OPT_ARGS = ``;
-  if ( WEB_PORT ) OPT_ARGS += ` -W${WEB_PORT}`;
-  if ( DEBUG ) OPT_ARGS += ` -D${DEBUG_PORT}`;
-  if ( DEBUG_SUSPEND ) OPT_ARGS += ` -s`;
-  if ( PROFILER ) OPT_ARGS += ` -P${PROFILER_PORT}`;
-  if ( CLUSTER ) OPT_ARGS += ` -m`;
-  if ( HOST_NAME && HOST_NAME !== 'localhost' ) OPT_ARGS += ` -H${HOST_NAME}`;
-  exec(`${APP_HOME}/bin/run.sh -N${APP_NAME} -V${VERSION} ${OPT_ARGS}`);
+task('Set arguments which will be passed to run.sh to start CORE server', [], function setRunArgs() {
+  if ( WEB_PORT ) RUN_ARGS += ` -W${WEB_PORT}`;
+  if ( DEBUG ) RUN_ARGS += ` -D${DEBUG_PORT}`;
+  if ( DEBUG_SUSPEND ) RUN_ARGS += ` -s`;
+  if ( PROFILER ) RUN_ARGS += ` -P${PROFILER_PORT}`;
+  if ( HOST_NAME && HOST_NAME !== 'localhost' ) RUN_ARGS += ` -H${HOST_NAME}`;
+});
+
+task('Start CORE server (JAR).', [ 'setJavaEnv', 'setRunArgs', 'stopCORE', 'deployData', 'deployBin', 'deployLib' ], function startCOREJar() {
+  exec(`${APP_HOME}/bin/run.sh -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`);
 });
 
 // TODO: split out
@@ -818,6 +818,7 @@ if ( POM_TASKS ) {
     JAVA_OPTS,
     JOURNALS,
     PROJECT,
+    RUN_ARGS,
     VERSION,
     copyDir,
     copyFile,
