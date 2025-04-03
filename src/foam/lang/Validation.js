@@ -165,7 +165,7 @@ foam.CLASS({
     },
     {
       name: 'internalValidateObj',
-      getter: function(forClass_) {
+      factory: function(forClass_) {
         var name     = this.name;
         var label    = this.label;
         var required = this.required;
@@ -330,7 +330,7 @@ foam.CLASS({
             }
           ];
         }
-        return foam.lang.Property.INTERNAL_VALIDATE_OBJ.getter.apply(this, this.INTERNAL_VALIDATE_OBJ);
+        return foam.lang.Property.INTERNAL_VALIDATE_OBJ.factory.apply(this, this.INTERNAL_VALIDATE_OBJ);
       }
     }
   ]
@@ -367,7 +367,7 @@ foam.CLASS({
             }
           ];
         }
-        return foam.lang.Property.INTERNAL_VALIDATE_OBJ.getter.apply(this, this.INTERNAL_VALIDATE_OBJ);
+        return foam.lang.Property.INTERNAL_VALIDATE_OBJ.factory.apply(this, this.INTERNAL_VALIDATE_OBJ);
       }
     }
   ]
