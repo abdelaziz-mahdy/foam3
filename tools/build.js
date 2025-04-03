@@ -418,7 +418,6 @@ task('Build usage examples', [], function usage() {
 
 task('Copy foam-bin into webroot for inclusion in JAR.', ['setupDirs'], function jarWebroot() {
   JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
-  execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/`, {stdio: 'inherit'});
 });
 
 task('Run pom copy[] tasks for inclusion in JAR.', [], function copy() {
@@ -786,7 +785,7 @@ task('Build everything specified by flags.', [], function all() {
   }
 
   if ( ! ( TAR || BUILD_ONLY ) ) {
-    if ( TEST || BENCHMARK ) {
+    if ( ! JAR || TEST || BENCHMARK ) {
       execute('startCORE');
     } else {
       execute('startCOREJar');
