@@ -352,7 +352,6 @@ const ARGS = {
 };
 
 function moreUsage() {
-  console.log('\n');
   info('Usage: build.js [OPTIONS] (see -Xusage for examples)');
   console.log('\nOptions are:');
   Object.keys(ARGS).forEach(a => {
@@ -793,9 +792,6 @@ task('Build everything specified by flags.', [], function all() {
   }
 });
 
-// Process command line arguments
-processSingleCharArgs(ARGS, moreUsage);
-
 globalThis.foam = {
   POM: function (pom) {
     PROJECT   = pom;
@@ -810,7 +806,7 @@ globalThis.foam = {
 
 // Load the root/first pom - invokes globalThis.foam above.
 let rootPom = POMS.split(',')[0]+'.js';
-info('Loading '+rootPom);
+if ( rootPom != 'pom.js' ) info('Loading '+rootPom);
 require(PWD + '/'+rootPom);
 
 // Install POM tasks
@@ -835,6 +831,11 @@ if ( POM_TASKS ) {
     poms
   };
 };
+
+// Process command line arguments
+// process after require(pom) so command line arguments can
+// supercede pom arguments
+processSingleCharArgs(ARGS, moreUsage);
 
 // start the build
 TASKS.split(',').forEach(t => {
