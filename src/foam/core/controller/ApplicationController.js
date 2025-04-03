@@ -294,7 +294,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'showNav',
-      value: true
+      factory: function() { return foam.flags.showNav === undefined ? true : foam.flags.showNav; }
     },
     {
       class: 'Boolean',
