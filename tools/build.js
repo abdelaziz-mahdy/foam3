@@ -674,7 +674,6 @@ task('Set Java environmental variables specific to running test cases.', [], fun
 });
 
 task('Set Java environmental variables.', [], function setJavaEnv() {
-  info('setJavaEnv build.js');
   JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;
   JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
 });
