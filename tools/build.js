@@ -84,7 +84,6 @@ function task(desc, dep, f) {
 
   var fired = false;
   var rec   = [ ];
-
   var SUPER = globalThis[f.name] || function() { };
   globalThis[f.name] = function(...args) {
     if ( fired ) return;
@@ -179,6 +178,7 @@ function error(...args) {
   quit(1);
 }
 
+// build pom map and ensure the POMS list is viable
 function pom() {
   var poms    = {};
   var addPom = fn => {
@@ -188,8 +188,25 @@ function pom() {
       poms[fn] = true;
   };
 
-  if ( POMS )
-    POMS.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/${c}`));
+  if ( ! POMS ) {
+    POMS = 'pom';
+  }
+  if ( POMS ) {
+    var root = false;
+    POMS.split(',').forEach(c => {
+      addPom(c && `${PROJECT_HOME}/${c}`);
+      root = root || c == 'pom';
+    });
+    // backward compatibility - hithertoo, only the root directory pom
+    // was 'require(pom)' to start the build process.  Now, the initial
+    // pom can be specified. When not explicitly specified, the first
+    // pom will most likely be set to a deployment pom via -J. The build
+    // will fail if the foam pom is not specified.
+    if ( ! root ) {
+      POMS = comma('pom', POMS);
+      warning('Added /pom');
+    }
+  }
 
   if ( JOURNALS )
     JOURNALS.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/deployment/${c}/pom`));
@@ -226,14 +243,15 @@ const ENVS = {
   JAR_NAME:          ['Java jar name',() => `${APP_NAME}-${VERSION}.jar`],
   JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
   JAVA_OPTS:         ['Additional JVM options',''],
-  JAVA_RELEASE:      ['Java target version. Can also be set in root pom. ex: java: \'11\'', 17],
+  JAVA_RELEASE:      ['Java target version. Can also be set in root pom. ex: java: \'11\''],
+  JAVA_RELEASE_DEFAULT: ['Default Java target version.','17'],
   JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
   JOURNALS:          ['Deployment poms to include in build',''],
   JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
   JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
   LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
   LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -ELOG_LEVEL=INFO',null],
-  POMS:              ['CSV list of pom files to process,minus any suffix','pom'],
+  POMS:              ['CSV list of pom files to process,minus any suffix. Defaults to the pom at the root of the project.'],
   POM_TASKS:         ['CSV list of tasks from the root pom'],
   PROFILER:          ['Enable JVM profiling',false],
   PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
@@ -253,7 +271,8 @@ const ENVS = {
   VERBOSE:           ['Enable VerboseMaker to log additional info during build',false],
   VENDOR:            ['Java Manifest Vendor. Defaults to APP_NAME'],
   VENDOR_ID:         ['Java Manifest Vendor ID'],
-  VERSION:           ['Application version', '1.0.0']
+  VERSION:           ['Application version'],
+  VERSION_DEFAULT:   ['Default Application version', '1.0.0']
 };
 
 // Configure build variables
@@ -342,7 +361,7 @@ const ARGS = {
         STAGE_JS = false;
       } ],
   W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
-    args => { WEB_PORT = args; info('WEB_PORT=' + WEB_PORT); } ],
+       args => { WEB_PORT = args;} ],
   X: [ 'Explicitly execute tasks. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9',
        args => {
          if ( TASKS === 'all' )
@@ -445,7 +464,7 @@ Specification-Version: ${PROJECT_REVISION}
 Implementation-Timestamp: ${TIMESTAMP}
 ${APP_NAME}-Revision: ${PROJECT_REVISION}
 FOAM-Revision: ${FOAM_REVISION}
-Implementation-Vendor: ${VENDOR}
+Implementation-Vendor: ${VENDOR || APP_NAME}
 `.trim() + '\n';
 
   if ( VENDOR_ID ) {
@@ -619,6 +638,10 @@ task('Show version information.', [ 'getProjectGitHash', 'getFOAMGitHash'], func
   console.log(`FOAM revision:       ${FOAM_REVISION}`);
 });
 
+task('Show application information.', [], function appName() {
+  console.log(`Application Name: ${APP_NAME}`);
+});
+
 task('Create empty build and deployment directory structures if required.', [], function setupDirs() {
   try {
     if ( ! BUILD_ONLY ) {
@@ -651,6 +674,7 @@ task('Set Java environmental variables specific to running test cases.', [], fun
 });
 
 task('Set Java environmental variables.', [], function setJavaEnv() {
+  info('setJavaEnv build.js');
   JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;
   JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
 });
@@ -760,7 +784,10 @@ task('Stop CORE server.', [], function stopCORE() {
 // ############################
 
 task('Build everything specified by flags.', [], function all() {
-  execute('stopCORE');
+  if ( ! ( TAR || BUILD_ONLY ) ) {
+    execute('stopCORE');
+  }
+
   if ( ! RESTART ) {
     if ( CLEAN_ALL ) {
       execute('cleanAll');
@@ -792,21 +819,31 @@ task('Build everything specified by flags.', [], function all() {
   }
 });
 
+// NOTE: order of all of the following setup is very important
+
+// Process command line arguments
+processSingleCharArgs(ARGS, moreUsage);
+
+// invoked by require
 globalThis.foam = {
   POM: function (pom) {
     PROJECT   = pom;
     POM_TASKS = pom.tasks;
-    APP_NAME  = pom.name || APP_NAME;
-    JAVA_RELEASE = pom.java || JAVA_RELEASE;
-    VERSION   = pom.version || VERSION;
-    VENDOR    = pom.vendor || VENDOR;
-    VENDOR_ID = pom.vendorId || VENDOR_ID;
+    APP_NAME  = APP_NAME || pom.name;
+    JAVA_RELEASE = JAVA_RELEASE || pom.java || JAVA_RELEASE_DEFAULT;
+    VERSION   = VERSION || pom.version || VERSION_DEFAULT;
+    VENDOR    = VENDOR || pom.vendor || APP_NAME;
+    VENDOR_ID = pom.vendorId;
   }
 };
 
+// build pom map for POM_TASKS, and ensure POMS list is viable
+var poms = pom();
+
 // Load the root/first pom - invokes globalThis.foam above.
 let rootPom = POMS.split(',')[0]+'.js';
-if ( rootPom != 'pom.js' ) info('Loading '+rootPom);
+if ( rootPom != 'pom.js' )
+  info('Loading '+rootPom);
 require(PWD + '/'+rootPom);
 
 // Install POM tasks
@@ -814,7 +851,6 @@ if ( POM_TASKS ) {
   POM_TASKS.forEach(f => task(f));
 
   // Exports local variables and functions for POM tasks
-  var poms = pom();
   EXPORTS = {
     APP_NAME,
     BUILD_DIR,
@@ -831,11 +867,6 @@ if ( POM_TASKS ) {
     poms
   };
 };
-
-// Process command line arguments
-// process after require(pom) so command line arguments can
-// supercede pom arguments
-processSingleCharArgs(ARGS, moreUsage);
 
 // start the build
 TASKS.split(',').forEach(t => {
