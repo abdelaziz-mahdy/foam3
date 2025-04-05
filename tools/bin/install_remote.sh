@@ -69,9 +69,17 @@ fi
 
 if [ -z "${NAME}" ]; then
     NAME=$(./foam3/tools/build.js -XappName | grep "Application Name" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
+    if [ -z "${NAME}" ]; then
+        echo "ERROR :: Name undefined"
+        exit 1
+    fi
 fi
 if [ -z "${VERSION}" ]; then
     VERSION=$(./foam3/tools/build.js -Xversions | grep "Application Version" | sed -E 's/(.*):{1}(.*)/\2/' | tr -d '[:blank:]')
+    if [ -z "${VERSION}" ]; then
+        echo "ERROR :: Version undefined"
+        exit 1
+    fi
 fi
 
 if [ -f $RC_FILE ]; then
