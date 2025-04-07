@@ -180,38 +180,38 @@ function error(...args) {
 
 // build pom map and ensure the POMS list is viable
 function pom() {
-  var poms    = {};
-  var addPom = fn => {
+  var poms   = [];
+  function addPom(fn) {
     if ( ! fs.existsSync(fn + '.js') )
       error('File not found ' + fn + '.js');
     else
-      poms[fn] = true;
+      poms.push(fn);
   };
 
   if ( ! POMS ) {
     POMS = 'pom';
   }
-  if ( POMS ) {
-    var root = false;
-    POMS.split(',').forEach(c => {
-      addPom(c && `${PROJECT_HOME}/${c}`);
-      root = root || c == 'pom';
-    });
-    // backward compatibility - hithertoo, only the root directory pom
-    // was 'require(pom)' to start the build process.  Now, the initial
-    // pom can be specified. When not explicitly specified, the first
-    // pom will most likely be set to a deployment pom via -J. The build
-    // will fail if the foam pom is not specified.
-    if ( ! root ) {
-      POMS = comma('pom', POMS);
-      warning('Added /pom');
-    }
+
+  var root = false;
+  POMS.split(',').forEach(c => {
+    addPom(c && `${PROJECT_HOME}/${c}`);
+    root = root || c == 'pom';
+  });
+  // backward compatibility - hithertoo, only the root directory pom
+  // was 'require(pom)' to start the build process.  Now, the initial
+  // pom can be specified. When not explicitly specified, the first
+  // pom will most likely be set to a deployment pom via -J. The build
+  // will fail if the foam pom is not specified.
+  if ( ! root ) {
+    addPom('pom', 'pom');
+    POMS = comma('pom', POMS);
+    warning('Added /pom');
   }
 
   if ( JOURNALS )
     JOURNALS.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/deployment/${c}/pom`));
 
-  return Object.keys(poms).join(',');
+  return poms.join(',');
 }
 
 // Environment Variables which are exported when updated
@@ -322,13 +322,7 @@ const ARGS = {
   j: [ 'Delete runtime journals.',
     () => DELETE_RUNTIME_JOURNALS = true ],
   J: [ 'JOURNALS : comma seperated list of additional journal directories, relateive to deployment/ from the root project.',
-       args => {
-         JOURNALS = comma(JOURNALS, args);
-         args.split(',').forEach(j => {
-           POMS = comma(POMS, 'deployment/'+j+'/pom');
-         });
-       }
-     ],
+       args => JOURNALS = comma(JOURNALS, args) ],
   k: [ 'Package up a deployment tarball.',
     () => { TAR = true; } ],
   N: [ `NAME : Used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.`,
