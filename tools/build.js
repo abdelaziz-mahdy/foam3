@@ -60,6 +60,7 @@ const os       = require('os');
 const { join } = require('path');
 const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, processSingleCharArgs, rmdir, rmfile, spawn } = require('./buildlib');
 const PWD      = process.cwd();
+require('../src/foam_node.js');
 
 process.on('unhandledRejection', e => {
   console.error("ERROR: Unhandled promise rejection ", e);
@@ -425,7 +426,11 @@ task('Build usage examples', [], function usage() {
   console.log('./build.sh -XcleanAll,all');
   console.log('    Perform an extra deep clean before building normally.');
   console.log('./build.sh -Htopic');
-  console.log('    Print usage for \'topic\'. Ex: ./build.sh -HcleanAll  or  ./build.sh -Ha');
+  console.log('    Print usage for \'topic\'. Ex: ./build.sh -HcleanAll  or  ./xobuild.sh -Ha');
+});
+
+task('Test', ['setupDirs'], function test() {
+  require('./rmake.js')(`-makers=Copy -pom=${pom()} -builddir=${BUILD_DIR}`);
 });
 
 task('Copy foam-bin into webroot for inclusion in JAR.', ['setupDirs'], function jarWebroot() {
@@ -434,6 +439,7 @@ task('Copy foam-bin into webroot for inclusion in JAR.', ['setupDirs'], function
 
 task('Run pom copy[] tasks for inclusion in JAR.', [], function copy() {
   execSync(__dirname + `/pmake.js -makers=Copy -pom=${pom()} -builddir=${BUILD_DIR}`, {stdio: 'inherit'});
+//  require('./rmake.js')(`-makers=Copy -pom=${pom()} -builddir=${BUILD_DIR}`);
 });
 
 task('Copy images from src sub directories to BUILD_DIR/images.', [], function jarImages() {
@@ -818,30 +824,42 @@ task('Build everything specified by flags.', [], function all() {
 processSingleCharArgs(ARGS, moreUsage);
 
 // invoked by require
-globalThis.foam = {
-  POM: function (pom) {
-    PROJECT   = pom;
-    POM_TASKS = pom.tasks;
-    APP_NAME  = APP_NAME || pom.name;
-    JAVA_RELEASE = JAVA_RELEASE || pom.java || JAVA_RELEASE_DEFAULT;
-    VERSION   = VERSION || pom.version || VERSION_DEFAULT;
-    VENDOR    = VENDOR || pom.vendor || APP_NAME;
-    VENDOR_ID = pom.vendorId;
-  }
+// globalThis.foam.POM = function(pom) {
+// POM: function (pom) {
+//globalThis.foam = {
+//  POM: function (pom) {
+
+var SUPER = foam.POM;
+
+// Move to EnvMaker / ConfigMaker ...
+foam.POM = function(pom) {
+  PROJECT   = pom;
+//  POM_TASKS = pom.tasks;
+  APP_NAME  = APP_NAME || pom.name;
+  JAVA_RELEASE = JAVA_RELEASE || pom.java || JAVA_RELEASE_DEFAULT;
+  VERSION   = VERSION || pom.version || VERSION_DEFAULT;
+  VENDOR    = VENDOR || pom.vendor || APP_NAME;
+  VENDOR_ID = pom.vendorId;
 };
 
 // build pom map for POM_TASKS, and ensure POMS list is viable
 var poms = pom();
 
 // Load the root/first pom - invokes globalThis.foam above.
+// NOTE: will not be required with EnvMaker
 let rootPom = POMS.split(',')[0]+'.js';
 if ( rootPom != 'pom.js' )
   info('Loading '+rootPom);
 require(PWD + '/'+rootPom);
 
-// Install POM tasks
-if ( POM_TASKS ) {
-  POM_TASKS.forEach(f => task(f));
+// delete cache so pom can be required again during pmake
+delete require.cache[require.resolve(PWD + '/'+rootPom)];
+// reset foam.POM as it occludes foam.js foam.POM which allows pmake to loadFiles
+foam.POM = SUPER;
+
+// Install POM tasks - move to TaskMaker
+// if ( POM_TASKS ) {
+//   POM_TASKS.forEach(f => task(f));
 
   // Exports local variables and functions for POM tasks
   EXPORTS = {
@@ -859,7 +877,7 @@ if ( POM_TASKS ) {
     execSync,
     poms
   };
-};
+// };
 
 // start the build
 TASKS.split(',').forEach(t => {

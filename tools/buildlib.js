@@ -13,7 +13,7 @@ const path_ = require('path');
 
 function adaptOrCreateArgs(X, args) {
   /**
-    If listed arguments from are found in X, then adapt their value
+    If listed arguments are found in X, then adapt their value
     to appropriate type if an adapter based on their class: is available.
     Otherwise, create a binding in X if argument has a factory: or value:.
   **/
@@ -149,7 +149,8 @@ function spawn(s) {
 
 
 function exportEnv(name, value) {
-  console.log(`export ${name}="${value}"`);
+  if ( ENV['VERBOSE'] && ENV['VERBOSE'][1] )
+    console.log(`export ${name}="${value}"`);
   process.env[name] = value;
 }
 

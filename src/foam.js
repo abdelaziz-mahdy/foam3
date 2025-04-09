@@ -196,6 +196,7 @@
       pom.location = foam.cwd;
       pom.path     = foam.sourceFile;
       foam.poms.push(pom);
+      console.log('foam.js,POM');
       function loadFiles(files, isProjects) {
         files && files.forEach(f => {
           var name = f.name;

@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
- var path_ = require('path');
+var path_ = require('path');
 
 globalThis.foam = {
   isServer: true,
@@ -35,15 +35,17 @@ globalThis.foam = {
   },
   */
   require: function (fn, batch, isProject, webFoam) {
+    // console.log('foam_node', 'require', fn);
     if ( ! fn ) return;
 
     // ???: foam.resolve()?
     var cwd = foam.cwd;
     try {
       var path = path_.resolve(foam.cwd, fn) + '.js';
-      if ( ! isProject && globalThis.foam.seen(path) ) return;
+      if ( ! isProject && globalThis.foam.seen(path) ) { console.log('foam_node,require,return'); return; }
       foam.cwd = path_.dirname(path);
       foam.sourceFile = path;
+      console.log('foam_node,require,path', path);
       require(path);
     } finally {
       foam.cwd = cwd;

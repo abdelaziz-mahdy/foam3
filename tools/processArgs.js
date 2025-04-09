@@ -5,8 +5,13 @@
  */
 
 function processArgs(usage, x, defaultFlags, cmds) {
-  var flags = globalThis.foam.flags;
-  var argv  = process.argv.slice(2);
+
+  var flags = globalThis.foam.flags || {};
+  var argv = usage && usage[0].split(' ') || process.argv.slice(2);
+
+//  console.log('before');
+//  console.log('processArgs argv', argv);
+//  console.log('processArgs argv.length', argv.length);
 
   if ( defaultFlags ) for ( var key in defaultFlags ) {
     flags[key] = defaultFlags[key];
@@ -26,7 +31,7 @@ function processArgs(usage, x, defaultFlags, cmds) {
       if ( flagKeys.length ) {
         flagList = '[ -flags=' + flagKeys.map(k => (defaultFlags[k] ? '-' : '') + k).join(',') + ' ]';
       }
-      console.log('USAGE:', process.argv[1], flagList + cmdList + argList, usage);
+      console.log('USAGE:', process.argv[1], flagList + cmdList + argList); //, usage);
 
       // If a 'usage' method is supplied in cmds, then call it to provide extra usage information.
       cmds && cmds.usage && cmds.usage();
@@ -58,6 +63,9 @@ function processArgs(usage, x, defaultFlags, cmds) {
       }
     }
   }
+//  console.log('after');
+//  console.log('processArgs x', x);
+//  console.log('processArgs flags', flags);
 
   return [argv, x, flags];
 }
