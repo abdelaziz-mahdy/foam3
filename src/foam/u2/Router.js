@@ -8,8 +8,8 @@ foam.CLASS({
   package: 'foam.u2',
   name: 'Router',
   extends: 'foam.u2.Controller',
+  implements: [ 'foam.u2.Routable' ],
   mixins: [ 'foam.u2.memento.Memorable' ],
-  implements: ['foam.u2.Routable'],
 
   documentation: `A special type of controller class that simplifies handling of breadcrumbs, stacks and mementos.
     Routers must instantiate using the addCrumb() (usually in the init()).
@@ -22,13 +22,19 @@ foam.CLASS({
   properties: [
     {
       name: 'route',
-      memorable: true
+      memorable: true,
+      transient: true
     },
-    ['routingFeedback_', false]
+    {
+      name: 'routingFeedback_',
+      value: false,
+      transient: true
+    ]
   ],
+
   methods: [
     function addCrumb() {
-      // Simplest implementation of adding breadcrumbs, other routers 
+      // Simplest implementation of adding breadcrumbs, other routers
       // might need something more complex
       this.breadcrumbs?.push(this);
       this.dynamic(function(route) {

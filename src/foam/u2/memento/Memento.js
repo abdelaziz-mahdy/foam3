@@ -393,6 +393,7 @@ foam.CLASS({
       name: 'memento_',
       documentation: 'Memento bound to this object.',
       hidden: true,
+      transient: true,
       factory: function() {
         // If no top-level Memento found, then create a WindowHashMemento to be
         // the top-level one.
