@@ -342,8 +342,8 @@ If empty then no permissions are required.`
 
     function installInProto(proto) {
       var action = this;
-      proto[this.name] = function(x) {
-        return action.maybeCall(x || this.__context__, this);
+      proto[this.name] = function(x, data) {
+        return action.maybeCall(x || this.__context__, data || this);
       };
     }
   ]

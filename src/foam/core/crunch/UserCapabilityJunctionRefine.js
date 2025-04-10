@@ -41,8 +41,6 @@ foam.CLASS({
     'java.util.Date'
   ],
 
-  topics: [ 'finished' ],
-
   imports: [
     'capabilityDAO',
     'crunchService',
