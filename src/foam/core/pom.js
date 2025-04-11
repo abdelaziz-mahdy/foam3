@@ -392,6 +392,7 @@ foam.POM({
     { name: "google/api/sheets/views/GoogleSheetsDataImportServiceImpl",                  flags: "js|java" },
     { name: "google/api/sheets/views/ImportDataMessage",                                  flags: "js|java" },
     { name: "google/api/sheets/views/wizardModal/WizardModal",                            flags: "js" },
+    { name: "google/api/sheets/views/wizardModal/WizardModalNavigationBar",               flags: "js" },
     { name: "google/api/sheets/views/wizardModal/WizardModalSubView",                     flags: "js" },
     { name: "google/api/sheets/views/modal/ColumnsToPropertiesMappingModal",              flags: "js" },
     { name: "google/api/sheets/views/modal/GoogleSheetImportModal",                       flags: "js" },
