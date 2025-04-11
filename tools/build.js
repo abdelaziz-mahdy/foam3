@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * @license
+ * Copyright 2024 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
 // Build and Deploy a FOAM Application
 //
 // Tools
@@ -60,9 +65,8 @@ const os       = require('os');
 const { join } = require('path');
 const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, processSingleCharArgs, rmdir, rmfile, spawn } = require('./buildlib');
 const PWD      = process.cwd();
-// require('../src/foam_node.js');
-// delete require.cache[require.resolve('../src/foam_node.js')];
 const pmake    = require('./rmake.js');
+require('../src/foam_node.js');
 
 process.on('unhandledRejection', e => {
   console.error("ERROR: Unhandled promise rejection ", e);
@@ -100,6 +104,14 @@ function task(desc, dep, f) {
       rec[0] = ''.padEnd(2*depth) + f.name;
       rec[2] = start;
       depth++;
+    }
+
+    let pomTask = POM_TASKS && POM_TASKS[f.name];
+    if ( pomTask ) {
+      info(`POM Tasks :: ${f.name}`);
+      pomTask.forEach(k => {
+        k.bind(Object.assign({}, EXPORTS))(...args);
+      });
     }
 
     f.bind(Object.assign({ SUPER }, EXPORTS))(...args);
@@ -216,10 +228,14 @@ function pom() {
 }
 
 // Build flag string with global and argument flags
-function flag(flags) {
-  if ( ! FLAGS ) return flags;
-  if ( ! flages) return '';
-  return FLAGS + ',' + flags;
+function flag(flgs) {
+  var f = VERBOSE ? 'verbose' : '';
+  if ( FLAGS )
+    f = (f ? f +',' : '') + FLAGS;
+
+  if ( flgs )
+    f = (f ? f +',' : '') + flgs;
+  return f;
 }
 
 // Environment Variables which are exported when updated
@@ -241,7 +257,7 @@ const ENVS = {
   DOCUMENT_HOME:     ['Appplication documents directory',() => `${APP_HOME}/documents`],
   DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
   EXPORTS:           ['Build environment variables which will be exported to pom tasks.'],
-  FLAGS:             ['pmake flags'],
+  FLAGS:             ['pmake flags','loadFiles'],
   FOAM_REVISION:     ['FOAM Revision ?'],
   FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
   GEN_JAVA:          ['Generate Java from model files',true],
@@ -264,6 +280,7 @@ const ENVS = {
   LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -ELOG_LEVEL=INFO',null],
   POMS:              ['CSV list of pom files to process,minus any suffix. Defaults to the pom at the root of the project.'],
   POM_TASKS:         ['CSV list of tasks from the root pom'],
+  POM_ENVS:          ['Environment variables expected to be set from POMs', 'APP_NAME:name,JAVA_RELEASE:java,VERSION:version,VENDOR:vendor,VENDOR_ID:vendorId'],
   PROFILER:          ['Enable JVM profiling',false],
   PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded'],
@@ -439,16 +456,21 @@ task('Build usage examples', [], function usage() {
   console.log('    Print usage for \'topic\'. Ex: ./build.sh -HcleanAll  or  ./xobuild.sh -Ha');
 });
 
-task('Copy foam-bin into webroot for inclusion in JAR.', ['setupDirs'], function jarWebroot() {
-  JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
-});
-
-task('Test', ['setupDirs'], function test() {
-  pmake(`-makers=Test -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
+task('Capture POM specified environment values and register POM tasks for later execution that the corresponding build tasks is executed.', [], function pomEnvs() {
+  pmake(`-makers=Env,Task -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR} -envs=${POM_ENVS}`);
+  Object.keys(X.pomenvs).forEach(k => {
+    globalThis[k] = X.pomenvs[k];
+    // info(`[pomEnvs] globalThis[${k}] ${globalThis[k]}`);
+  });
+  POM_TASKS = X.pomTasks;
 });
 
 task('Run pom copy[] tasks for inclusion in JAR.', ['setupDirs'], function copy() {
   pmake(`-makers=Copy -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
+});
+
+task('Copy foam-bin into webroot for inclusion in JAR.', ['setupDirs'], function jarWebroot() {
+  JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
 });
 
 task('Copy images from src sub directories to BUILD_DIR/images.', [], function jarImages() {
@@ -543,7 +565,7 @@ task('Remove foam-bin files.', [], function cleanFOAM() {
 task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion', 'setupDirs'], function genJS() {
   let version = FOAM_BIN_VERSION;
   // let flags = flag('web,-java');
-  let flags = flag('web');
+  let flags = flag('web,-loadFiles');
   let outdir = BUILD_DIR+'/js';
   ensureDir(outdir);
   if ( STAGE_JS ) {
@@ -564,7 +586,7 @@ task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion', 'setupDirs'], fu
 });
 
 task('Run Maven', [], function maven() {
-  pmake(`-makers=Maven -pom=${pom()}`);
+  pmake(`-makers=Maven -flags=${flag('-loadFiles')} -pom=${pom()}`);
 });
 
 task('Remove previously generated JAR.', [], function cleanJava() {
@@ -575,20 +597,21 @@ task('Remove previously generated JAR.', [], function cleanJava() {
 task('Generate Java source from models and complile', ['setupDirs', 'maven', 'cleanJava'], function genJava() {
   ensureDir(BUILD_DIR + '/src/java');
 
-  var flags = flag(VERBOSE ? 'verbose' : '');
+  var flags = flag();
   var makers = VERBOSE ? 'Verbose,' : '';
   // NOTE: Java and Javac Maker must be run together as they share data through X
   makers += 'Java,Javac';
+  makers += ',Journal,Doc';
   pmake(`-makers=${makers} -flags=${flags} -pom=${pom()} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS || JAVAC_PARAMS_DEFAULT}'`);
 });
 
-task('Copy journals into build directory', ['setupDirs'], function journal() {
-  pmake(`-makers=Journal -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
-});
+// task('Copy journals into build directory', ['setupDirs'], function journal() {
+//   pmake(`-makers=Journal -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
+// });
 
-task('Copy documentation into build directory', ['setupDirs'], function doc() {
-  pmake(`-makers=Doc -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
-});
+// task('Copy documentation into build directory', ['setupDirs'], function doc() {
+//   pmake(`-makers=Doc -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
+// });
 
 task('Generate and compile Java, prepare build for Java deployment', ['genJava', 'journal', 'doc'], function buildJava() {
 });
@@ -809,7 +832,7 @@ task('Stop CORE server.', [], function stopCORE() {
 // # Build steps
 // ############################
 
-task('Build everything specified by flags.', [], function all() {
+task('Build everything specified by flags.', ['pomEnvs'], function all() {
   if ( ! ( TAR || BUILD_ONLY ) ) {
     execute('stopCORE');
   }
@@ -845,46 +868,11 @@ task('Build everything specified by flags.', [], function all() {
   }
 });
 
-// NOTE: order of all of the following setup is very important
-
 // Process command line arguments
 processSingleCharArgs(ARGS, moreUsage);
 
-// var SUPER = globalThis.foam.POM;
-
-// // Move to EnvMaker / ConfigMaker ...
-// globalThis.foam = {
-//   POM: function(pom) {
-//     PROJECT   = pom;
-//     POM_TASKS = pom.tasks; // Replace with TaskMaker
-//     APP_NAME  = APP_NAME || pom.name;
-//     JAVA_RELEASE = JAVA_RELEASE || pom.java || JAVA_RELEASE_DEFAULT;
-//     VERSION   = VERSION || pom.version || VERSION_DEFAULT;
-//     VENDOR    = VENDOR || pom.vendor || APP_NAME;
-//     VENDOR_ID = pom.vendorId;
-//   }
-// };
-
 // build pom map for POM_TASKS, and ensure POMS list is viable
 var poms = pom();
-
-// Load the root/first pom - invokes globalThis.foam above.
-// NOTE: will not be required with EnvMaker
-let rootPom = POMS.split(',')[0]+'.js';
-if ( rootPom != 'pom.js' )
-  info('Loading '+rootPom);
-require(PWD + '/'+rootPom);
-// delete cache so pom can be required again during pmake
-delete require.cache[require.resolve(PWD + '/'+rootPom)];
-
-// reset foam.POM as it occludes foam.js foam.POM which allows pmake to loadFiles
-// delete globalThis.foam;
-
-// Install POM tasks - move to TaskMaker
-if ( POM_TASKS ) {
-  POM_TASKS.forEach(f => task(f));
-}
-
 // Exports local variables and functions for POM tasks
 EXPORTS = {
   APP_NAME,
@@ -899,7 +887,7 @@ EXPORTS = {
   ensureDir,
   exec,
   execSync,
-  poms
+  pom
 };
 
 // start the build

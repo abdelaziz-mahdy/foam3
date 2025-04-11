@@ -30,10 +30,8 @@ const fs_   = require('fs');
 const path_ = require('path');
 const b_    = require('./buildlib');
 
-require('../src/foam_node.js');
-
 var pmake = function(...args) {
-  
+  console.log('rmake,foam', Object.keys(foam.loaded).length);
   // TODO: new version of processArgs which takes a map
   var [argv, X, flags] = require('./processArgs')( 
     args,
@@ -46,7 +44,7 @@ var pmake = function(...args) {
     },
     {
       // TODO: it would be better if the Makers specified if they needed files loaded or not
-      loadFiles:   false,  // controls if individual .js files are loaded or not
+      loadFiles:   true,   // controls if individual .js files are loaded or not
       verbose:     false   // print extra status information
     },
     {
@@ -70,7 +68,6 @@ var pmake = function(...args) {
       }
     }
   );
-
 
   var SUPER_X        = Object.assign({}, globalThis.X);
   globalThis.X       = X;
