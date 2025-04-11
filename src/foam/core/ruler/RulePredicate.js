@@ -162,8 +162,14 @@ foam.CLASS({
       return this.name;
     },
     function installInClass(cls) {
-      // RulePredicates are Java-only, so just record the class
       this.of = cls;
+      var model = foam.RULE_PREDICATE_({
+        name:       this.name,
+        ruleF:      this.javaCode,
+        properties: this.properties || []
+      }, true);
+
+      foam.lang.InnerClass.create({model: model}).installInClass(cls);
     },
 
     function buildJavaClass(cls) {
@@ -183,6 +189,7 @@ foam.CLASS({
       `;
 
       var model = foam.RULE_PREDICATE_({
+        package: cls.id,
         name:       this.name,
         ruleF:      javaCode,
         properties: this.properties || []
