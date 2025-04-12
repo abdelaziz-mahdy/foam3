@@ -71,13 +71,40 @@ function testP(log, parser, strs) {
   });
 }
 
-testP(log, P.literal('abc'), [ 'abc', 'abcdef', 'abC', 'xyz' ]);
+testP(log, P.literal('abc'), [ 'abc', 'abcdef', 'Abc', 'ABC', 'xyz' ]);
 
 globalThis.P = P;
 globalThis.testP = testP;
+
+## Literal Ignore Case
+The literalIC() parser is like literal(), that we saw earlier, but it performs a
+case-insensitive match.
+Notice that it also parses 'Abc' and 'ABC', whereas the literal() didn't.
+--
+testP(log, P.literalIC('abc'), [ 'abc', 'abcdef', 'Abc', 'ABC', 'xyz' ]);
+
+## Any Char
+The anyChar() parser is the most indiscriminating parser. It will parse any character.
+Notice that the only case where it fails to parse is when given an empty input.
+--
+testP(log, P.anyChar(), [ 'abc', 'ABC', '!@#$%', '' ]);
+
+## EOF
+EOF is a standard acronym for End Of File, but more generally it means the end of
+any input source.
+It is, in a way, the oppose of the anyChar() parser, since it won't parse any character
+except the EOF.
+--
+testP(log, P.eof(), [ 'abc', 'ABC', '!@#$%', '' ]);
 
 ## Chars Parser
 The chars() parser will parse any single character which is included as part of the
 supplied string.
 --
-testP(log, P.chars('abc'), [ 'abc', 'bbc', 'cbc', 'xbc' ]);
+testP(log, P.chars('abc'), [ 'abc', 'bbc', 'cbc', 'xbc', '' ]);
+
+## Not Chars Parser
+The notChars() parser will parse any single character which is NOT included as part of the
+supplied string. However, it will not parse EOF.
+--
+testP(log, P.notChars('abc'), [ 'abc', 'bbc', 'cbc', 'xbc', '' ]);
