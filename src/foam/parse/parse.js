@@ -811,6 +811,7 @@ foam.CLASS({
     'foam.parse.Sequence0',
     'foam.parse.Sequence1',
     'foam.parse.String',
+    'foam.parse.StringPStream',
     'foam.parse.Substring',
     'foam.parse.Symbol',
     'foam.parse.Until',
@@ -820,6 +821,12 @@ foam.CLASS({
   axioms: [ foam.pattern.Singleton.create() ],
 
   methods: [
+    function stringPStream(s) {
+      var ps = this.StringPStream.create();
+      ps.setString(s);
+      return ps;
+    },
+
     function seq() {
       return this.Sequence.create({
         args: Array.from(arguments)
