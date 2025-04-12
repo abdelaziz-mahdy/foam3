@@ -34,16 +34,28 @@ parser combinators are defined in foam/parse/parse.js
   is stored in the .value property of the returned PStream.
 
 --
+
+## Literal Parser
+The simplest parser is a literal parser, which only parses the supplied string.
+--
 var P  = foam.parse.Parsers.create(); // Is a Singleton
 var ps = foam.parse.StringPStream.create();
 ps.setString('abcdef');
 log(ps.toString());
 var p = P.literal('abc');
-var res = p.parse(ps, {});
-log(res.toString());
+ps = p.parse(ps, {});
+log(ps.toString());
 
 // There's also a convenience method for create StringPStreams in foam.parse.Parsers:
 log(p.parse(P.stringPStream('abcdef')).toString());
+
+// Now that we've parsed the literal 'abc', the ps has consumed the characters 'abc'
+// and we can continue parsing from just beyond that point.
+log(P.literal('def').parse(ps).toString());
+
+
+// Since the parser only parses the literal 'abc', it will fail if given something else:
+log(typeof p.parse(P.stringPStream('xyzdef')));
 
 ## String Parser
 blah blah
