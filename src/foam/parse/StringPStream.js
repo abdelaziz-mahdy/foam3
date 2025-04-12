@@ -8,6 +8,8 @@ foam.CLASS({
   package: 'foam.parse',
   name: 'StringPStream',
 
+  documentation: "Doesn't take arguments in create(). Must call setString() to initialize.",
+
   properties: [
     {
       name: 'str',
@@ -88,6 +90,10 @@ foam.CLASS({
 
     function compareTo(o) {
       return this.pos - o.pos;
+    },
+
+    function toString() {
+      return `StringPStream({str: ${this.str[0]}, pos: ${this.pos}, value: ${this.value}})`;
     }
   ]
 });
