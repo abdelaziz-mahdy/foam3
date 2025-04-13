@@ -40,6 +40,11 @@ First we'll start off by explaining the "simple" parsers:
 --
 
 ## Literal Parser
+We use the foam.parse.Parsers Singleton class which provides convenience constructors
+for the various parser types. When writing a Parser class, we would just mixin: this
+class the easily gain access to these functions.
+
+
 The simplest parser is a literal parser, which only parses the supplied string.
 --
 var P  = foam.parse.Parsers.create(); // Is a Singleton
@@ -50,13 +55,9 @@ var p = P.literal('abc');
 ps = p.parse(ps, {});
 log(ps.toString());
 
-// There's also a convenience method for create StringPStreams in foam.parse.Parsers:
-log(p.parse(P.stringPStream('abcdef')).toString());
-
 // Now that we've parsed the literal 'abc', the ps has consumed the characters 'abc'
 // and we can continue parsing from just beyond that point.
 log(P.literal('def').parse(ps).toString());
-
 
 // Since the parser only parses the literal 'abc', it will fail if given something else:
 log(typeof p.parse(P.stringPStream('xyzdef')));
@@ -79,6 +80,20 @@ testP(log, P.literal('abc'), [ 'abc', 'abcdef', 'Abc', 'ABC', 'xyz' ]);
 
 globalThis.P = P;
 globalThis.testP = testP;
+
+## StringPStreams
+There's also a convenience method for creating StringPStreams in foam.parse.Parsers.
+It lets you create an populate a StringPStream at once rather than having to create
+the StringPStream and then call setString().
+Notice that the two StringPStreams appear identially, even though they are created in
+different ways.
+--
+var ps = foam.parse.StringPStream.create();
+ps.setString('abc');
+log(ps.toString());
+
+log(P.stringPStream('abc').toString());
+
 
 ## Literal Ignore Case
 The literalIC() parser is like literal(), that we saw earlier, but it performs a
@@ -234,7 +249,31 @@ testP(
   [ 's', 's@', 's@c', 's@C&', 's@C&t', 's@C&t1' ]
 );
 
-## Optional
+## Not Parser
+The Not parser is unusual in that it suceeds only if it's delegate parser fails.
+--
+var quote        = P.literal('"');
+var stringBody   = P.str(P.repeat(P.not(quote, P.anyChar())));
+var stringParser = P.seq(quote, stringBody, quote);
+testP(log, stringParser, [ '""', '"a"', '"abc13234$@#$"', '"abc"asfasdf"' ]);
+
+## Seq1 Parser
+Notice that in the previous string parser example, our result value was an array where
+the first and last elements were the quote '"' characters, and the second element
+was the actual string value we wanted. We would like the output value to ignore the
+surrounding syntax and just return us the one inner value that we're interested in.
+This is common enough to warrant it's own parse combinator. Seq1 behaves just like the reqular
+seq() parser except instead of returning an array of values parsed by the delegates, it only
+returns the return value of one parser, the index of which you specify as the first argument.
+By using seq1(1, ...) instead of seq(...) we tell the parser to ignore the quote parsers and
+just give us the result of the stringBody parser, which is at location 1 (starting at zero).
+--
+var quote        = P.literal('"');
+var stringBody   = P.str(P.repeat(P.not(quote, P.anyChar())));
+var stringParser = P.seq1(1, quote, stringBody, quote);
+testP(log, stringParser, [ '""', '"a"', '"abc13234$@#$"', '"abc"asfasdf"' ]);
+
+## Optional Parser
 The optional() parser composes a single delegate parser and if that parser parses, then it returns
 its result, otherwise it returns the PStream as is, without failing. This lets parsing
 continue from the same point.
@@ -248,6 +287,11 @@ The following example uses optional() several times to create a phone number par
 the long distance '1', the area code, and some punctuation are all optional.
 Notice that the parser also uses the str() combinator in several spots to ensure the final
 output is a string rather than an array.
+Notice this line: P.optional(P.literal('-'), '-'),
+We can specify a second parameter to optional() that returns the value to be used if the parser
+doesn't parse. In this case, we just want the add '-' if it wasn't present, to standardize
+the output format of the parser.
+
 --
 
 var digit    = P.range('0', '9');
@@ -270,3 +314,13 @@ testP(log, phoneNumber, [
   '555-1234',
   '5551234'
 ]);
+
+## Optimizations
+## Repeat0
+## Seq0
+
+## Example: Boolean
+--
+var booleanParser = P.alt(P.literal('true', true), P.literal('false', false));
+
+testP(log, booleanParser, [ 'true', 'false' ]);
