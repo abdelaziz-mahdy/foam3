@@ -242,3 +242,31 @@ continue from the same point.
 testP(log, P.seq(P.optional(P.literal('header')), P.literal('body')),
   [ 'headerbody', 'body', 'header' ]
 );
+
+## Example
+The following example uses optional() several times to create a phone number parser where
+the long distance '1', the area code, and some punctuation are all optional.
+Notice that the parser also uses the str() combinator in several spots to ensure the final
+output is a string rather than an array.
+--
+
+var digit    = P.range('0', '9');
+var areaCode = P.str(P.seq(P.literal('('), digit, digit, digit, P.literal(')')));
+var phoneNumber = P.str(P.seq(
+  P.optional(P.literal('1')),
+  P.optional(P.literal(' ')),
+  P.optional(areaCode),
+  P.optional(P.literal(' '), ' '),
+  P.str(P.seq(digit, digit, digit)),
+  P.optional(P.literal('-'), '-'),
+  P.str(P.seq(digit, digit, digit, digit))
+));
+
+testP(log, phoneNumber, [
+  '1 (555) 555-1234',
+  '1(555) 555-1234',
+  '(555) 555-1234',
+  '(555)555-1234',
+  '555-1234',
+  '5551234'
+]);
