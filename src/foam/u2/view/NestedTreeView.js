@@ -142,7 +142,7 @@ foam.CLASS({
               self.selection = obj;
               isFirstSet = true;
             }
-            return this.E().tag({
+            let t = {
               class:        foam.u2.view.TreeViewRow,
               data:         obj,
               relationship: self.relationship,
@@ -152,7 +152,12 @@ foam.CLASS({
               // Unless specified, stop nesting after one level
               onClickAddOn: this.continueNesting || ! currentRoot ? self.onClickAddOn1 : self.onClickAddOn,
               level:        1
-            });
+            }
+            if ( this.U3 ) {
+              this.tag(t);
+            } else {
+              return this.E().tag(t);
+            }
           });
         }));
     }

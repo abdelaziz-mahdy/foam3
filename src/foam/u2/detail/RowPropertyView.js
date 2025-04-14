@@ -40,7 +40,8 @@ foam.CLASS({
   `,
 
   properties: [
-    'prop'
+    'prop',
+    'isRow_'
   ],
 
   methods: [
@@ -48,30 +49,33 @@ foam.CLASS({
       const self = this;
       const sup = this.SUPER;
       this.initContainer();
-      this.add(this.dynamic(function(containerWidth) {
-        let isRow = containerWidth?.minWidth <= foam.u2.layout.DisplayWidth.XS.minWidth;
-        this.enableClass(self.myClass('row'), ! isRow);
-        if ( isRow ) {
+      this.isRow_$ = this.inlineSize$.map(v => v > foam.u2.layout.DisplayWidth.XS.minWidth);
+      // dynamic is implemented manually and not through add() here as the sup.call() will always add to "this" element and
+      // not to the dynamic node. Hence removal has to be performed on this element.
+      this.dynamic(function(isRow_) {
+        this.removeAllChildren();
+        this.enableClass(self.myClass('row'), isRow_);
+        if ( ! isRow_ ) {
           sup.call(self);
         } else {
           this
-          .start()
-            .add(self.prop.columnLabel).show(self.prop.columnLabel)
-            .addClass(self.myClass('label'))
-          .end()
-          .add(this.slot(function (data, objData) {
-            const el = this.E();
-            const prop = self.prop;
-            prop.tableCellFormatter.format(
-              el,
-              prop.f ? prop.f(objData || data) : null,
-              objData || data,
-              prop
-            );
-            return el;
-          })).addClass(this.myClass('body'));
+            .start()
+              .add(self.prop.columnLabel).show(self.prop.columnLabel)
+              .addClass(self.myClass('label'))
+            .end()
+            .add(this.slot(function(data, objData) {
+              const el = this.E();
+              const prop = self.prop;
+              prop.tableCellFormatter.format(
+                el,
+                prop.f ? prop.f(objData || data) : null,
+                objData || data,
+                prop
+              );
+              return el.addClass(self.myClass('body'));
+            }));
         }
-      }));
+      });
     }
   ]
 });
