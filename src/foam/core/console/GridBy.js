@@ -9,6 +9,8 @@ foam.CLASS({
   name: 'GridBy',
   extends: 'foam.dao.AbstractSink',
 
+  documentation: 'A two-dimensional GroupBy.',
+
   implements: [
     'foam.mlang.Expressions',
     'foam.lang.Serializable'

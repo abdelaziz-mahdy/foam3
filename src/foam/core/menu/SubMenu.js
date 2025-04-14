@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.menu.SubMenuView' ],
 
-  mixins: ['foam.u2.Router'],
+  mixins: [ 'foam.u2.Router' ],
 
   methods: [
     function select() {

@@ -308,7 +308,7 @@ const ARGS = {
     () => CLEAN = true ],
   d: [ 'Run with JDPA debugging enabled on port 8000.',
     () => DEBUG = true ],
-  E: [ 'Set environment variables. Example: -EJAVA_OPTS:-Xmx8g,APP_NAME:demo',
+  E: [ 'Set environment variables. Example: -EJAVA_OPTS:-Xmx8g,APP_NAME:demo or -EJAVA_OPTS:"-Xms12g -Xmx12g"',
        args => {
          args.split(',').forEach(b => {
            var c = b.split(':');

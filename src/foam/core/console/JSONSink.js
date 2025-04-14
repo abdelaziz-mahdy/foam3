@@ -11,7 +11,12 @@ foam.CLASS({
 
   methods: [
     function addToE(e) {
-      e.start('pre').add(foam.json.Pretty.stringify(this.array));
+      var json = foam.json.Outputter.create({
+        pretty: true,
+        strict: true,
+        propertyPredicate: function(o, p) { return ! p.networkTransient; }
+      });
+      e.start('pre').add(json.stringify(this.array));
     }
   ]
 });

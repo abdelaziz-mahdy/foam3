@@ -9,6 +9,8 @@ foam.CLASS({
   name: 'GridByView',
   extends: 'foam.u2.View',
 
+  documentation: 'Table View for GridBy mLang.',
+
   css: `
     ^td { text-align: right; }
     ^ table { border-collapse: collapse; }

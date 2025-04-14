@@ -85,15 +85,15 @@ foam.CLASS({
     },
 
     function renderContent() {
-      var self = this
+      var self = this;
 
-      this.add(this.slot(function(choices) {
+      this.add(function(choices) {
         return choices.map(c => {
           var isChecked = self.slot(function (data) {
             return data == c[0];
           });
           var id = 'u' + c.$UID; // TODO: the 'u' + is for U2 compatibility, remove when all moved to U3
-          return self.E('div')
+          self
             .addClass('p-md', 'choice')
             .callIf(this.columns != -1, function () {
               this.style({'flex-basis': (100 / self.columns) + '%'})
@@ -122,7 +122,7 @@ foam.CLASS({
               .end()
             .end();
         })
-      }))
+      })
     },
 
     function updateMode_(mode) {
