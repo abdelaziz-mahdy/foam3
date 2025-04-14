@@ -226,6 +226,8 @@ foam.CLASS({
               }
             };
 
+            globalThis.scope = scope;
+
             with ( scope ) {
               with ( this.globalScope ) {
                 try {
