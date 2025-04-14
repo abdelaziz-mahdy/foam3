@@ -36,7 +36,22 @@ foam.CLASS({
       justify-content: space-between;
     }
     ^actions {
-        
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      gap: 5px;
+    }
+    ^actions :is(^action,^toggle) {
+      margin: 0;
+    }
+    ^action {
+      padding: 2px 5px;
+      border: none;
+      background-color: rgba(255, 255, 255, .7);
+    }
+    ^action:hover {
+      background-color: rgb(74, 170, 135) !important;
+      color: white !important;
     }
     ^title {
       padding: 3px;
@@ -64,7 +79,6 @@ foam.CLASS({
       color: black;
     }
     ^ .foam-u2-ActionView-toggle {
-      transform: rotate(90deg);
       transition: transform 0.3s;
       background: transparent;
       border-radius: 50%;
@@ -73,13 +87,14 @@ foam.CLASS({
       outline: none;
       padding: 3px;
       width: 30px;
+      min-width: 30px;
       height: 30px;
     }
     ^ .foam-u2-ActionView-toggle:hover {
       background: transparent !important;
     }
     ^.expanded .foam-u2-ActionView-toggle {
-      transform: rotate(180deg);
+      transform: rotate(90deg);
       transition: transform 0.3s;
     }
   `,
@@ -112,7 +127,12 @@ foam.CLASS({
             title: 'Action Accordion',
             actions: [
               {
+                id: 'unique-action-1',  // Must be globally unique.
+                name: 'action-1',  // Can be shared between different accordions for styling purposes, generates a classname.
                 label: 'Action 1',
+                tooltip: 'Action 1 Tip.',
+                icon: 'images/my-action-icon.svg',
+                hoverColor: 'red',
                 action: this.someFunction
               },
               {
@@ -126,6 +146,15 @@ foam.CLASS({
       value: []
     },
     {
+      class: 'String',
+      name: 'expandIconPosition',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [ 'left', 'right' ]
+      },
+      value: 'right'
+    },
+    {
       class: 'Boolean',
       name: 'expanded',
       value: true
@@ -134,6 +163,9 @@ foam.CLASS({
 
   methods: [
     function init() {
+
+      const self = this;
+
       let toolbar = this
         .addClass(this.myClass())
         .enableClass('expanded', this.expanded$)
@@ -144,6 +176,12 @@ foam.CLASS({
       let titleSection = toolbar
         .start('div')
           .addClass(this.myClass('title'));
+
+      if ( this.expandIconPosition === 'left' ) {
+        titleSection.tag(
+          this.ActionView, {action: this.TOGGLE, data: this, icon: 'images/cheveron-right.svg', label: ''}
+        ).addClass(this.myClass('toggle'))
+      }
 
       if ( this.icon !== undefined ) {
         titleSection.tag(this.icon);
@@ -160,11 +198,40 @@ foam.CLASS({
           .addClass(this.myClass('actions'));
 
       if ( this.actions.length > 0 ) {
-        // Add actions to the accordion.
+        for ( let action of this.actions ) {
+          const actionId = `${this.id}-${action.name}`;
+          let actionEl = actionsSection.start(self.ActionView, {
+            id: actionId,
+            action: action.action,
+            data: action.data || self,
+            icon: action.icon || '',
+            label: action.label
+          });
+          
+          actionEl.addClass(self.myClass('action'));
+          if ( action.name ) {
+            actionEl.addClass(self.myClass(action.name));
+          }
+          if ( action.tooltip ) {
+            actionEl.tooltip = action.tooltip;
+          }
+          if ( action.hoverColor ) {
+            const style = self.document.createElement('style');
+            style.id = `${actionId}-hover-style`;
+            style.textContent = `
+              #${actionId}:hover {
+                background-color: ${action.hoverColor} !important;
+              }
+            `;
+            self.document.head.appendChild(style);
+          }
+        }
       }
-
-      //actionsSection.tag(this.ActionView, {action: this.TOGGLE, data: this, label: '\u25BD'})
-      actionsSection.tag(this.ActionView, {action: this.TOGGLE, data: this, icon: 'images/triangle.svg', label: ''})
+      if ( this.expandIconPosition === 'right' ) {
+        actionsSection.start(
+          this.ActionView, {action: this.TOGGLE, data: this, icon: 'images/cheveron-right.svg', label: ''}
+        ).addClass(this.myClass('toggle'));
+      }
 
       this.start('div', null, this.content$)
         //.show(this.expanded$)
