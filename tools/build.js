@@ -114,7 +114,9 @@ function task(desc, dep, f) {
       });
     }
 
-    f.bind(Object.assign({ SUPER }, EXPORTS))(...args);
+    if ( ! DRY_RUN || f.name == 'pomEvns' || f.name == 'all' ) {
+      f.bind(Object.assign({ SUPER }, EXPORTS))(...args);
+    }
 
     running[f.name] -= 1;
     if ( running[f.name] === 0 ) {
@@ -242,6 +244,7 @@ const ENVS = {
   DELETE_RUNTIME_JOURNALS: ['Delete application journals',false],
   DOCUMENT_HOME:     ['Appplication documents directory',() => `${APP_HOME}/documents`],
   DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
+  DRY_RUN:           ['Run build in dry-run mode which just lists tasks that would have run.', false],
   EXPORTS:           ['Build environment variables which will be exported to pom tasks.'],
   FLAGS:             ['pmake flags','loadFiles'],
   FOAM_REVISION:     ['FOAM Revision ?'],
@@ -592,17 +595,6 @@ task('Generate Java source from models and complile', ['setupDirs', 'maven', 'cl
   pmake(`-makers=${makers} -flags=${flags} -pom=${pom()} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS || JAVAC_PARAMS_DEFAULT}'`);
 });
 
-// task('Copy journals into build directory', ['setupDirs'], function journal() {
-//   pmake(`-makers=Journal -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
-// });
-
-// task('Copy documentation into build directory', ['setupDirs'], function doc() {
-//   pmake(`-makers=Doc -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR}`);
-// });
-
-task('Generate and compile Java, prepare build for Java deployment', ['genJava', 'journal', 'doc'], function buildJava() {
-});
-
 task('Check Java dependencies for known vulnerabilities (via Maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', ['maven'], function checkDeps(score) {
   score = score || 9;
   try {
@@ -632,7 +624,7 @@ task('Copy foam-bin files for inclusion in JAR file.', ['genJava'], function jar
   execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/`, {stdio: 'inherit'});
 });
 
-task('Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'buildJava', 'versions', 'jarWebroot', 'jarImages', 'jarJournals', 'copy', 'genManifest', 'jarFOAM' ], function buildJar() {
+task('Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'genJava', 'versions', 'jarWebroot', 'jarImages', 'jarJournals', 'copy', 'genManifest', 'jarFOAM' ], function buildJar() {
   execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF -C ${BUILD_DIR} documents ${JAR_INCLUDES} -C ${BUILD_DIR}/classes .`);
 });
 
@@ -842,7 +834,7 @@ task('Build everything specified by flags.', ['pomEnvs'], function all() {
       // Tests and benchmarks run from an application jar
       execute('buildJar');
     } else {
-      execute('buildJava');
+      execute('genJava');
     }
   }
 

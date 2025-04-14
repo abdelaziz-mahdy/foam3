@@ -117,7 +117,6 @@ var pmake = function(...args) {
   }
   // console.log('rmake,super,foam.POM', foam.POM);
   var SUPER_POM = foam.POM;
-  var SUPER_LOAD_FILES = foam.loadFiles;
 
   try {
     var seen  = {};
@@ -165,7 +164,6 @@ var pmake = function(...args) {
   } finally {
     // reset global variables for next run
     foam.POM = SUPER_POM;
-    foam.loadFiles = SUPER_LOAD_FILES;
 
     globalThis.X       = Object.assign(globalThis.X, SUPER_X);
     globalThis.flags   = Object.assign(globalThis.flags, SUPER_FLAGS);
