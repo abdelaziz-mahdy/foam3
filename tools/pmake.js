@@ -21,7 +21,7 @@
 //   DocMaker     : copies .flow files into /build/documents
 //   VerboseMaker : print out information about POMs and files visited
 
-// console.log('[PMAKE] Starting...');
+console.log('[PMAKE] Starting...');
 
 const startTime = Date.now();
 
@@ -145,4 +145,4 @@ X.pom.split(',').forEach(pom => {
 
 MAKERS.forEach(v => v.end && v.end());
 
-// console.log(`[PMAKE] Finished in ${Math.round((Date.now()-startTime)/1000)}s.`);
+console.log(`[PMAKE] Finished in ${Math.round((Date.now()-startTime)/1000)}s.`);
