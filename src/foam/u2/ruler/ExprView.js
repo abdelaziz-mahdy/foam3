@@ -61,7 +61,7 @@ foam.CLASS({
       this
         .addClass()
         .addClass(this.myClass('operand'))
-        .add(this.data$.map(data => '' + data.toString()))
+        .add(this.data$.map(data => '' + data?.toString() ?? 'null'))
     }
   ]
 });
