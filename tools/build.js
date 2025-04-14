@@ -170,6 +170,9 @@ function showSummary() {
 
 function quit(code) {
   showSummary();
+  if ( code ) {
+    console.trace();
+  }
   process.exit(code);
 }
 
@@ -246,7 +249,7 @@ const ENVS = {
   DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
   DRY_RUN:           ['Run build in dry-run mode which just lists tasks that would have run.', false],
   EXPORTS:           ['Build environment variables which will be exported to pom tasks.'],
-  FLAGS:             ['pmake flags','loadFiles'],
+  FLAGS:             ['pmake flags'],
   FOAM_REVISION:     ['FOAM Revision ?'],
   FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
   GEN_JAVA:          ['Generate Java from model files',true],
@@ -554,29 +557,20 @@ task('Remove foam-bin files.', [], function cleanFOAM() {
 
 task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion', 'setupDirs'], function genJS() {
   let version = FOAM_BIN_VERSION;
-  // let flags = flag('web,-java');
   let flags = flag('web,-loadFiles');
   let outdir = BUILD_DIR+'/js';
   ensureDir(outdir);
   if ( STAGE_JS ) {
-    info('genJS,stage=0');
     pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=0`);
-    // execSync(__dirname + `/rmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=0`); //, { stdio: 'inherit' });
-    info('genJS,stage=1');
     pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=1`);
-    // execSync(__dirname + `/rmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=1`); // , { stdio: 'inherit' });
-    info('genJS,stage=2');
     pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=2`);
-    // execSync(__dirname + `/rmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -stage=2`); // , { stdio: 'inherit' });
   } else {
-    info('genJS,no-stage');
     pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -outdir=${outdir}`);
-    // execSync(__dirname + `/rmake.js -flags=web,-java -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR}`); // , { stdio: 'inherit' });
   }
 });
 
 task('Run Maven', [], function maven() {
-  pmake(`-makers=Maven -flags=${flag('-loadFiles')} -pom=${pom()}`);
+  pmake(`-makers=Maven -flags=${flag('-loadFiles')} -pom=${pom()} -libdir=${BUILD_DIR}/lib`);
 });
 
 task('Remove previously generated JAR.', [], function cleanJava() {
@@ -584,13 +578,13 @@ task('Remove previously generated JAR.', [], function cleanJava() {
   execSync(`rm -f ${BUILD_DIR}/lib/${APP_NAME}-*.jar >/dev/null 2>&1`);
 });
 
-task('Generate Java source from models and complile', ['setupDirs', 'maven', 'cleanJava'], function genJava() {
+task('Generate Java source from models and complile', ['setupDirs', 'cleanJava'], function genJava() {
   ensureDir(BUILD_DIR + '/src/java');
 
   var flags = flag();
   var makers = VERBOSE ? 'Verbose,' : '';
   // NOTE: Java and Javac Maker must be run together as they share data through X
-  makers += 'Java,Javac';
+  makers += 'Java,Maven,Javac';
   makers += ',Journal,Doc';
   pmake(`-makers=${makers} -flags=${flags} -pom=${pom()} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS || JAVAC_PARAMS_DEFAULT}'`);
 });
@@ -683,12 +677,6 @@ task('Create empty build and deployment directory structures if required.', [], 
       ensureDir(DOCUMENT_HOME);
       ensureDir(BUILD_DIR + '/webroot');
       ensureDir(BUILD_DIR + '/package');
-    }
-    if (ensureDir(BUILD_DIR + '/lib')) {
-      // Remove stale pom.xml if the /lib dir needed to be created
-      // Wouldn't be necessary if pom.xml were written into the BUILD_DIR but then
-      // you couldn't check it in to get dependbot warnings.
-      rmfile('pom.xml');
     }
     ensureDir(JOURNAL_OUT);
     ensureDir(DOCUMENT_OUT);

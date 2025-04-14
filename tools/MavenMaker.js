@@ -23,7 +23,8 @@ const javaDependencies = [];
 
 exports.init = function() {
   adaptOrCreateArgs(X, exports.args);
-  X.libdir = X.builddir + '/lib';
+  X.libdir = X.libdir || X.builddir + '/lib';
+  ensureDir(X.libdir);
 }
 
 
@@ -34,7 +35,6 @@ exports.visitPOM = function(pom) {
 
 exports.end = function() {
   // Build Maven file
-  ensureDir(X.libdir);
   var pom = foam.poms[0];
 
   var versions     = {};

@@ -15,7 +15,7 @@ exports.init = function() {
 
   X.envs && X.envs.split(',').forEach(e => {
     var kv = e.split('=');
-    // ['name'] = 'APP_NAME'
+    // example: ['name'] = 'APP_NAME'
     verbose(`[Env] init ${kv[1]} = ${kv[0]}`);
     X.pomenvs[kv[1]] = kv[0];
   });
@@ -29,6 +29,7 @@ exports.visitPOM = function(pom) {
     var v = pom[k];
     if ( v && ! X.pomenvs[X.pomenvs[k]] ) {
       console.log(`[Env] setting ${X.pomenvs[k]} = ${v}`);
+      // example: X.pomenvs['APP_NAME'] = 'foam'
       X.pomenvs[X.pomenvs[k]] = v;
       // console.log(`[Env] deleting ${k}`);
       delete X.pomenvs[k];

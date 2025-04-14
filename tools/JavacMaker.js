@@ -25,14 +25,16 @@ exports.args = [
 ];
 
 
-const fs_                                         = require('fs');
-const { execSync, isExcluded, adaptOrCreateArgs } = require('./buildlib');
+const fs_                                                    = require('fs');
+const { execSync, isExcluded, adaptOrCreateArgs, ensureDir } = require('./buildlib');
 
 exports.init = function() {
-  console.log('[Javac] init');
+  verbose('[Javac] init');
   adaptOrCreateArgs(X, exports.args);
+  ensureDir(X.libdir);
 
   X.javaFiles = [];
+  flags.loadFiles = true;
 }
 
 
