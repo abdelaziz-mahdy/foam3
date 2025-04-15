@@ -465,6 +465,7 @@ foam.CLASS({
   properties: [
     {
       name: 'element_',
+      transient: true,
       factory: function() {
         var ret = this.namespace ?
           this.document.createElementNS(this.namespace, this.nodeName) :
