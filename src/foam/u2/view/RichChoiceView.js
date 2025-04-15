@@ -555,9 +555,9 @@ foam.CLASS({
                     .translate(section.heading$)
                   .end()
                   .start()
-                    .select( section.choicesLimit ? section.filteredDAO$proxy.limit(section.choicesLimit) : section.filteredDAO$proxy, obj => {
-                      return this.E()
-                        .start(self.rowView, { data: obj })
+                    .select( section.choicesLimit ? section.filteredDAO$proxy.limit(section.choicesLimit) : section.filteredDAO$proxy, function(obj) {
+                      let addRow = function() {
+                        this.start(self.rowView, { data: obj })
                           .attr('disabled', section.disabled)
                           .attr('role', 'option')
                           .enableClass('disabled', section.disabled)
@@ -568,6 +568,12 @@ foam.CLASS({
                             });
                           })
                         .end();
+                      }
+                      if ( this.U3 ) {
+                        this.call(addRow);
+                      } else {
+                        return this.E().call(addRow);
+                      }
                     }, false, self.comparator)
                   .end()
                   .callIf(section.choicesLimit, function() {
@@ -793,7 +799,7 @@ foam.CLASS({
 
           this.add(this.dynamic(function(fullObject) {
             if ( fullObject ) {
-              this.addClass(self.myClass('customSelectView')).tag((self.rowView || self.CitationView), { data: fullObject });
+              this.start().addClass(self.myClass('customSelectView')).tag((self.rowView || self.CitationView), { data: fullObject }).end();
             } else {
               this.start().addClass(self.myClass('paddingWrapper')).add(self.defaultSelectionPrompt).end();
             }

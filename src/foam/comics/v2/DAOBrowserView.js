@@ -446,7 +446,7 @@ foam.CLASS({
         return true;
       },
       code: function(X) {
-        this.add(this.Popup.create(null, X).tag(this.importModal));
+        this.StyledModal.create({ title: 'Import', maxWidth: '90vw'}, X).tag(this.importModal).open();
       }
     }
   ]
