@@ -1154,10 +1154,11 @@ foam.CLASS({
     },
 
     function toE(args, X) {
-      return this.Canvas.create({ cview: this }, X).attrs({
-        width:  this.x + this.radius + this.arcWidth,
-        height: this.y + this.radius + this.arcWidth
-      });
+      return this.Canvas.create({
+        cview: this,
+        width$:  this.slot(function(x, radius, arcWidth, scaleX) { return x + (radius + arcWidth)*scaleX; }),
+        height$: this.slot(function(y, radius, arcWidth, scaleY) { return y + (radius + arcWidth)*scaleY; })
+      }, X);
     }
   ]
 });
