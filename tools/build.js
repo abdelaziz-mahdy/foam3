@@ -66,7 +66,6 @@ const { join } = require('path');
 const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, info, processSingleCharArgs, rmdir, rmfile, spawn, warning } = require('./buildlib');
 const PWD      = process.cwd();
 const pmake    = require('./rmake.js');
-require('../src/foam_node.js');
 
 process.on('unhandledRejection', e => {
   console.error("ERROR: Unhandled promise rejection ", e);
@@ -222,10 +221,10 @@ function pom() {
 function flag(flgs) {
   var f = VERBOSE ? 'verbose' : '';
   if ( FLAGS )
-    f = (f ? f +',' : '') + FLAGS;
+    f = f ? f + ',' + FLAGS : FLAGS;
 
   if ( flgs )
-    f = (f ? f +',' : '') + flgs;
+    f = f ? f + ',' + flgs : flgs;
   return f;
 }
 
@@ -449,7 +448,6 @@ task('Build usage examples', [], function usage() {
 });
 
 task('Capture POM specified environment values and register POM tasks for later execution that the corresponding build tasks is executed.', [], function pomEnvs() {
-  info('POM_ENVS', POM_ENVS);
   pmake(`-makers=Env,Task -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR} -envs=${POM_ENVS}`);
   Object.keys(X.pomenvs).forEach(k => {
     globalThis[k] = X.pomenvs[k];
@@ -555,11 +553,10 @@ task('Remove foam-bin files.', [], function cleanFOAM() {
   execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
 });
 
-task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion', 'setupDirs'], function genJS() {
+task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion'], function genJS() {
   let version = FOAM_BIN_VERSION;
-  let flags = flag('web,-loadFiles');
+  let flags = flag();
   let outdir = BUILD_DIR+'/js';
-  ensureDir(outdir);
   if ( STAGE_JS ) {
     pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=0`);
     pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${pom()} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=1`);
@@ -570,7 +567,7 @@ task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion', 'setupDirs'], fu
 });
 
 task('Run Maven', [], function maven() {
-  pmake(`-makers=Maven -flags=${flag('-loadFiles')} -pom=${pom()} -libdir=${BUILD_DIR}/lib`);
+  pmake(`-makers=Maven -flags=${flag()} -pom=${pom()} -libdir=${BUILD_DIR}/lib`);
 });
 
 task('Remove previously generated JAR.', [], function cleanJava() {
@@ -578,15 +575,20 @@ task('Remove previously generated JAR.', [], function cleanJava() {
   execSync(`rm -f ${BUILD_DIR}/lib/${APP_NAME}-*.jar >/dev/null 2>&1`);
 });
 
-task('Generate Java source from models and complile', ['setupDirs', 'cleanJava'], function genJava() {
-  ensureDir(BUILD_DIR + '/src/java');
+task('Concatenate repository journal files into .0 files', [], function genJournals() {
+  pmake(`-makers=Journal -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR} -journaldir=${JOURNAL_OUT}`);
+});
 
-  var flags = flag();
+task('Capture repository documentation - flow docs', [], function genDocuments() {
+  pmake(`-makers=Doc -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR} -documentdir=${DOCUMENT_OUT}`);
+});
+
+task('Generate Java source from models and complile', ['cleanJava'], function genJava() {
   var makers = VERBOSE ? 'Verbose,' : '';
   // NOTE: Java and Javac Maker must be run together as they share data through X
   makers += 'Java,Maven,Javac';
   makers += ',Journal,Doc';
-  pmake(`-makers=${makers} -flags=${flags} -pom=${pom()} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS || JAVAC_PARAMS_DEFAULT}'`);
+  pmake(`-makers=${makers} -flags=${flag()} -pom=${pom()} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -journaldir=${JOURNAL_OUT} -documentdir=${DOCUMENT_OUT} outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS || JAVAC_PARAMS_DEFAULT}'`);
 });
 
 task('Check Java dependencies for known vulnerabilities (via Maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', ['maven'], function checkDeps(score) {
@@ -678,8 +680,6 @@ task('Create empty build and deployment directory structures if required.', [], 
       ensureDir(BUILD_DIR + '/webroot');
       ensureDir(BUILD_DIR + '/package');
     }
-    ensureDir(JOURNAL_OUT);
-    ensureDir(DOCUMENT_OUT);
   } catch ( e ) {
     error(`Directory is not writable! Please run 'sudo chown -R $USER ${APP_ROOT}' first.`, e);
   }
