@@ -6,8 +6,9 @@
 
 function processArgs(args, x, defaultFlags, cmds) {
 
-  var flags = {}; // globalThis.foam.flags || {};
-  // Support calling directly or via exec_ (where args are passed via process)
+  var flags = globalThis.foam.flags || {};
+
+  // This supports calling directly or via exec_ where args are passed via process.
   var argv = args && args[0].split(' ') || process.argv.slice(2);
 
   if ( defaultFlags ) for ( var key in defaultFlags ) {
@@ -49,6 +50,7 @@ function processArgs(args, x, defaultFlags, cmds) {
       var value = arg.substring(i + 1);
       if ( key === 'flags' ) {
         value.split(',').forEach(f => {
+          if ( ! f ) return; // empty string ''
           if ( f.startsWith('-') ) {
             flags[f.substring(1)] = false;
           } else {
