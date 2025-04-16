@@ -11,6 +11,8 @@
 //
 // Uses the Visitor design pattern, with Makers actually being visitors.
 //
+// Makers which use the same flags can be run together in a single pmake call
+//
 // Standard Makers Include:
 //
 //   CopyMaker    : copy from source to target directory. source/* -> target/
@@ -24,13 +26,20 @@
 //   TaskMaker    : capture pom tasks for later execution when same named build task is run.
 //   VerboseMaker : print out information about POMs and files visited
 
-const startTime = Date.now();
-
 const fs_   = require('fs');
 const path_ = require('path');
 const b_    = require('./buildlib');
 
 var pmake = function(...args) {
+
+  // Recreate foam for each call to pmake as
+  // each call to pmake uses a different set of flags which control
+  // how the model files are processed.
+  delete require.cache[require.resolve('../src/foam.js')];
+  delete require.cache[require.resolve('../src/foam_node.js')];
+  delete globalThis.foam;
+  require('../src/foam_node.js');
+
   // TODO: new version of processArgs which takes a map
   var [argv, X, flags] = require('./processArgs')( 
     args,
@@ -42,8 +51,6 @@ var pmake = function(...args) {
       path:        './'
     },
     {
-      // TODO: it would be better if the Makers specified if they needed files loaded or not
-      loadFiles:   true,   // controls if individual .js files are loaded or not
       verbose:     false   // print extra status information
     },
     {
@@ -68,9 +75,7 @@ var pmake = function(...args) {
     }
   );
 
-  var SUPER_X        = Object.assign({}, globalThis.X);
   globalThis.X       = X;
-  var SUPER_FLAGS    = Object.assign({}, globalThis.flags);
   globalThis.flags   = flags;
   globalThis.verbose = function verbose() { if ( flags.verbose ) console.log.apply(console, arguments); };
 
@@ -91,8 +96,13 @@ var pmake = function(...args) {
     return maker;
   });
 
+  // update globalThis.foam.flags after Makers initialized
+  globalThis.foam.flags = flags;
+  globalThis.foam.setupFlags();
+  // console.log('[pmake] foam.flags', globalThis.foam.flags);
+
   function processDir(pom, location, skipIfHasPOM) {
-    verbose('\tdirectory:', location);
+    // verbose('\tdirectory:', location);
     var files = fs_.readdirSync(location, {withFileTypes: true});
 
     if ( skipIfHasPOM && files.find(f => f.name.endsWith('pom.js')) ) {
@@ -115,59 +125,48 @@ var pmake = function(...args) {
     });
   }
 
-  var SUPER_POM = foam.POM;
-  try {
-    var seen = {};
+  var SUPER = foam.POM;
+  var seen = {};
 
-    foam.POM = function(pom) {
-      if ( seen[foam.sourceFile] ) {
-        return;
-      }
-      seen[foam.sourceFile] = true;
+  foam.POM = function(pom) {
+    if ( seen[foam.sourceFile] ) {
+      return;
+    }
+    seen[foam.sourceFile] = true;
 
-      pom.location = foam.cwd;
-      pom.path     = foam.sourceFile;
+    pom.location = foam.cwd;
+    pom.path     = foam.sourceFile;
 
-      makers.forEach(v => {
-        // verbose('[RMAKE] visitPOM', v.name, pom);
-        v.visitPOM && v.visitPOM(pom);
-      });
-      if ( ! seen[foam.cwd] ) {
-        // verbose('[RMAKE] procesDir', pom.path );
-        processDir(pom, foam.cwd, false, makers);
-        seen[foam.cwd] = true;
-      }
-
-      SUPER_POM(pom);
-      makers.forEach(v => v.endVisitPOM && v.endVisitPOM(pom));
-    };
-
-    // Speeds up Makers like Verbose and JS which don't need to load .js model files.
-    if ( ! flags.loadFiles ) foam.loadFiles = function() {};
-
-    X.pom.split(',').forEach(pom => {
-      try {
-        var path = path_.resolve(foam.cwd, pom) + '.js';
-        foam.require(pom, false, true);
-        // REVIEW: delete not working from here, see foam_node.js
-        // delete require.cache[require.resolve(path)];
-      } catch (e) {
-        console.error('Unable to load POM: ' + pom);
-        console.error(e);
-        console.trace();
-        process.exit(-1);
-      }
+    makers.forEach(v => {
+      // verbose('[pmake] visitPOM', v.name, pom);
+      v.visitPOM && v.visitPOM(pom);
     });
+    if ( ! seen[foam.cwd] ) {
+      // verbose('[pmake] procesDir', pom.path );
+      processDir(pom, foam.cwd, false, makers);
+      seen[foam.cwd] = true;
+    }
 
-    makers.forEach(v => v.end && v.end());
+    SUPER(pom);
+    makers.forEach(v => v.endVisitPOM && v.endVisitPOM(pom));
+  };
 
-  } finally {
-    // reset global variables for next run
-    foam.POM = SUPER_POM;
+  // Speeds up Makers like Verbose and JS which don't need to load .js model files.
+  if ( ! foam.flags.loadFiles ) foam.loadFiles = function() {};
 
-    globalThis.X       = Object.assign(globalThis.X, SUPER_X);
-    globalThis.flags   = Object.assign(globalThis.flags, SUPER_FLAGS);
-  }
-}
+  X.pom.split(',').forEach(pom => {
+    try {
+      var path = path_.resolve(foam.cwd, pom) + '.js';
+      foam.require(pom, false, true);
+    } catch (e) {
+      console.error('Unable to load POM: ' + pom);
+      console.error(e);
+      console.trace();
+      process.exit(-1);
+    }
+  });
+
+  makers.forEach(v => v.end && v.end());
+};
 
 module.exports = pmake;
