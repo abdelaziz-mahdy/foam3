@@ -46,15 +46,11 @@ globalThis.foam = {
       foam.sourceFile = path;
       require(path);
 
-      // REVIEW: Would prefer this in pmake, but the same call there, after
-      // foam.require does not work or have the same effect.
-
-      // 'require' is used in place of load and eval.
-      // More straightfoward. But it is important to clear it's cache
-      // after use as we rely on rqeuire loading to invoke foam.POM
-      // for pom processing for each call we make.
+      // poms and model files are reloaded in the same scope.
+      // require() is used to invoke foam.POM for pom processing
+      // to invoke foam.POM for pom processing, for example.
+      // Hence the cache must be cleared after each require.
       delete require.cache[require.resolve(path)];
-      // foam.loaded[path] = false;
     } finally {
       foam.cwd = cwd;
     }
