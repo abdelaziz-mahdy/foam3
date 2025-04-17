@@ -78,7 +78,7 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.SUPER()
+      this.SUPER();
       this
         .addClass(this.myClass())
         .enableClass(this.myClass('horizontal-radio'), this.isHorizontal);
@@ -87,7 +87,7 @@ foam.CLASS({
     function renderContent() {
       var self = this;
 
-      this.add(function(choices) {
+      this.add(this.dynamic(function(choices) {
         return choices.map(c => {
           var isChecked = self.slot(function (data) {
             return data == c[0];
@@ -121,8 +121,8 @@ foam.CLASS({
                 .add(c[1])
               .end()
             .end();
-        })
-      })
+        });
+      }));
     },
 
     function updateMode_(mode) {

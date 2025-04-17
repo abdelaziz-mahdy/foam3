@@ -192,7 +192,8 @@ foam.CLASS({
         padding: 12px;
       }
       ^:not(^fullscreen) ^inner {
-        width: min(50rem, 100%);
+        width: 75%;
+        min-width: 50rem;
       }
       ^fullscreen ^bodyWrapper {
         width: min(100rem, 100%);
@@ -214,11 +215,6 @@ foam.CLASS({
       ^bodyWrapper{
         padding: 2.4rem 4rem;
         gap: 2rem;
-      }
-    }
-    @media only screen and (min-width: /*%DISPLAYWIDTH.XL%*/ 1280px) {
-      ^:not(^fullscreen) ^inner {
-        width: min(120rem, 100%);
       }
     }
   `,

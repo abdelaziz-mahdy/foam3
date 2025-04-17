@@ -48,8 +48,7 @@ foam.CLASS({
       class: 'Int',
       factory: function(){
         if ( foam.core.crunch.MinMaxCapability.isInstance(this.capability) ){
-          // a capability min of 0 denotes no minimum limit
-          return this.capability.hasOwnProperty('min') ? this.capability.min : this.choices.length;
+          return this.capability.min ?? this.choices.length;
         }
       }
     },

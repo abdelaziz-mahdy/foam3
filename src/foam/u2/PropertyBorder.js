@@ -190,18 +190,19 @@ foam.CLASS({
       color: $destructive400;
     }
     ^label {
-      display: contents;
       line-height: 1;
       min-height: 1em;
       width: 100%;
       color: $grey700;
     }
     ^supportingLabel {
-      display: contents;
       line-height: 1;
       min-height: 1em;
       width: 100%;
       color: $grey500;
+    }
+    ^u2 ^supportingLabel,^u2 ^label {
+      display: contents;
     }
     ^errorText {
       display: flex;
@@ -249,6 +250,7 @@ foam.CLASS({
       var self = this;
 
       this.
+        enableClass(this.myClass('u2'), ! this.U3).
         addClass().
         show(visibilitySlot).
         add(labelSlot).
