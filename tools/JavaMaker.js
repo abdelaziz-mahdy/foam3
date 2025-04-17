@@ -43,7 +43,7 @@ exports.end = function() {
     for ( var key in foam.UNUSED ) {
       try { foam.maybeLookup(key); }
       catch(x) {
-        console.warn('[Java] UNUSED Model not found', key);
+        warning('[Java] UNUSED Model not found', key);
       }
     }
 
@@ -56,7 +56,6 @@ exports.end = function() {
       jCount++;
     }
   } catch(e) {
-    warning('flags', globalThis.foam.flags);
     Object.keys(globalThis.foam.flags).forEach(f => {console.log("flag", f, globalThis.foam.flags[f]); });
     error('[Java] Model error:', key, e);
   }
