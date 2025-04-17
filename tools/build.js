@@ -534,10 +534,11 @@ task('Remove pom.xml and java lib directory.', [], function cleanLib() {
   emptyDir(BUILD_DIR + '/lib');
 });
 
-task('Remove generated files', [], function clean() {
-  emptyDir(`${APP_HOME}/bin`);
-  emptyDir(`${APP_HOME}/lib`);
-
+task('Remove generated files', ['pomEnvs'], function clean() {
+  if ( APP_HOME && fs.existsSync(APP_HOME) ) {
+    emptyDir(`${APP_HOME}/bin`);
+    emptyDir(`${APP_HOME}/lib`);
+  }
   if ( fs.existsSync(BUILD_DIR) ) {
     var files = fs.readdirSync(BUILD_DIR, {withFileTypes: true});
     files.forEach(f => {
