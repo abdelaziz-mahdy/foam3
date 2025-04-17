@@ -65,7 +65,7 @@ const os       = require('os');
 const { join } = require('path');
 const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, info, processSingleCharArgs, rmdir, rmfile, spawn, warning } = require('./buildlib');
 const PWD      = process.cwd();
-const pmake    = require('./rmake.js');
+const pmake    = require('./pmake.js');
 
 process.on('unhandledRejection', e => {
   console.error("ERROR: Unhandled promise rejection ", e);
