@@ -20,7 +20,7 @@ function addJournalOutput(j, o) {
 }
 
 exports.init = function() {
-  X.journaldir = X.journaldir || X.builddir + '/journals';
+  X.journaldir = X.journaldir || (X.builddir + '/journals');
   b_.ensureDir(X.journaldir);
   b_.emptyDir(X.journaldir);
 }

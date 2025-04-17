@@ -65,7 +65,6 @@ exports.end = function() {
 
   loaded.unshift(path_.dirname(__dirname) + '/src/foam.js');
 
-  var count = 0;
   // Build array of files for Uglify
   loaded.forEach(l => {
     // POM's can be included in files: so just ignore

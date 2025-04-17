@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * @license
- * Copyright 2025 The FOAM Authors. All Rights Reserved.
+ * Copyright 2023 The FOAM Authors. All Rights Reserved.
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 // 
@@ -159,10 +159,8 @@ var pmake = function(...args) {
       var path = path_.resolve(foam.cwd, pom) + '.js';
       foam.require(pom, false, true);
     } catch (e) {
-      console.error('Unable to load POM: ' + pom);
-      console.error(e);
-      console.trace();
-      process.exit(-1);
+      b_.warning('[pmake] Unable to load POM', pom);
+      b_.error('[pmake]', e);
     }
   });
 

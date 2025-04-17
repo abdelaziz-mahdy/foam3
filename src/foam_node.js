@@ -41,7 +41,7 @@ globalThis.foam = {
     var cwd = foam.cwd;
     try {
       var path = path_.resolve(foam.cwd, fn) + '.js';
-      if ( ! isProject && foam.seen(path) ) return;
+      if ( ! isProject && globalThis.foam.seen(path) ) return;
       foam.cwd = path_.dirname(path);
       foam.sourceFile = path;
       require(path);

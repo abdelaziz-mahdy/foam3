@@ -23,7 +23,7 @@ const javaDependencies = [];
 
 exports.init = function() {
   adaptOrCreateArgs(X, exports.args);
-  X.libdir = X.libdir || X.builddir + '/lib';
+  X.libdir = X.libdir || (X.builddir + '/lib');
   ensureDir(X.libdir);
 }
 
