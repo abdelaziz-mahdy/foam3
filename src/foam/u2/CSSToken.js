@@ -8,6 +8,8 @@ foam.CLASS({
   package: 'foam.u2',
   name: 'CSSToken',
 
+  ids:['name'],
+
   properties: [
     {
       class: 'String',

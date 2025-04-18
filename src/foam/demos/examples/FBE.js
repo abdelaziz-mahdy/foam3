@@ -234,7 +234,7 @@ foam.CLASS({
                   eval(self.data.code);
                   if ( self.dom.children.length ) self.showOutput = true;
                 } catch (x) {
-                  scope.log(x.toString());
+                  scope.log(x.toString?.() ?? x);
                   self.data.error = true;
                 }
               }
@@ -333,7 +333,7 @@ foam.CLASS({
   ],
 
   constants: {
-    MODULES: 'views,u2all,u2,faq,validation,examples,dao,parsers'
+    MODULES: 'views,u2all,u2,faq,validation,examples,dao,parsers,cssTokens'
   },
 
   properties: [
