@@ -10,7 +10,7 @@ parsers which can be combined to form larger parsers. While this approach is unu
 creating parsers, it is a proven technique in other domains, especially in GUI View libraries.
 A large complex view like an email client or issue tracker is actually composed of simpler
 views like buttons, text-fields, tab controls, etc. Parsers can be created by composing
-simpler parsers, and then themselves be composed into larger ones.
+simpler parsers, which are then themselves be composed into larger ones.
 
 Parsers can be used anywhere a regular-expression could be, but are more powerful and can
 be used in places where regular-expressions wouldn't be sufficient. Parsers are generally
