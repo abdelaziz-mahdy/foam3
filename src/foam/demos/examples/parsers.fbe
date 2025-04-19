@@ -409,21 +409,21 @@ foam.CLASS({
     {
       name: 'symbols',
       factory: function() {
-        return function(alt, sym, seq1, seq, optional, plus, range) {
+        return function(alt, sym, seq1, seq, str, literal, optional, plus, range) {
           return {
-            START: seq(
+            START: str(seq(
               optional(sym('countryCode')),
               alt(
-                seq(sym('areaCode'), optional(' '), sym('simple')),
+                str(seq(sym('areaCode'), optional(' ', ' '), sym('simple'))),
                 sym('simple'))
-            ),
-            simple: seq(sym('prefix'), optional(sym('separator')), sym('line')),
+            )),
+            simple: str(seq(sym('prefix'), optional(sym('separator'), '-'), sym('line'))),
             digit: range('0', '9'),
-            countryCode: seq1(1, optional('+'), '1', optional(' ')),
-            areaCode: seq(optional('('), sym('digit'), sym('digit'), sym('digit'), optional(')')),
-            prefix: seq( sym('digit'), sym('digit'), sym('digit'), sym('digit') ),
+            countryCode: seq1(1, optional('+'), literal('1', '1 '), optional(' ')),
+            areaCode: str(seq(optional('(', '('), sym('digit'), sym('digit'), sym('digit'), optional(')', ')'))),
+            prefix: str(seq( sym('digit'), sym('digit'), sym('digit') )),
             separator: alt('-', ' '),
-            line: seq( sym('digit'), sym('digit'), sym('digit'), sym('digit') )
+            line: str(seq( sym('digit'), sym('digit'), sym('digit'), sym('digit') ))
           };
         }
       }
@@ -435,13 +435,19 @@ foam.CLASS({
 });
 
 var p = PhoneNumberParser.create();
-
-testP(p.getSymbol('countryCode'), [ '', '1', '+1', '+1 ' ]);
+testP(p.getSymParser('countryCode'), [ '', '1', '+1', '+1 ' ]);
+testP(p.getSymParser('areaCode'),    [ '', '555', '(555)', '55' ]);
+testP(p.getSymParser('prefix'),      [ '', '12', '123', '1234' ]);
+testP(p.getSymParser('line'),        [ '', '123', '1234', '12345' ]);
 
 testP(p, [
+  '+1 (555) 555-1234',
   '1 (555) 555-1234',
   '1(555) 555-1234',
   '(555) 555-1234',
+  '555 555-1234',
+  '15555551234',
+  '5555551234',
   '(555)555-1234',
   '555-1234',
   '5551234'
