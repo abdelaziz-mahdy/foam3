@@ -1037,6 +1037,21 @@ foam.CLASS({
   ],
 
   methods: [
+    function getSymParser(name) {
+      // Let's you access individual symbol parsers as stand-alone parsers
+      return {
+        parse: ps => ps.apply(this.getSymbol(name),  this),
+        toString: () => name
+      };
+    },
+
+    function parse(ps, x, opt_name) {
+      // Let's Grammar object be used directly as a parser
+      opt_name = opt_name || 'START';
+      var start = this.getSymbol(opt_name);
+      return ps.apply(start, this);
+    },
+
     function parseString(str, opt_name) {
       opt_name = opt_name || 'START';
 
