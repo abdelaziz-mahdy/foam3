@@ -417,12 +417,22 @@ foam.CLASS({
                 str(seq(sym('areaCode'), optional(' ', ' '), sym('simple'))),
                 sym('simple'))
             )),
+
             simple: str(seq(sym('prefix'), optional(sym('separator'), '-'), sym('line'))),
+
             digit: range('0', '9'),
+
             countryCode: seq1(1, optional('+'), literal('1', '1 '), optional(' ')),
-            areaCode: str(seq(optional('(', '('), sym('digit'), sym('digit'), sym('digit'), optional(')', ')'))),
+
+            areaCode: str(seq(
+              optional('(', '('),
+              sym('digit'), sym('digit'), sym('digit'),
+              optional(')', ')'))),
+
             prefix: str(seq( sym('digit'), sym('digit'), sym('digit') )),
+
             separator: alt('-', ' '),
+
             line: str(seq( sym('digit'), sym('digit'), sym('digit'), sym('digit') ))
           };
         }
