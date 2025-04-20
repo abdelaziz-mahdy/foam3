@@ -274,6 +274,7 @@ foam.POM({
     { name: "boot/DAOCSpecMenu",                                                          flags: "js|java" },
     { name: "session/GroupResetSessionRuleAction",                                        flags: "js|java" },
     { name: "session/LocalSetting",                                                       flags: "js|java" },
+    { name: "session/PersistentSessionDAO",                                               flags: "js|java" },
     { name: "session/Session",                                                            flags: "js|java" },
     { name: "session/SessionTimer",                                                       flags: "js" },
     { name: "session/SessionService",                                                     flags: "js|java" },

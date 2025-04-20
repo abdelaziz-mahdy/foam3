@@ -4,12 +4,13 @@ p({
   "serviceScript":"""
     return new foam.dao.EasyDAO.Builder(x)
       .setOf(foam.core.session.Session.getOwnClassInfo())
+      .setMdao(new foam.dao.MDAO(foam.core.session.Session.getOwnClassInfo()))
       .setGuid(true)
       .setJournalName("sessions")
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setSAF(true)
       .setAuthorize(false)
-      .setDecorator(new foam.dao.ValidatingDAO(x, new foam.dao.NullDAO(x, foam.core.session.Session.getOwnClassInfo())))
+      .setDecorator(new foam.dao.ValidatingDAO(x, new foam.core.session.PersistentSessionDAO(x, new foam.dao.NullDAO(x, foam.core.session.Session.getOwnClassInfo()))))
       .build();
   """
 })
