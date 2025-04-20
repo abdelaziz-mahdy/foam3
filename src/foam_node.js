@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
- var path_ = require('path');
+var path_ = require('path');
 
 globalThis.foam = {
   isServer: true,
@@ -45,6 +45,11 @@ globalThis.foam = {
       foam.cwd = path_.dirname(path);
       foam.sourceFile = path;
       require(path);
+
+      // Poms and model files are reloaded in the same scope.
+      // require() is used to invoke foam.POM for pom processing, for
+      // example.  Hence the cache must be cleared after each require.
+      delete require.cache[require.resolve(path)];
     } finally {
       foam.cwd = cwd;
     }

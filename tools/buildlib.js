@@ -13,7 +13,7 @@ const path_ = require('path');
 
 function adaptOrCreateArgs(X, args) {
   /**
-    If listed arguments from are found in X, then adapt their value
+    If listed arguments are found in X, then adapt their value
     to appropriate type if an adapter based on their class: is available.
     Otherwise, create a binding in X if argument has a factory: or value:.
   **/
@@ -149,7 +149,8 @@ function spawn(s) {
 
 
 function exportEnv(name, value) {
-  console.log(`export ${name}="${value}"`);
+  if ( ENV['VERBOSE'] && ENV['VERBOSE'][1] )
+    console.log(`export ${name}="${value}"`);
   process.env[name] = value;
 }
 
@@ -173,6 +174,26 @@ function comma(list, value) {
   return list ? list + ',' + value : value;
 }
 
+function info(...args) {
+  let msg = args.join(' ');
+  console.log('\x1b[0;32mINFO ::', msg, '\x1b[0;0m');
+  // green: 32m
+  // blue: 34m - too dark on black background
+  // magenta: 35m
+  // cyan: 36m - may be too light on white background
+}
+
+function warning(...args) {
+  let msg = args.join(' ');
+  console.log('\x1b[0;33mWARNING ::', msg, '\x1b[0;0m');
+}
+
+function error(...args) {
+  let msg = args.join(' ');
+  console.log('\x1b[0;31mERROR ::', msg, '\x1b[0;0m');
+  console.trace();
+  process.exit(1);
+}
 
 function processSingleCharArgs(ARGS, moreUsage) {
   function usage() {
@@ -219,4 +240,7 @@ exports.processSingleCharArgs = processSingleCharArgs;
 exports.rmdir                 = rmdir;
 exports.rmfile                = rmfile;
 exports.spawn                 = spawn;
+exports.info                  = info;
+exports.warning               = warning;
+exports.error                 = error;
 exports.writeFileIfUpdated    = writeFileIfUpdated;
