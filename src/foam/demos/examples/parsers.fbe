@@ -419,42 +419,34 @@ foam.CLASS({
   name: 'PhoneNumberParser',
   extends: 'foam.parse.Grammar',
 
-  properties: [
-    {
-      name: 'symbols',
-      factory: function() {
-        return function(alt, sym, seq1, seq, str, literal, optional, plus, range) {
-          return {
-            START: str(seq(
-              optional(sym('countryCode')),
-              alt(
-                str(seq(sym('areaCode'), optional(' ', ' '), sym('simple'))),
-                sym('simple'))
-            )),
-
-            simple: str(seq(sym('prefix'), optional(sym('separator'), '-'), sym('line'))),
-
-            digit: range('0', '9'),
-
-            countryCode: seq1(1, optional('+'), literal('1', '1 '), optional(' ')),
-
-            areaCode: str(seq(
-              optional('(', '('),
-              sym('digit'), sym('digit'), sym('digit'),
-              optional(')', ')'))),
-
-            prefix: str(seq( sym('digit'), sym('digit'), sym('digit') )),
-
-            separator: alt('-', ' '),
-
-            line: str(seq( sym('digit'), sym('digit'), sym('digit'), sym('digit') ))
-          };
-        }
-      }
-    }
-  ],
-
   methods: [
+    function grammar(alt, sym, seq1, seq, str, literal, optional, plus, range) {
+      return {
+        START: str(seq(
+          optional(sym('countryCode')),
+          alt(
+            str(seq(sym('areaCode'), optional(' ', ' '), sym('simple'))),
+            sym('simple'))
+        )),
+
+        simple: str(seq(sym('prefix'), optional(sym('separator'), '-'), sym('line'))),
+
+        digit: range('0', '9'),
+
+        countryCode: seq1(1, optional('+'), literal('1', '1 '), optional(' ')),
+
+        areaCode: str(seq(
+          optional('(', '('),
+          sym('digit'), sym('digit'), sym('digit'),
+          optional(')', ')'))),
+
+        prefix: str(seq( sym('digit'), sym('digit'), sym('digit') )),
+
+        separator: alt('-', ' '),
+
+        line: str(seq( sym('digit'), sym('digit'), sym('digit'), sym('digit') ))
+      };
+    }
   ]
 });
 
@@ -479,3 +471,84 @@ testP(p, [
   '555-1234',
   '5551234'
 ]);
+
+## Semantic Actions
+So far all of our parsers have mostly just returned the matched input but haven't actually
+converted the input into anything else. While this is what is commonly done with
+regular-expressions, parsers typically convert the input into something useful.
+For an example a parser for the language 'C' might convert the source code input
+into an Abstract Syntax Tree (AST) that is used by later stages of the compiler,
+or a calculator expression parser might convert an arithmetic expression into
+the result of that calculation.
+
+This is done by what are called "Semantic Actions", which are just map functions which
+are applied to the parser result to transform it into some other value.
+
+Below is a very simple example which only adds one semantic action to our Grammar.
+In this case it adds an action to the 'number' symbol so that numbers are converted
+to actual JS numbers, rather than being left as Strings.
+
+Semantic Actions are defined by creating a method named <SymbolName>Action. So in this
+example, the 'numberAction' method is applied to results parsed by the 'number' parser.
+--
+
+foam.CLASS({
+  name: 'VersionParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(alt, not, sym, seq, str, optional, plus, repeat, range, anyChar) {
+      return {
+        START: repeat(sym('component'), optional(sym('separator'))),
+
+        component: alt(sym('number'), sym('string')),
+
+        digit: range('0', '9'),
+
+        number: str(plus(sym('digit'))),
+
+        string: str(plus(not(alt(sym('digit'), sym('separator')), anyChar()))),
+
+        separator: alt('.', '-')
+      };
+    },
+
+    function numberAction(v) { return parseInt(v); }
+  ]
+});
+
+
+var p = VersionParser.create();
+
+testP(p, [ '1', '1.1', '1.1b', '3.14159-26b' ]);
+
+## Email Address Parser
+--
+foam.CLASS({
+  name: 'EmailAddressParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(alt, sym, seq, str, repeat, notChars) {
+      return {
+        START: sym('address'),
+
+        addressList: repeat(sym('address'), seq(',', repeat(' '))),
+
+        address: alt(sym('labelledAddress'), sym('simpleAddress')),
+
+        labelledAddress: seq(repeat(notChars('<,')), '<', sym('simpleAddress'), '>'),
+
+        simpleAddress: seq(repeat(notChars('@')), '@', repeat(notChars('\r>,')))
+      };
+    },
+
+    function labelledAddressAction(v) { return v[0].join('') + v[1] + v[2] + v[3]; },
+
+    function simpleAddressAction(v) { return v[0].join('') + v[1] + v[2].join(''); }
+  ]
+});
+
+var p = EmailAddressParser.create();
+
+testP(p, [ 'John Doe<john@email.com>', 'john@email.com' ]);
