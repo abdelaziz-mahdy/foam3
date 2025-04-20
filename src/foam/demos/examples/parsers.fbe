@@ -413,7 +413,60 @@ testP(booleanParser2, [ 'true', 'false' ]);
 
 // Now we get actualy true and false values rather than "true" and "false".
 
-## Grammars
+## Grammars: Parenthesis Matching
+<pre>
+All of the above examples could have also been done with regular-expressions, but this
+is the first example of something which can be parsed by a general-purpose parser but
+could not be parsed with a regular-expression.
+
+In this example we detect if a group of parenthesis is matched. To do so, the definition
+needs to be recursive, which cannot be done with regular expressions. Notice that the
+definition of 'parens' makes reference to itself with the sym('parens') parser.
+
+When making recursive or more complex parsers, it is common to combine the individual
+parsers into what is called a 'Grammar'. A grammar is a collection of mutually recursive
+named parsers which together form a higher-level parser. A grammar is similar to how
+many methods are combined in a single class in OO programming.
+
+To create a Grammar, you create a foam.CLASS which extends 'foam.parse.Grammar' and then
+greate a 'grammar' method which returns the grammar as JS map.
+
+Notice that any of the parsers described previously are made available to the grammar
+method as parameters. This is done to minimize syntax and make the resulting grammar easier
+to read.
+</pre>
+--
+foam.CLASS({
+  name: 'MatchedParensParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(alt, sym, eof, repeat, seq, seq1) {
+      return {
+        START: seq1(0, sym('parens'), eof()),
+
+        parens: repeat(alt(
+          seq('(', sym('parens'), ')'),
+        ))
+      };
+    }
+  ]
+});
+
+var p = MatchedParensParser.create();
+
+testP(p, [
+  // Matched
+  '', '()', '(())', '()()', '((())()(()))',
+  // Unmatched
+  ')(', '(()', '())'
+]);
+
+
+
+## Grammars: Phone Number Parser
+While the above Grammar had only a single rule 'parens', it is more common for a grammar
+to have multiple rules, as in this example which implements a telephone number parser.
 --
 foam.CLASS({
   name: 'PhoneNumberParser',
@@ -525,6 +578,8 @@ var p = VersionParser.create();
 testP(p, [ '1', '1.1', '1.1b', '3.14159-26b' ]);
 
 ## Email Address Parser
+The following parser uses two semantic actions to parse email addresses which can be
+either simple like "john@email.com" or labelled like "John Doe <john@email.com>".
 --
 foam.CLASS({
   name: 'EmailAddressParser',
@@ -559,8 +614,26 @@ testP(p, [ 'John Doe<john@email.com>', 'john@email.com' ]);
 testP(p.getSymParser('addressList'), [ 'john@email.com', 'john@email.com,jane@email.com' ]);
 
 ## Match and MatchAll
+<pre>
+Usually parsers consume the entire input, but they can also be used like regexes to find
+one or multiple instances in a larger input. Calling .match() on a Grammar will find the first
+instance in the input text, whereas matchAll() will return an array of all matches.
+
+The following example uses the previous PhoneNumberParser to extra one or more phone numbers
+from an input text.
+</pre>
 --
 var p = PhoneNumberParser.create();
 var input = 'blah blah blah (555) 123-4556, +1 (555) 123-1234 blah blah blah 555-1234  blah blah';
 log('One:', p.match(input));
 log('All:', p.matchAll(input).join(', '));
+
+
+/*
+expr        ::= expr "+" multExpr
+expr        ::= expr "-" multExpr
+multExpr    ::= multExpr "*" primaryExpr
+multExpr    ::= multExpr "/" primaryExpr
+primaryExpr ::= "(" expr ")"
+primaryExpr ::= NUMBER
+*/
