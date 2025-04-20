@@ -119,12 +119,14 @@ function task(desc, dep, f) {
     });
 
     // execute same named pom tasks
-    let pomTask = POM_TASKS && POM_TASKS[f.name];
-    if ( pomTask ) {
+    let pomTasks = POM_TASKS && POM_TASKS[f.name];
+    if ( pomTasks ) {
       info(`POM Tasks :: ${f.name}`);
-      pomTask.forEach(k => {
-        k.bind(Object.assign({}, EXPORTS))(...args);
-      });
+      if ( ! DRY_RUN ) {
+        pomTasks.forEach(k => {
+          k.bind(Object.assign({}, EXPORTS))(...args);
+        });
+      }
     }
 
     // execute tasks
