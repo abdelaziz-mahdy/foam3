@@ -15,7 +15,8 @@ exports.args = [
   {
     name: 'javacParams',
     description: 'parameters to pass to javac',
-    value: '-proc:none'
+    // value: '-proc:none'
+    factory: () => X.javacParams || '-proc:none'
   },
   {
     name: 'libdir',

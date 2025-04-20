@@ -325,8 +325,8 @@ const ARGS = {
            var c = b.split(':');
            if ( ! ( c[0] in globalThis ) ) {
              error('Unknown environment variable:', c[0]);
-           } else if ( c.length == 2 ) {
-             globalThis[c[0]] = c[1];
+           } else if ( c.length > 1 ) {
+             globalThis[c[0]] = c.slice(1).join(':');
            }
          });
        }
@@ -594,7 +594,7 @@ task('Generate Java source from models and complile', ['cleanJava'], function ge
   // NOTE: Java and Javac Maker must be run together as they share data through X
   makers += 'Java,Maven,Javac';
   makers += ',Journal,Doc';
-  pmake(`-makers=${makers} -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -journaldir=${JOURNAL_OUT} -documentdir=${DOCUMENT_OUT} outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS || JAVAC_PARAMS_DEFAULT}'`);
+  pmake(`-makers=${makers} -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -journaldir=${JOURNAL_OUT} -documentdir=${DOCUMENT_OUT} -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS_DEFAULT} ${JAVAC_PARAMS}'`);
 });
 
 task('Check Java dependencies for known vulnerabilities (via Maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', ['maven'], function checkDeps(score) {
