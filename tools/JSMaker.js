@@ -12,9 +12,9 @@ const fs_      = require('fs');
 const path_    = require('path');
 const uglify_  = require('uglify-js');
 const zlib_    = require('zlib');
-const { adaptOrCreateArgs, ensureDir } = require("./buildlib");
+const { adaptOrCreateArgs, ensureDir, info, warning, error } = require("./buildlib");
 
-const licenses = {};
+var licenses   = {};
 var version    = '';
 var files      = {}; // filename to content map for uglify
 
@@ -25,7 +25,6 @@ function addLicense(l) {
 
 exports.args = [
   {
-    // Isn't used directly by this Maker, but is used in java/refinements.js
     name: 'outdir',
     description: 'location to write foam-bin files, default: {builddir}/js',
     factory: () => path_.resolve(path_.normalize(X.outdir || (X.builddir + '/js')))
@@ -34,10 +33,13 @@ exports.args = [
 
 exports.init = function() {
   adaptOrCreateArgs(X, exports.args);
-  flags.java      = false;
-  flags.web       = true;
-  flags.loadFiles = true;
+  ensureDir(X.outdir);
+
   version = X.version || version;
+  licenses = {};
+  files    = {};
+
+  flags.loadFiles = true;
 }
 
 
@@ -53,9 +55,16 @@ exports.visitPOM = function(pom) {
 
 exports.end = function() {
   var loaded = Object.keys(globalThis.foam.loaded);
+  if ( Object.keys(loaded).length == 0 ) {
+    info('[JS] flags:');
+    Object.keys(globalThis.foam.flags).forEach(f => {
+      console.log(f, globalThis.foam.flags[f]);
+    });
+    error('[JS] No files loaded');
+  }
+
   loaded.unshift(path_.dirname(__dirname) + '/src/foam.js');
 
-  // console.log(X.stage, foam.stages);
   // Build array of files for Uglify
   loaded.forEach(l => {
     // POM's can be included in files: so just ignore
@@ -64,6 +73,7 @@ exports.end = function() {
     if ( l.endsWith('pom.js') ) return;
     try {
       l = path_.resolve(__dirname, l);
+      verbose('[JS] path', l);
       if ( X.stage === undefined ) {
         files[l] = fs_.readFileSync(l, "utf8");
       } else {
@@ -105,13 +115,12 @@ exports.end = function() {
     });
 
   if (result && result.error) {
-    console.log("[JS] Error: ", result.error);
-    process.exit(1);
+    error('[JS]', result.error);
   }
   var code = result && result.code;
 
   if ( ! code ) {
-    console.log('No output for stage:', X.stage);
+    warning('[JS] No output for stage', X.stage);
 //    return;
     code = '';
   }
@@ -185,14 +194,13 @@ if ( ! foam.flags.skipStage2 ) {
 
   var filename = fn(X.stage);
   console.log('[JS] Writing', filename + '.js');
-  ensureDir(X.outdir);
   fs_.writeFileSync(X.outdir + "/" + filename + '.js', code);
   console.log('[JS] Writing', filename + '.js.gz');
   zlib_.gzip(code, (err, buffer) => {
     if ( ! err ) {
       fs_.writeFileSync(X.outdir + "/" + filename + '.js.gz', buffer);
     } else {
-      console.error(err);
+      error('[JS] Writing', filename, err);
     }
   });
 }

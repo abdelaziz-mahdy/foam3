@@ -61,7 +61,15 @@ foam.CLASS({
         this.cacheUpdated.pub();
       })
       return this.tokenOverrideDAO
-        .where(this.AND(this.EQ(this.CSSTokenOverride.ENABLED, true), this.EQ(this.CSSTokenOverride.THEME, this.currentCache)))
+        .where(
+          this.AND(
+            this.EQ(this.CSSTokenOverride.ENABLED, true), 
+            this.OR(
+              this.EQ(this.CSSTokenOverride.THEME, this.currentCache),
+              this.EQ(this.CSSTokenOverride.THEME, '')
+            )
+          )
+        )
         .select(token => {
         this.themeMap(token.theme)[token.source] = token.target;
       }).then(() => this.initLatch.resolve());

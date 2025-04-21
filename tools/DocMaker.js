@@ -12,7 +12,7 @@ const { copyFile, ensureDir, isExcluded } = require('./buildlib');
 const documentFiles = [];
 
 exports.init = function() {
-  X.documentdir = X.builddir + '/documents/';
+  X.documentdir = X.documentdir || (X.builddir + '/documents');
   ensureDir(X.documentdir);
 }
 
@@ -25,7 +25,7 @@ exports.visitFile = function(pom, f, fn) {
       var i            = fn.lastIndexOf('/');
       var documentName = fn.substring(i+1);
 
-      copyFile(fn, X.documentdir + documentName);
+      copyFile(fn, X.documentdir + '/' + documentName);
       documentFiles.push(fn);
     }
   }
