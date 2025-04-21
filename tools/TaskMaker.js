@@ -1,36 +1,30 @@
 /**
  * @license
- * Copyright 2023 The FOAM Authors. All Rights Reserved.
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-exports.description = 'Execute tasks defined in POMs.';
+exports.description = 'Register POM tasks for later execution.';
 
-const b_    = require('./buildlib');
+exports.init = function() {
+  verbose('[Task] init');
 
-
-var taskName;
-
-
-exports.init = function(arg) {
-  if ( ! arg ) console.error('[Task Maker] Task name argument required.');
-  taskName = arg;
-}
-
+  X.pomTasks = X.pomTasks || {};
+};
 
 exports.visitPOM = function(pom) {
   if ( ! pom.tasks ) return;
 
-  var tasks = {};
-  pom.tasks.forEach(t => tasks[t.name] = t);
+  pom.tasks.forEach(t => {
+    console.log(`[Task] registering task ${t.name} from ${pom.name}`);
+    var tasks = X.pomTasks;
+    var task = tasks[t.name] || [];
+    task.push(t);
+    tasks[t.name] = task;
+  });
+};
 
-  if ( tasks[taskName] ) {
-    try {
-      console.log(`[Task Maker] Executing ${taskName} from ${pom.name}`);
-      console.log(foam.cwd, pom.location, pom.path);
-      tasks[taskName].call(b_, pom);
-    } catch(x) {
-      console.warn('[Task Maker] Error executing task:', x);
-    }
-  }
-}
+exports.end = function() {
+  let count = Object.keys(X.pomTasks).length;
+  console.log(`[Task] END Registered ${count} tasks`);
+};

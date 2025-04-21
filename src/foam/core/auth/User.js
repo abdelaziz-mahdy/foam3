@@ -69,8 +69,7 @@ foam.CLASS({
     'lifecycleState',
     'userName',
     'group.id',
-    'email',
-    'lifecycleState'
+    'email'
   ],
 
   searchColumns: [

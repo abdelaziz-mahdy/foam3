@@ -8,6 +8,9 @@ foam.POM({
     name: 'foam-full',
     version: 3,
     excludes: [ 'node_modules' ],
+    copy: [
+      { source: 'webroot', targetDir: 'webroot' }
+    ],
     projects: [
       { name: 'src/pom' },
       { name: 'src/foam/core/pom' },
