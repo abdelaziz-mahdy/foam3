@@ -94,7 +94,10 @@ log(p.parse(ps));
 log(P.literal('def').parse(ps).toString());
 
 ## Parser Tester
-Before continuing, let's write a helper function to make testing parsers easier:
+Before continuing, let's write a helper function to make testing parsers easier.
+
+The testP function uses the U2 GUI library to create a table of test output.
+If you're unfamiliar with U2, please view the U2 examples first.
 --
 const P = foam.parse.Parsers.create();
 
@@ -124,15 +127,16 @@ globalThis.testP = testP;
 
 ## StringPStreams
 There's also a convenience method for creating StringPStreams in foam.parse.Parsers.
-It lets you create an populate a StringPStream at once rather than having to create
+It lets you create and populate a StringPStream at once rather than having to create
 the StringPStream and then call setString().
-Notice that the two StringPStreams appear identially, even though they are created in
+Notice that the two StringPStreams appear identical, even though they are created in
 different ways.
 --
 var ps = foam.parse.StringPStream.create();
 ps.setString('abc');
 log(ps.toString());
 
+// Using the 'P' Singleton we created above.
 log(P.stringPStream('abc').toString());
 
 
@@ -144,7 +148,7 @@ Notice that it also parses 'Abc' and 'ABC', whereas the literal() didn't.
 testP(P.literalIC('abc'), [ 'abc', 'abcdef', 'Abc', 'ABC', 'xyz' ]);
 
 ## Any Char
-The anyChar() parser is the most indiscriminating parser. It will parse any character.
+The anyChar() parser is the most indiscriminating parser. It will parse any one character.
 Notice that the only case where it fails to parse is when given an empty input.
 --
 testP(P.anyChar(), [ 'abc', 'ABC', '!@#$%', '' ]);
@@ -173,18 +177,19 @@ testP(P.notChars('abc'), [ 'abc', 'bbc', 'cbc', 'xbc', '' ]);
 The range() parser is similar to chars(), except that it lets you more easily specify a range of characters.
 --
 testP(P.range('0', '9'), [ 'a', '1', '2', '3', '9', 'z' ]);
+
 // Is short form for:
 testP(P.chars('0123456789'), [ 'a', '1', '2', '3', '9', 'z' ]);
+
 // It is often used to detect numbers (like above) or lettters, like:
-testP(P.range('a','z'), [ 'a', '1', '2', '3', '9', 'z' ]);
+testP(P.range('a', 'z'), [ 'a', '1', '2', '3', '9', 'z' ]);
 
 // Notice that it still only matches a single character
-testP(P.range('a','z'), [ 'abc', '123' ]);
+testP(P.range('a', 'z'), [ 'abc', '123' ]);
 
 ## Combinators
 The above parsers are all simple parsers. They all parse a single character or a literal string.
-But this is a "parser combinator" library, which means that it lets you combine simple
-parsers to create more complex ones.
+Now we'll look at combining the above simple parsers with parse combinators to create more complex parsers.
 --
 
 ## Sequence Parser
@@ -195,6 +200,7 @@ and the sequence parser will fail if any of the composed parsers fails to parse.
 On a successful parse, the returned value is an array of the parsed values of each
 composed parser.
 --
+// The first parser accepts a letter and the second parser accepts a number.
 testP(P.seq(P.range('a','z'), P.range('0','9')), [ 'r2', 'd2', '3p', 'xy' ]);
 
 ## Literal Parser Shortcut
@@ -213,12 +219,13 @@ testP(P.seq('a', 'b', 'c'), TESTS);
 
 ## String Parser
 Notice that in the sequence parser, when we parsed 'r2' our value was [ 'r', '2' ], an array.
-Often we want to result of our parsers to be string values, not the arrays of characters or
+Often we want the result of our parsers to be string values, not the arrays of characters or
 substrings that were parsed by the individual parsers passed to the sequence parser.
-To fix this, we use the str() parser, which is a very simple combinator because it only
-combines a single parser. Instead of changing that delegate parser's behaviour, it just
-changes its resulting value, so that if it returns an array, it converts into a single
+To fix this, we use the str() parser decorator, which is a very simple combinator because it only
+combines/decorates a single parser. Instead of changing that delegate parser's behaviour, it just
+changes its resulting value so that if it returns an array, it converts into a single
 string value with the array values concatenated.
+TODO: simplify
 --
 // Notice unlike above, our results are strings, not arrays
 testP(P.str(P.seq(P.range('a','z'), P.range('0','9'))), [ 'r2', 'd2', '3p', 'xy' ]);
@@ -628,8 +635,42 @@ var input = 'blah blah blah (555) 123-4556, +1 (555) 123-1234 blah blah blah 555
 log('One:', p.match(input));
 log('All:', p.matchAll(input).join(', '));
 
+## Grammar Inheritance
+--
 
 /*
+
+https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js
+
+  START: sym('expr'),
+
+  expr: seq(sym('expr1'), optional(seq(alt('+', '-'), sym('expr')))),
+
+  expr1: seq(sym('expr2'), optional(seq(alt('*', '/'), sym('expr1')))),
+
+  expr2: seq(sym('expr3'), optional(seq('^', sym('expr2')))),
+
+  expr3: alt(
+    sym('fun'),
+    sym('variable'),
+    sym('number'),
+    sym('group')),
+
+  variable: literal('x'),
+
+  fun: seq(
+      alt('sqrt', 'log'),
+      '(',
+      sym('expr'),
+      optional(seq(',', sym('expr'))),
+      ')'
+    ),
+
+  group: seq('(', sym('expr'), ')'),
+
+  number: seq(optional('-'), repeat(range('0', '9'), null, 1))
+
+
 expr        ::= expr "+" multExpr
 expr        ::= expr "-" multExpr
 multExpr    ::= multExpr "*" primaryExpr
