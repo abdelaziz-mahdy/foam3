@@ -407,8 +407,9 @@ foam.CLASS({
             // v[2], the values, is an array, which might have an 'and', 'or' or
             // 'negated' property on it. The default is 'or'. The partial
             // evaluator for expressions can simplify the resulting Mlang further.
-            var prop = v[0];
+            var prop   = v[0];
             var values = v[2];
+            debugger;
             // Int is actually the parent of Float and Long, so this captures all
             // numeric properties.
             var isNum = foam.lang.Int.isInstance(prop) ||
@@ -465,7 +466,7 @@ foam.CLASS({
               expr = self.In.create({ arg1: prop, arg2: newValues });
             } else {
               expr = (v[1] === '=') ?
-                  self.Eq.create({ arg1: prop, arg2: values[0] }) :
+                  self.In.create({ arg1: prop, arg2: values }) : // will partialEval() to Eq if only one value
                   self.Or.create({
                     args: values.map(function(v) {
                       return self.ContainsIC.create({ arg1: prop, arg2: v });

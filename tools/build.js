@@ -668,13 +668,13 @@ task('Extract FOAM git hash.', [], function getFOAMGitHash() {
   FOAM_REVISION = execSync('git -C foam3 rev-parse --short HEAD').toString().trim();
 });
 
-task('Show version information.', [ 'getProjectGitHash', 'getFOAMGitHash'], function versions() {
+task('Show version information.', [ 'pomEnvs', 'getProjectGitHash', 'getFOAMGitHash'], function versions() {
   console.log(`Application Version: ${VERSION}`);
   console.log(`${APP_NAME} revision: ${PROJECT_REVISION}`);
   console.log(`FOAM revision:       ${FOAM_REVISION}`);
 });
 
-task('Show application information.', [], function appName() {
+task('Show application information.', ['pomEnvs'], function appName() {
   console.log(`Application Name: ${APP_NAME}`);
 });
 

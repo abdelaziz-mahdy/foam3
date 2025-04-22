@@ -105,7 +105,7 @@ foam.CLASS({
     'foam.core.console.UploadAgent'
   ],
 
-  imports: [ 'currentBlock?', 'eval_?' ],
+  imports: [ 'currentBlock?', 'eval_?', 'setTimeout' ],
 
   properties: [
     {
@@ -308,6 +308,8 @@ foam.CLASS({
               } else {
                 self.dao.cmd(oldAgent);
               }
+              // Wait 0ms so that the GUI (including the upload progress) can update
+              await new Promise(r => self.setTimeout(r, 0));
             }
           }
           i++;
