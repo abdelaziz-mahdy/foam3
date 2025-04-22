@@ -1,5 +1,33 @@
 p({
   "class": "foam.core.boot.CSpec",
+  "name": "keyStoreManager",
+  "lazy": false,
+  "serviceScript": """
+    return new foam.core.security.StorageKeyStoreManager.Builder(x)
+      .setType('JKS')
+      .setKeyStorePath("foamdev.jks")
+      .setKeyStorePass("foamdev")
+      .build();
+  """
+})
+
+p({
+  "class": "foam.core.boot.CSpec",
+  "name": "sslContextFactory",
+  "description": "ssl context factory for creating ssl socket",
+  "lazy":false,
+  "service": {
+    "class": "foam.box.socket.SslContextFactory",
+    "enableSSL": true,
+    "keyStorePath": "foamdev.jks",
+    "keyStorePass": "foamdev",
+    "trustStorePath": "foamdev.jks",
+    "trustStorePass": "foamdev"
+  }
+})
+
+p({
+  "class": "foam.core.boot.CSpec",
   "name": "http",
   "lazy": false,
   "service": {
@@ -76,20 +104,5 @@ p({
         """
       }
     }]
-  }
-})
-
-p({
-  "class": "foam.core.boot.CSpec",
-  "name": "sslContextFactory",
-  "description": "ssl context factory for creating ssl socket",
-  "lazy":false,
-  "service": {
-    "class": "foam.box.socket.SslContextFactory",
-    "enableSSL": false,
-    "keyStorePath": "foamdev.jks",
-    "keyStorePass": "foamdev",
-    "trustStorePath": "foamdev.jks",
-    "trustStorePass": "foamdev"
   }
 })
