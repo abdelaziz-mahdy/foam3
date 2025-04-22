@@ -250,7 +250,7 @@ the input stream until it fails. The result of all delegate parses are combined 
 testP(P.str(P.repeat(P.range('0','9'))), [ '1', '1x', '123xyz', 'abc' ]);
 
 ## Plus
-You might have noticed and been surprised that in the above example, repeat(0-9) succeeded in parsing the string 'abc' and provided an empty string result "". This is because repeat() parses zero or more occurences of the delegate parser, so failure is an option. However, it's often the
+You might have noticed that in the above example, repeat(0-9) succeeded in parsing the string 'abc' and provided an empty string result "" since there was no match. This is because repeat() parses zero or more occurrences of the delegate parser, so failure is a valid option. However, it's often the
 case that you want to consider a repeated parser to have succeeded when it parses one or more
 times. For this, there's the plus() parser, which behaves just like repeat(), but fails in
 the case where the delegate parses 0 times.
@@ -259,7 +259,7 @@ testP(P.str(P.plus(P.range('0','9'))), [ '1', '1x', '123xyz', 'abc' ]);
 
 ## Delimited Repeat
 It's common to want to use repeat() to parse some pattern where each entry is separated
-by some other pattern. Examples include a comman separated list or semi-colon separated
+by some other pattern. Examples include a comma separated list or semi-colon separated
 program statements. While you could do this by including the delimiter with seq() in the
 delegate parser, this is so common an operation that repeat supports it directly.
 --
@@ -286,7 +286,7 @@ testP(
 ]);
 // By supplying the delimiter parser as the second argument to repeat(), it knows that we
 // only want to skip delimiters between values and it excludes them from the output.
-// It is also shorter and easier to understand that our first attempt.
+// It is also shorter and easier to understand than our first attempt.
 
 // You can also specify a delimiter parser with plus(), in cases where you only want
 // the parse to succeed when you have one or more parses.
@@ -296,9 +296,9 @@ testP(
 ]);
 
 ## Repeat with a Number of Repetitions
-repeat() parsers zero or more times and plus() repeats one or more times, but sometimes
+The repeat() parses zero or more times and plus() repeats one or more times, but sometimes
 you want to parse with some minimum number of repeats other than zero or 1.
-Luckily, the third optional argument of repeat() let's you specify the minimum number
+The third optional argument of repeat() let's you specify the minimum number
 of repetitions. Since the second argument is the delimiter parser, if you don't want
 to have a delimiter, just pass 'undefined'.
 The below parser checks passwords to ensure that they're at least five characters long:
@@ -436,7 +436,7 @@ named parsers which together form a higher-level parser. A grammar is similar to
 many methods are combined in a single class in OO programming.
 
 To create a Grammar, you create a foam.CLASS which extends 'foam.parse.Grammar' and then
-greate a 'grammar' method which returns the grammar as JS map.
+create a 'grammar' method which returns the grammar as JS map.
 
 Notice that any of the parsers described previously are made available to the grammar
 method as parameters. This is done to minimize syntax and make the resulting grammar easier
