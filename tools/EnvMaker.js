@@ -16,8 +16,12 @@ exports.init = function() {
   X.envs && X.envs.split(',').forEach(e => {
     var kv = e.split('=');
     // example: ['name'] = 'APP_NAME'
-    verbose(`[Env] init ${kv[1]} = ${kv[0]}`);
     X.pomenvs[kv[1]] = kv[0];
+    verbose(`[Env] init ${kv[1]} = ${kv[0]}`);
+    if ( globalThis[kv[0]] ) {
+      X.pomenvs[kv[0]] = globalThis[kv[0]];
+      console.log(`[Env] not overriding ${kv[0]} = ${X.pomenvs[kv[0]]}`);
+    }
   });
 };
 
