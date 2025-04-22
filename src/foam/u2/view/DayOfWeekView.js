@@ -16,9 +16,6 @@ foam.CLASS({
     ^flexer {
       width: 100%;
     }
-    ^flexer .foam-u2-view-DayChoiceView {
-      width: 100% !important;
-    }
   `,
 
   properties: [

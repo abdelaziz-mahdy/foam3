@@ -41,6 +41,7 @@ foam.CLASS({
       align-items: stretch;
       text-align: center;
       justify-content:flex-start;
+      display: flex;
     }
     ^flexer > * {
       padding: 4px;
@@ -225,6 +226,111 @@ foam.CLASS({
 
       this.onDAOUpdate();
 
+      if ( ! this.U3 ) return this.renderU2(self);
+
+      var el = self.E().start(this.isVertical ? foam.u2.layout.Rows : foam.u2.layout.Cols).add(
+        self.choices.map((choice, index) => {
+         var valueSimpSlot = self.mustSlot(choice[0]);
+         var labelSimpSlot = self.mustSlot(choice[1]);
+
+         var isFinal = choice[2];
+
+         var isSelectedSlot = self.slot(function(choices, data) {
+           try {
+             var isSelected = self.isChoiceSelected(data, choices[index][0]);
+             return !! isSelected;
+           } catch(err) {
+             console.error('isSelectedSlot', err)
+             return false;
+           }
+
+         });
+
+         var isDisabledSlot = self.slot(function(choices, data, maxSelected) {
+           try {
+               if ( isFinal ) {
+                 return true;
+               }
+
+               var isSelected = self.isChoiceSelected(data, choices[index][0]);
+               return !! (! isSelected && data.length >= maxSelected);
+           } catch(err) {
+             console.error('isDisabledSlot', err);
+             return false;
+           }
+         });
+
+         var cls =  choice[0] && choice[0].cls_ && choice[0].cls_.id;
+
+         var selfE = self.E();
+
+         self
+           // NOTE: This should not be the way we implement columns.
+           .start(self.choiceView, {
+             data$: valueSimpSlot,
+             label$: labelSimpSlot,
+             isSelected$: isSelectedSlot,
+             isDisabled$: isDisabledSlot,
+             of: cls
+           }).style({
+                'flex': `0 0 calc(${100 / self.numberColumns}%)`,
+                'max-width': `calc(${100 / self.numberColumns}%)`,
+                'box-sizing': 'border-box'
+              })
+              .call(function () {
+               selfE.onDetach(
+                 this.clicked.sub(() => {
+                   var array;
+                   var indexDataToAdd = self.getIndexOfChoice(self.data, valueSimpSlot.get());
+                   if ( indexDataToAdd === -1 ){
+                     if ( self.data.length >= self.maxSelected ){
+                       return;
+                     }
+
+                     array = [
+                       ...self.data,
+                       valueSimpSlot.get()
+                     ];
+                   } else {
+                     array = [
+                       ...self.data
+                     ]
+
+                     array.splice(indexDataToAdd, 1);
+                   }
+                   self.data = array;
+                 })
+               )
+             })
+           .end()
+        })
+      ).end()
+
+      this
+        // .start()
+          .add(function(showMinMaxHelper, helpText_) {
+            self.callIf(showMinMaxHelper, function() {
+              this
+              .start(foam.u2.layout.Rows)
+                .start()
+                  .addClass('p-lg', self.myClass('helpTextRow'))
+                  .add(self.helpText_)
+                .end()
+              .end();
+            });
+          })
+        // .end()
+        // .start(this.isVertical ? foam.u2.layout.Rows : foam.u2.layout.Cols)
+          .add( // TODO isDoaFetched and simpSlot0 aren't used should be clean up
+            function(isDaoFetched) {
+              self.addClass(self.myClass('flexer'))
+              .add(el)
+            }
+          )
+        // .end();
+    },
+
+    function renderU2(self) {
       this
         .start()
           .add(this.slot(function(showMinMaxHelper, helpText_) {
@@ -281,7 +387,9 @@ foam.CLASS({
                 return selfE
                   // NOTE: This should not be the way we implement columns.
                   .style({
-                    'width': self.isVertical ? '100%' : `${100 / self.numberColumns}%`
+                    'flex': `0 0 calc(${100 / self.numberColumns}%)`,
+                    'max-width': `calc(${100 / self.numberColumns}%)`,
+                    'box-sizing': 'border-box'
                   })
                   .start(self.choiceView, {
                     data$: valueSimpSlot,
@@ -315,7 +423,7 @@ foam.CLASS({
                         })
                       )
                     })
-                  .end()
+                  .end();
 
               });
               return toRender;
