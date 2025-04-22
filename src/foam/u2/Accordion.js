@@ -169,7 +169,7 @@ foam.CLASS({
     {
       name: 'toggle',
       label: '',
-      icon: 'images/cheveron-right.svg',
+      themeIcon: 'next',
       code: function() { this.expanded = ! this.expanded; }
     }
   ],
