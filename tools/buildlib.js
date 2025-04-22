@@ -196,8 +196,9 @@ function error(...args) {
 }
 
 function processSingleCharArgs(ARGS, moreUsage) {
-  function usage() {
+  function usage(f) {
     moreUsage && moreUsage();
+    f && f();
     process.exit(0);
   }
 
@@ -216,8 +217,11 @@ function processSingleCharArgs(ARGS, moreUsage) {
           d[1](arg.substring(j+1));
           if ( a >= 'A' && a <= 'Z' ) break;
         } else {
-          console.log('Unknown argument "' + a + '"');
-          ARGS['h'][1]();
+          let msg = 'Unknown argument "' + a + '"';
+          warning(msg);
+          // output warning message after usage as the usage is so long
+          // the user will have to scroll pages up to see the issue.
+          ARGS['h'][1](() => warning(msg));
         }
       }
     }
