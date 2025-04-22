@@ -63,8 +63,8 @@ foam.CLASS({
       opacity: 1;
     }
     ^ ^toggle svg {
-      width: 12px;
-      height: 12px;
+      width: 1.2rem;
+      height: 1.2rem;
       color: $black;
     }
     ^ .foam-u2-ActionView-toggle {
@@ -75,9 +75,9 @@ foam.CLASS({
       outline: none;
       outline: none;
       padding: 4px;
-      width: 28px;
-      min-width: 28px;
-      height: 28px;
+      width: 2.8rem;
+      min-width: 2.8rem;
+      height: 2.8rem;
     }
     ^ .foam-u2-ActionView-toggle:hover {
       background: transparent !important;
