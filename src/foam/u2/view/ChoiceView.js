@@ -235,7 +235,7 @@ foam.CLASS({
       }
 
       this.onDAOUpdate();
-      this.renderContent();
+      ! this.U3 && this.renderU2Content ? this.renderU2Content() : this.renderContent();
       this.dao$proxy.on.sub(this.onDAOUpdate);
     },
     function renderContent() {
