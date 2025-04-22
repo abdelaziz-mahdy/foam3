@@ -41,18 +41,8 @@ foam.CLASS({
       display: flex;
       gap: 5px;
     }
-    ^actions :is(^action,^toggle) {
+    ^actions ^toggle {
       margin: 0;
-    }
-    ^action {
-      padding: 2px 5px;
-      border: none;
-      background-color: $white;
-      color: $grey900;
-    }
-    ^action:hover {
-      background-color: $surface-primary-normal!important;
-      color: $white!important;
     }
     ^title {
       padding: 3px;
@@ -74,7 +64,7 @@ foam.CLASS({
       padding: 5px;
       opacity: 1;
     }
-    ^ .foam-u2-ActionView-toggle svg {
+    ^ ^toggle svg {
       width: 12px;
       height: 12px;
       color: $black;
@@ -102,51 +92,8 @@ foam.CLASS({
 
   properties: [
     'title',
-    {
-      name: 'icon',
-      value: null,
-      documentation: `
-        An icon that appears before the title in the Accordion toolbar.
-
-        Example:
-          this.start(foam.u2.Accordion, {
-            title: 'Action Accordion',
-            icon: {
-              class: 'foam.u2.tag.Image',
-              data: 'images/my-icon.svg'
-            },
-          })
-            .add('This is hidden content...');
-      `,
-    },
-    {
-      name: 'actions',
-      factory: function() { return []; },
-      documentation: `
-        A list of actions that appear in the accordion toolbar.
-
-        Example:
-          this.start(foam.u2.Accordion, {
-            title: 'Action Accordion',
-            actions: [
-              {
-                id: 'unique-action-1',  // Must be globally unique.
-                name: 'action-1',  // Can be shared between different accordions for styling purposes, generates a classname.
-                label: 'Action 1',
-                tooltip: 'Action 1 Tip.',
-                icon: 'images/my-action-icon.svg',
-                hoverColor: 'red',
-                action: this.someFunction
-              },
-              {
-                label: 'Action 2',
-                action: this.someOtherFunction
-              }
-            ]
-          })
-            .add('This is hidden content...');
-      `
-    },
+    'actions',
+    'toolbar',
     {
       class: 'String',
       name: 'expandIconPosition',
@@ -166,65 +113,50 @@ foam.CLASS({
   methods: [
     function init() {
 
-      const self = this;
+      let self = this;
 
       this
         .addClass()
         .enableClass('expanded', this.expanded$)
-        .start('div')
-          .addClass(this.myClass('toolbar'))
-          .on('click', this.onToggle)
-          .start('div')
-            .addClass(this.myClass('title'))
-            .callIf(this.expandIconPosition === 'left', function() {
-              this.start(
-                self.TOGGLE
-              ).addClass(self.myClass('toggle'))
-              .on('click', self.onToggle);
-            })
-            .callIf(this.icon, function() {
-              this.tag(self.icon);
-            })
-            .start('span')
-              .addClass(this.myClass('title'))
-              .add(this.title$)
-            .end()
-          .end()
-          .start()
-            .addClass(this.myClass('actions'))
-            .forEach(this.actions, function(action) {
-              const actionId = `${self.id}-${action.name}`;
-              this.start(self.ActionView, {
-                id: actionId,
-                action: action.action,
-                data: action.data || self,
-                icon: action.icon || '',
-                label: action.label
-              })
-              .addClass(self.myClass('action'))
-              .callIf(action.name, function() {
-                this.addClass(self.myClass(action.name));
-              })
-              .callIf(action.tooltip, function() {
-                this.tooltip = action.tooltip;
-              })
-              .callIf(action.hoverColor, function() {
-                const style = self.document.createElement('style');
-                style.id = `${actionId}-hover-style`;
-                style.textContent = `
-                  #${actionId}:hover {
-                    background-color: ${action.hoverColor} !important;
-                  }
-                `;
-                self.document.head.appendChild(style);
-              })
-            })
-            .callIf(this.expandIconPosition === 'right', function() {
-              this.start(
-                self.TOGGLE
-              ).addClass(self.myClass('toggle'))
-              .on('click', self.onToggle);
-            });
+        .callIfElse(this.toolbar, function() {
+          this.start('div')
+            .addClass(self.myClass('toolbar'))
+            .on('click', this.onToggle)
+            .add(self.toolbar$)
+          .end();
+        }, function() {
+          this
+            .start('div')
+              .addClass(self.myClass('toolbar'))
+              .on('click', self.onToggle)
+              .start('div')
+                .addClass(self.myClass('title'))
+                .callIf(self.expandIconPosition === 'left', function() {
+                  this.start(
+                    self.TOGGLE
+                  ).addClass(self.myClass('toggle'))
+                  .on('click', self.onToggle);
+                })
+                .start('div')
+                  .addClass(self.myClass('title'))
+                  .add(self.title$)
+                .end()
+              .end()
+              .start()
+                .start('div')
+                  .addClass(self.myClass('actions'))
+                  .add(self.actions$)
+                  .callIf(this.expandIconPosition === 'right', function() {
+                    this.start(
+                      self.TOGGLE
+                    ).addClass(self.myClass('toggle'))
+                    .on('click', self.onToggle);
+                  });
+          })
+
+      this
+        .addClass()
+        .enableClass('expanded', this.expanded$)
 
       this.start('div', null, this.content$)
         //.show(this.expanded$)
