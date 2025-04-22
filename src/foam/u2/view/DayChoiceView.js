@@ -15,7 +15,6 @@ foam.CLASS({
     border-radius: 4px;
     padding: 8px 16px;
     transition: all 0.2s ease;
-    width: 8ch;
   }
   ^:hover {
     cursor: pointer;
