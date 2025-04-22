@@ -14,7 +14,7 @@ foam.CLASS({
 
   documentation: `The key to 'persistent' sessions is the userId on the
 session. If a user makes a client call with an existing session id and
-a matching user id, then the system consisders the user logged in.
+a matching user id, then the system considers the user logged in.
 Sessions are NOT-frozen, for reasons discussed elsewhere.  The
 implication is updates are not persisted to the runtime journal because
 there is never a delta.
