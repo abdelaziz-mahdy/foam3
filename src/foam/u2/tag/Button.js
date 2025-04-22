@@ -30,7 +30,7 @@ foam.CLASS({
     {
       class: 'foam.u2.ColorToken',
       name: 'buttonPrimaryColor',
-      value: '$primary500',
+      value: '$primary400',
       disabledModifier: 90,
       onLight: '$grey50'
     },

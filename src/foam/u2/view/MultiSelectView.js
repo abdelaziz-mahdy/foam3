@@ -35,21 +35,17 @@ foam.CLASS({
     background-color: $white !important;
     color: $black !important;
   }
-  ^select-modal {
+  ^choices-holder {
       background: $white!important;
       color: $black !important;
       opacity: 1 !important;
       border: 1px solid $grey400;
-      box-shadow: none !important;
       border-radius: 4px;
       margin-top: 5px;
-  }
-  ^choices-holder {
       display: flex;
       flex-direction: column;
       gap: 2rem;
-      line-height: 1.2;
-      padding: 5px;
+      padding: 10px;
   }
   ^input-holder {
       display: flex;
@@ -88,7 +84,7 @@ foam.CLASS({
   `,
 
   requires: [
-      'foam.u2.PopupView'
+      'foam.u2.md.OverlayDropdown'
   ],
 
   messages: [
@@ -140,21 +136,20 @@ foam.CLASS({
           name: 'data',
           factory: function() {
             return [];
-          },
+          }
       },
   ],
 
   actions: [
     {
       name: 'options',
-      icon: '/images/chevron-down.svg',
+      themeIcon: 'dropdown',
       code: async function() {
         self = this;
-        let selectCreateModal = this.PopupView.create({
-            width: 400,
-            x: 0,
-            y: 0
-        })
+        let selectCreateModal = this.OverlayDropdown.create({
+            closeOnLeave: true,
+            lockToParentWidth: true
+          })
             .addClass(this.myClass('select-modal'))
             .start().addClass(this.myClass('choices-holder'))
                 .add(this.dynamic(function(choices, data) {
@@ -163,23 +158,12 @@ foam.CLASS({
                         var inputId = 'u' + choice.$UID;
                         this
                             .start().addClass(self.myClass('input-holder'))
-                                .start('input').addClass(self.myClass('checkbox-input'))
-                                    .attrs({
-                                    type:     'checkbox',
-                                    name:     self.getAttribute('name') + self.$UID,
-                                    value:    choice[1],
-                                    checked:  isSelected,
-                                    label: choice[0]
-                                    })
-                                    .on('change', function (evt) {
+                              .tag(foam.u2.CheckBox, { data: isSelected, label: choice[0] })
+                              .on('change', function (evt) {
                                         self.onSelect(choice[1]);
                                     })
-                                .end()
-                                .start('label')
-                                    .start('span')
-                                        .add(choice[0])
-                                    .end()
-                            .end();
+                                
+                        .end();
                         
                     });
                 }))
