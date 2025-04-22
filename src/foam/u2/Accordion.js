@@ -21,11 +21,9 @@ foam.CLASS({
       border-bottom-color: $grey200;
     }
     ^:first-child {
-      margin-top: 16px;
       border-radius: 4px 4px 0 0;
     }
     ^:last-child {
-      margin-bottom: 16px;
       border-radius: 0 0 4px 4px;
       border-bottom-color: $grey50;
     }
