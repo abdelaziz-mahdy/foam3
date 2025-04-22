@@ -12,6 +12,7 @@ foam.CLASS({
   javaImports: [
     'foam.lang.FObject',
     'foam.dao.ArraySink',
+    'foam.dao.ProxySink',
     'foam.dao.DAO',
     'foam.util.SafetyUtil',
     'foam.core.crunch.CapabilityIntercept',
@@ -42,6 +43,53 @@ foam.CLASS({
   ],
 
   methods: [
+    {
+      name: 'find_',
+      javaCode: `
+        Capable capable = (Capable) getDelegate().find_(x, id);
+        if ( capable == null ) {
+          return null;
+        }
+        capable = (Capable) ((FObject) capable).fclone();
+
+        capable = populatePayloads(x, capable);
+
+        return (FObject) capable;
+      `
+    },
+    {
+      name: 'select_',
+      javaCode: `
+        if (sink != null) {
+          ProxySink refinedSink = new ProxySink(x, sink) {
+            @Override
+            public void put(Object obj, foam.lang.Detachable sub) {
+              Capable capable = (Capable) ((FObject) obj).fclone();
+
+              capable = populatePayloads(x, capable);
+
+              super.put(capable, sub);
+            }
+          };
+          return ((ProxySink) super.select_(x, refinedSink, skip, limit, order, predicate)).getDelegate();
+        }
+        return super.select_(x, sink, skip, limit, order, predicate);
+      `
+    },
+    {
+      name: 'populatePayloads',
+      args: [
+        { name: 'x', javaType: 'foam.lang.X' },
+        { name: 'capable', javaType: 'Capable' }
+      ],
+      type: 'Capable',
+      javaCode:`
+        DAO capablePayloadDAO = capable.getCapablePayloadDAO(x);
+        CapabilityJunctionPayload[] payloads = (CapabilityJunctionPayload[]) ((List) ((ArraySink) capablePayloadDAO.select(new ArraySink())).getArray()).toArray(new CapabilityJunctionPayload[0]);
+        capable.setCapablePayloads(payloads);
+        return capable;
+      `
+    },
     {
       name: 'put_',
       javaCode: `

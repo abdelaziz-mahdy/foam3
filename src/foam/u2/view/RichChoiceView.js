@@ -763,7 +763,7 @@ foam.CLASS({
           padding-left: $inputHorizontalPadding;
           padding-right: $inputHorizontalPadding;
         }
-        ^customSelectView > div {
+        ^customSelectView:not(^ro) > div {
           padding: 4px 8px;
         }
       `,
@@ -799,7 +799,11 @@ foam.CLASS({
 
           this.add(this.dynamic(function(fullObject) {
             if ( fullObject ) {
-              this.start().addClass(self.myClass('customSelectView')).tag((self.rowView || self.CitationView), { data: fullObject }).end();
+              this.start()
+                .addClass(self.myClass('customSelectView'))
+                .enableClass(self.myClass('ro'), self.controllerMode$.map(v => v == 'VIEW'))
+                .tag((self.rowView || self.CitationView), { data: fullObject })
+              .end();
             } else {
               this.start().addClass(self.myClass('paddingWrapper')).add(self.defaultSelectionPrompt).end();
             }
