@@ -64,6 +64,7 @@ public abstract class AbstractStorage
     try {
       return Files.newOutputStream(path, CREATE, APPEND);
     } catch (IOException e) {
+      foam.core.logger.StdoutLogger.instance().error(this.getClass().getName(), "getOutputStream", name, e.getMessage());
       return null;
     }
   }
