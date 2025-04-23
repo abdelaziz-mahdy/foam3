@@ -383,7 +383,7 @@ foam.CLASS({
       for ( var i = 0, p ; p = args[i] ; i++ ) {
         if ( ! ( ps = ps.apply(p, obj) ) ) return undefined;
       }
-      return ps;
+      return ps.setValue(null);
     },
 
     function toString() {
@@ -639,7 +639,7 @@ foam.CLASS({
   name: 'Until',
   extends: 'foam.parse.ParserDecorator',
 
-  documentation: 'Matches any characters until the terminating pattern.  Consumes and discards the terminating pattern when found.  Fails if termination was never found.',
+  documentation: 'Matches any characters until the terminating pattern.  Consumes and discards the terminating pattern when found. Fails if termination was never found.',
 
   methods: [
     function parse(ps, obj) {
@@ -661,6 +661,36 @@ foam.CLASS({
 
     function toString() {
       return 'until(' + this.SUPER() + ')';
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.parse',
+  name: 'Until0',
+  extends: 'foam.parse.ParserDecorator',
+
+  documentation: 'Matches any characters until the terminating pattern without returning a value.  Consumes and discards the terminating pattern when found. Fails if termination was never found.',
+
+  methods: [
+    function parse(ps, obj) {
+      var p = this.p;
+
+      while ( true ) {
+        var res;
+
+        if ( res = ps.apply(p, obj) ) {
+          return res.setValue(null);
+        }
+
+        ps = ps.tail;
+      }
+      return undefined;
+    },
+
+    function toString() {
+      return 'until0(' + this.SUPER() + ')';
     }
   ]
 });
@@ -868,6 +898,7 @@ foam.CLASS({
     'foam.parse.Substring',
     'foam.parse.Symbol',
     'foam.parse.Until',
+    'foam.parse.Until0',
     'foam.parse.Join'
   ],
 
@@ -933,6 +964,12 @@ foam.CLASS({
 
     function until(p) {
       return this.Until.create({
+        p: p
+      });
+    },
+
+    function until0(p) {
+      return this.Until0.create({
         p: p
       });
     },
