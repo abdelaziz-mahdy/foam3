@@ -4,7 +4,7 @@
  * Copyright 2023 The FOAM Authors. All Rights Reserved.
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-// 
+//
 // POM Make - POM Specific Build Tool
 //
 // Recursively traverses POMs applying specified makers.
@@ -41,7 +41,7 @@ var pmake = function(...args) {
   require('../src/foam_node.js');
 
   // TODO: new version of processArgs which takes a map
-  var [argv, X, flags] = require('./processArgs')( 
+  var [argv, X, flags] = require('./processArgs')(
     args,
     {
       d:           './build/classes',
@@ -126,7 +126,7 @@ var pmake = function(...args) {
   }
 
   var SUPER = foam.POM;
-  var seen = {};
+  var seen  = {};
 
   foam.POM = function(pom) {
     if ( seen[foam.sourceFile] ) {
