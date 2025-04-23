@@ -95,7 +95,7 @@ foam.CLASS({
           self
             .addClass('p-md', 'choice')
             .callIf(this.columns != -1, function () {
-              this.style({'flex-basis': (100 / self.columns) + '%'})
+              this.style({'flex-basis': (100 / self.columns) + '%'});
             })
             .start('input')
               .attrs({
@@ -119,12 +119,12 @@ foam.CLASS({
               .end()
             .end();
         });
-      });
+      }));
     },
 
     // remove eventually
     function renderU2Content() {
-      var self = this
+      var self = this;
 
       this.add(self.slot(function(choices) {
         return choices.map(c => {
