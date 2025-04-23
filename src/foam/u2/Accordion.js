@@ -146,7 +146,7 @@ foam.CLASS({
           }, function() {
             this
               .start('div')
-                .addClass(self.myClass('title'))
+                .addClass(self.myClass('title-section'))
                 .callIf(self.togglerPosition === 'left', function() {
                   this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
                     .addClass(self.myClass('control'));
