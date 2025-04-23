@@ -6,7 +6,6 @@
 
 
 foam.CLASS({
-
   package: 'foam.u2.view',
   name: 'MultiSelectView',
   extends: 'foam.u2.View',
@@ -144,18 +143,15 @@ foam.CLASS({
       name: 'options',
       themeIcon: 'dropdown',
       code: async function() {
-        let self = this;
-
         this.parentNode.add(this.overlay)
-    }  
+      }  
     }
   ],
   methods: [
       function render() {
-          var self = this;
           this.startContext({ data: this })
             .tag(this.OPTIONS, {label: this.placeholder ?? 'Options'})
-          .endContext()
+          .endContext();
       } 
 
   ]
