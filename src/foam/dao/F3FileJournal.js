@@ -70,9 +70,16 @@ foam.CLASS({
           if ( reader == null ) {
             return;
           }
-          for (  CharSequence entry ; ( entry = getEntry(reader) ) != null ; ) {
+          for ( CharSequence entry ; ( entry = getEntry(reader) ) != null ; ) {
             int length = entry.length();
             if ( length == 0 ) continue;
+            if ( length < 3 ) {
+              // Don't bother reporting lines with just spaces
+              if ( entry.toString().trim().length() != 0 ) {
+                System.err.println("Malformed jrl entry " + getFilename() + " : " + entry);
+              }
+              continue;
+            }
             if ( COMMENT.matcher(entry).matches() ) continue;
             try {
               final char operation = entry.charAt(0);
