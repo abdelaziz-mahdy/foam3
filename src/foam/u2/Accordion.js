@@ -9,75 +9,49 @@ foam.CLASS({
   package: 'foam.u2',
   name: 'Accordion',
   extends: 'foam.u2.Controller',
-  requires: [ 'foam.u2.ActionView' ],
+  requires: [
+    'foam.u2.ActionView',
+    'foam.u2.tag.Image'
+  ],
 
   css: `
     ^ {
-      width: 100%;
-      overflow: hidden;
-      background-color: $grey50;
-      border: 1px solid $grey50;
-      border-bottom-color: $grey200;
+      position: relative;
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
     }
-    ^:first-child {
-      border-radius: 4px 4px 0 0;
-    }
-    ^:last-child {
-      border-radius: 0 0 4px 4px;
-      border-bottom-color: $grey50;
+    ^control {
+      display: inline;
+      position: relative;
+      width: 30px;
     }
     ^toolbar {
-      background-color: $grey50;
-      padding: 4px;
       display: flex;
+      flex-direction: row;
       justify-content: space-between;
-    }
-    ^actions {
-      justify-content: center;
       align-items: center;
-      display: flex;
-      gap: 4px;
-    }
-    ^actions ^toggle {
-      margin: 0;
-      color: $black;
-    }
-    ^title {
-      padding: 4px;
-      font-size: 1.1em;
-      cursor: default;
-      display: flex;
-      align-items: center;
-    }
-    ^content {
-      background: white;
-      display: block;
-      transition: 0.2s ease-in-out;
-      height: 0;
+      left: 1.5vmin;
+      top: max(-12px, -2vmin);
+      color: $grey900;
+      cursor: pointer;
+      width: 100%;
+      border: none;
+      background: none;
       padding: 0;
-      opacity: 0;
     }
-    ^.expanded ^content {
-      height: auto;
-      padding: 4px;
-      opacity: 1;
+    ^.expanded > ^toolbar {
+      padding: 0 0 0.8rem 0;
     }
-    ^ ^toggle svg {
-      width: 1.2rem;
-      height: 1.2rem;
-      fill: $black;
-    }
-    ^ .foam-u2-ActionView-toggle {
+    ^control {
       transition: transform 0.3s;
-      border-radius: 50%;
-      padding: 4px;
-      width: 2.8rem;
-      min-width: 2.8rem;
-      height: 2.8rem;
     }
-    ^.expanded .foam-u2-ActionView-toggle {
+    ^.expanded ^control {
       transform: rotate(90deg);
-      transition: transform 0.3s;
+    }
+    ^control svg {
+      max-height: 1em;
+      fill: $black;
     }
   `,
 
@@ -140,7 +114,12 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'expandIconPosition',
+      name: 'controlGlyph',
+      value: 'next'
+    },
+    {
+      class: 'String',
+      name: 'togglerPosition',
       view: {
         class: 'foam.u2.view.ChoiceView',
         choices: [ 'left', 'right' ]
@@ -169,25 +148,27 @@ foam.CLASS({
             this
               .start('div')
                 .addClass(self.myClass('title'))
-                .callIf(self.expandIconPosition === 'left', function() {
-                  this.start(self.TOGGLE)
-                    .addClass(self.myClass('toggle'));
+                .callIf(self.togglerPosition === 'left', function() {
+                  this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
+                    .addClass(self.myClass('control'));
                 })
                 .start('div')
                   .addClass(self.myClass('title'))
+                  .addClass('p-bold')
                   .add(self.title$)
                 .end()
               .end()
               .start()
                 .addClass(self.myClass('actions'))
                 .add(self.actions$)
-                .callIf(self.expandIconPosition === 'right', function() {
-                  this.start(self.TOGGLE)
-                    .addClass(self.myClass('toggle'));
+                .callIf(self.togglerPosition === 'right', function() {
+                  this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
+                    .addClass(self.myClass('control'));
                 });
-          })
+          });
 
       this.start('div', null, this.content$)
+        .show(this.expanded$)
         .addClass(this.myClass('content'))
       .end();
     }
@@ -198,7 +179,6 @@ foam.CLASS({
       name: 'toggle',
       label: '',
       buttonStyle: 'UNSTYLED',
-      themeIcon: 'next',
       code: function() { this.expanded = ! this.expanded; }
     }
   ]
