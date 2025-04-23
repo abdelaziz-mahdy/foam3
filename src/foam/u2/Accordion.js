@@ -10,8 +10,7 @@ foam.CLASS({
   name: 'Accordion',
   extends: 'foam.u2.Controller',
   requires: [
-    'foam.u2.ActionView',
-    'foam.u2.tag.Image'
+    'foam.u2.ActionView'
   ],
 
   css: `
