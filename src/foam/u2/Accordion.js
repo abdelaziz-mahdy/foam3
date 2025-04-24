@@ -71,16 +71,15 @@ foam.CLASS({
       `
     },
     {
-      name: 'actions',
-      factory: () => [],
+      name: 'rightSlot',
       documentation: `
-        Actions section content. Can be a list of actions, a counter, ...etc
+        Right section content. Can be a list of actions, a counter, ...etc
 
         USAGE:
           this
             .start(foam.u2.Accordion)
             .call(function() {
-              this.actions.push(self.UPDATE_ACTION, self.DELETE_ACTION));
+              this.rightSlot = self.UPDATE_ACTION;
             });
       `
     },
@@ -88,7 +87,7 @@ foam.CLASS({
       name: 'toolbar',
       documentation: `
         This attribute overrides the entire toolbar area.
-        Setting this attribute will ignore both title, and actions attributes.
+        Setting this attribute will ignore both title, and rightSlot attributes.
 
         USAGE:
           this.tag(foam.u2.Accordion, {
@@ -154,9 +153,11 @@ foam.CLASS({
                 .end()
               .end()
               .start()
-                .addClass(self.myClass('actions'))
-                .add(function(actions) {
-                  this.add(self.actions$)
+                .addClass(self.myClass('right-slot'))
+                .add(function(rightSlot) {
+                  if ( rightSlot ) {
+                    this.add(rightSlot)
+                  }
                 })
                 .callIf(self.togglerPosition === 'right', function() {
                   this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
