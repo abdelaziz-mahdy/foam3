@@ -72,18 +72,16 @@ foam.CLASS({
     },
     {
       name: 'actions',
+      factory: () => [],
       documentation: `
         Actions section content. Can be a list of actions, a counter, ...etc
 
         USAGE:
-          this.tag(foam.u2.Accordion, {
-            title: "User"
-            actions: foam.u2.Element.create()
-              .addClass(self.myClass('actions'))
-              .add(self.UPDATE_ACTION)
-              .add(self.DELETE_ACTION)
-            }
-          )
+          this
+            .start(foam.u2.Accordion)
+            .call(function() {
+              this.actions.push(self.UPDATE_ACTION, self.DELETE_ACTION));
+            });
       `
     },
     {
@@ -157,7 +155,9 @@ foam.CLASS({
               .end()
               .start()
                 .addClass(self.myClass('actions'))
-                .add(self.actions$)
+                .add(function(actions) {
+                  this.add(self.actions$)
+                })
                 .callIf(self.togglerPosition === 'right', function() {
                   this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
                     .addClass(self.myClass('control'));
