@@ -413,7 +413,7 @@ any values from the whitespace. We just want to skip over it as quickly and effi
 as possible.
 </pre>
 --
-const whitespace = P.plus(P.anyChar(' \t\n'));
+const whitespace = P.repeat0(P.chars(' \t\n'), null, 1);
 const word       = P.str(P.plus(P.range('a', 'z')));
 const words      = P.repeat(word, whitespace);
 
