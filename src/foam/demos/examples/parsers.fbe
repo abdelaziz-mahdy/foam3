@@ -65,10 +65,10 @@ for the various parser types.
 ## Literal Parser
 The simplest parser is a literal parser, which only parses the supplied string.
 --
-// Create a Singleton for accessing Parser library
+// Create a Singleton for accessing the built-in Parser library
 var P = foam.parse.Parsers.create();
 
-// Create an input PStream for String
+// Create an input PStream for String and assign a value to parse
 var ps = foam.parse.StringPStream.create();
 // And assign a value to parse
 ps.setString('abcdef');
@@ -76,31 +76,36 @@ ps.setString('abcdef');
 // Let's look at our PStream
 log(ps.toString());
 
-// Now create a Literal Parser using the Single object 'P' created above.
+// Now create a Literal Parser using the Singleton instance 'P' created above.
 // This parser will only parse the literal 'abc'.
-var p = P.literal('abc');
+var lp = P.literal('abc');
 
 // Now let's parse the PStream with the Parser
-ps = p.parse(ps);
+ps = lp.parse(ps);
 
 // Now let's look at the results of our parsing
 log(ps.toString());
 
 // If we try to parse 'abc' again notice that it will fail because the stream is now
 // at 'def', since 'abc' was consumed.
-log(p.parse(ps));
+var np = lp.parse(ps);
+log(!np?'undefined':np.toString());
 
 // Here we'll create an in-lined literal 'def' parser and then call in directly.
 log(P.literal('def').parse(ps).toString());
 
 ## Parser Tester
-Before continuing, let's write a helper function to make testing parsers easier.
+Before continuing, let's write a helper function testP() to make demonstrating parser examples easier.
 
-The testP function uses the U2 GUI library to create a table of test output.
-If you're unfamiliar with U2, please view the U2 examples first.
+The testP() function uses the U2 GUI library to create a table of input output pairs.
+For more informantion on the U2 library, please view the U2 examples. For our purpose though,
+you can treat this function as a blackbox that takes a parser and an array of strings to parse as input
+and displays the results in a table
 --
+// Create a Singleton for accessing the built-in Parser library
 const P = foam.parse.Parsers.create();
 
+// Function that invokes the parser for the given array of strs
 function testP(parser, strs) {
   globalThis.scope.br().start('table').
     style({'min-width': '90%'}).
@@ -134,8 +139,10 @@ function testP(parser, strs) {
   });
 }
 
+// Demonstrate the testP() function
 testP(P.literal('abc'), [ 'abc', 'abcdef', 'Abc', 'ABC', 'xyz' ]);
 
+// Store the test function and the singleton for the rest of the examples
 globalThis.P = P;
 globalThis.testP = testP;
 
@@ -179,13 +186,13 @@ testP(P.eof(), [ 'abc', 'ABC', '!@#$%', '' ]);
 The chars() parser will parse any single character which is included as part of the
 supplied string.
 --
-testP(P.chars('abc'), [ 'abc', 'bbc', 'cbc', 'xbc', '' ]);
+testP(P.chars('abc'), [ 'ax', 'bx', 'cx', 'xb', '' ]);
 
 ## Not Chars Parser
 The notChars() parser will parse any single character which is NOT included as part of the
 supplied string. However, it will not parse EOF.
 --
-testP(P.notChars('abc'), [ 'abc', 'bbc', 'cbc', 'xbc', '' ]);
+testP(P.notChars('abc'), [ 'ax', 'bx', 'cx', 'xb', '' ]);
 
 ## Range Parser
 The range() parser is similar to chars(), except that it lets you more easily specify a range of characters.
@@ -195,7 +202,7 @@ testP(P.range('0', '9'), [ 'a', '1', '2', '3', '9', 'z' ]);
 // Is short form for:
 testP(P.chars('0123456789'), [ 'a', '1', '2', '3', '9', 'z' ]);
 
-// It is often used to detect numbers (like above) or lettters, like:
+// It is often used to detect numbers (like above) or letters, like:
 testP(P.range('a', 'z'), [ 'a', '1', '2', '3', '9', 'z' ]);
 
 // Notice that it still only matches a single character
@@ -209,16 +216,17 @@ Now we'll look at combining the above simple parsers with parse combinators to c
 ## Sequence Parser
 The most common parse combinator is the sequence parser, which combines multiple parsers
 into a single parser which only parses if each of the composed parsers successfully parses
-in sequence. Each parser picks up where the previous parser left off in the input stream,
-and the sequence parser will fail if any of the composed parsers fails to parse.
+in sequence. Each parser picks up where the previous parser left off in the input stream.
+The sequence parser will fail if any of the composed parsers fails to parse.
 On a successful parse, the returned value is an array of the parsed values of each
 composed parser.
 --
 // The first parser accepts a letter and the second parser accepts a number.
-testP(P.seq(P.range('a','z'), P.range('0','9')), [ 'r2', 'd2', '3p', 'xy' ]);
+var p = P.seq(P.range('a','z'), P.range('0','9'));
+testP(p, [ 'r2', 'd2', '3p', 'xy' ]);
 
 ## Literal Parser Shortcut
-Notice that in this example we have three calls to P.literal(). Since P.literal() is so
+In the example below, notice that we have three calls to P.literal(). Since P.literal() is so
 commonly used when creating parsers, we make it the default when you just pass a String
 to another parse combinator, like seq().
 --
