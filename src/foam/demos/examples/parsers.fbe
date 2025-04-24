@@ -240,17 +240,18 @@ testP(P.seq('a', 'b', 'c'), TESTS);
 
 
 ## String Parser
-Notice that in the sequence parser, when we parsed 'r2' our value was [ 'r', '2' ], an array.
-Often we want the result of our parsers to be string values, not the arrays of characters or
-substrings that were parsed by the individual parsers passed to the sequence parser.
-To fix this, we use the str() parser decorator, which is a very simple combinator because it only
-combines/decorates a single parser. Instead of changing that delegate parser's behaviour, it just
-changes its resulting value so that if it returns an array, it converts into a single
+In one of the previous examples, when we demonstrated the sequence parser seq(), parsing 'r2' resulted
+ in the parsed value of [ 'r', '2' ], an array. However, we often
+want the result of our parsers to be string values, not the arrays of characters or
+substrings that were parsed by the individual parsers that comprised the sequence parser.
+To facilate this, we use a very simple combinator parser called str() that decorates a single parser. 
+Instead of changing that delegate parser's behaviour, it just
+changes its resulting value so that if it returns an array, it converts it into a single
 string value with the array values concatenated.
-TODO: simplify
 --
 // Notice unlike above, our results are strings, not arrays
-testP(P.str(P.seq(P.range('a','z'), P.range('0','9'))), [ 'r2', 'd2', '3p', 'xy' ]);
+var p = P.seq(P.range('a','z'), P.range('0','9'));
+testP(P.str(p), [ 'r2', 'd2', '3p', 'xy' ]);
 
 ## Alternate Parser
 The next most common parse combinator after the sequence parser, is the alt() parser.
@@ -269,6 +270,9 @@ The repeat() parser takes a single delegate parser and repeatedly uses it to par
 the input stream until it fails. The result of all delegate parses are combined in an array.
 
 --
+testP(P.repeat(P.range('0','9')), [ '1', '1x', '123xyz', 'abc' ]);
+
+// Same example with the values converted into strings
 testP(P.str(P.repeat(P.range('0','9'))), [ '1', '1x', '123xyz', 'abc' ]);
 
 ## Plus
@@ -287,25 +291,29 @@ delegate parser, this is so common an operation that repeat supports it directly
 --
 // First lets' look how we would parse a comma delimited list of letters without using this feature:
 testP(
-  P.repeat(P.seq(P.range('a','z'), ',')),
+  P.str(P.repeat(P.str(P.seq(P.range('a','z'), P.literal(','))))),
   [ 'a', 'a,b', 'a,b,c', 'a,b,c,'
 ]);
+
+
 // Notice that the above never parsed the last letter, except for the last case: 'a,b,c,'
 // because there's a bug in our parser. We only want the comma between letters, not after,
-// which prevents the last 'c' from being parse.
+// which prevents the last 'c' from being parsed.
 // To fix this, we need to make our parser more complicated:
 testP(
-  P.seq(P.repeat(P.seq(P.range('a','z'), ',')), P.range('a', 'z')),
+  P.str(P.seq(P.str(P.repeat(P.str(P.seq(P.range('a','z'), P.literal(','))))), P.range('a', 'z'))),
   [ 'a', 'a,b', 'a,b,c', 'a,b,c,'
 ]);
+
 // This fixes that problem, but our parser is getting more complicated. Also,
 // notice that it is including the commas in the parsed output, but we probably
 // just want the letters.
 // The solution is to specify the delimiter to repeat():
 testP(
-  P.repeat(P.range('a','z'), ','),
+  P.str(P.repeat(P.range('a','z'), ',')),
   [ '', 'a', 'a,b', 'a,b,c', 'a,b,c,'
 ]);
+
 // By supplying the delimiter parser as the second argument to repeat(), it knows that we
 // only want to skip delimiters between values and it excludes them from the output.
 // It is also shorter and easier to understand than our first attempt.
@@ -313,17 +321,21 @@ testP(
 // You can also specify a delimiter parser with plus(), in cases where you only want
 // the parse to succeed when you have one or more parses.
 testP(
-  P.plus(P.range('a','z'), ','),
+ P.str(P.plus(P.range('a','z'), ',')),
   [ '', 'a', 'a,b', 'a,b,c', 'a,b,c,'
 ]);
 
 ## Repeat with a Number of Repetitions
 The repeat() parses zero or more times and plus() repeats one or more times, but sometimes
-you want to parse with some minimum number of repeats other than zero or 1.
-The third optional argument of repeat() let's you specify the minimum number
-of repetitions. Since the second argument is the delimiter parser, if you don't want
-to have a delimiter, just pass 'undefined'.
-The below parser checks passwords to ensure that they're at least five characters long:
+you want to parse with some minimum number of repeats other than zero or one.
+The third optional argument of repeat() let's you specify just that.
+Since the second argument is the delimiter parser, if you don't want
+to have a delimiter, pass 'undefined' as its value.
+
+The below example checks passwords to ensure that they're at least five characters long. 
+Notice that the repeat() parser still continues until it fails, hence for the last sample
+it repeated six times, meaning that the specified repeat parametar is the miniumum number
+of repetations not the absolute limit.
 --
 testP(
   P.str(P.repeat(P.alt(P.range('a','z'), P.range('A', 'Z'), P.range('0', '9'), P.anyChar('!@#$%^&*')), undefined, 5)),
@@ -336,7 +348,7 @@ The Not parser is unusual in that it suceeds only if it's delegate parser fails.
 var quote        = P.literal('"');
 var stringBody   = P.str(P.repeat(P.not(quote, P.anyChar())));
 var stringParser = P.seq(quote, stringBody, quote);
-testP(stringParser, [ '""', '"a"', '"abc13234$@#$"', '"abc"asfasdf"' ]);
+testP(P.str(stringParser), [ '""', '"a"', '"abc13234$@#$"', '"abc"asfasdf"' ]);
 
 ## Seq1 Parser
 Notice that in the previous string parser example, our result value was an array where
@@ -355,9 +367,10 @@ var stringParser = P.seq1(1, quote, stringBody, quote);
 testP(stringParser, [ '""', '"a"', '"abc13234$@#$"', '"abc"asfasdf"' ]);
 
 ## Until Parser
-The pattern we demonstrated two example ago in the stringParser which combined repeat(), not(), and anyChar() is common enough
-that we have a special parser for that called until(). It parses input until the delegated parser
-matches. We can use it to simplify the above stringParser.
+The string pattern in the above example combined repeat(), not(), and anyChar() in order to extract the string.
+This pattern is common enough that we have a special parser for that called until().
+It parses input until the delegated parser matches. 
+We can use it to simplify the above stringParser.
 --
 var quote        = P.literal('"');
 var stringParser = P.str(P.seq1(1, quote, P.until(quote)));
