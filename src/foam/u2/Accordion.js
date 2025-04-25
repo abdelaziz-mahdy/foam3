@@ -129,13 +129,17 @@ foam.CLASS({
               this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
                 .addClass(self.myClass('control'));
             })
-            .start('div', null, this.title$)
-              .addClass(self.myClass('title'))
-              .addClass('p-bold')
-            .end()
+            .add(function(title) {
+              this.start(title)
+                .addClass(self.myClass('title'))
+                .addClass('p-bold');
+            })
           .end()
-          .start('div', null, this.rightSection$)
+          .start()
             .addClass(self.myClass('right-section'))
+            .add(function(rightSection) {
+              this.tag(rightSection);
+            })
             .callIf(self.togglerPosition === 'right', function() {
               this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
                 .addClass(self.myClass('control'));
