@@ -14,7 +14,7 @@ foam.CLASS({
   exports: ['as controlBorder'],
   requires: ['foam.u2.layout.Cols'],
   css:`
-    /*%CUSTOMCSS%*/
+    %CUSTOMCSS%
     ^ {
       height: 100%;
       width: 100%;
