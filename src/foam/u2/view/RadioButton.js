@@ -36,19 +36,20 @@ foam.CLASS({
       }
     },
     {
-      name: 'isDisabled',
-      class: 'Boolean'
+      class: 'Boolean',
+      name: 'isDisabled'
     },
     {
-      name: 'isSelected',
-      class: 'Boolean'
+      class: 'Boolean',
+      name: 'isSelected'
     }
   ],
 
   methods: [
     function render() {
       const e = foam.css.TokenUtilsBuilder.create({}, this);
-      let colorSlot = this.slot(function(selectedColor, theme) { return e.TOKEN(selectedColor).f(this) });
+      let colorSlot = this.slot(function(selectedColor, theme) { return e.TOKEN(selectedColor).f(this); });
+
       this
         .addClass('radio')
         .attrs({ width: 20, height: 20 })

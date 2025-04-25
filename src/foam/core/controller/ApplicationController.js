@@ -632,7 +632,7 @@ foam.CLASS({
       // CSS because it's already in long form. By checking if */ follows the
       // macro, we can tell if it's already in long form and skip it.
       return val ? css.replace(
-        new RegExp('%' + M + '%(?!\\*/)', 'g'),
+        new RegExp('%' + M + '%(?!\\*\\/)', 'g'),
         '/*%' + M + '%*/ ' + val) : css;
     },
 
