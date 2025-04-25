@@ -519,6 +519,7 @@ foam.CLASS({
       return {
         START: seq1(0, sym('parens'), eof()),
 
+        // The 'repeat' allows for ()'s to be side-by-side, like ()() or (()())
         parens: str(repeat(
           str(seq('(', sym('parens'), ')')),
         ))
