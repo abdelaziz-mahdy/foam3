@@ -59,51 +59,38 @@ foam.CLASS({
         Title of the accordion, you can pass foam.ui.Element objects as well for more flexibility.
 
         USAGE:
-          this.tag(foam.u2.Accordion, {
-            title: foam.u2.Element.create()
-              .tag({
-                class: 'foam.u2.tag.Image',
-                data: 'images/success.svg'
-              })
-              .add('Success'),
-            }
-          )
-      `
-    },
-    {
-      name: 'rightSlot',
-      documentation: `
-        Right section content. Can be a list of actions, a counter, ...etc
-
-        USAGE:
           this
             .start(foam.u2.Accordion)
             .call(function() {
-              this.rightSlot = self.UPDATE_ACTION;
-            });
-      `
-    },
-    {
-      name: 'toolbar',
-      documentation: `
-        This attribute overrides the entire toolbar area.
-        Setting this attribute will ignore both title, and rightSlot attributes.
-
-        USAGE:
-          this.tag(foam.u2.Accordion, {
-            toolbar: foam.u2.Element.create()
-              .addClass(self.myClass('my-custom-toolbar'))
-              .start()
-                .addClass('some-custom-class')
+              this.title = foam.u2.Element.create()
                 .tag({
                   class: 'foam.u2.tag.Image',
                   data: 'images/success.svg'
                 })
-                .start('h4')
-                  .add("My title")
-                .end()
+                .add('Success');
             }
-          )
+      `
+    },
+    {
+      name: 'rightSection',
+      documentation: `
+        Right section content. Can be a list of actions, a counter, ...etc
+
+        USAGE:
+          OPTION 1:
+          let accordion = this.start(this.Accordion);
+          accordion.rightSection.add(self.UPDATE_ACTION);
+
+          OPTION 2:
+          this
+            .start(foam.u2.Accordion)
+            .call(function() {
+              this.rightSection = self.UPDATE_ACTION;
+            });
+
+          OPTION 3:
+          this.tag(foam.u2.Accordion, {}, this.accordion$);
+          this.accordion.rightSection.add(self.UPDATE_ACTION);
       `
     },
     {
@@ -136,34 +123,23 @@ foam.CLASS({
         .start('div')
           .addClass(self.myClass('toolbar'))
           .on('click', self.toggle.bind(self))
-          .callIfElse(this.toolbar, function() {
-            this.add(self.toolbar$)
-          }, function() {
-            this
-              .start('div')
-                .addClass(self.myClass('title-section'))
-                .callIf(self.togglerPosition === 'left', function() {
-                  this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
-                    .addClass(self.myClass('control'));
-                })
-                .start('div')
-                  .addClass(self.myClass('title'))
-                  .addClass('p-bold')
-                  .add(self.title$)
-                .end()
-              .end()
-              .start()
-                .addClass(self.myClass('right-slot'))
-                .add(function(rightSlot) {
-                  if ( rightSlot ) {
-                    this.add(rightSlot)
-                  }
-                })
-                .callIf(self.togglerPosition === 'right', function() {
-                  this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
-                    .addClass(self.myClass('control'));
-                });
-          });
+          .start('div')
+            .addClass(self.myClass('title-section'))
+            .callIf(self.togglerPosition === 'left', function() {
+              this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
+                .addClass(self.myClass('control'));
+            })
+            .start('div', null, this.title$)
+              .addClass(self.myClass('title'))
+              .addClass('p-bold')
+            .end()
+          .end()
+          .start('div', null, this.rightSection$)
+            .addClass(self.myClass('right-section'))
+            .callIf(self.togglerPosition === 'right', function() {
+              this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
+                .addClass(self.myClass('control'));
+            });
 
       this.start('div', null, this.content$)
         .show(this.expanded$)
