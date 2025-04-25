@@ -64,7 +64,9 @@ foam.CLASS({
 
   properties: [
       {
-          name: 'placeholder'
+          class: 'String',
+          name: 'placeholder',
+          value: 'Options'
       },
       {
           class: 'Function',
@@ -145,7 +147,7 @@ foam.CLASS({
   methods: [
       function render() {
           this.startContext({ data: this })
-            .tag(this.OPTIONS, {label: this.placeholder ?? 'Options'})
+            .tag(this.OPTIONS, {label: this.placeholder})
           .endContext();
       } 
 
