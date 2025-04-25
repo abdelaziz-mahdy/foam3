@@ -228,11 +228,14 @@ function pom() {
 // Build flag string with global and argument flags
 function flag(flgs) {
   var f = VERBOSE ? 'verbose' : '';
+  f = ( f ? f + ',' : '' ) + ( TEST ? 'test' : '-test');
+
   if ( FLAGS )
-    f = f ? f + ',' + FLAGS : FLAGS;
+    f = ( f ? f + ',' : '' ) + FLAGS;
 
   if ( flgs )
-    f = f ? f + ',' + flgs : flgs;
+    f = ( f ? f + ',' : '' ) + flgs;
+
   return f;
 }
 

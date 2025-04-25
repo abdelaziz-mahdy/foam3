@@ -24,7 +24,6 @@ exports.args = [
   }
 ];
 
-
 exports.init = function() {
   verbose('[Java] init');
   adaptOrCreateArgs(X, exports.args);
@@ -43,7 +42,7 @@ exports.end = function() {
     for ( var key in foam.UNUSED ) {
       try { foam.maybeLookup(key); }
       catch(x) {
-        warning('[Java] UNUSED Model not found', key);
+        // warning('[Java] UNUSED Model not found', key);
       }
     }
 

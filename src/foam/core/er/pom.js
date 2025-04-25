@@ -6,6 +6,10 @@
 
 foam.POM({
   name: "er",
+  projects: [
+    { name: "test/pom",
+      flags: "test"}
+  ],
   files: [
     { name: "EventRecord",
       flags: "js|java" },
@@ -22,8 +26,6 @@ foam.POM({
     { name: "EventRecordSystemOutageRuleAction",
       flags: "js|java" },
     { name: "EventRecordResponse",
-      flags: "js|java" },
-    { name: "test/EventRecordTest",
       flags: "js|java" }
   ]
 })

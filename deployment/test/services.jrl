@@ -1,4 +1,12 @@
 p({
+  "class":"foam.core.boot.CSpec",
+  "name":"testRunnerConfig",
+  "lazy":false,
+  "service": {
+    "class":"foam.core.script.TestRunnerConfig"
+  }
+})
+p({
   class: "foam.core.boot.CSpec",
   name: "broadcast",
   authenticate:false,
@@ -116,3 +124,4 @@ p({
       .addPropertyIndex(new foam.lang.PropertyInfo[] { foam.core.auth.User.REFERRAL_CODE });
   """
 })
+p({"class":"foam.core.boot.CSpec", "name":"serializationTestEchoService", "boxClass": "foam.core.test.EchoServiceSkeleton",  "serve":true, "serviceClass":"foam.core.test.SerializationTestEchoService", "client":"{\"class\":\"foam.core.test.ClientEchoService\",\"delegate\":{\"class\":\"foam.box.SessionClientBox\",\"delegate\":{\"class\":\"foam.box.HTTPBox\",\"method\":\"POST\",\"url\":\"service/serializationTestEchoService\"}}}"})

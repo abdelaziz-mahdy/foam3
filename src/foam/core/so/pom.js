@@ -6,6 +6,10 @@
 
 foam.POM({
   name: "so",
+  projects: [
+    { name: "test/pom",
+      flags: "test" }
+  ],
   files: [
     { name: "MessageTask",
       flags: "js|java" },
@@ -38,10 +42,6 @@ foam.POM({
     { name: "SystemNotificationTask",
       flags: "java|js" },
     { name: "TaskCleanUpRuleAction",
-      flags: "js|java" },
-    { name: "test/EventRecordSystemOutageTest",
-      flags: "js|java" },
-    { name: "test/SystemOutageSystemNotificationThemeTest",
       flags: "js|java" }
   ]
 })

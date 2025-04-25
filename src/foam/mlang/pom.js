@@ -14,7 +14,6 @@ foam.POM({
   ],
   files: [
     { name: "order/Comparator",                     flags: "js|java" },
-
     { name: "Compare",                              flags: "js" },
     { name: "sink/Count",                           flags: "js|java" },
     { name: "sink/Sequence",                        flags: "js|java" },
@@ -111,18 +110,20 @@ foam.POM({
     { name: "Days",                                 flags: "js|java" },
     { name: "Hours",                                flags: "js|java" },
     { name: "Minutes",                              flags: "js|java" },
-
-    { name: "DOTMQLTest",                                  flags: "js|java" },
-    { name: "expr/PropertyExpr",                           flags: "js|java" },
-    { name: "expr/DateTypes",                              flags: "js|java" },
-    { name: "expr/DateGrouping",                           flags: "js|java" },
-    { name: "expr/DateGroupingExpr",                       flags: "js|java" },
-    { name: "expr/DateTimeGroupingExpr",                   flags: "js|java" },
-    { name: "expr/Ref",                                    flags: "js|java" },
-    { name: "expr/TimeOfDay",                              flags: "js|java" },
-    { name: "predicate/ContextUserPredicate",              flags: "js|java" },
-    { name: "predicate/CapabilityAuthServicePredicate",    flags: "js|java" },
-    { name: "predicate/AuthPermissionPredicate",           flags: "js|java" },
-    { name: "LabeledValue",                                flags: "js" }
+    { name: "DOTMQLTest",                           flags: "js&test|java&test" },
+    { name: "expr/PropertyExpr",                    flags: "js|java" },
+    { name: "expr/DateTypes",                       flags: "js|java" },
+    { name: "expr/DateGrouping",                    flags: "js|java" },
+    { name: "expr/DateGroupingExpr",                flags: "js|java" },
+    { name: "expr/DateTimeGroupingExpr",            flags: "js|java" },
+    { name: "expr/Ref",                             flags: "js|java" },
+    { name: "expr/TimeOfDay",                       flags: "js|java" },
+    { name: "predicate/ContextUserPredicate",       flags: "js|java" },
+    { name: "predicate/CapabilityAuthServicePredicate", flags: "js|java" },
+    { name: "predicate/AuthPermissionPredicate",    flags: "js|java" },
+    { name: "LabeledValue",                         flags: "js" }
+  ],
+  journalFiles: [
+    { name: "tests",                                flags: "test" }
   ]
 });

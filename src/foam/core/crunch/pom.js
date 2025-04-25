@@ -2,7 +2,7 @@ foam.POM({
   name: "crunch",
   projects: [
     { name: "ruler/pom"},
-    { name: "test/pom"}
+    { name: "test/pom", flags: "test" }
   ],
   files: [
     { name: "UserCapabilityJunctionExpiredDAO",

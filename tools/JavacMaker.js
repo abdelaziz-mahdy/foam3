@@ -15,7 +15,6 @@ exports.args = [
   {
     name: 'javacParams',
     description: 'parameters to pass to javac',
-    // value: '-proc:none'
     factory: () => X.javacParams || '-proc:none'
   },
   {
@@ -27,7 +26,7 @@ exports.args = [
 
 
 const fs_                                                    = require('fs');
-const { execSync, isExcluded, adaptOrCreateArgs, ensureDir } = require('./buildlib');
+const { execSync, isExcluded, adaptOrCreateArgs, ensureDir, info, warning, error } = require('./buildlib');
 
 exports.init = function() {
   verbose('[Javac] init');
@@ -35,19 +34,15 @@ exports.init = function() {
   ensureDir(X.libdir);
 
   X.javaFiles = [];
-  flags.loadFiles = true;
 }
 
-
-exports.visitFile = function(pom, f, fn) {
-  if ( f.name.endsWith('.java') ) {
-    if ( ! isExcluded(pom, fn) ) {
-      verbose('\t\tjava source:', fn);
-      X.javaFiles.push(fn);
-    }
-  }
+exports.visitPOM = function(pom) {
+  foam.processFiles(pom.javaFiles, function(f) {
+    console.log('[Javac] push', f.name);
+    let fn = foam.cwd + '/' + f.name + '.java';
+    X.javaFiles.push(fn);
+  });
 }
-
 
 exports.end = function() {
   console.log(`[Javac] END ${X.javaFiles.length} Java files`);

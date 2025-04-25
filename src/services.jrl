@@ -282,14 +282,6 @@ p({
   """
 })
 p({"class":"foam.core.boot.CSpec", "name":"emailDocService",                  "lazy":false, "serve":true,  "boxClass":"foam.core.auth.email.EmailDocInterfaceSkeleton", "serviceClass":"foam.core.auth.email.EmailDocService","client":"{\"class\":\"foam.core.auth.email.ClientEmailDocService\", \"delegate\": { \"class\":\"foam.box.HTTPBox\", \"url\":\"service/emailDocService\" } }"})
-p({
-  "class":"foam.core.boot.CSpec",
-  "name":"testRunnerConfig",
-  "lazy":false,
-  "service": {
-    "class":"foam.core.script.TestRunnerConfig"
-  }
-})
 
 p({
   "class":"foam.core.boot.CSpec",
@@ -330,8 +322,6 @@ p({
   """,
   "client": "{\"of\":\"foam.flow.Document\"\}"
 })
-
-p({"class":"foam.core.boot.CSpec", "name":"serializationTestEchoService", "boxClass": "foam.core.test.EchoServiceSkeleton",  "serve":true, "serviceClass":"foam.core.test.SerializationTestEchoService", "client":"{\"class\":\"foam.core.test.ClientEchoService\",\"delegate\":{\"class\":\"foam.box.SessionClientBox\",\"delegate\":{\"class\":\"foam.box.HTTPBox\",\"method\":\"POST\",\"url\":\"service/serializationTestEchoService\"}}}"})
 
 p({
   "class":"foam.core.boot.CSpec",
