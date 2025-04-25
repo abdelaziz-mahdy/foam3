@@ -515,13 +515,13 @@ foam.CLASS({
   extends: 'foam.parse.Grammar',
 
   methods: [
-    function grammar(alt, sym, eof, repeat, seq, seq1) {
+    function grammar(sym, eof, repeat, seq, seq1) {
       return {
         START: seq1(0, sym('parens'), eof()),
 
-        parens: repeat(alt(
+        parens: repeat(
           seq('(', sym('parens'), ')'),
-        ))
+        )
       };
     }
   ]
