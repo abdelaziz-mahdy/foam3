@@ -40,6 +40,7 @@ exports.init = function() {
 exports.visitPOM = function(pom) {
   foam.processFiles(pom.javaFiles, function(f) {
     let path = path_.resolve(foam.cwd, f.name + '.java');
+    verbose('[Javac] include', path);
     X.javaFiles.push(path);
   });
 }
