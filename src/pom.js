@@ -1457,6 +1457,7 @@ foam.POM({
     { name: "io/nayuki/qrcodegen/BitBuffer" }
   ],
   journalFiles: [
+    { name: "tests",                                                  flags: "test" },
     { name: "foam/crypto/hash/tests",                                 flags: "test" },
     { name: "foam/crypto/sign/tests",                                 flags: "test" },
     { name: "foam/net/test/tests",                                    flags: "test" },
