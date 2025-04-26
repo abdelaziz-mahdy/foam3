@@ -357,7 +357,7 @@ foam.CLASS({
     },
 
     function toString() {
-      return 'str(' + this.SUPER() + ')';
+      return 'substring(' + this.SUPER() + ')';
     }
   ]
 });
