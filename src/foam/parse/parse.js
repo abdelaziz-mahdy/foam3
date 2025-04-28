@@ -383,7 +383,7 @@ foam.CLASS({
       for ( var i = 0, p ; p = args[i] ; i++ ) {
         if ( ! ( ps = ps.apply(p, obj) ) ) return undefined;
       }
-      return ps.setValue(null);
+      return ps.setValue('');
     },
 
     function toString() {
@@ -917,13 +917,26 @@ foam.CLASS({
       });
     },
 
-    function repeat0(p, delim, min) {
+    function rep(p, delim, min) {
+      return this.Repeat.create({
+        p: p,
+        minimum: min || 0,
+        delimiter: delim
+      });
+    },
+
+    function repeat(p, delim, min) { return this.rep(p, delim, min); },
+
+
+    function rep0(p, delim, min) {
       return this.Repeat0.create({
         p: p,
         minimum: min || 0,
         delimiter: delim
       });
     },
+
+    function repeat0(p, delim, min) { return this.rep0(p, delim, min); },
 
     function simpleAlt() {
       return this.Alternate.create({
@@ -951,14 +964,6 @@ foam.CLASS({
     function seq0() {
       return this.Sequence0.create({
         args: Array.from(arguments)
-      });
-    },
-
-    function repeat(p, delim, min) {
-      return this.Repeat.create({
-        p: p,
-        minimum: min || 0,
-        delimiter: delim
       });
     },
 
@@ -1025,26 +1030,32 @@ foam.CLASS({
       });
     },
 
-    function optional(p, opt_default) {
+    function opt(p, opt_default) {
       return this.Optional.create({
         p: p,
         default: opt_default || null
       });
     },
 
-    function literal(s, value) {
+    function optional(p, opt_default) { return this.opt(p, opt_default); },
+
+    function lit(s, value) {
       return this.Literal.create({
         s: s,
         value: value
       });
     },
 
-    function literalIC(s, value) {
+    function literal(s, value) { return this.lit(s, value); },
+
+    function litIC(s, value) {
       return this.LiteralIC.create({
         s: s,
         value: value
       });
     },
+
+    function literalIC(s, value) { return this.litIC(s, value); },
 
     function eof() {
       return this.EOF.create();
@@ -1052,6 +1063,10 @@ foam.CLASS({
 
     function anyChar() {
       return this.AnyChar.create();
+    },
+
+    function any() {
+      return this.AnyChar.create();g
     }
   ]
 });
@@ -1147,7 +1162,7 @@ foam.CLASS({
     function getSymParser(name) {
       // Let's you access individual symbol parsers as stand-alone parsers
       return {
-        parse: ps => ps.apply(this.getSymbol(name),  this),
+        parse: ps => ps.apply(this.getSymbol(name), this),
         toString: () => name
       };
     },
@@ -1179,8 +1194,10 @@ foam.CLASS({
 
       var lastError;
       function report(ps, p, obj) {
-        if ( ! lastError ) lastError = [ps, p, obj];
-        else if ( ps.compareTo(lastError[0]) > 0 ) lastError = [ps, p, obj];
+        if ( ! lastError )
+          lastError = [ps, p, obj];
+        else if ( ps.compareTo(lastError[0]) > 0 )
+          lastError = [ps, p, obj];
       }
 
       errorPs.report = report;
@@ -1376,8 +1393,3 @@ foam.CLASS({
   name: 'ImperativeGrammar',
   extends: 'foam.parse.Grammar'
 });
-
-/*
-TODO(adamvy):
-  -detect non string values passed to StringPStream.setString()
-*/
