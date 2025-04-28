@@ -47,6 +47,8 @@ exports.visitFile = function(pom, f, fn) {
       if ( jf && foam.checkForFlag(foam.adaptFlags(jf.flags), 'test') )
         return;
     }
+    if ( f.name.endsWith('tests.jrl') && ! flags.test )
+      return;
 
     verbose('\t\tjournal source:', fn);
     journalFiles.push(fn);
