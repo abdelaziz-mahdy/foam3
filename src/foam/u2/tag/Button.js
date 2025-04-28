@@ -52,6 +52,7 @@ foam.CLASS({
       value: function(e) { return e.FROM_HUE(e.TOKEN('$buttonPrimaryColor'), 41, 90) }
     }
   ],
+
   css: `
     ^ {
       font: inherit;

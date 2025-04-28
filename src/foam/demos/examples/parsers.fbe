@@ -131,10 +131,10 @@ function testP(parser, strs) {
         style({width:'25%'}).
         tag({class: 'foam.u2.TextField', size: 10, onKey: true, data$: input}).
       end().
-      start('td').
+      start('td').start('pre').
         style({color: output.map(s=> s ? 'green' : 'red')}).
         add(output.map(s => s ? s.toString() : 'undefined')).
-      end().
+      end().end().
     end();
   });
 }
@@ -252,6 +252,47 @@ string value with the array values concatenated.
 // Notice unlike above, our results are strings, not arrays
 var p = P.seq(P.range('a','z'), P.range('0','9'));
 testP(P.str(p), [ 'r2', 'd2', '3p', 'xy' ]);
+
+## Substring Parser
+<pre>
+The String parser shown above takes an array of parsed string values an concatenates them
+into a single string return value. However, it is often the case that this isn't actually
+what you want. Consider two cases where using str() is undesireable:
+1. Sometimes you have multiple levels of string arrays and you would need to insert a str()
+at each level.
+2. You want to preserve input that has been lost, like the delimiters in a repeat().
+
+Consider the following example which parses a sentence, which is a list of words separated
+by whitespace. If you wanted to return the parsed string you would need to add a str()
+around the 'word' parser so that you get strings instead of arrays of characters and then
+you would need to add another str() around the repeat() in 'sentence'. But even this wouldn't
+work because repeat() would have removed the whitespaces.
+
+To solve this problem there is the substring() parse combinator which just returns the input
+string that was parsed, as is, ignoring the return value of the composed parser.
+
+???: perhaps input() would be a better name than substring()
+</pre>
+--
+var   word       = P.str(P.plus(P.range('a','z')));
+const whitespace = P.plus(' ');
+const sentence   = P.repeat(word, whitespace);
+
+const input = [ 'abc', 'abc def', 'abc   def   xyz' ];
+
+// returns an array of words
+testP(sentence, input);
+
+// returns a single sstring of the words concatenated, without spaces
+testP(P.str(sentence), input);
+
+// preserves the original input
+testP(P.substring(sentence), input);
+
+// Notice that the str() on 'word' isn't needed when using substring().
+var   word       = P.plus(P.range('a','z'));
+testP(P.substring(sentence), input);
+
 
 ## Alternate Parser
 The next most common parse combinator after the sequence parser, is the alt() parser.
@@ -515,12 +556,13 @@ foam.CLASS({
   extends: 'foam.parse.Grammar',
 
   methods: [
-    function grammar(alt, sym, eof, repeat, seq, seq1) {
+    function grammar(str, sym, eof, repeat, seq, seq1) {
       return {
         START: seq1(0, sym('parens'), eof()),
 
-        parens: repeat(alt(
-          seq('(', sym('parens'), ')'),
+        // The 'repeat' allows for ()'s to be side-by-side, like ()() or (()())
+        parens: str(repeat(
+          str(seq('(', sym('parens'), ')')),
         ))
       };
     }

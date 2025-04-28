@@ -243,7 +243,7 @@ foam.CLASS({
 
   methods: [
     function parse(ps) {
-      return ps.valid ? undefined : ps;
+      return ps.valid ? undefined : ps.setValue('');
     },
 
     function toString() {
@@ -357,7 +357,7 @@ foam.CLASS({
     },
 
     function toString() {
-      return 'str(' + this.SUPER() + ')';
+      return 'substring(' + this.SUPER() + ')';
     }
   ]
 });
