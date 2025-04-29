@@ -156,7 +156,6 @@ foam.CLASS({
           }
 
           public SequenceNumberDAO(long value, foam.dao.DAO delegate) {
-            System.err.println("Direct constructor use is deprecated. Use Builder instead. SequenceNumberDAO");
             setStartingValue(value);
             setDelegate(delegate);
           }
