@@ -309,9 +309,11 @@ foam.CLASS({
 
           if ( getOneTimeSetup() && ! setup ) {
             PM pm = new PM("BenchmarkRunner", benchmark.getId(), "setup");
+            X savedX = XLocator.get();
             try {
               // set up the benchmark
               logger.info("setup");
+              XLocator.set(x);
               benchmark.setup(x, br);
               pm.log(x);
               setup = true;
@@ -324,6 +326,8 @@ foam.CLASS({
               logger.error("oneTimeSetup", e.getMessage());
               logger.debug(e);
               break;
+            } finally {
+              XLocator.set(savedX);
             }
           }
 
@@ -391,7 +395,13 @@ foam.CLASS({
 
                   if ( ! getOneTimeTeardown() ) {
                     logger.info("teardown");
-                    benchmark.teardown(x, finalBr);
+                    X savedX = XLocator.get();
+                    XLocator.set(x);
+                    try {
+                      benchmark.teardown(x, finalBr);
+                    } finally {
+                      XLocator.set(savedX);
+                    }
                   }
                 }
               }) {
@@ -469,6 +479,7 @@ foam.CLASS({
           }
         }
       } catch (Throwable e) {
+        Loggers.logger(x, this).error(e);
         throw new RuntimeException(e);
       }
       `
