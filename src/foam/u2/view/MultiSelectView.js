@@ -121,16 +121,14 @@ foam.CLASS({
                     var isSelected = self.data?.includes(choice[1]);
                     this
                         .start().addClass(self.myClass('input-holder'))
-                          .tag(foam.u2.CheckBox, { data: isSelected, label: choice[0] })
+                          .tag(foam.u2.CheckBox, { data$: isSelected, label: choice[0] })
                           .on('change', function (evt) {
                                     self.onSelect(choice[1]);
                                 })
                             
                     .end();
                   })
-              .end();
-          
-          
+              .end();          
         }
       }
   ],
@@ -150,7 +148,5 @@ foam.CLASS({
             .tag(this.OPTIONS, {label: this.placeholder})
           .endContext();
       } 
-
   ]
-
 })
