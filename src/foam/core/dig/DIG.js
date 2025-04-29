@@ -29,12 +29,12 @@ NOTE: when using the java client, the first call to a newly started instance may
     'foam.lang.FOAMException',
     'foam.lang.FObject',
     'foam.lang.X',
+    'foam.lang.XLocator',
     'foam.dao.DAO',
     'foam.dao.DOP',
     'foam.lib.formatter.FObjectFormatter',
     'foam.lib.formatter.JSONFObjectFormatter',
     'foam.lib.json.JSONParser',
-    'foam.core.dig.bench.DIGBenchmark',
     'foam.core.dig.exception.DigErrorMessage',
     'foam.core.dig.exception.DigSuccessMessage',
     'foam.core.logger.Loggers',
@@ -460,7 +460,7 @@ NOTE: when using the java client, the first call to a newly started instance may
       if ( ! SafetyUtil.isEmpty(getDaoKey()) ) {
         DAO dao = (DAO) getX().get(getDaoKey());
         if ( dao == null ) {
-          dao = (DAO) foam.lang.XLocator.get().get(getDaoKey());
+          dao = (DAO) XLocator.get().get(getDaoKey());
         }
         if ( dao != null ) {
           return dao.getOf();
@@ -517,17 +517,6 @@ NOTE: when using the java client, the first call to a newly started instance may
   ],
 
   javaCode: `
-  public DIG(X x, String cSpecName, DIGBenchmark benchmark) {
-    this(x);
-    setCSpecName(cSpecName);
-    setPostURL(benchmark.getSetupUrl());
-    setSessionId(benchmark.getSetupSessionId());
-    setUserName(benchmark.getSetupUserName());
-    setPassword(benchmark.getSetupPassword());
-    setConnectionTimeout(benchmark.getConnectionTimeout());
-    setRequestTimeout(benchmark.getRequestTimeout());
-  }
-
   protected static final ThreadLocal<FObjectFormatter> formatter_ = new ThreadLocal<FObjectFormatter>() {
     @Override
     protected JSONFObjectFormatter initialValue() {
@@ -788,7 +777,13 @@ NOTE: when using the java client, the first call to a newly started instance may
               result = Arrays.copyOf((Object[]) result, ((Object[]) result).length, FObject[].class);
             }
           } else if ( text.startsWith("{") ) {
-            result = parser_.get().parseString(text, of);
+            X savedX = XLocator.get();
+            XLocator.set(x);
+            try {
+              result = parser_.get().parseString(text);
+            } finally {
+              XLocator.set(savedX);
+            }
           }
         }
         if ( result == null ) {
