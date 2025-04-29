@@ -325,7 +325,8 @@ foam.CLASS({
             }
             self.currGroup_ = group;
           }
-          var rowEl = self.E().tag(self.rowView, args).attr('data-idx', index);
+          var isEven = (index + 1) % 2 !== 0 ;
+          var rowEl = self.E().tag(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);;
           e.add(rowEl)
           rowEl.el().then(a => {
             self.rowObserver.observe(a)

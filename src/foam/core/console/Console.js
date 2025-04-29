@@ -107,6 +107,7 @@ foam.CLASS({
         this.start('tr').
           enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
           on('click', () => self.selected = data).
+          on('dblclick', () => data.expanded = ! data.expanded).
           start('td').
             enableClass(self.myClass('error'), flowName.startsWith('error')).
             style({'paddingLeft': (4 + depth * 12) + 'px'}).
@@ -143,8 +144,10 @@ foam.CLASS({
     ^ {
       padding: 4px;
       padding-right: 0;
+      border-top: 1px solid #999;
     }
     ^output {
+      overflow-x: scroll;
     }
     ^prompt {
       display: flex;
@@ -160,6 +163,65 @@ foam.CLASS({
     ^:hover { background: #f4f4f4; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^ .foam-u2-ReadWriteView .foam-u2-TextField { height: 20px; }
+
+    ^ .toolbar {
+    
+      display: flex;
+      flex-direction: row;
+    }
+    ^border {
+      width: 98%;
+      border: 1px solid #999;
+      display: inline-block;
+      padding: 10px 4px;
+    }
+    ^ .expanded {
+    }
+
+    ^control {
+      background:$white;
+      display: inline;
+      float: left;
+      height: 30px;
+      width: 30px;
+    }
+    ^toggle-button {
+      color: #666;
+      display: inline-block;
+      padding: 3px;
+      position: relative;
+      margin: 5px;
+      top: -20px;
+      padding: 0 0 5% 5%;
+      text-align: center;
+
+      border: 1px solid #999;
+      border-radius: 4px;
+    }
+    ^content {
+      background:$white;
+      position: relative;
+      top: -22px;
+      overflow-x: scroll;
+      width: 100%;
+    }
+    ^toggle {
+      transform: rotate(-90deg);
+      transition: transform 0.3s;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 3px;
+      width: 100%;
+      height: 100%;
+    }
+    ^ .expanded ^toggle {
+      transform: rotate(0deg);
+      transition: transform 0.3s;
+    }
+    ^toggle:hover {
+      background: transparent;
+    }
   `,
 
   properties: [
@@ -168,7 +230,8 @@ foam.CLASS({
       name: 'cmd'
     },
     [ 'value', null ],
-    'out'
+    'out',
+    [ 'expanded', true ]
   ],
 
   methods: [
@@ -176,12 +239,28 @@ foam.CLASS({
       this.
         addClass().
         start('span').
-          show(this.showPrompts$).
-          style({display: 'flex', width: '100%', fontWeight: 'bold'}).
-          start('span').addClass(this.myClass('prompt')).start(foam.u2.ReadWriteView, {data$: this.flowName$}).end().add(' = ').end().
-          add(this.CMD, this.DEL).
+          addClass('toolbar').
+          start('div').
+            enableClass('expanded', this.expanded$).
+            start('div').
+              addClass(this.myClass('control'), this.myClass('toggle-button')).
+              on('click', () => this.expanded = ! this.expanded ).
+              start().addClass(this.myClass('toggle')).
+                add('\u25BD').
+              end().
+            end().
+          end().
+          start().
+            show(this.showPrompts$).
+            style({ 'padding-left': '2%', display: 'flex', width: '100%', fontWeight: 'bold'}).
+            start('span').addClass(this.myClass('prompt')).start(foam.u2.ReadWriteView, {data$: this.flowName$}).end().add(' = ').end().
+            add(this.CMD, this.DEL).
+          end().
         end().
         start('div', {}, this.out$).
+
+          show(this.expanded$).
+          addClass(this.myClass('content')).
           addClass(this.myClass('output')).
         end();
     },

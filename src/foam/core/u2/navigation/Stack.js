@@ -57,7 +57,7 @@ foam.CLASS({
     }
     ^padding ^header-container {
       padding: calc(1.6rem + 1px);
-      padding-bottom: 0;
+      padding-bottom: 0px;
     }
     ^stuck {
       background: rgba(255, 255, 255, 0.9);
