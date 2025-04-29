@@ -161,9 +161,11 @@ foam.CLASS({
             return x.
               E('article').
               addClass('foam-flow-Document').
+              /*
               // This is needed because one you click on a #link href
               // the document view moves up for some unknown reason.
               style({'margin-top': '60px'}).
+              */
               call(children, [x]);
           };
         },
