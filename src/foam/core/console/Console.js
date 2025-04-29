@@ -429,10 +429,28 @@ foam.CLASS({
         }
       });
 
+      var feedback_ = false;
+
       this.flowName$ = this.value.name$;
       this.flowChildren$.sub(() => {
-        console.log('***** update');
-        this.value.memento = this.flowChildren;
+        if (feedback_ ) return;
+        console.log('***** CONSOLE flowChildren');
+        feedback_ = true;
+        try {
+          this.value.memento = this.flowChildren;
+        } finally {
+          feedback_ = false;
+        }
+      });
+      this.value.memento$.sub(() => {
+        if ( feedback_ ) return;
+        console.log('***** CONSOLE memento');
+        feedback_ = true;
+        try {
+//          this.flowChildren = this.value.memento;
+        } finally {
+          feedback_ = false;
+        }
       });
 //      this.value.memento$.follow(this.flowChildren$);
 
