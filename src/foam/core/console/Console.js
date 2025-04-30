@@ -527,6 +527,7 @@ foam.CLASS({
         feedback_ = true;
         try {
           var cs = this.value.memento;
+          var currentBlockName = this.selected.flowName;
           this.clearFlow();
           cs.forEach(c => {
             console.log('***child:', c.flowName, c.cmd, c.value);
@@ -537,6 +538,7 @@ foam.CLASS({
               this.currentBlock.value.copyFrom(c.value);
             }
           });
+          this.selected = currentBlockName == this.flowName ? this : this.findFlowChildByName(currentBlockName);
         } finally {
           feedback_ = false;
         }
