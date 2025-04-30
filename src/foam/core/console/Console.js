@@ -73,19 +73,31 @@ foam.CLASS({
     }
     ^ table {
       width: 100%;
+      border-collapse: collapse;
     }
-    ^ tabel tr {
-      padding: 4px;
+    ^ table td {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 8px;
+      align-items: center;
+      cursor: pointer;
     }
-    ^ table td:nth-of-type(2) {
-      width: 40px;
-      text-align: right;
+    ^ table td .close {
+      font-size: 1.2rem;
+    }
+    ^ table td .close svg{
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 500;
     }
     ^selected {
-      outline: 2px solid #ccc;
+      background: $primary50;
+      color: $primary400;
+      font-weight: 500;
     }
     ^error {
-      color: red;
+      background: $destructive50;
+      color: $destructive600;
     }
   `,
 
@@ -112,10 +124,8 @@ foam.CLASS({
             enableClass(self.myClass('error'), flowName.startsWith('error')).
             style({'paddingLeft': (4 + depth * 12) + 'px'}).
             add(flowName).
-          end().
-          start('td').
             callIf(data.flowParent, function() {
-              this.start().style({fontSize: '10px'}).on('click', () => data.flowParent.removeFlowChild(data)).add('X');
+              this.start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end();
             }).
           end();
       }));
@@ -125,6 +135,16 @@ foam.CLASS({
         });
       }));
     }
+  ],
+  actions: [
+    {
+      name: 'close',
+      label: '',
+      themeIcon: 'close',
+      buttonStyle: 'TEXT',
+      size: 'SMALL',
+      code: function() { this.flowParent.removeFlowChild(this); } 
+    }
   ]
 });
 
@@ -132,7 +152,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.console',
   name: 'Block',
-  extends: 'foam.u2.Controller',
+  extends: 'foam.u2.Accordion',
 
   mixins: [ 'foam.core.console.Flowable' ],
 
@@ -143,7 +163,6 @@ foam.CLASS({
   css: `
     ^ {
       padding: 4px;
-      padding-right: 0;
       border-top: 1px solid #999;
     }
     ^output {
@@ -152,75 +171,20 @@ foam.CLASS({
     ^prompt {
       display: flex;
       font-weight: bold;
-      padding-top: 0;
-      margin-top: -2px;
-      padding-right: 4px;
       height: 20px;
+      align-items: center;
     }
     ^ span .property-cmd { width: inherit; }
-    ^ .foam-u2-ActionView-del { font-weight: lighter; font-size: smaller; border: none; background: transparent; height: 20px; }
-    ^ .foam-u2-TextField-cmd { border: none; height: 20px; }
-    ^:hover { background: #f4f4f4; }
+    ^ .foam-u2-ActionView-del { padding: 2px; }
+    ^ .foam-u2-TextField-cmd, ^ .foam-u2-ReadWriteView .foam-u2-TextField {
+      border: none;
+      height: 20px;
+    }
+    ^:hover { background: $grey50; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
-    ^ .foam-u2-ReadWriteView .foam-u2-TextField { height: 20px; }
-
-    ^ .toolbar {
-
-      display: flex;
-      flex-direction: row;
-    }
-    ^border {
-      width: 98%;
-      border: 1px solid #999;
-      display: inline-block;
-      padding: 10px 4px;
-    }
-    ^ .expanded {
-    }
-
-    ^control {
-      background:$white;
-      display: inline;
-      float: left;
-      height: 30px;
-      width: 30px;
-    }
-    ^toggle-button {
-      color: #666;
-      display: inline-block;
-      padding: 3px;
-      position: relative;
-      margin: 5px;
-      top: -20px;
-      padding: 0 0 5% 5%;
-      text-align: center;
-
-      border: 1px solid #999;
-      border-radius: 4px;
-    }
     ^content {
-      background:$white;
-      position: relative;
-      top: -22px;
       overflow-x: scroll;
       width: 100%;
-    }
-    ^toggle {
-      transform: rotate(-90deg);
-      transition: transform 0.3s;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 3px;
-      width: 100%;
-      height: 100%;
-    }
-    ^ .expanded ^toggle {
-      transform: rotate(0deg);
-      transition: transform 0.3s;
-    }
-    ^toggle:hover {
-      background: transparent;
     }
   `,
 
@@ -230,39 +194,30 @@ foam.CLASS({
       name: 'cmd'
     },
     [ 'value', null ],
-    'out',
+    {
+      name: 'out',
+      getter: function() {
+        return this.content;
+      }
+    },
+    [ 'togglerPosition', 'left' ],
     [ 'expanded', true ]
   ],
 
   methods: [
     function render() {
-      this.
-        addClass().
-        start('span').
-          addClass('toolbar').
-          start('div').
-            enableClass('expanded', this.expanded$).
-            start('div').
-              addClass(this.myClass('control'), this.myClass('toggle-button')).
-              on('click', () => this.expanded = ! this.expanded ).
-              start().addClass(this.myClass('toggle')).
-                add('\u25BD').
-              end().
-            end().
-          end().
-          start().
-            show(this.showPrompts$).
-            style({ 'padding-left': '2%', display: 'flex', width: '100%', fontWeight: 'bold'}).
-            start('span').addClass(this.myClass('prompt')).start(foam.u2.ReadWriteView, {data$: this.flowName$}).end().add(' = ').end().
-            add(this.CMD, this.DEL).
-          end().
-        end().
-        start('div', {}, this.out$).
-
-          show(this.expanded$).
-          addClass(this.myClass('content')).
-          addClass(this.myClass('output')).
-        end();
+      this.title.
+        on('click', (e) => { e.stopPropagation();  e.preventDefault(); }).
+        on('dblclick', (e) => { e.stopPropagation();  e.preventDefault(); }).
+        show(this.showPrompts$).
+        // style({ display: 'flex', width: '100%' }).
+        start('span')
+          .addClass(this.myClass('prompt')).start(foam.u2.ReadWriteView, {data$: this.flowName$})
+        .end()
+        .add(' = ')
+        .add(this.CMD);
+      this.rightSection.tag(this.DEL, { isDestructive: true });
+      this.SUPER();
     },
 
     function addValue(o, skipOutput) {
@@ -285,7 +240,11 @@ foam.CLASS({
   actions: [
     {
       name: 'del',
-      label: 'X',
+      label: '',
+      themeIcon: 'close',
+      buttonStyle: 'TERTIARY',
+      size: 'SMALL',
+      destructive: true,
       code: function() {
         this.flowParent && this.flowParent.removeFlowChild(this);
       }
@@ -305,16 +264,15 @@ foam.CLASS({
       height: 100%;
     }
     ^l {
-      box-shadow: 3px 3px 6px 0 gray;
       padding: 4px;
       width: 350px;
     }
     ^m {
       overflow-x: auto;
-      padding-right: 0;
+      border-left: 2px solid $grey200;
+      border-right: 2px solid $grey200;
     }
     ^r {
-      box-shadow: 3px 3px 6px 0 gray;
       overflow-y: auto;
       padding: 4px 4px 4px 8px;
       width: 60%;
@@ -377,11 +335,9 @@ foam.CLASS({
     ^ {
       display: flex;
       flex-direction: column;
-      box-shadow: 3px 3px 6px 0 gray;
       width: 100%;
       height: 100%;
       margin-bottom: 4px;
-      padding: 0 8px;
     }
     ^input-field {
       margin-block-end: 0;
@@ -390,6 +346,7 @@ foam.CLASS({
       align-items: center;
       position: sticky;
       bottom: 0;
+      padding: 0 8px;
     }
     ^input-field, ^input-field ^input {
       background: $grey50;

@@ -30,12 +30,14 @@ foam.CLASS({
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
-      color: $grey900;
+      color: $grey700;
       cursor: pointer;
       width: 100%;
-      border: none;
-      background: none;
-      padding: 0;
+    }
+    ^title-section {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
     }
     ^.expanded > ^toolbar {
       padding: 0 0 0.8rem 0;
@@ -48,6 +50,7 @@ foam.CLASS({
     }
     ^control svg {
       max-height: 1em;
+      max-width: 1em;
       fill: $black;
     }
   `,
@@ -55,8 +58,11 @@ foam.CLASS({
   properties: [
     {
       name: 'title',
+      factory: function() {
+        return this.E();
+      },
       documentation: `
-        Title of the accordion, you can pass foam.ui.Element objects as well for more flexibility.
+        Title of the accordion, you can pass foam.u2.Element objects as well for more flexibility.
 
         USAGE:
           this
@@ -73,6 +79,9 @@ foam.CLASS({
     },
     {
       name: 'rightSection',
+      factory: function() {
+        return this.E();
+      },
       documentation: `
         Right section content. Can be a list of actions, a counter, ...etc
 
@@ -125,10 +134,7 @@ foam.CLASS({
           .on('click', self.toggle.bind(self))
           .start('div')
             .addClass(self.myClass('title-section'))
-            .callIf(self.togglerPosition === 'left', function() {
-              this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
-                .addClass(self.myClass('control'));
-            })
+            .callIf(self.togglerPosition === 'left', this.addToggle, [self])
             .add(function(title) {
               this.start(title)
                 .addClass(self.myClass('title'))
@@ -140,15 +146,17 @@ foam.CLASS({
             .add(function(rightSection) {
               this.tag(rightSection);
             })
-            .callIf(self.togglerPosition === 'right', function() {
-              this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
-                .addClass(self.myClass('control'));
-            });
-
-      this.start('div', null, this.content$)
-        .show(this.expanded$)
-        .addClass(this.myClass('content'))
-      .end();
+            .callIf(self.togglerPosition === 'right', this.addToggle, [self])
+          .end()
+        .end()
+        .start('div', null, this.content$)
+          .show(this.expanded$)
+          .addClass(this.myClass('content'))
+        .end();
+    },
+    function addToggle(self) {
+      this.start(self.TOGGLE, { themeIcon: self.controlGlyph })
+        .addClass(self.myClass('control'));
     }
   ],
 
