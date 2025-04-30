@@ -1154,7 +1154,7 @@ foam.CLASS({
       this.symbols.forEach(s => {
         var m = this[s.name + 'Action'];
         if ( m ) {
-          this.addAction(s.name, m);
+          this.addAction(s.name, m.bind(this));
         }
       });
     },
