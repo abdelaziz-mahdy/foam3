@@ -744,10 +744,47 @@ var input = 'blah blah blah (555) 123-4556, +1 (555) 123-1234 blah blah blah 555
 log('One:', p.match(input));
 log('All:', p.matchAll(input).join(', '));
 
-## Grammar Inheritance
+## Grammar Reuse
+<pre>
+Typical parser generators like YACC (Yet Another Compiler Compiler) do not offer very good
+mechanisms for reuse, but OO programmers are used to having inheritance and composition
+for this purpose.
+
+FOAM Grammars nicely bring the worlds of high-level parser specifications and OO together,
+so that you can have the advantages of modern OO languages while writing your grammars.
+
+This example demonstrates reuse through both composition and inheritance.
+
+The example is of a simple expression parser and interpreter derived from:
+https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js
+
+For composition, we create a NumberParser which is only able to parse negative or positive
+integers. This class/grammar isn't very large, but by the time we added support for
+decimal places, exponents, and maybe even numbers expressed in different bases, this class
+could become fairly large. It makes the code more modular and reusable to keep isolated
+features in their own classes. This way I could reuse this NumberParser in other classes,
+or I could have different versions (say a JS version or a Java version) and then I could
+choose between implementations in my ExpressionParser if I wanted to support JS or Java style
+numbers.
+
+For inheritance, we first create a generic ExpressionParser, and then we inherit from
+it to create an ExperssionInterpreter. Grammars can be large and complex, and represent
+a sizeable investment of effort, so you might want to use the same grammar for multiple
+purposes. For example, our ExpressionParser might be used for an expression linter, pretty-printer, interpreter (as we've done), JS compiler (compile to JS syntax), Java compiler, etc.
+
+As an example, imagine you were writing a tool that linted both EcmaScript versions 14 and 15.
+These too languages are mostly the same, but not identical. You could write two separate
+parsers and linters, or you could use inheritance and composition to reuse most of the code,
+keeping your codebase smaller and more maintainable. And then when the next version of
+EcmaScript, your could quickly add support be reusing the code and parsers you already have.
+
+This example is also interesting because it demonstrates a common use of parsers, which is
+creating languages. Many people think that implementing a new language is some kind of
+deep magic and is beyond them, but as you can see in this example, the basic concept isn't difficult. While we just create a simple expression interpreter, the same techniques
+could be used to make a full fledged language interpreter.
+</pre>
 --
 
-// https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js
 
 const input = [
  '123',       // number
@@ -766,6 +803,33 @@ const input = [
  'abc'        // bad input
 ];
 
+// A simple parser for negative or positive integers
+foam.CLASS({
+  name: 'NumberParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(plus, sym, alt, seq1, range, str) { return {
+      START: alt(sym('positive'), sym('negative')),
+
+      positive: str(plus(range('0', '9'))),
+
+      negative: seq1(1, '-', sym('positive'))
+    }; },
+
+    function positiveAction(s) {
+      return parseInt(s);
+    },
+
+    function negativeAction(n) {
+      return -n;
+    }
+  ]
+});
+
+
+// A generic Expression Parser. It will just tell you if the expression is valid,
+// but does not do anything to evaluate it.
 foam.CLASS({
   name: 'ExpressionParser',
   extends: 'foam.parse.Grammar',
@@ -794,7 +858,7 @@ foam.CLASS({
 
       group: seq1(1, '(', sym('expr'), ')'),
 
-      number: seq(opt('-'), plus(range('0', '9')))
+      number: NumberParser.create()
     }; }
   ]
 });
@@ -803,6 +867,8 @@ const p = ExpressionParser.create();
 
 testP(p, input);
 
+// An Expression interpreter. Extends the parser above to implement an interpreter/calculator
+// which evaluates the supplied expressions.
 foam.CLASS({
   name: 'ExpressionInterpreter',
   extends: 'ExpressionParser',
@@ -829,11 +895,12 @@ foam.CLASS({
         Math.sqrt(v[2]) :
         Math.log2(v[2]) ;
     },
-    function variableAction(v) { return this[v]; },
-    function numberAction(v) { return ( v[0] ? -1 : 1 ) * parseInt(v[1].join('')); }
+    function variableAction(v) { return this[v]; }
   ]
 });
 
 const interp = ExpressionInterpreter.create({x: 1, y: 10, z: 100});
 
 testP(interp, input);
+
+// We could extend ExpressionParser again to implement a pretty-printer or a compiler
