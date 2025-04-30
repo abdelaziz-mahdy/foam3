@@ -747,43 +747,93 @@ log('All:', p.matchAll(input).join(', '));
 ## Grammar Inheritance
 --
 
-/*
+// https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js
 
-https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js
+const input = [
+ '123',       // number
+ '-123',      // number
+ '(123)',     // group
+ 'sqrt(9)',   // fun
+ 'log2(64)',  // fun
+ 'x',         // variable
+ 'y',         // variable
+ 'z',         // variable
+ '1+2',       // expr
+ '1+2+3',     // expr
+ '1*2',       // expr1
+ '2^4',       // expr2
+ '1*(x+y*sqrt(9))*-23/4',
+ 'abc'        // bad input
+];
 
-  START: sym('expr'),
+foam.CLASS({
+  name: 'ExpressionParser',
+  extends: 'foam.parse.Grammar',
 
-  expr: seq(sym('expr1'), optional(seq(alt('+', '-'), sym('expr')))),
+  methods: [
+    function grammar(plus, sym, alt, opt, seq, seq1, lit, range) { return {
+      START: sym('expr'),
 
-  expr1: seq(sym('expr2'), optional(seq(alt('*', '/'), sym('expr1')))),
+      expr: seq(sym('expr1'), opt(seq(alt('+', '-'), sym('expr')))),
 
-  expr2: seq(sym('expr3'), optional(seq('^', sym('expr2')))),
+      expr1: seq(sym('expr2'), opt(seq(alt('*', '/'), sym('expr1')))),
 
-  expr3: alt(
-    sym('fun'),
-    sym('variable'),
-    sym('number'),
-    sym('group')),
+      expr2: seq(sym('expr3'), opt(seq1(1, '^', sym('expr2')))),
 
-  variable: literal('x'),
+      expr3: alt(
+        sym('fun'),
+        sym('variable'),
+        sym('number'),
+        sym('group')),
 
-  fun: seq(
-      alt('sqrt', 'log'),
-      '(',
-      sym('expr'),
-      optional(seq(',', sym('expr'))),
-      ')'
-    ),
+      variable: alt('x', 'y', 'z'),
 
-  group: seq('(', sym('expr'), ')'),
+      fun: seq(
+        alt('sqrt', 'log2'), '(', sym('expr'), ')'
+      ),
 
-  number: seq(optional('-'), repeat(range('0', '9'), null, 1))
+      group: seq1(1, '(', sym('expr'), ')'),
 
+      number: seq(opt('-'), plus(range('0', '9')))
+    }; }
+  ]
+});
 
-expr        ::= expr "+" multExpr
-expr        ::= expr "-" multExpr
-multExpr    ::= multExpr "*" primaryExpr
-multExpr    ::= multExpr "/" primaryExpr
-primaryExpr ::= "(" expr ")"
-primaryExpr ::= NUMBER
-*/
+const p = ExpressionParser.create();
+
+testP(p, input);
+
+foam.CLASS({
+  name: 'ExpressionInterpreter',
+  extends: 'ExpressionParser',
+
+  properties: [ 'x', 'y', 'z' ],
+
+  methods: [
+    function exprAction(v) {
+      if ( v[1] === null ) return v[0];
+      if ( v[1][0] == '+' ) return v[0] + v[1][1];
+      return v[0] - v[1][1];
+    },
+    function expr1Action(v) {
+      if ( v[1] === null ) return v[0];
+      if ( v[1][0] == '*' ) return v[0] * v[1][1];
+      return v[0] / v[1][1];
+    },
+    function expr2Action(v) {
+      if ( v[1] === null ) return v[0];
+      return Math.pow(v[0], v[1]);
+    },
+    function funAction(v) {
+      return v[0] == 'sqrt' ?
+        Math.sqrt(v[2]) :
+        Math.log2(v[2]) ;
+    },
+    function variableAction(v) { return this[v]; },
+    function numberAction(v) { return ( v[0] ? -1 : 1 ) * parseInt(v[1].join('')); }
+  ]
+});
+
+const interp = ExpressionInterpreter.create({x: 1, y: 10, z: 100});
+
+testP(interp, input);
