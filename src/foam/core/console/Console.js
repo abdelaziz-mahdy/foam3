@@ -143,7 +143,7 @@ foam.CLASS({
       themeIcon: 'close',
       buttonStyle: 'TEXT',
       size: 'SMALL',
-      code: function() { this.flowParent.removeFlowChild(this); } 
+      code: function() { this.flowParent.removeFlowChild(this); }
     }
   ]
 });
@@ -320,6 +320,8 @@ foam.CLASS({
   imports: [ 'commandDAO', 'scope?', 'window', 'setTimeout' ],
 
   exports: [
+    'selected',
+    'value as flow',
     'clearFlow',
     'currentBlock',
     'eval_',

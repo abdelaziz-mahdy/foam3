@@ -360,23 +360,6 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console.cmd',
-  name: 'Load',
-  extends: 'foam.core.console.cmd.Command',
-
-  properties: [
-    [ 'description', 'Load a specified flow' ]
-  ],
-
-  methods: [
-    function execute() {
-      // TODO:
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.console.cmd',
   name: 'MQLHelp',
   extends: 'foam.core.console.cmd.Command',
 
@@ -463,18 +446,52 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console.cmd',
+  name: 'Load',
+  extends: 'foam.core.console.cmd.Command',
+
+  imports: [ 'flow', 'flowDAO', 'selected' ],
+
+  properties: [
+    [ 'description', 'Load a specified flow' ]
+  ],
+
+  methods: [
+    async function execute(flowName) {
+      if ( ! flowName ) return;
+      var loaded = await this.flowDAO.find(flowName);
+
+      if ( loaded ) {
+        this.selected = this.flow;
+        this.flow.copyFrom(loaded);
+      } else {
+      }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console.cmd',
   name: 'Save',
   extends: 'foam.core.console.cmd.Command',
 
-  imports: [ ],
+  imports: [  'currentBlock', 'flow', 'flowDAO' ],
 
   properties: [
     [ 'description', 'Save the current flow to a specified name' ]
   ],
 
   methods: [
-    function execute() {
-      // TODO:
+    function execute(opt_flowName) {
+      if ( opt_flowName ) {
+        this.flow.flowName = opt_flowName;
+      }
+
+      // Don't save the 'save' command
+      this.currentBlock.del();
+
+      var ret = this.flowDAO.put(this.flow);
+      this.flow.copyFrom(ret);
     }
   ]
 });
