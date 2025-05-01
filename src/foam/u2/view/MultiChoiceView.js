@@ -37,14 +37,11 @@ foam.CLASS({
       padding: 8pt 0;
     }
     ^flexer {
-      flex-wrap: wrap;
       align-items: stretch;
       text-align: center;
       justify-content:flex-start;
-      display: flex;
-    }
-    ^flexer > * {
-      padding: 4px;
+      display: grid;
+      gap: 1.6rem;
     }
   `,
 
@@ -55,6 +52,17 @@ foam.CLASS({
     { name: 'CHOOSE_AT_LEAST', message: 'Choose at least' },
     { name: 'CHOOSE_EXACTLY', message: 'Choose exactly' },
     { name: 'CHOOSE', message: 'Choose' }
+  ],
+
+  enums: [
+    {
+      name: 'MaxChoiceBehaviour',
+      values: [
+        { name: 'DISABLE', label: 'Disable other choices' },
+        { name: 'POP', label: 'When another value is selected replaces the last selected value' },
+        { name: 'SHIFT', label: 'When another value is selected replaces the first selected value' }
+      ]
+    }
   ],
 
   properties: [
@@ -133,7 +141,13 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'isVertical',
-      value: false
+      value: false,
+      documentation: `deprecated, use numberColumns instead`,
+      postSet: function(_, n) {
+        if ( n ) {
+          this.numberColumns = 1;
+        }
+      }
     },
     {
       class: 'Boolean',
@@ -175,49 +189,67 @@ foam.CLASS({
     {
       name: 'numberColumns',
       value: 3
+    },
+    {
+      // Correct class and of, just doesnt work with inner enums
+      // class: 'Enum',
+      // of: 'foam.u2.view.MultiChoiceView.MaxChoiceBehaviour',
+      name: 'maxSelectedBehviour',
+      documentation: `Behaviour of other choices when maxSelected is reached`,
+      factory: function() {
+        return this.MaxChoiceBehaviour.POP;
+      },
+      adapt: function(_, nu) {
+        if ( typeof nu === 'string' ) {
+          return this.MaxChoiceBehaviour[nu];
+        }
+        return nu;
+      }
     }
   ],
 
   methods: [
     function outputSelectedChoicesInDAO() {
       if ( ! this.isValidNumberOfChoices || ! this.dao ) {
-        console.warn("Please select a valid number of choices");
+        console.warn('Please select a valid number of choices');
         return foam.dao.NullDAO;
       }
 
-      var of = this.dao.of
+      var of = this.dao.of;
 
       return this.dao.where(this.IN(of.ID, this.data));
     },
 
-    function isChoiceSelected(data, choice){
-      for ( var i = 0 ; i < data.length ; i++ ) {
+    function isChoiceSelected(data, choice) {
+      for ( var i = 0; i < data.length; i++ ) {
         if ( foam.util.equals(data[i], choice) ) return true;
       }
       return false;
     },
 
-    function getIndexOfChoice(data, choice){
-      for ( var i = 0 ; i < data.length ; i++ ) {
+    function getIndexOfChoice(data, choice) {
+      for ( var i = 0; i < data.length; i++ ) {
         if ( foam.util.equals(data[i], choice) ) return i;
       }
       return -1;
     },
 
     function getSelectedSlot(choice) {
-      var slot = foam.lang.SimpleSlot.create();
+      let slot = foam.lang.SimpleSlot.create();
+      let self = this;
       slot.sub(() => {
         var arr = [
-          ...this.data,
+          ...self.data,
         ];
         arr = arr.filter(o => ! foam.util.equals(o, choice));
         if ( slot.get() ) {
           arr.push(choice);
         }
-        this.data = arr;
+        if ( foam.util.equals(arr, self.data) ) return;
+        self.data = arr;
       });
-      this.data$.sub(()=> slot.set(this.isChoiceSelected(this.data, choice)));
-      slot.set(this.isChoiceSelected(this.data, choice));
+      self.data$.sub(()=> slot.set(self.isChoiceSelected(self.data, choice)));
+      slot.set(self.isChoiceSelected(self.data, choice));
       return slot;
     },
 
@@ -228,106 +260,89 @@ foam.CLASS({
 
       if ( ! this.U3 ) return this.renderU2(self);
 
-      var el = self.E().start(this.isVertical ? foam.u2.layout.Rows : foam.u2.layout.Cols).add(
-        self.choices.map((choice, index) => {
-         var valueSimpSlot = self.mustSlot(choice[0]);
-         var labelSimpSlot = self.mustSlot(choice[1]);
+      var renderEl = function() {
+        this
+          .start()
+          .addClass(this.myClass('flexer'))
+          .style({ 'grid-template-columns': `repeat(${self.numberColumns}, 1fr)` })
+          .add(this.dynamic(function(choices) {
+            choices.forEach((choice, index) => {
+              var valueSimpSlot = self.mustSlot(choice[0]);
+              var labelSimpSlot = self.mustSlot(choice[1]);
 
-         var isFinal = choice[2];
+              var isFinal = choice[2];
 
-         var isSelectedSlot = self.slot(function(choices, data) {
-           try {
-             var isSelected = self.isChoiceSelected(data, choices[index][0]);
-             return !! isSelected;
-           } catch(err) {
-             console.error('isSelectedSlot', err)
-             return false;
-           }
+              var isSelectedSlot = self.slot(function(choices, data) {
+                try {
+                  var isSelected = self.isChoiceSelected(data, choices[index][0]);
+                  return !! isSelected;
+                } catch (err) {
+                  console.error('isSelectedSlot', err);
+                  return false;
+                }
+              });
+              var isDisabledSlot = self.slot(function(choices, data, maxSelected) {
+                try {
+                    if ( isFinal ) {
+                      return true;
+                    }
 
-         });
+                    var isSelected = self.isChoiceSelected(data, choices[index][0]);
+                    return !! (! isSelected && self.maxSelectedBehviour == 'DISABLE' && data.length >= maxSelected);
+                } catch (err) {
+                  console.error('isDisabledSlot', err);
+                  return false;
+                }
+              });
 
-         var isDisabledSlot = self.slot(function(choices, data, maxSelected) {
-           try {
-               if ( isFinal ) {
-                 return true;
-               }
+              var cls =  choice[0] && choice[0].cls_ && choice[0].cls_.id;
 
-               var isSelected = self.isChoiceSelected(data, choices[index][0]);
-               return !! (! isSelected && data.length >= maxSelected);
-           } catch(err) {
-             console.error('isDisabledSlot', err);
-             return false;
-           }
-         });
-
-         var cls =  choice[0] && choice[0].cls_ && choice[0].cls_.id;
-
-         var selfE = self.E();
-
-         self
-           // NOTE: This should not be the way we implement columns.
-           .start(self.choiceView, {
-             data$: valueSimpSlot,
-             label$: labelSimpSlot,
-             isSelected$: isSelectedSlot,
-             isDisabled$: isDisabledSlot,
-             of: cls
-           }).style({
-                'flex': `0 0 calc(${100 / self.numberColumns}%)`,
-                'max-width': `calc(${100 / self.numberColumns}%)`,
-                'box-sizing': 'border-box'
-              })
-              .call(function () {
-               selfE.onDetach(
-                 this.clicked.sub(() => {
-                   var array;
-                   var indexDataToAdd = self.getIndexOfChoice(self.data, valueSimpSlot.get());
-                   if ( indexDataToAdd === -1 ){
-                     if ( self.data.length >= self.maxSelected ){
-                       return;
-                     }
-
-                     array = [
-                       ...self.data,
-                       valueSimpSlot.get()
-                     ];
-                   } else {
-                     array = [
-                       ...self.data
-                     ]
-
-                     array.splice(indexDataToAdd, 1);
-                   }
-                   self.data = array;
-                 })
-               )
-             })
-           .end()
-        })
-      ).end()
+              this
+                .start(self.choiceView, {
+                  data$: valueSimpSlot,
+                  label$: labelSimpSlot,
+                  isSelected$: isSelectedSlot,
+                  isDisabled$: isDisabledSlot,
+                  of: cls
+                })
+                  .call(function() {
+                    self.onDetach(this.clicked.sub(() => {
+                      let indexDataToAdd = self.getIndexOfChoice(self.data, valueSimpSlot.get());
+                      let array = [
+                        ...self.data
+                      ];
+                      if ( indexDataToAdd === -1 ) {
+                        if ( self.data.length >= self.maxSelected ) {
+                          if ( self.maxSelectedBehviour == 'DISABLE' ) return;
+                          array[self.maxSelectedBehviour.name.toLowerCase()].call(array);
+                        }
+                        array = [
+                          ...array,
+                          valueSimpSlot.get()
+                        ];
+                      } else {
+                        array.splice(indexDataToAdd, 1);
+                      }
+                      self.data = array;
+                    }));
+                  })
+                .end();
+          });
+        })).end();
+      };
 
       this
-        // .start()
-          .add(function(showMinMaxHelper, helpText_) {
-            self.callIf(showMinMaxHelper, function() {
-              this
-              .start(foam.u2.layout.Rows)
-                .start()
-                  .addClass('p-lg', self.myClass('helpTextRow'))
-                  .add(self.helpText_)
-                .end()
-              .end();
-            });
-          })
-        // .end()
-        // .start(this.isVertical ? foam.u2.layout.Rows : foam.u2.layout.Cols)
-          .add( // TODO isDoaFetched and simpSlot0 aren't used should be clean up
-            function(isDaoFetched) {
-              self.addClass(self.myClass('flexer'))
-              .add(el)
-            }
-          )
-        // .end();
+        .add(this.dynamic(function(showMinMaxHelper) {
+          if ( ! showMinMaxHelper ) return;
+          this
+          .start(foam.u2.layout.Rows)
+            .start()
+              .addClass('p', self.myClass('helpTextRow'))
+              .add(self.helpText_$)
+            .end()
+          .end();
+        }))
+        .call(renderEl);
     },
 
     function renderU2(self) {
@@ -373,7 +388,7 @@ foam.CLASS({
                       }
 
                       var isSelected = self.isChoiceSelected(data, choices[index][0]);
-                      return !! (! isSelected && data.length >= maxSelected);
+                      return !! (! isSelected && self.maxSelectedBehviour == 'DISABLE' && data.length >= maxSelected);
                   } catch(err) {
                     console.error('isDisabledSlot', err);
                     return false;

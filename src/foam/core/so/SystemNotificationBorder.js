@@ -56,12 +56,13 @@ foam.CLASS({
 
     function render() {
       var self = this;
-      this.addClass().tag('', {}, this.futureContent_$)
-      .add(this.slot(function(systemNotifications) {
-        let e = this.E().style({ display: 'contents' });
+      this.addClass()
+      .start('', {}, this.content$).style({ display: 'contents' }).end()
+      .add(this.dynamic(function(systemNotifications) {
+        if ( ! systemNotifications.length ) return;
         systemNotifications.forEach(sn => {
           if ( ! sn.dismissed ) {
-            e.start(this.InlineNotificationMessage, { type: sn.severity.name })
+            this.start(self.InlineNotificationMessage, { type: sn.severity.name })
               .add(sn.message)
               .callIf(sn.dismissible, function() {
                 this.startContext({ data: this, sn: sn })
@@ -74,7 +75,6 @@ foam.CLASS({
               .end();
           }
         });
-        return e;
       }));
       this.content = this.futureContent_;
     }

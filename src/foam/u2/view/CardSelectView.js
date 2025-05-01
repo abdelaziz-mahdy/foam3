@@ -25,10 +25,6 @@ foam.CLASS({
   ],
 
   css: `
-    ^innerFlexer {
-      min-width: -webkit-fill-available;
-    }
-
     ^base {
       box-sizing: content-box;
       background-color: $white;
