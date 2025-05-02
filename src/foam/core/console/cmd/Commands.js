@@ -482,7 +482,7 @@ foam.CLASS({
   methods: [
     function execute(opt_flowName) {
       if ( opt_flowName ) {
-        this.flow.flowName = opt_flowName;
+        this.flow.name = opt_flowName;
       }
 
       // Don't save the 'save' command
