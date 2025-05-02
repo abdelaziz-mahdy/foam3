@@ -645,7 +645,8 @@ foam.CLASS({
                   .tag(self.selectionView, {
                     mode$: self.mode$,
                     fullObject$: self.fullObject_$,
-                    defaultSelectionPrompt$: self.choosePlaceholder$
+                    defaultSelectionPrompt$: self.choosePlaceholder$,
+                    addPadding: false
                   })
                 .end();
           }
@@ -794,21 +795,23 @@ foam.CLASS({
             custom selection view, it will be passed the id of the object (data)
             as well as the full object.
           `
+        },
+        {
+          class: 'Boolean',
+          name: 'addPadding',
+          value: true
         }
       ],
 
       methods: [
         function render() {
           let self = this;
-          this.style({
-            
-          });
 
           this.addClass().add(this.dynamic(function(fullObject) {
             if ( fullObject ) {
               this.startContext({ controllerMode: 'VIEW' }).start()
                 .addClass(self.myClass('customSelectView'))
-                .addClass(self.myClass('ro'))
+                .enableClass(self.myClass('ro'), self.addPadding$)
                 .tag((self.rowView || self.CitationView), { data: fullObject })
               .end().endContext();
             } else {
