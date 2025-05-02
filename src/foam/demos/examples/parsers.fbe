@@ -748,39 +748,42 @@ log('All:', p.matchAll(input).join(', '));
 <pre>
 Typical parser generators like YACC (Yet Another Compiler Compiler) do not offer very good
 mechanisms for reuse, but OO programmers are used to having inheritance and composition
-for this purpose.
+for this purpose. Inheritance allows a class to derive properties and behavior from a parent class,
+ enabling code reuse and specialization. Composition, on the other hand, involves building complex
+functionality by combining simpler, independent components, promoting modularity and flexibility.
 
 FOAM Grammars nicely bring the worlds of high-level parser specifications and OO together,
 so that you can have the advantages of modern OO languages while writing your grammars.
 
-This example demonstrates reuse through both composition and inheritance.
-
-The example is of a simple expression parser and interpreter derived from:
-https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js
+This example demonstrates reuse through both composition and inheritance. The example is of a 
+simple expression parser and interpreter derived from the built-in base defined in:
+<a href="https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js">scaleParser.js</a>.
 
 For composition, we create a NumberParser which is only able to parse negative or positive
-integers. This class/grammar isn't very large, but by the time we added support for
+integers. This class/grammar isn't very large, but by the time we add support for
 decimal places, exponents, and maybe even numbers expressed in different bases, this class
 could become fairly large. It makes the code more modular and reusable to keep isolated
-features in their own classes. This way I could reuse this NumberParser in other classes,
-or I could have different versions (say a JS version or a Java version) and then I could
-choose between implementations in my ExpressionParser if I wanted to support JS or Java style
+features in their own classes. This way we could reuse the NumberParser in other classes,
+or could have different versions (say a JS version or a Java version) and then
+choose between implementations if we wanted to support JS or Java style
 numbers.
 
-For inheritance, we first create a generic ExpressionParser, and then we inherit from
+To illustrate inheritance, we first create a generic ExpressionParser, and then we inherit from
 it to create an ExperssionInterpreter. Grammars can be large and complex, and represent
 a sizeable investment of effort, so you might want to use the same grammar for multiple
-purposes. For example, our ExpressionParser might be used for an expression linter, pretty-printer, interpreter (as we've done), JS compiler (compile to JS syntax), Java compiler, etc.
+purposes. For example, our ExpressionParser might be used for an expression linter, pretty-printer, 
+interpreter (as we've done), JS compiler (compile to JS syntax), Java compiler, etc.
 
 As an example, imagine you were writing a tool that linted both EcmaScript versions 14 and 15.
 These too languages are mostly the same, but not identical. You could write two separate
 parsers and linters, or you could use inheritance and composition to reuse most of the code,
 keeping your codebase smaller and more maintainable. And then when the next version of
-EcmaScript, your could quickly add support be reusing the code and parsers you already have.
+EcmaScript comes, your could quickly add support by reusing the code and parsers you already have.
 
 This example is also interesting because it demonstrates a common use of parsers, which is
-creating languages. Many people think that implementing a new language is some kind of
-deep magic and is beyond them, but as you can see in this example, the basic concept isn't difficult. While we just create a simple expression interpreter, the same techniques
+creating languages. Implementing a new language might seem like some kind of
+deep magic, but as you can see in this example, the basic concept isn't difficult. 
+While we just create a simple expression interpreter, the same techniques
 could be used to make a full fledged language interpreter.
 </pre>
 --
