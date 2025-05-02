@@ -12,8 +12,6 @@ exports.description = 'Capture POM specified environment variables.';
 exports.init = function() {
   verbose('[Env] init');
 
-  // X.pomenvs = {};
-
   X.envs && X.envs.split(',').forEach(e => {
     var kv = e.split('=');
     // example: ['name'] = 'APP_NAME'

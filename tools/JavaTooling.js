@@ -76,7 +76,6 @@ foam.POM({
 
   tasks: {
     clean: ['Remove generated files', ['pomEnvs'], function clean() {
-      console.log('[JavaTooling] clean');
       if ( APP_HOME && fs.existsSync(APP_HOME) ) {
         emptyDir(`${APP_HOME}/bin`);
         emptyDir(`${APP_HOME}/lib`);
@@ -84,7 +83,6 @@ foam.POM({
     }],
 
     cleanAll: ['Remove pom.xml and java lib directory.', [], function cleanAll() {
-      console.log('[JavaTooling] cleanAll');
       rmfile('pom.xml');
       emptyDir(BUILD_DIR + '/lib');
     }],

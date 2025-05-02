@@ -41,7 +41,9 @@ foam.POM({
 
   tasks: {
     clean: ['Set Java environmental variables specific to running test cases.', [], function clean() {
-      rmdir(APP_HOME);
+      if ( TEST || BENCHMARK ) {
+        rmdir(APP_HOME);
+      }
     }]
   }
 });

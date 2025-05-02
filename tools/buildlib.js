@@ -62,7 +62,8 @@ function writeFileIfUpdated(file, txt) {
 
 
 function execSync(cmd, options) {
-  console.log('\x1b[0;32mExec: ' + cmd + '\x1b[0;0m');
+  if ( globalThis['VERBOSE'] )
+    console.log('\x1b[0;32mExec: ' + cmd + '\x1b[0;0m');
   return exec_.execSync(cmd, options);
 }
 
@@ -150,7 +151,7 @@ function spawn(s) {
 
 
 function exportEnv(name, value) {
-  if ( ENV['VERBOSE'] && ENV['VERBOSE'][1] )
+ if ( globalThis['VERBOSE'] )
     console.log(`export ${name}="${value}"`);
   process.env[name] = value;
 }
@@ -210,7 +211,7 @@ function flag(flgs) {
   return f;
 }
 
-// Bit of hack to only process tooling args.
+// REVIEW: Bit of hack to only process tooling args.
 function processToolingArgs(ARGS, moreUsage) {
   function usage(f) {
     moreUsage && moreUsage();
