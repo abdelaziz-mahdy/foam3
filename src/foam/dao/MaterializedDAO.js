@@ -30,6 +30,7 @@ foam.CLASS({
     'foam.core.logger.Logger',
     'foam.core.logger.Loggers',
     'foam.core.pm.PM',
+    'java.util.concurrent.TimeUnit',
     'foam.util.concurrent.AbstractAssembly',
     'foam.util.concurrent.AssemblyLine',
     'foam.util.concurrent.AsyncAssemblyLine'
@@ -162,7 +163,12 @@ foam.CLASS({
       name: 'observedDAOs',
       documentation: 'A list of DAOs that will be listened to',
       javaFactory: 'return getAdapter().getObservedDAOs();'
-    }
+    },
+    {
+      class: 'Object',
+      name: 'thread',
+      javaType: 'Thread'
+    },
   ],
 
   methods: [
@@ -178,10 +184,7 @@ foam.CLASS({
 
         setInitialized(true);
 
-        Thread t = new Thread(this);
-        t.setName("MaterializedDAO Processor: " + getDelegate());
-        t.setDaemon(true);
-        t.start();
+        startThread();
 
         // Could take a long time
         PM pm = new PM("MaterializedDAO", "initializing", getSourceDAO().getOf().getObjClass().getSimpleName());
@@ -267,8 +270,17 @@ foam.CLASS({
         foam.lang.XLocator.set(getX());
         while ( true ) {
           try {
-            process((Object[]) getQueue().take());
-          } catch (InterruptedException e) {}
+            Object[] ret = (Object[]) getQueue().poll(10, TimeUnit.SECONDS);
+            if ( ret != null ) {
+              process(ret);
+            }
+          } catch (InterruptedException e) {
+            // stop method can terminate current thread.
+            Loggers.logger(getX(), this).warning("MaterializedDAO consumer thread interrupted", "thread id", Thread.currentThread().getId(), "thread name", Thread.currentThread().getId());
+            break;
+          } catch ( Throwable t ) {
+            Loggers.logger(getX(), this).error("MaterializedDAO fails to consume", "thread id", Thread.currentThread().getId(), "thread name", Thread.currentThread().getId(), t);
+          }
         }
       `
     },
@@ -301,6 +313,32 @@ foam.CLASS({
     {
       name: 'start',
       javaCode: 'if ( getAutoStart() ) maybeInit();'
+    },
+    {
+      name: 'startThread',
+      javaCode: `
+        Thread t = new Thread(this);
+        t.setName("MaterializedDAO Processor: " + getDelegate());
+        t.setDaemon(true);
+        t.start();
+        setThread(t);
+      `
+    },
+    {
+      name: 'stop',
+      javaCode: `
+        if ( getThread() != null ) {
+          getThread().interrupt();
+          setThread(null);
+        }
+      `
+    },
+    {
+      name: 'reload',
+      javaCode: `
+        stop();
+        startThread();
+      `
     }
   ]
 });

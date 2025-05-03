@@ -112,12 +112,15 @@ function testP(parser, strs) {
     attrs({border: 1, cellpadding: 6, cellspacing: 0}).
     start('tr').start('th').
       style({background: '#eee'}).
-      attrs({colspan:2}).add(`Parser: ${parser}`)
+      attrs({colspan:3}).add(`Parser: ${parser}`)
     .end().
   end().
   start('tr').
     start('th').
       add('Input').
+    end().
+    start('th').
+      add('Parsed').
     end().
     start('th').
       add('Result').
@@ -126,14 +129,18 @@ function testP(parser, strs) {
   forEach(strs, function(s) {
     var input  = foam.lang.SimpleSlot.create({value: s});
     var output = input.map(s => parser.parse(P.stringPStream(s)));
+
     this.start('tr').
       start('td').
         style({width:'25%'}).
         tag({class: 'foam.u2.TextField', size: 10, onKey: true, data$: input}).
       end().
       start('td').start('pre').
+        add(output.map(o => o ? s.substring(0, o.pos) : '')).
+      end().end().
+      start('td').start('pre').
         style({color: output.map(s=> s ? 'green' : 'red')}).
-        add(output.map(s => s ? s.toString() : 'undefined')).
+        add(output.map(s => s ? JSON.stringify(s.value) : 'undefined')).
       end().end().
     end();
   });
@@ -759,7 +766,7 @@ This example demonstrates reuse through both composition and inheritance. The ex
 simple expression parser and interpreter derived from the built-in base defined in:
 <a href="https://github.com/foam-framework/foam/blob/2966cde661ccadbb8b1548fede78f6d67cc53ed5/core/experimental/scaleParser.js">scaleParser.js</a>.
 
-For composition, we create a NumberParser which is only able to parse negative or positive
+For <b>composition</b>, we create a NumberParser which is only able to parse negative or positive
 integers. This class/grammar isn't very large, but by the time we add support for
 decimal places, exponents, and maybe even numbers expressed in different bases, this class
 could become fairly large. It makes the code more modular and reusable to keep isolated
@@ -768,7 +775,7 @@ or could have different versions (say a JS version or a Java version) and then
 choose between implementations if we wanted to support JS or Java style
 numbers.
 
-To illustrate inheritance, we first create a generic ExpressionParser, and then we inherit from
+To illustrate <b>inheritance</b>, we first create a generic ExpressionParser, and then we inherit from
 it to create an ExperssionInterpreter. Grammars can be large and complex, and represent
 a sizeable investment of effort, so you might want to use the same grammar for multiple
 purposes. For example, our ExpressionParser might be used for an expression linter, pretty-printer,
@@ -788,22 +795,21 @@ could be used to make a full fledged language interpreter.
 </pre>
 --
 
-
 const input = [
- '123',       // number
- '-123',      // number
- '(123)',     // group
- 'sqrt(9)',   // fun
- 'log2(64)',  // fun
- 'x',         // variable
- 'y',         // variable
- 'z',         // variable
- '1+2',       // expr
- '1+2+3',     // expr
- '1*2',       // expr1
- '2^4',       // expr2
- '1*(x+y*sqrt(9))*-23/4',
- 'abc'        // bad input
+  '123',       // number
+  '-123',      // number
+  '(123)',     // group
+  'sqrt(9)',   // fun
+  'log2(64)',  // fun
+  'x',         // variable
+  'y',         // variable
+  'z',         // variable
+  '1+2',       // expr
+  '1+2+3',     // expr
+  '1*2',       // expr1
+  '2^4',       // expr2
+  '1*(x+y*sqrt(9))*-23/4',
+  'abc'        // bad input
 ];
 
 // A simple parser for negative or positive integers
@@ -820,13 +826,9 @@ foam.CLASS({
       negative: seq1(1, '-', sym('positive'))
     }; },
 
-    function positiveAction(s) {
-      return parseInt(s);
-    },
+    function positiveAction(s) { return parseInt(s); },
 
-    function negativeAction(n) {
-      return -n;
-    }
+    function negativeAction(n) { return -n; }
   ]
 });
 
@@ -909,6 +911,49 @@ const interp = ExpressionInterpreter.create({x: 1, y: 10, z: 100});
 testP(interp, input);
 
 // We could extend ExpressionParser again to implement a pretty-printer or a compiler
+
+## Another Reuse Example
+Imagine we wanted to create a calculator for working with binary numbers. Rather than
+starting from scratch, we can reuse our existing ExpressionInterpreter and just swap
+out the default decimal NumberParser with a new BinaryNumberParser.
+--
+const input = [
+  '1',         // number
+  '0',         // number
+  '-101',      // number
+  '(101)',     // group
+  '1+10',      // addition
+  '10*100',    // addition
+  '101+111+1'  // addition
+];
+
+foam.CLASS({
+  name: 'BinaryNumberParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(plus, sym, alt, seq1, range, str) { return {
+      START: alt(sym('positive'), sym('negative')),
+
+      positive: str(plus(range('0', '1'))),
+
+      negative: seq1(1, '-', sym('positive'))
+    }; },
+
+    function positiveAction(s) { return parseInt(s, 2); },
+
+    function negativeAction(n) { return -n; }
+  ]
+});
+
+foam.CLASS({
+  name: 'BinaryInterpreter',
+  extends: 'ExpressionInterpreter',
+  requires: [ 'BinaryNumberParser as NumberParser' ]
+});
+
+const interp = BinaryInterpreter.create({x: 1, y: 10, z: 100});
+testP(interp, input);
 
 ## Error Reporting
 All of the examples until now have simply returned undefined if the input could not be

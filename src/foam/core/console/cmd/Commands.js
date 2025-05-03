@@ -151,10 +151,33 @@ foam.CLASS({
 
   methods: [
     function execute(dao, opt_label) {
-      var p = this.DAOPrompt.create({dao: dao,  daoLabel: opt_label});
+      var p = this.DAOPrompt.create({dao: dao, daoLabel: opt_label});
 
       this.out.tag(p);
       this.currentBlock.obj = p;
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.console.cmd',
+  name: 'DAO2',
+  extends: 'foam.core.console.cmd.Command',
+
+  requires: [ 'foam.core.console.DAOPrompt2' ],
+
+  properties: [
+    [ 'description', 'Perform DAO operation' ]
+  ],
+
+  methods: [
+    function execute(dao, opt_label) {
+      var p = this.DAOPrompt2.create({dao: dao, label: opt_label});
+
+      p.addToE(this.out);
+      this.currentBlock.obj = p;
+      this.currentBlock.value = p;
     }
   ]
 });
@@ -482,7 +505,7 @@ foam.CLASS({
   methods: [
     function execute(opt_flowName) {
       if ( opt_flowName ) {
-        this.flow.flowName = opt_flowName;
+        this.flow.name = opt_flowName;
       }
 
       // Don't save the 'save' command
