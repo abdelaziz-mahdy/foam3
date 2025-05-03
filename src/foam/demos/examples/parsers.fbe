@@ -140,7 +140,7 @@ function testP(parser, strs) {
       end().end().
       start('td').start('pre').
         style({color: output.map(s=> s ? 'green' : 'red')}).
-        add(output.map(s => s ? foam.json.Compact.stringify(s.value) : 'undefined')).
+        add(output.map(s => s ? JSON.stringify(s.value) : 'undefined')).
       end().end().
     end();
   });
