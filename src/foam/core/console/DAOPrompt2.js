@@ -24,15 +24,15 @@ foam.CLASS({
           if ( ! visible ) return;
           this.start('h3').
             add(self.data.label$).
-            start().
-              add(self.data.dynamic(async function(version, skip) {
-                if ( ! version ) return;
+          end().
+          start().
+            add(self.data.dynamic(async function(version, skip) {
+              if ( ! version ) return;
 
-                var startTime = Date.now();
-                await self.data.select.execute(this);
-                self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
-              })).
-            end().
+              var startTime = Date.now();
+              await self.data.select.execute(this);
+              self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+            })).
           end();
         }));
     }
@@ -232,8 +232,7 @@ foam.CLASS({
       view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
     },
     { class: 'Long', name: 'rowCount', visibility: 'RO' },
-    { name: 'executionTime', value: '-' },
-    { class: 'Boolean', name: 'hasRun', hidden: true },
+    { name: 'executionTime', value: '-', visibility: 'RO' },
     { class: 'Int', name: 'version', hidden: true, transient: true }
   ],
 
