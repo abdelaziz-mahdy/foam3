@@ -13,8 +13,6 @@ foam.CLASS({
     'foam.core.security.KeyStoreManager'
   ],
 
-  abstract: true,
-
   documentation: `KeyStoreManager which manages a Java KeyStore loaded
 from either File or Resource Storage.`,
 
