@@ -26,7 +26,11 @@ foam.ENUM({
     {
       name: 'SIMPLE',
       label: 'Simple',
-      documentation: 'A single search field that does a keyword search.'
+      documentation: 'A single search field that does a MQL and keyword search.'
+    },
+    {
+      name: 'MQL',
+      documentation: 'A single search field that does a MQL search.'
     }
   ]
 });

@@ -21,6 +21,7 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
+    'foam.comics.SearchMode',
     'foam.parse.QueryParser',
     'foam.u2.tag.Input'
   ],
@@ -44,8 +45,10 @@ foam.CLASS({
       value: true
     },
     {
-      class: 'Boolean',
-      name: 'keywordSearch'
+      class: 'Enum',
+      of: 'foam.comics.SearchMode',
+      name: 'searchMode',
+      value: 'SIMPLE'
     },
     {
       class: 'Boolean',
@@ -137,17 +140,27 @@ foam.CLASS({
       mergeDelay: 500,
       code: function() {
         var value = this.searchData = this.view.data;
-
-        this.predicate = ! value ?
-          this.True.create() :
-          this.richSearch ?
-            this.OR(
-              this.queryParser.parseString(value) || this.FALSE,
-              this.KEYWORD(value)
-            ) :
-            this.checkStrictEquality ?
-              this.EQ(this.property, value) :
-              this.CONTAINS_IC(this.property, value);
+        this.predicate = ! value ? this.True.create() : this.False.create();
+        if ( value ) {
+          if ( this.richSearch ) {
+            if ( this.searchMode === this.SearchMode.SIMPLE ) {
+              this.predicate = this.OR(
+                this.queryParser.parseString(value) || this.FALSE,
+                this.KEYWORD(value)
+              );
+            } else {
+              this.predicate = this.queryParser.parseString(value) || this.FALSE;
+            }
+          } else if ( this.checkStrictEquality) {
+            this.predicate = this.EQ(this.property, value);
+          } else if ( this.searchMode === this.SearchMode.SIMPLE ) {
+            this.predicate = this.CONTAINS_IC(this.property, value);
+          } else {
+            this.predicate = this.False.create();
+          }
+        } else {
+          this.predicate = this.True.create();
+        }
       }
     }
   ]

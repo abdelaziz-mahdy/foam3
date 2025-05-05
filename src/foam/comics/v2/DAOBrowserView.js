@@ -283,9 +283,11 @@ foam.CLASS({
       this
         .add(this.slot(function(config$cannedQueries, config$hideQueryBar) {
           // to manage memento imports for filter view (if any)
-          if ( self.config.searchMode === self.SearchMode.SIMPLE ) {
+          if ( self.config.searchMode === self.SearchMode.SIMPLE ||
+               self.config.searchMode === self.SearchMode.MQL ) {
             var simpleSearch = foam.u2.ViewSpec.createView(self.SimpleSearch, {
               showCount: false,
+              searchMode: self.config.searchMode,
               data$: self.searchPredicate$
             }, this, self.__subSubContext__.createSubContext({
               controllerMode: foam.u2.ControllerMode.EDIT
@@ -352,7 +354,8 @@ foam.CLASS({
                     .startContext({
                       dao: self.searchFilterDAO
                     })
-                      .callIf(self.config.searchMode === self.SearchMode.SIMPLE, function() {
+                    .callIf(self.config.searchMode === self.SearchMode.SIMPLE ||
+                            self.config.searchMode === self.SearchMode.MQL, function() {
                         this.add(simpleSearch);
                       })
                       .callIf(self.config.searchMode === self.SearchMode.FULL, function() {
