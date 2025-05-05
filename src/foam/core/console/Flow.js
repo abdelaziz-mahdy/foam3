@@ -49,6 +49,11 @@ foam.CLASS({
     },
     {
       class: 'String',
+      name: 'source',
+      width: 30
+    },
+    {
+      class: 'String',
       name: 'notes',
       width: 80,
       view: { class: 'foam.u2.tag.TextArea', rows: 12, cols: 78 }

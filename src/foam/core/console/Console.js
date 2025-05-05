@@ -432,10 +432,10 @@ foam.CLASS({
     },
     'currentBlock',
     {
-      name: 'selected'
+      name: 'selected', postSet: function(o, n) { this.selectedValue = n ? n.value : null; console.log('*** selected=>', n && n.flowName); }
     },
     {
-      name: 'selectedValue'
+      name: 'selectedValue', postSet: function(o, n) { console.log('*** selectedValue=>', n); }
     },
     {
       name: 'value',
@@ -463,7 +463,9 @@ foam.CLASS({
 
       globalThis.shell = this; // for debugging
 
-      this.selectedValue$.follow(this.selected$.dot('value'));
+      // Doesn't work for some reason. Gets detached when new flow loaded
+      // Replaced with postSet
+      // this.selectedValue$.follow(this.selected$.dot('value'));
 
       // Add commands to localScope
       var cmds = await this.commandDAO.select();
@@ -493,7 +495,7 @@ foam.CLASS({
         feedback_ = true;
         try {
           var cs = this.value.memento;
-          var currentBlockName = this.selected.flowName;
+          var currentBlockName = this.selected ? this.selected.flowName : this.flowName;
           this.clearFlow();
           cs.forEach(c => {
             console.log('***child:', c.flowName, c.cmd, c.value);

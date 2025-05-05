@@ -28,7 +28,9 @@ foam.CLASS({
             add(self.data.dynamic(async function(version, skip) {
               if ( ! version ) return;
               var startTime = Date.now();
-              await self.data.select.execute(this);
+              // Recontextualize the select so that it has the required imports.
+              var select = self.data.select.clone(self.data.__subContext__);
+              await select.execute(this);
               self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
             })).
           end();
@@ -60,7 +62,7 @@ foam.CLASS({
     'foam.parse.QueryParser'
   ],
 
-  imports: [ 'currentBlock', 'eval_', 'scrollToBottom' ],
+  imports: [ 'currentBlock', 'eval_' ],
 
   exports: [
     'block',
@@ -86,10 +88,6 @@ foam.CLASS({
       displayWidth: 60
     },
     {
-      name: 'block',
-      factory: function() { return this.currentBlock; }
-    },
-    {
       class: 'Boolean',
       name: 'visible',
       value: true
@@ -98,6 +96,7 @@ foam.CLASS({
       class: 'foam.dao.DAOProperty',
       name: 'dao',
       hidden: true,
+      transient: true,
       adapt: function(o, n, p) {
         let oldAdapt = foam.dao.DAOProperty.ADAPT;
         if ( foam.String.isInstance(n) ) {
@@ -114,6 +113,7 @@ foam.CLASS({
     {
       name: 'limitedDAO',
       hidden: true,
+      transient: true,
       expression: function(skip, limit, filteredDAO) {
         if ( limit ) filteredDAO = filteredDAO.limit(limit);
         if ( skip  ) filteredDAO = filteredDAO.skip(skip);
@@ -123,6 +123,7 @@ foam.CLASS({
     {
       name: 'filteredDAO',
       hidden: true,
+      transient: true,
       expression: function(dao, where, order) {
         // Compiled on the Server
         // if ( this.where ) dao = dao.where(this.MQL(this.where));
@@ -207,13 +208,12 @@ foam.CLASS({
       */
     {
       name: 'select',
-      // Create with a function so we can set the proper context
-      view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
+      view: { class: 'foam.core.console.SinkView', sinksOnly: false }
     },
     { class: 'Long', name: 'rowCount', visibility: 'RO' },
     { name: 'executionTime', value: '-', visibility: 'RO' },
-    { class: 'Int', name: 'version', hidden: true, transient: true },
-    { class: 'FObjectProperty', name: 'value', visibility: 'RO' }
+    { class: 'Int', name: 'version', hidden: true },
+    { class: 'FObjectProperty', name: 'value', transient: true, visibility: 'RO' }
   ],
 
   methods: [
