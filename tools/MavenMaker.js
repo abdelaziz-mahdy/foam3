@@ -17,14 +17,17 @@ exports.args = [
 ];
 
 const path_                                                          = require('path');
-const { execSync, ensureDir, adaptOrCreateArgs, writeFileIfUpdated } = require('./buildlib');
+const { adaptOrCreateArgs, execSync, ensureDir, rmfile, writeFileIfUpdated } = require('./buildlib');
 
 const javaDependencies = [];
 
 exports.init = function() {
   adaptOrCreateArgs(X, exports.args);
   X.libdir = X.libdir || (X.builddir + '/lib');
-  ensureDir(X.libdir);
+  if ( ensureDir(X.libdir) ) {
+    // build/lib may have been deleted without clearing pom.xml
+    rmfile('pom.xml');
+  }
 }
 
 

@@ -316,6 +316,7 @@ foam.CLASS({
     'foam.core.console.FlowableTree',
     'foam.core.console.Layout',
     'foam.core.console.ReactiveDetailView',
+    // 'foam.u2.DetailView as ReactiveDetailView',
     'foam.dao.ArrayDAO',
     'foam.flow.Document',
     'foam.u2.Link'
@@ -431,10 +432,10 @@ foam.CLASS({
     },
     'currentBlock',
     {
-      name: 'selected'
+      name: 'selected', postSet: function(o, n) { this.selectedValue = n ? n.value : null; console.log('*** selected=>', n && n.flowName); }
     },
     {
-      name: 'selectedValue'
+      name: 'selectedValue', postSet: function(o, n) { console.log('*** selectedValue=>', n); }
     },
     {
       name: 'value',
@@ -455,12 +456,16 @@ foam.CLASS({
     async function render() {
       this.SUPER();
 
+      var self = this;
+
       this.flowName$.sub(() => this.refreshFlowScope());
       this.value$.sub(() => this.refreshFlowScope());
 
       globalThis.shell = this; // for debugging
 
-      this.selectedValue$.follow(this.selected$.dot('value'));
+      // Doesn't work for some reason. Gets detached when new flow loaded
+      // Replaced with postSet
+      // this.selectedValue$.follow(this.selected$.dot('value'));
 
       // Add commands to localScope
       var cmds = await this.commandDAO.select();
@@ -490,7 +495,7 @@ foam.CLASS({
         feedback_ = true;
         try {
           var cs = this.value.memento;
-          var currentBlockName = this.selected.flowName;
+          var currentBlockName = this.selected ? this.selected.flowName : this.flowName;
           this.clearFlow();
           cs.forEach(c => {
             console.log('***child:', c.flowName, c.cmd, c.value);
@@ -515,7 +520,9 @@ foam.CLASS({
 
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$});
       layout.middle.call(this.renderSelf, [this]);
-      layout.right.tag(this.ReactiveDetailView, {data$: this.selectedValue$});
+      layout.right.add(this.dynamic(function(selectedValue) {
+        this.tag(self.ReactiveDetailView, {data: selectedValue});
+      }));
     },
 
     function renderSelf(self) {

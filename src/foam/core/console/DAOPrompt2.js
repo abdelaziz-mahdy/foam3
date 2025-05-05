@@ -9,10 +9,7 @@ foam.CLASS({
   name: 'DAOPrompt2View',
   extends: 'foam.u2.View',
 
-  imports: [ 'executionTime' ],
-
   css: `
-    ^ { border: 1px solid gray; }
   `,
 
   methods: [
@@ -25,16 +22,17 @@ foam.CLASS({
           if ( ! visible ) return;
           this.start('h3').
             add(self.data.label$).
-            start().
-              add(self.data.dynamic(async function(hasRun, filteredDAO, limitedDAO, select) {
-                if ( ! hasRun ) return;
-
-                var startTime = Date.now();
-
-                await select.execute(this);
-                this.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
-              })).
-            end().
+          end().
+            //          add(self.data.dao.of.id). // TODO: link to describe
+          start().
+            add(self.data.dynamic(async function(version, skip) {
+              if ( ! version ) return;
+              var startTime = Date.now();
+              // Recontextualize the select so that it has the required imports.
+              var select = self.data.select.clone(self.data.__subContext__);
+              await select.execute(this);
+              self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+            })).
           end();
         }));
     }
@@ -62,47 +60,24 @@ foam.CLASS({
   requires: [
     'foam.core.console.DAOPrompt2View',
     'foam.parse.QueryParser'
-    /*
-    'foam.u2.DetailView',
-    'foam.u2.Link',
-    'foam.u2.tag.CircleIndicator'
-    */
   ],
 
-  imports: [ 'eval_', 'scrollToBottom' ],
+  imports: [ 'currentBlock', 'eval_' ],
 
   exports: [
-    'executionTime',
     'block',
     'dao',
     'limitedDAO as sinkDAO',
     'filteredDAO as sinkUnlimitedDAO'
   ],
 
-  /*
-  css: `
-    ^ .foam-u2-TextInputCSS {
-      width: auto;
-      height: 22px;
-    }
-    ^ .foam-u2-TextInputCSS,.foam-u2-TextArea {
-      height: auto;
-    }
-    ^ select[name="selectChoice"] {
-      width: 130px;
-    }
-    ^ .property-skip { display: inline-flex; }
-    ^helper-icon svg { fill: currentColor; }
-    ^helper-icon { vertical-align: sub; }
-    ^content:has(div) {
-      max-height: 700px;
-      overflow-y: auto;
-      border: 1px solid gray;
-    }
-    `,
-    */
-
   properties: [
+    {
+      name: 'block',
+      factory: function() { return this.currentBlock; },
+      hidden: true,
+      transient: true
+    },
     {
       class: 'String',
       name: 'label',
@@ -121,6 +96,7 @@ foam.CLASS({
       class: 'foam.dao.DAOProperty',
       name: 'dao',
       hidden: true,
+      transient: true,
       adapt: function(o, n, p) {
         let oldAdapt = foam.dao.DAOProperty.ADAPT;
         if ( foam.String.isInstance(n) ) {
@@ -137,6 +113,7 @@ foam.CLASS({
     {
       name: 'limitedDAO',
       hidden: true,
+      transient: true,
       expression: function(skip, limit, filteredDAO) {
         if ( limit ) filteredDAO = filteredDAO.limit(limit);
         if ( skip  ) filteredDAO = filteredDAO.skip(skip);
@@ -146,6 +123,7 @@ foam.CLASS({
     {
       name: 'filteredDAO',
       hidden: true,
+      transient: true,
       expression: function(dao, where, order) {
         // Compiled on the Server
         // if ( this.where ) dao = dao.where(this.MQL(this.where));
@@ -193,7 +171,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.DualView',
           viewa: { class: 'foam.u2.IntView' },
-          viewb: { class: 'foam.u2.RangeView', minValue: 0, maxValue: X.data.rowCount-1, onKey: true }
+          viewb: { class: 'foam.u2.RangeView', minValue: 0, maxValue$: X.data.rowCount$.map(c => c-1), onKey: true }
         };
       }
     },
@@ -230,75 +208,34 @@ foam.CLASS({
       */
     {
       name: 'select',
-      // Create with a function so we can set the proper context
-      view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
+      view: { class: 'foam.core.console.SinkView', sinksOnly: false }
     },
     { class: 'Long', name: 'rowCount', visibility: 'RO' },
-    { name: 'executionTime', value: '-' },
-    { class: 'Boolean', name: 'hasRun', hidden: true },
+    { name: 'executionTime', value: '-', visibility: 'RO' },
+    { class: 'Int', name: 'version', hidden: true },
+    { class: 'FObjectProperty', name: 'value', transient: true, visibility: 'RO' }
   ],
 
   methods: [
-    /*
-    async function render() {
-      this.SUPER();
-
-      this.block = this.__context__.currentBlock;
-
-      this.addClass();
-
-      // We await for the rowCount so we know how to size the slider for the limit
+    async function addToE(e) {
       this.rowCount = (await this.dao.select(this.COUNT())).value;
 
-      this.
-        start(this.Link).add(this.daoLabel$, '.').on('click', this.describe).end().
-        start('div').style({'margin-top': '0', 'margin-left': '20px', 'margin-bottom': '6px', 'line-height': '26px'}).
-        add('skip(',    this.SKIP,  ').').br().
-        add('limit(',   this.LIMIT, ').').br().
-        add('where(').
-        start(this.WHERE_CHOICE).
-          style({'display': 'inline-flex'}).
-        end().
-        add(' ', this.WHERE, ' ').
-        start(this.PROPERTY_CHOICE).style({'display': 'inline-flex'}).end().
-        add('). ').
-        start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).addClass(this.myClass('helper-icon')).on('click', () => this.eval_('mqlhelp')).end().
-        br().
-        add('orderBy(', this.ORDER, ' ').start(this.ORDER_CHOICE).style({'display': 'inline-flex'}).end().add(').').br().
-        add('select(').add(this.SELECT, ')').br().
-        add('columns: ', this.COLUMNS).
-      end().
-      add(this.RUN, ' ', this.CLEAR).br().
-      start().
-        style({'padding-top': '10px'}).
-        // show(this.rowCount$.map(c=>c !== undefined)).
-        add('Count: ', this.rowCount$, ', Execution time: ', this.executionTime$).
-      end().br().
-      start('div').style({fontSize: 'smaller', textDecoration: 'underline'}).on('click', this.copyToClipboard).add('copy').end().
-      start('div', {}, this.content$).addClass(this.myClass('content')).style({fontSize: 'smaller'}).end();
-      }
-      */
-    function addToE(e) {
+      // TODO: name current block
       e.tag(this.DAOPrompt2View, {data: this, label: this.label});
+//      e.tag(this.DAOPrompt2View.create({data: this, label: this.label}, this));
     }
   ],
 
   actions: [
     {
       name: 'run',
-      code: async function() {
-        this.hasRun = true;
+      code: function() {
+        this.version++;
       }
     }
   ],
 
   listeners: [
-    {
-      name: 'onSkip',
-      isMerged: true,
-      delay: 64,
-      code: function() { this.run(); }
-    },
     function describe() {
       this.eval_('describe ' + this.dao.of.id);
     },

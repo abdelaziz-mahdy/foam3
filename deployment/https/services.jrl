@@ -4,7 +4,7 @@ p({
   "lazy": false,
   "serviceScript": """
     return new foam.core.security.StorageKeyStoreManager.Builder(x)
-      .setType('JKS')
+      .setType("JKS")
       .setKeyStorePath("foamdev.jks")
       .setKeyStorePass("foamdev")
       .build();

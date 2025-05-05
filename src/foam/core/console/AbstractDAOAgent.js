@@ -26,7 +26,11 @@ foam.CLASS({
     function createSink() { return foam.dao.ArraySink.create(); },
     function execute(e) {
       return this.dao.select(this.createSink()).then(s => {
-        this.block.value = this.value(s);
+        if ( this.block.value && this.block.value.VALUE ) {
+          this.block.value.value = this.value(s);
+        } else {
+          this.block.value = this.value(s);
+        }
         e.add(s);
       });
     },

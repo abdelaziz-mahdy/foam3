@@ -215,10 +215,27 @@ foam.CLASS({
     {
       name: 'endElement_',
       factory: function() { return this.document.createComment('/dynamic'); }
+    },
+    {
+      class: 'Boolean',
+      name: 'requiresRemoval'
     }
   ],
 
   methods: [
+    function maybeRemovePreviousChildren() {
+      if ( ! this.requiresRemoval ) return;
+      this.requiresRemoval = false;
+
+      for ( var i = 0 ; i < this.childNodes.length ; i++ )
+        this.childNodes[i].detach();
+      this.childNodes = [];
+
+      var element_ = this.element_, endElement_ = this.endElement_;
+      for ( var n ; ( n = element_.nextSibling ) && n !== endElement_ ; )
+        try { n.remove(); } catch (x) { debugger; }
+    },
+
     function render() {
       if ( ! this.parentNode ) { this.detach(); return; }
       this.parentNode.appendChild_(this.endElement_);
@@ -227,29 +244,21 @@ foam.CLASS({
       // Before rendering, remove all children between dynamic and /dynamic
       this.fn.pre = () => {
         this.before?.call?.(this);
-        var endElement_ = this.endElement_;
-
-        for ( var i = 0 ; i < this.childNodes.length ; i++ ) {
-          this.childNodes[i].detach();
-        }
-        this.childNodes = [];
-
-        function rm(n) {
-          if ( ! n || n === endElement_ ) return;
-          rm(n.nextSibling);
-          try { n.remove(); } catch (x) { debugger; }
-        }
-
-        rm(this.element_.nextSibling);
-
-        return this;
+        this.requiresRemoval = true;
+        //        this.maybeRemovePreviousChildren();
       };
 
       this.fn.post = () => {
+        this.maybeRemovePreviousChildren();
         this.after?.call?.(this);
       };
 
       this.onDetach(this.fn);
+    },
+
+    function addChild_(c, parentNode) {
+      this.maybeRemovePreviousChildren();
+      this.SUPER(c, parentNode);
     },
 
     // Append 'children' before /dynamic comment
@@ -1634,7 +1643,7 @@ foam.CLASS({
 
       var vis = this.combineControllerModeAndVisibility_(data$, controllerMode$)
 
-      if ( ! this.readPermissionRequired && ! this.writePermissionRequired && ! this.updatePermissionRequired ) return vis; 
+      if ( ! this.readPermissionRequired && ! this.writePermissionRequired && ! this.updatePermissionRequired ) return vis;
 
       const DisplayMode = foam.u2.DisplayMode;
 

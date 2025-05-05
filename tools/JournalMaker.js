@@ -38,10 +38,9 @@ exports.visitFile = function(pom, f, fn) {
     // Until all journal files are under pom control, use the
     // journalFiles list as an exclude list.
     // If test flag enabled - include if present and flag match
-    if ( ! flags.test &&
-         pom.journalFiles ) {
+    if ( ! flags.test && pom.journalFiles ) {
       // journalFiles name is relative to pom
-      var name = f.parentPath.substring(pom.location.length+1);
+      var name = f.parentPath ? f.parentPath.substring(pom.location.length+1) : '';
       name += (name ? '/' : '') + journalName;
       let jf = pom.journalFiles.find((jf) => jf.name === name);
       if ( jf && foam.checkForFlag(foam.adaptFlags(jf.flags), 'test') )

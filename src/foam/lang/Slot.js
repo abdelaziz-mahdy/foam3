@@ -640,8 +640,12 @@ foam.CLASS({
       factory: function() {
         var self = this.self || this.obj || this;
         this.pre.call(self);
-        this.code.apply(self, this.args.map(a => a && a.get()));
-        this.post.call(self);
+        var ret = this.code.apply(self, this.args.map(a => a && a.get()));
+        if ( ret && ret.then ) {
+          ret.then(() => this.post.call(self));
+        } else {
+          this.post.call(self);
+        }
         return this.seqNo++;
       }
     }
