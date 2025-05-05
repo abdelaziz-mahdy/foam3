@@ -126,21 +126,23 @@ function testP(parser, strs) {
       add('Result').
     end().
   end().
-  forEach(strs, function(s) {
-    var input  = foam.lang.SimpleSlot.create({value: s});
-    var output = input.map(s => parser.parse(P.stringPStream(s)));
+  forEach(strs, function(str) {
+    // create a mutable slot for the input, this way we can change our examples on the fly
+    var inputSlot  = foam.lang.SimpleSlot.create({value: str});
+    // create another mutable slot to hold the parser output
+    var outputSlot = inputSlot.map(input => parser.parse(P.stringPStream(input)));
 
     this.start('tr').
       start('td').
         style({width:'25%'}).
-        tag({class: 'foam.u2.TextField', size: 10, onKey: true, data$: input}).
+        tag({class: 'foam.u2.TextField', size: 10, onKey: true, data$: inputSlot}).
       end().
       start('td').start('pre').
-        add(output.map(o => o ? s.substring(0, o.pos) : '')).
+        add(outputSlot.map(output => output ? str.substring(0, output.pos) : '')).
       end().end().
       start('td').start('pre').
-        style({color: output.map(s=> s ? 'green' : 'red')}).
-        add(output.map(s => s ? JSON.stringify(s.value) : 'undefined')).
+        style({color: outputSlot.map(output => output ? 'green' : 'red')}).
+        add(outputSlot.map(output => output ? JSON.stringify(output.value) : 'undefined')).
       end().end().
     end();
   });
