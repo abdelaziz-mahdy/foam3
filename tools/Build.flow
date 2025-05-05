@@ -2,14 +2,12 @@
 <h1>Pom-O-Matic</h1>
 <p>Solve your Build troubles with Pom-O-Matic!</p>
 
-<i>Incomplete</i>
-
 <h1>Overview</h1>
 
 <p>The FOAM build is a <b>node</b> tool which executes Javascript methods (<b>Tasks</b>) against Project Object Model (<b>POM</b>)(or a more lighthearted acronym expansion: Pom-O-Matic) files.</p>
 
 
-<p><b>POMs</b> are JSON files which identify source code, application configuration, and build instructions. They are hierarchical and can exist at any level of a code repository.
+<p><b>POMs</b> are JSON files which identify source code, application configuration, and build instructions. They are hierarchical and can exist at any level of a code repository.</p>
 
 <p>There are two types of POMs:
 <ol>
@@ -27,4 +25,35 @@
   <li><b>Task</b> - the build processes the command line arguments, for options added during the Tooling phase, and prepares a set of <b>Tasks</b> which are then executed.  The <b>Tasks</b> themselves, act on the Build POMs.
   </li>
 </ol>
+</p>
+
+
+<i>TODO - To be fleshed out</i>
+<h1>POMs</h1>
+<p>POMs are hierarchical and a POM is responsible for the files in it's directory and child directories which themselves do not contain a POM.</p>
+<p>POM structure</p>
+<p>Build POMs
+<ul>
+  <li>name - </li>
+  <li>excludes - </li>
+  <li>licenses - </li>
+  <li>environment - (vendor, version, ...) </li>
+  <li>projects -  (and flags  -   test) </li>
+  <li>files - </li>
+  <li>javaFiles - </li>
+  <li>journalFiles - </li>
+  <li>flowDocFiles - (FUTURE) </li>
+  <li>tasks - (project defined tasks)</li>
+  <li>copy - (build provided tasks)</li>
+  <li>Tooling specific - java, javaDependencies, javaFiles (above)</li>
+</ul>
+</p>
+
+<p>Tooling POMs
+<ul>
+  <li>name</li>
+  <li>envs</li>
+  <li>args</li>
+  <li>tasks</li>
+</ul>
 </p>
