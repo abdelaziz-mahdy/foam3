@@ -197,17 +197,17 @@ Implementation-Vendor: ${VENDOR || APP_NAME}
     }],
     jarFOAM: ['Copy foam-bin files for inclusion in JAR file.', ['genJava'], function jarFOAM() {
       ensureDir(join(BUILD_DIR, 'webroot'));
-      execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/`, {stdio: 'inherit'});
+      execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/`, {stdio: VERBOSE ? 'inherit' : 'ignore' });
     }],
     buildJar: ['Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'genJava', 'versions', 'copy', 'genImages', 'genManifest', 'jarFOAM' ], function buildJar() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
-      execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF ${JAR_INCLUDES}`);
+      execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF ${JAR_INCLUDES}`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
     }],
 
     buildTar: ['Package files into a TAR archive', ['buildJar'], function buildTar() {
       ensureDir(join(BUILD_DIR, 'package'));
       // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
-      execSync(`tar -a -cf ${BUILD_DIR}/package/${APP_NAME}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C${require('path').resolve(BUILD_DIR)} lib`);
+      execSync(`tar -a -cf ${BUILD_DIR}/package/${APP_NAME}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C${require('path').resolve(BUILD_DIR)} lib`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
     }],
     setJavaEnv: ['Set Java environmental variables.', [], function setJavaEnv() {
       JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;

@@ -12,7 +12,7 @@ foam.POM({
   tasks: {
     install: ['Install npm tools that foam and the build use.', [], function install() {
       process.chdir(PROJECT_HOME);
-      execSync('npm install');
+      execSync('npm install', { stdio: 'inherit'} );
     }]
   }
 });
