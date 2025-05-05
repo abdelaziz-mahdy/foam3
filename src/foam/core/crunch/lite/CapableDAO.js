@@ -10,16 +10,18 @@ foam.CLASS({
   extends: 'foam.dao.ProxyDAO',
 
   javaImports: [
-    'foam.lang.FObject',
-    'foam.dao.ArraySink',
-    'foam.dao.ProxySink',
-    'foam.dao.DAO',
-    'foam.util.SafetyUtil',
-    'foam.core.crunch.CapabilityIntercept',
-    'foam.core.crunch.lite.Capable',
-    'foam.core.crunch.CapabilityJunctionPayload',
     'foam.core.crunch.Capability',
+    'foam.core.crunch.CapabilityIntercept',
+    'foam.core.crunch.CapabilityJunctionPayload',
     'foam.core.crunch.CapabilityJunctionStatus',
+    'foam.core.crunch.lite.Capable',
+    'foam.core.pm.PM',
+    'foam.dao.ArraySink',
+    'foam.dao.DAO',
+    'foam.dao.ProxySink',
+    'foam.lang.FObject',
+    'foam.mlang.sink.Count',
+    'foam.util.SafetyUtil',
     'java.util.Arrays',
     'java.util.ArrayList',
     'java.util.List'
@@ -39,6 +41,11 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'allowActionRequiredPuts'
+    },
+    {
+      class: 'Long',
+      name: 'maxLimit',
+      value: 1000
     }
   ],
 
@@ -59,7 +66,8 @@ foam.CLASS({
     {
       name: 'select_',
       javaCode: `
-        if (sink != null) {
+        if (sink != null &&
+            ! ( sink instanceof Count ) ) {
           ProxySink refinedSink = new ProxySink(x, sink) {
             @Override
             public void put(Object obj, foam.lang.Detachable sub) {
@@ -69,6 +77,9 @@ foam.CLASS({
               super.put(capable, sub);
             }
           };
+          if ( limit == foam.dao.AbstractDAO.MAX_SAFE_INTEGER ) {
+            limit = getMaxLimit();
+          }
           return ((ProxySink) super.select_(x, refinedSink, skip, limit, order, predicate)).getDelegate();
         }
         return super.select_(x, sink, skip, limit, order, predicate);
@@ -82,6 +93,7 @@ foam.CLASS({
       ],
       type: 'Capable',
       javaCode:`
+        PM pm = PM.create(x, "CapableDAO:populatePayloads");
         DAO capablePayloadDAO = capable.getCapablePayloadDAO(x);
         CapabilityJunctionPayload[] payloads = (CapabilityJunctionPayload[]) ((List) ((ArraySink) capablePayloadDAO.select(new ArraySink())).getArray()).toArray(new CapabilityJunctionPayload[0]);
         if ( payloads.length > 0 ) {
@@ -90,6 +102,7 @@ foam.CLASS({
           }
           capable.setCapablePayloads(payloads);
         }
+        pm.log(x);
         return capable;
       `
     },
