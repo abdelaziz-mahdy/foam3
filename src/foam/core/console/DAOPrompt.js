@@ -286,7 +286,7 @@ foam.CLASS({
         this.setTimeout(() => {
           this.previousOutput?.remove();
           this.previousOutput = out;
-          out.style({display: 'contents'});
+          out.style({display: 'block'});
         }, 17)
       }
     },
