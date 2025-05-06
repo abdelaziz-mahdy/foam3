@@ -234,6 +234,12 @@ foam.CLASS({
         select(dao, function(n) {
           var sdao  = self.__context__[n.name];
           var of    = sdao.of;
+
+          if ( ! of ) {
+            console.log('Bad DAO:', n.name);
+            return;
+          }
+
           var daoFn = () => self.eval_('dao("' + n.name + '")');
           var addFn = () => self.eval_('add("' + n.name + '")');
           var uplFn = () => self.eval_('upload("' + n.name + '")');
