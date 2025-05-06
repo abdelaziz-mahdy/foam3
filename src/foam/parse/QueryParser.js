@@ -409,7 +409,6 @@ foam.CLASS({
             // evaluator for expressions can simplify the resulting Mlang further.
             var prop   = v[0];
             var values = v[2];
-            debugger;
             // Int is actually the parent of Float and Long, so this captures all
             // numeric properties.
             var isNum = foam.lang.Int.isInstance(prop) ||
