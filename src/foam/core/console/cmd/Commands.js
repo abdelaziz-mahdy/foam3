@@ -167,6 +167,8 @@ foam.CLASS({
 
   requires: [ 'foam.core.console.DAOPrompt2' ],
 
+  imports: [ 'createFlowChildName' ],
+
   properties: [
     [ 'description', 'Perform DAO operation' ]
   ],
@@ -176,8 +178,9 @@ foam.CLASS({
       var p = this.DAOPrompt2.create({dao: dao, label: opt_label});
 
       p.addToE(this.out);
-      this.currentBlock.obj = p;
-      this.currentBlock.value = p;
+      this.currentBlock.flowName = this.createFlowChildName(p.label.toLowerCase());
+      this.currentBlock.obj      = p;
+      this.currentBlock.value    = p;
     }
   ]
 });
