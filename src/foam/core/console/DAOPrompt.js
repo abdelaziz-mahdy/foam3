@@ -46,6 +46,7 @@ foam.CLASS({
     ^content:has(div) {
       max-height: 700px;
       overflow-y: auto;
+      display: flex;
       border: 1px solid gray;
     }
   `,

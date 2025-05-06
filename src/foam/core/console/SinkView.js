@@ -87,7 +87,6 @@ foam.CLASS({
         style({'display': 'inline-flex'}).
         startContext({data: this}).
         add(this.CHOICE).
-        start(). // TODO: This line needed for U2, remove when U3
         add(' ', self.dynamic(function (data) {
           if ( ! self.dao ) return;
           data.addToE(this);

@@ -14,7 +14,6 @@ foam.CLASS({
   exports: ['as controlBorder'],
   requires: ['foam.u2.layout.Cols'],
   css:`
-    %CUSTOMCSS%
     ^ {
       height: 100%;
       width: 100%;
@@ -80,7 +79,7 @@ foam.CLASS({
         margin: auto;
       }
     }
-    
+    %CUSTOMCSS%;
   `,
   topics: ['stackReset', 'posUpdated', 'viewVisible'],
   properties: [
