@@ -57,3 +57,41 @@
   <li>tasks</li>
 </ul>
 </p>
+
+<h1>Ideas</h1>
+<h2>GNU getopt style arguments</h2>
+<p>One further thought, I wonder if this is a good opporunity to break backwards compatability with build.sh and rework the arguments.</p>
+
+<p>Right now arguments can only be one letter and we are running out. It might be good to support classic GNU getopt style arguments where they can have a long version and a short version
+<code>
+foam.POM({
+  args: [ 'build-jar', 'j', 'Build a JAR...', ... ]
+})
+</code>
+can be invoked as
+<code>
+$ node tools/build.js -f
+# Or
+$ node tools/build.js --build-jar
+</code>
+</p>
+
+<h2>ExampleTooling</h2>
+Move example to an examples subdirectory
+
+<h2>Tooling POMs use of <b>require</b></h2>
+<p>we should find a way to inject these stuff into the tasks directly instead of needing to use require().</p>
+
+<p>That way these pom files can look the same as the pom files in the source tree and still be loaded on in other environmetns that don't provide require() (such as web)</p>
+
+<p>I think the existing build.js tried to achieve this by setting "this" to an object that contains all the buildlib functions when running the pom tasks so that the tasks can do this this.execSync and whatnot</p>
+
+<h2>Build doc</h2>
+<p>re: There are two types of POMs</p>
+<p>Let's expand or rephrase this.</p>
+
+<p>Conceptually there are two types of fields to the pom, tooling fields which set up tasks and environment variables for the build.js process, and build fields which declare build inputs such as files/javaFiles etc.</p>
+
+<p>It would also be useful to add a section about how environment variables work.</p>
+
+<p>From what I gather, environment variables are delcared with default values but can be overriden by environment variables that exist when you run the code? And environment variables are passed down into tools run by the build process somehow?</p>
