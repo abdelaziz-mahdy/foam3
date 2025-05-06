@@ -43,7 +43,7 @@ foam.CLASS({
           view.columns = columns.map(function(c) { return of.getAxiomByName(c) });
         }
 
-        e.add(view);
+        e.tag(view).style({width: '100%'});
       }));
     }
   ]
