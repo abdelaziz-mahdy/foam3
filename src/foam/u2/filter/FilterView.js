@@ -52,6 +52,7 @@ foam.CLASS({
 
     ^container-search {
       display: flex;
+      margin: 4px 0;
     }
 
     ^container-drawer {
@@ -178,7 +179,7 @@ foam.CLASS({
       max-height: 320px;
       width: max-content;
       overflow: auto;
-      padding: 24px 12px;
+      padding: 12px;
       position: absolute;
       background-color: $white;
       border-radius: 3px;
@@ -196,8 +197,10 @@ foam.CLASS({
     { name: 'LINK_SIMPLE', message: 'Switch to simple filters' },
     { name: 'MESSAGE_ADVANCEDMODE', message: 'Advanced filters are currently being used.' },
     { name: 'LABEL_FILTER', message: 'Filters' },
-    { name: 'SELECTED_OPTIONS', message: 'SELECTED OPTIONS' },
-    { name: 'OPTIONS', message: 'OPTIONS' }
+    { name: 'SEARCH_PLACEHOLDER', message: 'Search' },
+    { name: 'SELECTED_OPTIONS', message: 'Selected' },
+    { name: 'OPTIONS', message: 'Options' },
+    { name: 'ENABLE_COLUMNS', message: 'Enable Columns for Filter' }
   ],
 
   properties: [
@@ -281,6 +284,10 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'filterSelectionOpen'
+    },
+    {
+      class: 'String',
+      name: 'filterSearch'
     }
   ],
 
@@ -327,20 +334,36 @@ foam.CLASS({
                 .enableClass(this.myClass('filter-button-active'), this.isOpen$)
                 .addClass(this.myClass('filter-button'))
               .end()
+              // dynamic filters
               .start()
                 .start(self.ADD_SEARCH_FILTER, { label: '⚙️', size: 'SMALL' }).end()
                 .start()
                   .show(this.filterSelectionOpen$)
                   .addClass(this.myClass('filter-selection'))
-                  .add(self.slot(function(filterSelectionOpen, filters) {
+                  // search
+                  .start('p').addClass('p-label-lg').add(self.ENABLE_COLUMNS).end()
+                  .start().addClass(this.myClass('container-search'))
+                    .start({
+                      class: 'foam.u2.TextField',
+                      data$: this.filterSearch$,
+                      placeholder: this.SEARCH_PLACEHOLDER,
+                      onKey: true
+                    })
+                    .end()
+                  .end()
+                  // selected
+                  .add(self.slot(function(filterSelectionOpen, filters, filterSearch) {
                     var element = this.E();
-                    if ( ! filterSelectionOpen || ! filters?.length ) return element;
+                    var filteredFilters = filters.filter(function(f) {
+                      return f.toLowerCase().includes(filterSearch.toLowerCase());
+                    })
+                    if ( ! filterSelectionOpen || ! filteredFilters?.length ) return element;
                     return element
                       .start('p').addClass('p-label')
                         .add(self.SELECTED_OPTIONS)
                       .end()
                       .call(function() {
-                        filters.forEach(function(prop) {
+                        filteredFilters.forEach(function(prop) {
                           return element
                             .start()
                               .on('click', () => self.deselectFilter(prop))
@@ -349,10 +372,14 @@ foam.CLASS({
                         });
                       });
                   }))
-                  .add(self.slot(function(filterSelectionOpen, filters) {
+                  // options
+                  .add(self.slot(function(filterSelectionOpen, filters, filterSearch) {
                     var props = x.userDAO.of.getAxiomsByClass(foam.lang.Property)
                       .filter( m => m.searchView && m.name != 'reactions_' && ! m.hidden && ! filters.includes(m.name) )
-                      .map( n => n.name );
+                      .map( n => n.name )
+                      .filter(function(f) {
+                        return f.toLowerCase().includes(filterSearch.toLowerCase());
+                      });
                     var element = this.E();
                     if ( ! filterSelectionOpen || ! props?.length ) return element;
                     return element
