@@ -165,6 +165,19 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.lang',
+  name: 'IntegerArrayHolder',
+
+  properties: [
+    {
+      class: 'IntegerArray',
+      name: 'value'
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.lang',
   name: 'AnyHolder',
 
   properties: [
