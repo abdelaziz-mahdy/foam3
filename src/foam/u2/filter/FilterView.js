@@ -474,7 +474,7 @@ foam.CLASS({
     function deselectFilter(key) {
       var newFilters = [].concat(this.filters);
       var index = newFilters.indexOf(key);
-      if (index !== -1) {
+      if ( index !== -1 ) {
         newFilters.splice(index, 1);
       }
       this.filters = newFilters;
