@@ -33,11 +33,20 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.core.crunch.lite.Capable'
     },
-    // {
-    //   name: 'of',
-    //   value: 'foam.core.crunch.lite.CapablePayloads'
-    // }
+    {
+      name: 'of',
+      javaFactory: `
+        return foam.core.crunch.CapabilityJunctionPayload.getOwnClassInfo();
+      `
+    }
   ],
+
+  javaCode: `
+  public CapableAdapterDAO(X x, Capable capable) {
+    setX(x);
+    setCapable(capable);
+  }
+  `,
 
   methods: [
     {
