@@ -107,7 +107,7 @@ foam.CLASS({
             self.exportDriver    = undefined;
           } else {
             self.exportDriverReg = val;
-            self.exportDriver    = foam.lookup(self.exportDriverReg.driverName).create();
+            self.exportDriver    = foam.lookup(self.exportDriverReg.driverName).create({}, self);
           }
         });
       });
