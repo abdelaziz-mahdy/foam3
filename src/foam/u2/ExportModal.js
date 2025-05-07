@@ -182,7 +182,6 @@ foam.CLASS({
         return isDownloadAvailable;
       },
       code: async function download() {
-        var self = this;
         if ( ! this.exportData && ! this.exportObj ) {
           console.log('Neither exportData nor exportObj exist');
           return;
@@ -192,33 +191,33 @@ foam.CLASS({
         if ( this.exportAllColumns )
           this.filteredTableColumns = null;
 
-        var p = this.exportData ?
-          Promise.resolve(this.exportDriver.exportDAO(this.__context__, this.exportData)) :
-          Promise.resolve(this.exportDriver.exportFObject(this.__context__, this.exportObj));
-
-        var exportDataResult;
-        p.then(result => {
-          exportDataResult = result;
+        var result;
+        if ( this.exportData ) {
+          result = await this.exportDriver.exportDAO(this.__context__, this.exportData);
+        } else {
+          result = await this.exportDriver.exportFObject(this.__context__, this.exportObj);
+        }
+        if ( result ) {
           var link = document.createElement('a');
           var href = '';
-          if ( self.exportDriverReg.mimeType && self.exportDriverReg.mimeType.length != 0 ) {
-            var blob = new Blob([result], { type: self.exportDriverReg.mimeType });
+          if ( this.exportDriverReg.mimeType && this.exportDriverReg.mimeType.length != 0 ) {
+            var blob = new Blob([result], { type: this.exportDriverReg.mimeType });
             href = URL.createObjectURL(blob);
           } else {
             throw new Error('Data type for export not specified');
           }
           link.setAttribute('href', href);
-          link.setAttribute('download', 'data.' + self.exportDriverReg.extension);
+          link.setAttribute('download', 'data.' + this.exportDriverReg.extension);
           document.body.appendChild(link);
           link.click();
 
           // Cleanup data blob and link
           if ( blob ) URL.revokeObjectURL(link.href);
           document.body.removeChild(link);
-        }).finally(() => {
-          if ( this.exportAllColumns )
-            this.filteredTableColumns = filteredColumnsCopy;
-        });
+        }
+
+        if ( this.exportAllColumns )
+          this.filteredTableColumns = filteredColumnsCopy;
       }
     },
     {
