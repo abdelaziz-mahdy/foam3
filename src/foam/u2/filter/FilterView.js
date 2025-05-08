@@ -378,7 +378,7 @@ foam.CLASS({
                   }))
                   // options
                   .add(self.slot(function(filterSelectionOpen, filters, filterSearch) {
-                    var props = x.userDAO.of.getAxiomsByClass(foam.lang.Property)
+                    var props = self.dao.of.getAxiomsByClass(foam.lang.Property)
                       .filter( m => m.searchView && m.name != 'reactions_' && ! m.hidden && ! filters.includes(m.name) )
                       .map( n => n.name )
                       .filter(function(f) {
