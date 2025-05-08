@@ -30,7 +30,7 @@ exports.init = function() {
 exports.visitFile = function(pom, f, fn) {
   if ( f.name.endsWith('.jrl') ) {
     var i           = fn.lastIndexOf('/');
-    var journalName = fn?.substring(i+1, fn.length-4);
+    var journalName = fn.substring(i+1, fn.length-4);
 
     // Disallow wildcard matching for excluding .jrl files, excluded entries must be exact match
     // if ( isExcluded(pom, fn, true) ) return;
