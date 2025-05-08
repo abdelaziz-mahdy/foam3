@@ -167,37 +167,37 @@ foam.CLASS({
       includeInDigest: true,
     },
     {
-      name: 'inherentPermissions',
       class: 'StringArray',
+      name: 'inherentPermissions',
       documentation: `List of inherent permissions provided by this capability`,
       includeInDigest: true,
       storageTransient: true,
       visibility: 'HIDDEN'
     },
     {
-      name: 'permissionsGranted',
       class: 'StringArray',
+      name: 'permissionsGranted',
       documentation: `List of permissions granted by this capability`,
       includeInDigest: true,
       view: 'foam.u2.crunch.PermissionsStringArrayView'
     },
     {
-      name: 'permissionsIntercepted',
       class: 'StringArray',
+      name: 'permissionsIntercepted',
       includeInDigest: true,
       documentation: `List of permissions intercepted by this capability`
     },
     {
-      name: 'daoKey',
       class: 'String',
+      name: 'daoKey',
       documentation: `
       daoKey.put() done in UserCapabilityJunctionDAO.
       Uses contextDAOFindKey to find object to update/put.`,
       includeInDigest: true
     },
     {
-      name: 'contextDAOFindKey',
       class: 'String',
+      name: 'contextDAOFindKey',
       documentation: 'need to find things dynamically, thus have a string here to specify the object in context to look up.',
       includeInDigest: true
     },
