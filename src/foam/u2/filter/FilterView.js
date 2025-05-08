@@ -97,7 +97,7 @@ foam.CLASS({
       display: flex;
       box-sizing: border-box;
       height: 34px;
-
+      gap: 10px;
       align-items: center;
       justify-content: center;
     }
@@ -116,6 +116,10 @@ foam.CLASS({
     ^filter-button-active{
       color: $primary400;
       background: $grey100;
+    }
+
+    ^filter-search-active {
+      border: 1px solid $primary400 !important;
     }
 
     ^filter-button-active svg {
@@ -176,6 +180,7 @@ foam.CLASS({
     }
 
     ^filter-selection {
+      margin-top: 10px;
       max-height: 320px;
       width: max-content;
       overflow: auto;
@@ -183,7 +188,7 @@ foam.CLASS({
       position: absolute;
       background-color: $white;
       border-radius: 3px;
-      border: solid 1px #cbcfd4;
+      border: solid 1px $grey500;
       z-index: 100;
     }
   `,
@@ -335,7 +340,7 @@ foam.CLASS({
               .end()
               // dynamic filters
               .start()
-                .start(self.ADD_SEARCH_FILTER, { label: '⚙️', size: 'SMALL' }).end()
+                .start(self.ADD_SEARCH_FILTER, { label: '', themeIcon: 'settings', size: 'SMALL' }).enableClass(self.myClass('filter-search-active'), self.filterSelectionOpen$).end()
                 .start()
                   .show(this.filterSelectionOpen$)
                   .addClass(this.myClass('filter-selection'))
