@@ -65,6 +65,7 @@ foam.CLASS({
     }
 
     ^buttons{
+      display: flex;
       gap: 0.5em;
       align-items: flex-start;
     }
