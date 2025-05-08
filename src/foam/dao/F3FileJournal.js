@@ -88,8 +88,7 @@ foam.CLASS({
                 FObject obj;
 
                 public void executeJob() {
-                  JSONParser parser = getParser(x);
-                  obj = parser.parseString(strEntry, dao.getOf().getObjClass());
+                  obj = getParser(x).parseString(strEntry, dao.getOf().getObjClass());
                 }
 
                 public void endJob(boolean isLast) {
@@ -108,7 +107,11 @@ foam.CLASS({
                       dao.remove(obj);
                       break;
                   }
-                  passCount.incrementAndGet();
+                  long pass = passCount.incrementAndGet();
+                  // Provide some feedback on long running replays
+                  if ( pass % 10000 == 0 ) {
+                    getLogger().info("Replay progress", getFilename(), "processed", pass, "in", Duration.ofMillis(pm.getTime()));
+                  }
                 }
               });
             } catch ( Throwable t ) {

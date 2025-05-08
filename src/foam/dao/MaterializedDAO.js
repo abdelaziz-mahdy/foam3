@@ -169,6 +169,11 @@ foam.CLASS({
       name: 'thread',
       javaType: 'Thread'
     },
+    {
+      class: 'String',
+      name: 'instanceName',
+      javaFactory: 'return "MaterializedDAO-" + getSourceDAO().getOf().getObjClass().getSimpleName() + "-" + getDelegate().getOf().getObjClass().getSimpleName();'
+    }
   ],
 
   methods: [
@@ -179,7 +184,7 @@ foam.CLASS({
       javaCode: `
         if ( getInitialized() ) return;
 
-        Logger logger = Loggers.logger(getX(), this, getSourceDAO().getOf().getObjClass().getSimpleName(), "start");
+        Logger logger = Loggers.logger(getX(), this, getInstanceName());
         logger.info("initializing");
 
         setInitialized(true);
@@ -276,10 +281,10 @@ foam.CLASS({
             }
           } catch (InterruptedException e) {
             // stop method can terminate current thread.
-            Loggers.logger(getX(), this).warning("MaterializedDAO consumer thread interrupted", "thread id", Thread.currentThread().getId(), "thread name", Thread.currentThread().getId());
+            Loggers.logger(getX(), this).warning("run,interrupted", Thread.currentThread().getId());
             break;
           } catch ( Throwable t ) {
-            Loggers.logger(getX(), this).error("MaterializedDAO fails to consume", "thread id", Thread.currentThread().getId(), "thread name", Thread.currentThread().getId(), t);
+            Loggers.logger(getX(), this).error("run,failed to consume", Thread.currentThread().getId());
           }
         }
       `
@@ -312,13 +317,16 @@ foam.CLASS({
     },
     {
       name: 'start',
-      javaCode: 'if ( getAutoStart() ) maybeInit();'
+      javaCode: `
+        if ( getAutoStart() )
+          maybeInit();
+      `
     },
     {
       name: 'startThread',
       javaCode: `
         Thread t = new Thread(this);
-        t.setName("MaterializedDAO Processor: " + getDelegate());
+        t.setName(getInstanceName());
         t.setDaemon(true);
         t.start();
         setThread(t);
