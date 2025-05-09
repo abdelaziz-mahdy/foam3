@@ -83,6 +83,7 @@ foam.CLASS({
               .add(self.SELECTED_OPTIONS)
             .end()
             .forEach(filteredProps, function(prop) {
+              if ( ! prop ) return;
               this
               .start()
                 .on('click', () => self.deselectFilter(prop))

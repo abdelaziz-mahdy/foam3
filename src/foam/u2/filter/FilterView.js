@@ -175,10 +175,7 @@ foam.CLASS({
     {
       class: 'Array',
       name: 'filters',
-      factory: null,
-      postSet: function(o,n) {
-        console.log(o?.$UID, o, n, n?.$UID);
-      }
+      factory: null
     },
     {
       name: 'generalSearchField',
@@ -238,7 +235,6 @@ foam.CLASS({
       this.filterController.mementoPredicate$.sub(this.updateMementoString);
 
       await this.updateFilters();
-      globalThis['fw'] = this;
 
       self.filtersContainer = this.E().addClass(self.myClass('container-drawer'))
       .enableClass(self.myClass('container-drawer-open'), self.isOpen$)
