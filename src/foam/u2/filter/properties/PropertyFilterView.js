@@ -166,26 +166,29 @@ foam.CLASS({
       // Load filters on render instead of open
       // Temp fix till filterController can be refactored to not depend on Search
       if ( this.firstTime_ )
-        this.initView();
+        this.initView(false);
       this.isFiltering();
       this.isInit = false;
     }
   ],
 
   listeners: [
-    function initView() {
-      if ( this.firstTime_ ) {
-        this.container_.tag(this.searchView, {
-          property: this.property,
-          dao$: this.dao$
-        }, this.view_$);
-      }
+    function initView(addView = true) {
       // Restore the search view using an existing predicate for that view
       // This requires that every search view implements restoreFromPredicate
       var existingPredicate = this.filterController.getExistingPredicate(this.criteria, this.property);
 
       if ( ! existingPredicate && this.preSetPredicate != null ) {
         existingPredicate = this.preSetPredicate;
+      }
+
+      if ( this.firstTime_ && (addView || existingPredicate) ) {
+        this.container_.tag(this.searchView, {
+          property: this.property,
+          dao$: this.dao$
+        }, this.view_$);
+      } else {
+        return;
       }
 
       if ( existingPredicate ) {
@@ -224,7 +227,6 @@ foam.CLASS({
       // check to see if there is an existing predicate to use the correct label
       if ( this.filterController.getExistingPredicate(this.criteria, this.property) && this.firstTime_ ) {
         this.labelFiltering = this.LABEL_PROPERTY_FILTER;
-        this.filterController.activeFilterCount++;
         this.activeFilterCheck_ = false;
         return;
       }
@@ -232,12 +234,10 @@ foam.CLASS({
       // Displays the correct label depending on situation
         if ( this.view_.predicate !== this.TRUE && this.activeFilterCheck_ ) {
           this.labelFiltering = this.LABEL_PROPERTY_FILTER;
-          this.filterController.activeFilterCount++;
           this.activeFilterCheck_ = ! this.activeFilterCheck_;
         }
         else if ( this.view_.predicate === this.TRUE && ! this.activeFilterCheck_ ) {
           this.labelFiltering = this.LABEL_PROPERTY_ALL;
-          this.filterController.activeFilterCount--;
           this.activeFilterCheck_ = ! this.activeFilterCheck_;
         }
     }

@@ -311,6 +311,8 @@ foam.CLASS({
   listeners: [
     {
       name: 'daoUpdate',
+      isMerged: true,
+      delay: 200,
       code: function() {
         this.isOverLimit = false;
         this.isLoading = true;
