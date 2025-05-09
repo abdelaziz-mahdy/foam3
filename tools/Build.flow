@@ -84,11 +84,3 @@ $ node tools/build.js --build-jar
 
 <h2>ExampleTooling</h2>
 Move example to an examples subdirectory
-
-<h2>Tooling POMs use of <b>require</b></h2>
-<p>we should find a way to inject these stuff into the tasks directly instead of needing to use require().</p>
-
-<p>That way these pom files can look the same as the pom files in the source tree and still be loaded on in other environmetns that don't provide require() (such as web)</p>
-
-<p>I think the existing build.js tried to achieve this by setting "this" to an object that contains all the buildlib functions when running the pom tasks so that the tasks can do this this.execSync and whatnot</p>
-<p>See the Object.assign(  , EXPORTS) </p>
