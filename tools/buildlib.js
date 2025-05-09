@@ -229,10 +229,10 @@ function processToolingArgs(ARGS, moreUsage) {
   const args = process.argv.slice(2);
   for ( var i = 0 ; i < args.length ; i++ ) {
     var arg = args[0];
-    if ( arg.startsWith('-') ) {
-      if ( arg === '-help') {
-        ARGS['h'][1]();
-      }
+    if ( arg === '-help' ||
+         arg === '--help' ) {
+      ARGS['h'][1]();
+    } else if ( arg.startsWith('-') ) {
       for ( var j = 1 ; j < arg.length ; j++ ) {
         var a = arg.charAt(j);
         if ( a != 'O' ) continue;
@@ -270,26 +270,30 @@ function processSingleCharArgs(ARGS, moreUsage) {
   const args = process.argv.slice(2);
   for ( var i = 0 ; i < args.length ; i++ ) {
     var arg = args[i];
-    if ( arg.startsWith('-') ) {
-      if ( arg === '-help') {
-        ARGS['h'][1]();
-      }
-      for ( var j = 1 ; j < arg.length ; j++ ) {
-        var a = arg.charAt(j);
-        var d = ARGS[a];
-        if ( d ) {
-          // FIXME: see TestTooling.js:30 and JavaTooling.js:55,
-          // this.comma is undefined. EXPORTS.comma works.
-          // bind(this, and bind(EXPORTS, did not help - Joel
-          // d[1].bind(this, arg.substring(j+1))();
-          d[1](arg.substring(j+1));
-          if ( a >= 'A' && a <= 'Z' ) break;
-        } else {
-          let msg = 'Unknown argument "' + a + '"';
-          warning(msg);
-          // output warning message after usage as the usage is so long
-          // the user will have to scroll pages up to see the issue.
-          ARGS['h'][1](() => warning(msg));
+    if ( arg === '-help' ||
+         arg === '--help' ) {
+      ARGS['h'][1]();
+    } else {
+      if ( arg.startsWith('--') ) {
+        ARGS['X'][1](arg.substring(2));
+      } else if ( arg.startsWith('-') ) {
+        for ( var j = 1 ; j < arg.length ; j++ ) {
+          var a = arg.charAt(j);
+          var d = ARGS[a];
+          if ( d ) {
+            // FIXME: see TestTooling.js:30 and JavaTooling.js:55,
+            // this.comma is undefined. EXPORTS.comma works.
+            // bind(this, and bind(EXPORTS, did not help - Joel
+            // d[1].bind(this, arg.substring(j+1))();
+            d[1](arg.substring(j+1));
+            if ( a >= 'A' && a <= 'Z' ) break;
+          } else {
+            let msg = 'Unknown argument "' + a + '"';
+            warning(msg);
+            // output warning message after usage as the usage is so long
+            // the user will have to scroll pages up to see the issue.
+            ARGS['h'][1](() => warning(msg));
+          }
         }
       }
     }

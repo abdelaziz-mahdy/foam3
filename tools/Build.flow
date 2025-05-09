@@ -31,9 +31,18 @@
 </ol>
 </p>
 
+<h2>Command Line Arguments</h2>
+<p>Both single character (-h) and GNU getopt word style (--help) arguments are supported.<br/>
+<b>NOTE</b> The GNU style arguments are currently restricted to <b>Tasks</b> names. <i>For example</i> --cleanAll or --all.<br/>
+The GNU args can also be comma seperated <i>For example</i> --cleanAll,all
+</p>
 
-<i>TODO - To be fleshed out</i>
-<h1>POMs</h1>
+<p>A number of single character options, such as <b>N, O, P</b> are actually short cuts for setting evironment variables which can also be set via argument <b>E</b> which takes the full upper case environment variable name. <i>For example</i> -Nfoo or -EAPP_NAME:foo.
+</p>
+
+
+<h1>Incomplete sections</h1>
+<h2>POMs</h2>
 <p>POMs are hierarchical and a POM is responsible for the files in it's directory and child directories which themselves do not contain a POM.</p>
 <p>POM structure</p>
 <p>Build POM Fields
@@ -64,11 +73,10 @@
 </ul>
 </p>
 
-<h1>Ideas</h1>
-<h2>GNU getopt style arguments</h2>
-<p>One further thought, I wonder if this is a good opporunity to break backwards compatability with build.sh and rework the arguments.</p>
 
-<p>Right now arguments can only be one letter and we are running out. It might be good to support classic GNU getopt style arguments where they can have a long version and a short version
+<h1>TODO</h1>
+<h2>Additional CLI argument support</h2>
+<p>Explicit short and long version definition support. Presently long version is hanlde by the <b>X</b> option and is restricted to existing Task names.
 <code>
 foam.POM({
   args: [ 'build-jar', 'j', 'Build a JAR...', ... ]
