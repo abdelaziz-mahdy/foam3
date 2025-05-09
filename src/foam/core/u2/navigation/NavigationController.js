@@ -30,8 +30,8 @@ foam.CLASS({
     }
 
     /******************
-    Replace sidebar-width when Chrome 
-    and Safari add animation support 
+    Replace sidebar-width when Chrome
+    and Safari add animation support
     to grid-template-columns
     ---------
     ^ {
@@ -151,7 +151,7 @@ foam.CLASS({
       this.addClass()
         .add(this.slot( async function(loginSuccess, topNav) {
           let e = self.E().addClass(this.myClass('header'));
-          if ( ! loginSuccess || ! topNav ) return e;
+          if ( ! loginSuccess || ! topNav || foam.flags.topNav == false ) return e;
           await this.initLayout;
           var topView = foam.u2.ViewSpec.createView(topNav, {}, self, self.navCtx_);
           this.headerSlot_$.set(topView);
@@ -185,7 +185,7 @@ foam.CLASS({
             .add(mainView)
             .addClass(this.myClass('stack-view'));
         }))
-        
+
       // TODO: Maybe add footer support if needed
     }
   ],
@@ -210,13 +210,13 @@ foam.CLASS({
         this.isMenuOpen = false
       } else if ( this.displayWidth.ordinal >= this.DisplayWidth.MD.ordinal && this.prefersMenuOpen === true) {
         this.isMenuOpen = true
-      } 
+      }
     },
     function adjustTopBarHeight() {
       if ( ! this.headerSlot_ ) return;
       let root = this.document.documentElement;
-      this.headerSlot_.el().then(el => { 
-        root?.style.setProperty('--topbar-height', el.offsetHeight + 'px' ); 
+      this.headerSlot_.el().then(el => {
+        root?.style.setProperty('--topbar-height', el.offsetHeight + 'px' );
       })
     }
   ]
