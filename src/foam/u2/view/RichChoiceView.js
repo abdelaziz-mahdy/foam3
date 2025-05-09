@@ -811,7 +811,7 @@ foam.CLASS({
             if ( fullObject ) {
               this.startContext({ controllerMode: 'VIEW' }).start()
                 .addClass(self.myClass('customSelectView'))
-                .enableClass(self.myClass('ro'), self.addPadding$)
+                .enableClass(self.myClass('ro'), self.addPadding$.not())
                 .tag((self.rowView || self.CitationView), { data: fullObject })
               .end().endContext();
             } else {
