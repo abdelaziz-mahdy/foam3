@@ -59,6 +59,7 @@ foam.CLASS({
       border-color: transparent;
       border-radius: 5px;
       display: flex;
+      flex-direction: column;
       max-height: 0;
       overflow: hidden;
       padding: 0 24px;
@@ -138,7 +139,6 @@ foam.CLASS({
 
     ^settings-wrapper {
       display: flex;
-      flex-direction: column;
       gap: 0.8rem;
       flex-shrink: 0;
     }
@@ -146,6 +146,12 @@ foam.CLASS({
     @media only screen and (min-width: 768px) {
       ^container-search {
         gap: 24px;
+      }
+      ^container-drawer {
+        flex-direction: row;
+      }
+      ^settings-wrapper {
+        flex-direction: column;
       }
     }
   `,
