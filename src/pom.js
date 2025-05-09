@@ -729,7 +729,6 @@ foam.POM({
     { name: "foam/u2/Autocompleter",                                  flags: "web" },
     { name: "foam/u2/filter/FilterRefinements",                       flags: "web" },
     { name: "foam/u2/filter/FilterView",                              flags: "web" },
-    { name: "foam/u2/filter/advanced/AdvancedFilterView",             flags: "web" },
     { name: "foam/u2/filter/advanced/CriteriaView",                   flags: "web" },
     { name: "foam/u2/filter/FilterController",                        flags: "web" },
     { name: "foam/u2/filter/properties/PropertyFilterView",           flags: "web" },
