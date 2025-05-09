@@ -236,10 +236,6 @@ foam.CLASS({
     'showOnlyProperties'
   ],
 
-  css: `
-    ^ .foam-u2-view-TableView-row { height: auto; }
-  `,
-
   methods: [
     function render() {
       this.SUPER();

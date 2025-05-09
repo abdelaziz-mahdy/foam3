@@ -52,8 +52,6 @@ foam.CLASS({
     button { padding: 6px; background: $white!important; }
     button span { background:$white; }
     .foam-u2-ActionView-medium { height: 34px !important; background: pink; }
-    .foam-u2-view-TableView-th-editColumns { display: none; }
-    .foam-u2-view-TableView-td[name="contextMenuCell"] { display: none; }
     .foam-u2-table-TableView { height: auto !important; }
   `,
 

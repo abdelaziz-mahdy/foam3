@@ -103,14 +103,6 @@ foam.CLASS({
       padding: 0 16px;
     }
 
-    ^ .foam-u2-table-TableView th {
-      background: #ffffff
-    }
-
-    ^ .foam-u2-table-TableView td {
-      padding-left: 16px;
-    }
-
     ^ .foam-u2-view-SimpleSearch {
       flex-grow: 1;
     }

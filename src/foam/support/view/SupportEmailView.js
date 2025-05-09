@@ -86,12 +86,6 @@ foam.CLASS({
       margin-left: 389px;
       margin-right: 388px
     }
-    ^ .foam-u2-view-TableView-th-connectedTime {
-      width: 50%;
-    }
-    ^ .foam-u2-view-TableView-th-email {
-      width: 30%;
-    }
   `,
 
   properties: [
