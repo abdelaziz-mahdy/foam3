@@ -113,6 +113,7 @@ foam.CLASS({
     'signUpEnabled',
     'stack',
     'subject',
+    'toolbar',
     'theme',
     'user',
     'wrapCSS as installCSS',
@@ -199,6 +200,9 @@ foam.CLASS({
   `,
 
   properties: [
+    {
+      name: 'toolbar'
+    },
     {
       name: 'loginVariables',
       expression: function( client$userRegistrationDAO, group$emailRequired ) {
