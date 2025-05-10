@@ -8,16 +8,17 @@ foam.POM({
   name: 'standard',
   envs: {
     APP_HOME:          ['Application root directory. To symultaniously deploy multiple applications, give each a unique APP_NAME and WEB_PORT',() => APP_ROOT + '/' + APP_NAME],
-    APP_NAME:          ['Application name. Defaults to \'name\' in root pom.'],
     APP_ROOT:          ['Application root directory','/opt'],
-    CLEAN:             ['Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',false],
-    CLEAN_ALL:         ['Clean application lib/, and remove build/ directory',false],
-    PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded']
+    // PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded']
   },
 
-  args: {
-    c: [ 'Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',
-         () => CLEAN = true ]
+  options: {
+    appName: [ 'N', 'app-name', 'APP_NAME', "Name used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.", '',
+               args => APP_NAME = args ],
+    clean: [ 'c', 'clean', 'CLEAN', 'Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.', false,
+             () => CLEAN = true ],
+    cleanAll: [ '', 'clean-all', 'CLEAN_ALL', 'Clean application lib/, and remove build/ directory.',false,
+             () => CLEAN_ALL = true ]
   },
 
   tasks: {
@@ -68,7 +69,7 @@ foam.POM({
         } else if ( CLEAN ) {
           this.execute('clean');
         }
-        if ( TEST || BENCHMARK ) {
+        if ( globalThis['TEST'] || globalThis['BENCHMARK'] ) {
           this.execute('clean');
         } else if ( DELETE_RUNTIME_JOURNALS ) {
           this.execute('deleteRuntimeJournals');
@@ -76,7 +77,7 @@ foam.POM({
 
         if ( TAR ) {
           this.execute('buildTar');
-        } else if ( JAR || TEST || BENCHMARK ) {
+        } else if ( JAR || globalThis['TEST'] || globalThis['BENCHMARK'] ) {
           // Tests and benchmarks run from an application jar
           this.execute('buildJar');
         } else {
@@ -85,7 +86,7 @@ foam.POM({
       }
 
       if ( ! ( TAR || BUILD_ONLY ) ) {
-        if ( ! JAR || TEST || BENCHMARK ) {
+        if ( ! JAR || globalThis['TEST'] || globalThis['BENCHMARK'] ) {
           this.execute('startCORE');
         } else {
           this.execute('startCOREJar');

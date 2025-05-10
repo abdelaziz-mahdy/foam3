@@ -5,9 +5,9 @@
  */
 
 const { info, warning, error } = require('./buildlib');
-const envs   = {};
-const args   = {};
-const tasks  = {};
+const envs    = {};
+const tasks   = {};
+const options = {};
 
 exports.description = 'Assemble build environment.';
 
@@ -21,10 +21,10 @@ exports.visitPOM = function(pom) {
       }
     });
 
-  pom.args &&
-    Object.keys(pom.args).forEach(k => {
-      if ( ! args[k] ) {
-        args[k] = pom.args[k];
+  pom.options &&
+    Object.keys(pom.options).forEach(k => {
+      if ( ! options[k] ) {
+        options[k] = pom.options[k];
       } else {
         warning(`[Tooling] duplicate arg '${k}' ignored from pom '${pom.name}'`);
       }
@@ -40,6 +40,6 @@ exports.visitPOM = function(pom) {
     });
 };
 
-exports.envs  = envs;
-exports.args  = args;
-exports.tasks = tasks;
+exports.envs    = envs;
+exports.tasks   = tasks;
+exports.options = options;

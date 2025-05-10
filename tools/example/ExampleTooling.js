@@ -7,13 +7,12 @@
 foam.POM({
   name: 'example',
   envs: {
-    EXAMPLE:                 ['Execute example', false],
-    EXAMPLE_RELEASE:         ['Example version.'],
     EXAMPLE_RELEASE_DEFAULT: ['Example version default','3']
   },
 
-  args: {
-    e: [ 'Enable example.', () => { EXAMPLE = true; } ]
+  options: {
+    example: [ 'e', 'example', 'EXAMPLE', 'Enable example.', false, () => { EXAMPLE = true; } ],
+    exampleRelease: [ '', 'example-release', 'EXAMPLE_RELEASE', 'Set example release', '', () => EXAMPLE_RELEASE = args ]
   },
 
   tasks: {

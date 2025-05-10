@@ -28,11 +28,8 @@
 
 const fs_   = require('fs');
 const path_ = require('path');
-// const b_    = require('./buildlib');
 
 var pmake = function(...args) {
-  this.info('init pmake');
-  this.isExcluded({});
 
   // Recreate foam for each call to pmake as
   // each call to pmake uses a different set of flags which control

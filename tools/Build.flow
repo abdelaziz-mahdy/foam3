@@ -33,12 +33,32 @@
 
 <h2>Command Line Arguments</h2>
 <p>Both single character (-h) and GNU getopt word style (--help) arguments are supported.<br/>
-<b>NOTE</b> The GNU style arguments are currently restricted to <b>Tasks</b> names. <i>For example</i> --cleanAll or --all.<br/>
 The GNU args can also be comma seperated <i>For example</i> --cleanAll,all
 </p>
 
 <p>A number of single character options, such as <b>N, O, P</b> are actually short cuts for setting evironment variables which can also be set via argument <b>E</b> which takes the full upper case environment variable name. <i>For example</i> -Nfoo or -EAPP_NAME:foo.
 </p>
+
+<p>build.js and the Tooling POMs define <b>options</b> and <b>tasks</b>, such as:</p>
+<code>
+foam.POM({
+  options: {
+    test: [ 't', 'test', 'TEST', 'Run All tests.', false, ...]
+  },
+  ...
+  tasks: {
+    runTests: ['Run all or specified test cases. ex: runTests[:Test1,Test2]', ['pomEnvs'], ...]
+  }
+})
+</code>
+Which can be invoked as
+<code>
+$ node tools/build.js -ct
+# Or
+$ node tools/build.js --clean --test --all
+# Or
+$ node tools/build.js --runTests
+</code>
 
 
 <h1>Incomplete sections</h1>
@@ -71,21 +91,4 @@ The GNU args can also be comma seperated <i>For example</i> --cleanAll,all
   <li>args</li>
   <li>tasks</li>
 </ul>
-</p>
-
-
-<h1>TODO</h1>
-<h2>Additional CLI argument support</h2>
-<p>Explicit short and long version definition support. Presently long version is hanlde by the <b>X</b> option and is restricted to existing Task names.
-<code>
-foam.POM({
-  args: [ 'build-jar', 'j', 'Build a JAR...', ... ]
-})
-</code>
-can be invoked as
-<code>
-$ node tools/build.js -f
-# Or
-$ node tools/build.js --build-jar
-</code>
 </p>

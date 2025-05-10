@@ -99,22 +99,44 @@ function copyDir(src, dst) {
 }
 
 
-function buildEnv(m) {
-  globalThis.ENV = m;
+function addBuildEnv(key, doc, val) {
+  Object.defineProperty(globalThis, key, {
+    get: function()  { return typeof val === 'function' ? val() : val; },
+    set: function(v) { val = v; }
+  });
+  if ( val ) {
+    globalThis[key] = val;
+    if ( ! globalThis['ENV'] ) {
+      globalThis['ENV'] = {};
+    }
+    globalThis.ENV[key] = val;
+  }
+}
 
+function buildEnv(m) {
   Object.keys(m).forEach(k => {
     let [doc, val] = m[k];
-    // console.log('buildEnv', doc, val);
-    Object.defineProperty(globalThis, k, {
-      get: function()  { return typeof val === 'function' ? val() : val; },
-      set: function(v) { val = v; }
-    });
-    if ( val ) {
-      globalThis[k] = val;
-    }
+    addBuildEnv(k, doc, val);
   });
 }
 
+
+function addOptions(options, existing = {}) {
+  Object.keys(options).forEach(key => {
+    if ( existing[key] ) {
+      warning(`[Tooling] duplicate option '${key}' ignored'`);
+    } else {
+      existing[key] = options[key];
+      existing[key].key = key;
+    }
+    let option = existing[key];
+    let env = option[2];
+    if ( env && ! globalThis[env] ) {
+      addBuildEnv(env, option[3], option[4]);
+    }
+  });
+  return existing;
+}
 
 function emptyDir(dir) {
   rmdir(dir);
@@ -193,7 +215,6 @@ function warning(...args) {
 function error(...args) {
   let msg = args.join(' ');
   console.log('\x1b[0;31mERROR ::', msg, '\x1b[0;0m');
-  console.trace();
   process.exit(1);
 }
 
@@ -211,85 +232,107 @@ function flag(flgs) {
   return f;
 }
 
-// REVIEW: Bit of hack to only process tooling args.
-function processToolingArgs(ARGS, moreUsage) {
-  function usage(f) {
-    moreUsage && moreUsage();
-    if ( f ) {
-      if ( f instanceof Function ) f();
-      else warning('Unknown argument "'+f+'"');
+function findOption(options, o) {
+  var result = null;
+  Object.keys(options).forEach(key => {
+    let option = options[key];
+    if ( o === key ||
+         o === option[0] ||
+         o === option[1] ||
+         o === option[2] ) {
+      result = option;
+      return;
     }
-    process.exit(0);
-  }
+  });
+  return result;
+}
 
-  var USAGE = [ 'Print usage information.', usage ];
-  if ( ! ARGS.h    ) ARGS.h    = USAGE;
-  if ( ! ARGS['?'] ) ARGS['?'] = USAGE;
+function findSimilarOptions(options, o) {
+  var similar = [];
+  Object.keys(options).forEach(key => {
+    let option = options[key];
+    var gnu = option[1];
+    if ( typeof gnu == "string" ) { // see h ?
+      gnu = gnu.replaceAll("-","").toLowerCase();
+      let target = o.replaceAll("-","").toLowerCase();
+      if ( gnu.startsWith(target) ||
+           key.toLowerCase().startsWith(target) ) {
+        similar.push(option);
+        // TODO: add 6 column of common mismatches.
+      }
+    }
+  });
+  return similar;
+}
 
+function processToolingArgs(ARGS, moreUsage) {
   const args = process.argv.slice(2);
   for ( var i = 0 ; i < args.length ; i++ ) {
     var arg = args[0];
-    if ( arg === '-help' ||
-         arg === '--help' ) {
-      ARGS['h'][1]();
+    if ( arg.startsWith('--') ) {
+      var a = arg.substring(2);
+      var option = findOption(ARGS, a);
+      if ( option ) {
+        option[5].bind(this, arg.substring(j+1))();
+        if ( option.key === 'toolingPoms' ) {
+          break;
+        }
+      }
     } else if ( arg.startsWith('-') ) {
       for ( var j = 1 ; j < arg.length ; j++ ) {
-        var a = arg.charAt(j);
-        if ( a != 'O' ) continue;
-
-        var d = ARGS[a];
-        if ( d ) {
-          d[1](arg.substring(j+1));
-          if ( a == 'O' ) break;
-        } else {
-          let msg = 'Unknown argument "' + a + '"';
-          warning(msg);
-          // output warning message after usage as the usage is so long
-          // the user will have to scroll pages up to see the issue.
-          ARGS['h'][1](() => warning(msg));
+        a = arg.charAt(j);
+        option = findOption(ARGS, a);
+        if ( option ) {
+          option[5].bind(this, arg.substring(j+1))();
+          if ( option.key === 'toolingPoms' ) {
+            break;
+          }
         }
       }
     }
   }
 }
 
-function processSingleCharArgs(ARGS, moreUsage) {
+function processBuildArgs(ARGS, moreUsage) {
   function usage(f) {
-    moreUsage && moreUsage();
+    moreUsage && moreUsage(ARGS);
     if ( f ) {
       if ( f instanceof Function ) f();
-      else warning('Unknown argument "'+f+'"');
+      else {
+        warning('Unknown argument "'+f+'"');
+      }
     }
     process.exit(0);
   }
 
   var USAGE = [ 'Print usage information.', usage ];
-  if ( ! ARGS.h    ) ARGS.h    = USAGE;
+  if ( ! ARGS['h'] ) ARGS['h'] = USAGE;
   if ( ! ARGS['?'] ) ARGS['?'] = USAGE;
 
   const args = process.argv.slice(2);
   for ( var i = 0 ; i < args.length ; i++ ) {
     var arg = args[i];
-    if ( arg === '-help' ||
+    if ( arg === '-h' ||
+         arg === '-?' ||
+         arg === '-help' ||
          arg === '--help' ) {
       ARGS['h'][1]();
     } else {
       if ( arg.startsWith('--') ) {
-        ARGS['X'][1](arg.substring(2));
+        ARGS['tasks'][5](arg.substring(2));
       } else if ( arg.startsWith('-') ) {
         for ( var j = 1 ; j < arg.length ; j++ ) {
           var a = arg.charAt(j);
-          var d = ARGS[a];
-          if ( d ) {
+          var option = findOption(ARGS, a);
+          if ( option ) {
             // FIXME: see TestTooling.js:30 and JavaTooling.js:55,
             // this.comma is undefined. EXPORTS.comma works.
             // bind(this, and bind(EXPORTS, did not help - Joel
-            // d[1].bind(this, arg.substring(j+1))();
-            d[1](arg.substring(j+1));
+            // option[5](arg.substring(j+1));
+            option[5].bind(this, arg.substring(j+1))();
             if ( a >= 'A' && a <= 'Z' ) break;
           } else {
             let msg = 'Unknown argument "' + a + '"';
-            warning(msg);
             // output warning message after usage as the usage is so long
             // the user will have to scroll pages up to see the issue.
             ARGS['h'][1](() => warning(msg));
@@ -300,25 +343,27 @@ function processSingleCharArgs(ARGS, moreUsage) {
   }
 }
 
-
 exports.adaptOrCreateArgs     = adaptOrCreateArgs;
 exports.buildEnv              = buildEnv;
+exports.addOptions            = addOptions;
 exports.comma                 = comma;
 exports.copyDir               = copyDir;
 exports.copyFile              = copyFile;
 exports.emptyDir              = emptyDir;
 exports.ensureDir             = ensureDir;
+exports.error                 = error;
 exports.exec                  = exec;
 exports.execSync              = execSync;
 exports.exportEnvs            = exportEnvs;
+exports.findOption            = findOption;
+exports.findSimilarOptions    = findSimilarOptions;
 exports.flag                  = flag;
+exports.info                  = info;
 exports.isExcluded            = isExcluded;
-exports.processSingleCharArgs = processSingleCharArgs;
+exports.processBuildArgs      = processBuildArgs;
 exports.processToolingArgs    = processToolingArgs;
 exports.rmdir                 = rmdir;
 exports.rmfile                = rmfile;
 exports.spawn                 = spawn;
-exports.info                  = info;
 exports.warning               = warning;
-exports.error                 = error;
 exports.writeFileIfUpdated    = writeFileIfUpdated;

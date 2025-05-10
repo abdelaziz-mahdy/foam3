@@ -9,18 +9,12 @@ foam.POM({
 
   envs: {
     FOAM_REVISION:     ['FOAM Revision ?'],
-    FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
-    STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
-    TIMESTAMP_FOAM_BIN:['foam-bin files are timestamped by default. Disable timestamp to retain breakpoints during development cycle.',true]
+    FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp']
   },
 
-  args: {
-    g: [ 'Do not timestamp foam-bin javascript file to retain breakpoints during development cycle.',
-         () => TIMESTAMP_FOAM_BIN = false ],
-    w: [ 'Without stages. Only generate a single foam-bin file.',
-         () => {
-           STAGE_JS = false;
-         } ]
+  options: {
+    noTimestampFoamBin: [ 'g', 'no-timestamp-foam-bin', 'TIMESTAMP_FOAM_BIN', 'Set to false to not timestamp foam-bin javascript file to retain breakpoints during development cycle.', true, () => TIMESTAMP_FOAM_BIN = false ],
+    withoutStages: [ 'w', 'without-stages', 'STAGE_JS', 'Without stages. Only generate a single foam-bin file.', true, () => STAGE_JS = false ]
   },
 
   tasks: {

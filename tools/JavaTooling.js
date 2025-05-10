@@ -8,16 +8,10 @@ foam.POM({
   name: 'java',
 
   envs: {
-    BUILD_ONLY:        ['Only execute java generation and java compilation build steps',false],
-    CORE_PIDFILE:      ['JVM process ID file','/tmp/core.pid'],
-    DEBUG:             ['Launch JVM with JDPA debugging enabled',false],
-    DEBUG_PORT:        ['Port JVM will listen on for debuggers to connect',8000],
-    DEBUG_SUSPEND:     ['JVM will suspend on startup until a Debugger connects',false],
-    DELETE_RUNTIME_JOURNALS: ['Delete application journals',false],
+    CORE_PIDFILE:      ['JVM process ID file','/tmp/core.pid', () => `/tmp/core_${APP_NAME}.pid`],
     DOCUMENT_HOME:     ['Appplication documents directory',() => `${APP_HOME}/documents`],
     DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
     GEN_JAVA:          ['Generate Java from model files',true],
-    JAR:               ['Start Application from Java jar file',false],
     JAR_INCLUDES:      ['Additional directories to include Java jar',''],
     JAR_LIB_DIR:       ['Deployment lib directory',() => ( TAR ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib'],
     JAR_NAME:          ['Java jar name',() => `${APP_NAME}-${VERSION}.jar`],
@@ -28,49 +22,41 @@ foam.POM({
     JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
     JAVAC_PARAMS:      ['Parameters passed to Java Compiler',''],
     JAVAC_PARAMS_DEFAULT:  ['Default parameters for Java Compiler', () => `--release ${JAVA_RELEASE} -proc:none`],
-//    JOURNALS:          ['Deployment poms to include in build',''],
     JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
     JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
     LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
     LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -ELOG_LEVEL:INFO',null],
     PROJECT_REVISION:  ['Root project git revision. Will be set JVM Manifest',null],
-    RESTART:           ['Only execute JVM starting procedure, without a new build',false],
     RUN_ARGS:          ['Arguments which will be passed to run.sh to when starting CORE server from JAR',''],
-    TAR:               ['Generate a tar file for remote Application installation', false],
     TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files',Date.now()],
-    WEB_PORT:          ['HTTP port to start web server on. HTTP defaults to 8080, HTTPS defaults to 8443'],
     VENDOR:            ['Java Manifest Vendor. Defaults to APP_NAME'],
     VENDOR_ID:         ['Java Manifest Vendor ID'],
     VERSION:           ['Application version'],
     VERSION_DEFAULT:   ['Default Application version', '1.0.0']
   },
 
-  args: {
-    a: [ 'Run/launch from Java jar file.',
-         () => JAR = true ],
-    d: [ 'Run with JDPA debugging enabled on port 8000.',
-         () => DEBUG = true ],
-    j: [ 'Delete runtime journals.',
-         () => DELETE_RUNTIME_JOURNALS = true ],
-    J: [ 'JOURNALS : comma seperated list of additional journal directories, relative to deployment/ from the root project.',
-         args => {
-           // FIXME: this.comma undefined, see buildlib.js:281
-           // JOURNALS = comma(JOURNALS, args);
-           JOURNALS = EXPORTS.comma(JOURNALS, args);
-         }],
-    k: [ 'Package up a deployment tarball.',
-         () => { TAR = true; } ],
-    o: [ "Build only - don't start CORE server.",
-         () => BUILD_ONLY = true ],
-    r: [ 'Restart CORE Server from last build.',
-         () => RESTART = true ],
-    s: [ 'Start JDPA debugging in suspend state.',
-         ()  => {
-           DEBUG = true;
-           DEBUG_SUSPEND = true;
-         } ],
-    W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
-         args => { WEB_PORT = args;} ]
+  options: {
+    jar: [ 'a', 'jar', 'JAR', 'Run/launch from Java jar file.', false, () => JAR = true ],
+    debug: [ 'd', 'debug', 'DEBUG', 'Launch JVM with JDPA debugging enabled. Default port 8000.', false, () => DEBUG = true ],
+    debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, args => DEBUG_PORT = args],
+    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals.', false, () => DELETE_RUNTIME_JOURNALS = true ],
+    journals: [ 'J', 'journals', 'JOURNALS', 'Comma seperated list of additional journal directories, relative to deployment/ from the root project.', '',
+      args => {
+        // FIXME: this.comma undefined, see buildlib.js:281
+        // JOURNALS = comma(JOURNALS, args);
+        JOURNALS = EXPORTS.comma(JOURNALS, args);
+      }],
+    tar: [ 'k', 'tar', 'TAR', 'Package up a deployment tarball for remote application installation', false, () => TAR = true ],
+    buildOnly: [ 'o', 'build-only', 'BUILD_ONLY', "Only execute java generation and java compilation build steps, don't start CORE server.", false, () => BUILD_ONLY = true ],
+    restart: [ 'r', 'restart', 'RESTART', 'Restart CORE Server using last build.', false,
+      () => RESTART = true ],
+    suspend: [ 's', 'suspend', 'SUSPEND', 'Start JDPA debugging in suspend state.', false,
+      ()  => {
+        DEBUG = true;
+        SUSPEND = true;
+      } ],
+    webPort: [ 'W', 'web-port', 'WEB_PORT', 'Port WebServer will listen on. HTTP defaults to 8080, HTTPS defaults to 8443.  WebSocketServer will use PORT+1', '8080',
+      args => WEB_PORT = args ]
   },
 
   tasks: {
@@ -216,7 +202,7 @@ Implementation-Vendor: ${VENDOR || APP_NAME}
     setRunArgs: ['Set arguments which will be passed to run.sh to start CORE server', [], function setRunArgs() {
       if ( WEB_PORT ) RUN_ARGS += ` -W${WEB_PORT}`;
       if ( DEBUG ) RUN_ARGS += ` -D${DEBUG_PORT}`;
-      if ( DEBUG_SUSPEND ) RUN_ARGS += ` -s`;
+      if ( SUSPEND ) RUN_ARGS += ` -s`;
       // if ( PROFILER ) RUN_ARGS += ` -P${PROFILER_PORT}`;
       if ( HOST_NAME && HOST_NAME !== 'localhost' ) RUN_ARGS += ` -H${HOST_NAME}`;
     }],
@@ -247,7 +233,7 @@ Implementation-Vendor: ${VENDOR || APP_NAME}
       }
 
       if ( DEBUG ) {
-        JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
+        JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
       }
 
       if ( WEB_PORT ) {
@@ -266,6 +252,11 @@ Implementation-Vendor: ${VENDOR || APP_NAME}
       JAVA_OPTS += ` -Dorg.slf4j.simpleLogger.defaultLogLevel=${logLevelLower}`;
 
       MESSAGE = `Starting CORE ${APP_NAME}`;
+
+      // TEST and BENCHMARK only defined in test mode
+      let TEST = globalThis['TEST'] || false;
+      let BENCHMARK = globalThis['BENCHMARK'] || false;
+
       if ( TEST || BENCHMARK ) {
         JAVA_OPTS += ' -enableassertions';
         JAVA_OPTS += ' -Dresource.journals.dir=journals';

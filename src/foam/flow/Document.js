@@ -11,7 +11,7 @@ foam.CLASS({
   css: `
     .foam-flow-Document {
       background-color: $white;
-      color: $grey500;
+      // color: $grey500;
       max-width: 1000px;
       margin: auto;
       padding: 20px;
@@ -24,7 +24,7 @@ foam.CLASS({
     .foam-flow-Document h4,
     .foam-flow-Document h5 {
       margin: 12px 0 12px 0;
-      color: $grey400;
+      color: $grey600;
     }
     .foam-flow-Document p {
       margin-bottom: 10px;
