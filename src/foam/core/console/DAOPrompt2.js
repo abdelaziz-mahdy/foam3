@@ -4,6 +4,10 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+// TODO:
+// MQL help
+// orderBy, property help
+
 foam.CLASS({
   package: 'foam.core.console',
   name: 'DAOPrompt2View',
