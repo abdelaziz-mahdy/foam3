@@ -528,7 +528,7 @@ foam.CLASS({
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$});
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue) {
-        this.tag(self.ReactiveDetailView, {data: selectedValue});
+        this.tag(self.ReactiveDetailView, {data: selectedValue, showActions: true});
       }));
 
       if ( this.params.flow ) {

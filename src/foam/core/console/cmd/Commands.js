@@ -366,10 +366,10 @@ foam.CLASS({
   // TODO: add search and description
   methods: [
     function execute() {
-      return this.flowDAO.select({
+      this.flowDAO.select({
         put: o => {
           this.out.tag('br');
-          this.out.start(this.Link).add(o.name).on('click', () => this.eval_('load(' + o.name + ')'));
+          this.out.start(this.Link).add(o.name).on('click', () => this.eval_('load("' + o.name + '")'));
         }
       });
     }

@@ -15,6 +15,8 @@ foam.CLASS({
     'foam.core.auth.LastModifiedByAware'
   ],
 
+  imports: [ 'flowDAO' ],
+
   ids: [ 'name' ],
 
   axioms: [
@@ -119,6 +121,15 @@ foam.CLASS({
         }
       },
       view: { class: 'foam.u2.tag.TextArea', rows: 20, cols: 78 }
+    }
+  ],
+
+  actions: [
+    {
+      name: 'save',
+      code: function() {
+        this.flowDAO.put(this);
+      }
     }
   ]
 });
