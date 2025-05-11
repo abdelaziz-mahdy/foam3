@@ -189,7 +189,8 @@ foam.CLASS({
       class: 'String',
       name: 'where',
       displayWidth: 60,
-      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
+      view: { class: 'foam.core.console.PredicateView' }
+//      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
       class: 'String',

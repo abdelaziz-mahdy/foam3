@@ -622,7 +622,8 @@ foam.CLASS({
       });
     },
 
-    async function eval_(cmd) {
+    async function eval_(cmd, opt_ignoreSelect) {
+      /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected  block **/
       var self = this;
 
       cmd = cmd.trim();
@@ -685,7 +686,7 @@ foam.CLASS({
         }
       }}}}
 
-      this.selected = block;
+      if ( ! opt_ignoreSelect ) this.selected = block;
 
       if ( r ) {
         if ( foam.String.isInstance(r) ) {
