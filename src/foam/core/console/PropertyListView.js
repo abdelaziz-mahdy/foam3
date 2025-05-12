@@ -40,7 +40,7 @@ foam.CLASS({
     function render() {
       this.SUPER();
       this.addClass();
-      this.add(this.DATA, ' ', this.CHOICE);
+      this.tag(this.DATA, {type: 'search'}).add(' ', this.CHOICE);
     }
   ]
 });

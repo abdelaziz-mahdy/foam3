@@ -25,7 +25,6 @@ foam.CLASS({
   `,
 
   properties: [
-    [ 'type', 'search' ],
     {
       name: 'choices',
       view: function(_, X) {
@@ -40,7 +39,7 @@ foam.CLASS({
             choices.push(p.name);
           }
         });
-        return { class: 'foam.u2.view.ChoiceView', choices: choices };
+        return { class: 'foam.u2.view.ChoiceView', choices: choices, type: 'search' };
       },
       preSet: function(o, n) {
         if ( n == '--' ) return;
@@ -56,7 +55,7 @@ foam.CLASS({
       this.
         start('span').
           style({display: 'flex'}).
-          tag(this.TextField, {data$: this.data$, size: 40}).
+          tag(this.TextField, {data$: this.data$, size: 40, type: 'search'}).
           startContext({data: this}).add(this.CHOICES).endContext().
           start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).
             addClass(this.myClass('helper-icon')).

@@ -21,7 +21,6 @@ foam.CLASS({
   `,
 
   properties: [
-    [ 'type', 'search' ],
     {
       name: 'choices',
       view: function(_, X) {
@@ -48,7 +47,7 @@ foam.CLASS({
       this.
         start('span').
           style({display: 'flex'}).
-          tag(this.TextField, {data$: this.data$, size: 40}).
+          tag(this.TextField, {data$: this.data$, size: 40, type: 'search'}).
           startContext({data: this}).add(this.CHOICES).endContext();
     }
   ],
