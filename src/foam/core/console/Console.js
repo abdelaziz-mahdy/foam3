@@ -492,7 +492,6 @@ foam.CLASS({
 
       var feedback_ = false;
 
-      this.flowName$ = this.value.name$;
       this.flowChildren$.sub(() => {
         if (feedback_ ) return;
         console.log('***** CONSOLE flowChildren');
@@ -545,6 +544,8 @@ foam.CLASS({
         await this.eval_(`load("${decodeURIComponent(this.flowName)}")`);
         this.selected = this.currentBlock;
       }
+
+      this.flowName$ = this.value.name$;
     },
 
     function renderSelf(self) {
