@@ -4,6 +4,10 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+// TODO:
+// MQL help
+// orderBy, property help
+
 foam.CLASS({
   package: 'foam.core.console',
   name: 'DAOPrompt2View',
@@ -185,19 +189,21 @@ foam.CLASS({
       class: 'String',
       name: 'where',
       displayWidth: 60,
-      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
+      view: { class: 'foam.core.console.PredicateView' }
+//      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
       class: 'String',
       name: 'order',
       displayWidth: 60,
-      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
+      view: { class: 'foam.core.console.ComparatorView' }
+//      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
       class: 'String',
       name: 'columns',
       displayWidth: 60,
-      xxxview: function(_, X) {
+      view: function(_, X) {
         return {
           class: 'foam.core.console.PropertyListView',
           of: X.data.dao.of
@@ -210,7 +216,7 @@ foam.CLASS({
       view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
     },
     { class: 'Long', name: 'rowCount', visibility: 'RO' },
-    { name: 'executionTime', value: '-', visibility: 'RO' },
+    { class: 'String', name: 'executionTime', value: '-', visibility: 'RO', transient: true },
     { class: 'Int', name: 'version', hidden: true },
     { class: 'FObjectProperty', name: 'value', transient: true, visibility: 'RO' }
   ],

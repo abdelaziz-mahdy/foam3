@@ -97,7 +97,7 @@ foam.CLASS({
 [
   {
     "flowName": "${this.plural}1",
-    "cmd": "dao2 ${this.daoKey}",
+    "cmd": "dao ${this.daoKey}",
     "value": {
       "class": "foam.core.console.DAOPrompt2",
       "label": "${this.plural}",

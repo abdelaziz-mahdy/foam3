@@ -22,6 +22,8 @@ foam.POM({
     { name: 'JSONSink',                flags: 'js|java' },
     { name: 'ModelDAO',                flags: 'js' },
     { name: 'PropertyChoiceView',      flags: 'js' },
+    { name: 'ComparatorView',          flags: 'js' },
+    { name: 'PredicateView',           flags: 'js' },
     { name: 'PropertyListView',        flags: 'js' },
     { name: 'PropertyOrderChoiceView', flags: 'js' },
     { name: 'ReactiveDetailView',      flags: 'js' },

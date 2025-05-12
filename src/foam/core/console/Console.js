@@ -281,6 +281,7 @@ foam.CLASS({
       padding: 4px 4px 4px 8px;
       width: 60%;
     }
+    ^ .foam-u2-RangeView-skip { width: 266px; }
   `,
 
   properties: [
@@ -528,7 +529,7 @@ foam.CLASS({
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$});
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue) {
-        this.tag(self.ReactiveDetailView, {data: selectedValue});
+        this.tag(self.ReactiveDetailView, {data: selectedValue, showActions: true});
       }));
 
       if ( this.params.flow ) {
@@ -622,7 +623,8 @@ foam.CLASS({
       });
     },
 
-    async function eval_(cmd) {
+    async function eval_(cmd, opt_ignoreSelect) {
+      /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected  block **/
       var self = this;
 
       cmd = cmd.trim();
@@ -685,7 +687,7 @@ foam.CLASS({
         }
       }}}}
 
-      this.selected = block;
+      if ( ! opt_ignoreSelect ) this.selected = block;
 
       if ( r ) {
         if ( foam.String.isInstance(r) ) {
