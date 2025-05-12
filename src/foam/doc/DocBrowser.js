@@ -166,7 +166,7 @@ foam.CLASS({
     'foam.dao.ArrayDAO',
     'foam.doc.ClassLink',
     'foam.doc.EnumInfo',
-    'foam.u2.view.TableView'
+    'foam.u2.table.TableView'
   ],
 
   imports: [
@@ -227,7 +227,7 @@ foam.CLASS({
     'foam.doc.AxiomInfo',
     'foam.doc.ClassLink',
     'foam.doc.Link',
-    'foam.u2.view.TableView'
+    'foam.u2.table.TableView'
   ],
 
   imports: [
@@ -235,10 +235,6 @@ foam.CLASS({
     'showInherited',
     'showOnlyProperties'
   ],
-
-  css: `
-    ^ .foam-u2-view-TableView-row { height: auto; }
-  `,
 
   methods: [
     function render() {

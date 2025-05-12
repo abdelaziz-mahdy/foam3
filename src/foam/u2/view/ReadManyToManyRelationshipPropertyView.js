@@ -21,7 +21,7 @@ foam.CLASS({
   documentation: 'A read-only view of a ManyToManyRelationshipProperty.',
 
   requires: [
-    'foam.u2.view.ScrollTableView',
+    'foam.u2.table.TableView',
     'foam.u2.view.EmbeddedTableView',
     'foam.comics.v2.DAOControllerConfig'
   ],

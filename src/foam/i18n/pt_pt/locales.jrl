@@ -630,10 +630,10 @@ p({class:"foam.i18n.Locale",locale:"pt",source:"foam.comics.v2.DAOSummaryView.ED
 p({class:"foam.i18n.Locale",locale:"pt",source:"foam.comics.v2.DAOSummaryView.COPY.label",target:"Cópia"})
 p({class:"foam.i18n.Locale",locale:"pt",source:"foam.comics.v2.DAOSummaryView.DELETE.label",target:"Excluir"})
 
-p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.view.ScrollTableView.NEXT_PAGE.toolTip",target:"Próxima página"})
-p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.view.ScrollTableView.FIRST_PAGE.toolTip",target:"Primeira página"})
-p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.view.ScrollTableView.PREV_PAGE.toolTip",target:"Página anterior"})
-p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.view.ScrollTableView.LAST_PAGE.toolTip",target:"Última página"})
+p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.table.TableView.NEXT_PAGE.toolTip",target:"Próxima página"})
+p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.table.TableView.FIRST_PAGE.toolTip",target:"Primeira página"})
+p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.table.TableView.PREV_PAGE.toolTip",target:"Página anterior"})
+p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.table.TableView.LAST_PAGE.toolTip",target:"Última página"})
 
 p({class:"foam.i18n.Locale",locale:"pt",source:"foam.u2.table.TableHeaderComponent.DRAG_TO_RESIZE.toolTip",target:"Arraste para redimensionar"})
 

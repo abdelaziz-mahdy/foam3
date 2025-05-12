@@ -12,7 +12,7 @@ foam.CLASS({
   requires: [
     'foam.u2.dialog.Popup',
     'foam.u2.ListCreateController',
-    'foam.u2.view.TableView'
+    'foam.u2.table.TableView'
   ],
 
   imports: [
@@ -85,12 +85,6 @@ foam.CLASS({
       color: $black;
       margin-left: 389px;
       margin-right: 388px
-    }
-    ^ .foam-u2-view-TableView-th-connectedTime {
-      width: 50%;
-    }
-    ^ .foam-u2-view-TableView-th-email {
-      width: 30%;
     }
   `,
 
@@ -173,7 +167,7 @@ foam.CLASS({
         function render() {
           this
             .start({
-              class: 'foam.u2.view.ScrollTableView',
+              class: 'foam.u2.table.TableView',
               selection$: this.selection$,
               data: this.data,
               columns: [

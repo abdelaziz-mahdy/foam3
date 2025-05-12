@@ -19,7 +19,7 @@ foam.CLASS({
     'foam.dao.MDAO',
     'foam.u2.Accordion',
     'foam.u2.borders.LoadingLevel',
-    'foam.u2.view.ScrollTableView',
+    'foam.u2.table.TableView',
     'foam.u2.wizard.debug.DebugWAO',
     'foam.u2.wizard.debug.PropertyEvent',
     'foam.u2.wizard.debug.WAOEvent',
@@ -110,7 +110,7 @@ foam.CLASS({
             title: 'Property Updates',
             expanded: false
           })
-            .tag(this.ScrollTableView, {
+            .tag(this.TableView, {
               data$: this.wizardEventDAO$.map(dao =>
                 dao.orderBy(this.WizardEvent.SEQ_NO))
             })

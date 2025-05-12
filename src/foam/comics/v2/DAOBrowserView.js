@@ -27,7 +27,7 @@ foam.CLASS({
     'foam.u2.layout.Rows',
     'foam.u2.stack.StackBlock',
     'foam.u2.view.OverlayActionListView',
-    'foam.u2.view.ScrollTableView',
+    'foam.u2.table.TableView',
     'foam.u2.view.SimpleSearch',
     'foam.u2.view.TabChoiceView'
   ],
@@ -101,14 +101,6 @@ foam.CLASS({
 
     ^canned-queries {
       padding: 0 16px;
-    }
-
-    ^ .foam-u2-view-TableView th {
-      background: #ffffff
-    }
-
-    ^ .foam-u2-view-TableView td {
-      padding-left: 16px;
     }
 
     ^ .foam-u2-view-SimpleSearch {

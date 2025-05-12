@@ -15,7 +15,6 @@ foam.CLASS({
     'foam.comics.v2.DAOControllerConfig',
     'foam.u2.borders.CardBorder',
     'foam.u2.stack.StackBlock',
-    'foam.u2.view.ScrollTableView',
     'foam.u2.table.TableView'
   ],
 

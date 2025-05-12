@@ -16,7 +16,7 @@ foam.CLASS({
     'foam.core.controller.Memento',
     'foam.core.u2.navigation.IFrameTopNavigation',
     'foam.u2.dialog.Popup',
-    'foam.u2.view.ScrollTableView'
+    'foam.u2.table.TableView'
   ],
 
   imports: [

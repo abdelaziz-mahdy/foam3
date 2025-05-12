@@ -22,7 +22,7 @@ foam.CLASS({
   ],
 
   css: `
-    ^ .foam-u2-view-ScrollTableView table {
+    ^ .foam-u2-table-TableView table {
       width: 100%;
     }
 

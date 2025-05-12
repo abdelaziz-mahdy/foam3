@@ -7,7 +7,7 @@
 foam.CLASS({
   package: 'foam.doc',
   name: 'AxiomTableView',
-  extends: 'foam.u2.view.TableView',
+  extends: 'foam.u2.table.TableView',
 
   css: `
     ^ { border-collapse: collapse; height: auto; }

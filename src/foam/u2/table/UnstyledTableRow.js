@@ -76,7 +76,7 @@ foam.CLASS({
           if ( self.table.togglingCheckBoxes_ ) return;
 
           // Remember that the user has interacted with this checkbox
-          // directly. We need this because the ScrollTableView loads
+          // directly. We need this because the TableView loads
           // tbody's in and out while the user scrolls, so we need to
           // handle the case when a user selects all, then unselects
           // a particular row, then scrolls far enough that the tbody
