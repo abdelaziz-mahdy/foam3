@@ -76,7 +76,7 @@ foam.CLASS({
       }
     },
 
-    function exportDAO(X, dao) {
+    async function exportDAO(X, dao) {
       var propNames = this.getPropName(X, dao.of);
       var where     = '';
       var comp      = this.findComparator(dao);
@@ -112,8 +112,8 @@ foam.CLASS({
 ]
         `
       });
-      this.flowDAO.put(flow);
-      return '/reflow.html?flow=' + this.name;
+      await this.flowDAO.put(flow);
+      return '/#reflow/' + this.name;
     }
   ]
 });
