@@ -16,6 +16,12 @@ foam.CLASS({
   imports: ['auth', 'data as filterView'],
 
   css: `
+    ^ {
+      padding: 7px;
+      borderRadius: 4px;
+      border: 1px solid $grey500;
+      color: $black;
+    }
     ^filter-selection {
       max-height: 50vh;
       overflow: auto;
@@ -102,9 +108,10 @@ foam.CLASS({
               .add(self.OPTIONS)
             .end()
             .forEach(otherProps, function(prop) {
+              var data = foam.lang.SimpleSlot.create({ value: false })
               this.start()
-                .on('click', () => self.selectFilter(prop))
-                .tag({ class: 'foam.u2.CheckBox', data: false, label: prop.columnLabel })
+                .on('click', () => self.selectFilter(prop, data))
+                .tag({ class: 'foam.u2.CheckBox', data$: data, label: prop.columnLabel })
               .end();
             }).end();
         }))
@@ -112,10 +119,11 @@ foam.CLASS({
       this.overlay_.open(x,y)
     },
 
-    function selectFilter(key) {
+    function selectFilter(key, data) {
       key = key.name;
       if ( this.data.length >= this.MAX_FILTERS ) {
         this.notify('Max filters: ' + this.MAX_FILTERS, '', this.LogLevel.ERROR);
+        data.set(false);
         return;
       }
       this.filterView.filters$push(key);
