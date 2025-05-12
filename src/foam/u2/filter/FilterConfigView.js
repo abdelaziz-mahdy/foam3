@@ -16,6 +16,12 @@ foam.CLASS({
   imports: ['auth', 'data as filterView'],
 
   css: `
+    ^ {
+      padding: 7px;
+      borderRadius: 4px;
+      border: 1px solid $grey500;
+      color: $black;
+    }
     ^filter-selection {
       max-height: 50vh;
       overflow: auto;

@@ -244,6 +244,7 @@ foam.CLASS({
       self.filtersContainer = this.E().addClass(self.myClass('container-drawer'))
       .enableClass(self.myClass('container-drawer-open'), self.isOpen$)
       .show(self.isOpen$)
+      .tag(self.FilterConfigView, { dao$: self.dao$ })
       .add(self.dynamic(function (filters) {
         // This must be done as the predicate might change as the views are rendered;
         let currentPredicate = self.filterController.finalPredicate;
@@ -280,7 +281,7 @@ foam.CLASS({
             })
           .endContext()
         .end()
-        .tag(self.FilterConfigView, { dao$: self.dao$ })
+        
       .end();
 
       this.addClass(self.myClass())
