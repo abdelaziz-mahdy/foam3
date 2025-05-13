@@ -15,6 +15,8 @@ foam.CLASS({
   name: 'PermissionTableView',
   extends: 'foam.u2.Controller',
 
+  implements: [ 'foam.mlang.Expressions' ],
+
   requires: [
     'foam.graphics.ScrollCView',
     'foam.core.auth.Group',
@@ -32,7 +34,8 @@ foam.CLASS({
 
   constants: {
     COLS: 26,
-    ROWS: 19
+    ROWS: 19,
+    ROLE_PREFIX: 'Role'
   },
 
   css: `
@@ -110,10 +113,19 @@ foam.CLASS({
       white-space: nowrap;
       background: white;
     }
-
   `,
 
   properties: [
+    {
+      class: 'Boolean',
+      name: 'showSearch',
+      value: true
+    },
+    {
+      class: 'Boolean',
+      name: 'rolesOnly',
+      value: false
+    },
     {
       class: 'String',
       name: 'query',
@@ -228,16 +240,16 @@ foam.CLASS({
           'padding-left':  '16px',
           'padding-top':   '0',
           'padding-right': '16px',
-        })
+        }).
 
-        .start()
+        callIf(this.showSearch, function() { this.start()
           .addClass(this.myClass('header'))
           .start('span')
             .style({padding: '8px'})
             .add('Permission Matrix')
           .end()
           .add(this.G_QUERY, ' ', this.QUERY)
-        .end()
+        .end(); })
 
         .add(this.slot(this.table))
 
@@ -321,6 +333,7 @@ foam.CLASS({
     },
 
     function count(self) {
+      if ( self.rolesOnly ) return;
       var msg = self.filteredRows + ' of ' + self.ps.length + ' permissions, ';
       msg += self.filteredCols + ' of ' + self.gs.length + ' groups';
 
@@ -427,6 +440,11 @@ foam.CLASS({
       this.SUPER();
       var self = this;
 
+      if ( this.rolesOnly ) {
+        this.query = this.ROLE_PREFIX;
+        this.groupDAO = this.groupDAO.where(this.NOT(this.CONTAINS(this.Group.ID, this.ROLE_PREFIX)));
+        this.groupDAO = this.groupDAO.where(this.NOT(this.IN(this.Group.ID, ['foam', 'system', 'admin', 'anonymous'])));
+      }
       this.groupDAO.orderBy(this.Group.ID).select().then(function(gs) {
         gs = gs.array;
 
