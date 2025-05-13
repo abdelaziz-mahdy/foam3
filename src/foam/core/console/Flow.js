@@ -32,7 +32,7 @@ foam.CLASS({
     }
   ],
 
-  tableColumns: [ 'name', 'description', 'status', 'isPublic', 'readOnly', 'reflow' ],
+  tableColumns: [ 'name', 'description', 'status', /* 'isPublic', 'readOnly', */ 'reflow' ],
 
   properties: [
     {
