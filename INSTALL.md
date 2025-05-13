@@ -58,4 +58,4 @@ Start Server
 
 Test Server
 
-    connect to http://localhost:8080/ and user username and password: foam-admin / foam-admin
+connect to [http://localhost:8080/](http://localhost:8080/) and use user username and password: foam-admin / foam-admin
