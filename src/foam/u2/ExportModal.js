@@ -240,8 +240,11 @@ foam.CLASS({
           if ( this.exportAllColumns )
             this.filteredTableColumns = filteredColumnsCopy;
         }
-        if ( url && url.length > 0 )
+        if ( url && url.length > 0 ) {
           window.location.replace(url);
+        } else {
+          this.parentNode.close();
+        }
       }
     }
   ]
