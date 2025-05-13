@@ -405,9 +405,11 @@ foam.CLASS({
       name: 'out'
     },
     {
-      class: 'Boolean',
+      // class: 'Boolean',
       name: 'showPrompts',
-      value: true
+      value: true,
+      preSet: function(_, n) { return n === 'false' ? '' : n; },
+      memorable: true
     },
     {
       class: 'StringArray',
@@ -649,6 +651,7 @@ foam.CLASS({
       var innerScope = {
         // shell: this,
         eval_: this.eval_.bind(this),
+        togglePrompts: this.togglePrompts.bind(this),
         addValue: block.addValue.bind(block),
         log: block.log.bind(block),
         out: block.out, start: block.out.start.bind(block.out),
