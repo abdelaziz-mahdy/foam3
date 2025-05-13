@@ -37,3 +37,16 @@ Install Java
 Install Maven
 
     brew install maven
+
+Git Clone
+
+    https://github.com/kgrgreer/foam3.git
+
+Setup /opt Directory
+
+    sudo mkdir /opt/foam-full
+    sudo mkdir /opt/foam-full/logs
+    sudo mkdir /opt/foam-full/journals
+    sudo chown -R $USER /opt/foam-full
+    sudo chown -R $USER /opt/foam-full/logs
+    sudo chown -R $USER /opt/foam-full/journals
