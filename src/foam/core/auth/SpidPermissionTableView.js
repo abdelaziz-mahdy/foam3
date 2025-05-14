@@ -85,8 +85,8 @@
 
     function updateGroup(c_, g_, data) {
       var ccj = this.CapabilityCapabilityJunction.create({
-        sourceId: g_.id,
-        targetId: c_.id
+        sourceId: g_,
+        targetId: c_
       })
       if ( data.get() ) {
         this.prerequisiteCapabilityJunctionDAO.put(ccj);
