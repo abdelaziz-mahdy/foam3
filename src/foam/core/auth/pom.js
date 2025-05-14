@@ -71,6 +71,7 @@ foam.POM({
     { name: "UnverifiedEmailException",                               flags: "js|java" },
     { name: "PasswordPolicy",                                         flags: "js|java" },
     { name: "PermissionTableView",                                    flags: "js" },
+    { name: "SpidPermissionTableView",                                flags: "js" },
     { name: "LanguageChoiceView",                                     flags: "web" },
     { name: "Login",                                                  flags: "js" },
     { name: "Permission",                                             flags: "js|java" },
