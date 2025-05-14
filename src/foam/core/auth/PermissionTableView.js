@@ -63,11 +63,11 @@ foam.CLASS({
     }
 
     ^ .foam-u2-md-CheckBox:hover {
-      background: #FFCCCC;
+      background: $primary400;
     }
 
     ^hovered {
-      background: #ccc !important;
+      background: $grey200 !important;
     }
 
     ^ table {
@@ -77,17 +77,32 @@ foam.CLASS({
       }
 
     ^header {
-      box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+      box-shadow: 0 6px 6px rgba(0,0,0,0.23);
       background:$white;
       padding: 8px;
       margin: 8px 0;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-
+    ^header span {
+      font-size: 16x;
+      font-weight: bold;
+    }
     ^ .permissionHeader {
-      background:$white;
-      color: #444;
+      background-color: $grey100;
+      border: 1px solid $grey200;
+      padding: 8px;
+      color: $black;
+      font-weight: 500;
       text-align: left;
-      padding-left: 6px;
+    }
+    ^table-wrapper table {
+      border-collapse: collapse;
+    }
+    ^table-wrapper tbody td {
+      border: 1px solid $grey400;
     }
 
     ^table-wrapper {
@@ -107,11 +122,19 @@ foam.CLASS({
     }
 
     ^groupLabel {
+      background-color: $grey100;
+      border: 1px solid $grey400;
       font-weight: normal;
       padding-top: 4px;
+      padding-inline: 8px;
       writing-mode: vertical-lr;
       white-space: nowrap;
-      background: white;
+      color: $black;
+      font-weight: 500;
+    }
+    ^x {
+      color: $destructive500;
+      font-weight: bold;
     }
   `,
 
@@ -325,7 +348,7 @@ foam.CLASS({
               // removed mouseout because it just caused flicker
               .enableClass(self.myClass('hovered'), self.slot(function(currentGroup, currentPermission) { return currentGroup == g || currentPermission == p; }))
 //              .attrs({title: g.id + ' : ' + p.id}) // Not needed becasue with scrollbars, col&row labels are always visible
-              .tag(self.createCheckBox(p, g))
+              .tag(self.createCheckBox(p, g)).addClass(self.myClass('x'))
             .end();
           })
         .end();
@@ -546,9 +569,9 @@ foam.CLASS({
       name: 'GroupPermissionView',
       extends: 'foam.u2.View',
       css: `
-        ^:hover { background: #f55 }
-        ^checked { color: #4885ff }
-        ^implied { color: gray }
+        ^:hover { background: $primary400!important }
+        ^checked { color: $primary700!important; font-weight: bold; }
+        ^implied { color: $grey700!important; font-weight: bold; }
       `,
       methods: [
         function init() {

@@ -22,11 +22,16 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'sheetsCompatibleDates',
-      value: true
+      label: 'Date Format',
+      view: { class: 'foam.u2.view.ChoiceView',  choices: [[false, 'DD/MM/YYYY'], [true, 'MM/DD/YYYY']]},
+      value: true,
+      help: "The date will follow the system's default format."
     },
     {
       class: 'Boolean',
       name: 'addUnits',
+      label: '',
+      view: { class: 'foam.u2.CheckBox',  label: 'Add Units'},
       value: true
     },
     {

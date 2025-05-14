@@ -30,6 +30,7 @@ foam.CLASS({
       overflow: hidden;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     }
     ^ > img {
       pointer-events: none;

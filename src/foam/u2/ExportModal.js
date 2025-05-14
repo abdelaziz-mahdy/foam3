@@ -30,19 +30,52 @@ foam.CLASS({
     ^ > *, ^ .foam-u2-layout-Grid {
       gap: 12px;
     }
+    ^ .foam-u2-TextInputCSS {
+      border: 1px solid $grey200;
+
+    }
+    ^ .foam-u2-TextInputCSS option {
+      padding: 10px;
+    }
+    ^datatype-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    ^dimmed-text {
+      color: $grey600;
+    }
+    ^datatype-text {
+      font-weight: bold;
+      color: $grey700;
+    }
+    ^divided-sec {
+      border-top: 1px solid $grey500;
+      padding-top: 10px;
+    }
+    ^ .foam-u2-borders-ExpandableBorder-container {
+      padding: 10px;
+    }
+      
   `,
 
   properties: [
     {
       class: 'String',
       name: 'dataType',
+      label: '',
       view: function(_, X) {
-        return foam.u2.view.ChoiceView.create({
+        return foam.u2.view.RichChoiceView.create({
+          search: false,
+          allowClearingSelection: false,
           dao: X.exportDriverRegistryDAO.where(X.data.predicate),
-          objToChoice: function(a) {
-            return [a.id, a.id];
-          },
-          placeholder: 'Select'
+          choosePlaceholder: 'Select Type',
+          sections: [
+            {
+              heading: '',
+              dao: X.exportDriverRegistryDAO.where(X.data.predicate)
+            }
+          ]
         }, X);
       }
     },
@@ -73,8 +106,10 @@ foam.CLASS({
     'exportObj',
     {
       name: 'exportAllColumns',
-      view: { class: 'foam.u2.CheckBox',  label: 'Export all columns'},
-      class: 'Boolean'
+      label: '',
+      view: { class: 'foam.u2.CheckBox',  label: 'Include all columns in export'},
+      class: 'Boolean',
+      help: 'Exports all columns, even those hidden by filters or view settings.'
     },
     'exportDriverReg',
     {
@@ -111,6 +146,7 @@ foam.CLASS({
           }
         });
       });
+      
 
       self.exportDriverReg$.sub(function() {
         self.isConvertAvailable  =  self.exportDriverReg.isConvertible;
@@ -123,23 +159,37 @@ foam.CLASS({
       .startContext({ data: this })
         .start(this.Rows)
           .tag(this.DATA_TYPE.__)
-          .add(this.slot(function (exportDriver) {
-            return this.E()
+          .start().show(this.isDataTypeSelected$)
+            .add(function(dataType) {
+            
+              this.start().addClass(self.myClass('datatype-group'))
+                .start().addClass(self.myClass('dimmed-text')).add('Data will be exported as').end()
+                .start().addClass(self.myClass('datatype-text')).add(`${dataType}.`).end()
+              .end()
+            })
+          .end()
+          
+          .start().show(this.isDataTypeSelected$).addClass(this.myClass('divided-sec'))
+            .add(this.slot(function (exportDriver) {
+              return this.E()
               .show(exportDriver && exportDriver.cls_.getAxiomsByClass(foam.lang.Property).some(p => ! p.hidden))
               .start({class: 'foam.u2.detail.VerticalDetailView', data: exportDriver}).end();
-          }))
+           }))
+          .end()
           .start()
             .style({ display: 'contents' })
             .show(this.isDataTypeSelected$)
             .start(this.NOTE.__).end()
-            .add(
-              self.slot(function(exportDriverReg$exportAllColumns) {
-                if ( exportDriverReg$exportAllColumns ) {
-                  return self.E().start().addClass('p-legal-light', 'label').startContext({ data: self }).tag(self.EXPORT_ALL_COLUMNS).endContext().end();
-                }
-              })
-            )
-            .start(this.Cols).style({ 'justify-content': 'flex-start' })
+            .start().addClass(this.myClass('divided-sec'))
+              .add(
+                self.slot(function(exportDriverReg$exportAllColumns) {
+                  if ( exportDriverReg$exportAllColumns ) {
+                    return self.E().start().startContext({ data: self }).tag(self.EXPORT_ALL_COLUMNS.__).endContext().end();
+                  }
+                })
+              )
+            .end()
+            .start(this.Cols).style({ 'justify-content': 'flex-end', 'gap': '10px' })
               .start(this.DOWNLOAD).end()
               .start(this.CONVERT).end()
               .start(this.OPEN).end()
@@ -178,6 +228,8 @@ foam.CLASS({
     },
     {
       name: 'download',
+      label: 'Export',
+      buttonStyle: 'PRIMARY',
       isAvailable: function(isDownloadAvailable) {
         return isDownloadAvailable;
       },

@@ -71,6 +71,9 @@ foam.CLASS({
     ^label, input[type="checkbox"]{
       vertical-align: middle;
     }
+    ^desc {
+      color: $grey700;
+    }
     `,
 
   methods: [
@@ -78,7 +81,6 @@ foam.CLASS({
       this.SUPER();
 
       var self = this;
-
       this
         .setAttribute('type', 'checkbox')
         .addClass(this.myClass())
