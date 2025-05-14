@@ -102,6 +102,10 @@ foam.CLASS({
         source: this.daoKey,
         mementoStr: `
 [
+	{
+    "flowName": "title",
+    "cmd": "h2 ${this.name}"
+	},
   {
     "flowName": "${this.plural}1",
     "cmd": "dao ${this.daoKey}",
