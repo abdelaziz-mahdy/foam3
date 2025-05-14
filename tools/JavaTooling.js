@@ -11,12 +11,12 @@ foam.POM({
     CORE_PIDFILE:      ['JVM process ID file', () => APP_NAME ? `/tmp/core_${APP_NAME}.pid` : '/tmp/core_APP_NAME.pid'],
     DOCUMENT_HOME:     ['Appplication documents directory',() => APP_NAME ? `${APP_HOME}/documents`: 'APP_HOME/documents'],
     DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
+    FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
     FOAM_REVISION:     ['FOAM Revision. Defaults to git branch commit'],
     JAR_INCLUDES:      ['Additional directories to include Java jar',''],
     JAR_LIB_DIR:       ['Deployment lib directory',() => ( TAR ? `${PROJECT_HOME}/${BUILD_DIR}` : (APP_NAME ? APP_HOME : 'APP_HOME')) + '/lib'],
     JAR_NAME:          ['Java jar name',() => APP_NAME ? `${APP_NAME}-${VERSION}.jar` : 'APP_NAME-VERSION.jar' ],
     JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
-    JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
     JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
     JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
     LOG_HOME:          ['Application logs directory',() => APP_NAME ? `${APP_HOME}/logs`: 'APP_HOME/logs'],
@@ -33,8 +33,8 @@ foam.POM({
     javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '17', args => JAVA_RELEASE = args],
     journals: [ 'J', 'journals', 'JOURNALS', 'Comma seperated list of additional journal directories, relative to deployment/ from the root project.', '',
       args => {
-        // FIXME: this.comma undefined, see buildlib.js:281
-        // JOURNALS = comma(JOURNALS, args);
+        // FIXME: this.comma undefined
+        // JOURNALS = this.comma(JOURNALS, args);
         JOURNALS = EXPORTS.comma(JOURNALS, args);
       }],
     jar: [ 'a', 'jar', 'JAR', 'Run/launch from Java jar file.', false, arg => JAR = arg && arg !== undefined ? arg : true ],
@@ -72,6 +72,10 @@ foam.POM({
       this.emptyDir(JOURNAL_HOME);
     }],
 
+    genFoamBinVersion: ['gen-foam-bin-version', 'Generate version string for the foam-bin, with our without a timestamp', [], function genFoamBinVersion() {
+      FOAM_BIN_VERSION = `${VERSION}` + TIMESTAMP_FOAM_BIN ? `-${TIMESTAMP}` : '';
+    }],
+
     genImages: ['gen-images', 'Prepare images from inclusion in jar.', [], function genImages() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} images `;
 
@@ -96,7 +100,7 @@ foam.POM({
       this.pmake.bind(this, `-makers=${makers} -flags=${this.flag()} -pom=${POMS} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -journaldir=${JOURNAL_OUT} -documentdir=${DOCUMENT_OUT} -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams=\'${JAVAC_PARAMETERS}\'`)();
     }],
 
-    javaManifest: ['java-manifest', 'Generate JVM Manifest', ['versions', 'genFoamBinVersion'], function javaManifest() {
+    javaManifest: ['java-manifest', 'Generate JVM Manifest', ['versions'], function javaManifest() {
       var jars = this.execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`).toString()
           .replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
       var m = `

@@ -591,7 +591,7 @@ task('Capture POM arguments to environment values or options, and register POM t
   let makers = pmake.bind(Object.assign({}, EXPORTS), `-makers=Env,Task -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -envs=${POM_ENVS}`)();
 
   let envMaker = makers.get('Env');
-  Object.keys(envMaker.envs || {}).forEach(e => {
+  Object.keys(envMaker.envs).forEach(e => {
     let option = findOption(OPTIONS, e);
     if ( option ) {
       // console.log(`[build] envMaker def ${option.def}, global: ${globalThis[option.env]}`);
