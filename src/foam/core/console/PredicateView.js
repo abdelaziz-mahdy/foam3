@@ -54,7 +54,7 @@ foam.CLASS({
     function render() {
       this.
         start('span').
-          style({display: 'flex'}).
+          style({display: 'flex', 'flex-wrap':'wrap'}).
           tag(this.TextField, {data$: this.data$, size: 40, type: 'search'}).
           startContext({data: this}).add(this.CHOICES).endContext().
           start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).

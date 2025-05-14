@@ -73,6 +73,7 @@ foam.CLASS({
     }
     ^ table {
       width: 100%;
+      font-size: small;
       border-collapse: collapse;
     }
     ^ table td {
@@ -266,10 +267,12 @@ foam.CLASS({
     ^ {
       display: flex;
       height: 100%;
+      width: calc(100vw - var(--sidebar-width-actual));
     }
     ^l {
       padding: 4px;
-      width: 350px;
+      width: 13%;
+      min-width: 100px;
     }
     ^m {
       overflow-x: auto;
@@ -279,9 +282,17 @@ foam.CLASS({
     ^r {
       overflow-y: auto;
       padding: 4px 4px 4px 8px;
-      width: 60%;
     }
-    ^ .foam-u2-RangeView-skip { width: 266px; }
+    ^ .foam-u2-RangeView-skip {
+      width: auto;
+      min-width: 100px;
+    }
+    ^ .foam-u2-view-DualView-wrapper {
+      flex-wrap: wrap;
+    }
+    ^ .foam-u2-CheckBox {
+      margin: revert;
+    }
   `,
 
   properties: [

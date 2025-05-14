@@ -87,7 +87,13 @@ foam.CLASS({
     ^formulaInput input:focus {
       outline: 1px solid red !important;
     }
-    ^label { width: 10%; }
+    ^label {
+      width: 64px;
+      min-height: auto;
+      padding-right: 3px;
+      vertical-align: middle;
+      white-space: break-spaces;
+    }
   `,
 
   properties: [
@@ -173,12 +179,25 @@ foam.CLASS({
   requires: [ 'foam.core.console.PropertyBorder' ],
 
   css: `
+   ^ {
+    display: inline-flex;
+    flex-direction: column;
+   }
    // ^ { margin: inherit !important; }
    // ^ table { width: auto !important; }
    ^title input { font-size: large; }
    ^title { font-size: large; }
    ^collapsePropertyViews .com-google-flow-PropertyBorder-propHolder { width: auto; display: inline-flex; }
-   ^ .foam-core-console-PropertyBorder-propHolder > :first-child { width: auto; }
+   ^ .foam-core-console-PropertyBorder-view { width: -webkit-fill-available; }
+   ^ .foam-core-console-PropertyBorder-propHolder {
+      display: inline-flex;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      gap: 0.2rem;
+      flex-wrap: wrap;
+      align-content: flex-start;
+   }
   `,
 
   properties: [

@@ -25,6 +25,7 @@ foam.CLASS({
   css: `
     :root {
       --sidebar-width: 240px;
+      --sidebar-width-actual: 0px;
       --topbar-height: 0px;
       --footer-height: 0px;
     }
@@ -126,6 +127,9 @@ foam.CLASS({
       name: 'headerSlot_'
     },
     {
+      name: 'sideSlot_'
+    },
+    {
       name: 'navCtx_'
     }
   ],
@@ -136,6 +140,7 @@ foam.CLASS({
       this.onDetach(this.headerSlot_$.sub(this.adjustTopBarHeight));
       this.onDetach(this.displayWidth$.sub(this.maybeCloseNav));
       this.onDetach(this.isMenuOpen$.sub(this.setUserMenuPreference));
+      this.onDetach(this.isMenuOpen$.sub(this.adjustSideBarHeight));
 
 
       // on initlayout reset context so that navigation views will be created
@@ -172,6 +177,12 @@ foam.CLASS({
           if ( ! loginSuccess || ! sideNav || ! showNav ) return e;
           await this.initLayout;
           var sideView = foam.u2.ViewSpec.createView(sideNav, {}, self, self.navCtx_);
+          this.sideSlot_$.set(sideView);
+          var resize = new ResizeObserver (this.adjustSideBarHeight);
+          this.onDetach(resize.disconnect());
+          this.sideSlot_?.el().then(el => {
+            resize.observe(el);
+          })
           return e
             // .tag(sideNav)
             .add(sideView)
@@ -217,6 +228,13 @@ foam.CLASS({
       let root = this.document.documentElement;
       this.headerSlot_.el().then(el => {
         root?.style.setProperty('--topbar-height', el.offsetHeight + 'px' );
+      })
+    },
+    function adjustSideBarHeight() {
+      if ( ! this.sideSlot_ ) return;
+      let root = this.document.documentElement;
+      this.sideSlot_.el().then(el => {
+        root?.style.setProperty('--sidebar-width-actual', el.offsetWidth + 'px' );
       })
     }
   ]
