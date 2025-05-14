@@ -238,8 +238,7 @@ foam.CLASS({
   ],
 
   methods: [
-    async function matrix() {
-      var ps   = this.filteredPs, gs = this.filteredPs;
+    async function initMap() {
       var self = this;
       var perms = await this.groupPermissionJunctionDAO.select();
       perms.array.forEach(perm => {
@@ -256,6 +255,12 @@ foam.CLASS({
 
         this.gpMap[key] = data;
       });
+    },
+
+    async function matrix() {
+      var ps   = this.filteredPs, gs = this.filteredPs;
+      var self = this;
+      await this.initMap();
 
       this
         .addClass(this.myClass())
@@ -459,46 +464,53 @@ foam.CLASS({
       });
     },
 
-    function render() {
-      this.SUPER();
-      var self = this;
-
+    async function getColumns() {
       if ( this.rolesOnly ) {
-        this.query = '@' + this.ROLE_PREFIX;
         this.groupDAO = this.groupDAO.where(this.NOT(this.CONTAINS(this.Group.ID, this.ROLE_PREFIX)));
         this.groupDAO = this.groupDAO.where(this.NOT(this.IN(this.Group.ID, ['foam', 'system', 'admin', 'anonymous', 'reseller'])));
       }
-      this.groupDAO.orderBy(this.Group.ID).select().then(function(gs) {
-        gs = gs.array;
-
-        var gs2 = [];
-        function findChildren(parent, prefix) {
-          for ( var i = 0 ; i < gs.length ; i ++ ) {
-            var g = gs[i];
-            if ( g.parent === parent ) {
-              gs2.push(g);
-              g.displayName_ = prefix ? prefix + '┌ ' + g.id : g.id;
-              findChildren(g.id, prefix + '   ');
-            }
+      var gs = (await this.groupDAO.orderBy(this.Group.ID).select()).array;
+      var gs2 = [];
+      function findChildren(parent, prefix) {
+        for ( var i = 0 ; i < gs.length ; i ++ ) {
+          var g = gs[i];
+          if ( g.parent === parent ) {
+            gs2.push(g);
+            g.displayName_ = prefix ? prefix + '┌ ' + g.id : g.id;
+            findChildren(g.id, prefix + '   ');
           }
         }
-        findChildren('', '');
-        gs = gs2;
-        for ( var i = 0 ; i < gs.length ; i++ ) {
-          self.gMap[gs[i].id] = gs[i];
-        }
-        self.permissionDAO.orderBy(self.Permission.ID).select().then(function(ps) {
-          for ( var i = 0 ; i < ps.array.length ; i++ ) {
-            self.pMap[ps.array[i].id] = ps.array[i];
-          }
-          self.gs = gs;
-          self.ps = ps.array;
-          self.matrix();
-        })
-      });
+      }
+      findChildren('', '');
+      return gs2;
     },
 
-    function updateGroup(p_, g_, data, self) {
+    async function getRows() {
+      return (await this.permissionDAO.orderBy(this.Permission.ID).select()).array;
+    },
+
+    async function render() {
+      this.SUPER();
+
+      if ( this.rolesOnly ) {
+        this.query = '@' + this.ROLE_PREFIX;
+      }
+
+      var gs = await this.getColumns();
+      for ( var i = 0 ; i < gs.length ; i++ ) {
+        this.gMap[gs[i].id] = gs[i];
+      }
+
+      var ps = await this.getRows();
+      for ( var i = 0 ; i < ps.length ; i++ ) {
+        this.pMap[ps[i].id] = ps[i];
+      }
+      this.gs = gs;
+      this.ps = ps;
+      this.matrix();
+    },
+
+    function updateGroup(p_, g_, data) {
       var dao = this.groupPermissionJunctionDAO;
       var obj = this.GroupPermissionJunction.create({sourceId: g_.id, targetId: p_.id});
 
