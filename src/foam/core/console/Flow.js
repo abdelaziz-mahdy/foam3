@@ -130,12 +130,20 @@ foam.CLASS({
       name: 'save',
       code: function() {
         this.flowDAO.put(this);
+      },
+      isAvailable: function() {
+        // Disable in Console
+        return this.__context__.flow;
       }
     },
     {
       name: 'reflow',
       code: function(X) {
         X.routeTo('reflow/' + this.name + '?showPrompts=false');
+      },
+      isAvailable: function() {
+        // Enable in Console
+        return ! this.__context__.flow;
       }
     }
   ]
