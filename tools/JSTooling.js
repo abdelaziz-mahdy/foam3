@@ -23,7 +23,6 @@ foam.POM({
 
     genFoamBinVersion: ['gen-foam-bin-version', 'Generate version string for the foam-bin, with our without a timestamp', [], function genFoamBinVersion() {
       FOAM_BIN_VERSION = `${VERSION}` + (TIMESTAMP_FOAM_BIN ? `-${TIMESTAMP}` : '');
-      console.log(`genFoamBinVersion ${VERSION} ${TIMESTAMP_FOAM_BIN} ${FOAM_BIN_VERSION}`);
     }],
 
     genJS: ['gen-js', 'Build foam-bin.js', ['cleanFOAM', 'genFoamBinVersion'], function genJS() {

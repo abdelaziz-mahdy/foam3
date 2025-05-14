@@ -102,8 +102,12 @@ function addBuildEnv(key, doc, val) {
     get: function()  { return typeof val === 'function' ? val() : val; },
     set: function(v) { val = v; }
   });
-  if ( val )
+  if ( val ) {
     globalThis[key] = val;
+    if ( ! globalThis.ENVS[key] ) {
+      globalThis.ENVS[key] = [doc, val];
+    }
+  }
 }
 
 function buildEnv(m) {
@@ -155,14 +159,9 @@ function addOptions(options, existing = {}) {
     }
     opt = existing[key];
     let env = opt.env;
-    if ( env && ! globalThis[env] ) {
+    if ( env && ! globalThis[env] )
       addBuildEnv(env, opt.desc, opt.def);
 
-      let envs = globalThis['ENVS'];
-      if ( envs && ! envs[env] ) {
-        envs[env] = [ opt.desc, opt.def ];
-      }
-    }
   });
   return existing;
 }
@@ -209,7 +208,7 @@ function exportEnv(name, value) {
 
 function exportEnvs() {
   /** Export environment variables. **/
-  Object.keys(globalThis['ENVS']).forEach(k => {
+  Object.keys(globalThis.ENVS).forEach(k => {
     var v = globalThis[k];
     exportEnv(k, v);
   });
@@ -269,13 +268,6 @@ function flag(flgs) {
     f = ( f ? f + ',' : '' ) + flgs;
 
   return f;
-}
-
-function argValue(arg, def = false) {
-  if ( ! arg ||
-       arg == undefined )
-    return def;
-  return arg;
 }
 
 function findTask(tasks, t) {

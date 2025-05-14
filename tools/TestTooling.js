@@ -19,7 +19,6 @@ foam.POM({
                     OPTIONS['benchmark'].f();
                     BENCHMARKS = args;
                   } ],
-    // deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals.', false, () => DELETE_RUNTIME_JOURNALS = true ],
     logLevel: ['l', 'log-level', 'LOG_LEVEL', 'Set JVM Log level for TEST cases. Defaults to ERROR. example: --log-level:INFO',null, arg => LOG_LEVEL = arg ],
     test: [ 't', 'test', 'TEST', 'Run All tests.', false,
             args => {
