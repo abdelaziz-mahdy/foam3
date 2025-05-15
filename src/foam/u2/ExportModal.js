@@ -275,6 +275,7 @@ foam.CLASS({
     },
     {
       name: 'open',
+      label: 'Save',
       isAvailable: function(isOpenAvailable) {
         return isOpenAvailable;
       },
