@@ -23,6 +23,8 @@ foam.CLASS({
       class: 'Boolean',
       name: 'sheetsCompatibleDates',
       label: 'Date Format',
+      hidden: true,
+      documentation: 'BUG- Dates are being transmitted as Long and thus formatting doesnt work',
       view: {
         class: 'foam.u2.view.ChoiceView',
         choices: [
@@ -36,6 +38,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'addUnits',
+      hidden: true,
       label: '',
       view: { class: 'foam.u2.CheckBox',  label: 'Add Units'},
       value: true
