@@ -555,10 +555,10 @@ foam.CLASS({
         this.tag(self.ReactiveDetailView, {data: selectedValue, showActions: true});
       }));
 
-      if ( this.params.flow ) {
+      if ( this.params.flow && this.params.flow !== 'Unnamed') {
         await this.eval_(`load("${decodeURIComponent(this.params.flow)}")`);
         this.selected = this.currentBlock;
-      } else {
+      } else if ( this.flowName !== 'Unnamed' ) {
         await this.eval_(`load("${decodeURIComponent(this.flowName)}")`);
         this.selected = this.currentBlock;
       }
