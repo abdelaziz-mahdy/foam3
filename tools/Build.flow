@@ -8,8 +8,8 @@
 
 <p>The build manages <b>options</b> and <b>tasks</b>:
 <ul>
-  <li>**** envs - variables which can be set directly or via <i>options</i>, and impact the execution of <i>tasks</i>.</li>
-  <li>options - provide build specific command line arguments that manipulate flags or environment variables to impact the selection and operation of <b>tasks</b>.</li>
+f <i>tasks</i>.</li>
+  <li>options - provide build specific command line arguments that manipulate flags or set environment variables to impact the selection and operation of <b>tasks</b>.</li>
   <li>tasks - methods which act against the source code to generate an application. </li>
 </ul>
 
@@ -40,7 +40,7 @@ foam.POM({
   ...
   tasks: [
     function javacParameters() {
-      JAVA_RELEASE = '21';
+      JAVA_RELEASE = 21;
     },
     function buildJavaOpts() {
       JAVA_OPTS += ` -DGO_HOME=${APP_HOME}`;
@@ -128,16 +128,14 @@ Fields:
 <h3>Tooling POMs</h3>
 Fields:
 <ul>
-  <li>name</li>
-  <li>envs - Environment Variables
-  <p>Variables defined in the envs: block are internal to the particular tooling. are declared with default values in the Tooling POMs.  Build POMs and the CLI can set override or append to the environment variable values. <i>For example</i>, JAVA_OPTS, which controls the JVM environment, can be appended to with build specific parameters such as -Xmx  or -Dappproperty.</p>
-  <code>
-$ node tools/build.js -EJAVA_OPTS:"-Xms12g -Xmx12g"
-  </code>
+  <li>name - a non-unique identifier that distinguishes the POM in it's local scope. Used when reporting POM issues.</li>
+  <li>envs - environment variables that are internal to the tooling itself. <i>For example</i> a calculated value that many tasks share, or that one task sets-up for another.
+  <li>options - defines a property whose value can be manipulated to impact a <b>task</b>.
   </li>
-  <li>options</li>
-  <li>tasks</li>
+  <li>tasks - defines a method which acts against the repository.
+  </li>
 </ul>
+
 
 <h4>Creating a POM Environment Variable</h4>
 

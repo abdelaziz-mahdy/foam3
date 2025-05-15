@@ -12,8 +12,8 @@ foam.POM({
   },
 
   options: {
-    timestampFoamBin: [ 'g', 'timestamp-foam-bin', 'TIMESTAMP_FOAM_BIN', 'Use --timestamp-foam-bin:false to not timestamp foam-bin javascript file to retain breakpoints during development cycle.', true, arg => TIMESTAMP_FOAM_BIN = arg && arg !== undefined ? arg : false ],
-    withoutStages: [ 'w', 'without-stages', 'STAGE_JS', 'Generate a single foam-bin file.', true, arg => STAGE_JS = arg && arg !== undefined ? arg : false ]
+    timestampFoamBin: [ 'g', 'timestamp-foam-bin', 'TIMESTAMP_FOAM_BIN', 'Use --timestamp-foam-bin:false to not timestamp foam-bin javascript file to retain breakpoints during development cycle.', true, function(arg) { TIMESTAMP_FOAM_BIN = arg ? bool(arg) : false; } ],
+    withoutStages: [ 'w', 'without-stages', 'WITHOUT_STAGES', 'Generate a single foam-bin file.', false, function(arg) { WITHOUT_STAGES = arg ? bool(arg) : true; } ]
   },
 
   tasks: {
@@ -29,12 +29,12 @@ foam.POM({
       let version = FOAM_BIN_VERSION;
       let flags = this.flag();
       let outdir = BUILD_DIR+'/js';
-      if ( STAGE_JS ) {
+      if ( WITHOUT_STAGES ) {
+        this.pmake.bind(this, `-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir}`)();
+      } else {
         this.pmake.bind(this, `-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=0`)();
         this.pmake.bind(this, `-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=1`)();
         this.pmake.bind(this, `-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=2`)();
-      } else {
-        this.pmake.bind(this, `-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir}`)();
       }
     }]
   }

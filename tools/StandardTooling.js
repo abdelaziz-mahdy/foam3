@@ -11,8 +11,8 @@ foam.POM({
     appHome: [ '','app-home', 'APP_HOME', 'Application root directory. To symultaniously deploy multiple applications, give each a unique APP_NAME and WEB_PORT',() => APP_NAME ? APP_ROOT + '/' + APP_NAME : 'APP_ROOT/APP_NAME', arg => APP_HOME = arg ],
     appName: [ 'N', 'app-name', 'APP_NAME', "Name used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.", '', args => APP_NAME = args ],
     appRoot: [ '', 'app-root', 'APP_ROOT', 'Application root directory','/opt', arg => APP_ROOT = arg ],
-    clean: [ 'c', 'clean', 'CLEAN', 'Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.', false, arg => CLEAN = arg && arg !== undefined ? arg : true ],
-    cleanAll: [ '', 'clean-all', 'CLEAN_ALL', 'Clean application lib/, and remove build/ directory.',false, arg => CLEAN_ALL = arg && arg !== undefined ? arg : true ]
+    clean: [ 'c', 'clean', 'CLEAN', 'Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.', false, function(arg) { CLEAN = arg ? bool(arg) : true; } ],
+    cleanAll: [ '', 'clean-all', 'CLEAN_ALL', 'Clean application lib/, and remove build/ directory.',false, function(arg) { CLEAN_ALL = arg ? bool(arg) : true; } ]
   },
 
   tasks: {
@@ -55,31 +55,26 @@ foam.POM({
       if ( ! ( TAR || BUILD_ONLY ) ) {
         this.execute('stopCORE');
       }
-
       if ( ! RESTART ) {
         if ( CLEAN_ALL ) {
           this.execute('cleanAll');
         } else if ( CLEAN ) {
           this.execute('clean');
         }
-        if ( globalThis['TEST'] || globalThis['BENCHMARK'] ) {
-          this.execute('clean');
-        } else if ( DELETE_RUNTIME_JOURNALS ) {
+        if ( DELETE_RUNTIME_JOURNALS ) {
           this.execute('deleteRuntimeJournals');
         }
 
         if ( TAR ) {
           this.execute('buildTar');
-        } else if ( JAR || globalThis['TEST'] || globalThis['BENCHMARK'] ) {
-          // Tests and benchmarks run from an application jar
+        } else if ( JAR ) {
           this.execute('buildJar');
         } else {
           this.execute('genJava');
         }
       }
-
       if ( ! ( TAR || BUILD_ONLY ) ) {
-        if ( ! JAR || globalThis['TEST'] || globalThis['BENCHMARK'] ) {
+        if ( ! JAR ) {
           this.execute('startCORE');
         } else {
           this.execute('startCOREJar');

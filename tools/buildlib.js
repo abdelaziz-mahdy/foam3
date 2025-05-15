@@ -104,9 +104,9 @@ function addBuildEnv(key, doc, val) {
   });
   if ( val ) {
     globalThis[key] = val;
-    if ( ! globalThis.ENVS[key] ) {
-      globalThis.ENVS[key] = [doc, val];
-    }
+  }
+  if ( ! globalThis.ENVS[key] ) {
+    globalThis.ENVS[key] = [doc, val];
   }
 }
 
@@ -161,7 +161,6 @@ function addOptions(options, existing = {}) {
     let env = opt.env;
     if ( env && ! globalThis[env] )
       addBuildEnv(env, opt.desc, opt.def);
-
   });
   return existing;
 }
@@ -225,6 +224,10 @@ function comma(list, value) {
   return list ? list + ',' + value : value;
 }
 
+function bool(val) {
+  return String(val).toLowerCase() === 'true';
+}
+
 function info(...args) {
   let msg = args.join(' ');
   console.log('\x1b[0;32mINFO ::', msg, '\x1b[0;0m');
@@ -259,8 +262,6 @@ function hyphenate(str) {
 // Build flag string with global and argument flags
 function flag(flgs) {
   var f = globalThis['VERBOSE'] ? 'verbose' : '';
-  f = ( f ? f + ',' : '' ) + ( globalThis['TEST'] ? 'test' : '-test');
-
   if ( globalThis['FLAGS'] )
     f = ( f ? f + ',' : '' ) + FLAGS;
 
@@ -294,8 +295,8 @@ function findSimilarTasks(tasks, t) {
     // if ( typeof gnu == "string" ) {
       gnu = gnu.replaceAll("-","").toLowerCase();
       let target = t.replaceAll("-","").toLowerCase();
-      if ( gnu.startsWith(target) ||
-           key.toLowerCase().startsWith(target) ) {
+      if ( gnu.includes(target) ||
+           key.toLowerCase().includes(target) ) {
         similar.push(task);
         // TODO: add column of common mismatches.
       }
@@ -326,15 +327,13 @@ function findSimilarOptions(options, o) {
   Object.keys(options).forEach(key => {
     let option = options[key];
     var gnu = option.gnuopt;
-    // if ( typeof gnu == "string" ) { // see h ?
-      gnu = gnu.replaceAll("-","").toLowerCase();
-      let target = o.replaceAll("-","").toLowerCase();
-      if ( gnu.startsWith(target) ||
-           key.toLowerCase().startsWith(target) ) {
-        similar.push(option);
-        // TODO: add 6 column of common mismatches.
-      }
-    // }
+    gnu = gnu.replaceAll("-","").toLowerCase();
+    let target = o.replaceAll("-","").toLowerCase();
+    if ( gnu.includes(target) ||
+         key.toLowerCase().includes(target) ) {
+      similar.push(option);
+      // TODO: add 6 column of common mismatches.
+    }
   });
   return similar;
 }
@@ -383,9 +382,10 @@ function processBuildArgs(options, moreUsage) {
       } else {
         let option = findOption(options, opt);
         if ( option ) {
-          option.f(val);
+          this.bool(a);
+          option.f.bind(this, val)();
         } else {
-          options['tasks'].f(opt, val);
+          options['tasks'].f.bind(this, arg)();
         }
       }
     } else if ( arg.startsWith('-') ) {
@@ -395,12 +395,9 @@ function processBuildArgs(options, moreUsage) {
           a = 'h';
         var option = findOption(options, a);
         if ( option ) {
-          // FIXME: see TestTooling.js:30 and JavaTooling.js:55,
-          // this.comma is undefined. EXPORTS.comma works.
-          // bind(this, and bind(EXPORTS, did not help - Joel
-          // option.f(arg.substring(j+1));
           option.f.bind(this, arg.substring(j+1))();
-          if ( a >= 'A' && a <= 'Z' ) break;
+          if ( a >= 'A' && a <= 'Z' )
+            break;
         } else {
           let msg = 'Unknown argument "' + a + '"';
           // output warning message after usage as the usage is so long
@@ -413,8 +410,9 @@ function processBuildArgs(options, moreUsage) {
 }
 
 exports.adaptOrCreateArgs     = adaptOrCreateArgs;
-exports.buildEnv              = buildEnv;
 exports.addOptions            = addOptions;
+exports.bool                  = bool;
+exports.buildEnv              = buildEnv;
 exports.comma                 = comma;
 exports.copyDir               = copyDir;
 exports.copyFile              = copyFile;
