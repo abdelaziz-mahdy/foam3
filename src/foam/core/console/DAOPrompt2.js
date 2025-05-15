@@ -30,7 +30,7 @@ foam.CLASS({
           this.start('h3').
             add(self.data.label$).
           end().
-            start('span').style({display: 'flex'}).start().style({marginTop: '6px'}).add('Query:').end().tag({class: 'foam.u2.TextField'}, {data$: self.data.where$}).end().br().
+            start('span').style({display: 'flex', gap: '10px', flexDirection: 'column'}).start().style({marginTop: '6px'}).add('Query').end().tag({class: 'foam.u2.TextField'}, {data$: self.data.where$, placeholder: 'Type your query'}).end().br().
             //          add(self.data.dao.of.id). // TODO: link to describe
           start().
             add(self.data.dynamic(async function(version, skip) {
