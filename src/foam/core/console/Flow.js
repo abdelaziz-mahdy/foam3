@@ -8,6 +8,10 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'Flow',
 
+  searchColumns: [
+    'status',
+    'source'
+  ],
   implements: [
     'foam.core.auth.CreatedAware',
     'foam.core.auth.CreatedByAware',
