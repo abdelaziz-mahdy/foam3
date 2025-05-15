@@ -56,7 +56,7 @@ foam.CLASS({
     ^ .foam-u2-borders-ExpandableBorder-container {
       padding: 10px;
     }
-      
+
   `,
 
   properties: [
@@ -146,7 +146,7 @@ foam.CLASS({
           }
         });
       });
-      
+
 
       self.exportDriverReg$.sub(function() {
         self.isConvertAvailable  =  self.exportDriverReg.isConvertible;
@@ -161,14 +161,14 @@ foam.CLASS({
           .tag(this.DATA_TYPE.__)
           .start().show(this.isDataTypeSelected$)
             .add(function(dataType) {
-            
+
               this.start().addClass(self.myClass('datatype-group'))
                 .start().addClass(self.myClass('dimmed-text')).add('Data will be exported as').end()
                 .start().addClass(self.myClass('datatype-text')).add(`${dataType}.`).end()
               .end()
             })
           .end()
-          
+
           .start().show(this.isDataTypeSelected$).addClass(this.myClass('divided-sec'))
             .add(this.slot(function (exportDriver) {
               return this.E()
@@ -275,6 +275,7 @@ foam.CLASS({
     },
     {
       name: 'open',
+      label: 'Save',
       isAvailable: function(isOpenAvailable) {
         return isOpenAvailable;
       },
