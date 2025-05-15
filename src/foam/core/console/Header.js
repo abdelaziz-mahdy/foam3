@@ -11,6 +11,9 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   css: `
+    ^ {
+      padding: 10px;
+    }
   `,
 
   methods: [
