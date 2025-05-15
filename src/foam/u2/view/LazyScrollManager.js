@@ -16,7 +16,8 @@ foam.CLASS({
     'foam.dao.FnSink',
     'foam.lang.Latch',
     'foam.dao.ProxyDAO',
-    'foam.mlang.sink.Count'
+    'foam.mlang.sink.Count',
+    'foam.u2.LoadingSpinner'
   ],
 
   implements: [
@@ -202,6 +203,11 @@ foam.CLASS({
         return this.Latch.create();
       }
     },
+    {
+      class: 'Boolean',
+      name: 'daoLoading',
+      value: true
+    },
     ['isInit', true]
   ],
 
@@ -213,6 +219,7 @@ foam.CLASS({
         }
       })));
       this.updateCount();
+      this.dataLoading = false;
     },
 
     async function render() {
@@ -234,7 +241,11 @@ foam.CLASS({
       })
       // Render empty view if dao is empty
       // Change to dynamic after U3
-      this.appendTo.add(this.slot(function(daoCount, isInit) {
+      this.appendTo.add(this.slot(function(daoCount, isInit, daoLoading) {
+         if (daoLoading) {
+          return this.E().addClass(self.myClass('no-data'))
+          .tag(this.LoadingSpinner, { size: 48 });
+        }
         if ( isInit || daoCount ) return;
         return this.E().addClass(self.myClass('no-data'))
           .add(self.NO_DATA({ modelName: self.config?.browseTitle ?? 'data' }));
@@ -408,6 +419,7 @@ foam.CLASS({
           this.topRow = 0;
           this.bottomRow = 0;
         }
+        this.daoLoading = true;
         this.isInit = false;
         this.updateRenderedPages_();
         if ( this.topRow > 1) {
@@ -449,6 +461,8 @@ foam.CLASS({
           var dao  = this.data.limit(this.pageSize_).skip(skip);
           this.getPage(dao, page);
         }
+
+        this.daoLoading = false;
       }
     },
     {
