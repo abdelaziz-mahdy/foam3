@@ -176,7 +176,7 @@ foam.CLASS({
 
         return tableColumns
           ? tableColumns.columns
-          : of.getAxiomsByClass(foam.lang.Property).map(p => p.name);
+          : of.getAxiomsByClass(foam.lang.Property).filter(p => ! p.hidden).map(p => p.name);
       }
     },
     {
