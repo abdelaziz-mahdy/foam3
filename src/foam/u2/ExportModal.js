@@ -203,6 +203,7 @@ foam.CLASS({
   actions: [
     {
       name: 'convert',
+      label: 'Preview',
       isAvailable: function(isConvertAvailable) {
         return isConvertAvailable;
       },
@@ -259,7 +260,7 @@ foam.CLASS({
             throw new Error('Data type for export not specified');
           }
           link.setAttribute('href', href);
-          link.setAttribute('download', 'data.' + this.exportDriverReg.extension);
+          link.setAttribute('download', ( `${this.exportData?.of?.name}_Export_${(new Date()).toDateString().replaceAll(' ', '_')}.` || 'data.') + this.exportDriverReg.extension);
           document.body.appendChild(link);
           link.click();
 
