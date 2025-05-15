@@ -47,10 +47,13 @@ foam.CLASS({
     }
 
     ^label-property {
+      display: inline-block; 
       margin: 0;
       color: #5e6061;
       flex: 1;
+      white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     ^overlay-dismiss {
@@ -123,7 +126,7 @@ foam.CLASS({
     },
     {
       name: 'criteria'
-    },
+      },
     'isInit',
     {
       name: 'queryParser',
@@ -143,7 +146,7 @@ foam.CLASS({
       var self = this;
 
       this.addClass()
-        .start().addClass(this.myClass('container-property'))
+        .start('div', {tooltip: this.property.label}).addClass(this.myClass('container-property'))
           .enableClass(this.myClass('container-property-active'), this.active$)
           .enableClass(this.myClass('container-property-filtering'), this.activeFilterCheck_$.not())
           .on('click', this.switchActive)
