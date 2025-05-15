@@ -13,8 +13,8 @@ Install java, nodejs, brew, nvm and maven, if required.
 Install Brew (with directions from [https://brew.sh/](https://brew.sh/)):
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    echo >> /Users/kevingreer/.zprofile
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/kevingreer/.zprofile
+    echo >> ~/.zprofile
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
     eval "$(/opt/homebrew/bin/brew shellenv)"
 
 Install the Node Version Manager (NVM):
