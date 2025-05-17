@@ -56,7 +56,8 @@ foam.POM({
       JAVA_MAIN_ARGS = this.comma(JAVA_MAIN_ARGS, `boot.script:${BOOT_SCRIPT}`);
     }],
 
-    buildJavaManifest: ['build-java-manifest', 'Contribute to Java Manifest', [], function buildJavaManifest() {
+    // FIXME: dep defined in multiple tooling are clobbered.
+    buildJavaManifest: ['build-java-manifest', 'Contribute to Java Manifest', ['buildJavaMainArgs'], function buildJavaManifest() {
       JAVA_MANIFEST += `\nImplementation-Title: ${APP_NAME}`;
       JAVA_MANIFEST += `\nImplementation-Timestamp: ${TIMESTAMP}`;
       JAVA_MANIFEST += `\nImplementation-Vendor: ${JAVA_MANIFEST_VENDOR}`;
@@ -66,8 +67,8 @@ foam.POM({
       JAVA_MANIFEST += `\nMain-Class: ${JAVA_MAIN_CLASS}`;
       JAVA_MANIFEST += `\nArgs: ${JAVA_MAIN_ARGS}`;
 
-      var jars = this.execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`).toString()
-          .replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
+      var jars = this.execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`)
+          .toString().replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
       JAVA_MANIFEST += `\nClass-Path: ${jars}`;
     }],
 
@@ -221,7 +222,7 @@ foam.POM({
       if ( CLEAN ) this.execute('clean');
       this.execute('cleanTest');
       BOOT_SCRIPT = 'testRunnerScript';
-
+      this.execute('buildJavaMainArgs'); // FIXME: being clobbered
       this.execute('buildJar');
       this.execute('startCORETest', 'test', args);
     }],
@@ -281,7 +282,6 @@ foam.POM({
     }],
 
     startCORETest: ['start-core-test', 'Start CORE server (Test, Benchmarks).', ['deployJournals', 'deployDocuments', 'deployLib', 'buildJavaTestOpts'], function startCORETest(mode, ...tests) {
-      console.log(`startCORETest tests: '${tests}', tests !== '': ${String(tests) !== ''} `);
       MESSAGE = 'Running tests...';
 
       if ( mode === 'benchmark' ) {
