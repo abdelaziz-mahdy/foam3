@@ -282,12 +282,15 @@ function flag(flgs) {
 function findTask(tasks, t) {
   var result = null;
   Object.keys(tasks).forEach(key => {
-    let task = tasks[key];
-    if ( t === task.name ||
-         t === task.opt ||
-         t === task.gnuopt ) {
-      result = task;
-      return;
+    let ts = tasks[key];
+    if ( ts ) {
+      let task = ts[0];
+      if ( t === task.name ||
+           t === task.opt ||
+           t === task.gnuopt ) {
+        result = task;
+        return;
+      }
     }
   });
   return result;
@@ -298,9 +301,10 @@ function findSimilarTasks(tasks, t) {
   if ( ! t ) return similar;
 
   Object.keys(tasks).forEach(key => {
-    let task = tasks[key];
-    var gnu = task.gnuopt;
-    // if ( typeof gnu == "string" ) {
+    let ts = tasks[key];
+    if ( ts ) {
+      let task = ts[0]; // first will do
+      var gnu = task.gnuopt;
       gnu = gnu.replaceAll("-","").toLowerCase();
       let target = t.replaceAll("-","").toLowerCase();
       if ( gnu.includes(target) ||
@@ -308,7 +312,7 @@ function findSimilarTasks(tasks, t) {
         similar.push(task);
         // TODO: add column of common mismatches.
       }
-    // }
+    }
   });
   return similar;
 }

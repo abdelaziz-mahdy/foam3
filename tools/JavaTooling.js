@@ -15,7 +15,7 @@ foam.POM({
     JAR_LIB_DIR:       ['Deployment lib directory',() => ( TAR ? `${PROJECT_HOME}/${BUILD_DIR}` : (APP_NAME ? APP_HOME : 'APP_HOME')) + '/lib'],
     JAR_NAME:          ['Java jar name',() => APP_NAME ? `${APP_NAME}-${VERSION}.jar` : 'APP_NAME-VERSION.jar' ],
     JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
-    JAVA_MANIFEST:     ['Generated JAVA_MANIFEST'],
+    JAVA_MANIFEST:     ['Generated JAVA_MANIFEST', ''],
     JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
     JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
     JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
@@ -56,7 +56,6 @@ foam.POM({
       JAVA_MAIN_ARGS = this.comma(JAVA_MAIN_ARGS, `boot.script:${BOOT_SCRIPT}`);
     }],
 
-    // FIXME: dep defined in multiple tooling are clobbered.
     buildJavaManifest: ['build-java-manifest', 'Contribute to Java Manifest', ['buildJavaMainArgs'], function buildJavaManifest() {
       JAVA_MANIFEST += `\nImplementation-Title: ${APP_NAME}`;
       JAVA_MANIFEST += `\nImplementation-Timestamp: ${TIMESTAMP}`;
@@ -68,7 +67,8 @@ foam.POM({
       JAVA_MANIFEST += `\nArgs: ${JAVA_MAIN_ARGS}`;
 
       var jars = this.execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`)
-          .toString().replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
+          .toString().replaceAll(`${BUILD_DIR}/lib/`, ' ').trim()
+          .split(' ').sort().join('  ');
       JAVA_MANIFEST += `\nClass-Path: ${jars}`;
     }],
 
@@ -209,12 +209,12 @@ foam.POM({
     }],
 
     genJavaManifest: ['gen-java-manifest', 'Generate Java Manifest File', ['buildJavaManifest'], function genJavaManifest() {
-      JAVA_MANIFEST = 'Manifest-Version: 1.0' + JAVA_MANIFEST;
+      JAVA_MANIFEST = 'Manifest-Version: 1.0' + JAVA_MANIFEST + '\n';
       this.writeFileSync(BUILD_DIR + '/MANIFEST.MF', JAVA_MANIFEST);
       return JAVA_MANIFEST;
     }],
 
-    javaTests: ['java-tests', 'Run all or specified test cases. ex: javaTests[:Test1,Test2]', [/*'stopCORE'*/], function javaTests(args) {
+    javaTests: ['java-tests', 'Run all or specified test cases. ex: javaTests[:Test1,Test2]', [], function javaTests(args) {
       APP_ROOT='/tmp';
       FLAGS = this.comma(FLAGS, 'test');
       this.addJournal('test');
@@ -222,7 +222,6 @@ foam.POM({
       if ( CLEAN ) this.execute('clean');
       this.execute('cleanTest');
       BOOT_SCRIPT = 'testRunnerScript';
-      this.execute('buildJavaMainArgs'); // FIXME: being clobbered
       this.execute('buildJar');
       this.execute('startCORETest', 'test', args);
     }],

@@ -30,13 +30,13 @@ exports.visitPOM = function(pom) {
       }
     });
 
-  // NOTE: build.js managing tasks and POM_TASKS duplications
   pom.tasks &&
     Object.keys(pom.tasks).forEach(k => {
       let list = tasks[k] || [];
-      list.push(pom.tasks[k]);
+      let task = pom.tasks[k];
+      task.pom = pom.name;
+      list.push(task);
       tasks[k] = list;
-      // console.log('[Tooling]', k, tasks[k]);
     });
 };
 

@@ -74,10 +74,10 @@ process.on('unhandledRejection', e => {
 var depth   = 1;
 var running = {};
 var summary = [];
-let ALL_TASKS = {};
+let TOOLING_TASKS = {};
 
 function task() {
-  var name, gnuopt, desc = '', dep = [], f;
+  var name, gnuopt, desc = '', dep = [], f, pom = 'build';
   if ( arguments.length == 1 ) {
     f = arguments[0];
     name = f.name;
@@ -94,31 +94,33 @@ function task() {
     gnuopt = arguments[0];
     desc = arguments[1];
     dep = arguments[2];
-  } else if ( arguments.length == 5 ) {
+  } else if ( arguments.length == 6 ) {
     name = arguments[0];
     gnuopt = arguments[1];
     desc = arguments[2];
     dep = arguments[3];
     f = arguments[4];
+    pom = arguments[5];
   } else {
-    var msg = 'task() expecting 1, 3, 4, or 5 arguments\n';
+    var msg = 'task() expecting 1, 3, 4, or 6 arguments\n';
     Object.keys(arguments).forEach(key => {
       msg += key +': ' + arguments[key] + '\n';
     });
     error(msg);
-
-}
-  if ( ! ALL_TASKS[name] ) {
-    ALL_TASKS[name] = {
-      name: name,
-      gnuopt: gnuopt,
-      desc: desc,
-      dep: dep,
-      f: f
-    };
-  } else {
-    warning(`[build] ignoring duplicate task -  name: ${name}, gnuopt: ${gnuopt}, desc: ${desc}, dep: ${dep}`);
   }
+
+  let toolingTask = {
+    name: name,
+    gnuopt: gnuopt,
+    desc: desc,
+    dep: dep,
+    f: f,
+    pom: pom
+  };
+
+  let toolingTasks = TOOLING_TASKS[name] || [];
+  toolingTasks.push(toolingTask);
+  TOOLING_TASKS[name] = toolingTasks;
 
   var fired = false;
   var rec   = [];
@@ -126,8 +128,12 @@ function task() {
   globalThis[name] = function(...args) {
     if ( fired ) return;
     fired = true;
+    let tasks = TOOLING_TASKS[name];
+    if ( ! tasks ) {
+      error(`Task not found: ${name}`);
+    }
     if ( NOP.split(',').includes(name) ) {
-      warning(`Skippin Task :: ${name}`);
+      warning(`Skipping Task :: ${name}`);
       return;
     }
 
@@ -141,48 +147,51 @@ function task() {
       depth++;
     }
 
-    // execute task dependencies
-    let task = ALL_TASKS[name];
-    let dep = task.dep;
-    dep.forEach(d => {
-      if ( d instanceof Function ) {
-        d.apply(Object.assign({}, EXPORTS), args);
-      } else {
-        var f = globalThis[d];
-        if ( f )
-          f.apply(Object.assign({}, EXPORTS), args);
-        else
-          error('Task', name, 'dependency not found', d);
-      }
-    });
-
     // execute same named pom tasks
     let pomTasks = POM_TASKS && POM_TASKS[name];
     if ( pomTasks ) {
-      info(`POM Tasks :: ${name}`);
+      info(`  Starting POM Tasks :: ${name}`);
       if ( ! DRY_RUN ) {
-        pomTasks.forEach(k => {
-          // FIXME: POM_TASKS has both POM tasks, and extra same named build tasks
-          var f = k[3] || k;
+        pomTasks.forEach(pomTask => {
+          verbose(`    Executing POM Tasks :: ${name} (${pomTask.pom})`);
+          var f = pomTask.f || pomTask;
           try {
             f.apply(Object.assign({}, EXPORTS), args);
           } catch (e) {
-            error(`POM Tasks :: ${k}`, '\n', e);
+            error(`POM Tasks :: ${name} (${pomTask.pom})`, '\n', e);
           }
         });
       }
+      verbose(`  Finished POM Tasks :: ${name}`);
     }
 
-    // execute tasks
-    if ( ! DRY_RUN || name == 'pomEvns' || name == 'all' ) {
-      f.apply(Object.assign({ SUPER }, EXPORTS), args);
-    }
+    tasks.forEach(function(task) {
+      verbose(`  Execute Task :: ${name} (${task.pom})`);
+      // execute task dependencies
+      var dep = task.dep;
+      dep && dep.forEach(d => {
+        if ( d instanceof Function ) {
+          d.apply(Object.assign({}, EXPORTS), args);
+        } else {
+          var f = globalThis[d];
+          if ( f )
+            f.apply(Object.assign({}, EXPORTS), args);
+          else
+            error(`Task ${name} (${task.pom}) dependency not found ${d}`);
+        }
+      });
+
+      // execute tasks
+      if ( ! DRY_RUN || name == 'pomEvns' || name == 'all' ) {
+        task.f.apply(Object.assign({ SUPER }, EXPORTS), args);
+      }
+    });
 
     running[name] -= 1;
     if ( running[name] === 0 ) {
       depth--;
       var end = Date.now();
-      var dur = ((end-start)/1000).toFixed(1);
+      var dur = ((end-start)/1000).toFixed(2);
       info(`Finished Task :: ${name} in ${dur} seconds`);
       rec[1] = dur;
     }
@@ -191,10 +200,10 @@ function task() {
 
 // Execute task by name
 function execute(t, ...args) {
-  // console.log(`execute t: ${t} args: ${args}`);
+  // console.log(`execute t: ${t}, args: ${args}`);
   var f = globalThis[t];
   if ( ! f ) {
-    let task = findTask(ALL_TASKS, t);
+    let task = findTask(TOOLING_TASKS, t);
     if ( task ) {
       f = globalThis[task.name];
       if ( ! f && task.f ) {
@@ -216,7 +225,7 @@ function execute(t, ...args) {
   } else {
     var extra = '';
     if ( t.length > 1 ) {
-      let similar = findSimilarTasks(ALL_TASKS, t);
+      let similar = findSimilarTasks(TOOLING_TASKS, t);
       if ( similar.length > 0 ) {
         extra += '\n  Possible Task matches: \n';
       }
@@ -231,7 +240,7 @@ function execute(t, ...args) {
         extra += '    ' + option.name + ' ' + option.opt + ' ' + option.gnuopt + ' - ' + option.desc + '\n';
       });
     }
-    error('Task not found - ', t, extra);
+    error('Task not found:', t, extra);
   }
 }
 
@@ -305,19 +314,31 @@ function moreUsage(arg) {
 
     if ( ! arg || arg === 'tasks' ) {
       info('\nTasks: (invoke with -XtaskName or --task-name)');
-      var ts = Object.assign({}, ALL_TASKS);
+      var ts = Object.assign({}, TOOLING_TASKS);
       var depth = 1;
       function printTask(t) {
         if ( ! ts[t] ) return;
         delete ts[t];
-        var task = findTask(ALL_TASKS, t);
-        var dep2 = task.dep.filter(d => ! ts[d]); // list of dependencies which appear elsewhere in tree
-        var dstr = dep2.length ? ' [ ' + dep2.join(', ') + ' ]': '';
-        let desc = SHOW_ENVS ? '' : task.desc;
-        console.log(''.padEnd(depth*2) + t.padEnd(27-depth*2) + desc + dstr);
-        depth++;
-        task.dep.forEach(printTask);
-        depth--;
+        var task = findTask(TOOLING_TASKS, t);
+        var dstr = '';
+        var dep = [];
+        if ( task ) {
+          let desc = SHOW_ENVS ? '' : task.desc;
+          let tasks = TOOLING_TASKS[task.name];
+          tasks.forEach(task => {
+            var dep2 = task.dep.filter(d => ! ts[d]); // list of dependencies which appear elsewhere in tree
+            if ( dep2.length )
+              dstr = comma(dstr, dep2.join(', '));
+          });
+          if ( dstr ) {
+            dep = dstr.split(",");
+            dstr = '[' + dstr + ']';
+          }
+          console.log(''.padEnd(depth*2) + t.padEnd(27-depth*2), desc, dstr);
+          depth++;
+          dep.forEach(printTask);
+          depth--;
+        }
       }
       Object.keys(ts).sort().forEach(t => {
         printTask(t);
@@ -366,7 +387,7 @@ var ENVS = {
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with variable \'POMS\', which is the name of the POM(s) to be processed by the build'],
   TOOLING_OPTIONS:   ['Options which control the tooling phase of the build', {}],
 };
-ENVS['ALL_TASKS'] = ['Tasks defined in Tooling poms and this build itself', ALL_TASKS];
+ENVS['TOOLING_TASKS'] = ['Tasks defined in Tooling poms and this build itself', TOOLING_TASKS];
 let NO_SHOW_ENVS = Object.assign({}, ENVS);
 globalThis['ENVS'] = ENVS;
 
@@ -407,6 +428,7 @@ EXPORTS = Object.assign(EXPORTS, {
 });
 
 TOOLING_OPTIONS = addOptions({
+  // TODO: other than -T, how to specify a set of tooling poms - perhaps first pom that is read?
   toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms', 'Standard,Npm,Maven,Git,JS,Java', arg => TOOLING_POMS = arg ]
 }, TOOLING_OPTIONS);
 
@@ -482,7 +504,7 @@ OPTIONS = addOptions({
       let desc = option.desc;
       console.log('(OPTION)', ''.padStart(0), opts+':', '\x1b[0;35m', def,'\x1b[0;0m', desc);
     } else {
-      let t = findTask(ALL_TASKS, arg);
+      let t = findTask(TOOLING_TASKS, arg); // first will do
       if ( t ) {
         var msg = arg;
         if ( arg !== t.name ) msg += ' '+t.name;
@@ -493,7 +515,7 @@ OPTIONS = addOptions({
           console.log('(ENV)', arg,': ',e[0]);
         } else {
           var extra = '';
-          let similar = findSimilarTasks(ALL_TASKS, arg);
+          let similar = findSimilarTasks(TOOLING_TASKS, arg);
           if ( similar.length > 0 ) {
             extra += '\n  Possible Task matches: \n';
           }
@@ -597,14 +619,7 @@ task('tooling', 'Prepare build environment', [], function tooling() {
       if ( f.name !== name ) {
         warning(`[build] tooling name: ${name} != f.name ${f.name}`);
       }
-      // TODO: refactor to register against top level and also run dependencies
-      if ( ! ALL_TASKS[name] ) {
-        task(name, gnuopt, desc, dep, f);
-      } else {
-        let pomList = POM_TASKS[name] || [];
-        pomList.push(t);
-        POM_TASKS[name] = pomList;
-      }
+      task(name, gnuopt, desc, dep, f, t.pom);
     });
   });
   // copy tooling options to build options so command line doesn't complain
@@ -613,7 +628,7 @@ task('tooling', 'Prepare build environment', [], function tooling() {
 });
 
 task('pom-envs', 'Capture POM arguments to environment values or options, and register POM tasks for later execution when the corresponding build tasks is executed.', [], function pomEnvs() {
-  let makers = pmake.bind(Object.assign({}, EXPORTS), `-makers=Env,Task -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -envs=${POM_ENVS} -tasks=${ALL_TASKS} -options=${Object.assign({}, OPTIONS)}`)();
+  let makers = pmake.bind(Object.assign({}, EXPORTS), `-makers=Env,Task -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -envs=${POM_ENVS} -tasks=${TOOLING_TASKS} -options=${Object.assign({}, OPTIONS)}`)();
   let envMaker = makers.get('Env');
   Object.keys(envMaker.envs).forEach(e => {
     let option = findOption(OPTIONS, e);
@@ -652,7 +667,7 @@ task('pom-envs', 'Capture POM arguments to environment values or options, and re
   });
 });
 
-task('copy', 'Run pom copy[] tasks.', [], function copy() {
+task('copy', 'Run POM copy tasks.', [], function copy() {
   pmake.bind(Object.assign({}, EXPORTS), `-makers=Copy -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR}`)();
 });
 
