@@ -15,6 +15,7 @@ foam.CLASS({
   ],
 
   exports: [
+    'showTreeRow',
     'data'
   ],
 
@@ -126,7 +127,7 @@ foam.CLASS({
               this.start()
                 .addClass(selectedSlot)
                 .addClass(this.myClass('label')).
-                call(row.formatter, [row.data]).
+                call(row.formatter, [row.data, self.__context__]).
               end();
             }
           ).
@@ -205,6 +206,11 @@ foam.CLASS({
       expression: function(selection, data$id) {
         return selection && foam.util.equals(selection.id, this.data.id);
       }
+    },
+    {
+      class: 'Boolean',
+      name: 'showTreeRow',
+      value: true
     }
   ],
 
@@ -239,7 +245,8 @@ foam.CLASS({
 
       this.
         addClass(this.myClass()).
-        show(this.slot(function(hasChildren, showThisRootOnSearch, updateThisRoot) {
+        show(this.slot(function(showTreeRow, hasChildren, showThisRootOnSearch, updateThisRoot) {
+          if ( ! showTreeRow ) return false;
           if ( ! self.query ) return true;
           var isThisItemRelatedToSearch = false;
           if ( ! updateThisRoot ) {
