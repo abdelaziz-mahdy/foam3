@@ -8,10 +8,11 @@ foam.POM({
   name: 'maven',
 
   tasks: {
-    cleanLib: ['clean-lib', 'Remove pom.xml and java lib directory.', [], function cleanLib() {
+    cleanAll: ['clean-all', 'Remove pom.xml and Java lib directory.', [], function cleanAll() {
       this.rmfile('pom.xml');
       this.emptyDir(BUILD_DIR + '/lib');
     }],
+
     maven: ['maven', 'Run Maven', [], function maven() {
       this.pmake.bind(this, `-makers=Maven -flags=${this.flag()} -pom=${POMS} -libdir=${BUILD_DIR}/lib`)();
     }],

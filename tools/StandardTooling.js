@@ -16,8 +16,8 @@ foam.POM({
   },
 
   tasks: {
-    clean: ['clean', 'Remove generated files', ['pomEnvs'], function clean(args) {
-      if ( args === 'all') {
+    clean: ['clean', 'Remove generated files', [], function clean(args) {
+      if ( args === 'all') { // -Xclean:all
         this.execute('cleanAll');
       }
 
@@ -31,10 +31,6 @@ foam.POM({
           if ( f.isFile()      ) this.rmfile(fn);
         });
       }
-    }],
-
-    cleanAll: ['clean-all', 'Clean build files, include pom.xml and java libraries. Cleaner than clean.', [ 'clean' ], function cleanAll() {
-      console.log('[StandardTooling] cleanAll');
     }],
 
     usage: ['usage', 'Build usage examples', [], function usage() {

@@ -61,7 +61,8 @@ function writeFileIfUpdated(file, txt) {
 
 
 function execSync(cmd, options) {
-  verbose('\x1b[0;32mExec: ' + cmd + '\x1b[0;0m');
+  verbose('\x1b[0;32mExecSync:',cmd,'\x1b[0;0m');
+  exportEnvs();
   return exec_.execSync(cmd, options);
 }
 
@@ -214,11 +215,15 @@ function exportEnvs() {
 }
 
 
-function exec(s) {
-  exportEnvs();
-  return execSync(s, { stdio: 'inherit' });
-}
+function exec(cmd) {
+  verbose('\x1b[0;32mExec:', cmd, '\x1b[0;0m');
+  // return execSync(cmd, { stdio: 'inherit' });
 
+  exportEnvs();
+  return exec_(cmd, (error, stdout, stderr) => {
+    if (error) this.error(error);
+  });
+}
 
 function comma(list, value) {
   return list ? list + ',' + value : value;
@@ -379,8 +384,8 @@ function processBuildArgs(options, moreUsage) {
     var arg = args[i];
     if ( arg.startsWith('--') ) {
       arg = arg.substring(2);
-      // support --task1,task
-      let as = arg.split(',');
+      // support --task1,task, --task:arg1,arg2
+      let as = arg.includes(':') ? arg.split() : arg.split(',');
       for ( var k = 0; k < as.length; k++ ) {
         arg = as[k];
         var [opt, val] = arg.split(':');

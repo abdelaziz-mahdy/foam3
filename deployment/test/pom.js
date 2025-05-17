@@ -1,8 +1,7 @@
 foam.POM({
   name:'test',
-
   tasks: [
-    function setJavaOpts() {
+    function buildJavaOpts() {
       var logLevelLower = 'info';
       if ( LOG_LEVEL ) {
         JAVA_OPTS += ` -Dlog.level=${LOG_LEVEL}`;

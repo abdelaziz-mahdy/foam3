@@ -171,19 +171,23 @@ public class Boot {
         .setAuthorizer(new foam.core.auth.AuthorizableAuthorizer("service"))
         .build());
 
-    String startScript = System.getProperty("foam.main", "main");
-    if ( startScript != null ) {
+    String bootScript = ARGS.get("boot.script");
+    if ( SafetyUtil.isEmpty(bootScript) ) {
+      logger.warning("ARG boot.script not found");
+      bootScript = System.getProperty("foam.main", "main");
+    }
+    if ( bootScript != null ) {
       DAO scriptDAO = (DAO) root_.get("bootScriptDAO");
       if ( scriptDAO == null ) {
         logger.warning("DAO Not Found: bootScriptDAO. Falling back to scriptDAO");
         scriptDAO = (DAO) root_.get("scriptDAO");
       }
-      Script script = (Script) scriptDAO.find(startScript);
+      Script script = (Script) scriptDAO.find(bootScript);
       if ( script != null ) {
-        logger.info("Boot,script", startScript);
+        logger.info("Boot,bootScript", bootScript);
         ((Script) script.fclone()).runScript(root_);
       } else {
-        logger.warning("Boot, Script not found", startScript);
+        logger.warning("Boot,bootScript not found", bootScript);
       }
     }
 
@@ -268,6 +272,9 @@ public class Boot {
     throws java.lang.Exception
   {
     System.out.println("Starting CORE Server");
+    if ( args != null && args.length > 0 ) {
+      System.out.println("with: "+java.util.Arrays.toString(args));
+    }
 
     if ( args == null ||
          args.length == 0 ) {
@@ -293,8 +300,6 @@ public class Boot {
         v = kv.length == 2 ? kv[1] : "";
       }
       ARGS.put(k, v);
-
-      System.out.println("main arg: "+arg);
     }
 
     new Boot();

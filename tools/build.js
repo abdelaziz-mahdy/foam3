@@ -60,7 +60,7 @@ rm -rf ~/foam3/build
 ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
-const { existsSync,  readdirSync, writeFileSync } = require('fs');
+const { existsSync,  readdirSync, readFileSync, writeFileSync } = require('fs');
 const { hostname }                                = require('os');
 const { join }                                    = require('path');
 const { bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, verbose } = require('./buildlib');
@@ -121,11 +121,15 @@ function task() {
   }
 
   var fired = false;
-  var rec   = [ ];
+  var rec   = [];
   var SUPER = globalThis[name] || function() { };
   globalThis[name] = function(...args) {
     if ( fired ) return;
     fired = true;
+    if ( NOP.split(',').includes(name) ) {
+      warning(`Skippin Task :: ${name}`);
+      return;
+    }
 
     running[name] = (running[name] || 0) + 1;
     if ( running[name] === 1 ) {
@@ -393,6 +397,7 @@ EXPORTS = Object.assign(EXPORTS, {
   join,
   pmake,
   readdirSync,
+  readFileSync,
   rmdir,
   rmfile,
   showSummary,
@@ -402,7 +407,7 @@ EXPORTS = Object.assign(EXPORTS, {
 });
 
 TOOLING_OPTIONS = addOptions({
-  toolingPoms: [ 'O', 'tooling-poms', 'TOOLING_POMS', 'CSV list of tooling poms', 'Standard,Java,JS,Maven,Npm', arg => TOOLING_POMS = arg ]
+  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms', 'Standard,Npm,Maven,Git,JS,Java', arg => TOOLING_POMS = arg ]
 }, TOOLING_OPTIONS);
 
 OPTIONS = addOptions({
@@ -440,6 +445,7 @@ OPTIONS = addOptions({
     process.exit(0);
   }],
   hostname: ['', 'hostname', 'HOST_NAME', 'Hostname to set in JVM', hostname(), args => HOST_NAME = args ],
+  nop: ['', 'nop', 'NOP', 'List of task NOT to run. ex: --nop:genJS,genJava', '', arg => NOP = comma(NOP, arg) ],
   poms: [ 'P', 'poms', 'POMS', "comma seperated list of pom files. Defaults to 'pom' at the root of the project.", '', arg => POMS = arg ],
   projectHome: ['', 'project-home', 'PROJECT_HOME', 'Project directory', process.cwd(), arg => PROJECT_HOME = arg ],
   showEnvs: [ '', 'show-envs', 'SHOW_ENVS', 'Output environment variable values.', false, function(arg) { SHOW_ENVS = arg ? bool(arg) : true; }],
@@ -616,7 +622,7 @@ task('pom-envs', 'Capture POM arguments to environment values or options, and re
       if ( ! globalThis[option.env] ||
            option.def &&
            globalThis[option.env] === option.def ) {
-        console.log(`[build] setting ${e} with ${envMaker.envs[e]}`);
+        console.log(`[build] setting ${e} = ${envMaker.envs[e]}`);
         option.f.bind(this, envMaker.envs[e])();
       } else {
         // console.log(`[build] NOT replacing ${e} ${globalThis[option.env]} with ${envMaker.envs[e]}`);
@@ -627,7 +633,7 @@ task('pom-envs', 'Capture POM arguments to environment values or options, and re
       if ( globalThis[e] ) {
         console.log(`[build] replacing ${e} ${globalThis[e]} with ${envMaker.envs[e]}`);
       } else {
-        console.log(`[build] setting ${e} with ${envMaker.envs[e]}`);
+        console.log(`[build] setting ${e} = ${envMaker.envs[e]}`);
       }
       globalThis[e] = envMaker.envs[e];
       return;
@@ -670,9 +676,9 @@ pom();
 // execute('pomEnvs');
 
 // Phase III - execute build tasks
-// if ( SHOW_ENVS ) {
-//   moreUsage();
-// }
+if ( SHOW_ENVS ) {
+  moreUsage();
+}
 
 TASKS.split(TASK_SEPERATOR).forEach(t => {
   var s = t.split(':');
