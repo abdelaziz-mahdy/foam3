@@ -145,3 +145,9 @@ Fields:
 
 <h1>Test Cases and Benchmarks</h1>
 Using --flags:test will include all source and configuration flagged as 'test' to allow using test and benchmark logic form a normally built application.
+
+<h1>Options and Tasks of interest</h1>
+<ul>
+  <li>nop (option) - The No-Op option takes a list of task names not execute. For example if you are dealing with pure .java files, then issuing --nop:genJS will speed your build times.</li>
+  <li></li>
+</ul>

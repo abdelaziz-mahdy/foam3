@@ -6,23 +6,27 @@
  */
 // Build and Deploy a FOAM Application
 //
-// Tools
+// See documentation at #flowdoc/Build
+// and node build.js --help
+//
+// Toosls
 //   tools/JSMaker.js
 //     - collects and minifies .js files into a single foam-bin.js file
 //     - uses the UglifyJS library to minimize the size of the packaged .js files
 //   tools/JavaMaker.js
 //     - generates .java files from .js models
 //     - create /build/javacfiles file containing list of modified or static .java files
+//     - call javac to compile files in javacfiles
+//   tools/MavenMaker
 //     - build pom.xml from accumulated javaDependencies
 //     - call maven to update dependencies if pom.xml updated
-//     - call javac to compile files in javacfiles
 //     - create a Maven pom.xml file with accumulated POM javaDependencies information
 //   tools/JournalMaker.js
 //     - copies .jrl files into /build/journals
 //   tools/DocMaker.js
 //     - copies .flow files into /build/documents
 //
-// Directory Structure:
+// Directory Structure (Standard/default):
 //   /deployment    - deployment specific journals
 //   /build
 //     /src         - java source files created by genJava
@@ -661,7 +665,9 @@ task('pom-envs', 'Capture POM arguments to environment values or options, and re
     let list = taskMaker.tasks[name];
     list.forEach(t => {
       let pomList = POM_TASKS[name] || [];
-      pomList.push(t);
+      // execute pom tasks in pom reverse order, giving poms higher in
+      // the hierarchy ability to modify values set earlier.
+      pomList.unshift(t);
       POM_TASKS[name] = pomList;
     });
   });
@@ -685,9 +691,9 @@ processBuildArgs.bind(Object.assign({}, EXPORTS), OPTIONS, moreUsage)();
 // build pom map for POM_TASKS, and ensure POMS list is viable
 pom();
 
+// Process build pom for envs and task registration
 // NOTE: pomEnvs needs to be run early. Commented out so tasks such as
 // JavaTooling javaTests can set flags and journals before calling pomEnvs.
-// process build pom for envs and task registration
 // execute('pomEnvs');
 
 // Phase III - execute build tasks
