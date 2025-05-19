@@ -62,7 +62,7 @@ foam.CLASS({
     {
       name: 'choice',
       factory: function() { return this.AGENTS[0][0]; },
-      postSet: function() { this.data = undefined; },
+      postSet: function(o, n) { if ( ! this.feedback_ ) this.data = undefined; },
       view: function(_, X) {
         var choices = X.data.sinksOnly ? X.AGENTS.filter(s => s[2]) : X.AGENTS;
         return { class: 'foam.u2.view.ChoiceView', choices: choices };
@@ -77,7 +77,9 @@ foam.CLASS({
       postSet: function(o, n) {
         for ( var i = 0 ; i < this.AGENTS.length ; i++ ) {
           if ( this.choiceToClass(this.AGENTS[i][0]) == n.cls_.id ) {
+            this.feedback_ = true;
             this.choice = this.AGENTS[i][0];
+            this.feedback_ = false;
             return;
           }
         }
@@ -97,7 +99,8 @@ foam.CLASS({
         addClass().
         style({'display': 'inline-flex'}).
         startContext({data: this}).
-        add(this.CHOICE).
+          add(this.CHOICE).
+        endContext().
         add(' ', self.dynamic(function (data) {
           if ( ! self.dao ) return;
           data.addToE(this);
