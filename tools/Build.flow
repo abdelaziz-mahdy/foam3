@@ -153,4 +153,4 @@ Using --flags:test will include all source and configuration flagged as 'test' t
 <h2>Project</h2>
 <p>Project tooling provides a task for creating a new FOAM based project. It will create the default directory layout along with required poms.</p>
 Usage:
-<code>node foam3/tools/build.js -TProject --createProject:net.foo</code>
+<code>node foam3/tools/build.js -Ttemplate/standard/Project --createProject:net.foo</code>
