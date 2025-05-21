@@ -1,0 +1,19 @@
+foam.POM({
+  name: '{domain}',
+  excludes: [ 'build', 'foam3', 'deployment', 'node_modules'],
+  projects: [
+    { name: 'foam3/pom'},
+    { name: 'src/{package}/pom'}
+  ],
+  licenses: `
+    // Add your license header here
+  `,
+  envs: {
+    // javaMainArgs: 'spid:{domain}'
+  },
+  tasks: [
+    function javaManifest() {
+      JAVA_MANIFEST_VENDOR_ID = '{name}';
+    }
+  ]
+});

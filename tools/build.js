@@ -436,7 +436,7 @@ EXPORTS = Object.assign(EXPORTS, {
 
 TOOLING_OPTIONS = addOptions({
   platform: ['', 'platform', 'PLATFORM', 'Operation System Type', () => os.platform(), arg => PLATFORM = arg ],
-  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'', '', arg => TOOLING_POMS = arg ]
+  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'', '', arg => TOOLING_POMS = arg ]
 }, TOOLING_OPTIONS);
 
 OPTIONS = addOptions({
@@ -561,7 +561,7 @@ function pom() {
   var poms   = [];
   function addPom(fn) {
     if ( ! existsSync(fn + '.js') )
-      error('File not found ' + fn + '.js');
+      warning('File not found ' + fn + '.js');
     else
       poms.push(fn);
   };
