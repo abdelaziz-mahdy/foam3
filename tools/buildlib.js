@@ -268,7 +268,7 @@ function hyphenate(str) {
 // Build flag string with global and argument flags
 function flag(flgs) {
   var verbose = globalThis['VERBOSE'];
-  var f = verbose ? `verbose:${verbose}` : '';
+  var f = verbose ? 'verbose' : '';
 
   if ( globalThis['FLAGS'] )
     f = ( f ? f + ',' : '' ) + FLAGS;

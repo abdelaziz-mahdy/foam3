@@ -542,9 +542,7 @@ OPTIONS = addOptions({
     }
     process.exit(0);
   } ],
-  verbose: ['', 'verbose', 'VERBOSE', 'Enable VerboseMaker to log additional info during build. ', '', function(arg) {
-    // TODO: incomplete, working towards: Restrict set of makers with --verbose:Java,Journal.
-    VERBOSE = arg || '*'; }]
+  verbose: ['', 'verbose', 'VERBOSE', 'Enable VerboseMaker to log additional info during build. ', false, function(arg) { VERBOSE = arg ? bool(arg) : true; }]
 
 }, OPTIONS);
 
