@@ -6,17 +6,15 @@
 
 exports.description = 'Copies image/* files into /build/images';
 
-const b_ = require('./buildlib');
-
 exports.init = function() {
   X.imagedir = X.builddir + '/images';
-  b_.ensureDir(X.imagedir);
+  this.ensureDir(X.imagedir);
 }
 
 
 exports.visitDir = function(pom, f, fn) {
   if ( f.name === 'images' || ( f.name === 'favicon' && ! fn.includes('images') ) ) {
-    console.log(`[Image Maker] Copying ${fn} to ${X.imagedir}`);
-    b_.copyDir(fn, X.imagedir);
+    this.log(`[Image Maker] Copying ${fn} to ${X.imagedir}`);
+    this.copyDir(fn, X.imagedir);
   }
 }

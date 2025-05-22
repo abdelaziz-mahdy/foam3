@@ -30,6 +30,7 @@ const fs_   = require('fs');
 const path_ = require('path');
 
 var pmake = function(...args) {
+  var self = this;
 
   // Recreate foam for each call to pmake as
   // each call to pmake uses a different set of flags which control
@@ -52,7 +53,6 @@ var pmake = function(...args) {
 
   globalThis.X       = X;
   globalThis.flags   = flags;
-  globalThis.verbose = function verbose() { if ( flags.verbose ) console.log.apply(console, arguments); };
 
   /** 'makers' format: task1,task2,task3(args),... where args are optional **/
   var makers = X.makers.split(',').map(m => {
@@ -76,7 +76,7 @@ var pmake = function(...args) {
   globalThis.foam.setupFlags();
 
   var processDir = function (pom, location, skipIfHasPOM) {
-    verbose('\tdirectory:', location);
+    self.verbose('\tdirectory:', location);
     var files = fs_.readdirSync(location, {withFileTypes: true});
 
     if ( skipIfHasPOM && files.find(f => f.name.endsWith('pom.js')) ) {
@@ -92,11 +92,11 @@ var pmake = function(...args) {
           if ( f.name.indexOf('examples') != -1 ) return;
           if ( f.name.endsWith('test') && ! flags.test ) return;
           if ( f.name.endsWith('tests') && ! flags.test ) return;
-          if ( ! this.isExcluded(pom, fn) ) processDir(pom, fn, true);
+          if ( ! this.isExcluded(pom, fn) ) processDir.bind(this, pom, fn, true)();
         }
-        makers.forEach(v => v.visitDir && v.visitDir(pom, f, fn));
+        makers.forEach(v => v.visitDir && v.visitDir.bind(this, pom, f, fn)());
       } else {
-        makers.forEach(v => v.visitFile && v.visitFile(pom, f, fn));
+        makers.forEach(v => v.visitFile && v.visitFile.bind(this, pom, f, fn)());
       }
     });
   }.bind(this);
@@ -114,24 +114,24 @@ var pmake = function(...args) {
     pom.path     = foam.sourceFile;
 
     makers.forEach(v => {
-      verbose('[pmake] visitPOM', v.name, pom);
-      v.visitPOM && v.visitPOM.bind(this, pom)();
+      self.verbose('[pmake] visitPOM', v.name, pom);
+      v.visitPOM && v.visitPOM.bind(self, pom)();
     });
     if ( ! seen[foam.cwd] ) {
-      verbose('[pmake] procesDir', pom.path );
-      processDir.bind(this, pom, foam.cwd, false, makers)();
+      self.verbose('[pmake] procesDir', pom.path );
+      processDir.bind(self, pom, foam.cwd, false, makers)();
       seen[foam.cwd] = true;
     }
 
     SUPER(pom);
     makers.forEach(v => v.endVisitPOM && v.endVisitPOM(pom));
-  }.bind(this);
+  }.bind(self);
 
   // Speeds up Makers like Verbose and JS which don't need to load .js model files.
   if ( ! foam.flags.loadFiles ) foam.loadFiles = function() {};
 
   X.pom.split(',').forEach(function(pom) {
-    verbose(`[pmake] pom ${pom}`);
+    this.verbose(`[pmake] pom ${pom}`);
     try {
       var path = path_.resolve(foam.cwd, pom) + '.js';
       foam.require(pom, false, true);
@@ -140,7 +140,7 @@ var pmake = function(...args) {
     }
   }.bind(this));
 
-  makers.forEach(v => v.end && v.end());
+  makers.forEach(v => v.end && v.end.bind(this)());
 
   if ( makers.length == 1 ) {
     return makers[0];

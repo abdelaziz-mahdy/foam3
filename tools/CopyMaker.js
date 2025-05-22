@@ -36,10 +36,10 @@ exports.visitPOM = function(pom) {
     let targetName = fn.target && path_.posix.basename(fn.target) || sourceName;
 
     if ( fs_.lstatSync(source).isDirectory() ) {
-      console.log(`[Copy Maker] Copying Directory ${source} to ${targetDirName}`);
+      this.log(`[Copy Maker] Copying Directory ${source} to ${targetDirName}`);
       b_.copyDir(source, targetDir);
     } else {
-      console.log(`[Copy Maker] Copying File ${sourceName} to ${targetDirName}/${targetName}`);
+      this.log(`[Copy Maker] Copying File ${sourceName} to ${targetDirName}/${targetName}`);
       b_.ensureDir(targetDir);
       b_.copyFile(source, targetDir+'/'+targetName);
     }

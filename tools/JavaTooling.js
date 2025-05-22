@@ -322,31 +322,31 @@ foam.POM({
             this.warning('CORE server failed stop.', e);
           }
         } else {
-          verbose('CORE server not running.');
+          this.verbose('CORE server not running.');
         }
       } else {
-        verbose('CORE PIDFILE not found.');
+        this.verbose('CORE PIDFILE not found.');
       }
     }],
 
     usage: ['usage', 'Build usage examples', [], function usage() {
-      console.log('Running Java application server:');
-      console.log('NOTE: All builds will still start a Java web server (CORE), unless directed otherwise.');
-      console.log('  ./build.sh -aJhttps -EJAVA_OPTS:\"-Xms4g -Xmx8g\"');
-      console.log('    Start CORE with additional memory, launch from JAR, start HTTPS web server, set JVM max and min memory.');
-      console.log('  ./build.sh -Ndemo -W8300 -aJhttps');
-      console.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
-      console.log('  ./build.sh --appName:demo --webPort:8300 --jar --journals:https');
-      console.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
-      console.log('  ./build.sh --app-name:demo --web-port:8300 --jar --journals:https');
-      console.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
-      console.log('  ./build.sh -EAPP_NAME:demo,WEB_PORT:8300,JAR:true,JOURNALS:https');
-      console.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
-      console.log('Running Java Test Cases:');
-      console.log('  ./build.sh --java-tests');
-      console.log('    Run all Java test cases.');
-      console.log('  ./build.sh --java-tests:SequenceNumberDAO,MapDAOTest');
-      console.log('    Run specified Java test cases.');
+      this.log('Running Java application server:');
+      this.log('NOTE: All builds will still start a Java web server (CORE), unless directed otherwise.');
+      this.log('  ./build.sh -aJhttps -EJAVA_OPTS:\"-Xms4g -Xmx8g\"');
+      this.log('    Start CORE with additional memory, launch from JAR, start HTTPS web server, set JVM max and min memory.');
+      this.log('  ./build.sh -Ndemo -W8300 -aJhttps');
+      this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
+      this.log('  ./build.sh --appName:demo --webPort:8300 --jar --journals:https');
+      this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
+      this.log('  ./build.sh --app-name:demo --web-port:8300 --jar --journals:https');
+      this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
+      this.log('  ./build.sh -EAPP_NAME:demo,WEB_PORT:8300,JAR:true,JOURNALS:https');
+      this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
+      this.log('Running Java Test Cases:');
+      this.log('  ./build.sh --java-tests');
+      this.log('    Run all Java test cases.');
+      this.log('  ./build.sh --java-tests:SequenceNumberDAO,MapDAOTest');
+      this.log('    Run specified Java test cases.');
     }],
 
     versions: ['versions', 'Show version information.', ['getProjectRevision', 'getFOAMRevision'], function versions() {

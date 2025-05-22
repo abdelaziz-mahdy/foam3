@@ -64,7 +64,7 @@ rm -rf ~/foam3/build
 ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
-const { bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, verbose } = require('./buildlib');
+const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, writeFileIfUpdated, verbose } = require('./buildlib');
 const { existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
 const os = require('os');
 const { join }                                    = require('path');
@@ -205,7 +205,7 @@ function task() {
 
 // Execute task by name
 function execute(t, ...args) {
-  // console.log(`execute t: ${t}, args: ${args}`);
+  // log(`execute t: ${t}, args: ${args}`);
   var f = globalThis[t];
   if ( ! f ) {
     let task = findTask(TOOLING_TASKS, t);
@@ -250,6 +250,7 @@ function execute(t, ...args) {
 }
 
 function showSummary() {
+  if ( SILENT ) return;
   if ( HELP ) return;
 
   // if ( SHOW_ENVS ) {
@@ -287,6 +288,7 @@ function error(...args) {
 }
 
 function moreUsage(arg) {
+  if ( SILENT ) return;
   let showEnvs = ( SHOW_ENVS || arg && arg === 'showEnvs' ) ? true : false;
   if ( ! showEnvs ) {
     info('Usage: build.js [OPTIONS] (see --usage for examples)');
@@ -313,8 +315,8 @@ function moreUsage(arg) {
             def = def();
           }
         }
-        console.log(''.padStart(0), opts+':', ''.padStart(41-opts.length), '\x1b[0;35m', def,'\x1b[0;0m');
-        console.log(''.padStart(3), option.desc);
+        log(''.padStart(0), opts+':', ''.padStart(41-opts.length), '\x1b[0;35m', def,'\x1b[0;0m');
+        log(''.padStart(3), option.desc);
       });
     }
 
@@ -340,7 +342,7 @@ function moreUsage(arg) {
             dep = dstr.split(",");
             dstr = '[' + dstr + ']';
           }
-          console.log(''.padEnd(depth*2) + t.padEnd(27-depth*2), desc, dstr);
+          log(''.padEnd(depth*2) + t.padEnd(27-depth*2), desc, dstr);
           depth++;
           dep.forEach(printTask);
           depth--;
@@ -363,7 +365,7 @@ function moreUsage(arg) {
 
     Object.keys(ENVS).sort().forEach(k => {
       if ( NO_SHOW_ENVS[k] ) {
-        // console.log(`moreUsage skipping ${k}`);
+        // log(`moreUsage skipping ${k}`);
         return;
       }
       var [ desc, _ ] = ENVS[k];
@@ -372,13 +374,13 @@ function moreUsage(arg) {
         v = '';
       else
         v = v.toString();
-      console.log(''.padStart(0), k+':', ''.padStart(20-k.length), '\x1b[0;35m', v, '\x1b[0;0m',);
+      log(''.padStart(0), k+':', ''.padStart(20-k.length), '\x1b[0;35m', v, '\x1b[0;0m',);
       if ( ! showEnvs && desc ) {
-        console.log(''.padStart(3), desc);
+        log(''.padStart(3), desc);
       }
     });
   }
-  console.log('');
+  log('');
   if ( ! showEnvs ) {
     info('See --usage for examples, and documentation #flowdoc/Build.)');
   }
@@ -403,6 +405,7 @@ buildEnv(ENVS);
 
 // Export functions for Tooling and Build POM tasks
 EXPORTS = Object.assign(EXPORTS, {
+  adaptOrCreateArgs,
   addJournal,
   bool,
   buildEnv,
@@ -422,6 +425,7 @@ EXPORTS = Object.assign(EXPORTS, {
   info,
   isExcluded,
   join,
+  log,
   openSync,
   pmake,
   readdirSync,
@@ -430,12 +434,14 @@ EXPORTS = Object.assign(EXPORTS, {
   rmfile,
   showSummary,
   warning,
+  writeFileIfUpdated,
   writeFileSync,
   verbose
 });
 
 TOOLING_OPTIONS = addOptions({
   platform: ['', 'platform', 'PLATFORM', 'Operation System Type', () => os.platform(), arg => PLATFORM = arg ],
+  silent: ['', 'silent', 'SILENT', "Suppress all 'info' and 'warning' log messages.", false, function(arg) { SILENT = arg ? bool(arg) : true; }],
   toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'', '', arg => TOOLING_POMS = arg ]
 }, TOOLING_OPTIONS);
 
@@ -509,17 +515,17 @@ OPTIONS = addOptions({
         }
       }
       let desc = option.desc;
-      console.log('(OPTION)', ''.padStart(0), opts+':', '\x1b[0;35m', def,'\x1b[0;0m', desc);
+      log('(OPTION)', ''.padStart(0), opts+':', '\x1b[0;35m', def,'\x1b[0;0m', desc);
     } else {
       let t = findTask(TOOLING_TASKS, arg); // first will do
       if ( t ) {
         var msg = arg;
         if ( arg !== t.name ) msg += ' '+t.name;
-        console.log('(TASK)', msg, t.desc);
+        log('(TASK)', msg, t.desc);
       } else {
         let e = ENVS[arg];
         if ( e ) {
-          console.log('(ENV)', arg,': ',e[0]);
+          log('(ENV)', arg,': ',e[0]);
         } else {
           var extra = '';
           let similar = findSimilarTasks(TOOLING_TASKS, arg);
@@ -617,11 +623,11 @@ task('tooling', 'Prepare build environment', [], function tooling() {
     var fn = join(process.cwd(),`tools/defaultTooling`);
     if ( existsSync(fn) ) {
       toolingPOMs = readFileSync(fn).toString().trim();
-      console.log(`[build] using project tooling: ${toolingPOMs}`);
+      log(`[build] using project tooling: ${toolingPOMs}`);
     }
     if ( ! toolingPOMs ) {
       toolingPOMs = 'Standard,Npm,Maven,Git,JS,Java';
-      console.log(`[build] using default tooling: ${toolingPOMs}`);
+      log(`[build] using default tooling: ${toolingPOMs}`);
     }
     TOOLING_POMS = toolingPOMs;
   }
@@ -665,22 +671,22 @@ task('pom-envs', 'Capture POM arguments to environment values or options, and re
   Object.keys(envMaker.envs).forEach(e => {
     let option = findOption(OPTIONS, e);
     if ( option ) {
-      // console.log(`[build] envMaker def ${option.def}, global: ${globalThis[option.env]}`);
+      // log(`[build] envMaker def ${option.def}, global: ${globalThis[option.env]}`);
       if ( ! globalThis[option.env] ||
            option.def &&
            globalThis[option.env] === option.def ) {
-        console.log(`[build] setting ${e} = ${envMaker.envs[e]}`);
+        log(`[build] setting ${e} = ${envMaker.envs[e]}`);
         option.f.bind(this, envMaker.envs[e])();
       } else {
-        // console.log(`[build] NOT replacing ${e} ${globalThis[option.env]} with ${envMaker.envs[e]}`);
+        // log(`[build] NOT replacing ${e} ${globalThis[option.env]} with ${envMaker.envs[e]}`);
       }
       return;
     }
     if ( ENVS[e] ) {
       if ( globalThis[e] ) {
-        console.log(`[build] replacing ${e} ${globalThis[e]} with ${envMaker.envs[e]}`);
+        log(`[build] replacing ${e} ${globalThis[e]} with ${envMaker.envs[e]}`);
       } else {
-        console.log(`[build] setting ${e} = ${envMaker.envs[e]}`);
+        log(`[build] setting ${e} = ${envMaker.envs[e]}`);
       }
       globalThis[e] = envMaker.envs[e];
       return;
@@ -708,6 +714,8 @@ task('copy', 'Run POM copy tasks.', [], function copy() {
 task('show-poms', 'Show POM structure.', [], function showPOMs() {
   pmake.bind(Object.assign({}, EXPORTS), `-makers=Verbose -flags=${flag('web,java')} -pom=${POMS} -builddir=${BUILD_DIR}`)();
 });
+
+task('get-env', 'Return value of arg. Called from installation scripts', ['pomEnvs'], function getEnv(arg) { console.log(`${arg}=${globalThis[arg]}`); });
 
 // Phase I - process tooling poms
 processToolingArgs.bind(Object.assign({}, EXPORTS), TOOLING_OPTIONS, moreUsage)();

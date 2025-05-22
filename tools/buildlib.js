@@ -234,7 +234,15 @@ function bool(val) {
   return String(val).toLowerCase() === 'true';
 }
 
+// Normal console.log messages, but can be silenced
+function log(...args) {
+  if ( SILENT ) return;
+  let msg = args.join(' ');
+  console.log(msg);
+}
+
 function info(...args) {
+  if ( SILENT ) return;
   let msg = args.join(' ');
   console.log('\x1b[0;32mINFO ::', msg, '\x1b[0;0m');
   // green: 32m
@@ -250,6 +258,7 @@ function verbose(...args) {
 }
 
 function warning(...args) {
+  if ( SILENT ) return;
   let msg = args.join(' ');
   console.log('\x1b[0;35mWARNING ::', msg, '\x1b[0;0m');
   // yellow: 33m - too light for white background
@@ -449,6 +458,7 @@ exports.flag                  = flag;
 exports.hyphenate             = hyphenate;
 exports.info                  = info;
 exports.isExcluded            = isExcluded;
+exports.log                   = log;
 exports.processBuildArgs      = processBuildArgs;
 exports.processToolingArgs    = processToolingArgs;
 exports.rmdir                 = rmdir;

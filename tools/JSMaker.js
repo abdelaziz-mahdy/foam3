@@ -12,7 +12,6 @@ const fs_      = require('fs');
 const path_    = require('path');
 const uglify_  = require('uglify-js');
 const zlib_    = require('zlib');
-const { adaptOrCreateArgs, ensureDir, info, warning, error } = require("./buildlib");
 
 var licenses   = {};
 var version    = '';
@@ -32,8 +31,8 @@ exports.args = [
 ];
 
 exports.init = function() {
-  adaptOrCreateArgs(X, exports.args);
-  ensureDir(X.outdir);
+  this.adaptOrCreateArgs(X, exports.args);
+  this.ensureDir(X.outdir);
 
   version = X.version || version;
   licenses = {};
@@ -54,13 +53,14 @@ exports.visitPOM = function(pom) {
 
 
 exports.end = function() {
+  var self = this;
   var loaded = Object.keys(globalThis.foam.loaded);
   if ( Object.keys(loaded).length == 0 ) {
-    info('[JS] flags:');
+    this.info('[JS] flags:');
     Object.keys(globalThis.foam.flags).forEach(f => {
-      console.log(f, globalThis.foam.flags[f]);
+      self.log(f, globalThis.foam.flags[f]);
     });
-    error('[JS] No files loaded');
+    this.error('[JS] No files loaded');
   }
 
   loaded.unshift(path_.dirname(__dirname) + '/src/foam.js');
@@ -73,20 +73,20 @@ exports.end = function() {
     if ( l.endsWith('pom.js') ) return;
     try {
       l = path_.resolve(__dirname, l);
-      verbose('[JS] path', l);
+      self.verbose('[JS] path', l);
       if ( X.stage === undefined ) {
         files[l] = fs_.readFileSync(l, "utf8");
       } else {
         var stage = foam.stages[l] ?? foam.defaultStage;
         if ( X.stage == stage ) {
-          // console.log('***** IN stage:', X.stage,' *** file:', l);
+          // this.log('***** IN stage:', X.stage,' *** file:', l);
           files[l] = fs_.readFileSync(l, "utf8");
         } else {
-          // console.log('***** EX stage:', X.stage, stage, ' *** file:', l);
+          // this.log('***** EX stage:', X.stage, stage, ' *** file:', l);
         }
       }
     } catch (x) {
-      // console.log('********************************* Unexpected Error: ', x);
+      // this.log('********************************* Unexpected Error: ', x);
     }
   });
 
@@ -101,7 +101,7 @@ exports.end = function() {
 
   license = license.split('\n').map(l => '// ' + l).join('\n');
 
-  console.log(`[JS] Version: ${version}, Licenses: ${Object.keys(licenses).length}, Files: ${Object.keys(files).length}, Stage: ${X.stage}`);
+  this.log(`[JS] Version: ${version}, Licenses: ${Object.keys(licenses).length}, Files: ${Object.keys(files).length}, Stage: ${X.stage}`);
   var result = Object.keys(files).length && uglify_.minify(
     files,
     {
@@ -115,12 +115,12 @@ exports.end = function() {
     });
 
   if (result && result.error) {
-    error('[JS]', result.error);
+    this.error('[JS]', result.error);
   }
   var code = result && result.code;
 
   if ( ! code ) {
-    warning('[JS] No output for stage', X.stage);
+    this.warning('[JS] No output for stage', X.stage);
 //    return;
     code = '';
   }
@@ -193,14 +193,14 @@ if ( ! foam.flags.skipStage2 ) {
   // code = code.replaceAll(/foam.CLASS\({/gm, '\nfoam.CLASS({');
 
   var filename = fn(X.stage);
-  console.log('[JS] Writing', filename + '.js');
+  this.log('[JS] Writing', filename + '.js');
   fs_.writeFileSync(X.outdir + "/" + filename + '.js', code);
-  console.log('[JS] Writing', filename + '.js.gz');
+  this.log('[JS] Writing', filename + '.js.gz');
   zlib_.gzip(code, (err, buffer) => {
     if ( ! err ) {
       fs_.writeFileSync(X.outdir + "/" + filename + '.js.gz', buffer);
     } else {
-      error('[JS] Writing', filename, err);
+      this.error('[JS] Writing', filename, err);
     }
   });
 }

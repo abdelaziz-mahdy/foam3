@@ -4,7 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-const { info, warning, error } = require('./buildlib');
 const envs    = {};
 const tasks   = {};
 const options = {};
@@ -17,7 +16,7 @@ exports.visitPOM = function(pom) {
       if ( ! envs[k] ) {
         envs[k] = pom.envs[k];
       } else {
-        warning(`[Tooling] duplicate env '${k}\' ignored from pom '${pom.name}'`);
+        this.warning(`[Tooling] duplicate env '${k}\' ignored from pom '${pom.name}'`);
       }
     });
 
@@ -26,7 +25,7 @@ exports.visitPOM = function(pom) {
       if ( ! options[k] ) {
         options[k] = pom.options[k];
       } else {
-        warning(`[Tooling] duplicate arg '${k}' ignored from pom '${pom.name}'`);
+        this.warning(`[Tooling] duplicate arg '${k}' ignored from pom '${pom.name}'`);
       }
     });
 

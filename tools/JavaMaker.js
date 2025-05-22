@@ -11,7 +11,6 @@
 
 const fs_   = require('fs');
 const path_ = require('path');
-const { adaptOrCreateArgs, ensureDir, warning, error } = require('./buildlib');
 
 exports.description = 'generates .java files from .js models';
 
@@ -25,9 +24,9 @@ exports.args = [
 ];
 
 exports.init = function() {
-  verbose('[Java] init');
-  adaptOrCreateArgs(X, exports.args);
-  ensureDir(X.outdir);
+  this.verbose('[Java] init');
+  this.adaptOrCreateArgs(X, exports.args);
+  this.ensureDir(X.outdir);
 
   // Turns on loading of foam/java/* models needed for java code generation.
   flags.genjava   = true;
@@ -36,13 +35,14 @@ exports.init = function() {
 }
 
 exports.end = function() {
+  var self = this;
   // Promote all UNUSED Models to USED
   // 2 passes in case interfaces generated new classes in 1st pass
   for ( var i = 0 ; i < 2 ; i++ )
     for ( var key in foam.UNUSED ) {
       try { foam.maybeLookup(key); }
       catch(x) {
-        // warning('[Java] UNUSED Model not found', key);
+        // this.warning('[Java] UNUSED Model not found', key);
       }
     }
 
@@ -55,14 +55,14 @@ exports.end = function() {
       jCount++;
     }
   } catch(e) {
-    Object.keys(globalThis.foam.flags).forEach(f => {console.log("flag", f, globalThis.foam.flags[f]); });
-    error('[Java] Model error:', key, e);
+    Object.keys(globalThis.foam.flags).forEach(f => {self.log("flag", f, globalThis.foam.flags[f]); });
+    this.error('[Java] Model error:', key, e);
   }
 
   let msg = `[Java]: ${jCount}/${mCount} models processed.`;
   if ( jCount == 0 ) {
-    warning(msg);
+    this.warning(msg);
   } else {
-    console.log(msg);
+    this.log(msg);
   }
 }
