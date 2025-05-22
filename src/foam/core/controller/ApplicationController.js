@@ -858,16 +858,8 @@ foam.CLASS({
       this.loginSuccess = true;
       let check = await this.checkGeneralCapability();
       if ( ! check ) return;
-
       await this.fetchTheme();
-
       var hash = this.route;
-      if ( hash ) {
-        let id = hash.indexOf('/');
-        if ( id != -1 )
-          hash = hash.substring(0, id);
-      }
-
       if ( ! hash || hash == 'null' /* How does it even get set to null? */ ) {
         await this.pushDefaultMenu();
       } else if ( hash != this.currentMenu?.id || this.currentMenu.authorizationStatus == this.AuthorizationStatus.UNAUTHENTICATED ) {
