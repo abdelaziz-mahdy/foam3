@@ -6,23 +6,27 @@
  */
 // Build and Deploy a FOAM Application
 //
-// Tools
+// See documentation at #flowdoc/Build
+// and node build.js --help
+//
+// Toosls
 //   tools/JSMaker.js
 //     - collects and minifies .js files into a single foam-bin.js file
 //     - uses the UglifyJS library to minimize the size of the packaged .js files
 //   tools/JavaMaker.js
 //     - generates .java files from .js models
 //     - create /build/javacfiles file containing list of modified or static .java files
+//     - call javac to compile files in javacfiles
+//   tools/MavenMaker
 //     - build pom.xml from accumulated javaDependencies
 //     - call maven to update dependencies if pom.xml updated
-//     - call javac to compile files in javacfiles
 //     - create a Maven pom.xml file with accumulated POM javaDependencies information
 //   tools/JournalMaker.js
 //     - copies .jrl files into /build/journals
 //   tools/DocMaker.js
 //     - copies .flow files into /build/documents
 //
-// Directory Structure:
+// Directory Structure (Standard/default):
 //   /deployment    - deployment specific journals
 //   /build
 //     /src         - java source files created by genJava
@@ -60,105 +64,198 @@ rm -rf ~/foam3/build
 ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
-const fs       = require('fs');
-const os       = require('os');
-const { join } = require('path');
-const { buildEnv, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, info, processSingleCharArgs, rmdir, rmfile, spawn, warning } = require('./buildlib');
-const PWD      = process.cwd();
-const pmake    = require('./pmake.js');
+const { bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, verbose } = require('./buildlib');
+const { existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
+const os = require('os');
+const { join }                                    = require('path');
+const pmake                                       = require('./pmake');
+
+const TASK_SEPERATOR                              = ' ';
 
 process.on('unhandledRejection', e => {
-  console.error("ERROR: Unhandled promise rejection ", e);
-  process.exit(1);
+  error("ERROR: Unhandled promise rejection ", e);
 });
 
-var summary = [];
 var depth   = 1;
-var tasks   = [];
 var running = {};
+var summary = [];
+let TOOLING_TASKS = {};
 
-function task(desc, dep, f) {
+function task() {
+  var name, gnuopt, desc = '', dep = [], f, pom = 'build';
   if ( arguments.length == 1 ) {
-    f    = desc;
-    desc = '';
-    dep  = [];
+    f = arguments[0];
+    name = f.name;
+    gnuopt = hyphenate(f.name);
+  } else if ( arguments.length == 3 ) {
+    f = arguments[2];
+    name = f.name;
+    gnuopt = hyphenate(f.name);
+    desc = arguments[0];
+    dep = arguments[1];
+  } else if ( arguments.length == 4 ) {
+    f = arguments[3];
+    name = f.name;
+    gnuopt = arguments[0];
+    desc = arguments[1];
+    dep = arguments[2];
+  } else if ( arguments.length == 6 ) {
+    name = arguments[0];
+    gnuopt = arguments[1];
+    desc = arguments[2];
+    dep = arguments[3];
+    f = arguments[4];
+    pom = arguments[5];
+  } else {
+    var msg = 'task() expecting 1, 3, 4, or 6 arguments\n';
+    Object.keys(arguments).forEach(key => {
+      msg += key +': ' + arguments[key] + '\n';
+    });
+    error(msg);
   }
 
-  if ( ! tasks[f.name] ) {
-    tasks[f.name] = [desc, dep];
-  }
+  let toolingTask = {
+    name: name,
+    gnuopt: gnuopt,
+    desc: desc,
+    dep: dep,
+    f: f,
+    pom: pom
+  };
+
+  let toolingTasks = TOOLING_TASKS[name] || [];
+  toolingTasks.push(toolingTask);
+  TOOLING_TASKS[name] = toolingTasks;
 
   var fired = false;
-  var rec   = [ ];
-  var SUPER = globalThis[f.name] || function() { };
-  globalThis[f.name] = function(...args) {
+  var rec   = [];
+  var SUPER = globalThis[name] || function() { };
+  globalThis[name] = function(...args) {
     if ( fired ) return;
     fired = true;
+    let tasks = TOOLING_TASKS[name];
+    if ( ! tasks ) {
+      error(`Task not found: ${name}`);
+    }
+    if ( NOP.split(',').includes(name) ) {
+      warning(`Skipping Task :: ${name}`);
+      return;
+    }
 
-    running[f.name] = (running[f.name] || 0) + 1;
-    if ( running[f.name] === 1 ) {
+    running[name] = (running[name] || 0) + 1;
+    if ( running[name] === 1 ) {
       summary.push(rec);
-      info(`Starting Task :: ${f.name}`);
+      info(`Starting Task :: ${name}`);
       var start = Date.now();
-      rec[0] = ''.padEnd(2*depth) + f.name;
+      rec[0] = ''.padEnd(2*depth) + name;
       rec[2] = start;
       depth++;
     }
 
-    // execute task dependencies
-    let task = tasks[f.name];
-    let dep = task[1];
-    dep.forEach(d => {
-      if ( d instanceof Function ) {
-        d();
-      } else {
-        var f = globalThis[d];
-        if ( f )
-          f(...d.slice(1));
+    // execute same named pom tasks
+    let pomTasks = POM_TASKS && POM_TASKS[name];
+    if ( pomTasks ) {
+      info(`  Starting POM Tasks :: ${name}`);
+      if ( ! DRY_RUN ) {
+        pomTasks.forEach(pomTask => {
+          verbose(`    Executing POM Tasks :: ${name} (${pomTask.pom})`);
+          var f = pomTask.f || pomTask;
+          try {
+            f.apply(Object.assign({}, EXPORTS), args);
+          } catch (e) {
+            error(`POM Tasks :: ${name} (${pomTask.pom})`, '\n', e);
+          }
+        });
+      }
+      verbose(`  Finished POM Tasks :: ${name}`);
+    }
+
+    tasks.forEach(function(task) {
+      verbose(`  Execute Task :: ${name} (${task.pom})`);
+      // execute task dependencies
+      var dep = task.dep;
+      dep && dep.forEach(d => {
+        if ( d instanceof Function ) {
+          d.apply(Object.assign({}, EXPORTS), args);
+        } else {
+          var f = globalThis[d];
+          if ( f )
+            f.apply(Object.assign({}, EXPORTS), args);
+          else
+            error(`Task ${name} (${task.pom}) dependency not found ${d}`);
+        }
+      });
+
+      // execute tasks
+      if ( ! DRY_RUN || name == 'pomEvns' || name == 'all' ) {
+        task.f.apply(Object.assign({ SUPER }, EXPORTS), args);
       }
     });
 
-    // execute same named pom tasks
-    let pomTasks = POM_TASKS && POM_TASKS[f.name];
-    if ( pomTasks ) {
-      info(`POM Tasks :: ${f.name}`);
-      if ( ! DRY_RUN ) {
-        pomTasks.forEach(k => {
-          k.bind(Object.assign({}, EXPORTS))(...args);
-        });
-      }
-    }
-
-    // execute tasks
-    if ( ! DRY_RUN || f.name == 'pomEvns' || f.name == 'all' ) {
-      f.bind(Object.assign({ SUPER }, EXPORTS))(...args);
-    }
-
-    running[f.name] -= 1;
-    if ( running[f.name] === 0 ) {
+    running[name] -= 1;
+    if ( running[name] === 0 ) {
       depth--;
       var end = Date.now();
-      var dur = ((end-start)/1000).toFixed(1);
-      info(`Finished Task :: ${f.name} in ${dur} seconds`);
+      var dur = ((end-start)/1000).toFixed(2);
+      info(`Finished Task :: ${name} in ${dur} seconds`);
       rec[1] = dur;
     }
   };
 }
 
 // Execute task by name
-// future - presently the selection of tasks is restricted to those
-// explicitly defined in this file.  But potentially, a pom could
-// define additional tasks and also overide a tasks dependecy list.
-function execute(t) {
+function execute(t, ...args) {
+  // console.log(`execute t: ${t}, args: ${args}`);
   var f = globalThis[t];
+  if ( ! f ) {
+    let task = findTask(TOOLING_TASKS, t);
+    if ( task ) {
+      f = globalThis[task.name];
+      if ( ! f && task.f ) {
+        f = task.f;
+      }
+    }
+  }
+  if ( ! f ) {
+    let option = findOption(OPTIONS, t);
+    if ( option ) {
+      f = globalThis[option.name];
+      if ( ! f && option.f ) {
+        f = option.f;
+      }
+    }
+  }
   if ( f ) {
-    f(...t.slice(1));
+    f.apply(Object.assign({}, EXPORTS), args);
   } else {
-    error('Task not found', t);
+    var extra = '';
+    if ( t.length > 1 ) {
+      let similar = findSimilarTasks(TOOLING_TASKS, t);
+      if ( similar.length > 0 ) {
+        extra += '\n  Possible Task matches: \n';
+      }
+      similar.forEach(task => {
+        extra += '    ' + task.name + ' ' + task.gnuopt + ' - ' + task.desc + '\n';
+      });
+      similar = findSimilarOptions(OPTIONS, t);
+      if ( similar.length > 0 ) {
+        extra += '\n  Possible Option matches: \n';
+      }
+      similar.forEach(option => {
+        extra += '    ' + option.name + ' ' + option.opt + ' ' + option.gnuopt + ' - ' + option.desc + '\n';
+      });
+    }
+    error('Task not found:', t, extra);
   }
 }
 
 function showSummary() {
+  if ( HELP ) return;
+
+  // if ( SHOW_ENVS ) {
+    moreUsage('showEnvs');
+  // }
+
   var s = '';
   summary.forEach(e => {
     if ( e[1] === undefined ) {
@@ -172,6 +269,7 @@ function showSummary() {
     info('Execution Summary:\n', s);
   }
 }
+task('show-summary', 'Display build statistics', [], showSummary);
 
 function quit(code) {
   showSummary();
@@ -182,17 +280,288 @@ function quit(code) {
 }
 
 function error(...args) {
+  showSummary();
   let msg = args.join(' ');
   console.log('\x1b[0;31mERROR ::', msg, '\x1b[0;0m');
-  quit(1);
+  process.exit(1);
+}
+
+function moreUsage(arg) {
+  let showEnvs = ( SHOW_ENVS || arg && arg === 'showEnvs' ) ? true : false;
+  if ( ! showEnvs ) {
+    info('Usage: build.js [OPTIONS] (see --usage for examples)');
+    if( ! arg || arg === 'options' ) {
+      info('\nOptions are:');
+      Object.keys(OPTIONS).forEach(key => {
+        let option = OPTIONS[key];
+        var opts = '';
+        if ( option.opt ) {
+          opts = '-'+option.opt;
+        }
+        opts += (opts ? ', ' : '');
+        opts += '--'+option.name;
+        if( option.gnuopt !== key ) {
+          opts += ', --'+option.gnuopt;
+        }
+        if ( option.env ) {
+          opts += ', '+option.env;
+        }
+        var def = option.env && globalThis[option.env] && globalThis[option.env].toString();
+        if ( ! def ) {
+          def = option.def ? option.def : '';
+          if ( def instanceof Function ) {
+            def = def();
+          }
+        }
+        console.log(''.padStart(0), opts+':', ''.padStart(41-opts.length), '\x1b[0;35m', def,'\x1b[0;0m');
+        console.log(''.padStart(3), option.desc);
+      });
+    }
+
+    if ( ! arg || arg === 'tasks' ) {
+      info('\nTasks: (invoke with -XtaskName or --task-name)');
+      var ts = Object.assign({}, TOOLING_TASKS);
+      var depth = 1;
+      function printTask(t) {
+        if ( ! ts[t] ) return;
+        delete ts[t];
+        var task = findTask(TOOLING_TASKS, t);
+        var dstr = '';
+        var dep = [];
+        if ( task ) {
+          let desc = showEnvs ? '' : task.desc;
+          let tasks = TOOLING_TASKS[task.name];
+          tasks.forEach(task => {
+            var dep2 = task.dep.filter(d => ! ts[d]); // list of dependencies which appear elsewhere in tree
+            if ( dep2.length )
+              dstr = comma(dstr, dep2.join(', '));
+          });
+          if ( dstr ) {
+            dep = dstr.split(",");
+            dstr = '[' + dstr + ']';
+          }
+          console.log(''.padEnd(depth*2) + t.padEnd(27-depth*2), desc, dstr);
+          depth++;
+          dep.forEach(printTask);
+          depth--;
+        }
+      }
+      Object.keys(ts).sort().forEach(t => {
+        printTask(t);
+      });
+    }
+  }
+  if ( showEnvs ||
+       ! arg ||
+       arg === 'envs' ) {
+    if ( showEnvs ) {
+      info('\nEnvironment variable report:');
+    } else {
+      info('\nEnvironment variables: (set with -E)');
+    }
+    depth = 1;
+
+    Object.keys(ENVS).sort().forEach(k => {
+      if ( NO_SHOW_ENVS[k] ) {
+        // console.log(`moreUsage skipping ${k}`);
+        return;
+      }
+      var [ desc, _ ] = ENVS[k];
+      var v = globalThis[k];
+      if ( v === null || v === undefined )
+        v = '';
+      else
+        v = v.toString();
+      console.log(''.padStart(0), k+':', ''.padStart(20-k.length), '\x1b[0;35m', v, '\x1b[0;0m',);
+      if ( ! showEnvs && desc ) {
+        console.log(''.padStart(3), desc);
+      }
+    });
+  }
+  console.log('');
+  if ( ! showEnvs ) {
+    info('See --usage for examples, and documentation #flowdoc/Build.)');
+  }
+}
+
+// Internal environment variables of build.js and buildlib.js
+var ENVS = {
+  EXPORTS:           ['Build environment variables which will be exported to pom tasks.', {}],
+  OPTIONS:           ['Build options determined during tooling which can be configured to by CLI and POM arguments to control the build', {}],
+  POM_ENVS:          ['Supports translating top level POM parameters to build parameters, such as pom.name -> APP_NAME, pom.version -> VERSION.  Also provides legacy support to POMs still using top level POM parametes for Java Manifest and Javac Parameters. Java Manifest property \'vendor\' should be set in POM task \'javaManifest\' and \'java\' should be set in POM task \'javacParameters\'.', 'APP_NAME=name,VERSION=version,JAVA_RELEASE=java,JAVA_MANIFEST_VENDOR=vendor'],
+  POM_TASKS:         ['Map of named tasks captured from build POMs. Will be executed when same named build task is executed.', {}],
+  PROJECT:           ['Top-Level Loaded POM Object, not be be confused with variable \'POMS\', which is the name of the POM(s) to be processed by the build'],
+  TOOLING_OPTIONS:   ['Options which control the tooling phase of the build', {}],
+};
+ENVS['TOOLING_TASKS'] = ['Tasks defined in Tooling poms and this build itself', TOOLING_TASKS];
+let NO_SHOW_ENVS = Object.assign({}, ENVS);
+
+globalThis['ENVS'] = ENVS;
+
+// Configure build variables
+buildEnv(ENVS);
+
+// Export functions for Tooling and Build POM tasks
+EXPORTS = Object.assign(EXPORTS, {
+  addJournal,
+  bool,
+  buildEnv,
+  comma,
+  copyDir,
+  copyFile,
+  emptyDir,
+  ensureDir,
+  error,
+  exec,
+  execute,
+  execSync,
+  existsSync,
+  findOption,
+  findTask,
+  flag,
+  info,
+  isExcluded,
+  join,
+  openSync,
+  pmake,
+  readdirSync,
+  readFileSync,
+  rmdir,
+  rmfile,
+  showSummary,
+  warning,
+  writeFileSync,
+  verbose
+});
+
+TOOLING_OPTIONS = addOptions({
+  platform: ['', 'platform', 'PLATFORM', 'Operation System Type', () => os.platform(), arg => PLATFORM = arg ],
+  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'', '', arg => TOOLING_POMS = arg ]
+}, TOOLING_OPTIONS);
+
+OPTIONS = addOptions({
+  buildDir: [ '', 'build-dir', 'BUILD_DIR', 'Build directory, relative to project root','build', arg => BUILD_DIR = arg ],
+  dryRun: [ '', 'dry-run', 'DRY_RUN', 'Run build in dry-run mode which just lists tasks that would have run.', false, function(arg) { DRY_RUN = arg ? bool(arg) : true; } ],
+  envs: [ 'E', 'envs', '', 'Set environment variables. Example: -EJAVA_OPTS:-Xmx8g,APP_NAME:demo or -EJAVA_OPTS:"-Xms12g -Xmx12g"', '',
+          arg => {
+            arg.split(',').forEach(b => {
+              var c = b.split(':');
+              if ( ! ( c[0] in globalThis ) ) {
+                error('Unknown environment variable:', c[0]);
+              } else if ( c.length > 1 ) {
+                globalThis[c[0]] = c.slice(1).join(':');
+              }
+            });
+          }
+        ],
+  flags: ['f', 'flags', 'FLAGS', 'Flags passed to pmake. Explicitly set with --flags:test, for example.', '', arg => FLAGS = arg ],
+  help: [ 'h', 'help', 'HELP', 'Print usage information for environment variables (envs), options, and tasks.  Narrow output with --help:tasks, for example. Or show help for a particular topic with --help:foo where foo is the name of an option or task.', '', arg => {
+    HELP = true;
+    if ( ! arg ) {
+      moreUsage(arg);
+    } else if ( typeof arg === "string" ) {
+      if ( arg === 'envs' ||
+           arg === 'options' ||
+           arg === 'tasks' ) {
+        moreUsage(arg);
+      } else {
+        execute('topic', arg);
+      }
+    } else if ( arg instanceof Function ) {
+      moreUsage();
+      arg();
+    }
+    process.exit(0);
+  }],
+  hostname: ['', 'hostname', 'HOST_NAME', 'Hostname to set in JVM', () => os.hostname(), arg => HOST_NAME = org ],
+  nop: ['', 'nop', 'NOP', 'List of task NOT to run. ex: --nop:genJS,genJava', '', arg => NOP = comma(NOP, arg) ],
+  poms: [ 'P', 'poms', 'POMS', "comma seperated list of pom files. Defaults to 'pom' at the root of the project.", '', arg => POMS = arg ],
+  projectHome: ['', 'project-home', 'PROJECT_HOME', 'Project directory', process.cwd(), arg => PROJECT_HOME = arg ],
+  showEnvs: [ '', 'show-envs', 'SHOW_ENVS', 'Output environment variable values.', false, function(arg) { SHOW_ENVS = arg ? bool(arg) : true; }],
+  tasks: [ 'X', 'tasks', 'TASKS', 'Register task for execution during the build phase. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9', 'all',
+           arg => {
+             // cli will pass tasks as either --task1,task2 or -Xtask1,task2
+             let t = arg.replaceAll(',', TASK_SEPERATOR);
+             if ( TASKS === 'all' )
+               TASKS = '';
+             TASKS = TASKS ? TASKS + TASK_SEPERATOR + t : t;
+           } ],
+  timestamp: [ '', 'timestamp', 'TIMESTAMP', 'Build date, used to timestamp generated files', Date.now(), arg => TIMESTAMP = arg ],
+  topic: [ 'H', 'topic-help', '', 'Help on a particular environment variable, option, or task', '', arg => {
+    HELP = true;
+    if ( arg.startsWith(':') ||
+         arg.startsWith('=') ) {
+      arg = arg.substring(1);
+    }
+    info(`Help for \'${arg}\'`);
+    var option = findOption(OPTIONS, arg);
+    if ( option ) {
+      let opts = option.opt ? '-'+option.opt+', ' : '';
+      opts += '--'+option.name;
+      if ( option.name !== option.gnuopt ) {
+        opts += ', --'+option.gnuopt;
+      }
+      var def = option.env && globalThis[option.env];
+      if ( ! def ) {
+        def = option.def ? option.def : '';
+        if ( def instanceof Function ) {
+          def = def();
+        }
+      }
+      let desc = option.desc;
+      console.log('(OPTION)', ''.padStart(0), opts+':', '\x1b[0;35m', def,'\x1b[0;0m', desc);
+    } else {
+      let t = findTask(TOOLING_TASKS, arg); // first will do
+      if ( t ) {
+        var msg = arg;
+        if ( arg !== t.name ) msg += ' '+t.name;
+        console.log('(TASK)', msg, t.desc);
+      } else {
+        let e = ENVS[arg];
+        if ( e ) {
+          console.log('(ENV)', arg,': ',e[0]);
+        } else {
+          var extra = '';
+          let similar = findSimilarTasks(TOOLING_TASKS, arg);
+          if ( similar.length > 0 ) {
+            extra += '\n  Possible Task matches: \n';
+          }
+          similar.forEach(task => {
+            extra += '    ' + task.name + ' ' + task.gnuopt + ' - ' + task.desc + '\n';
+          });
+          similar = findSimilarOptions(OPTIONS, arg);
+          if ( similar.length > 0 ) {
+            extra += '\n  Possible Option matches: \n';
+          }
+          similar.forEach(option => {
+            extra += '    ' + option.name + ' ' + option.opt + ' ' + option.gnuopt + ' - ' + option.desc + '\n';
+          });
+          error('Topic not found - ', arg, extra);
+        }
+      }
+    }
+    process.exit(0);
+  } ],
+  verbose: ['', 'verbose', 'VERBOSE', 'Enable VerboseMaker to log additional info during build. ', false, function(arg) { VERBOSE = arg ? bool(arg) : true; }]
+
+}, OPTIONS);
+
+// explicitly add journal to POM list, intented to be called
+// after pom() has setup the initial list
+function addJournal(name) {
+  let pom = name && `${PROJECT_HOME}/deployment/${name}/pom`;
+  if ( ! existsSync(pom + '.js') )
+    error('POM file not found ' + pom + '.js');
+  else
+    POMS = comma(POMS, pom);
 }
 
 // build pom map and ensure the POMS list is viable
 function pom() {
   var poms   = [];
   function addPom(fn) {
-    if ( ! fs.existsSync(fn + '.js') )
-      error('File not found ' + fn + '.js');
+    if ( ! existsSync(fn + '.js') )
+      warning('File not found ' + fn + '.js');
     else
       poms.push(fn);
   };
@@ -217,658 +586,152 @@ function pom() {
     warning('Added /pom');
   }
 
-  if ( JOURNALS )
-    JOURNALS.split(',').forEach(c => addPom(c && `${PROJECT_HOME}/deployment/${c}/pom`));
+  if ( globalThis['JOURNALS'] ) {
+    JOURNALS.split(',').forEach(c => {
+      if ( ! c ) return;
+      let fn = `${PROJECT_HOME}/deployment/${c}/pom`;
+      if ( ! existsSync(fn + '.js') ) {
+        let fn2 = `foam3/deployment/${c}/pom`;
+        if ( ! existsSync(fn2 + '.js') ) {
+          warning('File not found ' + fn + '.js');
+          fn = null;
+        } else {
+          fn = fn2;
+        }
+      }
+      if ( fn ) addPom(fn);
+    });
+  }
 
   POMS = poms.join(',');
-  info('poms', POMS);
-  return POMS;
 }
-
-// Build flag string with global and argument flags
-function flag(flgs) {
-  var f = VERBOSE ? 'verbose' : '';
-  f = ( f ? f + ',' : '' ) + ( TEST ? 'test' : '-test');
-
-  if ( FLAGS )
-    f = ( f ? f + ',' : '' ) + FLAGS;
-
-  if ( flgs )
-    f = ( f ? f + ',' : '' ) + flgs;
-
-  return f;
-}
-
-// Environment Variables which are exported when updated
-const ENVS = {
-  APP_HOME:          ['Application root directory. To symultaniously deploy multiple applications, give each a unique APP_NAME and WEB_PORT',() => APP_ROOT + '/' + APP_NAME],
-  APP_NAME:          ['Application name. Defaults to \'name\' in root pom.'],
-  APP_ROOT:          ['Application root directory','/opt'],
-  BENCHMARK:         ['Run benchmarks when true',false],
-  BENCHMARKS:        ['Set of benchmarks to run, run all when empty'],
-  BUILD_DIR:         ['Build directory, relative to project root','build'],
-  BUILD_ONLY:        ['Only execute java generation and java compilation build steps',false],
-  CLEAN:             ['Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',false],
-  CLEAN_ALL:         ['Clean application lib/, and remove build/ directory',false],
-  CORE_PIDFILE:      ['JVM process ID file','/tmp/core.pid'],
-  DEBUG:             ['Launch JVM with JDPA debugging enabled',false],
-  DEBUG_PORT:        ['Port JVM will listen on for debuggers to connect',8000],
-  DEBUG_SUSPEND:     ['JVM will suspend on startup until a Debugger connects',false],
-  DELETE_RUNTIME_JOURNALS: ['Delete application journals',false],
-  DOCUMENT_HOME:     ['Appplication documents directory',() => `${APP_HOME}/documents`],
-  DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
-  DRY_RUN:           ['Run build in dry-run mode which just lists tasks that would have run.', false],
-  EXPORTS:           ['Build environment variables which will be exported to pom tasks.'],
-  FLAGS:             ['pmake flags'],
-  FOAM_REVISION:     ['FOAM Revision ?'],
-  FOAM_BIN_VERSION:  ['foam-bin version string, with our without timestamp'],
-  GEN_JAVA:          ['Generate Java from model files',true],
-  HOST_NAME:         ['Hostname set in JVM', () => os.hostname()],
-  JAR:               ['Start Application from Java jar file',false],
-  JAR_INCLUDES:      ['Additional directories to include Java jar',''],
-  JAR_LIB_DIR:       ['Deployment lib directory',() => ( TAR ? `${PROJECT_HOME}/${BUILD_DIR}` : APP_HOME ) + '/lib'],
-  JAR_NAME:          ['Java jar name',() => `${APP_NAME}-${VERSION}.jar`],
-  JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
-  JAVA_OPTS:         ['Additional JVM options',''],
-  JAVA_RELEASE:      ['Java target version. Can also be set in root pom. ex: java: \'11\''],
-  JAVA_RELEASE_DEFAULT: ['Default Java target version.','17'],
-  JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
-  JAVAC_PARAMS:      ['Parameters passed to Java Compiler',''],
-  JAVAC_PARAMS_DEFAULT:  ['Default parameters for Java Compiler', () => `--release ${JAVA_RELEASE} -proc:none`],
-  JOURNALS:          ['Deployment poms to include in build',''],
-  JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
-  JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
-  LOG_HOME:          ['Application logs directory',() => `${APP_HOME}/logs`],
-  LOG_LEVEL:         ['Set JVM Log level for TEST cases. Defaults to ERROR. example: -ELOG_LEVEL:INFO',null],
-  POMS:              ['CSV list of pom files to process,minus any suffix. Defaults to the pom at the root of the project.'],
-  POM_TASKS:         ['CSV list of tasks from the root pom'],
-  POM_ENVS:          ['Environment variables expected to be set from POMs', 'APP_NAME=name,JAVA_RELEASE=java,VERSION=version,VENDOR=vendor,VENDOR_ID=vendorId'],
-  PROFILER:          ['Enable JVM profiling',false],
-  PROFILER_PORT:     ['Port JVM will listen on for profiler to connect',8849],
-  PROJECT:           ['Top-Level Loaded POM Object, not be be confused with POMS, which is the name of POM(s) to be loaded'],
-  PROJECT_HOME:      ['Project directory',PWD],
-  PROJECT_REVISION:  ['Root project git revision. Will be set JVM Manifest',null],
-  RESTART:           ['Only execute JVM starting procedure, without a new build',false],
-  RUN_ARGS:          ['Arguments which will be passed to run.sh to when starting CORE server from JAR',''],
-  STAGE_JS:          ['Generate multiple foam-bin files, intended to be loaded in order to reduce initial client startup time',true],
-  TAR:               ['Generate a tar file for remote Application installation', false],
-  TASKS:             ['CSV list of build tasks to execute. Set via -X. -XcheckDeps:9', 'all'],
-  TEST:              ['Run test cases',false],
-  TESTS:             ['Set of test cases to run. Run all when empty'],
-  TIMESTAMP:         ['Build date, used to timestamp foam-bin and jar files',Date.now()],
-  TIMESTAMP_FOAM_BIN:['foam-bin files are timestamped by default. Disable timestamp to retain breakpoints during development cycle.',true],
-  WEB_PORT:          ['HTTP port to start web server on. HTTP defaults to 8080, HTTPS defaults to 8443'],
-  VERBOSE:           ['Enable VerboseMaker to log additional info during build',false],
-  VENDOR:            ['Java Manifest Vendor. Defaults to APP_NAME'],
-  VENDOR_ID:         ['Java Manifest Vendor ID'],
-  VERSION:           ['Application version'],
-  VERSION_DEFAULT:   ['Default Application version', '1.0.0']
-};
-
-// Configure build variables
-buildEnv(ENVS);
-
-// Convenience build flags.
-const ARGS = {
-  a: [ 'Run/launch from Java jar file.',
-    () => JAR = true ],
-  b: [ 'run all benchmarks.',
-    () => {
-      BENCHMARK = true;
-      DELETE_RUNTIME_JOURNALS = true;
-      APP_ROOT = '/tmp';
-    } ],
-  B: [ 'benchmarkId1,benchmarkId2,... : Run listed benchmarks.',
-    args => { ARGS.b[1](); BENCHMARKS = args; } ],
-  c: [ 'Clean generated code before building.  Required if generated classes have been removed. Use -XcleanAll to remove build/ directory. NOTE: if compilation fails after option c is issued, clean is again required until a succesful build.',
-    () => CLEAN = true ],
-  d: [ 'Run with JDPA debugging enabled on port 8000.',
-    () => DEBUG = true ],
-  E: [ 'Set environment variables. Example: -EJAVA_OPTS:-Xmx8g,APP_NAME:demo or -EJAVA_OPTS:"-Xms12g -Xmx12g"',
-       args => {
-         args.split(',').forEach(b => {
-           var c = b.split(':');
-           if ( ! ( c[0] in globalThis ) ) {
-             error('Unknown environment variable:', c[0]);
-           } else if ( c.length > 1 ) {
-             globalThis[c[0]] = c.slice(1).join(':');
-           }
-         });
-       }
-     ],
-  H: [ 'Help on a particular topic',
-       args => {
-         var t = ARGS[args] || tasks[args] || ENVS[args];
-         if ( t ) {
-           console.log(args,':',t[0]);
-         } else {
-           error('Topic not found - ', args);
-         }
-         quit(0);
-       }
-     ],
-  g: [ 'Do not timestamp foam-bin javascript file to retain breakpoints during development cycle.',
-    () => TIMESTAMP_FOAM_BIN = false ],
-  j: [ 'Delete runtime journals.',
-    () => DELETE_RUNTIME_JOURNALS = true ],
-  J: [ 'JOURNALS : comma seperated list of additional journal directories, relateive to deployment/ from the root project.',
-       args => JOURNALS = comma(JOURNALS, args) ],
-  k: [ 'Package up a deployment tarball.',
-    () => { TAR = true; } ],
-  N: [ `NAME : Used to construct a unique deployment directory, '/opt/NAME', to support multiple running applications.  Also requires a unique WEB_PORT.`,
-       args => { APP_NAME = args; CORE_PIDFILE=`/tmp/core_${APP_NAME}.pid`;} ],
-  o: [ "Build only - don't start CORE server.",
-    () => BUILD_ONLY = true ],
-  P: [ "comma seperated list of pom files. Defaults to 'pom' at the root of the project.",
-     args => { POMS = args; } ],
-  r: [ 'Restart CORE Server from last build.',
-    () => RESTART = true ],
-  s: [ 'Start JDPA debugging in suspend state.',
-    ()  => {
-      DEBUG = true;
-      DEBUG_SUSPEND = true;
-    } ],
-  t: [ 'Run All tests.',
-    () => {
-      TEST = true;
-      DELETE_RUNTIME_JOURNALS = true;
-      JOURNALS = comma(JOURNALS, 'test');
-      APP_ROOT='/tmp';
-    } ],
-  T: [ 'testId1,testId2,... : Run listed tests.',
-    args => {
-      ARGS.t[1]();
-      TESTS = args;
-    } ],
-  w: [ 'Without stages. Only generate a single foam-bin file.',
-      () => {
-        STAGE_JS = false;
-      } ],
-  W: [ 'PORT : Port WebServer will listen on. WebSocketServer will use PORT+1',
-       args => { WEB_PORT = args;} ],
-  X: [ 'Explicitly execute tasks. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9',
-       args => {
-         if ( TASKS === 'all' )
-           TASKS = '';
-         TASKS=args;
-       } ]
-};
-
-function moreUsage() {
-  info('Usage: build.js [OPTIONS] (see -Xusage for examples)');
-  console.log('\nOptions are:');
-  Object.keys(ARGS).forEach(a => {
-    console.log('  -' + a + ': ' + ARGS[a][0]);
-  });
-
-  console.log('\n');
-  info('Tasks: (set with -X)');
-  var ts = { ...tasks };
-  var depth = 1;
-  function printTask(t) {
-    if ( ! ts[t] ) return;
-    delete ts[t];
-    var [ desc, dep ] = tasks[t];
-    var dep2 = dep.filter(d => ! ts[d]); // list of dependencies which appear elsewhere in tree
-    var dstr = dep2.length ? ' [ ' + dep2.join(', ') + ' ]': '';
-    console.log(''.padEnd(depth*2) + t.padEnd(27-depth*2) + desc + dstr);
-    depth++;
-    dep.forEach(printTask);
-    depth--;
-  }
-  Object.keys(ts).sort().forEach(t => {
-    printTask(t);
-  });
-
-  console.log('\n');
-  info('Environment variables: (set with -E)');
-  depth = 1;
-  Object.keys(ENVS).sort().forEach(k => {
-    var [ desc, val ] = ENVS[k];
-    var v = val;
-    if ( val instanceof Function)
-       v = val();
-    v = v && v + ' ' || 'undefined';
-    console.log(''.padStart(1), k+':', ''.padStart(22-k.length), v, ''.padStart(22-v.length), desc);
-  });
-  console.log('\n');
-  info('Execute \'./build.sh -Xusage\' for examples)');
-}
-
 
 // ############################
 // # Build tasks
 // ############################
-task('Build usage examples', [], function usage() {
-  info('Build usage examples');
-  console.log('All builds will still start a Java web server (CORE), unless directed otherwise.');
-  console.log('./build.sh -c');
-  console.log('    Remove previously generated code, before rebuilding.');
-  console.log('./build.sh -cj');
-  console.log('    Remove previously generated code and runtime journals, before rebuilding.');
-  console.log('./build.sh -aJhttps -EJAVA_OPTS:\"-Xms4g -Xmx8g\"');
-  console.log('    Start CORE with additional memory, launch from JAR file, and suppor HTTPS support.');
-  console.log('./build.sh -Ndemo -W8300');
-  console.log('    Build into a unique path \'demo\', and start web server on port \'8300\'.');
-  console.log('./build.sh -EAPP_NAME:demo,WEB_PORT:8300');
-  console.log('    Build into a unique path \'demo\', and start web server on port \'8300\'.');
-  console.log('./build.sh -XcleanAll,all');
-  console.log('    Perform an extra deep clean before building normally.');
-  console.log('./build.sh -Htopic');
-  console.log('    Print usage for \'topic\'. Ex: ./build.sh -HcleanAll  or  ./xobuild.sh -Ha');
-});
 
-task('Capture POM specified environment values and register POM tasks for later execution that the corresponding build tasks is executed.', [], function pomEnvs() {
-  pmake(`-makers=Env,Task -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -envs=${POM_ENVS}`);
-  Object.keys(X.pomenvs).forEach(k => {
-    globalThis[k] = X.pomenvs[k];
-    // info(`[pomEnvs] globalThis[${k}] ${globalThis[k]}`);
+task('tooling', 'Prepare build environment', [], function tooling() {
+  var tps = '';
+  if ( ! TOOLING_POMS ) {
+    var toolingPOMs;
+    var fn = join(process.cwd(),`tools/defaultTooling`);
+    if ( existsSync(fn) ) {
+      toolingPOMs = readFileSync(fn).toString().trim();
+      console.log(`[build] using project tooling: ${toolingPOMs}`);
+    }
+    if ( ! toolingPOMs ) {
+      toolingPOMs = 'Standard,Npm,Maven,Git,JS,Java';
+      console.log(`[build] using default tooling: ${toolingPOMs}`);
+    }
+    TOOLING_POMS = toolingPOMs;
+  }
+  (TOOLING_POMS).split(',').forEach(name => {
+    var fn = join(__dirname,`${name}Tooling`);
+    if ( existsSync(fn + '.js') ) {
+      tps = comma(tps, fn);
+    }
+    fn = join(process.cwd(),`tools/${name}Tooling`);
+
+    if ( existsSync(fn + '.js') ) {
+      tps = comma(tps, fn);
+    }
   });
-  POM_TASKS = X.pomTasks;
-});
+  let maker = pmake.bind(Object.assign({}, EXPORTS), `-makers=Tooling -pom=${tps}`)();
+  buildEnv(maker.envs);
 
-task('Run pom copy[] tasks.', [], function copy() {
-  pmake(`-makers=Copy -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR}`);
-});
+  addOptions(maker.options, OPTIONS);
 
-task('Prepare images from inclusion in jar.', [], function genImages() {
-  JAR_INCLUDES += ` -C ${BUILD_DIR} images `;
-
-  pmake(`-makers=Image -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR}`);
-});
-
-task('Generate JVM Manifest', ['versions', 'genFoamBinVersion'], function genManifest() {
-  var jars = execSync(`find ${BUILD_DIR}/lib -type f -name "*.jar"`).toString()
-      .replaceAll(`${BUILD_DIR}/lib/`, '  ').trim();
-  var m = `
-Manifest-Version: 1.0
-Main-Class: foam.core.boot.Boot
-Class-Path: ${jars}
-Implementation-Title: ${APP_NAME}
-Implementation-Version: ${FOAM_BIN_VERSION}
-Specification-Version: ${PROJECT_REVISION}
-Implementation-Timestamp: ${TIMESTAMP}
-${APP_NAME}-Revision: ${PROJECT_REVISION}
-FOAM-Revision: ${FOAM_REVISION}
-Implementation-Vendor: ${VENDOR || APP_NAME}
-`.trim() + '\n';
-
-  if ( VENDOR_ID ) {
-    m += `Implementation-Vendor-Id: ${VENDOR_ID}\n`;
-  }
-
-  fs.writeFileSync(BUILD_DIR + '/MANIFEST.MF', m);
-  return m;
-});
-
-task('Display generated JAR manifest file.', ['genManifest'], function showManifest() {
-  console.log('Manifest:', genManifest());
-});
-
-task('Show POM structure.', [], function showPOMs() {
-  pmake(`-makers=Verbose -flags=${flag('web,java')} -pom=${POMS} -builddir=${BUILD_DIR}`);
-});
-
-task('Install npm tools that foam and the build use.', [], function install() {
-  process.chdir(PROJECT_HOME);
-  execSync('npm install');
-});
-
-task('Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', ['setupDirs'], function deployDocuments() {
-  ensureDir(DOCUMENT_HOME);
-  copyDir(DOCUMENT_OUT, DOCUMENT_HOME);
-});
-
-task('Deploy journal files from JOURNAL_OUT to JOURNAL_HOME.', ['setupDirs'], function deployJournals() {
-  ensureDir(JOURNAL_HOME);
-  copyDir(JOURNAL_OUT, JOURNAL_HOME);
-});
-
-task('Delete runtime journals.', [], function deleteRuntimeJournals() {
-  info('Runtime journals deleted.');
-  emptyDir(JOURNAL_HOME);
-});
-
-task('Remove pom.xml and java lib directory.', [], function cleanLib() {
-  rmfile('pom.xml');
-  emptyDir(BUILD_DIR + '/lib');
-});
-
-task('Remove generated files', ['pomEnvs'], function clean() {
-  if ( APP_HOME && fs.existsSync(APP_HOME) ) {
-    emptyDir(`${APP_HOME}/bin`);
-    emptyDir(`${APP_HOME}/lib`);
-  }
-  if ( fs.existsSync(BUILD_DIR) ) {
-    var files = fs.readdirSync(BUILD_DIR, {withFileTypes: true});
-    files.forEach(f => {
-      if ( f.name === 'lib' ) return; // handled via cleanLib
-
-      var fn = BUILD_DIR + '/' + f.name;
-      if ( f.isDirectory() ) rmdir(fn);
-      if ( f.isFile()      ) rmfile(fn);
+  Object.keys(maker.tasks || {}).forEach(name => {
+    let list = maker.tasks[name];
+    list.forEach(t => {
+      var [gnuopt, desc, dep, f] = t;
+      if ( ! f || ! f.name ) {
+        error(`[build] task missing function ${name} ${t}`);
+      }
+      if ( f.name !== name ) {
+        warning(`[build] tooling name: ${name} != f.name ${f.name}`);
+      }
+      task(name, gnuopt, desc, dep, f, t.pom);
     });
-  }
+  });
+  // copy tooling options to build options so command line doesn't complain
+  // REVIEW - remove tooling option f - so no side effects?
+  OPTIONS = Object.assign(OPTIONS, TOOLING_OPTIONS);
 });
 
-task('Clean build files, include pom.xml and java libraries. Cleaner than clean.', [ 'cleanLib', 'clean' ], function cleanAll() {
-});
-
-task('Remove foam-bin files.', [], function cleanFOAM() {
-  execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
-});
-
-task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion'], function genJS() {
-  let version = FOAM_BIN_VERSION;
-  let flags = flag();
-  let outdir = BUILD_DIR+'/js';
-  if ( STAGE_JS ) {
-    pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=0`);
-    pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=1`);
-    pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir} -stage=2`);
-  } else {
-    pmake(`-flags=${flags} -makers=JS -version=${version} -pom=${POMS} -builddir=${BUILD_DIR} -outdir=${outdir}`);
-  }
-});
-
-task('Run Maven', [], function maven() {
-  pmake(`-makers=Maven -flags=${flag()} -pom=${POMS} -libdir=${BUILD_DIR}/lib`);
-});
-
-task('Remove previously generated JAR.', [], function cleanJava() {
-  // remove previous app jar in build directory to fix classes resolution for non-jar run
-  execSync(`rm -f ${BUILD_DIR}/lib/${APP_NAME}-*.jar >/dev/null 2>&1`);
-});
-
-task('Concatenate repository journal files into .0 files', [], function genJournals() {
-  JAR_INCLUDES += ` -C ${BUILD_DIR} journals `;
-  pmake(`-makers=Journal -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -journaldir=${JOURNAL_OUT}`);
-});
-
-task('Capture repository documentation - flow docs', [], function genDocuments() {
-  JAR_INCLUDES += ` -C ${BUILD_DIR} documents `;
-  pmake(`-makers=Doc -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -documentdir=${DOCUMENT_OUT}`);
-});
-
-task('Generate Java source from models and complile', ['cleanJava'], function genJava() {
-  JAR_INCLUDES += ` -C ${BUILD_DIR} journals `;
-  JAR_INCLUDES += ` -C ${BUILD_DIR} documents `;
-  JAR_INCLUDES += ` -C ${BUILD_DIR}/classes .`;
-
-  var makers = VERBOSE ? 'Verbose,' : '';
-  // NOTE: Java and Javac Maker must be run together as they share data through X
-  makers += 'Java,Maven,Javac';
-  makers += ',Journal,Doc';
-  pmake(`-makers=${makers} -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -d=${BUILD_DIR}/classes -journaldir=${JOURNAL_OUT} -documentdir=${DOCUMENT_OUT} -outdir=${BUILD_DIR}/src/java -libdir=${BUILD_DIR}/lib -javacParams='${JAVAC_PARAMS_DEFAULT} ${JAVAC_PARAMS}'`);
-});
-
-task('Check Java dependencies for known vulnerabilities (via Maven). -XcheckDeps:score where score in range [0..11].  CVSS score (LOW:0..5 ,MEDIUM:5..7 ,HIGH:7..9 ,CRITICAL:9..10,IGNORE:11)', ['maven'], function checkDeps(score) {
-  score = score || 9;
-  try {
-    execSync(`mvn dependency-check:check -DfailBuildOnCVSS=${score}`, { stdio: 'inherit' });
-  } catch (_) {
-    // maven build error will be output to the console, no need to throw
-  }
-});
-
-task('Show JAR structure.', ['maven'], function showJARs(value) {
-  try {
-    execSync(`mvn dependency:tree `, { stdio: 'inherit' });
-  } catch (_) {
-    // maven build error will be output to the console, no need to throw
-  }
-});
-
-task('Get Maven java sources.', ['maven'], function mavenGetSources(value) {
-  try {
-    execSync(`mvn dependency:resolve-sources -DincludeArtifactIds=${value} `, { stdio: 'inherit' });
-  } catch (_) {
-    // maven build error will be output to the console, no need to throw
-  }
-});
-
-task('Copy foam-bin files for inclusion in JAR file.', ['genJava'], function jarFOAM() {
-  ensureDir(join(BUILD_DIR, 'webroot'));
-  execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/`, {stdio: 'inherit'});
-});
-
-task('Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'genJava', 'versions', 'copy', 'genImages', 'genManifest', 'jarFOAM' ], function buildJar() {
-  JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
-  execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF ${JAR_INCLUDES}`);
-});
-
-task('Package files into a TAR archive', ['buildJar'], function buildTar() {
-  ensureDir(join(BUILD_DIR, 'package'));
-  // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
-  execSync(`tar -a -cf ${BUILD_DIR}/package/${APP_NAME}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C${require('path').resolve(BUILD_DIR)} lib`);
-});
-
-task('Copy library files to deployment', [], function deployLib() {
-  ensureDir(join(APP_HOME, 'lib'));
-  copyDir(BUILD_DIR + '/lib', join(APP_HOME, 'lib'));
-});
-
-task('Copy bash files to deployment', [], function deployBin() {
-  ensureDir(join(APP_HOME, 'bin'));
-  copyDir('./foam3/tools/deploy/bin', join(APP_HOME, 'bin'));
-  ensureDir(join(APP_HOME, 'etc'));
-  copyDir('./foam3/tools/deploy/etc', join(APP_HOME, 'etc'));
-});
-
-task('Extract project git hash.', [], function getProjectGitHash() {
-  var out = 'Unversioned';
-
-  try {
-    out = execSync('git rev-parse --short HEAD');
-  } catch (x) {
-    warning('Cannot determine project revision, no commit yet');
-  }
-
-  PROJECT_REVISION = out.toString().trim();
-});
-
-task('Extract FOAM git hash.', [], function getFOAMGitHash() {
-  FOAM_REVISION = execSync('git -C foam3 rev-parse --short HEAD').toString().trim();
-});
-
-task('Show version information.', [ 'pomEnvs', 'getProjectGitHash', 'getFOAMGitHash'], function versions() {
-  console.log(`Application Version: ${VERSION}`);
-  console.log(`${APP_NAME} revision: ${PROJECT_REVISION}`);
-  console.log(`FOAM revision:       ${FOAM_REVISION}`);
-});
-
-task('Show application information.', ['pomEnvs'], function appName() {
-  console.log(`Application Name: ${APP_NAME}`);
-});
-
-task('Create empty build and deployment directory structures if required.', [], function setupDirs() {
-  try {
-    if ( ! BUILD_ONLY ) {
-      ensureDir(APP_HOME);
-      ensureDir(LOG_HOME);
+task('pom-envs', 'Capture POM arguments to environment values or options, and register POM tasks for later execution when the corresponding build tasks is executed.', [], function pomEnvs() {
+  let makers = pmake.bind(Object.assign({}, EXPORTS), `-makers=Env,Task -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR} -envs=${POM_ENVS} -tasks=${TOOLING_TASKS} -options=${Object.assign({}, OPTIONS)}`)();
+  let envMaker = makers.get('Env');
+  Object.keys(envMaker.envs).forEach(e => {
+    let option = findOption(OPTIONS, e);
+    if ( option ) {
+      // console.log(`[build] envMaker def ${option.def}, global: ${globalThis[option.env]}`);
+      if ( ! globalThis[option.env] ||
+           option.def &&
+           globalThis[option.env] === option.def ) {
+        console.log(`[build] setting ${e} = ${envMaker.envs[e]}`);
+        option.f.bind(this, envMaker.envs[e])();
+      } else {
+        // console.log(`[build] NOT replacing ${e} ${globalThis[option.env]} with ${envMaker.envs[e]}`);
+      }
+      return;
     }
-  } catch ( e ) {
-    error(`Directory is not writable! Please run 'sudo chown -R $USER ${APP_ROOT}' first.`, e);
-  }
-});
-
-task('Set Java environmental variables specific to running test cases.', [], function cleanTest() {
-  rmdir(APP_HOME);
-});
-
-task('Set Java environmental variables.', [], function setJavaEnv() {
-  JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;
-  JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
-});
-
-task('Generate version string for the foam-bin, with our without a timestamp', [], function genFoamBinVersion() {
-  FOAM_BIN_VERSION = TIMESTAMP_FOAM_BIN ? `${VERSION}-${TIMESTAMP}` : `${VERSION}`;
-});
-
-function writeToPidFile(pid) {
-  fs.writeFileSync(CORE_PIDFILE, pid.toString());
-}
-
-function readFromPidFile() {
-  if ( fs.existsSync(CORE_PIDFILE) )
-    return fs.readFileSync(CORE_PIDFILE).toString().trim();
-}
-
-task('Set arguments which will be passed to run.sh to start CORE server', [], function setRunArgs() {
-  if ( WEB_PORT ) RUN_ARGS += ` -W${WEB_PORT}`;
-  if ( DEBUG ) RUN_ARGS += ` -D${DEBUG_PORT}`;
-  if ( DEBUG_SUSPEND ) RUN_ARGS += ` -s`;
-  if ( PROFILER ) RUN_ARGS += ` -P${PROFILER_PORT}`;
-  if ( HOST_NAME && HOST_NAME !== 'localhost' ) RUN_ARGS += ` -H${HOST_NAME}`;
-});
-
-task('Start CORE server (JAR).', [ 'setJavaEnv', 'setRunArgs', 'stopCORE', 'deployBin', 'deployLib'], function startCOREJar() {
-  showSummary();
-  exec(`${APP_HOME}/bin/run.sh -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`);
-});
-
-task('Start CORE server (CLASSPATH).', [ 'setJavaEnv', 'stopCORE', 'deployJournals', 'deployDocuments', 'deployLib' ], function startCORE() {
-  if ( HOST_NAME && HOST_NAME !== 'localhost' ) {
-    JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
-  }
-
-  if ( DEBUG ) {
-    JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
-  }
-
-  if ( WEB_PORT ) {
-    JAVA_OPTS += ` -Dhttp.port=${WEB_PORT}`;
-  }
-
-  JAVA_OPTS += ` -Dcore.webroot=${PROJECT_HOME}`;
-
-  CLASSPATH = `${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes`;
-
-  logLevelLower = 'info';
-  if ( LOG_LEVEL ) {
-    JAVA_OPTS += ` -Dlog.level=${LOG_LEVEL}`;
-    logLevelLower = `${LOG_LEVEL}`.toLowerCase();
-  }
-  JAVA_OPTS += ` -Dorg.slf4j.simpleLogger.defaultLogLevel=${logLevelLower}`;
-
-  MESSAGE = `Starting CORE ${APP_NAME}`;
-  if ( TEST || BENCHMARK ) {
-    JAVA_OPTS += ' -enableassertions';
-    JAVA_OPTS += ' -Dresource.journals.dir=journals';
-    JAVA_OPTS += ' -DRES_JAR_HOME=' + JAR_OUT;
-
-    if ( TEST ) {
-      MESSAGE = 'Running tests...';
-      JAVA_OPTS += ' -Dfoam.main=testRunnerScript';
-      if ( TESTS ) JAVA_OPTS += ' -Dfoam.tests=' + TESTS;
-    } else if ( BENCHMARK ) {
-      MESSAGE = 'Running benchmarks...';
-      JAVA_OPTS += ' -Dfoam.main=benchmarkRunnerScript';
-      if ( BENCHMARKS ) JAVA_OPTS += ' -Dfoam.benchmarks=' + BENCHMARKS;
+    if ( ENVS[e] ) {
+      if ( globalThis[e] ) {
+        console.log(`[build] replacing ${e} ${globalThis[e]} with ${envMaker.envs[e]}`);
+      } else {
+        console.log(`[build] setting ${e} = ${envMaker.envs[e]}`);
+      }
+      globalThis[e] = envMaker.envs[e];
+      return;
     }
-  }
+    warning(`[build] environment variable or option not found: ${e}`);
+  });
 
-  info('JAVA_OPTS:' + JAVA_OPTS);
-  info(MESSAGE);
-
-  if ( TEST ) {
-    try {
-      exec(`java -jar ${JAR_OUT}`);
-    } catch ( e ) {
-      // Failing tests, no need to throw
-    }
-    process.exit(0);
-  } else if ( BENCHMARK ) {
-    exec(`java -jar ${JAR_OUT}`);
-  } else {
-    showSummary();
-    // Acquires environment variables via JAVA_TOOL_OPTIONS (JAVA_OPTS)
-    exec(`java -cp "${CLASSPATH}" foam.core.boot.Boot`);
-  }
+  let taskMaker = makers.get('Task');
+  Object.keys(taskMaker.tasks || {}).forEach(name => {
+    let list = taskMaker.tasks[name];
+    list.forEach(t => {
+      let pomList = POM_TASKS[name] || [];
+      // execute pom tasks in pom reverse order, giving poms higher in
+      // the hierarchy ability to modify values set earlier.
+      pomList.unshift(t);
+      POM_TASKS[name] = pomList;
+    });
+  });
 });
 
-task('Stop CORE server.', [], function stopCORE() {
-  info('Stopping CORE server...');
-
-  var pid = readFromPidFile();
-  try {
-    if ( pid ) {
-      execSync(`kill -9 ${pid} &>/dev/null`);
-      rmfile(CORE_PIDFILE);
-    }
-    info('Stopped CORE server.');
-  } catch (e) {
-    warning('CORE server not running or failed to stop');
-  }
+task('copy', 'Run POM copy tasks.', [], function copy() {
+  pmake.bind(Object.assign({}, EXPORTS), `-makers=Copy -flags=${flag()} -pom=${POMS} -builddir=${BUILD_DIR}`)();
 });
 
-// ############################
-// # Build steps
-// ############################
-
-task('Build everything specified by flags.', ['pomEnvs'], function all() {
-  if ( ! ( TAR || BUILD_ONLY ) ) {
-    execute('stopCORE');
-  }
-
-  if ( ! RESTART ) {
-    if ( CLEAN_ALL ) {
-      execute('cleanAll');
-    } else if ( CLEAN ) {
-      execute('clean');
-    }
-    if ( TEST || BENCHMARK ) {
-      execute('cleanTest');
-    } else if ( DELETE_RUNTIME_JOURNALS ) {
-      execute('deleteRuntimeJournals');
-    }
-
-    if ( TAR ) {
-      execute('buildTar');
-    } else if ( JAR || TEST || BENCHMARK ) {
-      // Tests and benchmarks run from an application jar
-      execute('buildJar');
-    } else {
-      execute('genJava');
-    }
-  }
-
-  if ( ! ( TAR || BUILD_ONLY ) ) {
-    if ( ! JAR || TEST || BENCHMARK ) {
-      execute('startCORE');
-    } else {
-      execute('startCOREJar');
-    }
-  }
+task('show-poms', 'Show POM structure.', [], function showPOMs() {
+  pmake.bind(Object.assign({}, EXPORTS), `-makers=Verbose -flags=${flag('web,java')} -pom=${POMS} -builddir=${BUILD_DIR}`)();
 });
 
-// Process command line arguments
-processSingleCharArgs(ARGS, moreUsage);
+// Phase I - process tooling poms
+processToolingArgs.bind(Object.assign({}, EXPORTS), TOOLING_OPTIONS, moreUsage)();
+execute('tooling');
+
+// Phase II - process command line args,
+processBuildArgs.bind(Object.assign({}, EXPORTS), OPTIONS, moreUsage)();
 
 // build pom map for POM_TASKS, and ensure POMS list is viable
 pom();
 
-// Exports local variables and functions for POM tasks
-EXPORTS = {
-  APP_NAME,
-  BUILD_DIR,
-  JAVA_OPTS,
-  JOURNALS,
-  POMS,
-  PROJECT,
-  RUN_ARGS,
-  VERSION,
-  copyDir,
-  copyFile,
-  ensureDir,
-  exec,
-  execSync
-};
+// Process build pom for envs and task registration
+// NOTE: pomEnvs needs to be run early. Commented out so tasks such as
+// JavaTooling javaTests can set flags and journals before calling pomEnvs.
+// execute('pomEnvs');
 
-// start the build
-TASKS.split(',').forEach(t => {
+// Phase III - execute build tasks
+if ( SHOW_ENVS ) {
+  moreUsage();
+}
+
+TASKS.split(TASK_SEPERATOR).forEach(t => {
   var s = t.split(':');
-  execute(s[0]);
+  execute(s[0], s[1]);
 });
 
 quit(0);

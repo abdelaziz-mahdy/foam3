@@ -1,0 +1,26 @@
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"user.readByGroup.{app}"})
+
+// FOAM
+// simple password management
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"menu.read.reset-password"})
+
+// spid
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"serviceprovider.read.foam"})
+
+// Password
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"service.passwordDAO"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"menu.read.password"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"password.create"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"password.read.*"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"password.update.*"})
+
+// p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"menu.read.{app}Admin"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"menu.read.{app}.crunch.personalsettings"})
+
+// specific model
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"service.{model}DAO"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"{model}.create"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"{model}.read.*"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"{model}.update.*"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"{model}.delete.*"})
+p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"{app}",targetId:"menu.read.{app}.{model}"})

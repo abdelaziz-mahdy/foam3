@@ -28,7 +28,6 @@
 
 const fs_   = require('fs');
 const path_ = require('path');
-const b_    = require('./buildlib');
 
 var pmake = function(...args) {
 
@@ -44,34 +43,10 @@ var pmake = function(...args) {
   var [argv, X, flags] = require('./processArgs')(
     args,
     {
-      d:           './build/classes',
-      builddir:    './build',
-      pom:         'pom',
-      makers:      '', // TODO: doc, swift,
       path:        './'
     },
     {
       verbose:     false   // print extra status information
-    },
-    {
-      usage: function() {
-        // Include list of available Makers in 'usage' output.
-        // TODO: load from dir where pmake is also
-        var files = fs_.readdirSync('.');
-
-        console.log('\nMakers:');
-        files.forEach(f => {
-          if ( f.endsWith('Maker.js') ) {
-            var maker = require('./' + f.substring(0, f.length-3));
-            console.log('  ' + f.substring(0, f.length-8).padEnd(14, ' '), maker.description || '');
-            ( maker.args || []).forEach(a => {
-              var desc = a.description || '';
-              var def  = a.value ? ( ( desc ? ', ' : '' ) + 'default: ' + a.value ) : '';
-              console.log('     ' + a.name.padEnd(12, ' ') + desc + def);
-            });
-          }
-        });
-      }
     }
   );
 
@@ -87,11 +62,11 @@ var pmake = function(...args) {
     var loc = path_.join(__dirname, X.path, makerName + "Maker.js");
 
     if (!fs_.existsSync(loc)) {
-      loc = path_.join(process.cwd(), x.path, makerName + "Maker.js");
+      loc = path_.join(process.cwd(), X.path, makerName + "Maker.js");
     }
     maker = require(loc);
     if ( maker ) maker.name = m;
-    if ( maker && maker.init ) maker.init(makerArgs);
+    if ( maker && maker.init ) maker.init.bind(this, makerArgs)();
 
     return maker;
   });
@@ -99,10 +74,9 @@ var pmake = function(...args) {
   // update globalThis.foam.flags after Makers initialized
   globalThis.foam.flags = flags;
   globalThis.foam.setupFlags();
-  // console.log('[pmake] foam.flags', globalThis.foam.flags);
 
-  function processDir(pom, location, skipIfHasPOM) {
-    // verbose('\tdirectory:', location);
+  var processDir = function (pom, location, skipIfHasPOM) {
+    verbose('\tdirectory:', location);
     var files = fs_.readdirSync(location, {withFileTypes: true});
 
     if ( skipIfHasPOM && files.find(f => f.name.endsWith('pom.js')) ) {
@@ -118,14 +92,14 @@ var pmake = function(...args) {
           if ( f.name.indexOf('examples') != -1 ) return;
           if ( f.name.endsWith('test') && ! flags.test ) return;
           if ( f.name.endsWith('tests') && ! flags.test ) return;
-          if ( ! b_.isExcluded(pom, fn) ) processDir(pom, fn, true);
+          if ( ! this.isExcluded(pom, fn) ) processDir(pom, fn, true);
         }
         makers.forEach(v => v.visitDir && v.visitDir(pom, f, fn));
       } else {
         makers.forEach(v => v.visitFile && v.visitFile(pom, f, fn));
       }
     });
-  }
+  }.bind(this);
 
   var SUPER = foam.POM;
   var seen  = {};
@@ -140,33 +114,43 @@ var pmake = function(...args) {
     pom.path     = foam.sourceFile;
 
     makers.forEach(v => {
-      // verbose('[pmake] visitPOM', v.name, pom);
-      v.visitPOM && v.visitPOM(pom);
+      verbose('[pmake] visitPOM', v.name, pom);
+      v.visitPOM && v.visitPOM.bind(this, pom)();
     });
     if ( ! seen[foam.cwd] ) {
-      // verbose('[pmake] procesDir', pom.path );
-      processDir(pom, foam.cwd, false, makers);
+      verbose('[pmake] procesDir', pom.path );
+      processDir.bind(this, pom, foam.cwd, false, makers)();
       seen[foam.cwd] = true;
     }
 
     SUPER(pom);
     makers.forEach(v => v.endVisitPOM && v.endVisitPOM(pom));
-  };
+  }.bind(this);
 
   // Speeds up Makers like Verbose and JS which don't need to load .js model files.
   if ( ! foam.flags.loadFiles ) foam.loadFiles = function() {};
 
-  X.pom.split(',').forEach(pom => {
+  X.pom.split(',').forEach(function(pom) {
+    verbose(`[pmake] pom ${pom}`);
     try {
       var path = path_.resolve(foam.cwd, pom) + '.js';
       foam.require(pom, false, true);
     } catch (e) {
-      b_.warning('[pmake] Unable to load POM', pom);
-      b_.error('[pmake]', e);
+      this.error('[pmake] Unable to load POM', pom, '\n', e);
     }
-  });
+  }.bind(this));
 
   makers.forEach(v => v.end && v.end());
+
+  if ( makers.length == 1 ) {
+    return makers[0];
+  }
+  let map = new Map();
+  Object.keys(makers).forEach(m => {
+    let maker = makers[m];
+    map.set(maker.name, maker);
+  });
+  return map;
 };
 
 module.exports = pmake;
