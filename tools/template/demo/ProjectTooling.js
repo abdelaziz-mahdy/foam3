@@ -33,10 +33,11 @@ foam.POM({
 
       var appName = arg || APP_NAME;
       var AppName;
-      var package = PACKAGE;
-      var modelName = MODEL_NAME;
+      var package = PACKAGE || appName;
+      var modelName = MODEL_NAME || appName;
       var ModelName;
       var packagePath;
+      var srcDir;
 
       if ( ! appName ) {
         appName = dir.substring(dir.lastIndexOf('/')+1);
@@ -45,11 +46,11 @@ foam.POM({
         var domain, tld;
         [modelName, appName, domain, tld] = appName.split('.').reverse();
         if ( tld ) {
-          package = tld.toLowerCase() + '.' + domain.toLowerCase() + '.' + appName.toLowerCase() ;
+          package = tld.toLowerCase() + '.' + domain.toLowerCase() + '.' + appName.toLowerCase() + '.' + modelName.toLowerCase();
         } else if ( domain ) {
-          package = domain.toLowerCase() + '.' + appName.toLowerCase();;
+          package = domain.toLowerCase() + '.' + appName.toLowerCase() + '.' + modelName.toLowerCase();
         } else {
-          package = appName.toLowerCase();
+          package = appName.toLowerCase() + '.' + modelName.toLowerCase();
         }
       }
       packagePath = package.replaceAll('.', '/');
