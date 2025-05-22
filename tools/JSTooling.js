@@ -25,7 +25,7 @@ foam.POM({
       FOAM_BIN_VERSION = `${VERSION}` + (TIMESTAMP_FOAM_BIN ? `-${TIMESTAMP}` : '');
     }],
 
-    genJS: ['gen-js', 'Build foam-bin.js', ['cleanFOAM', 'genFoamBinVersion'], function genJS() {
+    genJS: ['gen-js', 'Build foam-bin.js', ['cleanFOAM','install', 'genFoamBinVersion'], function genJS() {
       let version = FOAM_BIN_VERSION;
       let flags = this.flag();
       let outdir = BUILD_DIR+'/js';
