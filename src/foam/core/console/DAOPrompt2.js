@@ -20,7 +20,7 @@ foam.CLASS({
     function render() {
       var self = this;
 
-      // Temporary while detailview is hidden
+      // TODO: Temporary while detailview is hidden (or make into a Controller instead)
       this.data.where$.sub(this.rerun);
 
       this.
@@ -30,13 +30,23 @@ foam.CLASS({
           this.start('h3').
             add(self.data.label$).
           end().
-            start('span').style({display: 'flex', gap: '10px', flexDirection: 'column'}).start().style({marginTop: '6px'}).add('Query').end().tag({class: 'foam.u2.TextField'}, {data$: self.data.where$, placeholder: 'Type your query'}).end().br().
+          start('span').
+            style({display: 'flex', gap: '10px', flexDirection: 'column'}).
+            start().
+              style({marginTop: '6px'}).
+              add('Query').
+            end().
+            tag({class: 'foam.u2.TextField'}, {data$: self.data.where$, placeholder: 'Type your query'}).
+          end().
+          br().
             //          add(self.data.dao.of.id). // TODO: link to describe
           start().
             add(self.data.dynamic(async function(version, skip) {
               if ( ! version ) return;
               var startTime = Date.now();
-              var select = self.data.select;
+              // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
+              // TODO: fix JSON parsing should setup context corectly
+              var select    = self.data.select.clone(self.data.__subContext__);
               await select.execute(this);
               self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
             })).
@@ -225,12 +235,11 @@ foam.CLASS({
     },
     {
       name: 'select',
-      preSet: function(o, n) { return n.clone(this.__subContext__); },
       view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
     },
-    { class: 'Long', name: 'rowCount', visibility: 'RO' },
-    { class: 'String', name: 'executionTime', value: '-', visibility: 'RO', transient: true },
-    { class: 'Int', name: 'version', hidden: true },
+    { class: 'Long',            name: 'rowCount', visibility: 'RO' },
+    { class: 'String',          name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
+    { class: 'Int',             name: 'version', hidden: true },
     { class: 'FObjectProperty', name: 'value', transient: true, visibility: 'RO' }
   ],
 

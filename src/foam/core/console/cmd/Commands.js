@@ -178,7 +178,7 @@ foam.CLASS({
       var p = this.DAOPrompt2.create({dao: dao, label: opt_label});
 
       p.addToE(this.out);
-      this.currentBlock.flowName = this.createFlowChildName(p.label.toLowerCase());
+      this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
       this.currentBlock.obj      = p;
       this.currentBlock.value    = p;
     }

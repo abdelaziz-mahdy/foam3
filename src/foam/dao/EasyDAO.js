@@ -556,7 +556,12 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'journalName'
+      name: 'journalName',
+      factory: function() { return this.of.plural; },
+      javaFactory: `
+        var plural = getOf().getPlural().replaceAll(" ","");
+        return plural.substring(0,1).toLowerCase() + plural.substring(1);
+      `
     },
     {
       documentation: `See JDAO.  Force caller to wait on nspec initailzation. The first call to 'get' for an nspec (x.get(servicename)) will have the calling thread wait on reply of service. This is the default behaviour and should be used for all essential services.  Also this should be used if the model is using SeqNo or NUID for id generation.`,

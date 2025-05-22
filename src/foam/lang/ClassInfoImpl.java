@@ -29,6 +29,10 @@ public class ClassInfoImpl
     return id;
   }
 
+  public String getPlural() {
+    return getId();
+  }
+
   public ClassInfo setObjClass(Class cls) {
     class_ = cls;
     return this;

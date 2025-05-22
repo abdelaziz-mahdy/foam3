@@ -727,6 +727,13 @@ return sb.toString();`
 
         cls.method({
           visibility: 'public',
+          name: 'getPlural',
+          type: 'String',
+          body: `return "${this.model_.plural}";`
+        });
+
+        cls.method({
+          visibility: 'public',
           name: 'hashCode',
           type: 'int',
           body:

@@ -16,6 +16,8 @@ public interface ClassInfo
   String      getId();
   ClassInfo   setId(String id);
 
+  String      getPlural();
+
   ClassInfo   getParent();
   ClassInfo   addAxiom(Axiom a);
 

@@ -72,6 +72,7 @@ foam.POM({
     { name: "PasswordPolicy",                                         flags: "js|java" },
     { name: "PermissionTableView",                                    flags: "js" },
     { name: "SpidPermissionTableView",                                flags: "js" },
+    { name: "UserPermissionTableView",                                flags: "js" },
     { name: "LanguageChoiceView",                                     flags: "web" },
     { name: "Login",                                                  flags: "js" },
     { name: "Permission",                                             flags: "js|java" },

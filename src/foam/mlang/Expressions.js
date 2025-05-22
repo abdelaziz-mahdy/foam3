@@ -66,6 +66,7 @@ foam.CLASS({
     'foam.mlang.sink.Unique',
     'foam.mlang.StringLength',
     'foam.mlang.Absolute',
+    'foam.mlang.Round',
     'foam.mlang.sink.Average',
     'foam.mlang.Mux',
     'foam.mlang.Partition'
@@ -139,6 +140,7 @@ foam.CLASS({
     function SUM(arg1) { return this.Sum.create({ arg1: arg1 }); },
     function AVG(arg1) { return this.Average.create({ arg1: arg1 }); },
     function ABS(arg1) { return this.Absolute.create({ delegate: arg1 }); },
+    function ROUND(arg1, opt_decimals) { return this.Round.create({ arg1: arg1, arg2: opt_Decimals || 0 }); },
     function ARRAY() { return this.ArraySink.create() },
     function MUX(cond, a, b) { return this.Mux.create({ cond: cond, a: a, b: b }); },
     function SEQ() { return this._nary_("Sequence", arguments); },

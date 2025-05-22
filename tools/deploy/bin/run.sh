@@ -102,7 +102,7 @@ export RES_JAR_HOME="${JAR}"
 
 export JAVA_TOOL_OPTIONS="${JAVA_OPTS}"
 echo ${JAVA_OPTS} > ${APP_HOME}/logs/opts.txt
-echo JAVA_OPTS=${JAVA_OPTS}
+#echo JAVA_OPTS=${JAVA_OPTS}
 java -server -jar "${JAR}"
 
 exit 0

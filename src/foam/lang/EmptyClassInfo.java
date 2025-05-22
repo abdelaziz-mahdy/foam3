@@ -21,6 +21,10 @@ public class EmptyClassInfo
     return this;
   }
 
+  public String getPlural() {
+    return "";
+  }
+
   public ClassInfo getParent() {
     return this;
   }

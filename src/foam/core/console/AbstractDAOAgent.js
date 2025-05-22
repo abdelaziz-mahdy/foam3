@@ -247,7 +247,10 @@ foam.CLASS({
   methods: [
     function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
     function addToE(e) {
-      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP, ', ', this.SINK);
+      e.startContext({data: this}).
+        start().
+          style({display: 'flex'}).
+          add(this.PROP, ', ', this.SINK);
     }
   ]
 });
