@@ -53,7 +53,14 @@ foam.POM({
         }
       }
       packagePath = package.replaceAll('.', '/');
+
+      // special consideration for app name
+      if ( APP_NAME ) {
+        appName = APP_NAME;
+      }
       AppName = appName[0].toUpperCase() + appName.substring(1);
+      appName = appName.toLowerCase();
+
       if ( modelName ) {
         ModelName = modelName[0].toUpperCase() + modelName.substring(1);
         modelName = modelName[0].toLowerCase() + modelName.substring(1);
