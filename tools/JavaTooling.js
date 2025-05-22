@@ -217,6 +217,7 @@ foam.POM({
       APP_ROOT='/tmp';
       FLAGS = this.comma(FLAGS, 'test');
       this.addJournal('test');
+      this.addJournal('../foam3/deployment/test');
       this.execute('pomEnvs');
       if ( CLEAN ) this.execute('clean');
       this.execute('cleanTest');
