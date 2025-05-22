@@ -558,7 +558,7 @@ task('Remove foam-bin files.', [], function cleanFOAM() {
   execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
 });
 
-task("Build 'foam-bin.js'.", ['cleanFOAM', 'genFoamBinVersion'], function genJS() {
+task("Build 'foam-bin.js'.", ['cleanFOAM','install', 'genFoamBinVersion'], function genJS() {
   let version = FOAM_BIN_VERSION;
   let flags = flag();
   let outdir = BUILD_DIR+'/js';
