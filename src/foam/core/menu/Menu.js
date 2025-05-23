@@ -75,7 +75,9 @@
           [ 'foam.core.menu.ListMenu',         'List' ],
           [ 'foam.core.menu.SubMenu',          'Submenu' ],
           [ 'foam.core.menu.TabsMenu',         'Tabs' ],
-          [ 'foam.core.menu.ViewMenu',         'View' ]
+          [ 'foam.core.menu.ViewMenu',         'View' ],
+          [ 'foam.core.menu.SeparatorMenu',    'Separator' ],
+    
         ]
       }
     },

@@ -15,6 +15,7 @@ foam.CLASS({
       name: 'LabelView',
       extends: 'foam.u2.view.TreeViewRow.LabelView',
       css: `
+   
         ^select-level {
           justify-content: flex-start;
           gap: 8px;
@@ -25,24 +26,32 @@ foam.CLASS({
         function render() {
           let row = this.row;
           let self = this;
-          this.
-          addClass(self.myClass('select-level')).
-          start(self.Image, { glyph: 'next' }).
-          addClass(self.myClass('toggle-icon')).
-          style({ 'transform': 'rotate(180deg)' }).
-          end().
-          callIfElse(row.rowConfig?.[row.data.id],
-            function() {
-              this.tag(row.rowConfig[row.data.id]);
-            },
-            function() {
-              this.start().
-                addClass('p-semiBold').
-                addClass(self.myClass('label')).
-                call(row.formatter, [row.data]).
-              end();
-            }
-          );
+          // Custom: Check if handler is SeparatorMenu
+          if (
+            row.data.handler &&
+            row.data.handler.cls_ &&
+            row.data.handler.cls_.id === 'foam.core.menu.SeparatorMenu'
+          ) {
+            this.tag(row.data.handler.cls_.SeparatorRowView, { data: row.data.handler });
+          } else {
+            this.addClass(self.myClass('select-level'))
+              .start(self.Image, { glyph: 'next' })
+              .addClass(self.myClass('toggle-icon'))
+              .style({ 'transform': 'rotate(180deg)' })
+              .end()
+              .callIfElse(row.rowConfig?.[row.data.id],
+                function() {
+                  this.tag(row.rowConfig[row.data.id]);
+                },
+                function() {
+                  this.start()
+                    .addClass('p-semiBold')
+                    .addClass(self.myClass('label'))
+                    .call(row.formatter, [row.data])
+                  .end();
+                }
+              );
+          }
         }
       ]
     }
@@ -54,7 +63,19 @@ foam.CLASS({
       if ( this.translationService ) {
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
+
+      // Check if this is a separator menu
+      var isSeparator = this.data.handler && 
+                       this.data.handler.cls_ && 
+                       this.data.handler.cls_.id === 'foam.core.menu.SeparatorMenu';
+
+      if (isSeparator) {
+        // Render separator directly
+        this.tag(self.data.handler.cls_.SeparatorView);
+        return;
+      }
         
+      // Regular menu item rendering
       this.
         addClass(this.myClass()).
         enableClass(this.myClass('selected'), this.selected_$).
