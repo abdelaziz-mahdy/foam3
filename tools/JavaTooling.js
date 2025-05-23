@@ -47,6 +47,37 @@ foam.POM({
   },
 
   tasks: {
+    all: ['all', 'Execute tasks for a \'Standard Java\' build.', ['pomEnvs'], function() {
+      if ( ! ( TAR || BUILD_ONLY ) ) {
+        this.execute('stopCORE');
+      }
+      if ( ! RESTART ) {
+        if ( CLEAN_ALL ) {
+          this.execute('cleanAll');
+        } else if ( CLEAN ) {
+          this.execute('clean');
+        }
+        if ( DELETE_RUNTIME_JOURNALS ) {
+          this.execute('deleteRuntimeJournals');
+        }
+
+        if ( TAR ) {
+          this.execute('buildTar');
+        } else if ( JAR ) {
+          this.execute('buildJar');
+        } else {
+          this.execute('genJava');
+        }
+      }
+      if ( ! ( TAR || BUILD_ONLY ) ) {
+        if ( JAR ) {
+          this.execute('startCOREJar');
+        } else {
+          this.execute('startCORE');
+        }
+      }
+    }],
+
     buildJar: ['build-jar', 'Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'genJava', 'versions', 'copy', 'genImages', 'genJavaManifest', 'jarFOAM' ], function() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
       this.execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF ${JAR_INCLUDES}`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
