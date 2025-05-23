@@ -22,9 +22,6 @@ foam.POM({
     createProject: ['create-project', 'Create directories and creates root and src/ POMs for a new FOAM based project', [], function createProject(arg) {
       var dir = process.cwd();
       let templateDir = __dirname;
-      console.log(`[Project] dir: ${dir}`);
-      console.log(`[Project] templateDir: ${templateDir}`);
-      // process.exit(0);
 
       // if called from foam3/ directory, move up one level.
       if ( dir.substring(dir.lastIndexOf('/')+1) === 'foam3' ) {
@@ -34,7 +31,7 @@ foam.POM({
       var appName = arg || APP_NAME;
       var AppName;
       var package = PACKAGE || appName;
-      var modelName = MODEL_NAME || appName;
+      var modelName = MODEL_NAME;
       var ModelName;
       var packagePath;
       var srcDir;
