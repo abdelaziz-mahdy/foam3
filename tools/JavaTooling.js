@@ -42,11 +42,44 @@ foam.POM({
     runArgs: ['', 'run-args', 'RUN_ARGS', 'Arguments which will be passed to run.sh to when starting CORE server from JAR','', arg => RUN_ARGS = arg ],
     suspend: [ 's', 'suspend', 'SUSPEND', 'Start JDPA debugging in suspend state.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; SUSPEND = arg ? this.bool(arg) : true; } ],
     tar: [ 'k', 'tar', 'TAR', 'Package up a deployment tarball for remote application installation', false, function(arg) { TAR = arg ? this.bool(arg) : true; } ],
+    tarball: ['', 'tarball', 'TARBALL', 'Tar file name', () => APP_NAME + '-deploy-' + VERSION + '.tar.gz', arg => TARBALL = arg],
+    tarballPath: ['', 'tarball-path', 'TARBALL_PATH', 'Path to the tarball to upload. Defaults to the last tar built.', () => BUILD_DIR + '/package/' + TARBALL, arg => TARBALL_PATH = arg],
     webPort: [ 'W', 'web-port', 'WEB_PORT', 'Port WebServer will listen on. HTTP defaults to 8080, HTTPS defaults to 8443.  WebSocketServer will use PORT+1', '8080', args => WEB_PORT = args ],
     version: ['', 'version', 'VERSION', 'Application version', '1.0.0', args => VERSION = args ]
   },
 
   tasks: {
+    all: ['all', 'Execute tasks for a \'Standard Java\' build.', ['pomEnvs'], function() {
+      if ( ! ( TAR || BUILD_ONLY ) ) {
+        this.execute('stopCORE');
+      }
+      if ( ! RESTART ) {
+        if ( CLEAN_ALL ) {
+          this.execute('cleanAll');
+        } else if ( CLEAN ) {
+          this.execute('clean');
+        }
+        if ( DELETE_RUNTIME_JOURNALS ) {
+          this.execute('deleteRuntimeJournals');
+        }
+
+        if ( TAR ) {
+          this.execute('buildTar');
+        } else if ( JAR ) {
+          this.execute('buildJar');
+        } else {
+          this.execute('genJava');
+        }
+      }
+      if ( ! ( TAR || BUILD_ONLY ) ) {
+        if ( JAR ) {
+          this.execute('startCOREJar');
+        } else {
+          this.execute('startCORE');
+        }
+      }
+    }],
+
     buildJar: ['build-jar', 'Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'genJava', 'versions', 'copy', 'genImages', 'genJavaManifest', 'jarFOAM' ], function() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
       this.execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF ${JAR_INCLUDES}`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
@@ -102,7 +135,8 @@ foam.POM({
     buildTar: ['build-tar', 'Package files into a TAR archive', [()=>TAR=true, 'buildJar'], function() {
       this.ensureDir(this.join(BUILD_DIR, 'package'));
       // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
-      this.execSync(`tar -a -cf ${BUILD_DIR}/package/${APP_NAME}-deploy-${VERSION}.tar.gz -C ./foam3/tools/deploy bin etc -C${require('path').resolve(BUILD_DIR)} lib`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
+      this.log(`buildTar TARBALL_PATH:${TARBALL_PATH}`);
+      this.execSync(`tar -a -cf ${TARBALL_PATH} -C ./foam3/tools/deploy bin etc -C${require('path').resolve(BUILD_DIR)} lib`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
     }],
 
     clean: ['clean', 'Remove generated files', ['cleanJava'], function() {
