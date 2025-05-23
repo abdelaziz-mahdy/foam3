@@ -26,32 +26,23 @@ foam.CLASS({
         function render() {
           let row = this.row;
           let self = this;
-          // Custom: Check if handler is SeparatorMenu
-          if (
-            row.data.handler &&
-            row.data.handler.cls_ &&
-            row.data.handler.cls_.id === 'foam.core.menu.SeparatorMenu'
-          ) {
-            this.tag(row.data.handler.cls_.SeparatorRowView, { data: row.data.handler });
-          } else {
-            this.addClass(self.myClass('select-level'))
-              .start(self.Image, { glyph: 'next' })
-              .addClass(self.myClass('toggle-icon'))
-              .style({ 'transform': 'rotate(180deg)' })
-              .end()
-              .callIfElse(row.rowConfig?.[row.data.id],
-                function() {
-                  this.tag(row.rowConfig[row.data.id]);
-                },
-                function() {
-                  this.start()
-                    .addClass('p-semiBold')
-                    .addClass(self.myClass('label'))
-                    .call(row.formatter, [row.data])
-                  .end();
-                }
-              );
-          }
+          this.addClass(self.myClass('select-level'))
+            .start(self.Image, { glyph: 'next' })
+            .addClass(self.myClass('toggle-icon'))
+            .style({ 'transform': 'rotate(180deg)' })
+            .end()
+            .callIfElse(row.rowConfig?.[row.data.id],
+              function() {
+                this.tag(row.rowConfig[row.data.id]);
+              },
+              function() {
+                this.start()
+                  .addClass('p-semiBold')
+                  .addClass(self.myClass('label'))
+                  .call(row.formatter, [row.data])
+                .end();
+              }
+            );
         }
       ]
     }
@@ -64,14 +55,14 @@ foam.CLASS({
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
 
-      // Check if this is a separator menu
-      var isSeparator = this.data.handler && 
-                       this.data.handler.cls_ && 
-                       this.data.handler.cls_.id === 'foam.core.menu.SeparatorMenu';
-
-      if (isSeparator) {
-        // Render separator directly
-        this.tag(self.data.handler.cls_.SeparatorView);
+      // Check if handler has a custom row view
+      if (this.data.handler && this.data.handler.createRowView) {
+        this.start()
+          .style({
+            'padding-left': (((self.level - 1) * 16) + 'px')
+          })
+          .tag(this.data.handler.createRowView(this.__context__, this.data))
+        .end();
         return;
       }
         

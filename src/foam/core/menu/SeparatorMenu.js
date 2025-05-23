@@ -32,5 +32,11 @@ foam.CLASS({
         }
       ]
     }
+  ],
+
+  methods: [
+    function createRowView(X, menu) {
+      return { class: 'foam.core.menu.SeparatorMenu.SeparatorView' };
+    }
   ]
 });

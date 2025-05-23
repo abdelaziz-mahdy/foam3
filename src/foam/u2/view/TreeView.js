@@ -116,39 +116,30 @@ foam.CLASS({
           var selectedSlot = row.slot(function(selected_) {
             return selected_ ? 'p-semiBold' : 'p';
           });
-          // Custom: Check if handler is SeparatorMenu
-          if (
-            row.data.handler &&
-            row.data.handler.cls_ &&
-            row.data.handler.cls_.id === 'foam.core.menu.SeparatorMenu'
-          ) {
-            this.tag(row.data.handler.cls_.SeparatorView, { level: row.level });
-          } else {
-            this.addClass(this.myClass('select-level'))
-              .enableClass(this.myClass('select-level-selected'), row.selected_$)
-              .callIfElse(row.rowConfig?.[row.data.id],
-                function() {
-                  this.tag(row.rowConfig?.[row.data.id])
-                },
-                function() {
-                  this.start()
-                    .addClass(selectedSlot)
-                    .addClass(this.myClass('label'))
-                    .call(row.formatter, [row.data, self.__context__])
-                  .end();
-                }
-              )
-              .add(row.hasChildren$.map(hasChildren => {
-                if ( ! hasChildren ) return self.E();
-                return self.E()
-                  .addClass(self.myClass('toggle-icon'))
-                  .style({
-                    'transform': row.expanded$.map(function(c) { return c ? 'rotate(90deg)': 'rotate(0deg)'; })
-                  })
-                  .on('click', this.toggleExpanded)
-                  .tag(self.Image, { glyph: 'next' });
-              }));
-          }
+          this.addClass(this.myClass('select-level'))
+            .enableClass(this.myClass('select-level-selected'), row.selected_$)
+            .callIfElse(row.rowConfig?.[row.data.id],
+              function() {
+                this.tag(row.rowConfig?.[row.data.id])
+              },
+              function() {
+                this.start()
+                  .addClass(selectedSlot)
+                  .addClass(this.myClass('label'))
+                  .call(row.formatter, [row.data, self.__context__])
+                .end();
+              }
+            )
+            .add(row.hasChildren$.map(hasChildren => {
+              if ( ! hasChildren ) return self.E();
+              return self.E()
+                .addClass(self.myClass('toggle-icon'))
+                .style({
+                  'transform': row.expanded$.map(function(c) { return c ? 'rotate(90deg)': 'rotate(0deg)'; })
+                })
+                .on('click', this.toggleExpanded)
+                .tag(self.Image, { glyph: 'next' });
+            }));
         }
       ]
     }
@@ -251,18 +242,13 @@ foam.CLASS({
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
 
-      // Check if this is a separator menu
-      var isSeparator = this.data.handler && 
-                       this.data.handler.cls_ && 
-                       this.data.handler.cls_.id === 'foam.core.menu.SeparatorMenu';
-
-      if (isSeparator) {
-        // Render separator directly
+      // Check if handler has a custom row view
+      if (this.data.handler && this.data.handler.createRowView) {
         this.start()
           .style({
             'padding-left': (((self.level - 0.5) * 16) + 'px')
           })
-          .tag(self.data.handler.cls_.SeparatorView)
+          .tag(this.data.handler.createRowView(this.__context__, this.data))
         .end();
         return;
       }
