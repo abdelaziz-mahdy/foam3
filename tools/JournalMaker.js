@@ -8,7 +8,6 @@ exports.description = 'Concatenate all repository .jrl files into .0 files.';
 
 const fs_   = require('fs');
 const path_ = require('path');
-const { ensureDir, emptyDir, isExcluded, info, warning, error }    = require('./buildlib');
 
 const journalFiles  = [];
 const journalOutput = {};
@@ -21,8 +20,8 @@ function addJournalOutput(j, o) {
 
 exports.init = function() {
   X.journaldir = X.journaldir || (X.builddir + '/journals');
-  ensureDir(X.journaldir);
-  emptyDir(X.journaldir);
+  this.ensureDir(X.journaldir);
+  this.emptyDir(X.journaldir);
 
   flags.loadFiles = true;
 }
@@ -49,7 +48,7 @@ exports.visitFile = function(pom, f, fn) {
     if ( f.name.endsWith('tests.jrl') && ! flags.test )
       return;
 
-    verbose('\t\tjournal source:', fn);
+    this.verbose('\t\tjournal source:', fn);
     journalFiles.push(fn);
 
     addJournalOutput(journalName, {
@@ -68,7 +67,7 @@ exports.visitDir = function(pom, f, fn) {
 
 
 exports.end = function() {
-  verbose(`[Journal Maker] Creating journals to ${X.journaldir} from ${X.pom}`);
+  this.verbose(`[Journal Maker] Creating journals to ${X.journaldir} from ${X.pom}`);
 
   if ( X.pom !== 'pom' ) {
     var poms = X.pom.split(',').map(f => path_.relative(process.cwd(), f)).join(',');
@@ -109,7 +108,7 @@ p({
     const fn          = X.journaldir + '/' + f + '.0';
     const writeStream = fs_.openSync(fn, 'w');
     const a           = journalOutput[f];
-    verbose('[Journal] creating', fn);
+    this.verbose('[Journal] creating', fn);
     for ( var j = 0 ; j < a.length ; j++ ) {
       var o = a[j];
       try {
@@ -121,10 +120,10 @@ p({
           fs_.writeSync(writeStream, '\n');
         }
       } catch(e) {
-        console.error(e);
+        this.error(e);
       }
     }
   }
 
-  console.log(`[Journal Maker] Generating ${Object.keys(journalOutput).length} journal files from ${journalFiles.length} sources.`);
+  this.log(`[Journal Maker] Generating ${Object.keys(journalOutput).length} journal files from ${journalFiles.length} sources.`);
 };

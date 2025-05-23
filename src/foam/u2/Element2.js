@@ -672,18 +672,19 @@ foam.CLASS({
       if ( this.extraStyle ) this.style(this.extraStyle);
     },
 
-    async function observeScrollHeight() {
+    function mutationObserver(fn, config = { attributes: true, childList: true, characterData: true }) {
+      var observer = new MutationObserver(fn);
+      observer.observe(this.element_, config);
+      this.onDetach(() => observer.disconnect());
+    },
+
+    function observeScrollHeight() {
       // TODO: This should be handled by an onsub event when someone subscribes to
       // scroll height changes.
       var self = this;
-      var observer = new MutationObserver(async function(mutations) {
-        var el = await self.el();
-        self.scrollHeight = el.scrollHeight;
+      this.mutationObserver(() => {
+        self.scrollHeight = self.element_.scrollHeight;
       });
-      var config = { attributes: true, childList: true, characterData: true };
-
-      observer.observe(this.element_, config);
-      this.onDetach((s) => observer.disconnect());
       return this;
     },
 

@@ -199,7 +199,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'gSkip',
-      preSet: function(_, skip) { if ( skip === undefined || skip === null ) debugger; return skip || 0; }
+      preSet: function(_, skip) { if ( skip === undefined || skip === null ) return skip || 0; }
     },
     'ps', /* permissions array */
     'gs', /* groups array */

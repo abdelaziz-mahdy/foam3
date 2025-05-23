@@ -7,10 +7,10 @@
 foam.POM({
   name: 'foam-full',
   version: 3,
-  excludes: [ 'node_modules' ],
-  copy: [
-    { source: 'webroot', targetDir: 'webroot' }
-  ],
+  envs: {
+    APP_NAME: 'foam',
+  },
+  excludes: [ 'build', 'deployment', 'foam3', 'node_modules' ],
   projects: [
     { name: 'src/pom' },
     { name: 'src/foam/core/pom' },
@@ -21,7 +21,9 @@ foam.POM({
     { name: 'src/io/c9/ace/pom' },
     { name: 'webroot/pom' }
   ],
-  java: '21',
+  copy: [
+    { source: 'webroot', targetDir: 'webroot' }
+  ],
   javaDependencies: [
     'com.authy:authy-java:1.1.0',
     'com.google.api-client:google-api-client:1.22.0',
