@@ -37,18 +37,12 @@ foam.POM({
       var packagePath;
       var srcDir;
 
-      if ( ! package ) {
+      if ( ! appName ) {
         appName = dir.substring(dir.lastIndexOf('/')+1);
-        package = package || appName;
-      } else if ( package.indexOf('.') > 1 ) {
-        [modelName, appName, _, _] = package.split('.').reverse();
       }
+      package = package || appName;
       packagePath = package.replaceAll('.', '/');
 
-      // special consideration for app name
-      if ( APP_NAME ) {
-        appName = APP_NAME;
-      }
       AppName = appName[0].toUpperCase() + appName.substring(1);
       appName = appName.toLowerCase();
 
@@ -136,8 +130,7 @@ foam.POM({
 
     usage: ['usage', 'Example usage', [], function usage() {
       this.log('Project creation examples:');
-      this.log('  node foam3/tools/build.js -Ttemplate/demo/Project --appName:Recipe --modelName:Recipe --package:com.foamdev.cook.recipe');
-      this.log('  node foam3/tools/build.js -Ttemplate/demo/Project --createProject:net.foo.app.demo');
+      this.log('  node foam3/tools/build.js -Ttemplate/demo/Project --appName:Recipe --modelName:Recipe --package:com.foamdev.cook');
     }]
   }
 });
