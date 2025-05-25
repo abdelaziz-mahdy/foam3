@@ -186,7 +186,7 @@ return sink
         if ( sink ) {
           // RemoteSink handles registering a Skeleton callback instead of trying
           // to send the Sink across the network.
-          this.SUPER(null, foam.dao.RemoteSink.create({delegate: sink}), predicate);
+          this.SUPER(null, foam.dao.RemoteSink.create({delegate: sink}, x), predicate);
         }
         return foam.lang.FObject.create();
       },
