@@ -28,6 +28,10 @@ foam.CLASS({
   ],
 
   methods: [
+    function renderMenuItem(element, menu) {
+      element.translate(menu.id + ".label", menu.label);
+      if (menu.tooltip) element.tooltip = menu.tooltip;
+    },
     function select(X, menu) {
       if ( this.popup ) {
         X.pushMenu(menu.id);
