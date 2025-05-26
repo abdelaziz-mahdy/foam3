@@ -1,0 +1,16 @@
+p({
+  "class":"foam.core.auth.User",
+  "id":{adminUserId},
+  "spid":"{spid}",
+  "lifecycleState":1,
+  "group":"system",
+  "firstName":"{adminUser}",
+  "middleName":"",
+  "lastName":"admin",
+  "email":"{adminUser}@foamdev.com",
+  "userName":"{adminUser}",
+  "birthday":"1982-07-07T23:12:00.0Z",
+  "password":"yg2XT+KZBJk=:BljmCGq/fGkvm1POBiEJdzrMn2oEQSqsLK3OHKwvGmnaf99FrlJ7HZPtzeaXus2kHHyRUZU8iOHD8y5tB/AkWg==",
+  "emailVerified":true,
+  "loginEnabled":true
+})

@@ -38,6 +38,7 @@ foam.POM({
     'commons-net:commons-net:3.6',
     'jakarta.mail:jakarta.mail-api:2.1.2',
     'jakarta.activation:jakarta.activation-api:2.1.2',
+    'jakarta.json:jakarta.json-api:2.1.3',
     'javax.json:javax.json-api:1.1.4',
     'javax.ws.rs:javax.ws.rs-api:2.1.1',
     'jstl:jstl:1.2',
@@ -64,6 +65,7 @@ foam.POM({
     'org.eclipse.jetty:jetty-util-ajax:11.0.23', // for source build
     'org.eclipse.jetty.http2:http2-server:11.0.23',
     'org.eclipse.jetty.websocket:websocket-jetty-server:11.0.23',
+    'org.eclipse.parsson:parsson:1.1.7',
     'org.glassfish:javax.json:1.1.4',
     'org.java-websocket:Java-WebSocket:1.5.0',
     'org.jsoup:jsoup:1.15.1', // HTML Parser
@@ -75,6 +77,7 @@ foam.POM({
     'io.netty:netty-codec-http2:4.1.114.Final',
     'io.netty:netty-handler-proxy:4.1.114.Final',
     'io.netty:netty-resolver-dns:4.1.114.Final',
+    'io.netty:netty-resolver-dns-native-macos:4.1.114.Final',
     'org.junit.jupiter:junit-jupiter-engine:5.6.0',
     'org.junit.jupiter:junit-jupiter-params:5.6.0',
     'org.junit.platform:junit-platform-launcher:1.6.0',

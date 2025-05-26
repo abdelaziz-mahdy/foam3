@@ -20,7 +20,7 @@ foam.CLASS({
     'foam.dao.ArraySink',
     'foam.core.auth.*',
     'java.util.List',
-    'java.util.HashMap',
+    'java.util.Map',
     'foam.util.SafetyUtil',
     'nl.martijndwars.webpush.Notification',
     'org.bouncycastle.jce.provider.BouncyCastleProvider'
@@ -66,28 +66,20 @@ foam.CLASS({
   methods: [
     {
       name: 'send',
-      args: 'PushRegistration sub, HashMap msgMap',
+      args: 'PushRegistration sub, Map msgMap',
       type: 'Void',
       javaCode: `
-      /*
-      System.err.println("  Sending:    " + msg);
-      System.err.println("    endpoint: " + sub.getEndpoint());
-      System.err.println("         key: " + sub.getKey());
-      System.err.println("        auth: " + sub.getAuth());
-      */
         try {
           if ( SafetyUtil.isEmpty(sub.getEndpoint()) ) {
             return;
           }
-          var msg = javax.json.Json.createObjectBuilder()
-            .add("title", (String)msgMap.get("title"))
-            .add("body", (String)msgMap.get("body"))
+          var msg = jakarta.json.Json.createObjectBuilder(msgMap)
             .build()
             .toString();
           Notification n = new Notification(
             sub.getEndpoint(),
-            sub.getKey(),  // sub.getUserPublicKey(),
-            sub.getAuth(), // sub.getAuthAsBytes(),
+            sub.getKey(),
+            sub.getAuth(),
             msg
           );
 
