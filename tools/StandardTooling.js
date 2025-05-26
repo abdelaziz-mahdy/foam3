@@ -16,7 +16,7 @@ foam.POM({
   },
 
   tasks: {
-    clean: ['clean', 'Remove generated files', [], function clean(args) {
+    clean: ['clean', 'Remove generated files', [], function(args) {
       if ( args === 'all') { // -Xclean:all
         this.execute('cleanAll');
       }
@@ -33,7 +33,7 @@ foam.POM({
       }
     }],
 
-    usage: ['usage', 'Build usage examples', [], function usage() {
+    usage: ['usage', 'Build usage examples', [], function() {
       console.log('CLI examples:');
       console.log('  ./build.sh -c');
       console.log('    Remove previously generated code, before rebuilding.');
@@ -43,40 +43,6 @@ foam.POM({
       console.log('    Perform an extra deep clean before building normally.');
       console.log('  ./build.sh --topic:foo');
       console.log('    Print usage for \'topic\'. Ex: ./build.sh --topic:cleanAll  or  ./xobuild.sh -Ha');
-    }],
-
-    // ############################
-    // # Build steps
-    // ############################
-    all: ['all', 'Execute \'standard\' build tasks.', ['pomEnvs'], function all() {
-      if ( ! ( TAR || BUILD_ONLY ) ) {
-        this.execute('stopCORE');
-      }
-      if ( ! RESTART ) {
-        if ( CLEAN_ALL ) {
-          this.execute('cleanAll');
-        } else if ( CLEAN ) {
-          this.execute('clean');
-        }
-        if ( DELETE_RUNTIME_JOURNALS ) {
-          this.execute('deleteRuntimeJournals');
-        }
-
-        if ( TAR ) {
-          this.execute('buildTar');
-        } else if ( JAR ) {
-          this.execute('buildJar');
-        } else {
-          this.execute('genJava');
-        }
-      }
-      if ( ! ( TAR || BUILD_ONLY ) ) {
-        if ( JAR ) {
-          this.execute('startCOREJar');
-        } else {
-          this.execute('startCORE');
-        }
-      }
     }]
   }
 });

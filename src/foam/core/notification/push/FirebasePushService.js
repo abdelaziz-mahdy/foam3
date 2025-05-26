@@ -69,6 +69,10 @@ foam.CLASS({
   methods: [
     {
       name: 'sendPush',
+      javaCode: `return sendPushWithExtra(user, title, body, null);`
+    },
+    {
+      name: 'sendPushWithExtra',
       javaCode:
 `HttpURLConnection conn = null;
 OutputStreamWriter wr = null;
@@ -89,6 +93,10 @@ try {
 
   Map<String, Object> body = new HashMap<String, Object>();
   body.put("to", user.getDeviceToken());
+
+  if ( extra != null ) {
+    body.put("data", extra);
+  }
 
   Map<String, Object> notification = new HashMap<String, Object>();
   notification.put("body", msg);

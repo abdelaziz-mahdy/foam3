@@ -17,15 +17,15 @@ foam.POM({
   },
 
   tasks: {
-    cleanFOAM: ['clean-foam', 'Remove foam-bin files.', [], function cleanFOAM() {
+    cleanFOAM: ['clean-foam', 'Remove foam-bin files.', [], function() {
       this.execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
     }],
 
-    genFoamBinVersion: ['gen-foam-bin-version', 'Generate version string for the foam-bin, with our without a timestamp', [], function genFoamBinVersion() {
+    genFoamBinVersion: ['gen-foam-bin-version', 'Generate version string for the foam-bin, with our without a timestamp', [], function() {
       FOAM_BIN_VERSION = `${VERSION}` + (TIMESTAMP_FOAM_BIN ? `-${TIMESTAMP}` : '');
     }],
 
-    genJS: ['gen-js', 'Build foam-bin.js', ['cleanFOAM', 'genFoamBinVersion'], function genJS() {
+    genJS: ['gen-js', 'Build foam-bin.js', ['cleanFOAM', 'genFoamBinVersion'], function() {
       let version = FOAM_BIN_VERSION;
       let flags = this.flag();
       let outdir = BUILD_DIR+'/js';

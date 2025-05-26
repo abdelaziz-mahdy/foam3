@@ -502,8 +502,13 @@ Just as repeat0() is the no-value version of repeat(), seq0() is the no-value ve
 We use both seq0() and until0() in this example to parse C-style /* comments */. For a language compiler we might throw away the contents of
 comments, so this type of parser might make sense.
 --
-const comment = P.seq0('/*', P.until0('*/'));
+var comment = P.seq0('/*', P.until0('*/'));
 testP(comment, [ '/* This is a comment. Ignore the results. */' ]);
+
+// If you wanted the comment contents, then you would do:
+
+var comment = P.seq1(1, '/*', P.str(P.until('*/')));
+testP(comment, [ "/* This is a comment. Don't ignore the results. */" ]);
 
 
 ## Example: Boolean
@@ -958,6 +963,7 @@ const interp = BinaryInterpreter.create({x: 1, y: 10, z: 100});
 testP(interp, input);
 
 ## Error Reporting
+<pre>
 All of the examples until now have simply returned undefined if the input could not be
 parsed, but it would be much better to be able to report an error message which
 explained why the input could not be parsed. We do this with the ErrorReportingPStream.
@@ -965,9 +971,9 @@ explained why the input could not be parsed. We do this with the ErrorReportingP
 Recall that PStream is an interface, but notice that the StringPStream is the
 only implementation that we've seen so far. The ErrorReportingPStream is a PStream
 decorator that wraps another PStream (probably a StringPStream in JS) and figures
-out where a parse error occured and provides an error message explaining what
-and where the parse failed.
-
+out where a parse error occured and provides an error message explaining where the
+parse failed and what was expected.
+</pre>
 --
 // TODO: The JS ErrorReportingPStream isn't as useful as the Java version and should be improved
 // TODO: finish this example

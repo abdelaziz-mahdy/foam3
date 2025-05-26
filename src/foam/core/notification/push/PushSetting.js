@@ -47,8 +47,10 @@ foam.CLASS({
               return;
             }
             ((foam.core.om.OMLogger) x.get("OMLogger")).log("Notification:Push");
+            var extra =  notification instanceof foam.core.notification.MetadataNotification ?
+                ((foam.core.notification.MetadataNotification)notification).getMetadata() : null;
             try {
-              pushService.sendPush(user, title, body);
+              pushService.sendPushWithExtra(user, title, body, extra);
             } catch (Throwable t) {
               Loggers.logger(x, this).error(t);
             }
