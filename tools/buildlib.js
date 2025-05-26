@@ -6,7 +6,6 @@
 
 // Common library functions for use with build.js and pmake.js
 
-const crypto = require('crypto');
 const fs_   = require('fs');
 const exec_ = require('child_process');
 const path_ = require('path');
@@ -224,17 +223,6 @@ function exec(cmd) {
   return exec_(cmd, (error, stdout, stderr) => {
     if (error) this.error(error);
   });
-}
-
-function salt(size) {
-  return crypto.SHA1().toString().substring(0, size);
-}
-
-function hash(password, s = salt(8)) {
-  let key = crypto.pbkdf2Sync(password, salt, 1000, 512, 'sha1');
-  let salt64 = salt.toString('base64');
-  let key64 = key.toString('base64');
-  return `${salt64}:${key64}`;
 }
 
 function comma(list, value) {
@@ -467,7 +455,6 @@ exports.findOption            = findOption;
 exports.findSimilarOptions    = findSimilarOptions;
 exports.findSimilarTasks      = findSimilarTasks;
 exports.flag                  = flag;
-exports.hash                  = hash;
 exports.hyphenate             = hyphenate;
 exports.info                  = info;
 exports.isExcluded            = isExcluded;

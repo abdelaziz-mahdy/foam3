@@ -13,14 +13,20 @@ foam.POM({
   description: 'Options and Tasks to create a new project using FOAM',
 
   options: {
-    adminPassword: ['', 'admin-password', 'ADMIN_PASSWORD', 'Initial password admin user', '', arg => ADMIN_PASSWORD = arg],
-    adminUser: ['', 'admin-user', 'ADMIN_USER', 'TODO', 'admin', arg => ADMIN_USER = arg], // function() { }]
-    adminUserId: ['', 'admin-user-id', 'ADMIN_USER_ID', 'TODO', '42', arg => ADMIN_USER_ID = arg],
+    adminPassword: ['P', 'admin-password', 'ADMIN_PASSWORD', 'Initial password admin user', '', arg => ADMIN_PASSWORD = arg],
+    adminUser: ['', 'admin-user', 'ADMIN_USER', 'Identifier of super-user. This will be the \'username\' for login.', 'admin', arg => ADMIN_USER = arg],
+    adminUserId: ['', 'admin-user-id', 'ADMIN_USER_ID', 'Admin user \'id\'. Numerical value between 3 and 999.', '42', function(arg) {
+      if ( arg && arg > 2 && arg < 1000) ADMIN_USER_ID = arg;
+      else this.error(`Invalid adminUserId. Expecting value between in range [3..999]`);
+    }],
     appName: ['N', 'app-name', 'APP_NAME', 'Identifier of application, used for root pom and default deployment directory:  /opt/APP_NAME', '', arg => APP_NAME = arg ],
-    package: ['P', 'package', 'PACKAGE', 'Source code path - typically following Java package naming conventions which takes a FQDN inverts it and drops the sub-domain. Ex: www.foamdev.com -> com.foamdev.  This will become the source directory structure under src/. For the purposes of this Project creation the result would be src/com/foamdev/APP_NAME/', '', arg => PACKAGE = arg ],
+    package: ['', 'package', 'PACKAGE', 'Source code path - typically following Java package naming conventions which takes a FQDN inverts it and drops the sub-domain. Ex: www.foamdev.com -> com.foamdev.  This will become the source directory structure under src/. For the purposes of this Project creation the result would be src/com/foamdev/APP_NAME/', '', arg => PACKAGE = arg ],
     modelName: ['M', 'model-name', 'MODEL_NAME', 'If a model name is provided, the project creation processs will also setup a complete working application, with user, group, menu, permissions, and service journals based on the model name', '', arg => MODEL_NAME = arg ],
     spid: ['', 'spid', 'SPID', 'Default spid', 'foam', arg => SPID = arg],
-    type:/* or theme*/ ['', 'type', 'TYPE', '?? One of: simple, demo, recipe', 'simple', function(arg) { if (arg && (arg === 'simple' || arg === 'demo' || arg == 'recipe' )) TYPE = arg; else throw `Invalid type '${arg}', expecting one of [simple, demo, recipe]`; } ]
+    type: ['', 'type', 'TYPE', '?? One of: simple, demo, recipe', 'simple', function(arg) {
+      if (arg && (arg === 'simple' || arg === 'demo' || arg == 'recipe' )) TYPE = arg;
+      else this.error(`Invalid type '${arg}', expecting one of [simple, demo, recipe]`);
+    }]
   },
 
   tasks: {
@@ -41,7 +47,7 @@ foam.POM({
       }
       appName = appName.toLowerCase();
 
-      var adminPassword = ADMIN_PASSWORD; // encode
+      var adminPassword = ADMIN_PASSWORD;
       var adminUser = ADMIN_USER;
       var adminUserId = ADMIN_USER_ID;
       var AppName = appName[0].toUpperCase() + appName.substring(1);
@@ -71,7 +77,7 @@ foam.POM({
           this.error(`[Project] template file empty ${fn}`);
         }
 
-        // text = text.replaceAll("{adminPassword}", adminPassword);
+        text = text.replaceAll("{adminPassword}", adminPassword);
         text = text.replaceAll("{adminUser}", adminUser);
         text = text.replaceAll("{adminUserId}", adminUserId);
         text = text.replaceAll("{app}", appName);
@@ -160,13 +166,18 @@ foam.POM({
     }],
     usage: ['usage', 'Example usage', [], function() {
       this.log('Project creation examples:');
-      this.log('  node foam3/tools/build.js -Ttemplate/demo/Project --appName:Recipe --modelName:Recipe --package:com.foamdev.cook');
+      this.log('  node foam3/tools/build.js -Tsetup/Project --appName:Recipe --package:com.foamdev.cook');
+      this.log('      Will generate a project matchin the FOAM-Recipes tutorial');
+      this.log('  node foam3/tools/build.js -Tsetup/Project --appName:Simple --package:com.foamdev');
+      this.log('      Will generate a project with a very simple model.');
+      this.log('  node foam3/tools/build.js -Tsetup/Project --type:demo --appName:Example --package:com.foamdev');
+      this.log('      Will generate a project with a more elaborate model demonstrating more FOAM features..');
     }],
 
     validate: ['validate', 'Validate tooling parameters before execution', [], function() {
-      if ( ! ADMIN_PASSWORD ) {
-        this.error(`[Project] option --adminPassword required.`);
-      }
+      // if ( ! ADMIN_PASSWORD ) {
+      //   this.error(`[Project] option --adminPassword required.`);
+      // }
     }]
   }
 });
