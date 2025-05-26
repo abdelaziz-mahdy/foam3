@@ -1,6 +1,6 @@
 foam.ENUM({
   package: '{package}',
-  name: '{Model}Category',
+  name: 'RecipeCategory',
   values: [
     { name: 'APPETIZER' },
     { name: 'MAIN' },

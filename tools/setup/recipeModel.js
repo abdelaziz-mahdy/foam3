@@ -1,6 +1,6 @@
 foam.CLASS({
   package: '{package}',
-  name: '{Model}',
+  name: 'Recipe',
 
   implements: [
     'foam.core.auth.CreatedAware',
@@ -8,16 +8,19 @@ foam.CLASS({
   ],
 
   tableColumns: [
-    'name'
+    'name',
+    'description',
+    'category'
   ],
 
   searchColumns: [
-    'name'
+    'name',
+    'category'
   ],
 
   properties: [
     {
-      class: 'Long',
+      class: 'String',
       name: 'id',
       createVisibility: 'HIDDEN',
       updateVisibility: 'RO'
@@ -26,12 +29,26 @@ foam.CLASS({
       class: 'String',
       name: 'name',
       required: true
+    },
+    {
+      class: 'String',
+      name: 'description'
+    },
+    {
+      class: 'Enum',
+      of: '{package}.RecipeCategory',
+      name: 'category',
+      value: 'OTHER'
+    },
+    {
+      class: 'String',
+      name: 'source'
     }
   ],
 
   methods: [
     function sampleMethod() {
-      return 'Hello World!';
+      return 'Hello From Recipe World!';
     },
     function toSummary() {
       return this.name;
