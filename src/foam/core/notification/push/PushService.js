@@ -39,6 +39,29 @@ foam.INTERFACE({
       ]
     },
     {
+      name: 'sendPushWithExtra',
+      async: true,
+      type: 'Boolean',
+      args: [
+        {
+          type: 'foam.core.auth.User',
+          name: 'user'
+        },
+        {
+          type: 'String',
+          name: 'title'
+        },
+        {
+          type: 'String',
+          name: 'body'
+        },
+        {
+          type: 'java.util.Map',
+          name: 'extra'
+        }
+      ]
+    },
+    {
       name: 'sendPushById',
       async: true,
       type: 'Boolean',

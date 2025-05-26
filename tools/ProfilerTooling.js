@@ -13,7 +13,7 @@ foam.POM({
   },
 
   tasks: {
-    buildRunArgs: ['build-run-args', 'Add profiler port',[], function buildRunArgs() {
+    buildRunArgs: ['build-run-args', 'Add profiler port',[], function() {
       if ( PROFILER ) RUN_ARGS += ` -P${PROFILER_PORT}`;
     }]
   }

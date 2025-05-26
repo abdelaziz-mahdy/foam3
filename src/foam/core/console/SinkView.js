@@ -75,6 +75,7 @@ foam.CLASS({
         return cls.create({}, this);
       },
       postSet: function(o, n) {
+        if ( ! n ) return;
         for ( var i = 0 ; i < this.AGENTS.length ; i++ ) {
           if ( this.choiceToClass(this.AGENTS[i][0]) == n.cls_.id ) {
             this.feedback_ = true;

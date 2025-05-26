@@ -1,5 +1,5 @@
 foam.POM({
-  name: 'src/{packagePath}',
+  name: '{model}',
   projects: [
     { name: 'test/pom',                 flags: 'test' }
   ],

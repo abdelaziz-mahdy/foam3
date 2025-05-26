@@ -151,23 +151,26 @@ Using --flags:test will include all source and configuration flagged as 'test' t
 
 <h1>Additional Tooling</h1>
 <h2>Project</h2>
-<p>Project tooling provides a task for creating a new FOAM based project. It will create the default directory layout along with required poms.</p>
-Usage:
-<code>node foam3/tools/build.js -Ttemplate/demo/Project --createProject:net.foo</code>
-<p>A fully functional <i>demo</i> can also be setup with the following.  The important bit is the subdomain <b>demo</b> at --createProject. With this the tooling will create an example model Demo along with all required journal configuration to deploy it.</p>
-Example 1
+<p>Project tooling provides a task for creating a new FOAM based project, complete with an example Model and Test case.  The task will create the default directory layout along with required poms, and initial journal configuration for logging in and mananging the new Model.</p>
 <code>
-  node foam3/tools/build.js -Ttemplate/demo/Project --createProject:com.foamdev.cook.recipe
+  node foam3/tools/build.js -Ttemplate/demo/Project --createProject --appName:Recipe --modelName:Recipe --package:com.foamdev.cook.recipe
   # then build with
-  node foam3/tools/build.js deployment/demo/run.sh
+  ./build.sh deployment/demo/run.sh
   # login with demo user - username: demo, password: demopassword
   # or admin user - username: foam-admin, password: foam-admin
+  #
+  # Run the test case with
+  ./build.sh --java-tests:RecipeTest
 </code>
-Example 2
+
+<h2>RemoteInstall</h2>
+<p>The RemoteInstall tooling provide tasks to install a release on a remote instance.</p>
+<p>After building with task <b>tar</b>, re-run the build with RemoteInstall tooling to upload and install the tarball on a remote host.</p>
+<p>Example</p>
 <code>
-  node foam3/tools/build.js -Ttemplate/demo/Project --createProject:net.foo.app.demo
-  # then build with
-  node foam3/tools/build.js deployment/demo/run.sh
-  # login with demo user - username: demo, password: demopassword
-  # or admin user - username: foam-admin, password: foam-admin
+  # build tar ball
+  ./build.sh -ckJhttps
+
+  # deploy to remote host
+  ./build.sh -TStandard,RemoteInstall,Java --user:foam user-id:3636 --backup:false --remote-hostname:moosehead
 </code>

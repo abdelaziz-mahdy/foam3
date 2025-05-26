@@ -84,10 +84,12 @@ let TOOLING_TASKS = {};
 function task() {
   var name, gnuopt, desc = '', dep = [], f, pom = 'build';
   if ( arguments.length == 1 ) {
+    // tasks from build poms
     f = arguments[0];
     name = f.name;
     gnuopt = hyphenate(f.name);
   } else if ( arguments.length == 3 ) {
+    // tasks from build.js itself
     f = arguments[2];
     name = f.name;
     gnuopt = hyphenate(f.name);
@@ -100,6 +102,7 @@ function task() {
     desc = arguments[1];
     dep = arguments[2];
   } else if ( arguments.length == 6 ) {
+    // tasks from tooling
     name = arguments[0];
     gnuopt = arguments[1];
     desc = arguments[2];
@@ -170,7 +173,7 @@ function task() {
       verbose(`  Finished POM Tasks :: ${name}`);
     }
 
-    tasks.forEach(function(task) {
+    tasks.every(function(task) {
       verbose(`  Execute Task :: ${name} (${task.pom})`);
       // execute task dependencies
       var dep = task.dep;
@@ -187,9 +190,11 @@ function task() {
       });
 
       // execute tasks
-      if ( ! DRY_RUN || name == 'pomEvns' || name == 'all' ) {
-        task.f.apply(Object.assign({ SUPER }, EXPORTS), args);
+      if ( ! DRY_RUN || name === 'pomEvns' || name === 'all' ) {
+        task.f && task.f.apply(Object.assign({ SUPER }, EXPORTS), args);
       }
+      // only run first 'all'
+      return name !== 'all';
     });
 
     running[name] -= 1;
@@ -440,7 +445,8 @@ EXPORTS = Object.assign(EXPORTS, {
 });
 
 TOOLING_OPTIONS = addOptions({
-  platform: ['', 'platform', 'PLATFORM', 'Operation System Type', () => os.platform(), arg => PLATFORM = arg ],
+  homeDir: ['', 'home-dir', 'HOME_DIR', 'Home directory of user executing build', () => os.homedir(), arg => HOME_DIR = arg ],
+  platform: ['', 'platform', 'PLATFORM', 'Operation System Type. One of: darwin (MacOS), freebsd, linux, win32', () => os.platform(), arg => PLATFORM = arg ],
   silent: ['', 'silent', 'SILENT', "Suppress all 'info' and 'warning' log messages.", false, function(arg) { SILENT = arg ? bool(arg) : true; }],
   toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'', '', arg => TOOLING_POMS = arg ]
 }, TOOLING_OPTIONS);
@@ -484,7 +490,7 @@ OPTIONS = addOptions({
   poms: [ 'P', 'poms', 'POMS', "comma seperated list of pom files. Defaults to 'pom' at the root of the project.", '', arg => POMS = arg ],
   projectHome: ['', 'project-home', 'PROJECT_HOME', 'Project directory', process.cwd(), arg => PROJECT_HOME = arg ],
   showEnvs: [ '', 'show-envs', 'SHOW_ENVS', 'Output environment variable values.', false, function(arg) { SHOW_ENVS = arg ? bool(arg) : true; }],
-  tasks: [ 'X', 'tasks', 'TASKS', 'Register task for execution during the build phase. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9', 'all',
+  tasks: [ 'X', 'tasks', 'TASKS', 'Register task for execution during the build phase. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9. NOTE: only the first \'all\' task is processed.', 'all',
            arg => {
              // cli will pass tasks as either --task1,task2 or -Xtask1,task2
              let t = arg.replaceAll(',', TASK_SEPERATOR);
@@ -651,11 +657,8 @@ task('tooling', 'Prepare build environment', [], function tooling() {
     let list = maker.tasks[name];
     list.forEach(t => {
       var [gnuopt, desc, dep, f] = t;
-      if ( ! f || ! f.name ) {
-        error(`[build] task missing function ${name} ${t}`);
-      }
-      if ( f.name !== name ) {
-        warning(`[build] tooling name: ${name} != f.name ${f.name}`);
+      if ( ! f ) {
+        // warning(`[build] task missing function ${name} ${t}`);
       }
       task(name, gnuopt, desc, dep, f, t.pom);
     });
