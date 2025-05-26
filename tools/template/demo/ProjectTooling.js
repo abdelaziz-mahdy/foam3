@@ -7,19 +7,24 @@
 /**
    Support for creating new FOAM based projects.
    usage: node foam3/tools/build.js -Tproject/standard/Project --createProject:[net.foo.]app[.model]
- */
+*/
 foam.POM({
   name: 'project',
   description: 'Options and Tasks to create a new project using FOAM',
 
   options: {
+    adminPassword: ['', 'admin-password', 'ADMIN_PASSWORD', 'Initial password admin user', '', arg => ADMIN_PASSWORD = arg],
+    adminUser: ['', 'admin-user', 'ADMIN_USER', 'TODO', 'admin', arg => ADMIN_USER = arg], // function() { }]
+    adminUserId: ['', 'admin-user-id', 'ADMIN_USER_ID', 'TODO', '42', arg => ADMIN_USER_ID = arg],
     appName: ['N', 'app-name', 'APP_NAME', 'Identifier of application, used for root pom and default deployment directory:  /opt/APP_NAME', '', arg => APP_NAME = arg ],
     package: ['P', 'package', 'PACKAGE', 'Source code path - typically following Java package naming conventions which takes a FQDN inverts it and drops the sub-domain. Ex: www.foamdev.com -> com.foamdev.  This will become the source directory structure under src/. For the purposes of this Project creation the result would be src/com/foamdev/APP_NAME/', '', arg => PACKAGE = arg ],
-    modelName: ['M', 'model-name', 'MODEL_NAME', 'If a model name is provided, the project creation processs will also setup a complete working application, with user, group, menu, permissions, and service journals based on the model name', '', arg => MODEL_NAME = arg ]
+    modelName: ['M', 'model-name', 'MODEL_NAME', 'If a model name is provided, the project creation processs will also setup a complete working application, with user, group, menu, permissions, and service journals based on the model name', '', arg => MODEL_NAME = arg ],
+    spid: ['', 'spid', 'SPID', 'Default spid', 'foam', arg => SPID = arg],
+    type:/* or theme*/ ['', 'type', 'TYPE', '?? One of: simple, demo, recipe', 'simple', function(arg) { if (arg && (arg === 'simple' || arg === 'demo' || arg == 'recipe' )) TYPE = arg; else throw `Invalid type '${arg}', expecting one of [simple, demo, recipe]`; } ]
   },
 
   tasks: {
-    all: ['all', 'Run all tasks to create a new project', ['createProject']],
+    all: ['all', 'Run all tasks to create a new project', ['validate', 'createProject']],
     createProject: ['create-project', 'Create directories and creates root and src/ POMs for a new FOAM based project', [], function createProject(arg) {
       var dir = process.cwd();
       let templateDir = __dirname;
@@ -29,22 +34,25 @@ foam.POM({
         dir = dir.substring(0, dir.lastIndexOf('/'));
       }
 
-      var appName = arg || APP_NAME;
-      var AppName;
-      var package = PACKAGE || appName;
-      var modelName = MODEL_NAME;
-      var ModelName;
-      var packagePath;
-      var srcDir;
 
+      var appName = arg || APP_NAME;
       if ( ! appName ) {
         appName = dir.substring(dir.lastIndexOf('/')+1);
       }
-      package = package || appName;
-      packagePath = package.replaceAll('.', '/');
-
-      AppName = appName[0].toUpperCase() + appName.substring(1);
       appName = appName.toLowerCase();
+
+      var adminPassword = ADMIN_PASSWORD; // encode
+      var adminUser = ADMIN_USER;
+      var adminUserId = ADMIN_USER_ID;
+      var AppName = appName[0].toUpperCase() + appName.substring(1);
+      var group = appName;
+      var package = PACKAGE || appName;
+      var modelName = MODEL_NAME || appName;
+      modelName = modelName[0].toLowerCase() + modelName.substring(1);
+      var ModelName = modelName[0].toUpperCase() + modelName.substring(1);
+      var packagePath = package.replaceAll('.', '/');
+      var spid = SPID || appName;
+      var srcDir;
 
       if ( modelName ) {
         ModelName = modelName[0].toUpperCase() + modelName.substring(1);
@@ -63,14 +71,21 @@ foam.POM({
           this.error(`[Project] template file empty ${fn}`);
         }
 
+        // text = text.replaceAll("{adminPassword}", adminPassword);
+        text = text.replaceAll("{adminUser}", adminUser);
+        text = text.replaceAll("{adminUserId}", adminUserId);
         text = text.replaceAll("{app}", appName);
+        text = text.replaceAll("{appName}", appName);
         text = text.replaceAll("{App}", AppName);
-        if ( modelName ) {
-          text = text.replaceAll("{model}", modelName);
-          text = text.replaceAll("{Model}", ModelName);
-        }
+        text = text.replaceAll("{AppName}", AppName);
+        text = text.replaceAll("{group}", group);
+        text = text.replaceAll("{model}", modelName);
+        text = text.replaceAll("{modelName}", modelName);
+        text = text.replaceAll("{Model}", ModelName);
+        text = text.replaceAll("{ModelName}", ModelName);
         text = text.replaceAll("{package}", package);
         text = text.replaceAll("{packagePath}", packagePath);
+        text = text.replaceAll("{spid}", spid);
 
         fn = this.join(outDir, outFn);
         this.log(`[Project] creating file ${fn}`);
@@ -89,48 +104,69 @@ foam.POM({
       readWrite.bind(this, templateDir, 'deploymentAppPOM.js', `${dir}/deployment/${appName}`, 'pom.js')();
       readWrite.bind(this, templateDir, 'journalPOM.js', `${dir}/journals`, 'pom.js')();
 
-      if ( ! modelName) {
-        readWrite.bind(this, templateDir, 'srcPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'testPOM.js', `${dir}/deployment/test`, 'pom.js')();
-      } else {
-        readWrite.bind(this, templateDir, 'journalGroups.jrl', `${dir}/journals`, `groups.jrl`)();
-        readWrite.bind(this, templateDir, 'journalGroupPermissionJunctions.jrl', `${dir}/journals`, `groupPermissionJunctions.jrl`)();
-        readWrite.bind(this, templateDir, 'journalMenus.jrl', `${dir}/journals`, `menus.jrl`)();
+      // base setup
+      readWrite.bind(this, templateDir, 'emptyPOM.js', `${dir}/journals`, 'pom.js')();
+      readWrite.bind(this, templateDir, 'journalGroups.jrl', `${dir}/journals`, `groups.jrl`)();
+      readWrite.bind(this, templateDir, 'journalGroupPermissionJunctions.jrl', `${dir}/journals`, `groupPermissionJunctions.jrl`)();
+
+      // demo user setup
+      readWrite.bind(this, templateDir, 'deploymentDemoPOM.js', `${dir}/deployment/demo`, `pom.js`)();
+      readWrite.bind(this, templateDir, 'deploymentDemoUsers.jrl', `${dir}/deployment/demo`, `users.jrl`)();
+      readWrite.bind(this, templateDir, 'run.sh', `${dir}/deployment/demo`, `run.sh`)();
+      this.execSync(`chmod u+x ${dir}/deployment/demo/run.sh`);
+
+      // test
+      readWrite.bind(this, templateDir, 'modelTestPOM.js', `${dir}/src/${packagePath}/test`, 'pom.js')();
+      readWrite.bind(this, templateDir, 'modelTest.js', `${dir}/src/${packagePath}/test`, `${ModelName}Test.js`)();
+      readWrite.bind(this, templateDir, 'deploymentModelTestPOM.js', `${dir}/deployment/test`, 'pom.js')();
+      readWrite.bind(this, templateDir, 'tests.jrl', `${dir}/src/${packagePath}/test`, 'tests.jrl')();
+
+      readWrite.bind(this, templateDir, 'journalMenus.jrl', `${dir}/journals`, `menus.jrl`)();
+
+      // model
+      if ( TYPE === 'demo' ) {
+        readWrite.bind(this, templateDir, 'demoModel.js', `${dir}/src/${packagePath}`, `${ModelName}.js`)();
+        readWrite.bind(this, templateDir, 'demoModelCategory.js', `${dir}/src/${packagePath}`, `${ModelName}Category.js`)();
+        readWrite.bind(this, templateDir, 'demoModelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
         readWrite.bind(this, templateDir, 'journalServices.jrl', `${dir}/journals`, `services.jrl`)();
-
-        readWrite.bind(this, templateDir, 'deploymentDemoPOM.js', `${dir}/deployment/demo`, `pom.js`)();
-        readWrite.bind(this, templateDir, 'deploymentDemoUsers.jrl', `${dir}/deployment/demo`, `users.jrl`)();
-
-        // model
-        readWrite.bind(this, templateDir, 'modelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'model.js', `${dir}/src/${packagePath}`, `${ModelName}.js`)();
-        readWrite.bind(this, templateDir, 'modelCategory.js', `${dir}/src/${packagePath}`, `${ModelName}Category.js`)();
-
-        // test
-        readWrite.bind(this, templateDir, 'modelTestPOM.js', `${dir}/src/${packagePath}/test`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'modelTest.js', `${dir}/src/${packagePath}/test`, `${ModelName}Test.js`)();
-        readWrite.bind(this, templateDir, 'deploymentModelTestPOM.js', `${dir}/deployment/test`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'tests.jrl', `${dir}/src/${packagePath}/test`, 'tests.jrl')();
-
-        // run script
-        readWrite.bind(this, templateDir, 'run.sh', `${dir}/deployment/demo`, `run.sh`)();
-        this.execSync(`chmod u+x ${dir}/deployment/demo/run.sh`);
+      } else if ( TYPE === 'recipe' || appName === 'recipe' ) {
+        // See FOAM-Recipe Tutorial
+        readWrite.bind(this, templateDir, 'recipeModel.js', `${dir}/src/${packagePath}`, `Recipe.js`)();
+        readWrite.bind(this, templateDir, 'recipeModelCategory.js', `${dir}/src/${packagePath}`, `RecipeCategory.js`)();
+        readWrite.bind(this, templateDir, 'recipeModelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
+        readWrite.bind(this, templateDir, 'journalServices.jrl', `${dir}/journals`, `services.jrl`)();
+      } else {
+        readWrite.bind(this, templateDir, 'simpleModel.js', `${dir}/src/${packagePath}`, `${ModelName}.js`)();
+        readWrite.bind(this, templateDir, 'simpleModelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
+        readWrite.bind(this, templateDir, 'simpleJournalServices.jrl', `${dir}/journals`, `services.jrl`)();
       }
 
-      // Additional directories and poms
-      readWrite.bind(this, templateDir, 'emptyPOM.js', `${dir}/journals`, 'pom.js')();
+      // theme
+      readWrite.bind(this, templateDir, 'themes.jrl', `${dir}/journals`, `themes.jrl`)();
 
+      // adminPassword = this.hash(adminPassword);
+      readWrite.bind(this, templateDir, 'adminUser.jrl', `${dir}/journals`, `users.jrl`)();
+
+      // Additional directories and poms
       readWrite.bind(this, templateDir, 'build.sh', `${dir}`, `build.sh`)();
       this.execSync(`chmod u+x ${dir}/build.sh`);
-
       readWrite.bind(this, templateDir, 'gitignore', `${dir}`, `.gitignore`)();
 
       // this.execSync('sudo chown -R $USER /opt')
     }],
 
-    usage: ['usage', 'Example usage', [], function usage() {
+    info: ['info', 'Documentation for this Tooling', [], function() {
+      this.log('Project Tooling');
+    }],
+    usage: ['usage', 'Example usage', [], function() {
       this.log('Project creation examples:');
       this.log('  node foam3/tools/build.js -Ttemplate/demo/Project --appName:Recipe --modelName:Recipe --package:com.foamdev.cook');
+    }],
+
+    validate: ['validate', 'Validate tooling parameters before execution', [], function() {
+      if ( ! ADMIN_PASSWORD ) {
+        this.error(`[Project] option --adminPassword required.`);
+      }
     }]
   }
 });

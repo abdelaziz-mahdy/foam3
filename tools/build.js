@@ -64,7 +64,7 @@ rm -rf ~/foam3/build
 ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
-const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, writeFileIfUpdated, verbose } = require('./buildlib');
+const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hash, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, writeFileIfUpdated, verbose } = require('./buildlib');
 const { existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
 const os = require('os');
 const { join }                                    = require('path');
@@ -427,6 +427,7 @@ EXPORTS = Object.assign(EXPORTS, {
   findOption,
   findTask,
   flag,
+  hash,
   info,
   isExcluded,
   join,
