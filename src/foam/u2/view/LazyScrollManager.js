@@ -211,7 +211,8 @@ foam.CLASS({
     ['isInit', true],
     {
       class: 'Map',
-      name: 'collapsedGroups'
+      name: 'collapsedGroups',
+      factory: function() { return {}; }
     },
   ],
 
@@ -340,7 +341,7 @@ foam.CLASS({
                 { ...args, 
                   groupLabel: group, 
                   groupBy: self.groupBy, 
-                  collapsed: self.collapsedGroups$[group],
+                  collapsed: self.collapsedGroups[group],
                   toggleCollapsed: function() {
                     self.collapsedGroups[group].set(!self.collapsedGroups[group].get());
                   } 
