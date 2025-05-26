@@ -144,8 +144,7 @@ foam.CLASS({
           onClickAddOn: function(data, hasChildren) { self.openMenu(data, hasChildren); },
           selection$: self.currentMenu$.map(m => m),
           formatter: function(data) {
-            this.translate(data.id + '.label', data.label);
-            if ( data.tooltip ) this.tooltip = data.tooltip;
+            data.handler.renderMenuItem(this, data);
           },
           defaultRoot: self.theme.navigationRootMenu
         })
