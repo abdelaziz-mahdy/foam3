@@ -119,9 +119,6 @@ public class CachingAuthService
     DAO groupPermissionJunctionDAO = (DAO) getX().get("groupPermissionJunctionDAO");
     if ( groupPermissionJunctionDAO != null ) groupPermissionJunctionDAO.listen(purgeSink, TRUE);
 
-    DAO prerequisiteCapabilityJunctionDAO = (DAO) getX().get("prerequisiteCapabilityJunctionDAO");
-    if (prerequisiteCapabilityJunctionDAO != null)
-      prerequisiteCapabilityJunctionDAO.listen(purgeSink, TRUE);
     // Configure listeners for additional permission DAOs
     if ( extraDAOsToListenTo_ != null ) {
       for ( String daoName : extraDAOsToListenTo_ ) {
@@ -142,19 +139,21 @@ public class CachingAuthService
       userId = ((UserCapabilityJunction) obj).getSourceId();
     } else if ( obj instanceof GroupPermissionJunction ) {
       GroupPermissionJunction gpj = (GroupPermissionJunction) obj;
-      for ( Object o  : userPermissionCache_.values() ) {
-        Map m = (Map) o;
-        String p = gpj.getTargetId();
-        if ( p.endsWith(".*") ) {
-          p = p.substring(0, p.length()-2);
-          for ( Object o2 : m.keySet() ) {
-            String p2 = (String) o2;
-            if ( p2.startsWith(p) )
-              m.remove(p2);
-          }
-        }
-        m.remove(p);
-      }
+      // Reset permission cache
+      userPermissionCache_.clear();
+//      for ( Object o  : userPermissionCache_.values() ) {
+//        Map m = (Map) o;
+//        String p = gpj.getTargetId();
+//        if ( p.endsWith(".*") ) {
+//          p = p.substring(0, p.length()-2);
+//          for ( Object o2 : m.keySet() ) {
+//            String p2 = (String) o2;
+//            if ( p2.startsWith(p) )
+//              m.remove(p2);
+//          }
+//        }
+//        m.remove(p);
+//      }
       return;
     }
 
