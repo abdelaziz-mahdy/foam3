@@ -58,12 +58,12 @@ foam.CLASS({
       }
 
       // Check if handler has a custom row view
-      if (this.data.handler && this.data.handler.createRowView) {
+      if (this.data.createRowView) {
         this.start()
           .style({
             'padding-left': (((self.level - 1) * 16) + 'px')
           })
-          .tag(this.data.handler.createRowView(this.__context__, this.data))
+          .tag(this.data.createRowView(this.__context__, this.data))
         .end();
         return;
       }

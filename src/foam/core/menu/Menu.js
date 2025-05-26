@@ -172,6 +172,15 @@
       name: 'authorizationStatus',
       documentation: 'See. AuthorizationStatus',
       value: 'AUTHENTICATED'
+    },
+    {
+      name: 'createRowView',
+      getter: function(X, menu) {
+        if ( this.handler ) {
+          return this.handler.createRowView;
+        }
+        return null;
+      }
     }
   ],
 
