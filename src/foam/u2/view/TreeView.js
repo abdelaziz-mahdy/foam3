@@ -242,17 +242,6 @@ foam.CLASS({
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
 
-      // Check if handler has a custom row view
-      if (this.data.handler && this.data.handler.createRowView) {
-        this.start()
-          .style({
-            'padding-left': (((self.level - 0.5) * 16) + 'px')
-          })
-          .tag(this.data.handler.createRowView(this.__context__, this.data))
-        .end();
-        return;
-      }
-
       // Regular menu item rendering
       this.
         addClass(this.myClass()).

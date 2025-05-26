@@ -26,6 +26,8 @@ foam.CLASS({
 
   requires: [
     'foam.core.menu.Menu',
+    'foam.core.menu.SeparatorMenu',
+    'foam.core.menu.SeparatorRowView',
     'foam.core.menu.VerticalMenu',
     'foam.dao.ArraySink'
   ],
@@ -124,33 +126,56 @@ foam.CLASS({
   methods: [
     function render() {
       var self = this;
-      this
-      .addClass(this.myClass())
-        .callIf(this.theme.showNavSearch, function(){
-          this
-          .startContext({ data: this })
-            .start()
-            .add(this.MENU_SEARCH)
-              .addClass(this.myClass('search'))
-            .end()
-            .endContext()
-        })
-        .start({
-          class: 'foam.u2.view.TreeView',
-          data: self.dao_.where(self.EQ(self.Menu.ENABLED, true)),
-          relationship: foam.core.menu.MenuMenuChildrenRelationship,
-          startExpanded: true,
-          query: self.menuSearch$,
-          onClickAddOn: function(data, hasChildren) { self.openMenu(data, hasChildren); },
-          selection$: self.currentMenu$.map(m => m),
-          formatter: function(data) {
-            this.translate(data.id + '.label', data.label);
-            if ( data.tooltip ) this.tooltip = data.tooltip;
-          },
-          defaultRoot: self.theme.navigationRootMenu
-        })
-          .addClass(this.myClass('menuList'))
-        .end();
+      
+      // Dynamically build rowConfig for separator menus
+      this.buildSeparatorRowConfig().then(function(rowConfig) {
+        self
+        .addClass(self.myClass())
+          .callIf(self.theme.showNavSearch, function(){
+            this
+            .startContext({ data: this })
+              .start()
+              .add(this.MENU_SEARCH)
+                .addClass(this.myClass('search'))
+              .end()
+              .endContext()
+          })
+          .start({
+            class: 'foam.u2.view.TreeView',
+            data: self.dao_.where(self.EQ(self.Menu.ENABLED, true)),
+            relationship: foam.core.menu.MenuMenuChildrenRelationship,
+            startExpanded: true,
+            query: self.menuSearch$,
+            onClickAddOn: function(data, hasChildren) { self.openMenu(data, hasChildren); },
+            selection$: self.currentMenu$.map(m => m),
+            formatter: function(data) {
+              this.translate(data.id + '.label', data.label);
+              if ( data.tooltip ) this.tooltip = data.tooltip;
+            },
+            defaultRoot: self.theme.navigationRootMenu,
+            rowConfig: rowConfig
+          })
+            .addClass(this.myClass('menuList'))
+          .end();
+      });
+    },
+
+    function buildSeparatorRowConfig() {
+      var self = this;
+      return this.dao_.select().then(function(sink) {
+        var rowConfig = {};
+        
+        // Find all menus with SeparatorMenu handler
+        sink.array.forEach(function(menu) {
+          if ( menu.handler && 
+               (menu.handler.class === 'foam.core.menu.SeparatorMenu' ||
+                (menu.handler.cls_ && menu.handler.cls_.id === 'foam.core.menu.SeparatorMenu')) ) {
+            rowConfig[menu.id] = { class: 'foam.core.menu.SeparatorRowView' };
+          }
+        });
+        
+        return rowConfig;
+      });
     },
 
     function openMenu(menu, hasChildren) {
