@@ -73,6 +73,7 @@
           [ 'foam.core.menu.DocumentFileMenu', 'External Document' ],
           [ 'foam.core.menu.LinkMenu',         'Link' ],
           [ 'foam.core.menu.ListMenu',         'List' ],
+          [ 'foam.core.menu.SeparatorMenu',    'Separator' ],
           [ 'foam.core.menu.SubMenu',          'Submenu' ],
           [ 'foam.core.menu.TabsMenu',         'Tabs' ],
           [ 'foam.core.menu.ViewMenu',         'View' ]

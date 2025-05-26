@@ -143,8 +143,13 @@ foam.CLASS({
           query: self.menuSearch$,
           onClickAddOn: function(data, hasChildren) { self.openMenu(data, hasChildren); },
           selection$: self.currentMenu$.map(m => m),
-          formatter: function(data) {
-            data.handler.renderMenuItem(this, data);
+          formatter: function (data) {
+            if (data.handler && data.handler.renderMenuItem) {
+              data.handler.renderMenuItem(this, data);
+            } else {
+              // Fallback to default menu item rendering
+              this.translate(data.id + ".label", data.label);
+            }
           },
           defaultRoot: self.theme.navigationRootMenu
         })
