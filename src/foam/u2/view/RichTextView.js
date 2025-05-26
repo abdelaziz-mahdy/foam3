@@ -475,7 +475,7 @@ foam.CLASS({
       methods: [
         function initializeOverlay() {
           this.overlayInitialized_ = true;
-          this.overlay_.parentEl = this.richTextView;
+          this.overlay_.parentEl = this.richTextView.el_();
           this.overlay_
             .start()
               .addClass(this.myClass())

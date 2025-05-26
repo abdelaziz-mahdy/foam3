@@ -78,7 +78,7 @@ foam.POM({
         this.error(`[RemoteInstall] install REMOTE_INSTALL_SCRIPT:${REMOTE_INSTALL_SCRIPT}`);
       }
     }],
-    usages: ['usage', 'Examples', [], function() {
+    usage: ['usage', 'Examples', [], function() {
       this.log('Remote installation examples:');
       this.log('  ./build.sh -TStandard,RemoteInstall,Java --user:foam user-id:3636 --backup:false --remote-hostname:moosehead');
     }],
