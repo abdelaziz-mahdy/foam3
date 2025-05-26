@@ -15,7 +15,6 @@ foam.CLASS({
       name: 'LabelView',
       extends: 'foam.u2.view.TreeViewRow.LabelView',
       css: `
-   
         ^select-level {
           justify-content: flex-start;
           gap: 8px;
@@ -26,23 +25,24 @@ foam.CLASS({
         function render() {
           let row = this.row;
           let self = this;
-          this.addClass(self.myClass('select-level'))
-            .start(self.Image, { glyph: 'next' })
-            .addClass(self.myClass('toggle-icon'))
-            .style({ 'transform': 'rotate(180deg)' })
-            .end()
-            .callIfElse(row.rowConfig?.[row.data.id],
-              function() {
-                this.tag(row.rowConfig[row.data.id]);
-              },
-              function() {
-                this.start()
-                  .addClass('p-semiBold')
-                  .addClass(self.myClass('label'))
-                  .call(row.formatter, [row.data])
-                .end();
-              }
-            );
+          this.
+          addClass(self.myClass('select-level')).
+          start(self.Image, { glyph: 'next' }).
+          addClass(self.myClass('toggle-icon')).
+          style({ 'transform': 'rotate(180deg)' }).
+          end().
+          callIfElse(row.rowConfig?.[row.data.id],
+            function() {
+              this.tag(row.rowConfig[row.data.id]);
+            },
+            function() {
+              this.start().
+                addClass('p-semiBold').
+                addClass(self.myClass('label')).
+                call(row.formatter, [row.data]).
+              end();
+            }
+          );
         }
       ]
     }
@@ -56,6 +56,7 @@ foam.CLASS({
       if ( this.translationService ) {
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
+
       this.
         addClass(this.myClass()).
         enableClass(this.myClass('selected'), this.selected_$).
