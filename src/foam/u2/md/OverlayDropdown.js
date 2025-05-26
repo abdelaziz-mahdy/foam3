@@ -135,12 +135,7 @@ foam.CLASS({
     function open(x, y) {
       this.x = x; this.y = y;
       this.setPosition();
-      if ( this.parentEl.element_ ) {
-        this.ro_?.observe(this.parentEl.element_);
-      }
-      else {
-        this.ro_?.observe(this.parentEl);
-      }
+      this.ro_?.observe(this.parentEl);
       this.opened = true;
       this.window.addEventListener('resize', this.onResize);
     },
@@ -173,12 +168,7 @@ foam.CLASS({
 
     function close() {
       this.opened = false;
-      if ( this.parentEl.element_ ) {
-        this.ro_?.unobserve(this.parentEl.element_);
-      }
-      else {
-        this.ro_?.unobserve(this.parentEl);
-      }
+      this.ro_?.unobserve(this.parentEl);
     },
 
     function render() {
