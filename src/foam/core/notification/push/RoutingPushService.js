@@ -32,12 +32,6 @@ foam.CLASS({
     {
       name: 'sendPush',
       javaCode: `
-        return sendPushWithExtra(user, title, body, null);
-      `
-    },
-    {
-      name: 'sendPushWithExtra',
-      javaCode: `
         if ( user == null || title.isEmpty() ) {
           throw new RuntimeException("Invalid Parameters: Missing user or title"); 
         }
@@ -45,13 +39,14 @@ foam.CLASS({
         Loggers.logger(getX(), this).debug("Push to User", user.getId());
         var pushRegistrationDAO = user.getPushRegistrations(getX());
 
-        var subs = ((foam.dao.ArraySink) pushRegistrationDAO.select(new foam.dao.ArraySink())).getArray();
-        var msgMap = new java.util.HashMap();
-        msgMap.put("title", title);
-        msgMap.put("body", body);
-        if ( extra != null ) {
-          msgMap.putAll(extra);
-        }
+        var   subs = ((foam.dao.ArraySink) pushRegistrationDAO.select(new foam.dao.ArraySink())).getArray();
+        var msgMap = new java.util.HashMap<String, String>()
+          {
+              {
+                  put("title", title);
+                  put("body", body);
+              }
+          };
 
         for ( Object obj : subs ) {
           PushRegistration sub = (PushRegistration) obj;
@@ -63,7 +58,7 @@ foam.CLASS({
     },
     {
       name: 'send',
-      args: 'PushRegistration sub, java.util.Map msgMap',
+      args: 'PushRegistration sub, java.util.HashMap msgMap',
       type: 'Void',
       javaCode: `
         if ( sub instanceof foam.core.notification.push.iOSNativePushRegistration ) {

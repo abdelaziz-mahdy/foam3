@@ -498,7 +498,7 @@ OPTIONS = addOptions({
                TASKS = '';
              TASKS = TASKS ? TASKS + TASK_SEPERATOR + t : t;
            } ],
-  timestamp: [ '', 'timestamp', 'TIMESTAMP', 'Build date, used to timestamp generated files', Date.now(), arg => TIMESTAMP = arg ],
+  timestamp: ['', 'timestamp', 'TIMESTAMP', 'Date/time string to timestamp files', () => TIMESTAMP = new Date().toISOString().substring(0, 19).replaceAll('-','').replaceAll(':','').replaceAll('T',''), arg => TIMESTAMP = arg],
   topic: [ 'H', 'topic-help', '', 'Help on a particular environment variable, option, or task', '', arg => {
     HELP = true;
     if ( arg.startsWith(':') ||
@@ -638,14 +638,25 @@ task('tooling', 'Prepare build environment', [], function tooling() {
     TOOLING_POMS = toolingPOMs;
   }
   (TOOLING_POMS).split(',').forEach(name => {
-    var fn = join(__dirname,`${name}Tooling`);
+    var found = false;
+    let fn1 = join(__dirname, `${name}Tooling`);
+    var fn = fn1;
     if ( existsSync(fn + '.js') ) {
       tps = comma(tps, fn);
+      found = true;
     }
-    fn = join(process.cwd(),`tools/${name}Tooling`);
+    let fn2 = join(process.cwd(),`tools/${name}Tooling`);
+    fn = fn2;
 
     if ( existsSync(fn + '.js') ) {
       tps = comma(tps, fn);
+      found = true;
+    } else {
+      // TODO: look in other directories
+      // **/tools/
+    }
+    if ( ! found ) {
+      error(`[build] tooling ${name} not found in ${fn1} or ${fn2}`);
     }
   });
   let maker = pmake.bind(Object.assign({}, EXPORTS), `-makers=Tooling -pom=${tps}`)();

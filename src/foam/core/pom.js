@@ -302,7 +302,6 @@ foam.POM({
     { name: "notification/DAONotificationRuleAction",                                     flags: "js|java" },
     { name: "notification/EmailSetting",                                                  flags: "js|java" },
     { name: "notification/GoogleChatSetting",                                             flags: "js|java" },
-    { name: "notification/MetadataNotification",                                          flags: "js|java" },
     { name: "notification/MyNotificationDAO",                                             flags: "js|java" },
     { name: "notification/Notifiable",                                                    flags: "js|java" },
     { name: "notification/Notification",                                                  flags: "js|java" },
