@@ -35,6 +35,28 @@ foam.CLASS({
     }
   ],
 
+  javaCode: `
+    protected static final ThreadLocal<foam.lib.formatter.FObjectFormatter> formatter_ = new ThreadLocal<foam.lib.formatter.FObjectFormatter>() {
+      @Override
+      protected foam.lib.formatter.JSONFObjectFormatter initialValue() {
+        foam.lib.formatter.JSONFObjectFormatter formatter = new foam.lib.formatter.JSONFObjectFormatter();
+        // Needed because JS JSON parser doesn't support unquoted keys.
+        formatter.setQuoteKeys(true);
+        formatter.setOutputShortNames(true);
+        formatter.setOutputDefaultValues(false);
+        formatter.setPropertyPredicate(new foam.lib.AndPropertyPredicate(new foam.lib.PropertyPredicate[] {new foam.lib.NetworkPropertyPredicate(), new foam.lib.PermissionedPropertyPredicate()}));
+        return formatter;
+      }
+
+      @Override
+      public foam.lib.formatter.FObjectFormatter get() {
+        foam.lib.formatter.FObjectFormatter formatter = super.get();
+        formatter.reset();
+        return formatter;
+      }
+    };
+  `,
+
   properties: [
     {
       class: 'Object',
@@ -81,9 +103,6 @@ foam.CLASS({
         }
       },
       javaCode: `
-foam.lib.json.Outputter outputter = new Outputter(getX());
-outputter.setX(getX());
-
 // TODO: Clone message or something when it clones safely.
 foam.box.Box replyBox = (foam.box.Box)msg.getAttributes().get("replyBox");
 
@@ -93,34 +112,20 @@ if ( replyBox != null ) {
   replyBox = new foam.box.ReplyBox(getX(), export.getName(), replyBox);
 }
 
-String payload = outputter.stringify(msg);
-
 msg.getAttributes().put("replyBox", replyBox);
+
+foam.lib.formatter.FObjectFormatter formatter = formatter_.get();
+formatter.setX(getX());
+formatter.output(msg);
+String payload = formatter.builder().toString();
+formatter.setX(null);
 
 try {
   getSocket().send(payload);
 } catch ( java.io.IOException e ) {
-  foam.box.Message reply = new foam.box.Message();
-  reply.setObject(e);
-  if ( replyBox != null ) replyBox.send(reply);
+  throw new RuntimeException(e);
 }
 `
     }
   ],
-
-  javaCode: `
-    protected class Outputter extends foam.lib.json.Outputter {
-      public Outputter(foam.lang.X x) {
-        super(x);
-        setPropertyPredicate(new foam.lib.AndPropertyPredicate(x, new foam.lib.PropertyPredicate[] {new foam.lib.NetworkPropertyPredicate(), new foam.lib.PermissionedPropertyPredicate()}));
-      }
-
-      protected void outputFObject(foam.lang.FObject o) {
-        if ( o == getMe() ) {
-          o = getX().create(foam.box.ReturnBox.class);
-        }
-        super.outputFObject(o);
-      }
-    }
-  `
 });

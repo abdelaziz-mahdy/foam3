@@ -47,14 +47,16 @@ foam.CLASS({
       ]
     }
   ],
+
   methods: [
     function render() {
-      var self = this;
+      var self        = this;
       var labelString = this.data.label;
+
       if ( this.translationService ) {
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
-        
+
       this.
         addClass(this.myClass()).
         enableClass(this.myClass('selected'), this.selected_$).

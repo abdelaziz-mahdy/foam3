@@ -29,6 +29,10 @@ foam.CLASS({
 
   properties: [
     'projection',
+    {
+      class: 'Boolean',
+      name: 'collapsed'
+    }
   ],
 
   methods: [
@@ -75,22 +79,43 @@ foam.CLASS({
 
       style({ 'min-width': this.table.tableWidth_$ });
       [prop, objReturned] = this.getCellData(objForCurrentProperty, this.table.groupBy, nestedPropertiesObjsMap);
-      var elmt = this.E().style({ flex: '3 0 0' })
-        .addClass('h500', this.table.myClass('td'))
-        .call(function() {
-          this.add(prop.columnLabel + ': ');
-          if( ! prop.f(objReturned) ) {
-            this.start('i').add(self.EMPTY_MSG).end()
-          } else {
-            prop.tableCellFormatter.format(
-              this,
-              prop.f ? prop.f(objReturned) : null,
-              objReturned,
-              prop
-            );
+      this.start().addClass(self.table.myClass('group-content'),'h500')
+        .startContext({data: self})
+          .start(self.EXPAND)
+            .addClass(self.table.myClass('expand-icon'))
+            .enableClass(self.table.myClass('collapsed'), self.collapsed$)
+          .end()
+        .endContext()
+        .start('span')
+          .style({ flex: '3 0 0' })
+          .call(function() {
+            this.add(prop.columnLabel + ': ');
+            if( ! prop.f(objReturned) ) {
+              this.start('i').add(self.EMPTY_MSG).end()
+            } else {
+              prop.tableCellFormatter.format(
+                this,
+                prop.f ? prop.f(objReturned) : null,
+                objReturned,
+                prop
+              );
           }
-        });
-      this.add(elmt);
+          })
+        .end()
+      .end();
+    }
+  ],
+
+  actions: [
+    {
+      name: 'expand',
+      label: '',
+      size: 'SMALL',
+      themeIcon: 'next',
+      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
+      code: function() {
+        this.collapsed = ! this.collapsed;
+      }
     }
   ]
 });

@@ -767,7 +767,7 @@ foam.CLASS({
       generateJava: false
     },
     {
-      documentation: 'Enables automated adding of property-related DAO decorators to qualifying decorator chains',
+      documentation: 'Enables automated adding of property-related DAO decorators to qualifying decorator chains.  Ex. CreatedAwareDAO is added if the obj implements CreatedAware.',
       name: 'enableInterfaceDecorators',
       class: 'Boolean',
       value: true

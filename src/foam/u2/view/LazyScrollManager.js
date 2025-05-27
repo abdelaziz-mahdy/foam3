@@ -208,7 +208,12 @@ foam.CLASS({
       name: 'daoLoading',
       value: true
     },
-    ['isInit', true]
+    ['isInit', true],
+    {
+      class: 'Map',
+      name: 'collapsedGroups',
+      factory: function() { return {}; }
+    },
   ],
 
   methods: [
@@ -242,7 +247,7 @@ foam.CLASS({
       // Render empty view if dao is empty
       // Change to dynamic after U3
       this.appendTo.add(this.slot(function(daoCount, isInit, daoLoading) {
-         if (daoLoading) {
+        if (daoLoading) {
           return this.E().addClass(self.myClass('no-data'))
           .tag(this.LoadingSpinner, { size: 48 });
         }
@@ -324,21 +329,30 @@ foam.CLASS({
       let promise = this.prepDAO(proxy, this.ctx);
       var e       = this.E().attr('data-page', page);
 
-      promise.then(values => {
+      return promise.then(values => {
         function populateRows(args) {
           if ( args.data === undefined ) return;
 
           var index = (page*self.pageSize_) + i + 1;
           if ( self.groupBy ) {
-            var group = self.groupBy.f(args.data);
+            let group = self.groupBy.f(args.data);
             if ( ! foam.util.equals(group, self.currGroup_) || index == 1 ) {
-              e.tag(self.groupHeaderView, { ...args, groupLabel: group, groupBy: self.groupBy });
+              let isGroupCollapsed$ = foam.lang.SimpleSlot.create({value: false});
+              self.collapsedGroups[group] = isGroupCollapsed$;
+              e.tag(self.groupHeaderView, 
+                { ...args, 
+                  groupLabel: group, 
+                  groupBy: self.groupBy, 
+                  collapsed$: self.collapsedGroups[group]
+              }
+              );
             }
             self.currGroup_ = group;
           }
+
           var isEven = (index + 1) % 2 !== 0 ;
-          var rowEl = self.E().tag(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);;
-          e.add(rowEl)
+          var rowEl = self.E().tag(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);
+          e.start(rowEl).hide(self.collapsedGroups[self.currGroup_] ?? false);
           rowEl.el().then(a => {
             self.rowObserver.observe(a)
           });
@@ -452,17 +466,18 @@ foam.CLASS({
           if ( (i >= this.currentTopPage_ ) && i < this.currentTopPage_ + this.NUM_PAGES_TO_RENDER ) return;
           this.clearPage(i);
         });
-
+        let promiseArr = [];
         // Add any pages that are not already rendered.
         for ( var i = 0; i < Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ; i++ ) {
           var page = this.currentTopPage_ + i;
           if ( this.renderedPages_[page] || this.loadingPages_[page] ) continue;
           var skip = page * this.pageSize_;
           var dao  = this.data.limit(this.pageSize_).skip(skip);
-          this.getPage(dao, page);
+          promiseArr.push(this.getPage(dao, page));
         }
-
-        this.daoLoading = false;
+        Promise.all(promiseArr).then(()=>{
+          this.daoLoading = false;
+        })
       }
     },
     {

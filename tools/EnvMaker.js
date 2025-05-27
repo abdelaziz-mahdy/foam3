@@ -5,38 +5,50 @@
  */
 
 const { warning } = require('./buildlib');
+const envs = {};
 
-exports.description = 'Capture POM specified environment variables.';
+exports.description = `Capture POM values for environment variables or options,
+and translate top level POM keys to build variables ( ex: pom.name -> appName )
+and provide backwards compatibility for legacy poms still using
+pom keys such as 'java' to set the javaRelease`;
 
 exports.init = function() {
-  verbose('[Env] init');
-
-  X.pomenvs = {};
+  this.verbose('[Env] init');
 
   X.envs && X.envs.split(',').forEach(e => {
+    // example: APP_NAME=name
     var kv = e.split('=');
     // example: ['name'] = 'APP_NAME'
-    X.pomenvs[kv[1]] = kv[0];
-    verbose(`[Env] init ${kv[1]} = ${kv[0]}`);
-    if ( globalThis[kv[0]] ) {
-      X.pomenvs[kv[0]] = globalThis[kv[0]];
-      console.log(`[Env] not overriding ${kv[0]} = ${X.pomenvs[kv[0]]}`);
-    }
+    envs[kv[1]] = kv[0];
+    this.verbose(`[Env] init ${kv[1]} = ${kv[0]}`);
   });
 };
 
 exports.visitPOM = function(pom) {
-  Object.keys(X.pomenvs).forEach(k => {
-    if ( X.pomenvs[X.pomenvs[k]] ) return;
+  pom.envs && Object.keys(pom.envs).forEach(e => {
+    this.verbose(`[Env] pom ${pom.name} testing ${e}`);
+    if ( envs[e] ) { // envs['APP_NAME']
+      this.verbose(`[Env] pom ${pom.name} ignoring change of ${e} from ${envs[e]} to ${pom.envs[e]}`);
+      return;
+    }
+    this.verbose(`[Env] pom ${pom.name} recording ${e} = ${pom.envs[e]}`);
+    envs[e] = pom.envs[e];
+  });
 
-    verbose(`[Env] ${pom.name} testing ${k}`);
+  Object.keys(envs).forEach(k => {
+    // example: k = 'name', envs[k] = APP_NAME,
+    if ( envs[envs[k]] ) {
+      delete envs[k];
+      return;
+    }
+
+    this.verbose(`[Env] pom ${pom.name} testing ${k}`);
     var v = pom[k];
-    if ( v && ! X.pomenvs[X.pomenvs[k]] ) {
-      console.log(`[Env] setting ${X.pomenvs[k]} = ${v}`);
-      // example: X.pomenvs['APP_NAME'] = 'foam'
-      X.pomenvs[X.pomenvs[k]] = v;
-      // console.log(`[Env] deleting ${k}`);
-      delete X.pomenvs[k];
+    if ( v ) {
+      this.verbose(`[Env] pom ${pom.name} recording ${envs[k]} = ${v}`);
+      // example: envs['APP_NAME'] = 'foam'
+      envs[envs[k]] = v;
+      delete envs[k];
     }
   });
 };
@@ -45,9 +57,11 @@ exports.end = function() {
   // clean up and report any variables not set
   X.envs && X.envs.split(',').forEach(e => {
     var kv = e.split('=');
-    if ( ! X.pomenvs[kv[0]] ) {
-      warning(`[Env] ${kv[0]} not set`);
-      delete X.pomenvs[kv[1]];
+    if ( ! envs[kv[0]] ) {
+      // warning(`[Env] ${kv[0]} not set`);
+      delete envs[kv[1]];
     }
   });
 };
+
+exports.envs = envs;

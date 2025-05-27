@@ -21,25 +21,10 @@ function processArgs(args, x, defaultFlags, cmds) {
 
     var arg = argv.shift();
 
-    if ( arg === '-help' || arg === '--help' || arg === '-usage' || arg === '--usage' || arg === '-?' || arg === '--?' ) {
-      var flagKeys = defaultFlags ? Object.keys(defaultFlags) : [];
-      var argList  = Object.keys(x).map(k => ` [ -${k}="${x[k]}" ]`).join('');
-      var cmdList  = Object.keys(cmds || []).map(c => ` [ -${c} ]`).join('');
-      var flagList = '';
-      if ( flagKeys.length ) {
-        flagList = '[ -flags=' + flagKeys.map(k => (defaultFlags[k] ? '-' : '') + k).join(',') + ' ]';
-      }
-      console.log('USAGE:', process.argv[1], flagList + cmdList + argList);
-
-      // If a 'usage' method is supplied in cmds, then call it to provide extra usage information.
-      cmds && cmds.usage && cmds.usage();
-
-      process.exit(1);
-    }
-
     var i = arg.indexOf('=');
     if ( i == -1 ) {
-      arg = arg.substring(1);
+      // console.log('command: ' + arg);
+      // arg = arg.substring(1);
       if ( cmds && cmds[arg] ) {
         cmds[arg]();
       } else {
