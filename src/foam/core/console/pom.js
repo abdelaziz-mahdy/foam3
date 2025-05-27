@@ -31,6 +31,7 @@ foam.POM({
     { name: 'Signature',               flags: 'js' },
     { name: 'SinkView',                flags: 'js' },
     { name: 'Upload',                  flags: 'js' },
+    { name: 'GenericUpload',           flags: 'js' },
     { name: 'UploadAgent',             flags: 'js|java' },
     { name: 'ViewSink',                flags: 'js|java' },
     { name: 'XHR',                     flags: 'js' },

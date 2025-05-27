@@ -577,3 +577,30 @@ foam.CLASS({
     }
   ]
 });
+
+
+foam.CLASS({
+  package: 'foam.core.console.cmd',
+  name: 'FileUpload',
+  extends: 'foam.core.console.cmd.Command',
+
+  requires: [ 'foam.core.console.GenericUpload' ],
+
+  imports: [ 'createFlowChildName' ],
+
+  properties: [
+    { name: 'id', value: 'fileupload' },
+    [ 'description', 'Upload a file with auto-detection of matching models' ]
+  ],
+
+  methods: [
+    function execute() {
+      var p = this.GenericUpload.create({});
+
+      this.out.tag(p);
+      this.currentBlock.flowName = this.createFlowChildName('fileupload');
+      this.currentBlock.obj      = p;
+      this.currentBlock.value    = p;
+    }
+  ]
+});
