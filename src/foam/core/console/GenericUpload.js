@@ -212,7 +212,10 @@ foam.CLASS({
         // Check if the DAO exists
         if ( this.__context__[daoName] ) {
           this.generateMappings(this.currentHeaders);
-          this.output = `DAO selected: ${daoName}. Mappings generated. Count: ${this.mappings.length}`;
+          this.output = `DAO selected: ${daoName}. Mappings generated.\n Count: ${this.mappings.length}`;
+          if ( this.__context__[daoName].instance_.delegate.name ) {
+            this.output += `\npackage: ${this.__context__[daoName].instance_.delegate.name}`;
+          }
         } else {
           this.output = `DAO "${daoName}" not found. Please check the name and try again.`;
         }
