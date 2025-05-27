@@ -44,13 +44,12 @@ foam.CLASS({
           }
 
           var X = this.__subContext__;
-          var registry = X.registry;
-
           var box = foam.box.SkeletonBox.create({ data: this }, X);
-          box = registry.register(null, null, box);
-
           var obj = cls.create(null, X);
-          obj.delegate = box;
+          obj.delegate = foam.box.ReplyBox2.create({
+            delegate: box,
+            once: false
+          });
 
           outputter.output(obj);
         }

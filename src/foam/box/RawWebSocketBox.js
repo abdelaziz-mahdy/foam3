@@ -20,18 +20,12 @@ foam.CLASS({
   name: 'RawWebSocketBox',
   implements: ['foam.box.Box'],
   requires: [
-    'foam.box.ReplyBox'
-  ],
-  imports: [
+    'foam.box.ReplyBox',
+    'foam.box.ReturnBox',
+    'foam.box.SubBox',
     {
-      name: 'me',
-      key: 'me',
-      type: 'foam.box.Box'
-    },
-    {
-      key: 'registry',
-      name: 'registry',
-      type: 'foam.box.BoxRegistry',
+      path: 'foam.json.Outputter',
+      flags: ['js']
     }
   ],
 
@@ -55,6 +49,13 @@ foam.CLASS({
         return formatter;
       }
     };
+
+    protected static final ThreadLocal<foam.util.UIDGenerator> uidGenerator_ = new ThreadLocal<foam.util.UIDGenerator>() {
+      @Override
+      protected foam.util.UIDGenerator initialValue() {
+        return new foam.util.AUIDGenerator(null, "websockets");
+      }
+    };
   `,
 
   properties: [
@@ -62,40 +63,24 @@ foam.CLASS({
       class: 'Object',
       name: 'socket',
       javaType: 'foam.net.WebSocket'
-    }
-  ],
-
-  classes: [
-    foam.lang.InnerClass.create({
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.json.Outputter',
+      swiftType: 'foam_swift_parse_json_output_Outputter',
+      name: 'outputter',
       generateJava: false,
-      model: {
-        name: 'JSONOutputter',
-        extends: 'foam.json.Outputter',
-        requires: [
-          'foam.box.ReturnBox'
-        ],
-        imports: [
-          'me'
-        ],
-        methods: [
-          function output(o) {
-            if ( o === this.me ) {
-              return this.SUPER(this.ReturnBox.create());
-            }
-            return this.SUPER(o);
-          }
-        ]
+      factory: function() {
+        return this.Outputter.create().copyFrom(foam.json.Network);
       }
-    })
+    },
   ],
 
   methods: [
     {
       name: 'send',
       code: function send(msg) {
-        var replyBox = msg.attributes.replyBox;
-        var payload = this.JSONOutputter.create().copyFrom(foam.json.Network).stringify(msg);
-
+        var payload = this.outputter.stringify(msg);
         try {
           this.socket.send(payload);
         } catch(e) {
@@ -107,16 +92,22 @@ foam.CLASS({
 foam.box.Box replyBox = (foam.box.Box)msg.getAttributes().get("replyBox");
 
 if ( replyBox != null ) {
-  foam.box.SubBox export = (foam.box.SubBox)getRegistry().register(null, null, replyBox);
+  foam.box.Box exportReplyBox = new foam.box.SubBox.Builder(getX())
+    .setName(uidGenerator_.get().generate())
+    .setDelegate(new foam.box.ReturnBox())
+    .build();
 
-  replyBox = new foam.box.ReplyBox(getX(), export.getName(), replyBox);
+  msg.getAttributes().put("replyBox", exportReplyBox);
 }
 
-msg.getAttributes().put("replyBox", replyBox);
 
 foam.lib.formatter.FObjectFormatter formatter = formatter_.get();
 formatter.setX(getX());
 formatter.output(msg);
+
+// restore old reply box in case this message is in a retry box or something
+msg.getAttributes().put("replyBox", replyBox);
+
 String payload = formatter.builder().toString();
 formatter.setX(null);
 

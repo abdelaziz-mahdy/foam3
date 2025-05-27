@@ -45,17 +45,16 @@ foam.CLASS({
     'foam.box.Message',
   ],
 
+  exports: [
+    'subBox'
+  ],
+
   javaImports: [
     'jakarta.servlet.http.HttpServletRequest'
   ],
 
   imports: [
     'creationContext',
-    {
-      name: 'me',
-      key: 'me',
-      type: 'foam.box.Box'
-    },
     'sessionID as jsSessionID',
     'window'
   ],
@@ -192,24 +191,17 @@ foam.CLASS({
 
       return url;
     },
+    function subBox(dst) {
+      // http requests are not multiplexed so just return an http reply box
+      return  this.getReplyBox();
+    },
 
     {
       name: 'send',
       code: function(msg) {
         var self = this;
         msg.attributes[this.SESSION_KEY] = this.jsSessionID;
-
-        // TODO: We should probably clone here, but often the message
-        // contains RPC arguments that don't clone properly.  So
-        // instead we will mutate replyBox and put it back after.
-        var replyBox = msg.attributes.replyBox;
-
-        msg.attributes.replyBox = this.getReplyBox();
-
         var payload = this.outputter.stringify(msg);
-
-        msg.attributes.replyBox = replyBox;
-
         var headers = {
           'Content-Type': 'application/json; charset=utf-8',
           'Origin': this.origin
@@ -230,7 +222,7 @@ foam.CLASS({
         }).then((p) => {
           return this.parser.aparse(p);
         }).then((rmsg) => {
-          rmsg && replyBox && replyBox.send(rmsg);
+          rmsg && msg.attributes?.replyBox?.send(rmsg);
         }, function(r) {
           var msg;
           if ( r ) {

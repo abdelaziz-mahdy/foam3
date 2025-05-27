@@ -52,11 +52,12 @@ public class WebSocketServer
     Logger                  log        = (Logger)getX().get("logger");
 
     try {
-      String                path       = conn.getResourceDescriptor();
-      String[]              urlParts   = path.split("/");
-      String                serviceKey = urlParts[2];
-      foam.dao.DAO          cSpecDAO   = (foam.dao.DAO) getX().get("cSpecDAO");
-      foam.core.boot.CSpec spec       = (foam.core.boot.CSpec) cSpecDAO.find(serviceKey);
+      String                 path       = conn.getResourceDescriptor();
+      String[]               urlParts   = path.split("/");
+      String                 serviceKey = urlParts[2];
+      foam.dao.DAO           cSpecDAO   = (foam.dao.DAO) getX().get("cSpecDAO");
+      foam.core.boot.CSpec   spec       = (foam.core.boot.CSpec) cSpecDAO.find(serviceKey);
+      foam.util.UIDGenerator uids       = new foam.util.AUIDGenerator(getX(), "websockets");
 
       if ( spec == null ) {
         log.warning("Request for non-existant service", serviceKey);

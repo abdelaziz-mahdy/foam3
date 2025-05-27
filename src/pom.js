@@ -482,6 +482,7 @@ foam.POM({
     { name: "foam/box/LookupBox",                                     flags: "js|java" },
     { name: "foam/box/NamedBox",                                      flags: "js|java" },
     { name: "foam/box/ReplyBox",                                      flags: "js|java" },
+    { name: "foam/box/ReplyBox2",                                     flags: "js|java" },
     { name: "foam/box/FunctionBox",                                   flags: "js" },
     { name: "foam/box/RPCReturnMessage",                              flags: "js|java" },
     { name: "foam/box/RPCErrorMessage",                               flags: "js|java" },
