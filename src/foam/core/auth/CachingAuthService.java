@@ -138,22 +138,8 @@ public class CachingAuthService
     } else if ( obj instanceof UserCapabilityJunction ) {
       userId = ((UserCapabilityJunction) obj).getSourceId();
     } else if ( obj instanceof GroupPermissionJunction ) {
-      GroupPermissionJunction gpj = (GroupPermissionJunction) obj;
       // Reset permission cache
       userPermissionCache_.clear();
-//      for ( Object o  : userPermissionCache_.values() ) {
-//        Map m = (Map) o;
-//        String p = gpj.getTargetId();
-//        if ( p.endsWith(".*") ) {
-//          p = p.substring(0, p.length()-2);
-//          for ( Object o2 : m.keySet() ) {
-//            String p2 = (String) o2;
-//            if ( p2.startsWith(p) )
-//              m.remove(p2);
-//          }
-//        }
-//        m.remove(p);
-//      }
       return;
     }
 
