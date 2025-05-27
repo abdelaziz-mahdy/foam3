@@ -78,7 +78,7 @@ foam.CLASS({
       var elmt = this.E().style({ flex: '3 0 0' })
         .addClass('h500', this.table.myClass('td'))
         .call(function() {
-          this.add(prop.label + ': ');
+          this.add(prop.columnLabel + ': ');
           if( ! objReturned || prop.f(objReturned) === '' || prop.f(objReturned) === 0) {
             this.start('i').add(self.EMPTY_MSG.toLowerCase()).end()
           } else {
