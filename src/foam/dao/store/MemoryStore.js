@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+package foam.dao.dstore;
+
 class MemoryStored
   implements Stored
 {

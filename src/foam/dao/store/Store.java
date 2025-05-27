@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+package foam.dao.dstore;
+
 public interface Store {
   public Stored root();
   public Stored storeRoot(Object obj);

@@ -4,9 +4,13 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+package foam.dao.dstore;
+
 class FileStored
   implements Stored
 {
+  // TODO: use https://docs.oracle.com/javase/8/docs/api/java/nio/channels/FileChannel.html
+
   protected final FileStore store_;
   protected final long      pos_;
   protected final short     len_;
@@ -49,7 +53,7 @@ public class FileStore
   public Stored store(Object obj) {
   }
 
-  protected Object load(FileStored stored) {
+  Object load(FileStored stored) {
     long  pos = stored.pos_;
     short len = stored.len_;
 
