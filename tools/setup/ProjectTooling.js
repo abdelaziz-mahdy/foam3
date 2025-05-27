@@ -6,7 +6,7 @@
 
 /**
    Support for creating new FOAM based projects.
-   usage: node tools/build.js -Tproject/standard/Project --createProject:[net.foo.]app[.model]
+   usage: node tools/build.js -T+setup/Project --appName:Recipe --package:com.foamdev.com --adminPassword:badpassword
 */
 foam.POM({
   name: 'project',
@@ -179,11 +179,11 @@ foam.POM({
     usage: ['usage', 'Example usage', [], function() {
       this.log('Project creation examples:');
       this.warning('must be run from foam3/ directory)');
-      this.log('  node tools/build.js -T+setup/Project --appName:Recipe --package:com.foamdev.cook');
+      this.log('  node tools/build.js -T+setup/Project --appName:Recipe --package:com.foamdev.cook --adminPassword:badpassword');
       this.log('      Will generate a project matchin the FOAM-Recipes tutorial');
-      this.log('  node tools/build.js -T+setup/Project --appName:Simple --package:com.foamdev');
+      this.log('  node tools/build.js -T+setup/Project --appName:Simple --package:com.foamdev --adminPassword:badpassword');
       this.log('      Will generate a project with a very simple model.');
-      this.log('  node tools/build.js -T+setup/Project --type:demo --appName:Example --package:com.foamdev');
+      this.log('  node tools/build.js -T+setup/Project --type:demo --appName:Example --package:com.foamdev --adminPassword:badpassword');
       this.log('      Will generate a project with a more elaborate model demonstrating more FOAM features..');
       this.log();
     }],
