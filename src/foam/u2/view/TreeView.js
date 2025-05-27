@@ -243,7 +243,7 @@ foam.CLASS({
       }
 
       // Check if handler has a custom row view
-      if (this.data && this.data.createRowView) {
+      if ( this.data && this.data.createRowView ) {
         this.start()
           .style({
             'padding-left': (((self.level - 0.5) * 16) + 'px')

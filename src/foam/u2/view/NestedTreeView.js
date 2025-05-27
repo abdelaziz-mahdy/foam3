@@ -26,7 +26,8 @@ foam.CLASS({
         function render() {
           let row = this.row;
           let self = this;
-          this.addClass(self.myClass('select-level'))
+          this.
+             addClass(self.myClass('select-level'))
             .start(self.Image, { glyph: 'next' })
             .addClass(self.myClass('toggle-icon'))
             .style({ 'transform': 'rotate(180deg)' })
@@ -58,7 +59,7 @@ foam.CLASS({
       }
 
       // Check if handler has a custom row view
-      if (this.data.createRowView) {
+      if ( this.data.createRowView ) {
         this.start()
           .style({
             'padding-left': (((self.level - 1) * 16) + 'px')
