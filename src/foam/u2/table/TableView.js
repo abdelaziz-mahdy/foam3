@@ -141,11 +141,23 @@
     }
 
     ^group-content{
-      padding: 10px;
       width: 100%;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
+      padding: 0 4px;
+    }
+    ^expand-icon.foam-u2-ActionView-expand {
+      transition: 0.1s ease;
+      transform: rotate(90deg);
+      padding: 4px;
+    }
+    ^expand-icon.foam-u2-ActionView-small svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+    ^expand-icon^collapsed {
+      transform: rotate(0deg);
     }
 
     ^resizeButton {

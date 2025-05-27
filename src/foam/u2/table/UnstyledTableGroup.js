@@ -31,12 +31,7 @@ foam.CLASS({
     'projection',
     {
       class: 'Boolean',
-      name: 'collapsed',
-      value: false
-    },
-    {
-      class: 'Function',
-      name: 'toggleCollapsed'
+      name: 'collapsed'
     }
   ],
 
@@ -84,29 +79,28 @@ foam.CLASS({
 
       style({ 'min-width': this.table.tableWidth_$ });
       [prop, objReturned] = this.getCellData(objForCurrentProperty, this.table.groupBy, nestedPropertiesObjsMap);
-      var elmt = this.E().style({ flex: '3 0 0' })
-        .addClass('h500', this.table.myClass('td'))
-        .call(function() {
-          prop.tableCellFormatter.format(
-            this,
-            prop.f ? prop.f(objReturned) : null,
-            objReturned,
-            prop
-          );
-          if ( ! prop.f(objReturned) ) {
-            this.add(self.EMPTY_MSG + ' ' + prop.label);
-          }
-        });
-      this.add(this.dynamic(function(collapsed) {
-        this.start().addClass(self.table.myClass('group-content'))
-        .start('span')
-          .add(elmt)
-        .end()
+      this.start().addClass(self.table.myClass('group-content'),'h500')
         .startContext({data: self})
-          .tag(self.EXPAND)
+          .start(self.EXPAND)
+            .addClass(self.table.myClass('expand-icon'))
+            .enableClass(self.table.myClass('collapsed'), self.collapsed$)
+          .end()
         .endContext()
+        .start('span')
+          .style({ flex: '3 0 0' })
+          .call(function() {
+            prop.tableCellFormatter.format(
+              this,
+              prop.f ? prop.f(objReturned) : null,
+              objReturned,
+              prop
+            );
+            if ( ! prop.f(objReturned) ) {
+              this.add(self.EMPTY_MSG + ' ' + prop.label);
+            }
+          })
+        .end()
       .end();
-      }))
     }
   ],
 
@@ -114,10 +108,11 @@ foam.CLASS({
     {
       name: 'expand',
       label: '',
-      icon: '/images/dropdown-icon.svg',
+      size: 'SMALL',
+      themeIcon: 'next',
       buttonStyle: foam.u2.ButtonStyle.TERTIARY,
       code: function() {
-        this.toggleCollapsed();
+        this.collapsed = ! this.collapsed;
       }
     }
   ]
