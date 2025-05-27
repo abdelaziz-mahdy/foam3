@@ -24,7 +24,7 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'EMPTY_MSG',  message: 'No' }
+    { name: 'EMPTY_MSG',  message: 'Empty' }
   ],
 
   properties: [
@@ -78,14 +78,16 @@ foam.CLASS({
       var elmt = this.E().style({ flex: '3 0 0' })
         .addClass('h500', this.table.myClass('td'))
         .call(function() {
-          prop.tableCellFormatter.format(
-            this,
-            prop.f ? prop.f(objReturned) : null,
-            objReturned,
-            prop
-          );
-          if ( ! prop.f(objReturned) ) {
-            this.add(self.EMPTY_MSG + ' ' + prop.label);
+          this.add(prop.label + ': ');
+          if( ! objReturned || prop.f(objReturned) === '' || prop.f(objReturned) === 0) {
+            this.start('i').add(self.EMPTY_MSG.toLowerCase()).end()
+          } else {
+            prop.tableCellFormatter.format(
+              this,
+              prop.f ? prop.f(objReturned) : null,
+              objReturned,
+              prop
+            );
           }
         });
       this.add(elmt);
