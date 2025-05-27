@@ -68,7 +68,6 @@ foam.CLASS({
       name: 'selectedDAO',
       label: 'Target DAO',
       postSet: function(oldValue, newValue) {
-        console.log('selectedDAO postSet called:', oldValue, '->', newValue);
         if ( newValue && this.currentHeaders && this.currentHeaders.length > 0 ) {
           this.onDAOSelected();
         }
@@ -121,8 +120,6 @@ foam.CLASS({
       }
     },
     {
-      class: 'FObjectArray',
-      of: 'String',
       name: 'currentHeaders',
       hidden: true,
       factory: function() { return []; }
@@ -146,7 +143,6 @@ foam.CLASS({
       name: 'upload',
       label: 'Upload',
       isEnabled: function(selectedDAO, mappings) { 
-        console.log('Upload button check - selectedDAO:', selectedDAO, 'mappings:', mappings, 'mappings.length:', mappings ? mappings.length : 'undefined');
         return !! selectedDAO && mappings && mappings.length > 0; 
       },
       code: function() { this.process(); }
@@ -200,25 +196,21 @@ foam.CLASS({
         return;
       }
 
-      // Store headers for later use
-      this.currentHeaders = headers;
+      // Store headers for later use - ensure they're strings
+      var stringHeaders = headers.map(h => typeof h === 'string' ? h : String(h));
+      this.currentHeaders = stringHeaders;
       
       // Find matching DAOs
       await this.findMatchingDAOs(headers);
     },
 
     function onDAOSelected() {
-      console.log('onDAOSelected called, selectedDAO:', this.selectedDAO, 'currentHeaders:', this.currentHeaders);
-      
       if ( this.selectedDAO && this.currentHeaders.length > 0 ) {
         // Extract DAO name if it's in the format "daoName (status - score)"
         var daoName = this.selectedDAO.includes('(') ? this.selectedDAO.split(' (')[0] : this.selectedDAO;
         
-        console.log('Extracted DAO name:', daoName);
-        
         // Check if the DAO exists
         if ( this.__context__[daoName] ) {
-          console.log('DAO found, generating mappings...');
           this.generateMappings(this.currentHeaders);
           this.output = `DAO selected: ${daoName}. Mappings generated. Count: ${this.mappings.length}`;
         } else {
@@ -306,33 +298,32 @@ foam.CLASS({
     },
 
     function generateMappings(headers) {
-      console.log('generateMappings called with headers:', headers);
-      console.log('this.dao:', this.dao);
-      console.log('this.columnParser:', this.columnParser);
-      console.log('this.of:', this.of);
-      
       if ( ! this.dao || ! this.columnParser ) {
-        console.log('Missing dao or columnParser, returning early');
         return;
       }
       
       var mappings = [];
       
       headers.forEach(header => {
-        var prop = this.columnParser.parseString(header);
-        console.log('Header:', header, 'Mapped to prop:', prop);
-        mappings.push(this.Mapping.create({
-          id: header,
+        // Ensure header is a string - convert if it's a FOAM object
+        var headerStr = typeof header === 'string' ? header : 
+                       (header && header.toString ? header.toString() : String(header));
+        
+        var prop = this.columnParser.parseString(headerStr);
+        
+        var mapping = this.Mapping.create({
+          id: headerStr,
           handler: prop || this.Mapping.UNKNOWN,
           of: this.of
-        }));
+        }, this.__subContext__);
+        
+        mappings.push(mapping);
         
         if ( ! prop ) {
-          this.output += `\nWarning: No property found for header "${header}"`;
+          this.output += `\nWarning: No property found for header "${headerStr}"`;
         }
       });
       
-      console.log('Generated mappings:', mappings);
       this.mappings = mappings;
     },
 
@@ -353,6 +344,7 @@ foam.CLASS({
     },
 
     async function processCSV() {
+      var startTime = Date.now();
       var lines = this.input.trim().split('\n');
       if ( lines.length < 2 ) {
         this.output = 'CSV file must have at least a header and one data row.';
@@ -360,6 +352,7 @@ foam.CLASS({
       }
       
       var totalRows = lines.length - 1;
+      var uploadedCount = 0;
       
       for ( var i = 1; i < lines.length; i++ ) {
         var row = lines[i].trim();
@@ -373,17 +366,22 @@ foam.CLASS({
         }
         
         await this.dao.put(obj);
+        uploadedCount++;
         this.progress = Math.floor((i / totalRows) * 100);
       }
       
-      this.output = 'Upload completed successfully!';
+      var endTime = Date.now();
+      var duration = ((endTime - startTime) / 1000).toFixed(2);
+      this.output = `Upload completed successfully! ${uploadedCount} items uploaded in ${duration} seconds.`;
       this.progress = 100;
     },
 
     async function processJSON() {
+      var startTime = Date.now();
       try {
         var jsonData = JSON.parse(this.input);
         var dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+        var uploadedCount = 0;
         
         for ( var i = 0; i < dataArray.length; i++ ) {
           var item = dataArray[i];
@@ -396,10 +394,13 @@ foam.CLASS({
           }
           
           await this.dao.put(obj);
+          uploadedCount++;
           this.progress = Math.floor(((i + 1) / dataArray.length) * 100);
         }
         
-        this.output = 'Upload completed successfully!';
+        var endTime = Date.now();
+        var duration = ((endTime - startTime) / 1000).toFixed(2);
+        this.output = `Upload completed successfully! ${uploadedCount} items uploaded in ${duration} seconds.`;
         this.progress = 100;
       } catch (e) {
         this.output = 'Error processing JSON: ' + e.message;
