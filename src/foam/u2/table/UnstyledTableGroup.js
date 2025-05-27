@@ -79,7 +79,7 @@ foam.CLASS({
         .addClass('h500', this.table.myClass('td'))
         .call(function() {
           this.add(prop.columnLabel + ': ');
-          if( ! objReturned || prop.f(objReturned) === '' || prop.f(objReturned) === 0) {
+          if( ! prop.f(objReturned) ) {
             this.start('i').add(self.EMPTY_MSG).end()
           } else {
             prop.tableCellFormatter.format(
