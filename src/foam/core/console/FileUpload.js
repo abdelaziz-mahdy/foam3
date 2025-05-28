@@ -137,22 +137,6 @@ foam.CLASS({
       background-color: $white;
       border-radius: 4px;
     }
-    
-    ^mappings-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-    ^mappings-table th,
-    ^mappings-table td {
-      padding: 8px 12px;
-      border: 1px solid $grey300;
-      text-align: left;
-    }
-    ^mappings-table th {
-      background-color: $grey100;
-      font-weight: bold;
-    }
     ^progress-section {
       margin-top: 16px;
     }
@@ -171,18 +155,7 @@ foam.CLASS({
       cursor: pointer;
       font-size: 14px;
     }
-    ^btn-primary {
-      background-color: $primary400;
-      color: $white;
-    }
-    ^btn-secondary {
-      background-color: $grey500;
-      color: $white;
-    }
-    ^btn-success {
-      background-color: $success400;
-      color: $white;
-    }
+
   `,
 
   properties: [
