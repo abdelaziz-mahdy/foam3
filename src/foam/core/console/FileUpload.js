@@ -13,6 +13,7 @@ foam.CLASS({
     'foam.dao.MDAO',
     'foam.core.console.ColumnParser',
     'foam.core.console.Mapping',
+    'foam.core.console.MappingsView',
     'foam.core.console.UploadService',
     'foam.core.boot.CSpec',
     'foam.core.fs.fileDropZone.FileDropZone',
@@ -163,6 +164,7 @@ foam.CLASS({
         // Disable file upload if manual input is used
         if (n && n.trim() !== '') {
           this.uploadedFiles = [];
+          this.filesVerified = false;
         }
         
         // Force property change notification
@@ -197,9 +199,12 @@ foam.CLASS({
       class: 'String',
       name: 'selectedDAO',
       label: 'Target DAO',
-      view: { 
-        class: 'foam.core.console.DAOSelectionView',
-        mode: foam.u2.DisplayMode.RW
+      view: function(_, X) {
+        return {
+          class: 'foam.core.console.DAOSelectionView',
+          mode: foam.u2.DisplayMode.RW,
+          fileUpload: X.data
+        };
       }
     },
     {
@@ -305,9 +310,9 @@ foam.CLASS({
     {
       name: 'uploadAll',
       label: 'Upload All Files',
-      isEnabled: function() { 
-        return this.selectedDAO && this.mappings && this.mappings.length > 0 && 
-               ((this.uploadedFiles && this.uploadedFiles.length > 0) || (this.input && this.input.trim() !== '')); 
+      isEnabled: function(selectedDAO, mappings, uploadedFiles, input, filesVerified) { 
+        return filesVerified && selectedDAO && mappings && mappings.length > 0 && 
+               ((uploadedFiles && uploadedFiles.length > 0) || (input && input.trim() !== '')); 
       },
       code: function() { 
         this.processAllUploads(true); 
@@ -316,9 +321,9 @@ foam.CLASS({
     {
       name: 'previewAll',
       label: 'Preview All Files',
-      isEnabled: function() { 
-        return this.selectedDAO && this.mappings && this.mappings.length > 0 && 
-               ((this.uploadedFiles && this.uploadedFiles.length > 0) || (this.input && this.input.trim() !== '')); 
+      isEnabled: function(selectedDAO, mappings, uploadedFiles, input, filesVerified) { 
+        return filesVerified && selectedDAO && mappings && mappings.length > 0 && 
+               ((uploadedFiles && uploadedFiles.length > 0) || (input && input.trim() !== '')); 
       },
       code: function() { 
         this.processAllUploads(false); 
@@ -347,10 +352,12 @@ foam.CLASS({
     function render() {
       this.SUPER();
       
-      this.addClass().
+      var self = this;
+      
+      this.addClass();
       
       // File Upload Section
-      start('div').addClass('step').
+      this.start('div').addClass('step').
         start('h3').add('Step 1: Upload Files or Add Content').end().
         start('div').style({marginBottom: '20px'}).
           start('h4').add('Multiple File Upload').end().
@@ -371,22 +378,36 @@ foam.CLASS({
                 showHelp: true,
                 title: 'Drag and drop files here or click to browse',
                 onFilesChanged: function(files) {
-                  this.uploadedFiles = Array.from(files);
-                  this.filesVerified = false;
-                  this.output = `Files uploaded: ${files.length}`;
-                }.bind(this)
+                  // Convert FileList or array to FObject array with proper metadata
+                  var foamFiles = [];
+                  for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    if (file.cls_ && file.cls_.id === 'foam.core.fs.File') {
+                      // Already a FOAM File object
+                      foamFiles.push(file);
+                    } else {
+                      // Create a FOAM File object from native File
+                      var foamFile = self.File.create({
+                        filename: file.name || `File ${i+1}`,
+                        filesize: file.size || 0,
+                        mimeType: file.type || 'text/plain',
+                        data: { blob: file }
+                      });
+                      foamFiles.push(foamFile);
+                    }
+                  }
+                  self.uploadedFiles = foamFiles;
+                  self.filesVerified = false;
+                  self.output = `Files uploaded: ${foamFiles.length}`;
+                }
               })).
             end().
             start('div').style({marginTop: '12px'}).
               show(this.uploadedFiles$.map(files => files && files.length > 0)).
               start('strong').add(this.uploadedFiles$.map(files => `Files uploaded: ${files ? files.length : 0}`)).end().
-              show(this.filesVerified$.map(verified => verified)).
+              show(this.filesVerified$).
               start('span').style({marginLeft: '12px', color: '#28a745'}).
-                add('✅ Structure verified').
-              end().
-              show(this.filesVerified$.map(verified => !verified)).
-              start('span').style({marginLeft: '12px', color: '#ffc107'}).
-                add('⚠️ Structure verification needed').
+                add(' ✅ Structure verified').
               end().
             end().
           end().
@@ -415,17 +436,6 @@ foam.CLASS({
       start('div').addClass('step').
         start('h3').add('Step 2: Analyze Structure & Select DAO').end().
         start('div').style({marginBottom: '16px'}).
-          // Target DAO field (always visible, but editable only after analysis)
-          start('div').style({marginBottom: '16px'}).
-            start('h4').add('Target DAO').end().
-            start('p').style({color: '#666', fontSize: '14px'}).
-              add('Select the target DAO where the data will be uploaded.').
-            end().
-            start('div').style({marginTop: '8px'}).
-              add(this.SELECTED_DAO).
-            end().
-          end().
-          
           // Structure Analysis button
           start('div').style({marginTop: '16px'}).
             start(this.ANALYZE_STRUCTURE).end().
@@ -433,23 +443,11 @@ foam.CLASS({
           
           // Structure Status and Results
           start('div').style({marginTop: '16px'}).
-            // Structure Verification Status
-            show(this.filesVerified$.map(verified => verified)).
-            start('div').style({color: '#28a745', padding: '12px', backgroundColor: '#f0fff0', borderRadius: '4px', marginBottom: '16px'}).
-              start('strong').add('Structure Status: ').end().
-              add('✅ Verified').
-            end().
-            show(this.filesVerified$.map(verified => !verified)).
-            start('div').style({color: '#ffc107', padding: '12px', backgroundColor: '#fff8e1', borderRadius: '4px', marginBottom: '16px'}).
-              start('strong').add('Structure Status: ').end().
-              add('⚠️ Needs Verification').
-            end().
-
             // Structure Analysis Results
-            show(this.filesVerified$.map(verified => verified)).
+            show(this.filesVerified$).
             start('div').style({padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '4px', marginBottom: '16px'}).
               start('h4').style({marginBottom: '8px'}).add('Structure Analysis Results').end().
-              start('div').style({marginBottom: '8px'}).
+              start('div').style({marginBottom: '8px', color: '#28a745'}).
                 add(this.uploadedFiles$.map(files => 
                   `✅ Structure verified! All ${files ? files.length : 0} files have matching headers:`
                 )).
@@ -459,28 +457,15 @@ foam.CLASS({
               end().
             end().
 
-            // DAO Suggestions
-            show(this.suggestedDAOs$.map(daos => daos && daos.length > 0)).
+            // Target DAO Selection (only show after analysis)
+            show(this.filesVerified$).
             start('div').style({marginTop: '16px'}).
-              start('h4').add('Suggested DAOs').end().
+              start('h4').add('Target DAO').end().
               start('p').style({color: '#666', fontSize: '14px'}).
-                add('Based on the file structure, these DAOs are the best matches:').
+                add('Select the target DAO where the data will be uploaded.').
               end().
-              start('div').addClass('dao-suggestions').
-                forEach(this.suggestedDAOs$, function(dao) {
-                  this.start('div').addClass('dao-option').
-                    enableClass('selected', this.selectedDAO$.map(selected => 
-                      selected && dao && selected === dao.displayName
-                    )).
-                    on('click', () => {
-                      if (this.filesVerified) {
-                        this.selectedDAO = dao.displayName;
-                        this.onDAOSelected();
-                      }
-                    }).
-                    add(dao.displayName).
-                  end();
-                }).
+              start('div').style({marginTop: '8px'}).
+                add(this.SELECTED_DAO).
               end().
             end().
           end().
@@ -492,29 +477,13 @@ foam.CLASS({
         start('h3').add('Step 3: Review Field Mappings').end().
         start('div').
           show(this.mappings$.map(mappings => mappings.length > 0)).
-          start('table').addClass('mappings-table').
-            start('thead').
-              start('tr').
-                start('th').add('File Field').end().
-                start('th').add('Maps To').end().
-                start('th').add('Type').end().
-                start('th').add('Status').end().
-              end().
-            end().
-            start('tbody').
-              forEach(this.mappings$, function(mapping) {
-                this.start('tr').
-                  start('td').add(mapping.id).end().
-                  start('td').add(mapping.handler$.map(h => h.name || '--')).end().
-                  start('td').add(mapping.handler$.map(h => h.cls_ ? h.cls_.name : '--')).end().
-                  start('td').
-                    style({color: mapping.handler$.map(h => h === this.Mapping.UNKNOWN ? 'red' : 'green')}).
-                    add(mapping.handler$.map(h => h === this.Mapping.UNKNOWN ? '⚠️ No match' : '✅ Mapped')).
-                  end().
-                end();
-              }).
-            end().
-          end().
+          add(this.slot(function(mappings) {
+            return this.E().add(
+              foam.core.console.MappingsView.create({
+                data: mappings
+              }, this.__subContext__)
+            );
+          })).
         end().
         start('div').
           show(this.mappings$.map(mappings => mappings.length === 0)).
@@ -809,6 +778,9 @@ foam.CLASS({
           this.output = 'Error parsing content: ' + e.message;
           return;
         }
+        
+        // Mark as verified for manual input
+        this.filesVerified = true;
       } else {
         this.output = 'Please upload files or add manual content first.';
         return;
@@ -1004,13 +976,21 @@ foam.CLASS({
         if ( this.uploadedFiles.length > 0 ) {
           for ( var i = 0; i < this.uploadedFiles.length; i++ ) {
             var file = this.uploadedFiles[i];
+            var fileName = file.filename || (file.data && file.data.blob && file.data.blob.name) || `File ${i+1}`;
+            
             self.progressStatus = real ? 
-              `Uploading file ${i+1}/${totalFiles}: ${file.name}` :
-              `Previewing file ${i+1}/${totalFiles}: ${file.name}`;
+              `Uploading file ${i+1}/${totalFiles}: ${fileName}` :
+              `Previewing file ${i+1}/${totalFiles}: ${fileName}`;
+            
+            // Read file content
+            var content = await this.readFileContent(file);
+            var fileFormat = file.mimeType === 'text/csv' ? 'CSV' :
+                           file.mimeType === 'application/json' ? 'JSON' :
+                           file.mimeType === 'text/xml' ? 'XML' : this.format;
             
             await this.uploadService.processUpload({
-              input: file.content,
-              format: file.format,
+              input: content,
+              format: fileFormat,
               dao: real ? this.dao : this.previewData,
               mappings: this.mappings,
               delimiter: this.delimiter,
@@ -1021,7 +1001,7 @@ foam.CLASS({
                 self.progress = Math.round(fileProgress);
               },
               onError: function(error) {
-                self.output += `\nFile ${file.name} - Error: ${error}`;
+                self.output += `\nFile ${fileName} - Error: ${error}`;
               },
               onComplete: function(recordCount) {
                 totalRecords += recordCount;
@@ -1068,6 +1048,33 @@ foam.CLASS({
         self.progressStatus = '';
         this.output += `\n<span style="color:red">Processing failed: ${e.message}</span>`;
       }
+    },
+
+    function readFileContent(file) {
+      return new Promise((resolve, reject) => {
+        try {
+          var actualFile = file.data ? file.data.blob : file;
+          
+          if (!actualFile) {
+            reject('No file data available');
+            return;
+          }
+
+          var reader = new FileReader();
+          
+          reader.onload = function(e) {
+            resolve(e.target.result);
+          };
+          
+          reader.onerror = function() {
+            reject('Error reading file');
+          };
+          
+          reader.readAsText(actualFile);
+        } catch (e) {
+          reject('Error accessing file: ' + e.message);
+        }
+      });
     }
   ]
 });
@@ -1085,12 +1092,23 @@ foam.CLASS({
     {
       name: 'mode',
       value: foam.u2.DisplayMode.RW
+    },
+    {
+      name: 'fileUpload',
+      documentation: 'Reference to the parent FileUpload instance'
     }
   ],
 
   methods: [
     function render() {
       var self = this;
+      var fileUpload = this.fileUpload;
+      
+      if (!fileUpload) {
+        console.error('DAOSelectionView: No FileUpload instance provided');
+        return;
+      }
+      
       this
         .start('div').style({display: 'flex', flexDirection: 'column', gap: '8px'}).
           // Manual input
@@ -1100,32 +1118,33 @@ foam.CLASS({
               attrs({
                 type: 'text',
                 placeholder: 'e.g., userDAO, customerDAO...',
-                value: this.data$,
-                disabled: this.data$.map(data => !data || !data.filesVerified)
+                value: this.data$
               }).
+              enableClass('disabled', fileUpload.filesVerified$.map(verified => !verified)).
+              attrs({disabled: fileUpload.filesVerified$.map(verified => !verified)}).
               on('input', (e) => {
                 this.data = e.target.value;
-                if (this.data && this.data.onDAOSelected) {
-                  this.data.onDAOSelected();
-                }
+                fileUpload.selectedDAO = e.target.value;
+                fileUpload.onDAOSelected();
               }).
             end().
           end().
           
           // Suggested DAOs
-          show(this.data$.map(dao => dao && dao.suggestedDAOs && dao.suggestedDAOs.length > 0)).
+          show(fileUpload.suggestedDAOs$.map(daos => daos && daos.length > 0)).
           start('div').
             start('h4').add('Suggested DAOs:').end().
             start('div').addClass('dao-suggestions').
-              forEach(this.data$.map(dao => dao.suggestedDAOs), function(dao) {
+              forEach(fileUpload.suggestedDAOs$, function(dao) {
                 this.start('div').addClass('dao-option').
-                  enableClass('selected', self.data$.map(selected => selected === dao.displayName)).
+                  enableClass('selected', self.data$.map(selected => 
+                    selected && dao && selected === dao.displayName
+                  )).
                   on('click', () => {
-                    if (self.data && self.data.filesVerified) {
+                    if (fileUpload.filesVerified) {
                       self.data = dao.displayName;
-                      if (self.data && self.data.onDAOSelected) {
-                        self.data.onDAOSelected();
-                      }
+                      fileUpload.selectedDAO = dao.displayName;
+                      fileUpload.onDAOSelected();
                     }
                   }).
                   add(dao.displayName).
