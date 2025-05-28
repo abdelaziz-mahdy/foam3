@@ -102,7 +102,8 @@ foam.CLASS({
     'foam.core.console.ColumnParser',
     'foam.core.console.DAOHolder',
     'foam.core.console.Mapping',
-    'foam.core.console.UploadAgent'
+    'foam.core.console.UploadAgent',
+    'foam.core.console.UploadService'
   ],
 
   imports: [ 'currentBlock?', 'eval_?', 'setTimeout' ],
@@ -237,6 +238,14 @@ foam.CLASS({
       class: 'Boolean',
       name: 'bulkUpload',
       value: true
+    },
+    {
+      name: 'uploadService',
+      transient: true,
+      hidden: true,
+      factory: function() {
+        return this.UploadService.create();
+      }
     }
   ],
 
@@ -274,75 +283,20 @@ foam.CLASS({
     },
 
     async function process(real) {
-      var self  = this;
-      var latch = foam.lang.Latch.create();
+      var self = this;
       await this.data.removeAll();
       this.processing = 0;
       this.clear();
       console.time('upload');
-      var i = 1;
-      var agent;
 
-      var sink = this.bulkUpload ? {
-        put: async function(o) {
-          self.processing = Math.max(self.processing, i);
-          self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * i / self.rows)) : 0;
+      // Handle DAO format separately since it's specific to Upload class
+      if ( this.format === 'DAO' ) {
+        return this.processDAO(real);
+      }
 
-          if ( o.errors_ ) {
-//            self.output += '<span style="color:red">' + o.errors_ + ', row: ' + i + '<br>' + row + '</span>';
-            self.output += '<span style="color:red">' + o.errors_ + '</span>';
-          }
-
-          if ( ! real ) {
-            if ( foam.lang.Long.isInstance(o.ID) ) o.id = i;
-            self.data.put(o);
-          } else {
-            if ( ! agent ) agent = self.UploadAgent.create();
-            agent.data.push(o);
-            if ( i && i % 1000 === 0 ) {
-              var oldAgent = agent;
-              agent = undefined;
-              if ( i && i % 10000 === 0 ) {
-                await self.dao.cmd(oldAgent);
-              } else {
-                self.dao.cmd(oldAgent);
-              }
-              // Wait 0ms so that the GUI (including the upload progress) can update
-              await new Promise(r => self.setTimeout(r, 0));
-            }
-          }
-          i++;
-        },
-        eof: async function() {
-          if ( agent ) await self.dao.cmd(agent);
-          self.progress = 100;
-          console.timeEnd('upload');
-          latch.resolve('eof');
-
-          if ( ! real ) {
-            var block = self.block;
-            self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
-            var block2 = self.currentBlock;
-            block2.flowName = block.flowName + 'data';
-            block2.obj.limit = 10;
-            setTimeout(() => {
-              // Needed because it is the SinkView which creates the 'select' object
-              block2.obj.run();
-            }, 100);
-          }
-        }
-      } : {
-        put: self.dao.put.bind(self.dao),
-        eof: function() {
-          console.timeEnd('upload');
-          latch.resolve('eof');
-        }
-      };
-
+      // Auto-detect format
       this.input = this.input.trim();
-
       if ( this.format === 'AUTO' ) {
-        this.input = this.input
         if ( this.input.startsWith('<?xml') ) {
           this.format = 'XML';
         } else if ( this.input.startsWith('{') ) {
@@ -352,143 +306,100 @@ foam.CLASS({
         }
       }
 
-      if ( this.format === 'DAO' ) {
-        this.processDAO(sink);
-      } else if ( this.format === 'CSV' ) {
-        this.processCSV(sink);
-      } else if ( this.format === 'XML' ) {
-        this.processXML(sink);
-      } else if ( this.format === 'JSON' ) {
-        // TODO:
-        // this.processJSON(sink);
-      }
-
-      return latch;
-    },
-
-    function getXMLMapping(tag, attr) {
-      var key = attr ? tag + '.' + attr : tag;
-
-      if ( ! this.mappings_[key] ) {
-        if ( attr ) {
-          var prop = this.columnParser.parseString(tag + attr);
-          this.mappings_[key] = this.Mapping.create({
-            id: key,
-            handler: prop || this.Mapping.UNKNOWN,
-            of: this.of
-          });
-        } else {
-          var prop = this.columnParser.parseString(tag);
-          this.mappings_[key] = this.Mapping.create({
-            id: key,
-            handler: prop || this.Mapping.UNKNOWN,
-            of: this.of
-          });
+      // For CSV, generate mappings if they don't exist
+      if ( this.format === 'CSV' && this.mappings.length === 0 ) {
+        var lines = this.input.split('\n');
+        if ( lines.length > 0 ) {
+          this.parseColumns(lines[0]);
         }
       }
 
-      return this.mappings_[key];
-    },
-
-    function objectifyXML(doc) {
-      var obj      = this.of.create();
-      var children = doc.children;
-      var nodes    = {};
-
-      for ( var i = 0 ; i < children.length ; i++ ) {
-        // fetch property based on xml tag name since they may not be in order
-        var node  = children[i];
-        var attrs = node.getAttributeNames();
-
-        if ( node.firstChild ) {
-          var value = node.firstChild.nodeValue;
-          this.getXMLMapping(node.tagName).process(obj, value);
-        }
-        for ( var j = 0 ; j < attrs.length ; j++ ) {
-          var attrName = attrs[j];
-          var value    = node.getAttribute(attrName);
-          this.getXMLMapping(node.tagName, attrName).process(obj, value);
-        }
+      // For XML, generate mappings dynamically (Upload class behavior)
+      if ( this.format === 'XML' ) {
+        this.mappings_ = {};
+        this.mappings.forEach(m => this.mappings_[m.id] = m);
       }
-
-      return obj;
-    },
-
-    async function processDAO(sink) {
-      var a = (await this.sourceDAO.select()).array;
-      for ( var i = 0 ; i < a.length ; i++ ) {
-        await sink.put(a[i]);
-      }
-      sink.eof();
-    },
-
-    async function processXML(sink) {
-      this.mappings_ = {};
-      this.mappings.forEach(m => this.mappings_[m.id] = m);
-
-      var parser   = new DOMParser();
-      var doc      = parser.parseFromString(this.input, 'text/xml');
-      var root     = doc.firstChild;
-      var children = root.children;
-      var cls      = this.of;
-
-      this.rows = 0;
-
-      // Just count matched rows so that this.rows is set
-      for ( var i = 0 ; i < children.length ; i++ ) {
-        var node = children[i];
-        if ( this.tagName && node.tagName !== this.tagName ) continue;
-        this.rows++;
-      }
-
-      // Process matched rows
-      for ( var i = 0 ; i < children.length ; i++ ) {
-        var node = children[i];
-        if ( this.tagName && node.tagName !== this.tagName ) continue;
-        await sink.put(this.objectifyXML(node));
-      }
-
-      sink.eof();
-      this.mappings = Object.values(this.mappings_);
-    },
-
-    async function processCSV(sink) {
-      var ids = {};
-      var a   = this.input.split('\n');
-
-      if ( ! a ) { this.rows = 0; return; }
-
-      this.rows = a.length-1;
 
       try {
-        var props  = this.parseColumns(a[0]);
-        var parser = this.CSVParser.create({});
-        var agent;
+        var latch = await this.uploadService.processUpload({
+          input: this.input,
+          format: this.format,
+          dao: real ? this.dao : this.data,
+          mappings: this.mappings,
+          delimiter: this.delimiter,
+          tagName: this.tagName,
+          real: real,
+          onProgress: function(current, total, percentage) {
+            self.processing = Math.max(self.processing, current);
+            self.progress = percentage;
+            self.rows = total;
+          },
+          onError: function(error) {
+            self.output += '<span style="color:red">' + error + '</span>';
+          },
+          onComplete: function(recordCount) {
+            self.progress = 100;
+            console.timeEnd('upload');
 
-        this.rows = a.length-1;
+            if ( ! real && self.currentBlock ) {
+              var block = self.block;
+              self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+              var block2 = self.currentBlock;
+              block2.flowName = block.flowName + 'data';
+              block2.obj.limit = 10;
+              setTimeout(() => {
+                // Needed because it is the SinkView which creates the 'select' object
+                block2.obj.run();
+              }, 100);
+            }
+          },
+          onRowProcessed: function(obj, rowIndex) {
+            if ( ! real ) {
+              if ( foam.lang.Long.isInstance(obj.ID) ) obj.id = rowIndex;
+            }
+          }
+        });
 
-        for ( var i = 1 ; i < a.length ; i++ ) {
-          if ( ! agent ) agent = this.UploadAgent.create();
-          var row = a[i];
-          if ( ! row ) continue;
-          var obj = this.of.create();
-          var csv = parser.parseString(row, this.delimiter);
-          for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
-            props[j].process(obj, csv[j].value);
-          }
-          await sink.put(obj);
-          /*
-          if ( ids[obj.id] ) {
-            this.output += '<span style="color:red">Duplicate Records for id "' + obj.id + '":<br>' + ids[obj.id] + '<br>' + row + '</span>';
-          }
-          ids[obj.id] = row;
-          */
+        // For XML format, update mappings after processing (Upload class behavior)
+        if ( this.format === 'XML' && this.mappings_ ) {
+          this.mappings = Object.values(this.mappings_);
         }
 
-        sink.eof();
-      } catch (x) {
-        this.output += '<span style="color:red">ERROR: ' + x + '</span>';
+        return latch;
+      } catch (e) {
+        this.output += '<span style="color:red">ERROR: ' + e + '</span>';
+        console.timeEnd('upload');
       }
+    },
+
+    async function processDAO(real) {
+      var self = this;
+      var latch = foam.lang.Latch.create();
+      
+      try {
+        var a = (await this.sourceDAO.select()).array;
+        this.rows = a.length;
+        
+        for ( var i = 0; i < a.length; i++ ) {
+          self.processing = Math.max(self.processing, i + 1);
+          self.progress = Math.floor(((i + 1) / a.length) * 100);
+          
+          if ( real ) {
+            await this.dao.put(a[i]);
+          } else {
+            await this.data.put(a[i]);
+          }
+        }
+        
+        self.progress = 100;
+        console.timeEnd('upload');
+        latch.resolve('eof');
+      } catch (e) {
+        this.output += '<span style="color:red">ERROR: ' + e + '</span>';
+        latch.reject(e);
+      }
+      
+      return latch;
     }
   ],
 

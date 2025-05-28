@@ -584,7 +584,7 @@ foam.CLASS({
   name: 'FileUpload',
   extends: 'foam.core.console.cmd.Command',
 
-  requires: [ 'foam.core.console.GenericUpload' ],
+  requires: [ 'foam.core.console.FileUpload' ],
 
   imports: [ 'createFlowChildName' ],
 
@@ -595,7 +595,7 @@ foam.CLASS({
 
   methods: [
     function execute() {
-      var p = this.GenericUpload.create({});
+      var p = this.FileUpload.create({});
 
       this.out.tag(p);
       this.currentBlock.flowName = this.createFlowChildName('fileupload');
