@@ -16,13 +16,14 @@ foam.CLASS({
     'foam.core.console.MappingsView',
     'foam.core.console.PropertyChoiceView',
     'foam.core.console.UploadService',
+    'foam.core.console.DAOHolder',
     'foam.core.boot.CSpec',
     'foam.core.fs.fileDropZone.FileDropZone',
     'foam.core.fs.File',
     'foam.u2.ActionView'
   ],
 
-  imports: [ 'cSpecDAO' ],
+  imports: [ 'cSpecDAO', 'currentBlock?', 'eval_?' ],
 
   mixins: [ 'foam.mlang.Expressions' ],
 
@@ -288,11 +289,11 @@ foam.CLASS({
     {
       class: 'foam.dao.DAOProperty',
       name: 'previewData',
-      factory: function() {
-        return this.MDAO.create({of: this.dao ? this.dao.of : foam.lang.FObject});
-      },
+      // Don't create MDAO until we have a proper model
+      value: null,
       hidden: true
-    }
+    },
+    { name: 'block', hidden: true, postSet: function(o, n) { if ( ! n ) debugger; } }
   ],
 
   actions: [
@@ -350,6 +351,17 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+
+      if ( this.currentBlock ) {
+        this.block = this.currentBlock;
+        this.block.upload = this;
+        // Don't set block.value until we have proper previewData
+        // This will be set in onDAOSelected when we have a proper DAO
+      }
+    },
+
     function render() {
       this.SUPER();
       
@@ -893,11 +905,21 @@ foam.CLASS({
         // Check if the DAO exists
         if ( this.__context__[daoName] ) {
           this.dao = this.__context__[daoName];
+          
+          // Now create previewData with the correct model
+          this.previewData = this.MDAO.create({of: this.dao.of});
+          
+          // Set up block integration now that we have proper preview data
+          if ( this.block ) {
+            this.block.value = this.DAOHolder.create({preview: this.previewData});
+          }
+          
           this.generateMappings(this.detectedHeaders);
           this.output = `DAO selected: ${daoName}. Field mappings generated.`;
         } else {
           this.output = `DAO "${daoName}" not found. Please check the name and try again.`;
           this.dao = null;
+          this.previewData = null;
           this.mappings = [];
         }
       }
@@ -950,7 +972,17 @@ foam.CLASS({
 
       // Clear preview data if in preview mode
       if ( ! real ) {
-        await this.previewData.removeAll();
+        // Ensure previewData exists before trying to use it
+        if ( ! this.previewData && this.dao ) {
+          this.previewData = this.MDAO.create({of: this.dao.of});
+          // Update block if it exists
+          if ( this.block ) {
+            this.block.value = this.DAOHolder.create({preview: this.previewData});
+          }
+        }
+        if ( this.previewData ) {
+          await this.previewData.removeAll();
+        }
       }
 
       var startTime = Date.now();
@@ -1027,6 +1059,19 @@ foam.CLASS({
         self.progressStatus = '';
         self.output = `✅ Successfully ${action} ${totalRecords} records from ${source} in ${duration} seconds!`;
         self.progress = 100;
+        
+        // Add preview block integration like Upload class
+        if ( ! real && self.currentBlock && self.eval_ ) {
+          var block = self.block;
+          self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+          var block2 = self.currentBlock;
+          block2.flowName = block.flowName + 'data';
+          block2.obj.limit = 10;
+          setTimeout(() => {
+            // Needed because it is the SinkView which creates the 'select' object
+            block2.obj.run();
+          }, 100);
+        }
         
       } catch (e) {
         self.progressStatus = '';

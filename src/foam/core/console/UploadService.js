@@ -68,8 +68,9 @@ foam.CLASS({
           if ( onRowProcessed ) onRowProcessed(obj, i);
 
           if ( ! real ) {
-            // Preview mode - just track the object
+            // Preview mode - put object into DAO for preview
             if ( foam.lang.Long.isInstance(obj.ID) ) obj.id = i;
+            await dao.put(obj);
           } else {
             // Real upload mode - use bulk upload with UploadAgent
             if ( ! agent ) agent = self.UploadAgent.create();
