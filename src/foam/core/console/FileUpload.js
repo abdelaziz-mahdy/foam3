@@ -14,6 +14,7 @@ foam.CLASS({
     'foam.core.console.ColumnParser',
     'foam.core.console.Mapping',
     'foam.core.console.MappingsView',
+    'foam.core.console.PropertyChoiceView',
     'foam.core.console.UploadService',
     'foam.core.boot.CSpec',
     'foam.core.fs.fileDropZone.FileDropZone',
@@ -231,7 +232,7 @@ foam.CLASS({
       class: 'FObjectArray',
       of: 'foam.core.console.Mapping',
       name: 'mappings',
-      hidden: true,
+      view: 'foam.core.console.MappingsView',
       factory: function() { return []; }
     },
     {
@@ -477,13 +478,7 @@ foam.CLASS({
         start('h3').add('Step 3: Review Field Mappings').end().
         start('div').
           show(this.mappings$.map(mappings => mappings.length > 0)).
-          add(this.slot(function(mappings) {
-            return this.E().add(
-              foam.core.console.MappingsView.create({
-                data: mappings
-              }, this.__subContext__)
-            );
-          })).
+          add(this.MAPPINGS).
         end().
         start('div').
           show(this.mappings$.map(mappings => mappings.length === 0)).
@@ -884,10 +879,7 @@ foam.CLASS({
             break;
           }
         }
-        
-        if ( ! found ) {
-          console.log(`No match found for header: ${normalizedHeader}`);
-        }
+   
       }
       
       return score;
@@ -903,18 +895,10 @@ foam.CLASS({
           this.dao = this.__context__[daoName];
           this.generateMappings(this.detectedHeaders);
           this.output = `DAO selected: ${daoName}. Field mappings generated.`;
-          
-          // Enable the preview and upload buttons by setting mappings
-          if ( this.mappings && this.mappings.length > 0 ) {
-            this.PREVIEW_ALL.isEnabled = true;
-            this.UPLOAD_ALL.isEnabled = true;
-          }
         } else {
           this.output = `DAO "${daoName}" not found. Please check the name and try again.`;
           this.dao = null;
           this.mappings = [];
-          this.PREVIEW_ALL.isEnabled = false;
-          this.UPLOAD_ALL.isEnabled = false;
         }
       }
     },
