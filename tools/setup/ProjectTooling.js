@@ -6,11 +6,17 @@
 
 /**
    Support for creating new FOAM based projects.
-   usage: node foam3/tools/build.js -Tproject/standard/Project --createProject:[net.foo.]app[.model]
+   usage: node tools/build.js -T+setup/Project --appName:Recipe --package:com.foamdev.com --adminPassword:badpassword
 */
 foam.POM({
   name: 'project',
   description: 'Options and Tasks to create a new project using FOAM',
+
+  envs: {
+    ADMIN_PASSWORD_HASH: ['Hashed admin password'],
+    APP_NAME_CAP: ['Application name capitalized'],
+    MODEL_NAME_CAP: ['Model name capitalized'],
+  },
 
   options: {
     adminPassword: ['P', 'admin-password', 'ADMIN_PASSWORD', 'Initial password admin user', '', arg => ADMIN_PASSWORD = arg],
@@ -19,160 +25,183 @@ foam.POM({
       if ( arg && arg > 2 && arg < 1000) ADMIN_USER_ID = arg;
       else this.error(`Invalid adminUserId. Expecting value between in range [3..999]`);
     }],
-    appName: ['N', 'app-name', 'APP_NAME', 'Identifier of application, used for root pom and default deployment directory:  /opt/APP_NAME', '', arg => APP_NAME = arg ],
-    package: ['', 'package', 'PACKAGE', 'Source code path - typically following Java package naming conventions which takes a FQDN inverts it and drops the sub-domain. Ex: www.foamdev.com -> com.foamdev.  This will become the source directory structure under src/. For the purposes of this Project creation the result would be src/com/foamdev/APP_NAME/', '', arg => PACKAGE = arg ],
-    modelName: ['M', 'model-name', 'MODEL_NAME', 'If a model name is provided, the project creation processs will also setup a complete working application, with user, group, menu, permissions, and service journals based on the model name', '', arg => MODEL_NAME = arg ],
-    spid: ['', 'spid', 'SPID', 'Default spid', 'foam', arg => SPID = arg],
+    appNameLow: ['', 'app-name-low', 'APP_NAME_LOW', 'Application name with first letter lowercase. Used for directory name, spid, packages, ...', function() { return APP_NAME && APP_NAME[0].toLowerCase() + APP_NAME.substring(1); }, arg => APP_NAME_LOW = arg],
+    domain: ['', 'domain', 'DOMAIN', 'Inverse package name for email', function() { return PACKAGE.split('.').reverse().join('.'); /* for email*/ }, arg => DOMAIN = arg ],
+    group: ['', 'group', 'GROUP', 'Registration group of application theme.', function() { return APP_NAME_LOW }, arg => GROUP = arg],
+    journalDir: ['', 'journal_dir', 'JOURNAL_DIR', 'Location of generated journal files', function() { return `deployment/${APP_NAME_LOW}`; }, arg => JOURNAL_DIR = arg],
+    package: ['', 'package', 'PACKAGE', 'Source code path - typically following Java package naming conventions which takes a FQDN inverts it and drops the sub-domain. Ex: www.foamdev.com -> com.foamdev.  This will become the source directory structure under src/. For the purposes of this Project creation the result would be src/com/foamdev/APP_NAME/', function() { return APP_NAME_LOW; }, arg => PACKAGE = arg ],
+    projectDir: ['', 'project-dir', 'PROJECT_DIR', 'Path to root of project to prepare. Normally this is the parent of foam3/', function() {
+      var dir = process.cwd();
+      // if called from foam3/ directory, move up one level.
+      if ( dir.substring(dir.lastIndexOf('/')+1) === 'foam3' ) {
+        dir = dir.substring(0, dir.lastIndexOf('/'));
+      } else {
+        EXPORTS.error(`[Project] must be run from foam3/ directory`);
+      }
+      return dir;
+    }, arg => PROJECT_DIR = arg],
+    packagePath: ['', 'package-path', 'PACKAGE_PATH', 'Package in path notation: . -> /', function() { return PACKAGE.replaceAll('.', '/');}, arg => PACKAGE_PATH = arg],
+    modelName: ['M', 'model-name', 'MODEL_NAME', 'If a model name is provided, the project creation processs will also setup a complete working application, with user, group, menu, permissions, and service journals based on the model name', function() { return  APP_NAME; }, arg => MODEL_NAME = arg ],
+    spid: ['', 'spid', 'SPID', 'Default spid', function() { return APP_NAME_LOW || 'foam';}, arg => SPID = arg],
     type: ['', 'type', 'TYPE', '?? One of: simple, demo, recipe', 'simple', function(arg) {
       if (arg && (arg === 'simple' || arg === 'demo' || arg == 'recipe' )) TYPE = arg;
       else this.error(`Invalid type '${arg}', expecting one of [simple, demo, recipe]`);
-    }]
+    }],
+    templateDir: ['', 'template-dir', 'TEMPLATE_DIR', 'Location of template files', function() { return __dirname;}, arg => TEMPLATE_DIR = arg]
   },
 
   tasks: {
     all: ['all', 'Run all tasks to create a new project', ['validate', 'createProject']],
-    createProject: ['create-project', 'Create directories and creates root and src/ POMs for a new FOAM based project', [], function createProject(arg) {
-      var dir = process.cwd();
-      let templateDir = __dirname;
-
-      // if called from foam3/ directory, move up one level.
-      if ( dir.substring(dir.lastIndexOf('/')+1) === 'foam3' ) {
-        dir = dir.substring(0, dir.lastIndexOf('/'));
+    createAdmin: ['create-admin', 'Create an admin user in an existing application. This tooling took over creating the admin in new projects and the default FOAM admin user was removed.', ['validate'], function() {
+      this.execute('hashAdminPassword');
+      this.execute('templateMerge', TEMPLATE_DIR, 'adminUser.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, 'users.jrl', true);
+    }],
+    createProject: ['create-project', 'Create directories and creates root and src/ POMs for a new FOAM based project', [], function () {
+      if ( ! APP_NAME ) {
+        this.error(`[Project] option --appName required`);
       }
 
+      var modelName = MODEL_NAME || APP_NAME;
+      MODEL_NAME_CAP = modelName[0].toUpperCase() + modelName.substring(1);
+      MODEL_NAME = modelName[0].toLowerCase() + modelName.substring(1);
 
-      var appName = arg || APP_NAME;
-      if ( ! appName ) {
-        appName = dir.substring(dir.lastIndexOf('/')+1);
-      }
-      appName = appName.toLowerCase();
+      this.log(`[Project] creating project ${APP_NAME_CAP} at ${PROJECT_DIR}`);
 
-      var adminPassword = ADMIN_PASSWORD;
-      var adminUser = ADMIN_USER;
-      var adminUserId = ADMIN_USER_ID;
-      var AppName = appName[0].toUpperCase() + appName.substring(1);
-      var group = appName;
-      var package = PACKAGE || appName;
-      var modelName = MODEL_NAME || appName;
-      modelName = modelName[0].toLowerCase() + modelName.substring(1);
-      var ModelName = modelName[0].toUpperCase() + modelName.substring(1);
-      var packagePath = package.replaceAll('.', '/');
-      var spid = SPID || appName;
-      var srcDir;
+      this.execute('hashAdminPassword');
 
-      if ( modelName ) {
-        ModelName = modelName[0].toUpperCase() + modelName.substring(1);
-        modelName = modelName[0].toLowerCase() + modelName.substring(1);
-      }
-
-      this.log(`[Project] creating project ${AppName} at ${dir}`);
-
-      function readWrite(inDir, templateFn, outDir, outFn = 'pom.js') {
-        let fn = this.join(inDir, templateFn);
-        if ( ! this.existsSync(fn) ) {
-          this.error(`[Project] template not found ${fn}`);
-        }
-        var text = this.readFileSync(fn).toString();
-        if ( ! text ) {
-          this.error(`[Project] template file empty ${fn}`);
-        }
-
-        text = text.replaceAll("{adminPassword}", adminPassword);
-        text = text.replaceAll("{adminUser}", adminUser);
-        text = text.replaceAll("{adminUserId}", adminUserId);
-        text = text.replaceAll("{app}", appName);
-        text = text.replaceAll("{appName}", appName);
-        text = text.replaceAll("{App}", AppName);
-        text = text.replaceAll("{AppName}", AppName);
-        text = text.replaceAll("{group}", group);
-        text = text.replaceAll("{model}", modelName);
-        text = text.replaceAll("{modelName}", modelName);
-        text = text.replaceAll("{Model}", ModelName);
-        text = text.replaceAll("{ModelName}", ModelName);
-        text = text.replaceAll("{package}", package);
-        text = text.replaceAll("{packagePath}", packagePath);
-        text = text.replaceAll("{spid}", spid);
-
-        fn = this.join(outDir, outFn);
-        this.log(`[Project] creating file ${fn}`);
-        if ( ! this.existsSync(fn) ) {
-          this.ensureDir(outDir);
-          this.writeFileSync(fn, text);
-        } else {
-          this.warning(`[Project] file already exists: ${fn}`);
-        }
-      }
+      // explicit reference to task function, as normally the build will
+      // only allow execution a single time.
+      let task = TOOLING_TASKS['templateMerge'];
+      let templateMerge = task[0].f.bind(this);
 
       // base setup
-      readWrite.bind(this, templateDir, 'rootPOM.js', `${dir}`)();
-      readWrite.bind(this, templateDir, 'deploymentAppPOM.js', `${dir}/deployment/${appName}`, 'pom.js')();
-      readWrite.bind(this, templateDir, 'journalPOM.js', `${dir}/journals`, 'pom.js')();
-      readWrite.bind(this, templateDir, 'journalGroups.jrl', `${dir}/journals`, `groups.jrl`)();
-      readWrite.bind(this, templateDir, 'journalGroupPermissionJunctions.jrl', `${dir}/journals`, `groupPermissionJunctions.jrl`)();
+      templateMerge(TEMPLATE_DIR, 'rootPOM.js', `${PROJECT_DIR}`, 'pom.js');
+      templateMerge(TEMPLATE_DIR, 'deploymentAppPOM.js', `${PROJECT_DIR}/deployment/${APP_NAME_LOW}`, 'pom.js');
+      templateMerge(TEMPLATE_DIR, 'journalPOM.js', `${PROJECT_DIR}/${JOURNAL_DIR}`, 'pom.js');
+      templateMerge(TEMPLATE_DIR, 'journalGroups.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `groups.jrl`);
+      templateMerge(TEMPLATE_DIR, 'journalGroupPermissionJunctions.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `groupPermissionJunctions.jrl`);
 
       // demo user setup
-      readWrite.bind(this, templateDir, 'deploymentDemoPOM.js', `${dir}/deployment/demo`, `pom.js`)();
-      readWrite.bind(this, templateDir, 'deploymentDemoUsers.jrl', `${dir}/deployment/demo`, `users.jrl`)();
-      readWrite.bind(this, templateDir, 'run.sh', `${dir}/deployment/demo`, `run.sh`)();
-      this.execSync(`chmod u+x ${dir}/deployment/demo/run.sh`);
+      templateMerge(TEMPLATE_DIR, 'deploymentDemoPOM.js', `${PROJECT_DIR}/deployment/demo`, `pom.js`);
+      templateMerge(TEMPLATE_DIR, 'deploymentDemoUsers.jrl', `${PROJECT_DIR}/deployment/demo`, `users.jrl`);
+      templateMerge(TEMPLATE_DIR, 'run.sh', `${PROJECT_DIR}/deployment/demo`, `run.sh`);
+      this.execSync(`chmod u+x ${PROJECT_DIR}/deployment/demo/run.sh`);
 
       // test
-      readWrite.bind(this, templateDir, 'modelTestPOM.js', `${dir}/src/${packagePath}/test`, 'pom.js')();
-      readWrite.bind(this, templateDir, 'modelTest.js', `${dir}/src/${packagePath}/test`, `${ModelName}Test.js`)();
-      readWrite.bind(this, templateDir, 'deploymentModelTestPOM.js', `${dir}/deployment/test`, 'pom.js')();
-      readWrite.bind(this, templateDir, 'tests.jrl', `${dir}/src/${packagePath}/test`, 'tests.jrl')();
+      templateMerge(TEMPLATE_DIR, 'modelTestPOM.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}/test`, 'pom.js');
+      templateMerge(TEMPLATE_DIR, 'modelTest.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}/test`, `${MODEL_NAME_CAP}Test.js`);
+      templateMerge(TEMPLATE_DIR, 'deploymentModelTestPOM.js', `${PROJECT_DIR}/deployment/test`, 'pom.js');
+      templateMerge(TEMPLATE_DIR, 'tests.jrl', `${PROJECT_DIR}/src/${PACKAGE_PATH}/test`, 'tests.jrl');
 
-      readWrite.bind(this, templateDir, 'journalMenus.jrl', `${dir}/journals`, `menus.jrl`)();
+      templateMerge(TEMPLATE_DIR, 'journalMenus.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `menus.jrl`);
 
       // model
       if ( TYPE === 'demo' ) {
-        readWrite.bind(this, templateDir, 'demoModel.js', `${dir}/src/${packagePath}`, `${ModelName}.js`)();
-        readWrite.bind(this, templateDir, 'demoModelCategory.js', `${dir}/src/${packagePath}`, `${ModelName}Category.js`)();
-        readWrite.bind(this, templateDir, 'demoModelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'journalServices.jrl', `${dir}/journals`, `services.jrl`)();
-      } else if ( TYPE === 'recipe' || appName === 'recipe' ) {
+        templateMerge(TEMPLATE_DIR, 'demoModel.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, `${MODEL_NAME_CAP}.js`);
+        templateMerge(TEMPLATE_DIR, 'demoModelCategory.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, `${MODEL_NAME_CAP}Category.js`);
+        templateMerge(TEMPLATE_DIR, 'demoModelPOM.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, 'pom.js');
+        templateMerge(TEMPLATE_DIR, 'journalServices.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `services.jrl`);
+      } else if ( TYPE === 'recipe' || APP_NAME_LOW === 'recipe' ) {
         // See FOAM-Recipe Tutorial
-        readWrite.bind(this, templateDir, 'recipeModel.js', `${dir}/src/${packagePath}`, `Recipe.js`)();
-        readWrite.bind(this, templateDir, 'recipeModelCategory.js', `${dir}/src/${packagePath}`, `RecipeCategory.js`)();
-        readWrite.bind(this, templateDir, 'recipeModelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'journalServices.jrl', `${dir}/journals`, `services.jrl`)();
+        templateMerge(TEMPLATE_DIR, 'recipeModel.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, `Recipe.js`);
+        templateMerge(TEMPLATE_DIR, 'recipeModelCategory.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, `RecipeCategory.js`);
+        templateMerge(TEMPLATE_DIR, 'recipeModelPOM.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, 'pom.js');
+        templateMerge(TEMPLATE_DIR, 'journalServices.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `services.jrl`);
       } else {
-        readWrite.bind(this, templateDir, 'simpleModel.js', `${dir}/src/${packagePath}`, `${ModelName}.js`)();
-        readWrite.bind(this, templateDir, 'simpleModelPOM.js', `${dir}/src/${packagePath}`, 'pom.js')();
-        readWrite.bind(this, templateDir, 'simpleJournalServices.jrl', `${dir}/journals`, `services.jrl`)();
+        templateMerge(TEMPLATE_DIR, 'simpleModel.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, `${MODEL_NAME_CAP}.js`);
+        templateMerge(TEMPLATE_DIR, 'simpleModelPOM.js', `${PROJECT_DIR}/src/${PACKAGE_PATH}`, 'pom.js');
+        templateMerge(TEMPLATE_DIR, 'simpleJournalServices.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `services.jrl`);
       }
 
       // theme
-      readWrite.bind(this, templateDir, 'themes.jrl', `${dir}/journals`, `themes.jrl`)();
+      templateMerge(TEMPLATE_DIR, 'themes.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `themes.jrl`);
 
       // adminPassword = this.hash(adminPassword);
-      readWrite.bind(this, templateDir, 'adminUser.jrl', `${dir}/journals`, `users.jrl`)();
+      templateMerge(TEMPLATE_DIR, 'adminUser.jrl', `${PROJECT_DIR}/${JOURNAL_DIR}`, `users.jrl`);
 
-      // Additional directories and poms
-      readWrite.bind(this, templateDir, 'build.sh', `${dir}`, `build.sh`)();
-      this.execSync(`chmod u+x ${dir}/build.sh`);
-      readWrite.bind(this, templateDir, 'gitignore', `${dir}`, `.gitignore`)();
+      // Additional PROJECT_DIRectories and poms
+      templateMerge(TEMPLATE_DIR, 'build.sh', `${PROJECT_DIR}`, `build.sh`);
+      this.execSync(`chmod u+x ${PROJECT_DIR}/build.sh`);
+      templateMerge(TEMPLATE_DIR, 'gitignore', `${PROJECT_DIR}`, '.gitignore');
 
-      // this.execSync('sudo chown -R $USER /opt')
+      // gitignore.execSync('sudo chown -R $USER /opt')
     }],
 
+    hashAdminPassword: ['hash-admin-password', 'Execute FOAM to hash a password', [], function() {
+      if ( ! this.existsSync('pom.xml') ) {
+        // build foam  - don't rebuild for subsequent runs
+        this.execute('genJava');
+        // TODO: just compile foam.util.Password.java and foam.util.SecurityUtil.java
+      }
+      ADMIN_PASSWORD_HASH = this.execSync(`java -cp "${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes" foam.util.Password ${ADMIN_PASSWORD.trim()}`).toString().trim();
+    }],
+
+    templateMerge: ['template-merge', 'Populate template fields and copy template into final file location', [],
+                    function (inDir, templateFn, outDir, outFn, append = false) {
+                      // this.log(`templateMerge inDir: ${inDir}\ntemplateFn: ${templateFn}\noutDir: ${outDir}\noutFn: ${outFn}\nappend: ${append}`);
+                      let fn = this.join(inDir, templateFn);
+                      if ( ! this.existsSync(fn) ) {
+                        this.error(`[Project] template not found ${fn}`);
+                      }
+                      var text = this.readFileSync(fn).toString();
+                      if ( ! text ) {
+                        this.error(`[Project] template file empty ${fn}`);
+                      }
+                      text = text.replaceAll("{adminPassword}", ADMIN_PASSWORD_HASH);
+                      text = text.replaceAll("{adminUser}", ADMIN_USER);
+                      text = text.replaceAll("{adminUserId}", ADMIN_USER_ID);
+                      text = text.replaceAll("{app}", APP_NAME_LOW);
+                      text = text.replaceAll("{appName}", APP_NAME_LOW);
+                      text = text.replaceAll("{App}", APP_NAME_CAP);
+                      text = text.replaceAll("{AppName}", APP_NAME_CAP);
+                      text = text.replaceAll("{domain}", DOMAIN);
+                      text = text.replaceAll("{group}", GROUP);
+                      text = text.replaceAll("{journalDir}", JOURNAL_DIR);
+                      text = text.replaceAll("{model}", MODEL_NAME);
+                      text = text.replaceAll("{modelName}", MODEL_NAME);
+                      text = text.replaceAll("{Model}", MODEL_NAME_CAP);
+                      text = text.replaceAll("{ModelName}", MODEL_NAME_CAP);
+                      text = text.replaceAll("{package}", PACKAGE);
+                      text = text.replaceAll("{packagePath}", PACKAGE_PATH);
+                      text = text.replaceAll("{spid}", SPID);
+
+                      fn = this.join(outDir, outFn);
+                      this.log(`[Project] creating file ${fn}`);
+                      if ( ! this.existsSync(fn) ) {
+                        this.ensureDir(outDir);
+                        this.writeFileSync(fn, text);
+                      } else {
+                        this.warning(`[Project] file already exists: ${fn}`);
+                        if ( append ) {
+                          this.warning(`[Project] appending to: ${fn}.`);
+                          this.appendFileSync(fn, text);
+                        }
+                      }
+                    }
+                   ],
     info: ['info', 'Documentation for this Tooling', [], function() {
       this.log('Project Tooling');
+      // TODO: elaborate - detailed documentation
     }],
+
     usage: ['usage', 'Example usage', [], function() {
       this.log('Project creation examples:');
-      this.log('  node foam3/tools/build.js -Tsetup/Project --appName:Recipe --package:com.foamdev.cook');
-      this.log('      Will generate a project matchin the FOAM-Recipes tutorial');
-      this.log('  node foam3/tools/build.js -Tsetup/Project --appName:Simple --package:com.foamdev');
-      this.log('      Will generate a project with a very simple model.');
-      this.log('  node foam3/tools/build.js -Tsetup/Project --type:demo --appName:Example --package:com.foamdev');
-      this.log('      Will generate a project with a more elaborate model demonstrating more FOAM features..');
+      this.warning('must be run from foam3/ directory)');
+      this.log('  node tools/build.js -T+setup/Project --appName:Recipe --package:com.foamdev.cook --adminPassword:badpassword');
+      this.log('      Generate a project matchin the FOAM-Recipes tutorial');
+      this.log('  node tools/build.js -T+setup/Project --appName:Simple --package:com.foamdev --adminPassword:badpassword');
+      this.log('      Generate a project with a very simple model.');
+      this.log('  node tools/build.js -T+setup/Project --type:demo --appName:Example --package:com.foamdev --adminPassword:badpassword');
+      this.log('      Generate a project with a more elaborate model demonstrating more FOAM features..');
+      this.log('  node tools/build.js -T+setup/Project --createAdmin --appName:Example --package:com.foamdev --adminPassword:badpassword');
+      this.log('      Generate an admin user for existing projects which were previously relying on the, now removed, foam-admin user provided by the baseline FOAM repo.');
+      this.log();
     }],
 
     validate: ['validate', 'Validate tooling parameters before execution', [], function() {
-      // if ( ! ADMIN_PASSWORD ) {
-      //   this.error(`[Project] option --adminPassword required.`);
-      // }
+      if ( ! ADMIN_PASSWORD ) {
+        this.error(`[Project] option --adminPassword required.`);
+      }
     }]
   }
 });

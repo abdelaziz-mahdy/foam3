@@ -69,7 +69,7 @@ exports.end = function() {
 
     this.log('[Javac] Compiling', X.javaFiles.length ,'java files:', cmd);
     try {
-      this.execSync(cmd, {stdio: 'inherit'});
+      this.execSync(cmd, {stdio: SILENT ? 'ignore' : 'inherit'});
     } catch(x) {
       process.exit(1);
     }

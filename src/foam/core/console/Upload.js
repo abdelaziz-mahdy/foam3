@@ -288,6 +288,65 @@ foam.CLASS({
       this.processing = 0;
       this.clear();
       console.time('upload');
+      var i = 1;
+      var agent;
+
+      var sink = this.bulkUpload ? {
+        put: async function(o) {
+          self.processing = Math.max(self.processing, i);
+          self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * i / self.rows)) : 0;
+
+          if ( o.errors_ ) {
+            //            self.output += '<span style="color:red">' + o.errors_ + ', row: ' + i + '<br>' + row + '</span>';
+            self.output += '<span style="color:red">' + o.errors_.map(e => e[0].name + ' ' + e[1]).join(', ') + '</span><br>';
+          }
+
+          if ( ! real ) {
+            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = i;
+            self.data.put(o);
+          } else {
+            if ( ! agent ) agent = self.UploadAgent.create();
+            agent.data.push(o);
+            if ( i && i % 1000 === 0 ) {
+              var oldAgent = agent;
+              agent = undefined;
+              if ( i && i % 10000 === 0 ) {
+                await self.dao.cmd(oldAgent);
+              } else {
+                self.dao.cmd(oldAgent);
+              }
+              // Wait 0ms so that the GUI (including the upload progress) can update
+              await new Promise(r => self.setTimeout(r, 0));
+            }
+          }
+          i++;
+        },
+        eof: async function() {
+          if ( agent ) await self.dao.cmd(agent);
+          self.progress = 100;
+          console.timeEnd('upload');
+          latch.resolve('eof');
+
+          if ( ! real ) {
+            var block = self.block;
+            self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+            var block2 = self.currentBlock;
+            block2.flowName = block.flowName + 'data';
+            block2.obj.limit = 10;
+            setTimeout(() => {
+              // Needed because it is the SinkView which creates the 'select' object
+              block2.obj.run();
+            }, 100);
+          }
+        }
+      } : {
+        put: self.dao.put.bind(self.dao),
+        eof: function() {
+          console.timeEnd('upload');
+          latch.resolve('eof');
+        }
+      };
+
 
       // Handle DAO format separately since it's specific to Upload class
       if ( this.format === 'DAO' ) {

@@ -65,7 +65,7 @@ ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
 const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, writeFileIfUpdated, verbose } = require('./buildlib');
-const { existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
+const { appendFileSync, existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
 const os = require('os');
 const { join }                                    = require('path');
 const pmake                                       = require('./pmake');
@@ -184,8 +184,10 @@ function task() {
           var f = globalThis[d];
           if ( f )
             f.apply(Object.assign({}, EXPORTS), args);
-          else
-            error(`Task ${name} (${task.pom}) dependency not found ${d}`);
+          else {
+            if ( ! NOP.includes(d) )
+              error(`Task ${name} (${task.pom}) dependency not found ${d}`);
+          }
         }
       });
 
@@ -258,9 +260,8 @@ function showSummary() {
   if ( SILENT ) return;
   if ( HELP ) return;
 
-  // if ( SHOW_ENVS ) {
+  if ( SHOW_ENVS || VERBOSE )
     moreUsage('showEnvs');
-  // }
 
   var s = '';
   summary.forEach(e => {
@@ -412,6 +413,7 @@ buildEnv(ENVS);
 EXPORTS = Object.assign(EXPORTS, {
   adaptOrCreateArgs,
   addJournal,
+  appendFileSync,
   bool,
   buildEnv,
   comma,
@@ -448,7 +450,29 @@ TOOLING_OPTIONS = addOptions({
   homeDir: ['', 'home-dir', 'HOME_DIR', 'Home directory of user executing build', () => os.homedir(), arg => HOME_DIR = arg ],
   platform: ['', 'platform', 'PLATFORM', 'Operation System Type. One of: darwin (MacOS), freebsd, linux, win32', () => os.platform(), arg => PLATFORM = arg ],
   silent: ['', 'silent', 'SILENT', "Suppress all 'info' and 'warning' log messages.", false, function(arg) { SILENT = arg ? bool(arg) : true; }],
-  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'', '', arg => TOOLING_POMS = arg ]
+  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'.  To \'add\' tooling to default list, prefix name with +.',
+                 function() {
+                   var poms;
+                   var fn = join(process.cwd(),`tools/defaultTooling`);
+                   if ( existsSync(fn) ) {
+                     poms = readFileSync(fn).toString().trim();
+                     verbose(`[build] using project tooling: ${poms}`);
+                   }
+                   if ( ! poms ) {
+                     poms = 'Standard,Npm,Maven,Git,JS,Java';
+                     verbose(`[build] using default tooling: ${poms}`);
+                   }
+                   return poms;
+                 },
+                 function(arg) {
+                   if ( arg.startsWith('+') ) {
+                     // each addOptions call invokes the functions
+                     if ( TOOLING_POMS.includes(arg.substring(1)) ) return;
+                     TOOLING_POMS = comma(arg.substring(1), TOOLING_POMS);
+                   } else {
+                     TOOLING_POMS = arg;
+                   }
+                 }]
 }, TOOLING_OPTIONS);
 
 OPTIONS = addOptions({
@@ -624,19 +648,6 @@ function pom() {
 
 task('tooling', 'Prepare build environment', [], function tooling() {
   var tps = '';
-  if ( ! TOOLING_POMS ) {
-    var toolingPOMs;
-    var fn = join(process.cwd(),`tools/defaultTooling`);
-    if ( existsSync(fn) ) {
-      toolingPOMs = readFileSync(fn).toString().trim();
-      log(`[build] using project tooling: ${toolingPOMs}`);
-    }
-    if ( ! toolingPOMs ) {
-      toolingPOMs = 'Standard,Npm,Maven,Git,JS,Java';
-      log(`[build] using default tooling: ${toolingPOMs}`);
-    }
-    TOOLING_POMS = toolingPOMs;
-  }
   (TOOLING_POMS).split(',').forEach(name => {
     var found = false;
     let fn1 = join(__dirname, `${name}Tooling`);

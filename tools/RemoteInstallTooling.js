@@ -68,7 +68,7 @@ foam.POM({
 
       if ( REMOTE_INSTALL_SCRIPT ) {
         try {
-          this.log(`[RemoteInstall] installing to ${REMOTE_HOSTNAME}.`);
+          this.log(`[RemoteInstall] installing to ${REMOTE_HOSTNAME} with ${INSTALL_OPTS}.`);
           this.execSync(`ssh ${SSH_OPT} ${REMOTE_URL} 'sudo bash -s -- -T${REMOTE_OUTPUT}/${TARBALL} ${INSTALL_OPTS}' < ${REMOTE_INSTALL_SCRIPT}`);
           this.log(`[RemoteInstall] installation to ${REMOTE_HOSTNAME} complete.`);
         } catch (e) {
@@ -81,6 +81,8 @@ foam.POM({
     usage: ['usage', 'Examples', [], function() {
       this.log('Remote installation examples:');
       this.log('  ./build.sh -TStandard,RemoteInstall,Java --user:foam user-id:3636 --backup:false --remote-hostname:moosehead');
+      this.log('  ./build.sh -TStandard,RemoteInstall,Java -Jhttps --user:foam user-id:3636 --backup:false --remote-hostname:moosehead');
+      this.log('    Deploy with SSL/HTTPS support');
     }],
     validate: ['validate', 'Verify required information is available before proceeding with main build tasks', ['pomEnvs'], function() {
       if ( REMOTE_PLATFORM !== 'linux' ) {

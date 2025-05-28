@@ -39,7 +39,7 @@ p({
   "email":"admin@foamdev.com",
   "userName":"foam-admin",
   "birthday":"1982-07-07T23:12:00.0Z",
-  "password":"yg2XT+KZBJk=:BljmCGq/fGkvm1POBiEJdzrMn2oEQSqsLK3OHKwvGmnaf99FrlJ7HZPtzeaXus2kHHyRUZU8iOHD8y5tB/AkWg==",
+  "password":"",
   "emailVerified":true,
-  "loginEnabled":true
+  "loginEnabled":false
 })

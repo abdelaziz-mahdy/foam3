@@ -31,8 +31,11 @@ foam.CLASS({
         } else {
           this.block.value = this.value(s);
         }
-        e.add(s);
+        this.addSinkToE(e, s);
       });
+    },
+    function addSinkToE(e, s) {
+      e.add(s);
     },
     function addToE() {}
   ]
@@ -174,7 +177,8 @@ foam.CLASS({
   methods: [
     function execute(e) {
       e.start({class: 'foam.u2.table.TableView', data: this.unlimitedDAO}).style({height: '700px', maxHeight: '700px'});
-    }
+    },
+    function value(s) { return s; }
   ]
 });
 
@@ -185,7 +189,8 @@ foam.CLASS({
   extends: 'foam.core.console.AbstractDAOAgent',
 
   methods: [
-    function createSink() { return foam.u2.mlang.Table.create({}, this); }
+    function createSink() { return foam.u2.mlang.Table.create({}, this); },
+    function value(s) { return s; }
   ]
 });
 
@@ -195,10 +200,11 @@ foam.CLASS({
   name: 'CSVDAOAgent',
   extends: 'foam.core.console.AbstractDAOAgent',
 
-  requires: [ 'foam.dao.CSVSink' ],
+  requires: [ 'foam.dao.CSVSink', 'foam.core.console.CopyFromBorder' ],
 
   methods: [
-    function createSink() { return this.CSVSink.create({of: this.of}); }
+    function createSink() { return this.CSVSink.create({of: this.of}); },
+    function addSinkToE(e, s) { e.start(this.CopyFromBorder).add(s); }
   ]
 });
 
@@ -208,10 +214,11 @@ foam.CLASS({
   name: 'XMLDAOAgent',
   extends: 'foam.core.console.AbstractDAOAgent',
 
-  requires: [ 'foam.core.console.XMLSink' ],
+  requires: [ 'foam.core.console.XMLSink', 'foam.core.console.CopyFromBorder' ],
 
   methods: [
-    function createSink() { return this.XMLSink.create({of: this.of}); }
+    function createSink() { return this.XMLSink.create({of: this.of}); },
+    function addSinkToE(e, s) { e.start(this.CopyFromBorder).add(s); }
   ]
 });
 
@@ -221,10 +228,11 @@ foam.CLASS({
   name: 'JSONDAOAgent',
   extends: 'foam.core.console.AbstractDAOAgent',
 
-  requires: [ 'foam.core.console.JSONSink' ],
+  requires: [ 'foam.core.console.JSONSink', 'foam.core.console.CopyFromBorder' ],
 
   methods: [
-    function createSink() { return this.JSONSink.create({of: this.of}); }
+    function createSink() { return this.JSONSink.create({of: this.of}); },
+    function addSinkToE(e, s) { e.start(this.CopyFromBorder).add(s); }
   ]
 });
 
@@ -245,6 +253,7 @@ foam.CLASS({
   ],
 
   methods: [
+    function value(s) { return s; },
     function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
     function addToE(e) {
       e.startContext({data: this}).

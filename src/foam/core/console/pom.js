@@ -30,6 +30,7 @@ foam.POM({
     { name: 'Script',                  flags: 'js' },
     { name: 'Signature',               flags: 'js' },
     { name: 'SinkView',                flags: 'js' },
+    { name: 'CopyFromBorder',          flags: 'js' },
     { name: 'Upload',                  flags: 'js' },
     { name: 'FileUpload',              flags: 'js' },
     { name: 'UploadAgent',             flags: 'js|java' },

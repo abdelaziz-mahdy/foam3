@@ -116,31 +116,30 @@ foam.CLASS({
           var selectedSlot = row.slot(function(selected_) {
             return selected_ ? 'p-semiBold' : 'p';
           });
-          this.
-          addClass(this.myClass('select-level')).
-          enableClass(this.myClass('select-level-selected'), row.selected_$).
-          callIfElse(row.rowConfig?.[row.data.id],
-            function() {
-              this.tag(row.rowConfig?.[row.data.id])
-            },
-            function() {
-              this.start()
-                .addClass(selectedSlot)
-                .addClass(this.myClass('label')).
-                call(row.formatter, [row.data, self.__context__]).
-              end();
-            }
-          ).
-          add(row.hasChildren$.map(hasChildren => {
-            if ( ! hasChildren ) return self.E();
-            return self.E().
-              addClass(self.myClass('toggle-icon')).
-              style({
-                'transform': row.expanded$.map(function(c) { return c ? 'rotate(90deg)': 'rotate(0deg)'; })
-              }).
-              on('click', this.toggleExpanded).
-              tag(self.Image, { glyph: 'next' });
-          }));
+          this.addClass(this.myClass('select-level'))
+            .enableClass(this.myClass('select-level-selected'), row.selected_$)
+            .callIfElse(row.rowConfig?.[row.data.id],
+              function() {
+                this.tag(row.rowConfig?.[row.data.id])
+              },
+              function() {
+                this.start()
+                  .addClass(selectedSlot)
+                  .addClass(this.myClass('label'))
+                  .call(row.formatter, [row.data, self.__context__])
+                .end();
+              }
+            )
+            .add(row.hasChildren$.map(hasChildren => {
+              if ( ! hasChildren ) return self.E();
+              return self.E()
+                .addClass(self.myClass('toggle-icon'))
+                .style({
+                  'transform': row.expanded$.map(function(c) { return c ? 'rotate(90deg)': 'rotate(0deg)'; })
+                })
+                .on('click', this.toggleExpanded)
+                .tag(self.Image, { glyph: 'next' });
+            }));
         }
       ]
     }
@@ -243,6 +242,18 @@ foam.CLASS({
         labelString = self.translationService.getTranslation(foam.locale, self.data.label, self.data.label);
       }
 
+      // Check if handler has a custom row view
+      if ( this.data && this.data.createRowView ) {
+        this.start()
+          .style({
+            'padding-left': (((self.level - 0.5) * 16) + 'px')
+          })
+          .tag(this.data.createRowView(this.__context__, this.data))
+        .end();
+        return;
+      }
+
+      // Regular menu item rendering
       this.
         addClass(this.myClass()).
         show(this.slot(function(showTreeRow, hasChildren, showThisRootOnSearch, updateThisRoot) {
@@ -286,6 +297,9 @@ foam.CLASS({
         }).
         start().
           addClass(self.myClass('heading')).
+          style({
+            'padding-left': (((self.level - 0.5) * 16 ) + 'px')
+          }).
           startContext({ data: self }).
             start(self.ON_CLICK_FUNCTIONS, {
               buttonStyle: 'UNSTYLED',
@@ -295,11 +309,7 @@ foam.CLASS({
               themeIcon: self.level === 1 ? self.data.themeIcon : '',
               icon: self.level === 1 ? self.data.icon : ''
             }).
-              style({
-                'padding-left': (((self.level - 0.5) * 16 ) + 'px')
-              }).
               enableClass('selected', this.selected_$).
-              // make not be a button so that other buttons can be nested
               addClass(this.myClass('button')).
             end().
           endContext().

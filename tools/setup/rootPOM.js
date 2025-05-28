@@ -4,18 +4,18 @@ foam.POM({
   projects: [
     { name: 'foam3/pom'},
     { name: 'src/{packagePath}/pom'},
-    { name: 'journals/pom' }
+    { name: '{journalDir}/pom' }
   ],
   licenses: `
     // Add your license header here
   `,
   envs: {
     VERSION: '1.0.0',
-    // javaMainArgs: 'spid:{app}'
+    // javaMainArgs: 'spid:{spid}'
   },
   tasks: [
     function javaManifest() {
-      JAVA_MANIFEST_VENDOR_ID = '{package}';
+      JAVA_MANIFEST_VENDOR_ID = '{domain}';
     }
   ]
 });
