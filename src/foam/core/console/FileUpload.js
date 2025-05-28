@@ -102,7 +102,6 @@ foam.CLASS({
       background-color: $primary100;
     }
     
-    /* Utility Classes - Reusable across the app */
     .mt-sm { margin-top: 8px; }
     .mt-lg { margin-top: 24px; }
     .mb-sm { margin-bottom: 8px; }
@@ -264,10 +263,13 @@ foam.CLASS({
           choosePlaceholder: 'Select a target DAO...',
           searchPlaceholder: 'Search DAOs...',
           idProperty: 'ID',
+          comparator: foam.mlang.order.Desc.create({
+            arg1: X.data.DAOSuggestion.SCORE
+          }),
           sections: [
             {
-              heading: 'Suggested DAOs',
-              dao: X.data.suggestedDAOs
+              heading: 'Available DAOs',
+              dao: X.data.allDAOs
             }
           ]
         };
@@ -290,6 +292,13 @@ foam.CLASS({
 
     {
       name: 'suggestedDAOs',
+      hidden: true,
+      factory: function() { 
+        return this.MDAO.create({of: this.DAOSuggestion});
+      }
+    },
+    {
+      name: 'allDAOs',
       hidden: true,
       factory: function() { 
         return this.MDAO.create({of: this.DAOSuggestion});
@@ -407,6 +416,9 @@ foam.CLASS({
         this.detectedHeaders = [];
         if ( this.suggestedDAOs && this.suggestedDAOs.removeAll ) {
           this.suggestedDAOs.removeAll();
+        }
+        if ( this.allDAOs && this.allDAOs.removeAll ) {
+          this.allDAOs.removeAll();
         }
         this.mappings = [];
         this.output = '';
@@ -882,7 +894,7 @@ foam.CLASS({
     },
 
     async function findMatchingDAOs(headers) {
-      // Clear previous suggestions - ensure DAO is initialized first
+      // Clear previous suggestions - ensure DAOs are initialized first
       if ( this.suggestedDAOs && this.suggestedDAOs.removeAll ) {
         await this.suggestedDAOs.removeAll();
       } else {
@@ -890,11 +902,18 @@ foam.CLASS({
         this.suggestedDAOs = this.MDAO.create({of: this.DAOSuggestion});
       }
       
+      if ( this.allDAOs && this.allDAOs.removeAll ) {
+        await this.allDAOs.removeAll();
+      } else {
+        this.allDAOs = this.MDAO.create({of: this.DAOSuggestion});
+      }
+      
       try {
         // Get all CSpecs that have a DAO
         var cSpecs = await this.cSpecDAO.select();
         
         var matchingDAOs = [];
+        var allDAOsList = [];
         
         for ( var cSpec of cSpecs.array ) {
           var daoName = cSpec.name;
@@ -908,6 +927,15 @@ foam.CLASS({
           var properties = modelClass.getAxiomsByClass(foam.lang.Property);
           var score = this.calculateMatchScore(headers, properties);
           
+          // Add to allDAOs list
+          allDAOsList.push({
+            name: daoName,
+            score: score,
+            modelName: modelClass.id,
+            totalFields: headers.length
+          });
+          
+          // Add to matching DAOs if it has a score > 0
           if ( score > 0 ) {
             matchingDAOs.push({
               name: daoName,
@@ -918,10 +946,10 @@ foam.CLASS({
           }
         }
         
-        // Sort by score (highest first)
+        // Sort matching DAOs by score (highest first)
         matchingDAOs.sort((a, b) => b.score - a.score);
         
-        // Create DAOSuggestion objects and put them in the DAO
+        // Create suggested DAOs (top 5 matches)
         for ( var dao of matchingDAOs.slice(0, 5) ) {
           var matchPercent = Math.round((dao.score / dao.totalFields) * 100);
           var status = matchPercent >= 80 ? 'Excellent Match' : 
@@ -932,10 +960,37 @@ foam.CLASS({
             ID: dao.name,
             name: dao.name,
             displayName: `${dao.name} (${status} - ${dao.score}/${dao.totalFields} fields)`,
-            score: dao.score
+            score: dao.score + 1000 // Boost score to ensure suggested ones appear first
           });
           
           await this.suggestedDAOs.put(suggestion);
+        }
+        
+        // Create all DAOs list (suggested ones with boosted scores + others)
+        for ( var dao of allDAOsList ) {
+          var isMatching = dao.score > 0;
+          var displayName, finalScore;
+          
+          if ( isMatching ) {
+            var matchPercent = Math.round((dao.score / dao.totalFields) * 100);
+            var status = matchPercent >= 80 ? 'Excellent Match' : 
+                        matchPercent >= 60 ? 'Good Match' : 
+                        matchPercent >= 40 ? 'Partial Match' : 'Poor Match';
+            displayName = `${dao.name} (${status} - ${dao.score}/${dao.totalFields} fields)`;
+            finalScore = dao.score + 1000; // Boost suggested ones
+          } else {
+            displayName = dao.name;
+            finalScore = dao.score; // Keep original score (0) for non-matching
+          }
+          
+          var allDAOSuggestion = this.DAOSuggestion.create({
+            ID: dao.name,
+            name: dao.name,
+            displayName: displayName,
+            score: finalScore
+          });
+          
+          await this.allDAOs.put(allDAOSuggestion);
         }
         
       } catch (e) {
