@@ -183,6 +183,45 @@ return sink
     {
       name: 'listen_',
       code: function listen_(x, sink, predicate) {
+        if ( ! sink ) {
+          return foam.lang.FObject.create();
+        }
+
+        debugger;
+        this.SUPER(null, foam.dao.RemoteSink.create({delegate: sink}, x), predicate);
+        return foam.lang.FObject.create();
+
+        var detached = false;
+        var sub = foam.lang.FObject.create();
+        sub.onDetach(() => {
+          detached = true
+        });
+
+        this.delegate.send(
+          foam.box.Message.create({
+            object: foam.dao.ClientSink.create({
+              delegate: foam.box.ReplyBox2.create({
+                delegate: {
+                  delegate: foam.box.SkeletonBox.create({
+                    data: sink
+                  }),
+                  send: function(msg) {
+                    if ( foam.net.ConnectionFailedException.isInstance(msg.object ) ) {
+                      sink.reset();
+                    } else {
+                      this.delegate.send(msg);
+                    }
+                  }
+                },
+                once: false,
+              })
+            })
+          })
+        )
+
+        return sub;
+          
+        
         if ( sink ) {
           // RemoteSink handles registering a Skeleton callback instead of trying
           // to send the Sink across the network.

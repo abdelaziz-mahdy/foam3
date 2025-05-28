@@ -464,6 +464,7 @@ foam.POM({
     { name: "foam/box/Message",                                       flags: "js|java" },
     { name: "foam/box/SubBoxMessage",                                 flags: "js|java" },
     { name: "foam/box/HelloMessage",                                  flags: "js|java" },
+    { name: "foam/box/UnreliableBox", flags: "js" },
     { name: "foam/box/TimeoutBox",                                    flags: "js" },
     { name: "foam/box/RetryBox",                                      flags: "js" },
     { name: "foam/box/SubBox",                                        flags: "js|java" },

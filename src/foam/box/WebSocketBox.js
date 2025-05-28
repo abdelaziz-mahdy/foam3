@@ -26,7 +26,8 @@ foam.CLASS({
     'foam.box.SubBox',
     'foam.box.SubBoxMessage',
     'foam.box.ReturnBox',
-    'foam.box.RawWebSocketBox'
+    'foam.box.RawWebSocketBox',
+    'foam.net.ConnectionFailedException'
   ],
 
   imports: [
@@ -85,6 +86,15 @@ foam.CLASS({
           ws.disconnected.sub(function(sub) {
             sub.detach();
             this.delegate = undefined;
+            
+            var replyBoxes = this.replyBoxes;
+            for ( let box of Object.values(replyBoxes) ) {
+              box.send(foam.box.Message({
+                object: this.ConnectionFailedException.create()
+              }));
+            }
+            
+            this.replyBoxes
           }.bind(this));
 
           return this.RawWebSocketBox.create({ socket: ws });

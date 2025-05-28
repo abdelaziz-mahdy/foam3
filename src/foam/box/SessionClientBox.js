@@ -37,11 +37,6 @@ foam.CLASS({
       name: 'msg',
       type: 'foam.box.Message'
     },
-    {
-      class: 'FObjectProperty',
-      name: 'clientBox',
-      type: 'foam.box.Box'
-    }
   ],
 
   methods: [
@@ -73,7 +68,7 @@ foam.CLASS({
           }
 
           this.requestLogin().then(function() {
-            self.clientBox.send(self.msg);
+            self.delegate.send(self.msg);
           });
         } else {
           // fetch the soft session limit from group, and then start the timer
@@ -83,19 +78,11 @@ foam.CLASS({
 
           this.delegate.send(msg);
         }
-      },
-      javaCode: `Object object = msg.getObject();
-if ( object instanceof RPCErrorMessage && ((RPCErrorMessage) object).getData() instanceof RemoteException &&
-    "foam.core.auth.AuthenticationException".equals(((RemoteException) ((RPCErrorMessage) object).getData()).getId()) ) {
-RemoteException e = (RemoteException) ((RPCErrorMessage) object).getData();
-foam.core.logger.Logger logger = (foam.core.logger.Logger) getX().get("logger");
-logger.warning(this.getClass().getSimpleName(), "send", e.getMessage());
-  // TODO: should this be wrapped in new Thread() ?
-  ((Runnable) getX().get("requestLogin")).run();
-  getClientBox().send(getMsg());
-} else if ( getDelegate() != null ) {
-  getDelegate().send(msg);
-}`
+      }
+    },
+    function outputJSON(outputter) {
+      // this is a client only decorator, just send the delegate when serializing
+      return outputter.output(this.delegate);
     }
   ]
 });
@@ -131,13 +118,13 @@ foam.CLASS({
   methods: [
     {
       name: 'send',
-      code: function send(msg) {
+      code: function send(originalMessage) {
+        msg = originalMessage.clone();
+        
         msg.attributes[this.SESSION_KEY] = this.sessionID;
-
-        msg.attributes.replyBox.localBox = this.SessionReplyBox.create({
-          msg:       msg,
-          clientBox: this,
-          delegate:  msg.attributes.replyBox.localBox
+        msg.attributes.replyBox = this.SessionReplyBox.create({
+          msg:       originalMessage,
+          delegate:  msg.attributes.replyBox
         });
 
         this.delegate.send(msg);

@@ -714,7 +714,7 @@ foam.CLASS({
         if ( this.crunchBoxEnabled ) {
           box = this.CrunchClientBox.create({delegate: box});
         }
-
+        
         if ( this.retryBoxMaxAttempts != 0 ) {
           box = this.RetryBox.create({
             maxAttempts: this.retryBoxMaxAttempts,

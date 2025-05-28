@@ -74,6 +74,10 @@ foam.CLASS({
 
         this.delegate.send(msg);
       }
+    },
+    function outputJSON(outputter) {
+      // this is a client only decorator, just send the delegate when serializing
+      return outputter.output(this.delegate);
     }
   ]
 });

@@ -22,11 +22,12 @@ foam.CLASS({
     {
       name: 'send',
       code: function send(msg) {
-        msg.attributes.replyBox.localBox =
+        msg = msg.clone();
+        msg.attributes.replyBox =
           this.CrunchClientReplyBox.create({
             msg:       msg,
             clientBox: this,
-            delegate:  msg.attributes.replyBox.localBox
+            delegate:  msg.attributes.replyBox
           });
 
         this.delegate.send(msg);

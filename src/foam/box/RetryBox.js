@@ -17,44 +17,6 @@
 
 foam.CLASS({
   package: 'foam.box',
-  name: 'BackoffBox',
-  extends: 'foam.box.ProxyBox',
-
-  imports: [
-    'setTimeout'
-  ],
-
-  properties: [
-    {
-      class: 'Int',
-      name: 'delay',
-      preSet: function(_, a) {
-        return a < this.maxDelay ? a : this.maxDelay;
-      },
-      value: 1
-    },
-    {
-      class: 'Int',
-      name: 'maxDelay',
-      value: 20000
-    }
-  ],
-
-  methods: [
-    function send(m) {
-      var self = this;
-      this.setTimeout(function() {
-        self.delegate.send(m);
-      }, this.delay);
-
-      this.delay *= 2;
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.box',
   name: 'RetryReplyBox',
   extends: 'foam.box.ProxyBox',
 
@@ -90,6 +52,10 @@ foam.CLASS({
 
         this.delegate && this.delegate.send(msg);
       }
+    },
+    function outputJSON(outputter) {
+      // this is a client only decorator, just send the delegate when serializing
+      return outputter.output(this.delegate);
     }
   ]
 });
@@ -111,28 +77,43 @@ foam.CLASS({
       name: 'maxAttempts',
       documentation: 'Set to -1 to infinitely retry.',
       value: 3
+    },
+    {
+      name: 'maxDelay',
+      value: 20000
     }
   ],
 
   methods: [
-    function send(msg) {
-      var replyBox = msg.attributes.replyBox;
+    function send(originalMessage) {
+      var msg = originalMessage.clone();
 
-      if ( replyBox ) {
-        var clone = msg.cls_.create(msg);
 
-        replyBox.localBox = this.RetryReplyBox.create({
-          delegate:    replyBox.localBox,
-          maxAttempts: this.maxAttempts,
-          message:     clone,
-          destination: this.BackoffBox.create({
-            delegate: this.delegate
-          })
-        });
+      var delay = 100;
+      var maxDelay = this.maxDelay;
+      var attempt = 0;
+      var self = this;
 
-        clone.attributes = {};
-        for ( var key in msg.attributes ) {
-          clone.attributes[key] = msg.attributes[key];
+      if ( msg.attributes.replyBox ) {
+        var delegate = this.delegate;
+        var originalReplyBox = msg.attributes.replyBox;
+        
+        msg = msg.shallowClone();
+        msg.attributes.replyBox = {
+          send: function(replyMsg) {
+            if ( foam.lang.Exception.isInstance(replyMsg.object) &&
+                 ( self.maxAttempts == -1 || ++attempt < self.maxAttempts ) ) {
+              setTimeout(function() {
+                delegate.send(msg);
+              }, delay);
+              delay = Math.min(delay * 2, maxDelay);
+              return;
+            }
+            originalReplyBox.send(replyMsg);
+          },
+          outputJSON: function(o) {
+            o.output(originalReplyBox)
+          }
         }
       }
 

@@ -90,7 +90,7 @@ foam.CLASS({
             self.purgeCache();
           }
           resolve(s);
-        });
+        }, reject);
       });
     },
 
