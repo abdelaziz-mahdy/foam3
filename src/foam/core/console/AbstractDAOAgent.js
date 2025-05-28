@@ -39,7 +39,7 @@ foam.CLASS({
         } else {
           this.block.value = this.value(s);
         }
-        this.addSinkToE(e, s);
+        this.addSinkToE(e, ret);
       });
     },
     
