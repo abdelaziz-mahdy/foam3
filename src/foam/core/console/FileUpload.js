@@ -486,11 +486,9 @@ foam.CLASS({
             add('Paste your file content directly if not using file upload.').
           end().
           start('div').addClass(this.myClass('mt-lg')).
-            start('label').add('Format: ').end().
-            add(this.FORMAT).
-            show(this.format$.map(f => f === 'CSV')).
-            start('label').addClass(this.myClass('ml-lg')).add('Delimiter: ').end().
-            add(this.DELIMITER).
+          tag(this.FORMAT.__).
+          show(this.format$.map(f => f === 'CSV')).
+          tag(this.DELIMITER.__).
           end().
           start('div').addClass(this.myClass('mt-lg')).
             add(this.INPUT).
@@ -525,31 +523,13 @@ foam.CLASS({
 
             // Target DAO Selection (only show after analysis)
             show(this.filesVerified$).
-            start('div').addClass(this.myClass('mt-lg')).
-              start('h4').add('Target DAO').end().
-              start('p').addClass(this.myClass('text-muted')).
-                add('Select the target DAO where the data will be uploaded.').
-              end().
-              start('div').addClass(this.myClass('mt-sm')).
-                add(this.SELECTED_DAO).
-              end().
-            end().
+            tag(this.SELECTED_DAO.__).
           end().
         end().
       end().
       
       // Mapping Review
-      start('div').addClass(this.myClass('step')).
-        start('h3').add('Step 3: Review Field Mappings').end().
-        start('div').
-          show(this.mappings$.map(mappings => mappings.length > 0)).
-          add(this.MAPPINGS).
-        end().
-        start('div').
-          show(this.mappings$.map(mappings => mappings.length === 0)).
-          start('p').add('No mappings generated yet. Please analyze the structure first.').end().
-        end().
-      end().
+      tag(this.MAPPINGS.__).end().
       
       // Upload All
       start('div').addClass(this.myClass('step')).
