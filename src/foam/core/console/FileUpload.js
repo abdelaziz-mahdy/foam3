@@ -341,7 +341,7 @@ foam.CLASS({
       value: null,
       hidden: true
     },
-    { name: 'block', hidden: true, postSet: function(o, n) { if ( ! n ) debugger; } }
+    { name: 'block', hidden: true }
   ],
 
   actions: [
