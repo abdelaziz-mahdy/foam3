@@ -216,6 +216,7 @@ foam.CLASS({
       hidden: true,
       factory: function() { return []; }
     },
+
     {
       name: 'suggestedDAOs',
       hidden: true,
@@ -410,19 +411,78 @@ foam.CLASS({
         end().
       end().
       
-      // Structure Analysis
+      // Structure Analysis & DAO Selection
       start('div').addClass('step').
         start('h3').add('Step 2: Analyze Structure & Select DAO').end().
         start('div').style({marginBottom: '16px'}).
-          start(this.ANALYZE_STRUCTURE).end().
-        end().
-        start('div').style({marginTop: '16px'}).
-          add(this.SELECTED_DAO).
-        end().
-        start('div').style({marginTop: '16px'}).
-          show(this.selectedDAO$.map(dao => !! dao)).
-          start('p').style({color: '#28a745'}).
-            add('Selected DAO: ').add(this.selectedDAO$).
+          // Target DAO field (always visible, but editable only after analysis)
+          start('div').style({marginBottom: '16px'}).
+            start('h4').add('Target DAO').end().
+            start('p').style({color: '#666', fontSize: '14px'}).
+              add('Select the target DAO where the data will be uploaded.').
+            end().
+            start('div').style({marginTop: '8px'}).
+              add(this.SELECTED_DAO).
+            end().
+          end().
+          
+          // Structure Analysis button
+          start('div').style({marginTop: '16px'}).
+            start(this.ANALYZE_STRUCTURE).end().
+          end().
+          
+          // Structure Status and Results
+          start('div').style({marginTop: '16px'}).
+            // Structure Verification Status
+            show(this.filesVerified$.map(verified => verified)).
+            start('div').style({color: '#28a745', padding: '12px', backgroundColor: '#f0fff0', borderRadius: '4px', marginBottom: '16px'}).
+              start('strong').add('Structure Status: ').end().
+              add('✅ Verified').
+            end().
+            show(this.filesVerified$.map(verified => !verified)).
+            start('div').style({color: '#ffc107', padding: '12px', backgroundColor: '#fff8e1', borderRadius: '4px', marginBottom: '16px'}).
+              start('strong').add('Structure Status: ').end().
+              add('⚠️ Needs Verification').
+            end().
+
+            // Structure Analysis Results
+            show(this.filesVerified$.map(verified => verified)).
+            start('div').style({padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '4px', marginBottom: '16px'}).
+              start('h4').style({marginBottom: '8px'}).add('Structure Analysis Results').end().
+              start('div').style({marginBottom: '8px'}).
+                add(this.uploadedFiles$.map(files => 
+                  `✅ Structure verified! All ${files ? files.length : 0} files have matching headers:`
+                )).
+              end().
+              start('div').style({fontFamily: 'monospace', whiteSpace: 'pre-wrap', backgroundColor: '#fff', padding: '8px', borderRadius: '4px'}).
+                add(this.detectedHeaders$.map(headers => headers.join(', '))).
+              end().
+            end().
+
+            // DAO Suggestions
+            show(this.suggestedDAOs$.map(daos => daos && daos.length > 0)).
+            start('div').style({marginTop: '16px'}).
+              start('h4').add('Suggested DAOs').end().
+              start('p').style({color: '#666', fontSize: '14px'}).
+                add('Based on the file structure, these DAOs are the best matches:').
+              end().
+              start('div').addClass('dao-suggestions').
+                forEach(this.suggestedDAOs$, function(dao) {
+                  this.start('div').addClass('dao-option').
+                    enableClass('selected', this.selectedDAO$.map(selected => 
+                      selected && dao && selected === dao.displayName
+                    )).
+                    on('click', () => {
+                      if (this.filesVerified) {
+                        this.selectedDAO = dao.displayName;
+                        this.onDAOSelected();
+                      }
+                    }).
+                    add(dao.displayName).
+                  end();
+                }).
+              end().
+            end().
           end().
         end().
       end().
@@ -672,7 +732,7 @@ foam.CLASS({
       if (this.uploadedFiles && this.uploadedFiles.length > 0) {
         // Automatically verify file structure first
         var verification = await this.verifyFileStructure();
-        this.output = verification.message;
+        // this.output = verification.message;
         
         if (!verification.verified) {
           return; // Stop analysis if files don't match
@@ -816,8 +876,8 @@ foam.CLASS({
           };
         });
         
-        this.output += `\nFound ${this.suggestedDAOs.length} matching DAOs`;
-        this.output += `\n${this.suggestedDAOs.map(dao => dao.displayName).join('\n')}`;
+        // this.output += `\nFound ${this.suggestedDAOs.length} matching DAOs`;
+        // this.output += `\n${this.suggestedDAOs.map(dao => dao.displayName).join('\n')}`;
         
       } catch (e) {
         this.output = 'Error finding matching DAOs: ' + e.message;
@@ -1040,11 +1100,12 @@ foam.CLASS({
               attrs({
                 type: 'text',
                 placeholder: 'e.g., userDAO, customerDAO...',
-                value: this.data$
+                value: this.data$,
+                disabled: this.data$.map(data => !data || !data.filesVerified)
               }).
               on('input', (e) => {
                 this.data = e.target.value;
-                if ( this.data && this.data.onDAOSelected ) {
+                if (this.data && this.data.onDAOSelected) {
                   this.data.onDAOSelected();
                 }
               }).
@@ -1060,9 +1121,11 @@ foam.CLASS({
                 this.start('div').addClass('dao-option').
                   enableClass('selected', self.data$.map(selected => selected === dao.displayName)).
                   on('click', () => {
-                    self.data = dao.displayName;
-                    if ( self.data && self.data.onDAOSelected ) {
-                      self.data.onDAOSelected();
+                    if (self.data && self.data.filesVerified) {
+                      self.data = dao.displayName;
+                      if (self.data && self.data.onDAOSelected) {
+                        self.data.onDAOSelected();
+                      }
                     }
                   }).
                   add(dao.displayName).
