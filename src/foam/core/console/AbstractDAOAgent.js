@@ -61,15 +61,18 @@ foam.CLASS({
     function getSinkWithProjectionData(s) {
       if ( this.Projection.isInstance(s) ) {
         var data = [];
+        var of = { __proto__: this.of };
+        of.private_ = { axiomCache: {'foam.lang.Property': s.exprs} }
         s.projection.forEach(p => {
           var objSpec = {};
-          i = 0;
+          var i = 0;
           s.exprs.forEach(e => {
             objSpec[e.name] = p[i++];
           });
-          data.push(this.of.create(objSpec));
+          data.push(of.create(objSpec));
         })
         var sink = this.createSink();
+        sink.of = of;
         sink.array = data;
         return sink;
       }
