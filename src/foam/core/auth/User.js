@@ -200,6 +200,7 @@ foam.CLASS({
           errorMessage: 'USERNAME_REQUIRED'
         }
       ],
+      required: true,
       order: 20,
       gridColumns: 6,
       columnPermissionRequired: true,
@@ -1236,6 +1237,7 @@ foam.RELATIONSHIP({
   },
   targetProperty: {
     hidden: false,
+    // required: true,
     section: 'systemInformation',
     order: 30,
     gridColumns: 6,
