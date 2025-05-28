@@ -171,25 +171,13 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.console',
-  name: 'ScrollTableDAOAgent',
+  name: 'TableDAOAgent',
   extends: 'foam.core.console.AbstractDAOAgent',
 
   methods: [
     function execute(e) {
       e.start({class: 'foam.u2.table.TableView', data: this.unlimitedDAO}).style({height: '700px', maxHeight: '700px'});
     },
-    function value(s) { return s; }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.console',
-  name: 'TableDAOAgent',
-  extends: 'foam.core.console.AbstractDAOAgent',
-
-  methods: [
-    function createSink() { return foam.u2.mlang.Table.create({}, this); },
     function value(s) { return s; }
   ]
 });
