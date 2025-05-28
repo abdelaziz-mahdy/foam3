@@ -33,6 +33,7 @@ foam.POM({
     { name: 'Upload',                  flags: 'js' },
     { name: 'FileUpload',              flags: 'js' },
     { name: 'UploadAgent',             flags: 'js|java' },
+    { name: 'UploadService',            flags: 'js' },
     { name: 'ViewSink',                flags: 'js|java' },
     { name: 'XHR',                     flags: 'js' },
     { name: 'XMLSink',                 flags: 'js|java' },
