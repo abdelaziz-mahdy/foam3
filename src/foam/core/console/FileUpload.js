@@ -140,12 +140,7 @@ foam.CLASS({
       name: 'uploadedFiles',
       factory: function() { return []; },
       postSet: function(_, n) {
-        // Force action state update when files change
-        if (this.ANALYZE_STRUCTURE) {
-          this.ANALYZE_STRUCTURE.isEnabled = function() {
-            return (n && n.length > 0) || (this.input && this.input.trim() !== '');
-          };
-        }
+       
         // Disable manual input if files are uploaded
         if (n && n.length > 0) {
           this.input = '';
@@ -169,12 +164,7 @@ foam.CLASS({
         if (n && n.trim() !== '') {
           this.uploadedFiles = [];
         }
-        // Update analyze button state
-        if (this.ANALYZE_STRUCTURE) {
-          this.ANALYZE_STRUCTURE.isEnabled = function() {
-            return (this.uploadedFiles && this.uploadedFiles.length > 0) || (n && n.trim() !== '');
-          };
-        }
+        
         // Force property change notification
         this.propertyChange.pub('input', this.slot('input'));
       }
@@ -517,86 +507,159 @@ foam.CLASS({
       }
     },
 
-    function verifyFileStructure() {
-      if ( ! this.uploadedFiles || this.uploadedFiles.length === 0 ) {
+    async function verifyFileStructure() {
+      if (!this.uploadedFiles || this.uploadedFiles.length === 0) {
         return { verified: false, message: 'No files to verify.' };
       }
 
-      if ( this.uploadedFiles.length === 1 ) {
+      if (this.uploadedFiles.length === 1) {
         this.filesVerified = true;
         return { verified: true, message: 'Single file - no verification needed.' };
       }
       
-      // Get headers from first file
-      var firstFile = this.uploadedFiles[0];
-      var firstHeaders = this.extractHeaders(firstFile);
-      
-      if ( ! firstHeaders || firstHeaders.length === 0 ) {
-        return { verified: false, message: 'Could not extract headers from first file.' };
-      }
-
-      // Verify all files have the same headers
-      var allMatch = true;
-      var mismatchDetails = [];
-      
-      for ( var i = 1; i < this.uploadedFiles.length; i++ ) {
-        var file = this.uploadedFiles[i];
-        var headers = this.extractHeaders(file);
+      try {
+        // Get headers from first file
+        var firstFile = this.uploadedFiles[0];
+        var firstFileName = firstFile.filename || (firstFile.data && firstFile.data.blob && firstFile.data.blob.name) || 'First file';
+        var firstHeaders = await this.extractHeaders(firstFile);
         
-        if ( ! headers || headers.length !== firstHeaders.length ) {
-          allMatch = false;
-          mismatchDetails.push(`${file.name}: Different number of fields (${headers ? headers.length : 0} vs ${firstHeaders.length})`);
-          continue;
+        if (!firstHeaders || firstHeaders.length === 0) {
+          return { verified: false, message: 'Could not extract headers from first file.' };
         }
+
+        // Verify all files have the same headers
+        var allMatch = true;
+        var mismatchDetails = [];
+        var fileStats = new Map(); // Track stats for each file
         
-        for ( var j = 0; j < headers.length; j++ ) {
-          if ( headers[j].trim().toLowerCase() !== firstHeaders[j].trim().toLowerCase() ) {
+        // Add first file stats
+        fileStats.set(firstFileName, {
+          fieldCount: firstHeaders.length,
+          headers: firstHeaders
+        });
+        
+        for (var i = 1; i < this.uploadedFiles.length; i++) {
+          var file = this.uploadedFiles[i];
+          var fileName = file.filename || (file.data && file.data.blob && file.data.blob.name) || `File ${i + 1}`;
+          
+          try {
+            var headers = await this.extractHeaders(file);
+            
+            // Track stats for this file
+            fileStats.set(fileName, {
+              fieldCount: headers ? headers.length : 0,
+              headers: headers || []
+            });
+            
+            if (!headers || headers.length !== firstHeaders.length) {
+              allMatch = false;
+              mismatchDetails.push(`${fileName}: Different number of fields (${headers ? headers.length : 0} vs ${firstHeaders.length} from ${firstFileName})`);
+              continue;
+            }
+            
+            for (var j = 0; j < headers.length; j++) {
+              if (headers[j].trim().toLowerCase() !== firstHeaders[j].trim().toLowerCase()) {
+                allMatch = false;
+                mismatchDetails.push(`${fileName}: Field mismatch at position ${j+1} ("${headers[j]}" vs "${firstHeaders[j]}" from ${firstFileName})`);
+                break;
+              }
+            }
+          } catch (e) {
             allMatch = false;
-            mismatchDetails.push(`${file.name}: Field mismatch at position ${j+1} ("${headers[j]}" vs "${firstHeaders[j]}")`);
-            break;
+            mismatchDetails.push(`${fileName}: Error reading file - ${e.message}`);
           }
         }
-      }
 
-      if ( allMatch ) {
-        this.filesVerified = true;
-        this.detectedHeaders = firstHeaders;
-        return { 
-          verified: true, 
-          message: `✅ Structure verified! All ${this.uploadedFiles.length} files have matching headers:\n${firstHeaders.join(', ')}` 
-        };
-      } else {
-        this.filesVerified = false;
-        return { 
-          verified: false, 
-          message: `❌ Structure mismatch detected:\n${mismatchDetails.join('\n')}\n\nPlease ensure all files have the same headers in the same order.` 
-        };
+        if (allMatch) {
+          this.filesVerified = true;
+          this.detectedHeaders = firstHeaders;
+          return { 
+            verified: true, 
+            message: `✅ Structure verified! All ${this.uploadedFiles.length} files have matching headers:\n${firstHeaders.join(', ')}` 
+          };
+        } else {
+          this.filesVerified = false;
+          
+          // Create a summary of all files
+          var summary = ['File Structure Summary:'];
+          fileStats.forEach((stats, fileName) => {
+            summary.push(`${fileName}: ${stats.fieldCount} fields`);
+          });
+          
+          return { 
+            verified: false, 
+            message: `❌ Structure mismatch detected:\n\n${summary.join('\n')}\n\nDetailed Issues:\n${mismatchDetails.join('\n')}\n\nPlease ensure all files have the same headers in the same order as ${firstFileName}.` 
+          };
+        }
+      } catch (e) {
+        return { verified: false, message: 'Error verifying file structure: ' + e.message };
       }
     },
 
     function extractHeaders(file) {
-      try {
-        var content = file.content.trim();
-        
-        if ( file.format === 'CSV' ) {
-          var lines = content.split('\n');
-          if ( lines.length > 0 ) {
-            return lines[0].split(this.delimiter).map(h => h.trim());
+      return new Promise((resolve, reject) => {
+        try {
+          // Get the actual File object from the data property
+          var actualFile = file.data ? file.data.blob : file;
+          
+          if (!actualFile) {
+            reject('No file data available');
+            return;
           }
-        } else if ( file.format === 'JSON' ) {
-          var jsonData = JSON.parse(content);
-          if ( Array.isArray(jsonData) && jsonData.length > 0 ) {
-            return Object.keys(jsonData[0]);
-          } else if ( typeof jsonData === 'object' ) {
-            return Object.keys(jsonData);
-          }
-        } else if ( file.format === 'XML' ) {
-          return ['xml_content']; // Placeholder for XML
+
+          var reader = new FileReader();
+          
+          reader.onload = function(e) {
+            try {
+              var content = e.target.result;
+              
+              if (file.mimeType === 'text/csv' || file.type === 'text/csv') {
+                var lines = content.split('\n');
+                if (lines.length > 0) {
+                  // Remove BOM if present
+                  var firstLine = lines[0].replace(/^\uFEFF/, '');
+                  // Split by delimiter and clean up
+                  var headers = firstLine.split(this.delimiter || ',').map(h => h.trim());
+                  // Filter out empty headers
+                  headers = headers.filter(h => h.length > 0);
+                  
+                  if (headers.length === 0) {
+                    reject('No valid headers found in CSV file');
+                    return;
+                  }
+                  
+                  resolve(headers);
+                } else {
+                  reject('Empty CSV file');
+                }
+              } else if (file.mimeType === 'application/json' || file.type === 'application/json') {
+                var jsonData = JSON.parse(content);
+                if (Array.isArray(jsonData) && jsonData.length > 0) {
+                  resolve(Object.keys(jsonData[0]));
+                } else if (typeof jsonData === 'object') {
+                  resolve(Object.keys(jsonData));
+                } else {
+                  reject('Invalid JSON structure');
+                }
+              } else if (file.mimeType === 'text/xml' || file.type === 'text/xml') {
+                resolve(['xml_content']); // Placeholder for XML
+              } else {
+                reject('Unsupported file type: ' + (file.mimeType || file.type));
+              }
+            } catch (e) {
+              reject('Error processing file content: ' + e.message);
+            }
+          }.bind(this);
+          
+          reader.onerror = function() {
+            reject('Error reading file');
+          };
+          
+          reader.readAsText(actualFile);
+        } catch (e) {
+          reject('Error accessing file: ' + e.message);
         }
-      } catch (e) {
-        return null;
-      }
-      return null;
+      });
     },
 
     async function analyzeContent() {
@@ -606,66 +669,80 @@ foam.CLASS({
       this.output = '';
       
       // Use uploaded files if available
-      if ( this.uploadedFiles && this.uploadedFiles.length > 0 ) {
+      if (this.uploadedFiles && this.uploadedFiles.length > 0) {
         // Automatically verify file structure first
-        var verification = this.verifyFileStructure();
+        var verification = await this.verifyFileStructure();
         this.output = verification.message;
         
-        if ( ! verification.verified ) {
+        if (!verification.verified) {
           return; // Stop analysis if files don't match
         }
         
         // Get content from first file
         var firstFile = this.uploadedFiles[0];
-        var content = firstFile.content;
-        this.format = firstFile.format;
-        
-        // Extract headers based on format
-        if ( this.format === 'CSV' ) {
-          var lines = content.split('\n');
-          if ( lines.length > 0 ) {
-            headers = lines[0].split(this.delimiter).map(h => h.trim());
-          }
-        } else if ( this.format === 'JSON' ) {
-          try {
-            var jsonData = JSON.parse(content);
-            if ( Array.isArray(jsonData) && jsonData.length > 0 ) {
-              headers = Object.keys(jsonData[0]);
-            } else if ( typeof jsonData === 'object' ) {
-              headers = Object.keys(jsonData);
+        try {
+          var actualFile = firstFile.data ? firstFile.data.blob : firstFile;
+          var content = await new Promise((resolve, reject) => {
+            var reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = e => reject(e);
+            reader.readAsText(actualFile);
+          });
+          
+          this.format = firstFile.mimeType === 'text/csv' ? 'CSV' :
+                       firstFile.mimeType === 'application/json' ? 'JSON' :
+                       firstFile.mimeType === 'text/xml' ? 'XML' : 'CSV';
+          
+          // Extract headers based on format
+          if (this.format === 'CSV') {
+            var lines = content.split('\n');
+            if (lines.length > 0) {
+              headers = lines[0].split(this.delimiter).map(h => h.trim());
             }
-          } catch (e) {
-            this.output = 'Error parsing JSON content: ' + e.message;
-            return;
+          } else if (this.format === 'JSON') {
+            try {
+              var jsonData = JSON.parse(content);
+              if (Array.isArray(jsonData) && jsonData.length > 0) {
+                headers = Object.keys(jsonData[0]);
+              } else if (typeof jsonData === 'object') {
+                headers = Object.keys(jsonData);
+              }
+            } catch (e) {
+              this.output = 'Error parsing JSON content: ' + e.message;
+              return;
+            }
+          } else if (this.format === 'XML') {
+            headers = ['xml_content']; // Placeholder for XML
           }
-        } else if ( this.format === 'XML' ) {
-          headers = ['xml_content']; // Placeholder for XML
+        } catch (e) {
+          this.output = 'Error reading file: ' + e.message;
+          return;
         }
       } 
       // Otherwise use manual input
-      else if ( this.input && this.input.trim() !== '' ) {
+      else if (this.input && this.input.trim() !== '') {
         var content = this.input.trim();
         
         // Auto-detect format if AUTO
-        if ( this.format === 'AUTO' ) {
+        if (this.format === 'AUTO') {
           this.format = this.detectFormat(content);
         }
         
         // Extract headers based on format
         try {
-          if ( this.format === 'CSV' ) {
+          if (this.format === 'CSV') {
             var lines = content.split('\n');
-            if ( lines.length > 0 ) {
+            if (lines.length > 0) {
               headers = lines[0].split(this.delimiter).map(h => h.trim());
             }
-          } else if ( this.format === 'JSON' ) {
+          } else if (this.format === 'JSON') {
             var jsonData = JSON.parse(content);
-            if ( Array.isArray(jsonData) && jsonData.length > 0 ) {
+            if (Array.isArray(jsonData) && jsonData.length > 0) {
               headers = Object.keys(jsonData[0]);
-            } else if ( typeof jsonData === 'object' ) {
+            } else if (typeof jsonData === 'object') {
               headers = Object.keys(jsonData);
             }
-          } else if ( this.format === 'XML' ) {
+          } else if (this.format === 'XML') {
             headers = ['xml_content']; // Placeholder
           }
         } catch (e) {
@@ -677,7 +754,7 @@ foam.CLASS({
         return;
       }
 
-      if ( headers.length === 0 ) {
+      if (headers.length === 0) {
         this.output = 'No fields detected.';
         return;
       }
