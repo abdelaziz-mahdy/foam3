@@ -228,6 +228,8 @@ foam.CLASS({
   extends: 'foam.core.console.AbstractDAOAgent',
 
   methods: [
+    function getSinkWithProjectionData(s) { return s; },
+    function getProjectionSink() { return foam.u2.mlang.Table.create({ columns: this.props }, this); },
     function createSink() { return foam.u2.mlang.Table.create({}, this); }
   ]
 });
