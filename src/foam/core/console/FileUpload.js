@@ -102,14 +102,14 @@ foam.CLASS({
       background-color: $primary100;
     }
     
-    .mt-sm { margin-top: 8px; }
-    .mt-lg { margin-top: 24px; }
-    .mb-sm { margin-bottom: 8px; }
-    .mb-lg { margin-bottom: 24px; }
-    .ml-sm { margin-left: 8px; }
-    .ml-lg { margin-left: 24px; }
-    .p-sm { padding: 8px; }
-    .p-lg { padding: 16px; }
+    ^mt-sm { margin-top: 8px; }
+    ^mt-lg { margin-top: 24px; }
+    ^mb-sm { margin-bottom: 8px; }
+    ^mb-lg { margin-bottom: 24px; }
+    ^ml-sm { margin-left: 8px; }
+    ^ml-lg { margin-left: 24px; }
+    ^p-sm { padding: 8px; }
+    ^p-lg { padding: 16px; }
     
     /* Text Utility Classes */
     ^text-muted {
@@ -425,12 +425,12 @@ foam.CLASS({
       // File Upload Section
       this.start('div').addClass(this.myClass('step')).
         start('h3').add('Step 1: Upload Files or Add Content').end().
-        start('div').addClass('mb-lg').
+        start('div').addClass(this.myClass('mb-lg')).
           start('h4').add('Multiple File Upload').end().
           start('p').addClass(this.myClass('text-muted')).
             add('Upload multiple files with the same structure (same headers/fields). All files will be processed together.').
           end().
-          start('div').addClass('mb-lg').
+          start('div').addClass(this.myClass('mb-lg')).
             start('div').addClass(this.myClass('file-upload-area')).
               add(this.FileDropZone.create({
                 files$: this.uploadedFiles$,
@@ -468,31 +468,31 @@ foam.CLASS({
                 }
               })).
             end().
-            start('div').addClass('mt-sm').
+            start('div').addClass(this.myClass('mt-sm')).
               show(this.uploadedFiles$.map(files => files && files.length > 0)).
               start('strong').add(this.uploadedFiles$.map(files => `Files uploaded: ${files ? files.length : 0}`)).end().
               show(this.filesVerified$).
-              start('span').addClass('ml-sm').addClass(this.myClass('text-success')).
+              start('span').addClass(this.myClass('ml-sm')).addClass(this.myClass('text-success')).
                 add(' ✅ Structure verified').
               end().
             end().
           end().
         
         // Manual input section
-        start('div').addClass('mt-lg').
+        start('div').addClass(this.myClass('mt-lg')).
           show(this.uploadedFiles$.map(files => !files || files.length === 0)).
           start('h4').add('Or Manual Content Input').end().
           start('p').addClass(this.myClass('text-muted')).
             add('Paste your file content directly if not using file upload.').
           end().
-          start('div').addClass('mt-lg').
+          start('div').addClass(this.myClass('mt-lg')).
             start('label').add('Format: ').end().
             add(this.FORMAT).
             show(this.format$.map(f => f === 'CSV')).
-            start('label').addClass('ml-lg').add('Delimiter: ').end().
+            start('label').addClass(this.myClass('ml-lg')).add('Delimiter: ').end().
             add(this.DELIMITER).
           end().
-          start('div').addClass('mt-lg').
+          start('div').addClass(this.myClass('mt-lg')).
             add(this.INPUT).
           end().
         end().
@@ -501,36 +501,36 @@ foam.CLASS({
       // Structure Analysis & DAO Selection
       start('div').addClass(this.myClass('step')).
         start('h3').add('Step 2: Analyze Structure & Select DAO').end().
-        start('div').addClass('mb-lg').
+        start('div').addClass(this.myClass('mb-lg')).
           // Structure Analysis button
-          start('div').addClass('mt-lg').
+          start('div').addClass(this.myClass('mt-lg')).
             start(this.ANALYZE_STRUCTURE).end().
           end().
           
           // Structure Status and Results
-          start('div').addClass('mt-lg').
+          start('div').addClass(this.myClass('mt-lg')).
             // Structure Analysis Results
             show(this.filesVerified$).
-            start('div').addClass('p-sm').addClass(this.myClass('bg-light')).addClass('mb-lg').
-              start('h4').addClass('mb-sm').add('Structure Analysis Results').end().
-              start('div').addClass('mb-sm').addClass(this.myClass('text-success')).
+            start('div').addClass(this.myClass('p-sm')).addClass(this.myClass('bg-light')).addClass(this.myClass('mb-lg')).
+              start('h4').addClass(this.myClass('mb-sm')).add('Structure Analysis Results').end().
+              start('div').addClass(this.myClass('mb-sm')).addClass(this.myClass('text-success')).
                 add(this.uploadedFiles$.map(files => 
                   `✅ Structure verified! All ${files ? files.length : 0} files have matching headers:`
                 )).
               end().
-              start('div').addClass(this.myClass('text-mono')).addClass(this.myClass('bg-white')).addClass('p-sm').
+              start('div').addClass(this.myClass('text-mono')).addClass(this.myClass('bg-white')).addClass(this.myClass('p-sm')).
                 add(this.detectedHeaders$.map(headers => headers.join(', '))).
               end().
             end().
 
             // Target DAO Selection (only show after analysis)
             show(this.filesVerified$).
-            start('div').addClass('mt-lg').
+            start('div').addClass(this.myClass('mt-lg')).
               start('h4').add('Target DAO').end().
               start('p').addClass(this.myClass('text-muted')).
                 add('Select the target DAO where the data will be uploaded.').
               end().
-              start('div').addClass('mt-sm').
+              start('div').addClass(this.myClass('mt-sm')).
                 add(this.SELECTED_DAO).
               end().
             end().
@@ -573,12 +573,12 @@ foam.CLASS({
         end().
         start('div').addClass(this.myClass('progress-section')).
           show(this.progressStatus$.map(status => !! status)).
-          start('div').addClass('mb-sm').addClass(this.myClass('text-primary')).
+          start('div').addClass(this.myClass('mb-sm')).addClass(this.myClass('text-primary')).
             add(this.progressStatus$).
           end().
           add(this.PROGRESS).
         end().
-        start('div').addClass('mt-lg').
+        start('div').addClass(this.myClass('mt-lg')).
           show(this.output$.map(output => !! output)).
           add(this.OUTPUT).
         end().
