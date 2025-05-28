@@ -6,6 +6,36 @@
 
 foam.CLASS({
   package: 'foam.core.console',
+  name: 'DAOSuggestion',
+  
+  properties: [
+    {
+      class: 'String',
+      name: 'ID'
+    },
+    {
+      class: 'String', 
+      name: 'name'
+    },
+    {
+      class: 'String',
+      name: 'displayName'
+    },
+    {
+      class: 'Int',
+      name: 'score'
+    }
+  ],
+  
+  methods: [
+    function toSummary() {
+      return this.displayName;
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.console',
   name: 'FileUpload',
   extends: 'foam.u2.Controller',
 
@@ -20,7 +50,9 @@ foam.CLASS({
     'foam.core.boot.CSpec',
     'foam.core.fs.fileDropZone.FileDropZone',
     'foam.core.fs.File',
-    'foam.u2.ActionView'
+    'foam.u2.ActionView',
+    'foam.u2.view.RichChoiceView',
+    'foam.core.console.DAOSuggestion'
   ],
 
   imports: [ 'cSpecDAO', 'currentBlock?', 'eval_?' ],
@@ -33,106 +65,124 @@ foam.CLASS({
       max-width: 1200px;
       margin: 0 auto;
     }
-    ^ .step {
+    ^step {
       margin-bottom: 24px;
       padding: 16px;
-      border: 1px solid #ddd;
+      border: 1px solid $grey300;
       border-radius: 8px;
-      background-color: #fafafa;
+      background-color: $grey50;
     }
-    ^ .step.active {
-      border-color: #007bff;
-      background-color: #f0f8ff;
+    ^step.active {
+      border-color: $primary400;
+      background-color: $primary50;
     }
-    ^ .step.completed {
-      border-color: #28a745;
-      background-color: #f0fff0;
+    ^step.completed {
+      border-color: $success400;
+      background-color: $success50;
     }
-    ^ .step h3 {
+    ^step h3 {
       margin: 0 0 12px 0;
-      color: #333;
+      color: $black;
     }
-    ^ .file-upload-area {
-      border: 2px dashed #ccc;
+    ^file-upload-area {
+      border: 2px dashed $grey300;
       border-radius: 8px;
       padding: 40px;
       text-align: center;
-      background-color: #f9f9f9;
+      background-color: $grey50;
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    ^ .file-upload-area:hover {
-      border-color: #007bff;
-      background-color: #f0f8ff;
+    ^file-upload-area:hover {
+      border-color: $primary400;
+      background-color: $primary50;
     }
-    ^ .file-upload-area.dragover {
-      border-color: #007bff;
-      background-color: #e3f2fd;
+    ^file-upload-area.dragover {
+      border-color: $primary400;
+      background-color: $primary100;
     }
-    ^ .dao-suggestions {
-      margin-top: 16px;
+    
+    /* Utility Classes - Reusable across the app */
+    .mt-sm { margin-top: 8px; }
+    .mt-lg { margin-top: 24px; }
+    .mb-sm { margin-bottom: 8px; }
+    .mb-lg { margin-bottom: 24px; }
+    .ml-sm { margin-left: 8px; }
+    .ml-lg { margin-left: 24px; }
+    .p-sm { padding: 8px; }
+    .p-lg { padding: 16px; }
+    
+    /* Text Utility Classes */
+    ^text-muted {
+      color: $grey500;
+      font-size: 14px;
     }
-    ^ .dao-option {
-      padding: 8px 12px;
-      margin: 4px 0;
-      border: 1px solid #ddd;
+    ^text-success {
+      color: $success400;
+    }
+    ^text-primary {
+      color: $primary400;
+      font-weight: bold;
+    }
+    ^text-mono {
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    
+    /* Background Utility Classes */
+    ^bg-light {
+      background-color: $grey100;
       border-radius: 4px;
-      cursor: pointer;
-      background-color: white;
     }
-    ^ .dao-option:hover {
-      background-color: #f0f8ff;
-      border-color: #007bff;
+    ^bg-white {
+      background-color: $white;
+      border-radius: 4px;
     }
-    ^ .dao-option.selected {
-      background-color: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-    ^ .mappings-table {
+    
+    ^mappings-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 16px;
     }
-    ^ .mappings-table th,
-    ^ .mappings-table td {
+    ^mappings-table th,
+    ^mappings-table td {
       padding: 8px 12px;
-      border: 1px solid #ddd;
+      border: 1px solid $grey300;
       text-align: left;
     }
-    ^ .mappings-table th {
-      background-color: #f8f9fa;
+    ^mappings-table th {
+      background-color: $grey100;
       font-weight: bold;
     }
-    ^ .progress-section {
+    ^progress-section {
       margin-top: 16px;
     }
-    ^ .foam-u2-ProgressView {
+    ^foam-u2-ProgressView {
       margin: 8px 0;
     }
-    ^ .action-buttons {
+    ^action-buttons {
       margin-top: 16px;
       display: flex;
       gap: 12px;
     }
-    ^ .action-buttons button {
+    ^action-buttons button {
       padding: 8px 16px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
     }
-    ^ .btn-primary {
-      background-color: #007bff;
-      color: white;
+    ^btn-primary {
+      background-color: $primary400;
+      color: $white;
     }
-    ^ .btn-secondary {
-      background-color: #6c757d;
-      color: white;
+    ^btn-secondary {
+      background-color: $grey500;
+      color: $white;
     }
-    ^ .btn-success {
-      background-color: #28a745;
-      color: white;
+    ^btn-success {
+      background-color: $success400;
+      color: $white;
     }
   `,
 
@@ -201,11 +251,25 @@ foam.CLASS({
       class: 'String',
       name: 'selectedDAO',
       label: 'Target DAO',
+      postSet: function(old, nu) {
+        if ( nu && nu !== old ) {
+          this.onDAOSelected();
+        }
+      },
       view: function(_, X) {
         return {
-          class: 'foam.core.console.DAOSelectionView',
-          mode: foam.u2.DisplayMode.RW,
-          fileUpload: X.data
+          class: 'foam.u2.view.RichChoiceView',
+          search: true,
+          allowClearingSelection: true,
+          choosePlaceholder: 'Select a target DAO...',
+          searchPlaceholder: 'Search DAOs...',
+          idProperty: 'ID',
+          sections: [
+            {
+              heading: 'Suggested DAOs',
+              dao: X.data.suggestedDAOs
+            }
+          ]
         };
       }
     },
@@ -214,8 +278,8 @@ foam.CLASS({
       hidden: true,
       expression: function(selectedDAO) {
         if ( ! selectedDAO ) return null;
-        var daoName = selectedDAO.includes('(') ? selectedDAO.split(' (')[0] : selectedDAO;
-        return this.__context__[daoName];
+        // selectedDAO is now just the ID from RichChoiceView
+        return this.__context__[selectedDAO];
       }
     },
     {
@@ -227,7 +291,9 @@ foam.CLASS({
     {
       name: 'suggestedDAOs',
       hidden: true,
-      factory: function() { return []; }
+      factory: function() { 
+        return this.MDAO.create({of: this.DAOSuggestion});
+      }
     },
     {
       class: 'FObjectArray',
@@ -313,7 +379,7 @@ foam.CLASS({
       name: 'uploadAll',
       label: 'Upload All Files',
       isEnabled: function(selectedDAO, mappings, uploadedFiles, input, filesVerified) { 
-        return filesVerified && selectedDAO && mappings && mappings.length > 0 && 
+        return filesVerified && selectedDAO && mappings && mappings.length > 
                ((uploadedFiles && uploadedFiles.length > 0) || (input && input.trim() !== '')); 
       },
       code: function() { 
@@ -324,7 +390,7 @@ foam.CLASS({
       name: 'previewAll',
       label: 'Preview All Files',
       isEnabled: function(selectedDAO, mappings, uploadedFiles, input, filesVerified) { 
-        return filesVerified && selectedDAO && mappings && mappings.length > 0 && 
+        return filesVerified && selectedDAO && mappings && mappings.length > 
                ((uploadedFiles && uploadedFiles.length > 0) || (input && input.trim() !== '')); 
       },
       code: function() { 
@@ -339,7 +405,9 @@ foam.CLASS({
         this.input = '';
         this.selectedDAO = '';
         this.detectedHeaders = [];
-        this.suggestedDAOs = [];
+        if ( this.suggestedDAOs && this.suggestedDAOs.removeAll ) {
+          this.suggestedDAOs.removeAll();
+        }
         this.mappings = [];
         this.output = '';
         this.progress = 0;
@@ -370,15 +438,15 @@ foam.CLASS({
       this.addClass();
       
       // File Upload Section
-      this.start('div').addClass('step').
+      this.start('div').addClass(this.myClass('step')).
         start('h3').add('Step 1: Upload Files or Add Content').end().
-        start('div').style({marginBottom: '20px'}).
+        start('div').addClass('mb-lg').
           start('h4').add('Multiple File Upload').end().
-          start('p').style({color: '#666', fontSize: '14px'}).
+          start('p').addClass(this.myClass('text-muted')).
             add('Upload multiple files with the same structure (same headers/fields). All files will be processed together.').
           end().
-          start('div').style({marginBottom: '16px'}).
-            start('div').addClass('file-upload-area').
+          start('div').addClass('mb-lg').
+            start('div').addClass(this.myClass('file-upload-area')).
               add(this.FileDropZone.create({
                 files$: this.uploadedFiles$,
                 isMultipleFiles: true,
@@ -415,69 +483,69 @@ foam.CLASS({
                 }
               })).
             end().
-            start('div').style({marginTop: '12px'}).
+            start('div').addClass('mt-sm').
               show(this.uploadedFiles$.map(files => files && files.length > 0)).
               start('strong').add(this.uploadedFiles$.map(files => `Files uploaded: ${files ? files.length : 0}`)).end().
               show(this.filesVerified$).
-              start('span').style({marginLeft: '12px', color: '#28a745'}).
+              start('span').addClass('ml-sm').addClass(this.myClass('text-success')).
                 add(' ✅ Structure verified').
               end().
             end().
           end().
         
         // Manual input section
-        start('div').style({marginTop: '20px'}).
+        start('div').addClass('mt-lg').
           show(this.uploadedFiles$.map(files => !files || files.length === 0)).
           start('h4').add('Or Manual Content Input').end().
-          start('p').style({color: '#666', fontSize: '14px'}).
+          start('p').addClass(this.myClass('text-muted')).
             add('Paste your file content directly if not using file upload.').
           end().
-          start('div').style({marginTop: '16px'}).
+          start('div').addClass('mt-lg').
             start('label').add('Format: ').end().
             add(this.FORMAT).
             show(this.format$.map(f => f === 'CSV')).
-            start('label').style({marginLeft: '16px'}).add('Delimiter: ').end().
+            start('label').addClass('ml-lg').add('Delimiter: ').end().
             add(this.DELIMITER).
           end().
-          start('div').style({marginTop: '16px'}).
+          start('div').addClass('mt-lg').
             add(this.INPUT).
           end().
         end().
       end().
       
       // Structure Analysis & DAO Selection
-      start('div').addClass('step').
+      start('div').addClass(this.myClass('step')).
         start('h3').add('Step 2: Analyze Structure & Select DAO').end().
-        start('div').style({marginBottom: '16px'}).
+        start('div').addClass('mb-lg').
           // Structure Analysis button
-          start('div').style({marginTop: '16px'}).
+          start('div').addClass('mt-lg').
             start(this.ANALYZE_STRUCTURE).end().
           end().
           
           // Structure Status and Results
-          start('div').style({marginTop: '16px'}).
+          start('div').addClass('mt-lg').
             // Structure Analysis Results
             show(this.filesVerified$).
-            start('div').style({padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '4px', marginBottom: '16px'}).
-              start('h4').style({marginBottom: '8px'}).add('Structure Analysis Results').end().
-              start('div').style({marginBottom: '8px', color: '#28a745'}).
+            start('div').addClass('p-sm').addClass(this.myClass('bg-light')).addClass('mb-lg').
+              start('h4').addClass('mb-sm').add('Structure Analysis Results').end().
+              start('div').addClass('mb-sm').addClass(this.myClass('text-success')).
                 add(this.uploadedFiles$.map(files => 
                   `✅ Structure verified! All ${files ? files.length : 0} files have matching headers:`
                 )).
               end().
-              start('div').style({fontFamily: 'monospace', whiteSpace: 'pre-wrap', backgroundColor: '#fff', padding: '8px', borderRadius: '4px'}).
+              start('div').addClass(this.myClass('text-mono')).addClass(this.myClass('bg-white')).addClass('p-sm').
                 add(this.detectedHeaders$.map(headers => headers.join(', '))).
               end().
             end().
 
             // Target DAO Selection (only show after analysis)
             show(this.filesVerified$).
-            start('div').style({marginTop: '16px'}).
+            start('div').addClass('mt-lg').
               start('h4').add('Target DAO').end().
-              start('p').style({color: '#666', fontSize: '14px'}).
+              start('p').addClass(this.myClass('text-muted')).
                 add('Select the target DAO where the data will be uploaded.').
               end().
-              start('div').style({marginTop: '8px'}).
+              start('div').addClass('mt-sm').
                 add(this.SELECTED_DAO).
               end().
             end().
@@ -486,7 +554,7 @@ foam.CLASS({
       end().
       
       // Mapping Review
-      start('div').addClass('step').
+      start('div').addClass(this.myClass('step')).
         start('h3').add('Step 3: Review Field Mappings').end().
         start('div').
           show(this.mappings$.map(mappings => mappings.length > 0)).
@@ -499,33 +567,33 @@ foam.CLASS({
       end().
       
       // Upload All
-      start('div').addClass('step').
+      start('div').addClass(this.myClass('step')).
         start('h3').add('Step 4: Upload All Data').end().
         start('div').
           show(this.uploadedFiles$.map(files => files && files.length > 0)).
-          start('p').style({fontWeight: 'bold', color: '#007bff'}).
+          start('p').addClass(this.myClass('text-primary')).
             add(this.uploadedFiles$.map(files => `Ready to process ${files ? files.length : 0} file(s)`)).
           end().
         end().
         start('div').
           show(this.input$.map(input => input && input.trim() !== '')).
-          start('p').style({fontWeight: 'bold', color: '#007bff'}).
+          start('p').addClass(this.myClass('text-primary')).
             add('Ready to process manual input content').
           end().
         end().
-        start('div').addClass('action-buttons').
+        start('div').addClass(this.myClass('action-buttons')).
           add(this.PREVIEW_ALL).
           add(this.UPLOAD_ALL).
           add(this.RESET).
         end().
-        start('div').addClass('progress-section').
+        start('div').addClass(this.myClass('progress-section')).
           show(this.progressStatus$.map(status => !! status)).
-          start('div').style({marginBottom: '8px', fontWeight: 'bold'}).
+          start('div').addClass('mb-sm').addClass(this.myClass('text-primary')).
             add(this.progressStatus$).
           end().
           add(this.PROGRESS).
         end().
-        start('div').style({marginTop: '16px'}).
+        start('div').addClass('mt-lg').
           show(this.output$.map(output => !! output)).
           add(this.OUTPUT).
         end().
@@ -708,11 +776,17 @@ foam.CLASS({
       if (this.uploadedFiles && this.uploadedFiles.length > 0) {
         // Automatically verify file structure first
         var verification = await this.verifyFileStructure();
-        // this.output = verification.message;
         
         if (!verification.verified) {
+          this.output = verification.message;
+          this.filesVerified = false;
+          this.detectedHeaders = [];
+          this.suggestedDAOs = [];
+          this.mappings = [];
           return; // Stop analysis if files don't match
         }
+        
+        this.output = verification.message + '\n\nAnalyzing structure...';
         
         // Get content from first file
         var firstFile = this.uploadedFiles[0];
@@ -798,7 +872,6 @@ foam.CLASS({
         return;
       }
 
-      this.output += '\n\nAnalyzing structure...';
       this.detectedHeaders = headers;
       
       // Find matching DAOs
@@ -809,7 +882,13 @@ foam.CLASS({
     },
 
     async function findMatchingDAOs(headers) {
-      this.suggestedDAOs = [];
+      // Clear previous suggestions - ensure DAO is initialized first
+      if ( this.suggestedDAOs && this.suggestedDAOs.removeAll ) {
+        await this.suggestedDAOs.removeAll();
+      } else {
+        // Force initialization of the DAO if it's not ready
+        this.suggestedDAOs = this.MDAO.create({of: this.DAOSuggestion});
+      }
       
       try {
         // Get all CSpecs that have a DAO
@@ -842,21 +921,22 @@ foam.CLASS({
         // Sort by score (highest first)
         matchingDAOs.sort((a, b) => b.score - a.score);
         
-        // Create display names with match quality
-        this.suggestedDAOs = matchingDAOs.slice(0, 5).map(dao => {
+        // Create DAOSuggestion objects and put them in the DAO
+        for ( var dao of matchingDAOs.slice(0, 5) ) {
           var matchPercent = Math.round((dao.score / dao.totalFields) * 100);
           var status = matchPercent >= 80 ? 'Excellent Match' : 
                       matchPercent >= 60 ? 'Good Match' : 
                       matchPercent >= 40 ? 'Partial Match' : 'Poor Match';
-          return {
+          
+          var suggestion = this.DAOSuggestion.create({
+            ID: dao.name,
             name: dao.name,
             displayName: `${dao.name} (${status} - ${dao.score}/${dao.totalFields} fields)`,
             score: dao.score
-          };
-        });
-        
-        // this.output += `\nFound ${this.suggestedDAOs.length} matching DAOs`;
-        // this.output += `\n${this.suggestedDAOs.map(dao => dao.displayName).join('\n')}`;
+          });
+          
+          await this.suggestedDAOs.put(suggestion);
+        }
         
       } catch (e) {
         this.output = 'Error finding matching DAOs: ' + e.message;
@@ -899,8 +979,8 @@ foam.CLASS({
 
     function onDAOSelected() {
       if ( this.selectedDAO && this.detectedHeaders.length > 0 ) {
-        // Extract DAO name if it's in the format "daoName (status - score)"
-        var daoName = this.selectedDAO.includes('(') ? this.selectedDAO.split(' (')[0] : this.selectedDAO;
+        // selectedDAO is now the ID of the selected DAOSuggestion
+        var daoName = this.selectedDAO;
         
         // Check if the DAO exists
         if ( this.__context__[daoName] ) {
@@ -1104,84 +1184,6 @@ foam.CLASS({
           reject('Error accessing file: ' + e.message);
         }
       });
-    }
-  ]
-});
-
-foam.CLASS({
-  package: 'foam.core.console',
-  name: 'DAOSelectionView',
-  extends: 'foam.u2.View',
-
-  properties: [
-    {
-      name: 'data',
-      attribute: true
-    },
-    {
-      name: 'mode',
-      value: foam.u2.DisplayMode.RW
-    },
-    {
-      name: 'fileUpload',
-      documentation: 'Reference to the parent FileUpload instance'
-    }
-  ],
-
-  methods: [
-    function render() {
-      var self = this;
-      var fileUpload = this.fileUpload;
-      
-      if (!fileUpload) {
-        console.error('DAOSelectionView: No FileUpload instance provided');
-        return;
-      }
-      
-      this
-        .start('div').style({display: 'flex', flexDirection: 'column', gap: '8px'}).
-          // Manual input
-          start('div').
-            start('label').add('Enter DAO name: ').end().
-            start('input').
-              attrs({
-                type: 'text',
-                placeholder: 'e.g., userDAO, customerDAO...',
-                value: this.data$
-              }).
-              enableClass('disabled', fileUpload.filesVerified$.map(verified => !verified)).
-              attrs({disabled: fileUpload.filesVerified$.map(verified => !verified)}).
-              on('input', (e) => {
-                this.data = e.target.value;
-                fileUpload.selectedDAO = e.target.value;
-                fileUpload.onDAOSelected();
-              }).
-            end().
-          end().
-          
-          // Suggested DAOs
-          show(fileUpload.suggestedDAOs$.map(daos => daos && daos.length > 0)).
-          start('div').
-            start('h4').add('Suggested DAOs:').end().
-            start('div').addClass('dao-suggestions').
-              forEach(fileUpload.suggestedDAOs$, function(dao) {
-                this.start('div').addClass('dao-option').
-                  enableClass('selected', self.data$.map(selected => 
-                    selected && dao && selected === dao.displayName
-                  )).
-                  on('click', () => {
-                    if (fileUpload.filesVerified) {
-                      self.data = dao.displayName;
-                      fileUpload.selectedDAO = dao.displayName;
-                      fileUpload.onDAOSelected();
-                    }
-                  }).
-                  add(dao.displayName).
-                end();
-              }).
-            end().
-          end().
-        end();
     }
   ]
 }); 
