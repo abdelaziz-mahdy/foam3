@@ -53,6 +53,7 @@ foam.CLASS({
     'foam.u2.ActionView',
     'foam.u2.view.RichChoiceView',
     'foam.core.console.DAOSuggestion',
+    'foam.core.controller.Fonts',
   ],
 
   imports: [ 'cSpecDAO', 'currentBlock?', 'eval_?' ],
@@ -68,17 +69,17 @@ foam.CLASS({
     ^step {
       margin-bottom: 24px;
       padding: 16px;
-      border: 1px solid $grey300;
+      border: 1px solid $grey3;
       border-radius: 8px;
-      background-color: $grey50;
+      background-color: $grey1;
     }
     ^step.active {
-      border-color: $primary400;
-      background-color: $primary50;
+      border-color: $primary3;
+      background-color: $primary1;
     }
     ^step.completed {
-      border-color: $success400;
-      background-color: $success50;
+      border-color: $approval3;
+      background-color: $approval1;
     }
     ^step h3 {
       margin: 0 0 12px 0;
@@ -95,16 +96,15 @@ foam.CLASS({
     ^p-sm { padding: 8px; }
     ^p-lg { padding: 16px; }
     
-    /* Text Utility Classes */
+    /* Use existing typography classes */
     ^text-muted {
-      color: $grey500;
-      font-size: 14px;
+      color: $grey4;
     }
     ^text-success {
-      color: $success400;
+      color: $approval3;
     }
     ^text-primary {
-      color: $primary400;
+      color: $primary3;
       font-weight: bold;
     }
     ^text-mono {
@@ -112,9 +112,9 @@ foam.CLASS({
       white-space: pre-wrap;
     }
     
-    /* Background Utility Classes */
+    /* Use theme colors for backgrounds */
     ^bg-light {
-      background-color: $grey100;
+      background-color: $grey1;
       border-radius: 4px;
     }
     ^bg-white {
@@ -137,7 +137,6 @@ foam.CLASS({
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 14px;
     }
 
   `,
@@ -407,10 +406,10 @@ foam.CLASS({
       
       // File Upload Section
       this.start('div').addClass(this.myClass('step')).
-        start('h3').add('Step 1: Upload Files or Add Content').end().
+        start('div').addClass('h500').add('Step 1: Upload Files or Add Content').end().
         start('div').addClass(this.myClass('mb-lg')).
-          start('h4').add('Multiple File Upload').end().
-          start('p').addClass(this.myClass('text-muted')).
+          start('div').addClass('h600').add('Multiple File Upload').end().
+          start('div').addClass('p').addClass(this.myClass('text-muted')).
             add('Upload multiple files with the same structure (same headers/fields). All files will be processed together.').
           end().
           start('div').addClass(this.myClass('mb-lg')).
@@ -453,9 +452,9 @@ foam.CLASS({
             end().
             start('div').addClass(this.myClass('mt-sm')).
               show(this.uploadedFiles$.map(files => files && files.length > 0)).
-              start('strong').add(this.uploadedFiles$.map(files => `Files uploaded: ${files ? files.length : 0}`)).end().
+              start('div').addClass('p-semiBold').add(this.uploadedFiles$.map(files => `Files uploaded: ${files ? files.length : 0}`)).end().
               show(this.filesVerified$).
-              start('span').addClass(this.myClass('ml-sm')).addClass(this.myClass('text-success')).
+              start('div').addClass(this.myClass('ml-sm')).addClass(this.myClass('text-success')).addClass('p-sm').
                 add(' ✅ Structure verified').
               end().
             end().
@@ -464,8 +463,8 @@ foam.CLASS({
         // Manual input section
         start('div').addClass(this.myClass('mt-lg')).
           show(this.uploadedFiles$.map(files => !files || files.length === 0)).
-          start('h4').add('Or Manual Content Input').end().
-          start('p').addClass(this.myClass('text-muted')).
+          start('div').addClass('h600').add('Or Manual Content Input').end().
+          start('div').addClass('p').addClass(this.myClass('text-muted')).
             add('Paste your file content directly if not using file upload.').
           end().
           start('div').addClass(this.myClass('mt-lg')).
@@ -481,7 +480,7 @@ foam.CLASS({
       
       // Structure Analysis & DAO Selection
       start('div').addClass(this.myClass('step')).
-        start('h3').add('Step 2: Analyze Structure & Select DAO').end().
+        start('div').addClass('h500').add('Step 2: Analyze Structure & Select DAO').end().
         start('div').addClass(this.myClass('mb-lg')).
           // Structure Analysis button
           start('div').addClass(this.myClass('mt-lg')).
@@ -493,13 +492,13 @@ foam.CLASS({
             // Structure Analysis Results
             show(this.filesVerified$).
             start('div').addClass(this.myClass('p-sm')).addClass(this.myClass('bg-light')).addClass(this.myClass('mb-lg')).
-              start('h4').addClass(this.myClass('mb-sm')).add('Structure Analysis Results').end().
-              start('div').addClass(this.myClass('mb-sm')).addClass(this.myClass('text-success')).
+              start('div').addClass('h600').addClass(this.myClass('mb-sm')).add('Structure Analysis Results').end().
+              start('div').addClass('p').addClass(this.myClass('mb-sm')).addClass(this.myClass('text-success')).
                 add(this.uploadedFiles$.map(files => 
                   `✅ Structure verified! All ${files ? files.length : 0} files have matching headers:`
                 )).
               end().
-              start('div').addClass(this.myClass('text-mono')).addClass(this.myClass('bg-white')).addClass(this.myClass('p-sm')).
+              start('div').addClass('p-sm').addClass(this.myClass('text-mono')).addClass(this.myClass('bg-white')).addClass(this.myClass('p-sm')).
                 add(this.detectedHeaders$.map(headers => headers.join(', '))).
               end().
             end().
@@ -516,16 +515,16 @@ foam.CLASS({
       
       // Upload All
       start('div').addClass(this.myClass('step')).
-        start('h3').add('Step 4: Upload All Data').end().
+        start('div').addClass('h500').add('Step 4: Upload All Data').end().
         start('div').
           show(this.uploadedFiles$.map(files => files && files.length > 0)).
-          start('p').addClass(this.myClass('text-primary')).
+          start('div').addClass('p').addClass(this.myClass('text-primary')).
             add(this.uploadedFiles$.map(files => `Ready to process ${files ? files.length : 0} file(s)`)).
           end().
         end().
         start('div').
           show(this.input$.map(input => input && input.trim() !== '')).
-          start('p').addClass(this.myClass('text-primary')).
+          start('div').addClass('p').addClass(this.myClass('text-primary')).
             add('Ready to process manual input content').
           end().
         end().
@@ -536,7 +535,7 @@ foam.CLASS({
         end().
         start('div').addClass(this.myClass('progress-section')).
           show(this.progressStatus$.map(status => !! status)).
-          start('div').addClass(this.myClass('mb-sm')).addClass(this.myClass('text-primary')).
+          start('div').addClass('p').addClass(this.myClass('mb-sm')).addClass(this.myClass('text-primary')).
             add(this.progressStatus$).
           end().
           add(this.PROGRESS).
