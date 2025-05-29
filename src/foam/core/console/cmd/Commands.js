@@ -533,6 +533,13 @@ foam.CLASS({
       // Don't save the 'save' command
       this.currentBlock.del();
 
+      // Filter out help commands from the flow memento before saving
+      if ( this.flow.memento ) {
+        this.flow.memento = this.flow.memento.filter(block => 
+          !(block.cmd && (block.cmd.startsWith('help') || block.flowName.startsWith('help')))
+        );
+      }
+
       var ret = this.flowDAO.put(this.flow);
       this.flow.copyFrom(ret);
     }
