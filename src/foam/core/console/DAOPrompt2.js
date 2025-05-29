@@ -94,7 +94,8 @@ foam.CLASS({
     'block',
     'dao',
     'limitedDAO as sinkDAO',
-    'filteredDAO as sinkUnlimitedDAO'
+    'filteredDAO as sinkUnlimitedDAO',
+    'columns'
   ],
 
   properties: [
