@@ -166,12 +166,6 @@ foam.POM({
       this.pmake.bind(this, `-makers=Image -flags=${this.flag()} -pom=${POMS} -builddir=${BUILD_DIR}`)();
     }],
 
-    genImages: ['gen-images', 'Prepare images from inclusion in jar.', [], function() {
-      JAR_INCLUDES += ` -C ${BUILD_DIR} images `;
-
-      this.pmake.bind(this, `-makers=Image -flags=${this.flag()} -pom=${POMS} -builddir=${BUILD_DIR}`)();
-    }],
-
     genJava: ['gen-java', 'Generate Java source from models and complile', ['cleanJava', 'javacParameters'], function() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} journals `;
       JAR_INCLUDES += ` -C ${BUILD_DIR} documents `;
@@ -294,7 +288,7 @@ foam.POM({
       this.execSync(`java -cp "${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes" ${JAVA_MAIN_CLASS} "${JAVA_MAIN_ARGS}"`, { stdio: 'inherit' });
     }],
 
-    startCOREJar: ['start-core-jar', 'Start CORE server (JAR).', [/*'stopCORE'*/, 'setupDirs', 'deployBin', 'deployLib', 'buildJavaOpts', 'buildRunArgs', 'showSummary'], function() {
+    startCOREJar: ['start-core-jar', 'Start CORE server (JAR).', [/*'stopCORE',*/ 'setupDirs', 'deployBin', 'deployLib', 'buildJavaOpts', 'buildRunArgs', 'showSummary'], function() {
       if ( BUILD_ONLY ) return;
 
       // see etc/shrc.local for jdwp configuration
