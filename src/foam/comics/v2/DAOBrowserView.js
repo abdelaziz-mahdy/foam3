@@ -121,8 +121,9 @@ foam.CLASS({
   `,
 
   messages: [
-    { name: 'REFRESH_MSG', message: 'Refresh Requested... ' },
-    { name: 'ACTIONS',     message: 'Actions' }
+    { name: 'LAST_REFRESHED', message: 'Last refreshed' },
+    { name: 'REFRESH_MSG',    message: 'Refresh Requested... ' },
+    { name: 'ACTIONS',        message: 'Actions' }
   ],
 
   imports: [
@@ -142,6 +143,10 @@ foam.CLASS({
   ],
 
   properties: [
+    {
+      name: 'lastRefresh',
+      factory: function() { return new Date(); }
+    },
     {
       class: 'StringArray',
       name: 'filteredTableColumns'
@@ -369,7 +374,12 @@ foam.CLASS({
                             controllerMode: foam.u2.ControllerMode.EDIT
                           });
                           for ( action of visibleActions ) {
-                            actions.start(action, buttonStyle).addClass(self.myClass('actions')).end();
+                            actions.start(action, buttonStyle).
+                              callIf(action === self.REFRESH_TABLE, function() {
+                                this.tooltip$ = self.lastRefresh$.map(l => self.LAST_REFRESHED + ' ' + l.toLocaleString());
+                              }).
+                              addClass(self.myClass('actions')).
+                            end();
                           }
                           if ( extraActions && extraActions.length ) {
                             el.start(self.OverlayActionListView, {
@@ -424,10 +434,10 @@ foam.CLASS({
       toolTip: 'Refresh Table',
       icon: 'images/refresh-icon-black.svg',
       isAvailable: function(config) {
-        if ( ! config.refreshPredicate.f() ) return false;
-        return true;
+        return config.refreshPredicate.f();
       },
       code: function(X) {
+        this.lastRefresh = new Date();
         this.config.dao.cmd_(X, foam.dao.DAO.PURGE_CMD);
         this.config.dao.cmd_(X, foam.dao.DAO.RESET_CMD);
         this.ctrl.notify(this.REFRESH_MSG, '', this.LogLevel.INFO, true, '/images/Progress.svg');
@@ -440,8 +450,7 @@ foam.CLASS({
       availablePermissions: [ "data.import.googleSheets" ],
       toolTip: 'Import From Google Sheet',
       isAvailable: function(config) {
-        if ( ! config.importPredicate.f() ) return false;
-        return true;
+        return config.importPredicate.f();
       },
       code: function(X) {
         this.StyledModal.create({ title: 'Import', maxWidth: '90vw'}, X).tag(this.importModal).open();

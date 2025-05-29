@@ -63,7 +63,7 @@
       // skipping findchildren because spids can have multiple parents
 
       for ( var i = 0 ; i < gs.length ; i ++ ) {
-        gs[i].displayName_ = gs[i].id;
+        gs[i].displayName_ = gs[i].name;
       }
       return gs;
     },

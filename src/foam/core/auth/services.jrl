@@ -488,7 +488,6 @@ p({
       .setAuthorize(false)
       .setRuler(true)
       .setPm(true)
-      .setValidated(true)
       .setEnableInterfaceDecorators(false)
       .build();
   """,

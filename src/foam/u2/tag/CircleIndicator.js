@@ -35,6 +35,10 @@ foam.CLASS({
     ^ > img {
       pointer-events: none;
     }
+    ^ svg {
+      height: 100%;
+      width: 100%;
+    }
   `,
 
   properties: [

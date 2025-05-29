@@ -75,7 +75,9 @@
           [ 'foam.core.menu.ListMenu',         'List' ],
           [ 'foam.core.menu.SubMenu',          'Submenu' ],
           [ 'foam.core.menu.TabsMenu',         'Tabs' ],
-          [ 'foam.core.menu.ViewMenu',         'View' ]
+          [ 'foam.core.menu.ViewMenu',         'View' ],
+          [ 'foam.core.menu.SeparatorMenu',    'Separator' ]
+    
         ]
       }
     },
@@ -170,6 +172,15 @@
       name: 'authorizationStatus',
       documentation: 'See. AuthorizationStatus',
       value: 'AUTHENTICATED'
+    },
+    {
+      name: 'createRowView',
+      getter: function(X, menu) {
+        if ( this.handler ) {
+          return this.handler.createRowView;
+        }
+        return null;
+      }
     }
   ],
 

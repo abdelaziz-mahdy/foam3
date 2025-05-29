@@ -240,7 +240,7 @@ foam.CLASS({
     { class: 'Long',            name: 'rowCount', visibility: 'RO' },
     { class: 'String',          name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Int',             name: 'version', hidden: true },
-    { class: 'FObjectProperty', name: 'value', transient: true, visibility: 'RO' }
+    { class: 'FObjectProperty', name: 'value', transient: true, hidden: true, visibility: 'RO' }
   ],
 
   methods: [
