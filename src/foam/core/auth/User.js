@@ -1237,7 +1237,7 @@ foam.RELATIONSHIP({
   },
   targetProperty: {
     hidden: false,
-    // required: true,
+    required: true,
     section: 'systemInformation',
     order: 30,
     gridColumns: 6,
