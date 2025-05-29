@@ -52,12 +52,12 @@ foam.CLASS({
     'foam.core.fs.File',
     'foam.u2.ActionView',
     'foam.u2.view.RichChoiceView',
-    'foam.core.console.DAOSuggestion'
+    'foam.core.console.DAOSuggestion',
   ],
 
   imports: [ 'cSpecDAO', 'currentBlock?', 'eval_?' ],
 
-  mixins: [ 'foam.mlang.Expressions' ],
+  implements: [ 'foam.mlang.Expressions' ],
 
   css: `
     ^ {
@@ -236,13 +236,12 @@ foam.CLASS({
           choosePlaceholder: 'Select a target DAO...',
           searchPlaceholder: 'Search DAOs...',
           idProperty: 'ID',
-          comparator: foam.mlang.order.Desc.create({
-            arg1: X.data.DAOSuggestion.SCORE
-          }),
+          comparator: null,
           sections: [
             {
               heading: 'Available DAOs',
-              dao: X.data.allDAOs
+              // order by score descending
+              dao: X.data.allDAOs.orderBy(X.data.DESC(X.data.DAOSuggestion.SCORE))
             }
           ]
         };
@@ -899,8 +898,7 @@ foam.CLASS({
           }
         }
         
-        // Sort matching DAOs by score (highest first)
-        matchingDAOs.sort((a, b) => b.score - a.score);
+
         
         // Create suggested DAOs (top 5 matches)
         for ( var dao of matchingDAOs.slice(0, 5) ) {
@@ -945,7 +943,8 @@ foam.CLASS({
           
           await this.allDAOs.put(allDAOSuggestion);
         }
-        
+     
+      
       } catch (e) {
         this.output = 'Error finding matching DAOs: ' + e.message;
         console.error('Error in findMatchingDAOs:', e);
