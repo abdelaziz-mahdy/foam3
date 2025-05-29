@@ -6,6 +6,7 @@
 
 foam.POM({
   name: 'eslint',
+  description: 'Replaces command line eslint operations and replaces the need for node package.json eslint scripts.',
 
   options: {
     dirs: ['', 'directories', 'DIRECTORIES', 'Directories to inspect', 'src,tools', arg => DIRECTORIES = arg],
