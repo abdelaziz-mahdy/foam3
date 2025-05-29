@@ -65,9 +65,9 @@ foam.CLASS({
       this.breadcrumbs?.dynamic(function(pos, stack$pos, current) {
         self.removeAllChildren(); // Remove in U3
         self.actionArray = [];
-        let endPos = pos
+        let endPos = pos;
         if ( self.stack.pos != self.breadcrumbs.current?.view.__subContext__.stackPos ) {
-          endPos = pos + 1
+          endPos = pos + 1;
         }
         let navStack  = self.breadcrumbs.crumbs?.slice(0, endPos);
         if ( ! navStack?.length ) {
@@ -106,7 +106,7 @@ foam.CLASS({
       });
     },
     function makeActionReference(v) {
-      return this.ActionReference.create({ data: v, action: this.BACK.clone().copyFrom({ label$: v.title$ }) })
+      return this.ActionReference.create({ data: v, action: this.BACK.clone().copyFrom({ label$: v.title$ }) });
     }
   ],
   actions: [

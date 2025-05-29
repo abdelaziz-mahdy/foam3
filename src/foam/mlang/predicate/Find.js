@@ -22,7 +22,7 @@ foam.CLASS({
         if ( Array.isArray(arg1) ) {
           return !! arg1.find(function(a) {
             return self.arg2.f(a);
-          })
+          });
         }
         return arg1 ? arg1.indexOf(arg2) !== -1 : false;
       },

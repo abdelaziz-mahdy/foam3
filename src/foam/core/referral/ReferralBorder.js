@@ -1,4 +1,3 @@
-
 /**
 * @license
 * Copyright 2024 The FOAM Authors. All Rights Reserved.
@@ -67,7 +66,7 @@ foam.CLASS({
           .start()
             .start(foam.u2.borders.CardBorder).style({ width: '100%' }).tag('', {}, this.content$).end()
           .end()
-        .end()
+        .end();
     }
   ]
 });

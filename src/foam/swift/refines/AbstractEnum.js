@@ -15,7 +15,7 @@ foam.CLASS({
         var toSwiftClass = cls.toSwiftClass;
         cls.toSwiftClass = function() {
           var self = this;
-          var cls = toSwiftClass.bind(self)()
+          var cls = toSwiftClass.bind(self)();
           self.VALUES.forEach(function(v) {
             cls.field(foam.swift.Field.create({
               name: v.name,
@@ -28,9 +28,9 @@ foam.CLASS({
                         return foam.swift.asSwiftValue(p.get(v));
                       })
                       .map(function(p) {
-                        return `"${p.name}": ${foam.swift.asSwiftValue(p.get(v))}`
+                        return `"${p.name}": ${foam.swift.asSwiftValue(p.get(v))}`;
                       }).join(',')}
-                ])!`,
+                ])!`
             }));
           });
           if ( this.model_.id != 'foam.lang.AbstractEnum' ) {
@@ -40,7 +40,7 @@ foam.CLASS({
               args: [
                 foam.swift.Argument.create({
                   localName: 'o',
-                  type: 'Int',
+                  type: 'Int'
                 })
               ],
               body: `
@@ -51,10 +51,10 @@ foam.CLASS({
                   default: fatalError()
                 }
               `,
-              returnType: self.model_.swiftName,
+              returnType: self.model_.swiftName
             }));
           }
-          return cls
+          return cls;
         };
       }
     }

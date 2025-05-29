@@ -41,7 +41,7 @@ return try delegate.select_(
     x, sink, skip,
     min(limit_, limit),
     order, predicate);
-      `,
+      `
     },
 
     function removeAll_(x, skip, limit, order, predicate) {

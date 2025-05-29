@@ -116,7 +116,7 @@ foam.INTERFACE({
           args: [
             { name: 'x', type: 'X' },
             { name: 'capabilityIds', type: 'String[]' },
-            { name: 'status', type: 'CapabilityJunctionStatus' },
+            { name: 'status', type: 'CapabilityJunctionStatus' }
           ],
           body: `
             // Marshal payloads into a hashmap
@@ -152,7 +152,7 @@ foam.INTERFACE({
           args: [
             { name: 'x', type: 'X' },
             { name: 'capabilityIds', type: 'String[]' },
-            { name: 'status', type: 'CapabilityJunctionStatus' },
+            { name: 'status', type: 'CapabilityJunctionStatus' }
           ],
           body: `
             try {
@@ -168,14 +168,14 @@ foam.INTERFACE({
           type: 'foam.dao.DAO',
           visibility: 'default',
           args: [
-            { name: 'x', type: 'X' },
+            { name: 'x', type: 'X' }
           ],
           body: `
             return new ProxyDAO(x, new CapableAdapterDAO(x, this));
           `
         }));
       }
-    },
+    }
   ],
 
   properties: [

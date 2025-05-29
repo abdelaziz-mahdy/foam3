@@ -23,7 +23,7 @@ foam.CLASS({
   properties: [
     {
       name: 'delegate',
-      required: true,
+      required: true
     }
   ],
   methods: [
@@ -36,7 +36,7 @@ foam.CLASS({
     },
 
     function toString() {
-      return '[' + this.cls_.name + ': ' + this.delegate.toString() + ']'
+      return '[' + this.cls_.name + ': ' + this.delegate.toString() + ']';
     }
   ]
 });
@@ -49,8 +49,8 @@ foam.CLASS({
   properties: [
     {
       class: 'Simple',
-      name: 'delegate',
-    },
+      name: 'delegate'
+    }
   ],
 
   methods: [
@@ -74,7 +74,7 @@ foam.CLASS({
       return this.delegate.select(sink, skip, limit, order, predicate, cache);
     },
 
-    function bulkLoad(dao) { return this.delegate.bulkLoad(dao); },
+    function bulkLoad(dao) { return this.delegate.bulkLoad(dao); }
 
   ]
 });

@@ -40,7 +40,7 @@
     {
       name: 'prop',
       javaType: 'foam.lang.PropertyInfo',
-      javaInfoType: 'foam.lang.AbstractObjectPropertyInfo',
+      javaInfoType: 'foam.lang.AbstractObjectPropertyInfo'
     },
     {
       name: 'unitPropName',

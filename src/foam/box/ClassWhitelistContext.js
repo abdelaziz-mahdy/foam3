@@ -55,12 +55,12 @@ return w
       args: [
         {
           type: 'Context',
-          name: 'X',
+          name: 'X'
         },
         {
           type: 'String',
-          name: 'id',
-        },
+          name: 'id'
+        }
       ],
       code: function(X, id) {
         if ( ! this.whitelist_[id] ) {

@@ -75,11 +75,11 @@ foam.CLASS({
   constants: [
     {
       name: 'FALSE',
-      factory: function() { return foam.mlang.predicate.False.create() }
+      factory: function() { return foam.mlang.predicate.False.create(); }
     },
     {
       name: 'TRUE',
-      factory: function() { return foam.mlang.predicate.True.create() }
+      factory: function() { return foam.mlang.predicate.True.create(); }
     }
   ],
 
@@ -141,7 +141,7 @@ foam.CLASS({
     function AVG(arg1) { return this.Average.create({ arg1: arg1 }); },
     function ABS(arg1) { return this.Absolute.create({ delegate: arg1 }); },
     function ROUND(arg1, opt_decimals) { return this.Round.create({ arg1: arg1, arg2: opt_Decimals || 0 }); },
-    function ARRAY() { return this.ArraySink.create() },
+    function ARRAY() { return this.ArraySink.create(); },
     function MUX(cond, a, b) { return this.Mux.create({ cond: cond, a: a, b: b }); },
     function SEQ() { return this._nary_("Sequence", arguments); },
     function PROJECTION(exprs) {
@@ -157,7 +157,7 @@ foam.CLASS({
       args: [ { name: 'a', type: 'foam.mlang.order.Comparator' } ],
       type: 'foam.mlang.order.Comparator',
       code: function DESC(a) { return this._unary_("Desc", a); },
-      swiftCode: `return Desc_create(["arg1": a])`,
+      swiftCode: `return Desc_create(["arg1": a])`
     },
     function THEN_BY(a, b) { return this.ThenBy.create({head: a, tail: b}); },
 

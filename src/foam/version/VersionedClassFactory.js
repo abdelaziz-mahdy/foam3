@@ -38,5 +38,5 @@ foam.CLASS({
   name: 'VersionedClassFactorySingleton',
   extends: 'foam.version.VersionedClassFactory',
 
-  axioms: [ foam.pattern.Singleton.create() ],
+  axioms: [ foam.pattern.Singleton.create() ]
 });

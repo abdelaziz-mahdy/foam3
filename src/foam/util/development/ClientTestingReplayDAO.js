@@ -38,7 +38,7 @@ foam.CLASS({
   properties: [
     {
       class: 'Boolean',
-      name: 'initialized',
+      name: 'initialized'
     },
     {
       class: 'StringArray',

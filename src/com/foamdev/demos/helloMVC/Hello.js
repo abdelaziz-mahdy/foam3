@@ -20,5 +20,5 @@ foam.CLASS({
         placeholder: 'Your name please'
       }
     }
-  ],
+  ]
 });

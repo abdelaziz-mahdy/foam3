@@ -81,11 +81,11 @@ foam.CLASS({
                   self.indicies[i][0],
                   { unique: self.indicies[i][1] });
             }
-          }
+          };
 
           request.onsuccess = function(e) {
             resolve(e.target.result);
-          }
+          };
 
           request.onerror = function (e) {
             reject(self.IDBInternalException.create({ id: 'open', error: e }));

@@ -48,7 +48,7 @@ foam.CLASS({
        .start().addClass('h300').add(this.TITLE).end()
        .start(this.GlobalFuidSearch, {
          placeholder: 'Search...'
-       }).addClass(this.myClass('search')).end()
+       }).addClass(this.myClass('search')).end();
     }
   ]
 });

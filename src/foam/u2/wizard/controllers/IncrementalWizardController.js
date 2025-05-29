@@ -23,7 +23,7 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'ERROR_MSG', message: 'Information was not successfully submitted, please try again later' },
+    { name: 'ERROR_MSG', message: 'Information was not successfully submitted, please try again later' }
   ],
 
   properties: [
@@ -139,7 +139,7 @@ foam.CLASS({
       factory: function() {
         return this.WizardPosition.create({
           wizardletIndex: 0,
-          sectionIndex: 0,
+          sectionIndex: 0
         });
       },
       preSet: function(o, n) {
@@ -164,7 +164,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.wizard.views.FocusWizardView',
           showTitle: showTitle
-        }
+        };
       }
     },
     {
@@ -279,7 +279,7 @@ foam.CLASS({
 
       const iterator = pos.iterate(this.wizardlets, goBackwards);
       for ( const p of iterator ) {
-        let wizardlet = this.wizardlets[p.wizardletIndex]
+        let wizardlet = this.wizardlets[p.wizardletIndex];
         if ( ! wizardlet.isVisible ) continue;
 
         if (
@@ -505,7 +505,7 @@ foam.CLASS({
         w.sections.forEach((section, sectionIndex) => {
           var sectionPosition = this.WizardPosition.create({
             wizardletIndex: wizardletIndex,
-            sectionIndex: sectionIndex,
+            sectionIndex: sectionIndex
           });
           var isAvailable$ = section.isAvailable$;
           this.wsub.onDetach(isAvailable$.sub(() => {
@@ -575,7 +575,7 @@ foam.CLASS({
       buttonStyle: 'PRIMARY',
       isAvailable: () => true,
       isEnabled: function (canGoNext, isLoading_) {
-        console.debug('what is canGoNext', canGoNext)
+        console.debug('what is canGoNext', canGoNext);
         return canGoNext && ! isLoading_;
       },
       code: function(x) {
@@ -608,7 +608,7 @@ foam.CLASS({
         if ( ! this.autoPositionUpdates ) return;
         // Force a position update so views recalculate state
         this.wizardPosition = this.wizardPosition.clone();
-      },
+      }
     },
     {
       name: 'onWizardletVisibility',
@@ -616,7 +616,7 @@ foam.CLASS({
       code: function() {
         // Force a position update so views recalculate state
         this.progressMax = this.wizardlets?.filter(v => v.isVisible).length;
-      },
+      }
     },
     function onWizardletValidity() {
       this.allValid = this.wizardlets.filter(w => ! w.isValid).length == 0;

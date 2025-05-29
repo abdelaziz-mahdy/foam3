@@ -138,7 +138,7 @@ foam.CLASS({
         Promise.all(data.map(d => self.dao.put(foam.core.analytics.Candlestick.create(d)))).then(function() {
           console.log('DONE');
 //          alert('DONE');
-        })
+        });
       }
     }
   ]

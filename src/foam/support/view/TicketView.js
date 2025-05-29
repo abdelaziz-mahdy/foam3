@@ -69,7 +69,7 @@ foam.CLASS({
         createDetailView: this.CreateTicketView,
         createLabel:'New Ticket',
         showActions: false
-      })
+      });
     }
   ],
 
@@ -80,7 +80,7 @@ foam.CLASS({
 
       requires: [
         'foam.u2.view.ScrollableTableView',
-        'foam.support.model.Ticket',
+        'foam.support.model.Ticket'
       ],
 
       imports: [ 'user'],
@@ -95,7 +95,7 @@ foam.CLASS({
             .start({
               selection$: this.selection$,
               class: 'foam.u2.table.TableView',
-              data: this.subject.user.tickets,
+              data: this.subject.user.tickets
             }).addClass(this.myClass('table')).end();
         }
       ]

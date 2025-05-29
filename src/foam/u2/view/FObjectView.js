@@ -122,12 +122,12 @@ foam.CLASS({
       expression: function() {
         return this.PLACEHOLDER_TEXT;
       },
-      documentation: 'If no placeholder, the choiceView will select the first element',
+      documentation: 'If no placeholder, the choiceView will select the first element'
     },
     {
       class: 'String',
       name: 'header',
-      documentation: 'The heading text for the choices',
+      documentation: 'The heading text for the choices'
     },
     {
       class: 'Array',
@@ -265,7 +265,7 @@ foam.CLASS({
         if ( ! this.U3 ) { // TODO: remove once switched to U3
           if ( this.state == this.UNLOADED ) return;
           if ( this.state == this.OUTPUT ) {
-            await new Promise(resolve => this.onload.sub(resolve))
+            await new Promise(resolve => this.onload.sub(resolve));
           }
         }
       }

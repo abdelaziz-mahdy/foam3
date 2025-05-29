@@ -20,7 +20,7 @@ foam.CLASS({
     // REVIEW: implementation properties are class: 'Long' as we have a cyclic reference with User, and hence can't use class: 'Reference'. But even as Long, enable these interfaces causes genjava failures: ERROR: Unhandled promise rejection TypeError: Cannot read property 'id' of null
     // 'foam.core.auth.CreatedByAware',
     'foam.core.auth.EnabledAware',
-    'foam.core.auth.LastModifiedAware',
+    'foam.core.auth.LastModifiedAware'
     // 'foam.core.auth.LastModifiedByAware',
 
     // NOTE: This model cannot implement the ServiceProviderAware interface as it itself
@@ -205,7 +205,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'loginView',
-      documentation: `Border used to wrap unauthenticated views like loginViews. Set to nullBorder for no additional borders`,
+      documentation: `Border used to wrap unauthenticated views like loginViews. Set to nullBorder for no additional borders`
     },
 // NOTES:
 //      value:        // with no value - then left image and right login view
@@ -223,7 +223,7 @@ foam.CLASS({
             class: 'foam.u2.tag.TextArea',
             rows: 4, cols: 80
           },
-          { class: 'foam.u2.view.ImageView' },
+          { class: 'foam.u2.view.ImageView' }
         ]
       },
       section: 'images',
@@ -244,7 +244,7 @@ foam.CLASS({
             class: 'foam.u2.tag.TextArea',
             rows: 4, cols: 80
           },
-          { class: 'foam.u2.view.ImageView' },
+          { class: 'foam.u2.view.ImageView' }
         ]
       },
       section: 'images',
@@ -266,7 +266,7 @@ foam.CLASS({
             class: 'foam.u2.tag.TextArea',
             rows: 4, cols: 80
           },
-          { class: 'foam.u2.view.ImageView' },
+          { class: 'foam.u2.view.ImageView' }
         ]
       },
       section: 'images',
@@ -286,7 +286,7 @@ foam.CLASS({
             class: 'foam.u2.tag.TextArea',
             rows: 4, cols: 80
           },
-          { class: 'foam.u2.view.ImageView' },
+          { class: 'foam.u2.view.ImageView' }
         ]
       },
       section: 'images',
@@ -306,7 +306,7 @@ foam.CLASS({
             class: 'foam.u2.tag.TextArea',
             rows: 4, cols: 80
           },
-          { class: 'foam.u2.view.ImageView' },
+          { class: 'foam.u2.view.ImageView' }
         ]
       },
       section: 'images',
@@ -729,7 +729,7 @@ foam.CLASS({
       class: 'foam.lang.FObjectProperty',
       of:'foam.core.app.SupportConfig',
       name: 'supportConfig',
-      factory: function() { return foam.core.app.SupportConfig.create({}, this)},
+      factory: function() { return foam.core.app.SupportConfig.create({}, this);},
       javaFactory: `
         return new foam.core.app.SupportConfig();
       `,
@@ -1012,7 +1012,7 @@ foam.CLASS({
       args: [ 'String capId' ],
       code: function(capId) {
         if ( this.restrictedCapabilities != null ) {
-          return this.restrictedCapabilities.includes(capId)
+          return this.restrictedCapabilities.includes(capId);
         }
         return false;
       },

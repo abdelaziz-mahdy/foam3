@@ -123,7 +123,7 @@ foam.RULE_PREDICATE_ = function(m, internal) {
 
 foam.RULE_PREDICATE = function(m) {
   return foam.CLASS(foam.RULE_PREDICATE_(m));
-}
+};
 
 /*
   TODO:

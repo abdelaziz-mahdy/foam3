@@ -77,4 +77,4 @@ foam.CLASS({
       return this.delegate.save(...a);
     }
   ]
-})
+});

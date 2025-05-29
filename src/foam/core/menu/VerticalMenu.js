@@ -133,7 +133,7 @@ foam.CLASS({
             .add(this.MENU_SEARCH)
               .addClass(this.myClass('search'))
             .end()
-            .endContext()
+            .endContext();
         })
         .start({
           class: 'foam.u2.view.TreeView',

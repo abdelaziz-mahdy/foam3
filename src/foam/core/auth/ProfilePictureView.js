@@ -23,7 +23,7 @@ foam.CLASS({
   ],
 
   exports: [
-    'as data',
+    'as data'
   ],
 
   css: `
@@ -207,7 +207,7 @@ foam.CLASS({
 
       var inputFile;
       if ( e.dataTransfer.items ) {
-        inputFile = e.dataTransfer.items[0]
+        inputFile = e.dataTransfer.items[0];
         if ( inputFile.kind === 'file' ) {
           var file = inputFile.getAsFile();
           if ( this.isImageType(file) )

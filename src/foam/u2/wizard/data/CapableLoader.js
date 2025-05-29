@@ -50,7 +50,7 @@ foam.CLASS({
 
       if ( ! prereqWizardletData ) {
         // if data is undefined then create a fresh instance
-        prereqWizardletData = prereqWizardlet.of.create({}, this)
+        prereqWizardletData = prereqWizardlet.of.create({}, this);
       }
 
       return prereqWizardletData;

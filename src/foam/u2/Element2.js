@@ -305,8 +305,8 @@ foam.CLASS({
               this.tag(e);
             }
 
-            this.endContext()
-          })
+            this.endContext();
+          });
         });
       }
     }
@@ -451,15 +451,15 @@ foam.CLASS({
     {
       name: 'NAMED_CODES',
       value: {
-        '8':   'backspace',
-        '13':  'enter',
-        '27':  'escape',
-        '37':  'arrowleft',
-        '38':  'arrowup',
-        '39':  'arrowright',
-        '40':  'arrowdown',
-        '112': 'f1',
-        '127': 'delete'
+        8:   'backspace',
+        13:  'enter',
+        27:  'escape',
+        37:  'arrowleft',
+        38:  'arrowup',
+        39:  'arrowright',
+        40:  'arrowdown',
+        112: 'f1',
+        127: 'delete'
       }
     }
   ],
@@ -643,7 +643,7 @@ foam.CLASS({
       // TODO: Fix OverlayDropdown to use content$ and then remove this.
       var customAdd = this.add != foam.u2.Element.prototype.add;
       // disable adding to content$ during render()
-      if ( ! customAdd ) this.add = function() { return this.add_(arguments, this); }
+      if ( ! customAdd ) this.add = function() { return this.add_(arguments, this); };
       this.initKeyboardShortcuts();
       this.render();
       if ( ! customAdd ) this.add = foam.u2.Element.prototype.add;
@@ -1175,7 +1175,7 @@ foam.CLASS({
         /* Add the translation of the supplied source to the Element as a String */
         let xmsgObj, translation;
         if ( foam.lang.Slot.isInstance(source) ) {
-          translation = source.map(v => this.translationService.getTranslation(foam.locale, v, opt_default ||v))
+          translation = source.map(v => this.translationService.getTranslation(foam.locale, v, opt_default ||v));
           xmsgObj = {source$: source, data$: translation };
         } else {
           translation = this.translationService.getTranslation(foam.locale, source, opt_default || source);
@@ -1371,7 +1371,7 @@ foam.CLASS({
         dao:  dao,
         code: f,
         before,
-        after,
+        after
       }, this));
       return this;
     },
@@ -1643,7 +1643,7 @@ foam.CLASS({
        */
 //      controllerMode$.sub(() => { debugger; /* I don't think this ever happens. KGR */ });
 
-      var vis = this.combineControllerModeAndVisibility_(data$, controllerMode$)
+      var vis = this.combineControllerModeAndVisibility_(data$, controllerMode$);
 
       if ( ! this.readPermissionRequired && ! this.writePermissionRequired && ! this.updatePermissionRequired ) return vis;
 
@@ -1668,7 +1668,7 @@ foam.CLASS({
       return foam.lang.ArraySlot.create({slots: [vis, perm]}).map((arr) => {
         // The || HIDDEN is required because slot.map() above which returns
         // a promise will generate an intermediate null value.
-        return arr[0].restrictDisplayMode(arr[1] || DisplayMode.HIDDEN)
+        return arr[0].restrictDisplayMode(arr[1] || DisplayMode.HIDDEN);
       });
     }
   ]
@@ -1884,7 +1884,7 @@ foam.CLASS({
   properties: [
     {
       name: 'view',
-      value: { class: 'foam.u2.view.FObjectPropertyView' },
+      value: { class: 'foam.u2.view.FObjectPropertyView' }
     },
     {
       name: 'validationTextVisible',
@@ -1930,7 +1930,7 @@ foam.CLASS({
   properties: [
     {
       name: 'view',
-      value: { class: 'foam.u2.view.MapView' },
+      value: { class: 'foam.u2.view.MapView' }
     }
   ]
 });

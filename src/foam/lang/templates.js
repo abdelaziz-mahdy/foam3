@@ -60,7 +60,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.ImperativeGrammar as Grammar',
-    'foam.templates.TemplateOutput',
+    'foam.templates.TemplateOutput'
   ],
 
   constants: {
@@ -198,7 +198,7 @@ foam.CLASS({
               sym('text')
             )),
 
-            'comment': seq1(1, '<!--', repeat0(not('-->', anyChar())), '-->'),
+            comment: seq1(1, '<!--', repeat0(not('-->', anyChar())), '-->'),
 
             'simple value': seq('%%', repeat(notChars(' ()-"\r\n><:;,')), optional('()')),
 
@@ -217,7 +217,7 @@ foam.CLASS({
             ),
             'single quote': literal("'"),
             text: anyChar()
-          }
+          };
         }
       });
     },
@@ -239,7 +239,7 @@ foam.CLASS({
           ( result[0] ? t : result[1] ) +
           this.FOOTER;
 
-      var newArgs = ['opt_outputter'].concat(args.map(function(a) { return a.name || a }));
+      var newArgs = ['opt_outputter'].concat(args.map(function(a) { return a.name || a; }));
       var f = eval(
         '(function() { ' +
           'var TOC = function(o) { return foam.templates.TemplateOutput.create(); };' +
@@ -265,7 +265,7 @@ foam.CLASS({
       return (function(util) {
         var delegate;
         return function() {
-          if ( ! delegate ) delegate = util.compile(t, name, args)
+          if ( ! delegate ) delegate = util.compile(t, name, args);
           return delegate.apply(this, arguments);
         };
       })(this);
@@ -280,7 +280,7 @@ foam.CLASS({
   extends: 'Method',
 
   requires: [
-    'foam.templates.TemplateUtil',
+    'foam.templates.TemplateUtil'
   ],
 
   properties: [

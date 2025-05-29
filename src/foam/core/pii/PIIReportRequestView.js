@@ -139,7 +139,7 @@ foam.CLASS({
         .addClass('p')
         .add(this.HELP_TEXT_2({email: user.email}))
         .callIf(this.requestTtl > 0, function() {
-          self.add(self.HELP_TEXT_3({requestTtl: self.requestTtl}))
+          self.add(self.HELP_TEXT_3({requestTtl: self.requestTtl}));
         })
         .end()
         .start()

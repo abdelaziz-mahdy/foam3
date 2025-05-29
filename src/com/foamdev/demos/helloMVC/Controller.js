@@ -13,7 +13,7 @@ foam.CLASS({
 
   requires: [
     'com.foamdev.demos.helloMVC.Hello',
-    'com.foamdev.demos.helloMVC.HelloView',
+    'com.foamdev.demos.helloMVC.HelloView'
   ],
 
   properties: [

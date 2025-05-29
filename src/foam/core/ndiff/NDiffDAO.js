@@ -19,7 +19,7 @@ foam.CLASS({
     'foam.core.ndiff.NDiff',
     'foam.dao.DAO',
     'foam.core.pm.PM',
-    'foam.lang.X',
+    'foam.lang.X'
   ],
   javaCode: `
     public NDiffDAO(foam.lang.X x, foam.dao.DAO delegate) {
@@ -30,12 +30,12 @@ foam.CLASS({
   properties: [
     {
       name: 'cSpecName',
-      class: 'String',
+      class: 'String'
     },
     {
       name: 'runtimeOrigin',
-      class: 'Boolean',
-    },
+      class: 'Boolean'
+    }
   ],
   methods: [
     {
@@ -76,7 +76,7 @@ foam.CLASS({
         pm.log(x);
 
         return storedObject;
-      `,
+      `
     }
-  ],
+  ]
 });

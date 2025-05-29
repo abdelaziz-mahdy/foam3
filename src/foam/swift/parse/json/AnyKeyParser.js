@@ -14,7 +14,7 @@ foam.CLASS({
     'foam.swift.parse.parser.NotChars',
     'foam.swift.parse.parser.Repeat0',
     'foam.swift.parse.parser.Seq1',
-    'foam.swift.parse.parser.Substring',
+    'foam.swift.parse.parser.Substring'
   ],
   axioms: [
     foam.pattern.Singleton.create()
@@ -41,7 +41,7 @@ return Alt_create(["parsers": [
     ])
   ]])
 ]])
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

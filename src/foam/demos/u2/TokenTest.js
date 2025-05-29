@@ -36,11 +36,11 @@ foam.CLASS({
     'color', 'color2',
     {
       name: 'disabled',
-      class: 'Boolean',
+      class: 'Boolean'
     },
     {
       name: 'loading',
-      class: 'Boolean',
+      class: 'Boolean'
     },
     {
       class: 'Enum',

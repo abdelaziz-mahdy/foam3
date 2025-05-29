@@ -20,7 +20,7 @@ foam.SCRIPT({
   name: 'HTTPRequestScript',
   flags: ['node'],
   requires: [
-    'foam.net.node.HTTPRequest',
+    'foam.net.node.HTTPRequest'
   ],
 
   code: function() {

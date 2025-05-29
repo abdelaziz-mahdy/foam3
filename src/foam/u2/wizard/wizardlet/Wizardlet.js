@@ -15,7 +15,7 @@ foam.INTERFACE({
       documentation: `
         Specifies a class for the wizardlet's 'data' property. This value can
         be null to indicate that the wizardlet doesn't have any data.
-      `,
+      `
     },
     {
       name: 'data',

@@ -22,7 +22,7 @@ foam.CLASS({
             capabilityId: this.capability.capabilityToReview,
             data$: this.data$
           }
-        })
+        });
         return [ reviewSection ];
       }
     },
@@ -40,6 +40,6 @@ foam.CLASS({
         }
         return true;
       }
-    },
-  ],
-})
+    }
+  ]
+});

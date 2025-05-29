@@ -113,7 +113,7 @@ foam.CLASS({
       installInClass: function(cls) {
         cls.create = function(args) {
           return new Date(args.value);
-        }
+        };
       }
     }
   ]
@@ -207,7 +207,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'useTemplateLiterals',
       help: 'If true, multiline strings will be outputted using template literals (i.e. surrounded by backticks)',
-      value: false,
+      value: false
     },
     {
       class: 'Boolean',
@@ -249,7 +249,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'defaultPackage',
+      name: 'defaultPackage'
       //value: 'foam.lang.'
     },
     {
@@ -850,7 +850,7 @@ foam.LIB({
             if ( key === 'type' && foam.String.isInstance(o[key]) ) {
               foam.lang.type.toType(o[key]).refs().forEach(function(id) {
                 r.push(x.classloader.maybeLoad(id));
-              })
+              });
               continue;
             }
             if ( ( key === 'of'          ||

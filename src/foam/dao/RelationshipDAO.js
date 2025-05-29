@@ -66,7 +66,7 @@ foam.CLASS({
           "arg1": self.targetProperty,
           "arg2": self.sourceId
         ])
-      `,
+      `
     },
     {
       name: 'delegate',
@@ -92,7 +92,7 @@ foam.CLASS({
         throw e;
       }
       `,
-      swiftFactory: `return __context__[targetDAOKey] as! foam_dao_DAO`,
+      swiftFactory: `return __context__[targetDAOKey] as! foam_dao_DAO`
     }
   ],
 
@@ -126,7 +126,7 @@ foam.CLASS({
       swiftCode: `
         targetProperty.set(target, value: sourceId)
         return target;
-      `,
+      `
     },
 
     function clone() {

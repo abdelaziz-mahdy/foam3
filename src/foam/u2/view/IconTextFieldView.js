@@ -92,4 +92,4 @@ foam.CLASS({
       this.fromPropertyName = prop.name;
     }
   ]
-})
+});

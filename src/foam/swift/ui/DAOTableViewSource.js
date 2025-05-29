@@ -20,13 +20,13 @@ foam.CLASS({
   name: 'DAOTableViewSource',
   requires: [
     'foam.dao.ArraySink',
-    'foam.dao.FnSink',
+    'foam.dao.FnSink'
   ],
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   swiftImplements: [
-    'UITableViewDataSource',
+    'UITableViewDataSource'
   ],
   properties: [
     {
@@ -73,37 +73,37 @@ onDAOUpdate()
     {
       type: 'foam.lang.Detachable',
       name: 'daoSub',
-      swiftPostSet: `if let o = oldValue as? ${foam.lang.Detachable.model_.swiftName} { o.detach() }`,
+      swiftPostSet: `if let o = oldValue as? ${foam.lang.Detachable.model_.swiftName} { o.detach() }`
     },
     {
       swiftType: 'UITableView?',
       swiftWeak: true,
       name: 'tableView',
-      swiftPostSet: 'newValue?.dataSource = self',
+      swiftPostSet: 'newValue?.dataSource = self'
     },
     {
       class: 'String',
       name: 'reusableCellIdentifier',
-      value: 'CellID',
+      value: 'CellID'
     },
     {
       class: 'List',
-      name: 'daoContents',
+      name: 'daoContents'
     },
     {
       swiftType: '(() -> UITableViewCell)',
       swiftRequiresEscaping: true,
-      name: 'rowViewFactory',
+      name: 'rowViewFactory'
     },
     {
       swiftType: '((UITableViewCell, foam_core_FObject) -> Void)',
       swiftRequiresEscaping: true,
-      name: 'rowViewPrepare',
+      name: 'rowViewPrepare'
     },
     {
       swiftType: '((IndexPath, UITableViewCell) -> Void)?',
-      name: 'rowViewRemoved',
-    },
+      name: 'rowViewRemoved'
+    }
   ],
   listeners: [
     {
@@ -113,8 +113,8 @@ onDAOUpdate()
 let sink = try? dao!.select(ArraySink_create()) as? foam_dao_ArraySink
 daoContents = sink?.array ?? []
 tableView?.reloadData()
-     `,
-    },
+     `
+    }
   ],
   methods: [
   ],
@@ -155,5 +155,5 @@ class SimpleRowView: UITableViewCell {
     fatalError("init(coder:) has not been implemented")
   }
 }
-  `,
+  `
 });

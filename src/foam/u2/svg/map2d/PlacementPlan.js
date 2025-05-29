@@ -18,7 +18,7 @@ foam.INTERFACE({
       documentation: `
         Dimensions of grid (width, height) as an array.
       `
-    },
+    }
   ],
 
   methods: [

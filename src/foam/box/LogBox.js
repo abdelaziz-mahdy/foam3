@@ -39,14 +39,14 @@ foam.CLASS({
       class: 'String',
       name: 'name',
       factory: function() { return `LogBox${this.$UID}`; },
-      swiftFactory: 'return "LogBox$"+UUID().uuidString',
+      swiftFactory: 'return "LogBox$"+UUID().uuidString'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.log.LogLevel',
       name: 'logLevel',
       factory: function() { return this.LogLevel.INFO; },
-      swiftFactory: 'return foam_log_LogLevel.INFO',
+      swiftFactory: 'return foam_log_LogLevel.INFO'
     }
   ],
 
@@ -76,7 +76,7 @@ if let logLevelStr = logLevel?.consoleMethodName,
   os_log("%@", logMsg)
 }
 try delegate.send(msg)
-      `,
-    },
+      `
+    }
   ]
 });

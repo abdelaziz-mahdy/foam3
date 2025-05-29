@@ -31,14 +31,14 @@ foam.CLASS({
   methods: [
     function fromCompositeRelationship(rootObject, compositeRelationship, noRootAdd) {
       if ( ! foam.dao.CompositeRelationship.isInstance(compositeRelationship) ) {
-        throw new Error("No CompositeRelationship object detected")
+        throw new Error("No CompositeRelationship object detected");
       }
 
       var relationshipPromises = compositeRelationship.getPrimaryForwardNames().map(
         forwardName => this.fromRelationship(rootObject, forwardName, noRootAdd, compositeRelationship )
       );
 
-      return Promise.all(relationshipPromises)
+      return Promise.all(relationshipPromises);
     },
     function fromRelationship(
       rootObject, relationshipKey, noRootAdd, compositeRelationship
@@ -55,7 +55,7 @@ foam.CLASS({
       var isRoot;
       this.roots.forEach(root => {
         if ( root.id === rootObject.id ) isRoot = true;
-      })
+      });
 
       // if root object
       if (
@@ -69,7 +69,7 @@ foam.CLASS({
         var secondaryRelationshipDAO = rootObject[secondaryRelationshipKey].dao || rootObject[secondaryRelationshipKey];
         secondaryRelationshipDAO.select().then(secondaries => {
           this.data[rootObject.id].secondaryForwardLinks = secondaries.array ? secondaries.array : [secondaries];
-        })
+        });
       }
 
       // Iterate over rootObject's children
@@ -88,7 +88,7 @@ foam.CLASS({
             var secondaryRelationshipDAO = o[secondaryRelationshipKey].dao || o[secondaryRelationshipKey];
             secondaryRelationshipDAO.select().then(secondaries => {
               this.data[o.id].secondaryForwardLinks = secondaries.array ? secondaries.array : [secondaries];
-            })
+            });
           }
 
           // Add child and its children (recursively)
@@ -122,7 +122,7 @@ foam.CLASS({
       var isRoot;
       this.roots.forEach(root => {
         if ( root.id === rootObject.id ) isRoot = true;
-      })
+      });
 
       // Iterate over rootObject's children
       var junctionDAO = this.__subContext__[junctionDaoKey];
@@ -161,9 +161,9 @@ foam.CLASS({
           'priority',
           true
         );
-      })
+      });
 
-      await Promise.all(childJunctionPromises)
+      await Promise.all(childJunctionPromises);
 
       // the target graphNode is created in the recursive call so after it is done
       // we can just go ahead and update all junctions to have proper inverse links
@@ -175,7 +175,7 @@ foam.CLASS({
             weight: junc[weightPropertyName]
           }
         ];
-      })
+      });
     },
 
     function build() {

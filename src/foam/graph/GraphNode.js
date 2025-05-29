@@ -56,7 +56,7 @@ foam.CLASS({
           id: String
           weight?: Integer
         }
-      `,
+      `
     },
     {
       name: 'data'

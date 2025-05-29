@@ -37,14 +37,14 @@ foam.CLASS({
         if ( globalThis.window && globalThis.window.performance ) {
           return function() {
             return globalThis.performance.now();
-          }
+          };
         } else if ( globalThis.process && globalThis.process.hrtime ) {
           return function() {
             var hr = globalThis.process.hrtime();
             return ( hr[0] * 1000 ) + ( hr[1] / 1000000 );
-          }
+          };
         } else {
-          return function() { return Date.now(); }
+          return function() { return Date.now(); };
         }
       }
     }
@@ -86,7 +86,7 @@ foam.CLASS({
       return this.SUPER.apply(this, arguments).then(function(s) {
         self.end(act);
         return s;
-      })
+      });
     }
   ]
 });

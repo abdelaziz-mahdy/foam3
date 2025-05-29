@@ -32,7 +32,7 @@ foam.CLASS({
   properties: [
     {
       name: 'swiftOptional',
-      value: false,
+      value: false
     }
   ]
 });
@@ -44,7 +44,7 @@ foam.CLASS({
   flags: ['swift'],
   methods: [
     function writeToSwiftClass(cls) {
-      return
+      return;
       cls.fields.push(
         foam.swift.Field.create({
           name: `${this.prop}EventProxy_`,
@@ -56,7 +56,7 @@ return __context__.create(foam_core_EventProxy.self, args: [
   "dest": self,
   "src": ${this.prop},
 ])!
-          `,
+          `
         })
       );
       cls.methods.push(
@@ -69,22 +69,22 @@ return __context__.create(foam_core_EventProxy.self, args: [
               externalName: 'topics',
               localName: 'topics',
               defaultValue: '[]',
-              type: '[String]',
+              type: '[String]'
             }),
             foam.swift.Argument.create({
               externalName: 'listener',
               localName: 'l',
               escaping: true,
-              type: 'Listener',
-            }),
+              type: 'Listener'
+            })
           ],
           returnType: 'Subscription',
           body: `
 ${this.prop}EventProxy_.addProxy(topics)
 return super.sub(topics: topics, listener: l)
-          `,
+          `
         })
       );
-    },
-  ],
+    }
+  ]
 });

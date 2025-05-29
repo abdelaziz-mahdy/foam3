@@ -78,7 +78,7 @@ foam.CLASS({
         if ( foam.String.isInstance(of) ) {
           if ( of.indexOf('.') != -1 ) {
             name = of.substring(of.lastIndexOf('.') + 1);
-            pkg  = of.substring(0, of.lastIndexOf('.'))
+            pkg  = of.substring(0, of.lastIndexOf('.'));
           } else {
             name = of;
             pkg  = this.package;
@@ -119,7 +119,7 @@ foam.CLASS({
         }
 
         return oldCreate.apply(this, arguments);
-      }
+      };
     }
   ]
 });

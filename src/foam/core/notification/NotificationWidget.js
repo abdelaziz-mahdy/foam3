@@ -36,7 +36,7 @@ foam.CLASS({
 
   messages: [
     { name: 'TITLE', message: 'Stay up to date' },
-    { name: 'TEXT', message: 'We use on device notifications update you.' },
+    { name: 'TEXT', message: 'We use on device notifications update you.' }
   ],
 
   methods: [
@@ -63,9 +63,9 @@ foam.CLASS({
       code: async function(X) {
         foam.u2.crunch.wizardflow.RequestNotificationPermissionAgent.create({ affectUserChecks: false }, X).execute();
         X.pushRegistryAgent.currentState$.sub(async () => {
-          await X.pushRegistryAgent.currentState.promise
-          X.pushMenu(X.currentMenu.id, true)
-        })
+          await X.pushRegistryAgent.currentState.promise;
+          X.pushMenu(X.currentMenu.id, true);
+        });
       }
     }
   ]

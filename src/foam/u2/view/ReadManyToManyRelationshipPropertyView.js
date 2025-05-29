@@ -39,7 +39,7 @@ foam.CLASS({
 
       this.start(this.EmbeddedTableView, {
         data: this.data.dao,
-        config: this.config,
+        config: this.config
       }).call(function() { this.fromProperty(self.prop); }).end();
     },
     function fromProperty(p) {

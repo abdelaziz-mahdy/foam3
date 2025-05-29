@@ -26,7 +26,7 @@ foam.RELATIONSHIP({
   sourceProperty: {
     permissionRequired: true,
     columnPermissionRequired: true,
-    tableCellFormatter: { class: 'foam.u2.view.DAOCountCellFormatter' },
+    tableCellFormatter: { class: 'foam.u2.view.DAOCountCellFormatter' }
   },
   targetProperty: {
     createVisibility: 'HIDDEN',

@@ -12,12 +12,12 @@ foam.CLASS({
     'foam.swift.parse.json.KeyParser',
     'foam.swift.parse.json.Whitespace',
     'foam.swift.parse.parser.Literal',
-    'foam.swift.parse.parser.Seq1',
+    'foam.swift.parse.parser.Seq1'
   ],
   properties: [
     {
       swiftType: 'PropertyInfo',
-      name: 'property',
+      name: 'property'
     },
     {
       name: 'delegate',
@@ -32,8 +32,8 @@ return
     self.property.jsonParser!,
     Whitespace_create(),
   ]])
-      `,
-    },
+      `
+    }
   ],
   methods: [
     {
@@ -44,7 +44,7 @@ if ps == nil { return nil }
 let args = x.get("obj") as! Reference<[String:Any?]>
 args.value[property.name] = ps!.value()
 return ps
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

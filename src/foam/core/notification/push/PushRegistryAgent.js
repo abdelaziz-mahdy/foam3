@@ -35,14 +35,14 @@ foam.CLASS({
         }
         return 'Notification' in this.window;
       }
-    },
+    }
   ],
 
   methods: [
     function init() {
       if ( ! globalThis.swPromise ) {
         console.log("PushRegistryAgent run without ServiceWorker creating globalThis.swPromise.");
-        this.currentState.resolve('')
+        this.currentState.resolve('');
         return;
       }
       // If there is no subject yet, this agent is useless
@@ -62,7 +62,7 @@ foam.CLASS({
         // If granted the register() will update the status anyway so we dont need to do this
         if ( v == 'GRANTED' ) return;
         this.pushRegistry.updatePermissionState(null, v);
-      })
+      });
     },
     async function register(sub) {
       sub = this.subObj;

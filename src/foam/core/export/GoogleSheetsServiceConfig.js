@@ -8,11 +8,11 @@ foam.INTERFACE({
     },
     {
       name: 'getTemplate',
-      type: 'String',
+      type: 'String'
     },
     {
       name: 'getServiceName',
-      type: 'String',
+      type: 'String'
     },
     {
       name: 'getExportClsInfo',

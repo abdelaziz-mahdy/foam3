@@ -21,7 +21,7 @@ if ( ! globalThis.WeakMap ) {
 
       return {
         __proto__: this,
-        'delete': del,
+        delete: del,
         get: get,
         set: set,
         has: has

@@ -27,12 +27,12 @@ exports.init = function() {
     // build/lib may have been deleted without clearing pom.xml
     this.rmfile('pom.xml');
   }
-}
+};
 
 
 exports.visitPOM = function(pom) {
   pom.javaDependencies && pom.javaDependencies.forEach(d => javaDependencies.push([d, pom.path]));
-}
+};
 
 
 exports.end = function() {
@@ -125,7 +125,7 @@ exports.end = function() {
     </build>
 
     <dependencies>${dependencies}    </dependencies>
-  </project>\n`.replaceAll(/^  /gm, '');
+  </project>\n`.replaceAll(/^ {2}/gm, '');
 
   if ( this.writeFileIfUpdated('pom.xml', pomxml) ) {
     this.log('[Maven] Updating pom.xml with', javaDependencies.length, 'dependencies.');
@@ -133,4 +133,4 @@ exports.end = function() {
   } else {
     this.log('[Maven] Not Updating pom.xml. No changes to', javaDependencies.length, 'dependencies.');
   }
-}
+};

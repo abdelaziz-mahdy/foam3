@@ -255,7 +255,7 @@ foam.CLASS({
                     literal('/', this.DIV)
                   ),
                   // rhs
-                  sym('form_value'),
+                  sym('form_value')
                 )
               )
             )
@@ -291,7 +291,7 @@ foam.CLASS({
           regex:
             seq(
               '/',
-              str(repeat(alt('\\/', notChars('/'),))),
+              str(repeat(alt('\\/', notChars('/')))),
               '/',
               optional(sym('word'))
             ),

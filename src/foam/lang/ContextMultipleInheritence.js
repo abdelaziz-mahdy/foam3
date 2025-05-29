@@ -41,7 +41,7 @@ foam.SCRIPT({
   name: 'ContextMultipleInheritenceScript',
 
   requires: [
-    'foam.lang.internal.ContextMultipleInheritence',
+    'foam.lang.internal.ContextMultipleInheritence'
   ],
 
   code: function() {
@@ -49,4 +49,4 @@ foam.SCRIPT({
     tmp.setPrivate_('__context__', foam.__context__);
     foam.__context__ = tmp.__subContext__;
   }
-})
+});

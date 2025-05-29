@@ -18,7 +18,7 @@ foam.CLASS({
     'foam.dao.ClientDAO',
     'foam.dao.DAO',
     'foam.core.pm.PM',
-    'foam.util.SafetyUtil',
+    'foam.util.SafetyUtil'
   ],
 
   properties: [

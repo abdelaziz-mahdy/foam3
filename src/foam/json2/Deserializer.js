@@ -76,7 +76,7 @@ foam.CLASS({
         }
 
         var keys = Object.keys(v);
-        var args = {}
+        var args = {};
         for ( var i = 0 ; i < keys.length ; i++ ) {
           if ( keys[i] == '$INST$' ) continue;
 

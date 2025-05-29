@@ -21,22 +21,22 @@ foam.CLASS({
 
   requires: [
     'foam.swift.parse.json.output.Outputter',
-    'foam.box.RegisterSelfMessage',
+    'foam.box.RegisterSelfMessage'
   ],
 
   swiftImplements: [
-    'StreamDelegate',
+    'StreamDelegate'
   ],
 
   topics: [
     'connect',
     'message',
     'errorEvent',
-    'disconnect',
+    'disconnect'
   ],
 
   imports: [
-    'me',
+    'me'
   ],
 
   properties: [
@@ -53,7 +53,7 @@ DispatchQueue.main.async {
   newValue?.schedule(in: RunLoop.current, forMode: .defaultRunLoopMode)
   newValue?.open()
 }
-      `,
+      `
     },
     {
       swiftType: 'OutputStream?',
@@ -68,15 +68,15 @@ DispatchQueue.main.async {
   newValue?.schedule(in: RunLoop.current, forMode: .defaultRunLoopMode)
   newValue?.open()
 }
-      `,
+      `
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.parse.json.output.Outputter',
       name: 'outputter',
       required: true,
-      swiftFactory: 'return Outputter_create()',
-    },
+      swiftFactory: 'return Outputter_create()'
+    }
   ],
 
   methods: [
@@ -88,30 +88,30 @@ onDetach(Subscription(detach: { [weak self] in
   self?.outputStream?.close()
   self?.inputStream?.close()
 }))
-      `,
+      `
     },
     {
       name: 'write',
       args: [
         {
           type: 'String',
-          name: 'str',
-        },
+          name: 'str'
+        }
       ],
       swiftCode: `
 var size = Int32(str.count)
 var buffer = Data(buffer: UnsafeBufferPointer(start: &size, count: 1))
 buffer.append(str, count: str.count)
 _ = buffer.withUnsafeBytes { outputStream?.write($0, maxLength: 4 + str.count) }
-      `,
+      `
     },
     {
       name: 'connectTo',
       args: [
         {
           name: 'url',
-          type: 'String',
-        },
+          type: 'String'
+        }
       ],
       swiftCode: `
 let urlTokens = url.split(separator: ":")
@@ -126,8 +126,8 @@ CFStreamCreatePairWithSocketToHost(
 
 set(key: "inputStream", value: readStream?.takeRetainedValue())
 set(key: "outputStream", value: writeStream?.takeRetainedValue())
-      `,
-    },
+      `
+    }
   ],
 
   swiftCode: `
@@ -162,5 +162,5 @@ public func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
     _ = message.pub([str])
   }
 }
-  `,
+  `
 });

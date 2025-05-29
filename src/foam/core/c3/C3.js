@@ -151,7 +151,7 @@ foam.CLASS({
 
     'foam.core.auth.Group',
     'foam.core.auth.User',
-    'foam.core.auth.Subject',
+    'foam.core.auth.Subject'
   ],
 
   imports: [
@@ -222,7 +222,7 @@ foam.CLASS({
       of: 'foam.core.auth.Subject',
       name: 'subject',
       factory: function() { return this.Subject.create(); }
-    },
+    }
   ],
 
   methods: [

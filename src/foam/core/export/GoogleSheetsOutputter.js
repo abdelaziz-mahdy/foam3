@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'foam.core.column.ColumnConfigToPropertyConverter',
-    'foam.core.export.GoogleSheetsPropertyMetadata',
+    'foam.core.export.GoogleSheetsPropertyMetadata'
   ],
 
   methods: [

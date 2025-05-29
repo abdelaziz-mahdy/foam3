@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2017 The FOAM Authors. All Rights Reserved.
@@ -63,7 +62,7 @@ foam.CLASS({
         //
         // Use default FOAM implementation of Outputter. Do not attempt to
         // lookup sensitive "foam.json.Outputter" class in box context.
-        return this.Outputter.create().copyFrom(foam.json.Network)
+        return this.Outputter.create().copyFrom(foam.json.Network);
       }
     }
   ]

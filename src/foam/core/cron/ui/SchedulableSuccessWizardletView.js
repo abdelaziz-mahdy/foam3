@@ -60,7 +60,7 @@ foam.CLASS({
             {
               year: 'numeric',
               month: 'long',
-              day: 'numeric',
+              day: 'numeric'
             }
           ))
         .end()

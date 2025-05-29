@@ -20,7 +20,7 @@ foam.CLASS({
   properties: [
     {
       name: "classloader",
-      factory: function() { return this.ClassLoader.create() },
+      factory: function() { return this.ClassLoader.create(); }
     }
   ]
 });
@@ -31,7 +31,7 @@ foam.SCRIPT({
   name: 'ClassLoaderContextScript',
 
   requires: [
-    'foam.apploader.ClassLoaderContext',
+    'foam.apploader.ClassLoaderContext'
   ],
 
   code: function() {

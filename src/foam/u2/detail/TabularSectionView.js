@@ -29,8 +29,8 @@ foam.CLASS({
         var newPropOverrides = {};
 
         section.properties.forEach(prop => {
-          newPropOverrides[prop.name] = { gridColumns: 12 } 
-        })
+          newPropOverrides[prop.name] = { gridColumns: 12 }; 
+        });
     
         return newPropOverrides;
       }

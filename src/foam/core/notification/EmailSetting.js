@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2019 The FOAM Authors. All Rights Reserved.
@@ -32,7 +31,7 @@ foam.CLASS({
       name: 'enabled',
       readPermissionRequired: false,
       writePermissionRequired: true
-    },
+    }
   ],
 
   methods: [

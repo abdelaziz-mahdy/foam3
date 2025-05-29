@@ -24,43 +24,43 @@ foam.ENUM({
       name: 'DRAFT',
       label: 'Draft',
       color: '$grey700',
-      background: '$grey50',
+      background: '$grey50'
     },
     {
       name: 'UNSENT',
       label: 'Unsent',
       color: '$grey700',
-      background: '$grey50',
+      background: '$grey50'
     },
     {
       name: 'SENT',
       label: 'Sent',
       color: '$success700',
-      background: '$success50',
+      background: '$success50'
     },
     {
       name: 'FAILED',
       label: 'Failed',
       color: '$destructive500',
-      background: '$destructive50',
+      background: '$destructive50'
     },
     {
       name: 'BOUNCED',
       label: 'Bounced',
       color: '$warn500',
-      background: '$warn700',
+      background: '$warn700'
     },
     {
       name: 'RECEIVED',
       label: 'Received',
       color: '$blue500',
-      background: '$grey50',
+      background: '$grey50'
     },
     {
       name: 'PROCESSED',
       label: 'Processed',
       color: '$success700',
-      background: '$success50',
+      background: '$success50'
     }
   ]
 });

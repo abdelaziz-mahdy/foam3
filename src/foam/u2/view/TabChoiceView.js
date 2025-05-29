@@ -42,7 +42,7 @@ foam.CLASS({
   properties: [
     {
       name: 'choice',
-      factory: function() { return this.choices[0]; },
+      factory: function() { return this.choices[0]; }
     },
     {
       name: 'cannedQuery',

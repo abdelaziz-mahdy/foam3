@@ -73,7 +73,7 @@ foam.CLASS({
         console.error('No views to render WizardModal');
         return; // No views to render. Quit.
       }
-      this.start({ class: 'foam.u2.stack.StackView', data: this.subStack, showActions: false }).style({'width':'auto', 'height':'auto'}).end();
+      this.start({ class: 'foam.u2.stack.StackView', data: this.subStack, showActions: false }).style({width:'auto', height:'auto'}).end();
     },
     function pushToId(id) {
       // Set the data to be the data exported from the wizard, not the stack.

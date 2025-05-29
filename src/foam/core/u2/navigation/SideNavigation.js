@@ -51,7 +51,7 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'menuName',
+      name: 'menuName'
     }
   ],
 

@@ -16,7 +16,7 @@ foam.CLASS({
     'foam.swift.type.Null',
     'foam.swift.type.Number',
     'foam.swift.type.String',
-    'foam.swift.type.Unknown',
+    'foam.swift.type.Unknown'
   ],
   axioms: [ { class: 'foam.pattern.Singleton' } ],
   properties: [
@@ -25,70 +25,70 @@ foam.CLASS({
       of: 'foam.swift.type.Type',
       name: 'tFObject',
       required: true,
-      swiftFactory: 'return FObject_create()',
+      swiftFactory: 'return FObject_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tUnknown',
       required: true,
-      swiftFactory: 'return Unknown_create()',
+      swiftFactory: 'return Unknown_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tDate',
       required: true,
-      swiftFactory: 'return Date_create()',
+      swiftFactory: 'return Date_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tArray',
       required: true,
-      swiftFactory: 'return Array_create()',
+      swiftFactory: 'return Array_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tString',
       required: true,
-      swiftFactory: 'return String_create()',
+      swiftFactory: 'return String_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tNumber',
       required: true,
-      swiftFactory: 'return Number_create()',
+      swiftFactory: 'return Number_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tBoolean',
       required: true,
-      swiftFactory: 'return Boolean_create()',
+      swiftFactory: 'return Boolean_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tNull',
       required: true,
-      swiftFactory: 'return Null_create()',
+      swiftFactory: 'return Null_create()'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.type.Type',
       name: 'tMap',
       required: true,
-      swiftFactory: 'return Map_create()',
-    },
+      swiftFactory: 'return Map_create()'
+    }
   ],
   methods: [
     {
       name: 'typeOf',
       args: [
-        { name: 'o' },
+        { name: 'o' }
       ],
       type: 'foam.swift.type.Type',
       swiftCode: `
@@ -101,13 +101,13 @@ foam.CLASS({
         if tFObject.isInstance(o) { return tFObject }
         if tMap.isInstance(o) { return tMap }
         return tUnknown
-      `,
+      `
     },
     {
       name: 'compare',
       args: [
         { name: 'a' },
-        { name: 'b' },
+        { name: 'b' }
       ],
       swiftType: 'Int',
       swiftCode: `
@@ -115,7 +115,7 @@ foam.CLASS({
         let bType = typeOf(b)!
         return aType.ordinal > bType.ordinal ? 1 :
             aType.ordinal < bType.ordinal ? -1 : aType.compare(a, b);
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

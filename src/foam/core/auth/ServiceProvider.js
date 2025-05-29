@@ -63,7 +63,7 @@ foam.CLASS({
           'serviceproviderdao.read.' + this.id
         ];
       },
-      documentation: 'Service provider must have "serviceprovider.read.<SPID>" inherent permission.',
+      documentation: 'Service provider must have "serviceprovider.read.<SPID>" inherent permission.'
     },
     {
       class: 'Long',

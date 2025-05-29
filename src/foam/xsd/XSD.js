@@ -66,7 +66,7 @@ foam.CLASS({
      * START of SimpleType Support.
      */
     function escape(str) {
-      return str.replace(/\\/g, '\\\\')
+      return str.replace(/\\/g, '\\\\');
     },
 
     function addJavaAssertValue(m) {
@@ -136,14 +136,14 @@ foam.CLASS({
               toReturn +=
   `String str = Double.toString(val);
   int length = str.length();
-  boolean hasDecimal = str.contains(".");\n`
+  boolean hasDecimal = str.contains(".");\n`;
 
               if ( this.totalDigits ) {
                 toReturn +=
   `if ( hasDecimal ) length -= 1;
   if ( length > ` + this.totalDigits + ` ) {
     throw new IllegalArgumentException("${this.name}");
-  }\n`
+  }\n`;
               }
 
               if ( this.fractionDigits ) {
@@ -153,7 +153,7 @@ foam.CLASS({
     if ( decimals.length() > ` + this.fractionDigits + ` ) {
       throw new IllegalArgumentException("${this.name}");
     }
-  }\n`
+  }\n`;
               }
             }
 
@@ -433,7 +433,7 @@ foam.CLASS({
           property.of = this.package + '.' + child.getAttribute('type');
         }
 
-        property.preSet = eval(`(function (_, value) { this.instance_ = {}; return value; })`)
+        property.preSet = eval(`(function (_, value) { this.instance_ = {}; return value; })`);
         m.properties.push(property);
       }
     },
@@ -559,7 +559,7 @@ foam.CLASS({
 
       // check if enum
       if ( this.simpleTypes[doc.getAttribute('type')] === 'foam.lang.Enum' ) {
-        property.class = 'foam.lang.Enum'
+        property.class = 'foam.lang.Enum';
       }
 
       // change classType to appropriate array class if maxOccurs is greater than 1
@@ -568,7 +568,7 @@ foam.CLASS({
           property.class = 'FObjectArray';
         } else if ( this.simpleTypes[doc.getAttribute('type')] == 'foam.lang.String' ||
                     property.class === 'String' ) {
-          property.class = 'StringArray'
+          property.class = 'StringArray';
         } else {
           property.class = 'Array';
         }
@@ -677,7 +677,7 @@ foam.CLASS({
               if ( this.checkForEnum(grandChild) ) {
                 this.simpleTypes[name] = 'foam.lang.Enum';
               } else {
-                var a = grandChild.attributes['0']
+                var a = grandChild.attributes['0'];
                 if ( a.localName === 'base' ) this.simpleTypes[name] = this.TYPES[a.value];
               }
             }

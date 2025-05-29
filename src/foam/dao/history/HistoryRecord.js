@@ -33,7 +33,7 @@ foam.CLASS({
       tableWidth: 150,
       tableCellFormatter: function(value, _) {
         if ( !value ) return;
-        this.add(!!value.toSummary ? value.toSummary() : value);
+        this.add(value.toSummary ? value.toSummary() : value);
       },
       javaCompare: `
       if ( o1 != null && o2 != null ) {

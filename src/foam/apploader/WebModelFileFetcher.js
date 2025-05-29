@@ -31,7 +31,7 @@ foam.CLASS({
         url: this.root + '/' + id.replace(/\./g, '/') + '.js'
       }).send().then(function(payload) {
         return payload.resp.text();
-      })
-    },
+      });
+    }
   ]
 });

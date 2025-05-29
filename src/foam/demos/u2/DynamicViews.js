@@ -54,7 +54,7 @@ foam.CLASS({
         var map = {
           All: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ],
           'Week Days': [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ],
-          Weekends: [ 'Sunday', 'Saturday' ],
+          Weekends: [ 'Sunday', 'Saturday' ]
         };
 
         return {

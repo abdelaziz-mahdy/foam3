@@ -17,7 +17,7 @@ foam.CLASS({
       name: 'of',
       class: 'Class',
       javaInfoType: 'foam.lang.AbstractObjectPropertyInfo',
-      javaType: 'foam.lang.ClassInfo',
+      javaType: 'foam.lang.ClassInfo'
     },
     {
       name: 'objectId',
@@ -62,4 +62,4 @@ foam.CLASS({
       `
     }
   ]
-})
+});

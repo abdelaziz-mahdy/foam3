@@ -18,7 +18,7 @@ foam.CLASS({
     'static foam.mlang.MLang.EQ',
     'java.util.Arrays',
     'java.util.ArrayList',
-    'java.util.List',
+    'java.util.List'
   ],
 
   methods: [

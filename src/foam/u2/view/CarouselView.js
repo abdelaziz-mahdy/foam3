@@ -122,7 +122,7 @@ foam.CLASS({
       let el = document.getElementById(this.idArray_[this.currentIndex_]);
       if ( !  el ) return;
       el.scrollIntoView(false);
-    },
+    }
   ],
 
   actions: [

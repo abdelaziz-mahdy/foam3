@@ -28,7 +28,7 @@ foam.CLASS({
       of: 'foam.comics.v2.DAOControllerConfig',
       name: 'config',
       factory: function() {
-        return { class: 'foam.comics.v2.DAOControllerConfig' }
+        return { class: 'foam.comics.v2.DAOControllerConfig' };
       }
     },
     {

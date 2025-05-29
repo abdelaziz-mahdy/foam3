@@ -18,7 +18,7 @@ foam.CLASS({
     'foam.u2.property.MDCheckBox',
     'foam.u2.property.MDFloatView',
     'foam.u2.MDCurrencyView',
-    'foam.u2.property.MDRangeView',
+    'foam.u2.property.MDRangeView'
   ],
 
   exports: [
@@ -124,7 +124,7 @@ foam.CLASS({
               ) {
               this.start().addClass('property-item').add(p).end();
             }
-          })
+          });
         })
       );
     }

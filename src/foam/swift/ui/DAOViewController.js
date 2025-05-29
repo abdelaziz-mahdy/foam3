@@ -63,7 +63,7 @@ return DAOUITableViewDelegate_create([
 return DAOCreateViewController_create([
   "dao": dao,
 ])
-      `,
+      `
     },
     {
       swiftType: 'UITableViewController',
@@ -85,7 +85,7 @@ return tvc
 dataSource.tableView = newValue.tableView
 newValue.tableView.delegate = tableViewDelegate
       `
-    },
+    }
   ],
 
   methods: [

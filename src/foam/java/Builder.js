@@ -25,7 +25,7 @@ foam.CLASS({
       builder.field({
         name: 'x_',
         type: 'foam.lang.X',
-        visibility: 'protected',
+        visibility: 'protected'
       });
 
       builder.method({
@@ -83,7 +83,7 @@ return this;`
 `;
       }
 
-      buildBody += 'obj.init_(); return obj;'
+      buildBody += 'obj.init_(); return obj;';
 
       builder.method({
         name: 'build',

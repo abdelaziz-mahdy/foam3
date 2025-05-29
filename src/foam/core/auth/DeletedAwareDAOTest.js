@@ -20,7 +20,7 @@ foam.CLASS({
     'foam.dao.DAO',
     'foam.dao.MDAO',
     'foam.util.Auth',
-    'java.util.List',
+    'java.util.List'
   ],
 
   methods: [

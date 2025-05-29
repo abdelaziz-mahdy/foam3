@@ -14,7 +14,7 @@ foam.CLASS({
     object.
   `,
   requires: [
-    'foam.u2.layout.Cols',
+    'foam.u2.layout.Cols'
   ],
 
   css: `

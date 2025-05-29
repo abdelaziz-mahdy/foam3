@@ -240,7 +240,7 @@ foam.CLASS({
   properties: [
     {
       name: 'dest',
-      swiftType: 'Topic',
+      swiftType: 'Topic'
     },
     {
       class: 'StringArray',
@@ -280,7 +280,7 @@ if (oldValue as? Bool ?? false) != newValue {
     },
     {
       name: 'parent',
-      swiftType: 'foam_core_EventProxy?',
+      swiftType: 'foam_core_EventProxy?'
     },
     {
       name: 'children',
@@ -288,7 +288,7 @@ if (oldValue as? Bool ?? false) != newValue {
         return {};
       },
       swiftType: '[String:foam_core_EventProxy]',
-      swiftFactory: 'return [:]',
+      swiftFactory: 'return [:]'
     },
     {
       name: 'src',
@@ -301,7 +301,7 @@ if (oldValue as? Bool ?? false) != newValue {
     },
     {
       swiftType: 'Subscription?',
-      name: 'subscription',
+      name: 'subscription'
     }
   ],
 
@@ -326,7 +326,7 @@ onDetach(Subscription(detach: { [weak self] in
     parent.active = true
   }
 }))
-      `,
+      `
     },
 
     {
@@ -336,7 +336,7 @@ onDetach(Subscription(detach: { [weak self] in
 
         if ( ! this.src ) return;
 
-        var args = this.topic.slice()
+        var args = this.topic.slice();
         args.push(this.onEvent);
         this.subscription = this.src.sub.apply(this.src, args);
       },
@@ -345,7 +345,7 @@ subscription?.detach()
 if let src = src as? Topic {
   subscription = src.sub(topics: topic, listener: onEvent_listener)
 }
-      `,
+      `
     },
 
     {
@@ -353,7 +353,7 @@ if let src = src as? Topic {
       code: function doUnsub() {
         if ( this.subscription ) this.subscription.detach();
       },
-      swiftCode: 'subscription?.detach()',
+      swiftCode: 'subscription?.detach()'
     },
 
     {
@@ -361,8 +361,8 @@ if let src = src as? Topic {
       args: [
         {
           name: 'c',
-          type: 'foam.lang.EventProxy',
-        },
+          type: 'foam.lang.EventProxy'
+        }
       ],
       code: function removeChild(c) {
         for ( var key in this.children ) {
@@ -387,8 +387,8 @@ for (key, child) in children {
       args: [
         {
           name: 'key',
-          type: 'String',
-        },
+          type: 'String'
+        }
       ],
       type: 'foam.lang.EventProxy',
       code: function getChild(key) {
@@ -421,7 +421,7 @@ return children[key]!
       args: [
         {
           name: 'topics',
-          type: 'String[]',
+          type: 'String[]'
         }
       ],
       code: function addProxy(topic) {

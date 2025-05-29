@@ -58,7 +58,7 @@ foam.CLASS({
       name: 'chartJsConfig',
       factory: function() {
         return {};
-      },
+      }
     }
   ],
   methods: [
@@ -90,33 +90,33 @@ foam.CLASS({
         return;
       }
       
-      let data = await self.buildChartDataSet(cm)
-      let plots = await self.generatePlots(data)
+      let data = await self.buildChartDataSet(cm);
+      let plots = await self.generatePlots(data);
 
       self.addClass(self.myClass('canvas-container'))
         .start('div').addClass(self.myClass('plot'))
           .forEach(plots, function(plot) {
             this.start('div').addClass(self.myClass('plot-item'))
               .add(plot)
-            .end()
+            .end();
           })
         .end();
     },
 
     async function buildChartDataSet(cm) {
       let dataSets = {};
-      dataSets['labels'] = cm.labels
-      dataSets['datasets'] = []
+      dataSets['labels'] = cm.labels;
+      dataSets['datasets'] = [];
 
       for (const [k, v] of Object.entries(cm.dataset)) {
         dataSets['datasets'].push({
           label: k,
           data: v.values,
           borderWidth: 1
-        })
+        });
       }
 
-      return dataSets
+      return dataSets;
     },
 
     async function generatePlots(data) {
@@ -125,11 +125,11 @@ foam.CLASS({
           data,
           options: {
             legend: {
-              display: false,
-            },
+              display: false
+            }
           }
         })
-      ]
+      ];
     }
   ]
-})
+});

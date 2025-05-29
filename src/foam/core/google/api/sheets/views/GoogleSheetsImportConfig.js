@@ -13,7 +13,7 @@
       name: 'importClassInfo',
       class: 'Class',
       javaType: 'foam.lang.ClassInfo',
-      hidden: true,
+      hidden: true
     },
     {
       name: 'googleSheetLink',
@@ -54,13 +54,13 @@
     {
       name: 'DAO',
       class: 'String',
-      hidden: true,
+      hidden: true
     }
   ],
   constants: {
     //info retrieved from https://developers.google.com/sheets/api/guides/concepts
     SPREADSHEET_ID_REGEX: '/spreadsheets/d/([a-zA-Z0-9-_]+)'
-  },
+  }
 });
 
 foam.CLASS({
@@ -87,13 +87,13 @@ foam.CLASS({
       javaType: 'foam.lang.PropertyInfo',
       javaInfoType: 'foam.lang.AbstractObjectPropertyInfo',
       hidden: true,
-      javaJSONParser: 'foam.lib.json.ExprParser.instance()',
+      javaJSONParser: 'foam.lib.json.ExprParser.instance()'
     },
     {
       name: 'unitProperty',
       class: 'foam.mlang.ExprProperty',
       hidden: true,
-      javaJSONParser: 'foam.lib.json.ExprParser.instance()',
+      javaJSONParser: 'foam.lib.json.ExprParser.instance()'
     },
     {
       name: 'isUnitValueProperty',

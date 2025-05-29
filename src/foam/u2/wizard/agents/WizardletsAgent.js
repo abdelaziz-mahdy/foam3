@@ -13,11 +13,11 @@ foam.CLASS({
   ],
 
   imports: [
-    'wizardlets? as priorWizardlets',
+    'wizardlets? as priorWizardlets'
   ],
 
   exports: [
-    'laterWizardlets as wizardlets',
+    'laterWizardlets as wizardlets'
   ],
 
   properties: [

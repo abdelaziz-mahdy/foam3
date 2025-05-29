@@ -408,7 +408,7 @@ foam.CLASS({
         var adao;
         if ( this.config?.summaryView?.selectedObjects && ! foam.Object.equals(this.config.summaryView.selectedObjects, {}) ) {
           adao = foam.dao.ArrayDAO.create({ of: this.data.of });
-          foam.Object.forEach(this.config.summaryView.selectedObjects, function(y) { adao.put(y) })
+          foam.Object.forEach(this.config.summaryView.selectedObjects, function(y) { adao.put(y); });
         }
 
         this.StyledModal.create({ title: 'Export', maxWidth: '90vw'}, X).tag({

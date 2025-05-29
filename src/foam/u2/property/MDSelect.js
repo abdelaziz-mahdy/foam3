@@ -11,7 +11,7 @@ foam.CLASS({
   extends: 'foam.u2.view.ChoiceView',
 
   requires: [
-    'foam.u2.property.MDPopup',
+    'foam.u2.property.MDPopup'
   ],
 
 
@@ -61,7 +61,7 @@ foam.CLASS({
 
       this.onDAOUpdate();
       var self = this;
-      this.addClass()
+      this.addClass();
       this.start('label')
         .addClass('md-text-xs-bold', 'label')
         .addClass(this.slot(function(data) {
@@ -76,7 +76,7 @@ foam.CLASS({
             return self.popup && ! isHidden ? 'expand_less' : 'expand_more';
           }, this.popup$.dot('isHidden')))
           .on('click', this.onClick)
-        .end()
+        .end();
 
       this.dao$proxy.on.sub(this.onDAOUpdate);
     },

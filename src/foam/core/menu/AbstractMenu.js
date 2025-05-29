@@ -49,7 +49,7 @@ foam.CLASS({
       X.stack.set(
         (menu.border ? { ...menu.border, children: [ this.createView(X, menu) ] } : menu),
         X
-      )
+      );
     }
   ]
 });

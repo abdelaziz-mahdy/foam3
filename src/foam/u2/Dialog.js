@@ -57,7 +57,7 @@ foam.CLASS({
       documetation: 'Controls the padding inside the dialog.',
       attribute: true,
       value: true
-    },
+    }
   ],
 
   methods: [

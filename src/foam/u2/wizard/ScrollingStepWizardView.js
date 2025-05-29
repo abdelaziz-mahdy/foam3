@@ -217,7 +217,7 @@ foam.CLASS({
             .add(
               this.slot(function (data, data$currentWizardlet) {
                 return this.StepWizardletStepsView.create({
-                  data: data,
+                  data: data
                 });
               })
             )
@@ -308,7 +308,7 @@ foam.CLASS({
                   wizardlet, isCurrent, self.calculateWizardletDisplayNumber(
                     wizardlet, self.data.wizardlets)
                 ))
-                .end()
+                .end();
             }))
             .start()
               .addClass('h300')
@@ -323,7 +323,7 @@ foam.CLASS({
         .forEach(wizardlet.sections, function (section, si) {
           var position = self.WizardPosition.create({
             wizardletIndex: wi,
-            sectionIndex: si,
+            sectionIndex: si
           });
           this.add(section.createView().call(function () {
             this.onDetach(this.state$.sub(() => {

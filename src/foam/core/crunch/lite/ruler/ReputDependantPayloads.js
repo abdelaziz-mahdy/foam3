@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'ReputDependantPayloads',
 
   implements: [
-    'foam.core.ruler.RuleAction',
+    'foam.core.ruler.RuleAction'
   ],
 
   javaImports: [
@@ -52,7 +52,7 @@ foam.CLASS({
               });
           }
         }, "Reput dependent payloads");
-      `,
+      `
     }
   ]
 });

@@ -98,6 +98,6 @@ foam.CLASS({
       showInPropertyChoice: true,
       expression: function(firstName, lastName) { return firstName + ' ' + lastName; },
       javaGetter: 'return getFirstName() + " " + getLastName();'
-    },
+    }
   ]
 });

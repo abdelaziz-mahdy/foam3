@@ -29,7 +29,7 @@ foam.CLASS({
           this.y = 4 + this.cellSize * this.row;
           this.width = this.height = this.FILL_RATIO * this.cellSize;
           this.timer.time$.sub(this.onTick);
-        },
+        }
       ],
       listeners: [
         function onTick() {

@@ -19,4 +19,4 @@ foam.CLASS({
       name: 'path'
     }
   ]
-})
+});

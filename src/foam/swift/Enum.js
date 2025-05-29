@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'foam.swift.Outputter',
-    'foam.swift.EnumValue',
+    'foam.swift.EnumValue'
   ],
 
   properties: [
@@ -33,21 +33,21 @@ foam.CLASS({
     {
       class: 'FObjectArray',
       of: 'foam.swift.Field',
-      name: 'fields',
+      name: 'fields'
     },
     {
       class: 'FObjectArray',
       of: 'foam.swift.EnumValue',
-      name: 'values',
+      name: 'values'
     },
     {
       class: 'String',
-      name: 'extends',
+      name: 'extends'
     },
     {
       class: 'StringArray',
       name: 'implements'
-    },
+    }
   ],
 
   methods: [

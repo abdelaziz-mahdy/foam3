@@ -10,22 +10,22 @@ foam.CLASS({
   refines: 'foam.lang.Argument',
   flags: ['swift'],
   requires: [
-    'foam.swift.Argument',
+    'foam.swift.Argument'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftLocalName',
-      expression: function(name) { return name; },
+      expression: function(name) { return name; }
     },
     {
       class: 'String',
       name: 'swiftExternalName',
-      value: '_',
+      value: '_'
     },
     {
       class: 'String',
-      name: 'swiftDefaultValue',
+      name: 'swiftDefaultValue'
     },
     {
       class: 'StringArray',
@@ -38,18 +38,18 @@ foam.CLASS({
           this.swiftMutable = true;
         }
         return n;
-      },
+      }
     },
     {
       class: 'Boolean',
-      name: 'swiftMutable',
+      name: 'swiftMutable'
     },
     {
       class: 'foam.swift.SwiftTypeProperty',
       expression: function(type) {
         return foam.swift.toSwiftType(type, true);
-      },
-    },
+      }
+    }
   ],
   methods: [
     function toSwiftArg() {
@@ -58,10 +58,10 @@ foam.CLASS({
         externalName: this.swiftExternalName,
         type: this.swiftType,
         annotations: this.swiftAnnotations,
-        mutable: this.swiftMutable,
+        mutable: this.swiftMutable
       });
       if (this.swiftDefaultValue) arg.defaultValue = this.swiftDefaultValue;
       return arg;
-    },
+    }
   ]
 });

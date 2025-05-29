@@ -174,7 +174,7 @@ foam.INTERFACE({
           name: 'user',
           type: 'foam.core.auth.User'
         }
-      ],
+      ]
     },
     {
       name: 'getJunction',
@@ -193,7 +193,7 @@ foam.INTERFACE({
           name: 'capabilityId',
           type: 'String'
         }
-      ],
+      ]
     },
     {
       name: 'atLeastOneInCategory',
@@ -211,7 +211,7 @@ foam.INTERFACE({
           name: 'categoryName',
           type: 'String'
         }
-      ],
+      ]
     },
     {
       name: 'getJunctionForSubject',
@@ -234,7 +234,7 @@ foam.INTERFACE({
           name: 'subject',
           type: 'foam.core.auth.Subject'
         }
-      ],
+      ]
     },
     {
       name: 'updateJunctionDirectly',
@@ -263,7 +263,7 @@ foam.INTERFACE({
           name: 'status',
           type: 'foam.core.crunch.CapabilityJunctionStatus'
         }
-      ],
+      ]
     },
     {
       name: 'updateUserJunction',
@@ -290,7 +290,7 @@ foam.INTERFACE({
           name: 'status',
           type: 'foam.core.crunch.CapabilityJunctionStatus'
         }
-      ],
+      ]
     },
     {
       name: 'updateJunctionFor',
@@ -326,7 +326,7 @@ foam.INTERFACE({
           name: 'user',
           type: 'foam.core.auth.User'
         }
-      ],
+      ]
     },
     {
       name: 'maybeIntercept',
@@ -338,12 +338,12 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'capabilityId',
           type: 'String[]'
-        },
+        }
       ]
     },
     {
@@ -358,7 +358,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'capabilityId',
@@ -373,7 +373,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'capabilityId',
@@ -392,7 +392,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'rootCapability',

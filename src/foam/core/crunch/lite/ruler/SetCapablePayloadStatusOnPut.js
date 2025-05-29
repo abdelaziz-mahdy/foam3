@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'SetCapablePayloadStatusOnPut',
 
   implements: [
-    'foam.core.ruler.RuleAction',
+    'foam.core.ruler.RuleAction'
   ],
 
   javaImports: [
@@ -67,7 +67,7 @@ foam.CLASS({
           }
         }
       }, "Set capable payload status on put");
-      `,
+      `
     }
   ]
 });

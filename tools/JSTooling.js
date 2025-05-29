@@ -8,7 +8,7 @@ foam.POM({
   name: 'js',
 
   envs: {
-    FOAM_BIN_VERSION:  ['foam-bin version string, with or without timestamp'],
+    FOAM_BIN_VERSION:  ['foam-bin version string, with or without timestamp']
   },
 
   options: {

@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.json2',
   name: 'Outputter',
   requires: [
-    'foam.json2.SimpleOutputterOutput',
+    'foam.json2.SimpleOutputterOutput'
   ],
   properties: [
     {
@@ -16,14 +16,14 @@ foam.CLASS({
       of: 'foam.json2.OutputterOutput',
       required: true,
       name: 'out',
-      factory: function() { return this.SimpleOutputterOutput.create() },
-      swiftFactory: `return SimpleOutputterOutput_create()`,
+      factory: function() { return this.SimpleOutputterOutput.create(); },
+      swiftFactory: `return SimpleOutputterOutput_create()`
     },
     {
       name: 'state',
       swiftType: '[State]',
       swiftFactory: 'return [State_create()]',
-      factory: function() { return [this.State.create() ] },
+      factory: function() { return [this.State.create() ]; }
     }
   ],
   classes: [
@@ -32,19 +32,19 @@ foam.CLASS({
       properties: [
         {
           class: 'Boolean',
-          name: 'endArray',
+          name: 'endArray'
         },
         {
           class: 'Boolean',
-          name: 'endObj',
+          name: 'endObj'
         },
         {
           class: 'Boolean',
-          name: 'comma',
+          name: 'comma'
         },
         {
           class: 'Boolean',
-          name: 'array',
+          name: 'array'
         }
       ]
     }
@@ -55,7 +55,7 @@ foam.CLASS({
       type: 'foam.json2.Outputter',
       code: function() {
         this.e();
-        this.out.startObj()
+        this.out.startObj();
         this.state.push(this.State.create({
           endObj: true,
           comma: false
@@ -70,7 +70,7 @@ foam.CLASS({
           "comma": false
         ]))
         return self
-      `,
+      `
     },
     {
       name: 'array',
@@ -94,7 +94,7 @@ foam.CLASS({
           "comma": false
         ]))
         return self
-      `,
+      `
     },
     {
       name: 'top',
@@ -102,7 +102,7 @@ foam.CLASS({
       code: function() {
         return this.state[this.state.length - 1];
       },
-      swiftCode: `return state.last!`,
+      swiftCode: `return state.last!`
     },
     {
       name: 'key',
@@ -113,7 +113,7 @@ foam.CLASS({
         else this.top().comma = true;
 
         this.out.out(this.string(s));
-        this.out.keySep()
+        this.out.keySep();
 
         return this;
       },
@@ -125,7 +125,7 @@ foam.CLASS({
         out.keySep()
 
         return self
-      `,
+      `
     },
     {
       name: 'e',
@@ -140,7 +140,7 @@ foam.CLASS({
           if top().comma { out.comma() }
           top().comma = true
         }
-      `,
+      `
     },
     {
       name: 'string',
@@ -160,7 +160,7 @@ foam.CLASS({
         // TODO handle more stuff
         let s = s!
         return "\\"" + s.replacingOccurrences(of: "\\"", with: "\\\\\\"") + "\\""
-      `,
+      `
     },
     {
       name: 's',
@@ -175,7 +175,7 @@ foam.CLASS({
         e()
         out.out(string(s))
         return self
-      `,
+      `
     },
     {
       name: 'n',
@@ -190,7 +190,7 @@ foam.CLASS({
         e()
         out.out(n.stringValue)
         return self
-      `,
+      `
     },
     {
       name: 'b',
@@ -205,7 +205,7 @@ foam.CLASS({
         e()
         out.out(b ? "true" : "false")
         return self
-      `,
+      `
     },
     {
       name: 'nul',
@@ -219,7 +219,7 @@ foam.CLASS({
         e()
         out.out("null")
         return self
-      `,
+      `
     },
     {
       name: 'end',

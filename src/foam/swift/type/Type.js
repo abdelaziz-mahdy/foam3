@@ -11,23 +11,23 @@ foam.INTERFACE({
     {
       class: 'Int',
       name: 'ordinal'
-    },
+    }
   ],
   methods: [
     {
       name: 'isInstance',
       args: [
-        { name: 'o' },
+        { name: 'o' }
       ],
-      type: 'Boolean',
+      type: 'Boolean'
     },
     {
       name: 'compare',
       args: [
         { name: 'o1' },
-        { name: 'o2' },
+        { name: 'o2' }
       ],
-      swiftType: 'Int',
-    },
-  ],
+      swiftType: 'Int'
+    }
+  ]
 });

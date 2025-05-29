@@ -25,7 +25,7 @@ foam.CLASS({
             console.log(e); 
             if ( provideNotifications )
               this.ctrl.notify?.('Copy Failed', '', 'ERROR', true);
-          })
+          });
         }
         return res;
       }.bind(this);
@@ -37,7 +37,7 @@ foam.CLASS({
           if ( provideNotifications )
             this.ctrl.notify?.('Copy Failed', 'Permission Denied', 'ERROR', true);
           return Promise.reject(new Error('Permission Denied')) ;
-        })
+        });
       } else {
         return tryCopy();
       }

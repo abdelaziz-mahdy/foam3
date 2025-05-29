@@ -140,7 +140,7 @@ foam.CLASS({
       .end()
       .start('', {}, this.content$).addClass(this.myClass('content')).end();
       this.addHeaderObserver();
-      this.onDetach(this.stackReset.sub(() => { this.content?.removeAllChildren(); }))
+      this.onDetach(this.stackReset.sub(() => { this.content?.removeAllChildren(); }));
       this.onDetach(this.posUpdated.sub((_, p, type) => {
         // this.current.hide();
         if ( type == 'new' )
@@ -152,26 +152,26 @@ foam.CLASS({
             this.viewVisible.pub(this.pos);
             v.show();
           }
-        })
-      }))
+        });
+      }));
     },
     async function addHeaderObserver() {
       const root = await this.el();
       const options = { root, threshold: [1.0] };
       let el = await this.header_.el();
       const isVisible = () => {
-        let flag = false
+        let flag = false;
         el.childNodes?.forEach(v => {
           if ( v.offsetHeight ) flag = true;
-        })
+        });
         this.headerVisibility = flag;
-      }
-      isVisible()
+      };
+      isVisible();
       const observer = new IntersectionObserver(([e]) => { this.stuck_ = e.intersectionRatio < 1; }, options);
-      const resize = new ResizeObserver(isVisible)
+      const resize = new ResizeObserver(isVisible);
       observer.observe(el);
       resize.observe(el);
-      this.onDetach(() => { observer.disconnect(); resize.disconnect(); })
+      this.onDetach(() => { observer.disconnect(); resize.disconnect(); });
     },
     function resetStack() {
       if ( this.delegate_ ) return this.delegate_.resetStack();
@@ -194,7 +194,7 @@ foam.CLASS({
       this.pos++;
       // if a view is overridden in the stack, actually remove it
       if ( this.stack_[this.pos] ) {
-        this.stack_.splice(this.pos).forEach(v => v.remove())
+        this.stack_.splice(this.pos).forEach(v => v.remove());
       }
       v.stackPos = this.pos;
       this.stack_[this.pos] = v;
@@ -239,7 +239,7 @@ foam.CLASS({
       let pos = view.__subContext__.stackPos;
       view.show(this.pos$.map(v => v == pos));
       this.trailingContainer.add(view);
-      return { detach: () => { this.trailingContainer.removeChild(view); }}
+      return { detach: () => { this.trailingContainer.removeChild(view); }};
     }
   ]
 });

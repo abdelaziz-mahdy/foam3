@@ -41,10 +41,10 @@ foam.CLASS({
           w.dynamicActions.push(this.AlternateFlowAction.create({
             ...args,
             alternateFlow: x[name]
-          }, x))
+          }, x));
         },
         spec: this
-      })
+      });
       return this;
     },
 
@@ -60,7 +60,7 @@ foam.CLASS({
             wizardlet.wao[prop] = value;
           },
           spec: this
-        })
+        });
         return this;
       }
       throw new Error(`WizardFlow.set called for unrecognized prop: ${prop}`);
@@ -74,10 +74,10 @@ foam.CLASS({
             wizardlet.wao[prop] = {
               ...value,
               delegate: wizardlet.wao[prop]
-            }
+            };
           },
           spec: this
-        })
+        });
         return this;
       }
       throw new Error(`WizardFlow.push called for unrecognized prop: ${prop}`);
@@ -88,4 +88,4 @@ foam.CLASS({
       return this.cls_.name + '_' + this.wizardletId;
     }
   ]
-})
+});

@@ -34,7 +34,7 @@ foam.CLASS({
       name: 'add',
       type: 'Boolean',
       args: [
-        { name: 'element', type: 'Long' },
+        { name: 'element', type: 'Long' }
       ],
       code: function(element) {
         if ( ! Number.isInteger(element) ) {
@@ -47,7 +47,7 @@ foam.CLASS({
           return true;
         }
 
-        return false
+        return false;
       },
       javaCode: `
         List<Long> currentPseudoSet = (ArrayList<Long>) getPseudoSet();
@@ -64,7 +64,7 @@ foam.CLASS({
       name: 'remove',
       type: 'Boolean',
       args: [
-        { name: 'element', type: 'Long' },
+        { name: 'element', type: 'Long' }
       ],
       code: function(element) {
         if ( ! Number.isInteger(element) ) {
@@ -78,7 +78,7 @@ foam.CLASS({
           return true;
         }
 
-        return false
+        return false;
       },
       javaCode: `
         List<Long> currentPseudoSet = (ArrayList<Long>) getPseudoSet();
@@ -95,7 +95,7 @@ foam.CLASS({
       name: 'contains',
       type: 'Boolean',
       args: [
-        { name: 'element', type: 'Long' },
+        { name: 'element', type: 'Long' }
       ],
       code: function(element) {
         if ( ! Number.isInteger(element) ) {
@@ -122,7 +122,7 @@ foam.CLASS({
       name: 'setAsRealSet',
       type: 'void',
       args: [
-        { name: 'set', type: 'Set<Long>' },
+        { name: 'set', type: 'Set<Long>' }
       ],
       javaCode: `
         setPseudoSet(new ArrayList<Long>(set));

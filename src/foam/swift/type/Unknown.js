@@ -10,16 +10,16 @@ foam.CLASS({
   implements: ['foam.swift.type.Type'],
   axioms: [ { class: 'foam.pattern.Singleton' } ],
   properties: [
-    { name: 'ordinal', value: 10 },
+    { name: 'ordinal', value: 10 }
   ],
   methods: [
     {
       name: 'isInstance',
-      swiftCode: `return true`,
+      swiftCode: `return true`
     },
     {
       name: 'compare',
-      swiftCode: `return 0`,
-    },
-  ],
+      swiftCode: `return 0`
+    }
+  ]
 });

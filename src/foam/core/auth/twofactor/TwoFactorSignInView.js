@@ -81,7 +81,7 @@ foam.CLASS({
     { name: 'TWO_FACTOR_TITLE', message: 'Two-factor authentication' },
     { name: 'TWO_FACTOR_EXPLANATION', message: `Open your Google Authenticator app on your mobile device to view the 6-digit code and verify your identity` },
     { name: 'TWO_FACTOR_NOTES_1', message: `Need another way to authenticate?` },
-    { name: 'TWO_FACTOR_NOTES_2', message: `Contact us` },
+    { name: 'TWO_FACTOR_NOTES_2', message: `Contact us` }
   ],
 
   methods: [

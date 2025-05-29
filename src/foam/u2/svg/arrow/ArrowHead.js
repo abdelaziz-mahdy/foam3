@@ -27,7 +27,7 @@ foam.CLASS({
       name: 'size',
       class: 'Float'
     }
-  ],
+  ]
 });
 
 foam.CLASS({
@@ -62,4 +62,4 @@ foam.CLASS({
         ;
     }
   ]
-})
+});

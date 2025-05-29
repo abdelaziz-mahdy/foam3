@@ -114,10 +114,10 @@ foam.CLASS({
                           add(u).
                             attrs({
                               href: data,
-                              target: '_blank',
+                              target: '_blank'
                             }).
                         end().
-                      end()
+                      end();
                  })).
                 end().
 
@@ -152,7 +152,7 @@ foam.CLASS({
                                   addClass('code').
                                   add(self.slot(function(data) {
                                     var u = new URL(url);
-                                    var protocol = u.protocol.slice(0, -1)
+                                    var protocol = u.protocol.slice(0, -1);
                                     return `
               var password = 'REPLACE_WITH_PASSWORD';
 
@@ -189,9 +189,9 @@ foam.CLASS({
                       end().
 
             end();
-          })
+          });
       })
-      )
+      );
     }
-  ],
+  ]
 });

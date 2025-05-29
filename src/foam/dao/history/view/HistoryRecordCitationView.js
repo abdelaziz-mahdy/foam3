@@ -36,7 +36,7 @@ foam.CLASS({
         .end()
         .start()
           .add(propertyUpdate?.toSummary())
-        .end()
+        .end();
     },
 
     function getPropertyUpdate() {

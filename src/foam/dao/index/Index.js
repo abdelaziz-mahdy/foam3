@@ -52,7 +52,7 @@ foam.CLASS({
     'foam.dao.index.IndexNode',
     'foam.dao.index.SetIndexNode',
     'foam.dao.index.NullTreeNode',
-    'foam.dao.index.ProxyIndexNode',
+    'foam.dao.index.ProxyIndexNode'
   ],
 
   properties: [

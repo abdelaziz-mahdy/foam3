@@ -28,7 +28,7 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'minMaxCapabilityId',
+      name: 'minMaxCapabilityId'
     },
     {
       class: 'Boolean',
@@ -125,7 +125,7 @@ foam.CLASS({
 
       if ( ! selectedCapabilityWizardletData ) {
         // if data is undefined then create a fresh instance
-        selectedCapabilityWizardletData = this.of.create({}, this)
+        selectedCapabilityWizardletData = this.of.create({}, this);
       }
 
       let clonedSelectedWizardletData;

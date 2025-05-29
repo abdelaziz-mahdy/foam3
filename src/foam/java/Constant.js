@@ -15,7 +15,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'type',
+      name: 'type'
     },
     {
       name: 'value'
@@ -34,7 +34,7 @@ foam.CLASS({
     {
       name: 'MAX_INT_VALUE',
       value: 2147483647
-    },
+    }
   ],
 
   methods: [

@@ -25,5 +25,5 @@ foam.CLASS({
       name: 'writeView',
       value: { class: 'io.c9.ace.Editor' }
     }
-  ],
+  ]
 });

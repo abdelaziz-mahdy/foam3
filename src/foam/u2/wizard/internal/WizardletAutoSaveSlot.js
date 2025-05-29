@@ -22,7 +22,7 @@ foam.CLASS({
     'saveEvent',
     'other',
     'timeout_',
-    'cleanup_', // detachable to cleanup old subs when obj changes
+    'cleanup_' // detachable to cleanup old subs when obj changes
   ],
 
   methods: [

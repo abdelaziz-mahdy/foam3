@@ -17,11 +17,11 @@ foam.CLASS({
       class: 'String',
       name: 'serviceName',
       expression: function(delegate$serviceName) {
-        return delegate$serviceName
+        return delegate$serviceName;
       },
       setter: function(n) {
         this.delegate.serviceName = n;
-      },
+      }
     },
     {
       class: 'Proxy',

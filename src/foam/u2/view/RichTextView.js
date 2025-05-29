@@ -185,9 +185,9 @@ foam.CLASS({
         .end();
 
       // Set up toggle listeners
-      this.bold_.actionState$.mapFrom(this.currentSel_$, () => { return this.document.queryCommandState('bold') });
-      this.italic_.actionState$.mapFrom(this.currentSel_$, () => { return this.document.queryCommandState('italic') })
-      this.underline_.actionState$.mapFrom(this.currentSel_$, () => { return this.document.queryCommandState('underline') })
+      this.bold_.actionState$.mapFrom(this.currentSel_$, () => { return this.document.queryCommandState('bold'); });
+      this.italic_.actionState$.mapFrom(this.currentSel_$, () => { return this.document.queryCommandState('italic'); });
+      this.underline_.actionState$.mapFrom(this.currentSel_$, () => { return this.document.queryCommandState('underline'); });
     },
 
     function sanitizeDroppedHtml(html) {
@@ -425,7 +425,7 @@ foam.CLASS({
       name: 'RichLink',
       extends: 'foam.u2.Element',
       requires: [
-        'foam.u2.md.OverlayDropdown',
+        'foam.u2.md.OverlayDropdown'
       ],
       css: `
         ^ {
@@ -603,7 +603,7 @@ foam.CLASS({
         {
           name: '#text',
           attributes: []
-        },
+        }
       ];
 
       function copyNodes(parent, node) {

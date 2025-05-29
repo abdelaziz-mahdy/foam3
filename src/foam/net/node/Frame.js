@@ -73,14 +73,14 @@ foam.CLASS({
         buffer.writeUInt8(0, i++);
         buffer.writeUInt8(0, i++);
         buffer.writeUInt8(0, i++);
-        buffer.writeUInt8((length >> 24) & 0xff, i++)
-        buffer.writeUInt8((length >> 16) & 0xff, i++)
-        buffer.writeUInt8((length >> 8) & 0xff, i++)
-        buffer.writeUInt8((length & 0xff), i++)
+        buffer.writeUInt8((length >> 24) & 0xff, i++);
+        buffer.writeUInt8((length >> 16) & 0xff, i++);
+        buffer.writeUInt8((length >> 8) & 0xff, i++);
+        buffer.writeUInt8((length & 0xff), i++);
       } else if ( length > 125 ) {
         buffer.writeUInt8(126, i++);
-        buffer.writeUInt8((length & 0xff00) >> 8, i++)
-        buffer.writeUInt8(length & 0xff, i++)
+        buffer.writeUInt8((length & 0xff00) >> 8, i++);
+        buffer.writeUInt8(length & 0xff, i++);
       } else {
         buffer.writeUInt8(length & 0x7f, i++);
       }
@@ -166,7 +166,7 @@ foam.CLASS({
     },
 
     function maskingKey0(byte) {
-      this.length = this.length_
+      this.length = this.length_;
       this.buffer = Buffer.alloc(this.length);
       this.bufferPos = 0;
       this.needed = this.length;

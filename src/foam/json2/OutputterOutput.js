@@ -9,30 +9,30 @@ foam.INTERFACE({
   name: 'OutputterOutput',
   methods: [
     {
-      name: 'startObj',
+      name: 'startObj'
     },
     {
-      name: 'endObj',
+      name: 'endObj'
     },
     {
-      name: 'startArray',
+      name: 'startArray'
     },
     {
-      name: 'endArray',
+      name: 'endArray'
     },
     {
-      name: 'keySep',
+      name: 'keySep'
     },
     {
       name: 'out',
-      args: [ { name: 's', type: 'String' } ],
+      args: [ { name: 's', type: 'String' } ]
     },
     {
-      name: 'comma',
+      name: 'comma'
     },
     {
       name: 'output',
-      type: 'String',
-    },
-  ],
-})
+      type: 'String'
+    }
+  ]
+});

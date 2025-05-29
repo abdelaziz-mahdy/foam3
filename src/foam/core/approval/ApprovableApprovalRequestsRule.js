@@ -21,7 +21,7 @@
     'foam.core.approval.Approvable',
     'foam.core.approval.ApprovalRequest',
     'foam.core.approval.ApprovalStatus',
-    'foam.core.dao.Operation',
+    'foam.core.dao.Operation'
   ],
 
   implements: ['foam.core.ruler.RuleAction'],

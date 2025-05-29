@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     {
       name: 'chartJsFormatter',
-      value: function(v) { return v.toLocaleString(foam.locale) },
+      value: function(v) { return v.toLocaleString(foam.locale); }
     }
   ]
 });
@@ -27,12 +27,12 @@ foam.CLASS({
     {
       name: 'chartJsFormatter',
       value: function(d) {
-        if ( ! foam.Date.isInstance(d) ) { d = new Date(d) }
-        var month = d.getMonth() + 1
-        if ( month < 10 ) month = '0' + month
-        var day = d.getDate()
-        if ( day < 10 ) day = '0' + day
-        var year = d.getFullYear()
+        if ( ! foam.Date.isInstance(d) ) { d = new Date(d); }
+        var month = d.getMonth() + 1;
+        if ( month < 10 ) month = '0' + month;
+        var day = d.getDate();
+        if ( day < 10 ) day = '0' + day;
+        var year = d.getFullYear();
         return `${year}-${month}-${day}`;
       }
     }
@@ -49,16 +49,16 @@ foam.CLASS({
     {
       name: 'chartJsFormatter',
       value: function(d) {
-        if ( ! foam.Date.isInstance(d) ) { d = new Date(d) }
-        var month = d.getMonth() + 1
-        if ( month < 10 ) month = '0' + month
-        var day = d.getDate()
-        if ( day < 10 ) day = '0' + day
-        var year = d.getFullYear()
+        if ( ! foam.Date.isInstance(d) ) { d = new Date(d); }
+        var month = d.getMonth() + 1;
+        if ( month < 10 ) month = '0' + month;
+        var day = d.getDate();
+        if ( day < 10 ) day = '0' + day;
+        var year = d.getFullYear();
 
         var hour = d.getHours();
         var min = d.getMinutes();
-        if ( min < 10 ) min = '0' + min
+        if ( min < 10 ) min = '0' + min;
 
         return `${year}-${month}-${day} ${hour}:${min}`;
       }
@@ -89,35 +89,35 @@ foam.CLASS({
       name: 'xFormatter',
       expression: function(dataProperties_) {
         return dataProperties_[dataProperties_.length - 2].chartJsFormatter ||
-          function(v) { return v.toLocaleString(foam.locale) }
+          function(v) { return v.toLocaleString(foam.locale); };
       }
     },
     {
       name: 'xAxisLabel',
       expression: function(dataProperties_) {
-        return dataProperties_[dataProperties_.length - 2].label
+        return dataProperties_[dataProperties_.length - 2].label;
       }
     },
     {
       name: 'yFormatter',
       expression: function(dataProperties_) {
         return dataProperties_[dataProperties_.length - 1].chartJsFormatter ||
-          function(v) { return v.toLocaleString(foam.locale) }
+          function(v) { return v.toLocaleString(foam.locale); };
       }
     },
     {
       name: 'yAxisLabel',
       expression: function(dataProperties_) {
-        return dataProperties_[dataProperties_.length - 1].label
+        return dataProperties_[dataProperties_.length - 1].label;
       }
     },
     {
       name: 'tooltipLabelFormatter',
       value: function(tooltipItem, data) {
-        var yLabel = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]
-        if ( foam.Object.isInstance(yLabel) ) yLabel = yLabel.y
+        var yLabel = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+        if ( foam.Object.isInstance(yLabel) ) yLabel = yLabel.y;
         return data.datasets[tooltipItem.datasetIndex].label +
-          ': ' + this.yFormatter(yLabel)
+          ': ' + this.yFormatter(yLabel);
       }
     },
     {
@@ -137,10 +137,10 @@ foam.CLASS({
           } else if ( this.AbstractUnarySink.isInstance(data) ) {
             return getData(data.arg1);
           } else {
-            return [data]
+            return [data];
           }
         }.bind(this);
-        return getData(data)
+        return getData(data);
       }
     },
     {
@@ -173,7 +173,7 @@ foam.CLASS({
               xAxes: [
                 {
                   ticks: {
-                    callback: this.xFormatter.bind(this),
+                    callback: this.xFormatter.bind(this)
                   },
                   scaleLabel: {
                     display: true,
@@ -228,14 +228,14 @@ foam.CLASS({
             ps.push(getData(data.groups[k]).then(function(o2) {
               o2.forEach(function(o3) {
                 o.push([k].concat(o3));
-              })
-            }))
+              });
+            }));
           });
-          return Promise.all(ps).then(function() { return o });
+          return Promise.all(ps).then(function() { return o; });
         } else if ( this.ProxySink.isInstance(data) ) {
           return getData(data.delegate);
         } else if ( data && data.value ) {
-          return Promise.resolve([data.value])
+          return Promise.resolve([data.value]);
         } else {
           return Promise.resolve([data]);
         }
@@ -268,21 +268,21 @@ foam.CLASS({
               y = data[i][2];
               i++;
             }
-            o.data.push({ x: x, y: y })
+            o.data.push({ x: x, y: y });
           }
           datasets.push(o);
         }
         return {
           labels: xValues,
-          datasets: datasets,
+          datasets: datasets
         };
       } else {
         return {
-          labels: data.map(function(o) { return o[0] }),
+          labels: data.map(function(o) { return o[0]; }),
           datasets: [
             {
               label: 'Total', // TODO how to customize this?
-              data: data.map(function(o) { return o[1] })
+              data: data.map(function(o) { return o[1]; })
             }
           ]
         };
@@ -317,12 +317,12 @@ foam.CLASS({
             if ( foam.Object.isInstance(to) ) {
               to = to || {};
               Object.keys(from).forEach(function(k) {
-                to[k] = copyFrom(to[k], from[k])
+                to[k] = copyFrom(to[k], from[k]);
               });
               return to;
             }
             return from;
-          }
+          };
 
           this.normalizeData().then(o => {
             var data = this.genChartData_(o);

@@ -25,7 +25,7 @@ foam.CLASS({
       name: 'target'
     }
   ]
-})
+});
 
 foam.CLASS({
   package: 'foam.core.ruler',
@@ -37,4 +37,4 @@ foam.CLASS({
       this(ruleGroup, null);
     }
   `
-})
+});

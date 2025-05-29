@@ -124,7 +124,7 @@ foam.CLASS({
         }.bind(this)
       });
       this.add(this.dialog_);
-    },
+    }
   ],
 
   css: `

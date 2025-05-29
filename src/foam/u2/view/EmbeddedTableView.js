@@ -92,7 +92,7 @@ foam.CLASS({
       let self = this;
       this.detailView?.dynamic(function(route) {
         self.handlePropertyRouting();
-      })
+      });
       let mem = foam.u2.memento.Memento.create({}, this);
       var daoCount = await this.data.select(this.Count.create()).then(s => { return s.value; });
       this.start(this.CardBorder).addClass(this.myClass('wrapper'))

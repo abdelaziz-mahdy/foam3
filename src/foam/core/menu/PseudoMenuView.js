@@ -26,7 +26,7 @@ foam.CLASS({
   ],
   methods: [
     function init() {
-      this.menu.children.select().then(v => { this.data = v.array });
+      this.menu.children.select().then(v => { this.data = v.array; });
     }
   ]
 });

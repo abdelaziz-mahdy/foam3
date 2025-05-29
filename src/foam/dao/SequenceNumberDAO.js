@@ -12,7 +12,7 @@ foam.CLASS({
   implements: [
     {
       path: 'foam.mlang.Expressions',
-      flags: ['js'],
+      flags: ['js']
     }
   ],
 
@@ -34,7 +34,7 @@ foam.CLASS({
     },
     {
       class: 'Long',
-      name: 'startingValue',
+      name: 'startingValue'
     },
     {
       class: 'Long',
@@ -67,7 +67,7 @@ foam.CLASS({
         ).then(
           function(max) {
             var v = foam.Number.isInstance(max.value) ? ( max.value + 1 ) : 1;
-            self.value_ = v > startingValue ? v : startingValue
+            self.value_ = v > startingValue ? v : startingValue;
           }
         );
       }

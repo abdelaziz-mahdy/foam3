@@ -96,7 +96,7 @@
       class: 'String',
       name: 'flagImage',
       documentation: `The flag image used in relation to currencies from countries currently
-        supported by the platform.`,
+        supported by the platform.`
     },
     {
       class: 'String',
@@ -177,7 +177,7 @@
         }
 
         var delimiter = this.translationService.getTranslation(foam.locale, 'Currency.delimiter', this.delimiter);
-        var decimal   = this.translationService.getTranslation(foam.locale, 'Currency.decimalCharacter', this.decimalCharacter)
+        var decimal   = this.translationService.getTranslation(foam.locale, 'Currency.decimalCharacter', this.decimalCharacter);
 
         if ( this.insertDelimiter ) {
           formatted += beforeDecimal.replace(/\B(?=(\d{3})+(?!\d))/g, delimiter) || '0';

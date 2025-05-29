@@ -55,6 +55,6 @@ foam.CLASS({
         }
         return true;
       `
-    },
+    }
   ]
 });

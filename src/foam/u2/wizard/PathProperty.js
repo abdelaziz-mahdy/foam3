@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'PathProperty',
   extends: 'foam.mlang.ExprProperty',
   implements: [
-    'foam.mlang.Expressions',
+    'foam.mlang.Expressions'
   ],
   documentation: `
     Represents the path to a property from a known object.
@@ -60,7 +60,7 @@ foam.CLASS({
         get: function pathGetter() {
           return function (target) {
             return this[prop.name]?.f(target);
-          }
+          };
         }
       });
 
@@ -75,9 +75,9 @@ foam.CLASS({
               target = expr.arg1.f(target);
               target[expr.arg2.name] = value;
             }
-          }
+          };
         }
-      })
+      });
     }
   ]
 

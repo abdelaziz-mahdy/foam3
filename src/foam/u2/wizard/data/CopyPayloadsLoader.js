@@ -69,7 +69,7 @@ foam.CLASS({
           .where(this.IN(this.CapabilityJunctionPayload.CAPABILITY, listOfRequirements))
           .select({
             put: function (payload) {
-              targetDAO.put(payload)
+              targetDAO.put(payload);
             }
           });
       }

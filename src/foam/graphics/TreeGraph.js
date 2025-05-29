@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2018 The FOAM Authors. All Rights Reserved.
@@ -139,12 +138,12 @@
          const maxes  = {
            maxLeft:  Number.MAX_SAFE_INTEGER,
            maxRight: Number.MIN_SAFE_INTEGER
-         }
+         };
 
          this.root.outline.forEach(level => {
            maxes.maxLeft  = Math.min(level.left, maxes.maxLeft);
            maxes.maxRight = Math.max(level.right, maxes.maxRight);
-         })
+         });
 
          var width  = Math.abs(maxes.maxLeft - maxes.maxRight);
          this.height = this.canvasMinHeight;

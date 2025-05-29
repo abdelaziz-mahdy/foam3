@@ -44,7 +44,7 @@ foam.CLASS({
           bound to particular URLs and particular scopes.`,
       name: 'requiresAuthorization',
       required: true
-    },
+    }
   ],
 
   methods: [

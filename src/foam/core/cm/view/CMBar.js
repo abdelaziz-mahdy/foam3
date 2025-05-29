@@ -28,11 +28,11 @@ foam.CLASS({
           data,
           options: {
             legend: {
-              display: false,
-            },
+              display: false
+            }
           }
         })
-      ]
+      ];
     }
   ]
-})
+});

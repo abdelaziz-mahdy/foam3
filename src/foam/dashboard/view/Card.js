@@ -17,7 +17,7 @@ foam.CLASS({
     'contentWidth as visualizationWidth',
     'contentHeight as visualizationHeight',
     'visualizationColors',
-    'dataof as of',
+    'dataof as of'
   ],
 
   css: `
@@ -95,7 +95,7 @@ foam.CLASS({
       expression: function(data$dao$of) {
         return data$dao$of;
       }
-    },
+    }
   ],
 
   methods: [

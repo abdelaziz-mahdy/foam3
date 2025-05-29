@@ -31,7 +31,7 @@ foam.CLASS({
       documentation: 'managed by SocketConnectionBoxManager',
       name: 'key',
       class: 'String',
-      transient: true,
+      transient: true
     },
     {
       name: 'logger',

@@ -58,7 +58,7 @@ foam.CLASS({
   extends: 'foam.lang.AbstractMethod',
 
   requires: [
-    'foam.lang.Argument',
+    'foam.lang.Argument'
   ],
 
   properties: [

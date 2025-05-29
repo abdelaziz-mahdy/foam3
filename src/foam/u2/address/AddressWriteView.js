@@ -55,7 +55,7 @@ foam.CLASS({
       imports: ['placeService'],
 
       requires: [
-        'foam.u2.layout.DisplayWidth',
+        'foam.u2.layout.DisplayWidth'
       ],
 
       css: `
@@ -92,7 +92,7 @@ foam.CLASS({
           .add(self.slot(function(data$structured) {
             if ( data$structured ) console.warn('Using autocompleter with structured addresses may cause validation issues');
             return this.E().style({ display: 'contents' })
-            .tag(data$structured ? self.data.SUITE.__ : self.data.ADDRESS2.__)
+            .tag(data$structured ? self.data.SUITE.__ : self.data.ADDRESS2.__);
           }))
         .end();
         }
@@ -281,7 +281,7 @@ foam.CLASS({
                   },
                   label$: self.regionLabel$
                 }
-              }, regionView$)
+              }, regionView$);
             }))
           .tag(this.data.POSTAL_CODE.__, { config: { label$: this.postalCodeLabel$ }})
         .end();

@@ -47,15 +47,15 @@ foam.CLASS({
           .addClass(this.myClass('container'))
           .style({
             'max-height': '45vh',
-            'width': '28vw',
-            'display': 'none'
+            width: '28vw',
+            display: 'none'
           })
           .start('img')
             .addClass('file-image' + this.id)
             .style({
-              'flex': 1,
+              flex: 1,
               'object-fit': 'contain',
-              'height': '100%',
+              height: '100%',
               'max-width': '100%',
               'object-position': 'left'
             })
@@ -65,19 +65,19 @@ foam.CLASS({
           .addClass(this.myClass('container'))
           .addClass('file-iframe' + this.id)
           .style({
-            'visibility': 'hidden',
-            'display': 'none',
-            'height': '0px',
-            'width': '0px'
+            visibility: 'hidden',
+            display: 'none',
+            height: '0px',
+            width: '0px'
           })
         .end()
         .start('div')
           .addClass('file-text' + this.id)
           .style({
-            'visibility': 'hidden',
-            'display': 'none',
-            'height': '0px',
-            'width': '0px'
+            visibility: 'hidden',
+            display: 'none',
+            height: '0px',
+            width: '0px'
           })
           .end()
         .end();

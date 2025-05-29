@@ -25,7 +25,7 @@ foam.CLASS({
             return cls;
           }
           return cls.create({ ...spec, ...(args || {}) }, x);
-        }
+        };
       }
     }
   ],
@@ -67,9 +67,9 @@ foam.CLASS({
               spec.class = self.of.id;
             }
             return self.cls_.createFObject(spec, args, this, x);
-          }
+          };
         }
-      })
+      });
     }
   ]
 });

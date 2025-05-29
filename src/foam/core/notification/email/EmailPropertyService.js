@@ -16,7 +16,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'group',
@@ -33,7 +33,7 @@ foam.INTERFACE({
           type: 'Map',
           documentation: 'Template arguments'
         }
-      ],
+      ]
     }
   ]
 });

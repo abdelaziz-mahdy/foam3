@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'foam.u2.detail.TabularSectionView',
-    'foam.u2.wizard.wizardlet.WizardletSection',
+    'foam.u2.wizard.wizardlet.WizardletSection'
   ],
 
   properties: [

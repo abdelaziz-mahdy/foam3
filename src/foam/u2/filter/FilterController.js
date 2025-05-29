@@ -150,11 +150,11 @@ foam.CLASS({
       this.mementoPredicate = this.Or.create({
         args: Object.values(criterias)
                 .map((criteria) => {
-                  let temp = {}
+                  let temp = {};
                   Object.keys(criteria.predicates).forEach(key => {
                     if ( criteria.memorable[key] )
                       temp[key] = criteria.predicates[key];
-                   })
+                   });
                   return this.and(temp); 
                 })
       }).partialEval();
@@ -171,7 +171,7 @@ foam.CLASS({
       // Existing view can come from criterias
       var existingPredicate;
       if ( criteria ) {
-        existingPredicate = criteria.predicates[propertyName]
+        existingPredicate = criteria.predicates[propertyName];
         if ( existingPredicate && existingPredicate !== this.TRUE ) return existingPredicate;
       }
 

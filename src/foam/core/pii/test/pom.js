@@ -10,4 +10,4 @@ foam.POM({
   { name: "PIIReportTest",
     flags: "js|java" }
   ]
-})
+});

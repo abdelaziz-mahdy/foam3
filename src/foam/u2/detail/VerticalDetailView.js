@@ -33,7 +33,7 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
-      name: 'centered',
+      name: 'centered'
     }
   ],
 
@@ -57,7 +57,7 @@ foam.CLASS({
                     showTitle: self.showTitle
                   })
                   .end();
-                })
+                });
                 this.add(slot);
               })
             .end();

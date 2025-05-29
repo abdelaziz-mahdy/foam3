@@ -25,7 +25,7 @@ foam.CLASS({
     },
     {
       name: 'listener'
-    },
+    }
   ],
 
   methods: [

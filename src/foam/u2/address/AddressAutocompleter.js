@@ -52,7 +52,7 @@ foam.CLASS({
       delay: 300,
       code: async function() {
         this.error = null;
-        let fn = this.placeService?.placeAutocomplete.bind(this.placeService)
+        let fn = this.placeService?.placeAutocomplete.bind(this.placeService);
         this.filtered = (await foam.events.discardStale(fn)(null, this.partial, this.currentCountry))?.predictions;
         this.loading = false;
       }

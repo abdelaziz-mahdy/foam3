@@ -91,7 +91,7 @@ foam.CLASS({
   properties: [
     {
       class: 'Boolean',
-      name: 'emptyDAO',
+      name: 'emptyDAO'
     }
   ],
 

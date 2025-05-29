@@ -57,7 +57,7 @@ foam.CLASS({
         let loader = this.args[k];
         // If it's not an FObject, parse it
         if ( ! foam.lang.FObject.isInstance(loader) ) {
-          console.log('before parse of', loader)
+          console.log('before parse of', loader);
           loader = foam.json.parse(loader, undefined, this.__subContext__);
           console.log('after parse');
         }

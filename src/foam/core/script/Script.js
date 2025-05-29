@@ -168,7 +168,7 @@ foam.CLASS({
       name: 'clusterable',
       class: 'Boolean',
       value: true,
-      includeInDigest: false,
+      includeInDigest: false
     },
     {
       documentation: 'Generate notification on script completion',
@@ -215,7 +215,7 @@ foam.CLASS({
         } else {
           setLanguage(foam.core.script.Language.JS);
         }
-      `,
+      `
     },
     {
       class: 'foam.lang.Enum',

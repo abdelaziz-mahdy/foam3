@@ -88,7 +88,7 @@ foam.CLASS({
 
   properties: [
     {
-      name: 'delegate',
+      name: 'delegate'
     },
     {
       class: 'Class',
@@ -141,7 +141,7 @@ foam.CLASS({
         {
           name: 'obj',
           type: 'FObject'
-        },
+        }
       ],
       javaCode: `
         FObject delegateObject;
@@ -162,7 +162,7 @@ foam.CLASS({
       args: [
         {
           name: 'order',
-          type: 'foam.mlang.order.Comparator',
+          type: 'foam.mlang.order.Comparator'
         }
       ],
       javaCode: `

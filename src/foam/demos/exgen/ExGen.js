@@ -149,7 +149,7 @@ foam.CLASS({
         { name: 'Swings (20)',              duration: 2, weight: 2 },
         { name: 'Swings (30)',              duration: 3, weight: 0.5 },
         { name: 'TGU (L+R)',                duration: 2, weight: 3 },
-        { name: 'Thrusters',                duration: 1, weight: 1 },
+        { name: 'Thrusters',                duration: 1, weight: 1 }
       ];
 
       this.regenerate();

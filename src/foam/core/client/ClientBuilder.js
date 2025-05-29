@@ -93,10 +93,10 @@ foam.CLASS({
             constants:  { eagerClients: [] },
             properties: [
               {
-                __copyFrom__: 'foam.core.client.ClientBuilder.SESSION_NAME',
+                __copyFrom__: 'foam.core.client.ClientBuilder.SESSION_NAME'
               },
               {
-                __copyFrom__: 'foam.core.client.ClientBuilder.SESSION_ID',
+                __copyFrom__: 'foam.core.client.ClientBuilder.SESSION_ID'
               },
               {
                 class: 'foam.lang.FObjectProperty',

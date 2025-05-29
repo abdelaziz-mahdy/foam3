@@ -17,7 +17,7 @@ foam.CLASS({
   `,
 
   requires: [
-    'foam.lang.ArraySlot',
+    'foam.lang.ArraySlot'
   ],
 
   css: `
@@ -104,7 +104,7 @@ foam.CLASS({
         var u2Elem = this.start(eView)
         .style({ width: (this.delegates[i].maxLength * 4) + 'rem' })
           .addClass(this.myClass('fragment'))
-          .attr('required', true)
+          .attr('required', true);
         u2Elem.on('focus', () => {
           this.currentIndex = i;
         });

@@ -31,7 +31,7 @@ foam.CLASS({
     {
       key: 'registry',
       name: 'registry',
-      type: 'foam.box.BoxRegistry',
+      type: 'foam.box.BoxRegistry'
     }
   ],
 
@@ -127,5 +127,5 @@ try {
 }
 `
     }
-  ],
+  ]
 });

@@ -37,7 +37,7 @@ foam.CLASS({
     {
       name: 'type',
       value: 'triangle',
-      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'sine', 'square', 'sawtooth', 'triangle' ] },
+      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'sine', 'square', 'sawtooth', 'triangle' ] }
     },
     { class: 'Float', name: 'frequency' , value: 220, units: 'Hz' },
     { class: 'Float', name: 'fmFrequency', label: 'FM Frequency', value: 0, units: 'Hz' },
@@ -46,7 +46,7 @@ foam.CLASS({
       name: 'fmType',
       label: 'FM Type',
       value: 'triangle',
-      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'sine', 'square', 'sawtooth', 'triangle' ] },
+      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'sine', 'square', 'sawtooth', 'triangle' ] }
     },
     { class: 'Float', name: 'amFrequency', label: 'AM Frequency', value: 0, units: 'Hz' },
     { class: 'Float', name: 'amAmplitude', label: 'AM Amplitude', value: 20, units: '%' },
@@ -54,7 +54,7 @@ foam.CLASS({
       name: 'amType',
       label: 'AM Type',
       value: 'triangle',
-      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'sine', 'square', 'sawtooth', 'triangle' ] },
+      view: { class: 'foam.u2.view.ChoiceView', choices: [ 'sine', 'square', 'sawtooth', 'triangle' ] }
     },
     {
       class: 'Boolean',

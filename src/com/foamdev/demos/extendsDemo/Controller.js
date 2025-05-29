@@ -14,7 +14,7 @@ foam.CLASS({
   requires: [
     'com.foamdev.demos.extendsDemo.Hello',
     'com.foamdev.demos.extendsDemo.HelloView',
-    'com.foamdev.demos.extendsDemo.HelloExtendsView',
+    'com.foamdev.demos.extendsDemo.HelloExtendsView'
   ],
 
   properties: [

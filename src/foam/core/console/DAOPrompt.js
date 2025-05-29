@@ -202,14 +202,14 @@ foam.CLASS({
         add('limit(',   this.LIMIT, ').').br().
         add('where(').
         start(this.WHERE_CHOICE).
-          style({'display': 'inline-flex'}).
+          style({display: 'inline-flex'}).
         end().
         add(' ', this.WHERE, ' ').
-        start(this.PROPERTY_CHOICE).style({'display': 'inline-flex'}).end().
+        start(this.PROPERTY_CHOICE).style({display: 'inline-flex'}).end().
         add('). ').
         start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).addClass(this.myClass('helper-icon')).on('click', () => this.eval_('mqlhelp')).end().
         br().
-        add('orderBy(', this.ORDER, ' ').start(this.ORDER_CHOICE).style({'display': 'inline-flex'}).end().add(').').br().
+        add('orderBy(', this.ORDER, ' ').start(this.ORDER_CHOICE).style({display: 'inline-flex'}).end().add(').').br().
         add('select(').add(this.SELECT, ')').br().
         add('columns: ', this.COLUMNS).
       end().
@@ -287,7 +287,7 @@ foam.CLASS({
           this.previousOutput?.remove();
           this.previousOutput = out;
           out.style({display: 'block'});
-        }, 17)
+        }, 17);
       }
     },
     function clear() {

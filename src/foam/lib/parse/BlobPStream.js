@@ -42,7 +42,7 @@ foam.CLASS({
     {
       class: 'Object',
       name: 'value_'
-    },
+    }
   ],
   methods: [
     {

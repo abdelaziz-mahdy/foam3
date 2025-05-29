@@ -35,8 +35,8 @@ foam.CLASS({
       name: 'package',
       // Default to sourceModel's package if not specified.
       factory: function() {
-        var i = this.sourceModel.lastIndexOf('.')
-        return i == -1 ? '' : this.sourceModel.substring(0, i)
+        var i = this.sourceModel.lastIndexOf('.');
+        return i == -1 ? '' : this.sourceModel.substring(0, i);
       }
     },
     {
@@ -101,7 +101,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'unauthorizedSourceDAOKey',
+      name: 'unauthorizedSourceDAOKey'
     },
     {
       class: 'String',
@@ -113,7 +113,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'unauthorizedTargetDAOKey',
+      name: 'unauthorizedTargetDAOKey'
     },
     {
       class: 'String',
@@ -244,7 +244,7 @@ foam.CLASS({
           targetDAOKey: this.targetDAOKey,
           unauthorizedTargetDAOKey: this.unauthorizedTargetDAOKey,
           propertyOverrides: this.sourceProperty,
-          methodOverrides: this.sourceMethod,
+          methodOverrides: this.sourceMethod
         });
       } else if ( this.cardinality === '*:*' ) {
         this.initJunction(x);
@@ -258,7 +258,7 @@ foam.CLASS({
           targetProperty: 'targetId',
           sourceProperty: 'sourceId',
           propertyOverrides: this.sourceProperty,
-          methodOverrides: this.sourceMethod,
+          methodOverrides: this.sourceMethod
         });
       } else {
         foam.assert(false, 'Unknown relationship cardinality.');
@@ -301,7 +301,7 @@ foam.CLASS({
           targetProperty: 'sourceId',
           sourceProperty: 'targetId',
           propertyOverrides: this.targetProperty,
-          methodOverrides: this.targetMethod,
+          methodOverrides: this.targetMethod
         });
       } else {
         foam.assert(false, 'Unknown relationship cardinality.');
@@ -337,7 +337,7 @@ foam.CLASS({
             class: 'Reference',
             name: 'sourceId',
             shortName: 's',
-            of: this.sourceModel,
+            of: this.sourceModel
           },
           {
             class: 'Reference',
@@ -684,7 +684,7 @@ foam.CLASS({
 
   requires: [
     'foam.dao.OneToManyRelationshipMethod',
-    'foam.dao.OneToManyRelationshipProperty',
+    'foam.dao.OneToManyRelationshipProperty'
   ],
 
   properties: [
@@ -699,7 +699,7 @@ foam.CLASS({
       name: 'methodName',
       expression: function(propertyName) {
         return 'get' + foam.String.capitalize(propertyName);
-      },
+      }
     },
     ['transient', true],
     ['tableCellFormatter', null],
@@ -732,7 +732,7 @@ foam.CLASS({
     {
       class: 'Map',
       name: 'methodOverrides'
-    },
+    }
   ],
 
   methods: [
@@ -747,9 +747,9 @@ foam.CLASS({
 
       cls.installAxiom(this.OneToManyRelationshipProperty.create({
         name: this.propertyName,
-        methodName: this.methodName,
+        methodName: this.methodName
       }).copyFrom(this.propertyOverrides));
-    },
+    }
   ]
 });
 
@@ -765,15 +765,15 @@ foam.CLASS({
     {
       name: 'visibility',
       value: function(id) {
-        return !! id ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        return id ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
       name: 'flags',
-      value: ['swift', 'js'],
+      value: ['swift', 'js']
     },
     {
-      name: 'methodName',
+      name: 'methodName'
     },
     {
       name: 'getter',
@@ -787,7 +787,7 @@ foam.CLASS({
       name: 'swiftGetter',
       flags: ['swift'],
       expression: function(methodName) {
-        return `return ${methodName}(__context__) as? (foam_dao_DAO & foam_core_FObject)`
+        return `return ${methodName}(__context__) as? (foam_dao_DAO & foam_core_FObject)`;
       }
     },
     [ 'copyValueFrom', function() { return false; } ],
@@ -806,11 +806,11 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'target',
+      name: 'target'
     },
     {
       class: 'String',
-      name: 'targetPropertyName',
+      name: 'targetPropertyName'
     },
     {
       class: 'String',
@@ -829,11 +829,11 @@ foam.CLASS({
             type: 'Context'
           }
         ];
-      },
+      }
     },
     {
       name: 'type',
-      value: 'foam.dao.DAO',
+      value: 'foam.dao.DAO'
     },
     {
       name: 'code',
@@ -845,7 +845,7 @@ foam.CLASS({
             targetDAOKey: targetDAOKey,
             unauthorizedTargetDAOKey: this.unauthorizedTargetDAOKey
           }, x);
-        }
+        };
       }
     },
     {
@@ -859,7 +859,7 @@ foam.CLASS({
             "targetDAOKey": "${targetDAOKey}",
             "unauthorizedTargetDAOKey": "${unauthorizedTargetDAOKey}"
           ])!;
-        `
+        `;
       }
     },
     {
@@ -873,7 +873,7 @@ foam.CLASS({
               .setTargetDAOKey("${targetDAOKey}")
               .setUnauthorizedTargetDAOKey("${unauthorizedTargetDAOKey}")
               .build();
-        `
+        `;
       }
     }
   ]
@@ -888,7 +888,7 @@ foam.CLASS({
 
   requires: [
     'foam.dao.ManyToManyRelationshipProperty',
-    'foam.dao.ManyToManyRelationshipMethod',
+    'foam.dao.ManyToManyRelationshipMethod'
   ],
 
   properties: [
@@ -920,7 +920,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'sourceProperty',
+      name: 'sourceProperty'
     },
     {
       class: 'String',
@@ -957,11 +957,11 @@ foam.CLASS({
         unauthorizedTargetDAOKey: this.unauthorizedTargetDAOKey,
         junctionDAOKey: this.junctionDAOKey,
         junction: this.junction,
-        name: this.methodName,
+        name: this.methodName
       }).copyFrom(this.methodOverrides));
       cls.installAxiom(this.ManyToManyRelationshipProperty.create({
         name: this.propertyName,
-        methodName: this.methodName,
+        methodName: this.methodName
       }).copyFrom(this.propertyOverrides));
     }
   ]
@@ -1013,7 +1013,7 @@ foam.CLASS({
     },
     {
       name: 'type',
-      value: 'foam.dao.ManyToManyRelationship',
+      value: 'foam.dao.ManyToManyRelationship'
     },
     {
       name: 'code',
@@ -1046,7 +1046,7 @@ foam.CLASS({
             "junctionDAOKey": "${junctionDAOKey}",
             "junction": ${foam.swift.toSwiftName(junction)}.classInfo()
           ])!;
-        `
+        `;
       }
     },
     {
@@ -1063,7 +1063,7 @@ foam.CLASS({
               .setJunctionDAOKey("${junctionDAOKey}")
               .setJunction(${junction}.getOwnClassInfo())
               .build();
-        `
+        `;
       }
     }
   ]
@@ -1080,18 +1080,18 @@ foam.CLASS({
   properties: [
     {
       name: 'flags',
-      value: ['swift', 'js'],
+      value: ['swift', 'js']
     },
     {
       name: 'of',
-      value: 'foam.dao.ManyToManyRelationshipImpl',
+      value: 'foam.dao.ManyToManyRelationshipImpl'
     },
     {
       name: 'transient',
-      value: true,
+      value: true
     },
     {
-      name: 'methodName',
+      name: 'methodName'
     },
     {
       name: 'getter',
@@ -1103,19 +1103,19 @@ foam.CLASS({
     },
     {
       name: 'setter',
-      value: function() {},
+      value: function() {}
     },
     {
       name: 'swiftGetter',
       flags: ['swift'],
       expression: function(methodName) {
-        return `return ${methodName}(__context__)`
+        return `return ${methodName}(__context__)`;
       }
     },
     {
       name: 'swiftSetter',
       flags: ['swift'],
-      value: '// NOOP',
+      value: '// NOOP'
     },
     {
       name: 'createVisibility',

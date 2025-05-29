@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'ClientTokenService',
 
   implements: [
-    'foam.core.auth.token.TokenService',
+    'foam.core.auth.token.TokenService'
   ],
 
   requires: [

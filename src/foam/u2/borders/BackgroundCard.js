@@ -37,7 +37,7 @@ foam.CLASS({
     function init() {
       this.addClass()
         .enableClass('disablePadding', this.padding$.map(v => ! v))
-        .style({ 'background' : this.backgroundColor$ })
+        .style({ background : this.backgroundColor$ })
         .tag('', null, this.content$);
     }
   ]

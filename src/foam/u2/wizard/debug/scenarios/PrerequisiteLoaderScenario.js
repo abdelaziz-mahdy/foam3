@@ -51,7 +51,7 @@ foam.CLASS({
       name: 'capabilityCapabilityJunctions',
       factory: () => [
         ['Entry','WantsData'],
-        ['WantsData','HasData'],
+        ['WantsData','HasData']
       ]
     }
   ]

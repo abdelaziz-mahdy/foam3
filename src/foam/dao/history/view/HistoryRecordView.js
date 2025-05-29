@@ -30,7 +30,7 @@ foam.CLASS({
   `,
 
   imports: [
-    'historyRecordService',
+    'historyRecordService'
   ],
 
   properties: [

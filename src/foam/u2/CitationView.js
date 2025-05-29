@@ -72,7 +72,7 @@ foam.CLASS({
 
   methods: [
     function init() {
-      this.enableClass(this.myClass('rw'), this.mode$.map(m => m === foam.u2.DisplayMode.RW))
+      this.enableClass(this.myClass('rw'), this.mode$.map(m => m === foam.u2.DisplayMode.RW));
     },
     function render() {
       this.SUPER();

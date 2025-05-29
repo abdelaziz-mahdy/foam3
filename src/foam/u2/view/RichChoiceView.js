@@ -374,7 +374,7 @@ foam.CLASS({
         This lets you pass different predicated versions of a dao in different
         sections, which can be used to do things like grouping by some property
         for each section.
-      `,
+      `
     },
     {
       class: 'Class',
@@ -513,7 +513,7 @@ foam.CLASS({
       this.attrs({
         name: self.prop$.map(v => v?.name),
         'data-value': self.data$,
-        'role': 'combobox',
+        role: 'combobox',
         'aria-controls': 'listbox',
         'aria-haspopup': 'listbox',
         'aria-expanded': self.isOpen_$.map(v => v ? 'true' : 'false')
@@ -571,7 +571,7 @@ foam.CLASS({
                             });
                           })
                         .end();
-                      }
+                      };
                       if ( this.U3 ) {
                         this.call(addRow);
                       } else {
@@ -661,7 +661,7 @@ foam.CLASS({
 
     function addAction(action, actionData) {
       var self = this;
-      let e = this.E().style({ 'display': 'contents' })
+      let e = this.E().style({ display: 'contents' });
       if ( action && actionData ) {
         return e
           .start(self.DefaultActionView, { action: action, data: actionData })
@@ -781,7 +781,7 @@ foam.CLASS({
       properties: [
         {
           name: 'data',
-          documentation: 'The id of the selected object.',
+          documentation: 'The id of the selected object.'
         },
         {
           class: 'String',

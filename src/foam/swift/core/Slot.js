@@ -11,17 +11,17 @@ foam.CLASS({
     {
       name: 'swiftGet',
       swiftType: 'Any?',
-      swiftCode: 'fatalError()',
+      swiftCode: 'fatalError()'
     },
     {
       name: 'swiftSet',
       args: [
         {
           swiftType: 'Any?',
-          name: 'value',
-        },
+          name: 'value'
+        }
       ],
-      swiftCode: 'fatalError()',
+      swiftCode: 'fatalError()'
     },
     {
       name: 'swiftSub',
@@ -29,19 +29,19 @@ foam.CLASS({
         {
           swiftAnnotations: ['@escaping'],
           swiftType: 'Listener',
-          name: 'listener',
-        },
+          name: 'listener'
+        }
       ],
       swiftType: 'Subscription',
-      swiftCode: 'fatalError()',
+      swiftCode: 'fatalError()'
     },
     {
       name: 'linkFrom',
       args: [
         {
           type: 'foam.swift.core.Slot',
-          name: 's2',
-        },
+          name: 's2'
+        }
       ],
       swiftType: 'Subscription',
       swiftCode: `
@@ -83,28 +83,28 @@ return Subscription {
   sub1 = nil
   sub2 = nil
 }
-      `,
+      `
     },
     {
       name: 'linkTo',
       args: [
         {
           type: 'foam.swift.core.Slot',
-          name: 'other',
-        },
+          name: 'other'
+        }
       ],
       swiftType: 'Subscription',
       swiftCode: `
 return other!.linkFrom(self)
-      `,
+      `
     },
     {
       name: 'follow',
       args: [
         {
           type: 'foam.swift.core.Slot',
-          name: 'other',
-        },
+          name: 'other'
+        }
       ],
       swiftType: 'Subscription',
       swiftCode: `
@@ -116,20 +116,20 @@ let l = { () -> Void in
 }
 l()
 return other.swiftSub { (_, _) in l() }
-      `,
+      `
     },
     {
       name: 'mapFrom',
       args: [
         {
           type: 'foam.swift.core.Slot',
-          name: 'other',
+          name: 'other'
         },
         {
           swiftAnnotations: ['@escaping'],
           swiftType: '(Any?) -> Any?',
-          name: 'f',
-        },
+          name: 'f'
+        }
       ],
       swiftType: 'Subscription',
       swiftCode: `
@@ -139,25 +139,25 @@ let l = { () -> Void in
 }
 l()
 return other.swiftSub { (_, _) in l() }
-      `,
+      `
     },
     {
       name: 'mapTo',
       args: [
         {
           type: 'foam.swift.core.Slot',
-          name: 'other',
+          name: 'other'
         },
         {
           swiftAnnotations: ['@escaping'],
           swiftType: '(Any?) -> Any?',
-          name: 'f',
-        },
+          name: 'f'
+        }
       ],
       swiftType: 'Subscription',
       swiftCode: `
 return other!.mapFrom(self, f)
-     `,
+     `
     },
     {
       name: 'map',
@@ -165,8 +165,8 @@ return other!.mapFrom(self, f)
         {
           swiftAnnotations: ['@escaping'],
           swiftType: '(Any?) -> Any?',
-          name: 'f',
-        },
+          name: 'f'
+        }
       ],
       type: 'foam.swift.core.ExpressionSlot',
       swiftCode: `
@@ -174,15 +174,15 @@ return foam_swift_core_ExpressionSlot([
   "code": { (args: [Any?]) -> Any? in f(args[0]) },
   "args": [self]
 ])
-      `,
+      `
     },
     {
       name: 'dot',
       args: [
         {
           type: 'String',
-          name: 'name',
-        },
+          name: 'name'
+        }
       ],
       type: 'foam.swift.core.SubSlot',
       swiftCode: `
@@ -194,7 +194,7 @@ onDetach(Subscription(detach: {
   s.detach()
 }))
 return s
-      `,
-    },
+      `
+    }
   ]
 });

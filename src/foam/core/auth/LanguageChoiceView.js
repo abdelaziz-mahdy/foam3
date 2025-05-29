@@ -45,8 +45,8 @@ foam.CLASS({
       of: 'foam.core.auth.Language',
       name: 'lastLanguage',
       factory: function() {
-        let language = this.supportedLanguages.find( e => e.toString() === foam.locale )
-        language = language === undefined ? this.defaultLanguage : language
+        let language = this.supportedLanguages.find( e => e.toString() === foam.locale );
+        language = language === undefined ? this.defaultLanguage : language;
         localStorage.setItem('localeLanguage', language.toString());
         return language;
       }

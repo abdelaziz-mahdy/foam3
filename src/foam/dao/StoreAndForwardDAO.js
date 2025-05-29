@@ -34,11 +34,11 @@ foam.CLASS({
         {
           class: 'String',
           documentation: 'DAO method name associated with operation.',
-          name: 'methodName',
+          name: 'methodName'
         },
         {
           documentation: 'Arguments object associated with operation.',
-          name: 'args',
+          name: 'args'
         },
         {
           name: 'promise_',
@@ -118,12 +118,12 @@ foam.CLASS({
       of: 'FObject',
       // of: 'DAOOperation',
       documentation: 'Queue for incomplete DAO operations.',
-      name: 'q_',
+      name: 'q_'
     },
     {
       class: 'Boolean',
-      name: 'isForwarding_',
-    },
+      name: 'isForwarding_'
+    }
   ],
 
   methods: [
@@ -137,7 +137,7 @@ foam.CLASS({
       // Store DAO operations in order.
       var op = this.DAOOperation.create({
         methodName: methodName,
-        args: args,
+        args: args
       });
       this.q_.push(op);
       // If no forwarding in progress then forward this op immediately.

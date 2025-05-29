@@ -22,22 +22,22 @@ foam.CLASS({
   flags: ['node'],
 
   imports: [
-    'classloader',
+    'classloader'
   ],
 
   properties: [
     {
       class: 'StringArray',
-      name: 'models',
+      name: 'models'
     },
     {
       class: 'String',
-      name: 'outfile',
+      name: 'outfile'
     },
     {
       name: 'fs',
       factory: function() { return require('fs'); }
-    },
+    }
   ],
 
   methods: [
@@ -64,14 +64,14 @@ foam.CLASS({
         console.log('Error', err);
       });
     },
-    function classToResources(cls) { foam.assert(false, 'Implement') },
+    function classToResources(cls) { foam.assert(false, 'Implement'); }
   ],
 
   templates: [
     {
       name: 'genResource',
       args: ['resources'],
-      template: '<% foam.assert(false, "Implement") %>',
+      template: '<% foam.assert(false, "Implement") %>'
     }
   ]
 });

@@ -22,9 +22,9 @@ foam.CLASS({
   flags: ['node'],
   constants: {
     CLIENT_MESSAGES: {
-      '400': 'Bad request',
-      '404': 'File not found',
-      '500': 'Internal server error',
+      400: 'Bad request',
+      404: 'File not found',
+      500: 'Internal server error',
       default_: 'Error'
     }
   },

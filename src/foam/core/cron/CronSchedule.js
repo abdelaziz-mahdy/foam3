@@ -141,7 +141,7 @@ foam.CLASS({
           setMonthsOfYear(new foam.time.MonthOfYear[] { foam.time.MonthOfYear.forOrdinal(val) });
         }
       }
-      `,
+      `
     },
     {
       class: 'FObjectArray',
@@ -150,7 +150,7 @@ foam.CLASS({
       order: 4,
       javaPreSet: 'if ( val != null ) { Arrays.sort(val); }',
       view: { class: 'foam.time.MonthOfYearView' },
-      documentation: 'Months to execute script',
+      documentation: 'Months to execute script'
     },
     {
       // first , second , third ...
@@ -166,7 +166,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.ChoiceView',
           choices: [[0, '--'], [1, 'First'], [2, 'Second'], [3, 'Third'], [4, 'Before Last'], [5, 'Last']]
-        }
+        };
       },
       visibility: function(daysOfMonth) {
         if ( daysOfMonth.length > 0 )
@@ -191,7 +191,7 @@ foam.CLASS({
           setDaysOfWeek(new foam.time.DayOfWeek[] { foam.time.DayOfWeek.forOrdinal(val) });
         }
       }
-      `,
+      `
     },
     {
       class: 'FObjectArray',
@@ -219,7 +219,7 @@ foam.CLASS({
            ! daysOfMonthIsSet_ ) {
         setDaysOfMonth(new Integer[] { val });
       }
-      `,
+      `
     },
     {
       class: 'Array',

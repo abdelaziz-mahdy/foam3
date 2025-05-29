@@ -75,7 +75,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.wizard.views.FocusWizardView',
           showTitle: showTitle
-        }
+        };
       }
     },
     {
@@ -155,13 +155,13 @@ foam.CLASS({
   actions: [
     {
       name: 'openWizardInspector',
-      isAvailable: function (developerMode) { return developerMode },
+      isAvailable: function (developerMode) { return developerMode; },
       code: function(x) {
         this.WizardInspector.OPEN({}, this.__subContext__.createSubContext({
           wizardController: this
         }));
       }
     }
-  ],
+  ]
 
 });

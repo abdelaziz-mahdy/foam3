@@ -13,33 +13,33 @@ foam.CLASS({
     'foam.box.Message',
     'foam.swift.net.Socket',
     'foam.swift.parse.json.FObjectParser',
-    'foam.swift.net.RawSocketBox',
+    'foam.swift.net.RawSocketBox'
   ],
 
   imports: [
     {
       name: 'creationContext',
       key: 'creationContext',
-      swiftType: 'Context',
-    },
+      swiftType: 'Context'
+    }
   ],
 
   properties: [
     {
       class: 'FObjectProperty',
       of: 'foam.box.Box',
-      name: 'delegate',
+      name: 'delegate'
     },
     {
       swiftType: '[String:Future<FObject>]',
       name: 'futureMap',
-      swiftFactory: `return [:]`,
+      swiftFactory: `return [:]`
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.parse.json.FObjectParser',
       name: 'parser',
-      swiftFactory: `return FObjectParser_create()`,
+      swiftFactory: `return FObjectParser_create()`
     }
   ],
 
@@ -49,8 +49,8 @@ foam.CLASS({
       args: [
         {
           swiftType: 'Socket',
-          name: 'socket',
-        },
+          name: 'socket'
+        }
       ],
       swiftCode: `
 let X = creationContext.createSubContext(args: [
@@ -81,15 +81,15 @@ _ = socket.disconnect.sub(listener: { s, _ in
   s.detach()
   messageSub.detach()
 })
-      `,
+      `
     },
     {
       name: 'getSocketBoxFuture',
       args: [
         {
           type: 'String',
-          name: 'address',
-        },
+          name: 'address'
+        }
       ],
       swiftType: 'Future<FObject>',
       swiftCode: `
@@ -106,7 +106,7 @@ _ = socket.connect.sub(listener: { s, _ in
 })
 socket.connectTo(address)
 return fut
-      `,
-    },
+      `
+    }
   ]
 });

@@ -22,7 +22,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.FObjectView',
           of: this.prop.of
-        }
+        };
       }
     },
     {
@@ -31,7 +31,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.FObjectView',
           of: this.prop.of
-        }
+        };
       }
     }
   ]

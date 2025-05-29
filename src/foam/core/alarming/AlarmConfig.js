@@ -26,7 +26,7 @@ foam.CLASS({
       documentation: 'What this alarm config is for',
       class: 'String',
       name: 'name',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       class: 'Boolean',

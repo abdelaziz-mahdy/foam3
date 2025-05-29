@@ -394,7 +394,7 @@ foam.CLASS({
       function(o, n, prop) {
         // if boolean, return a function that returns the same boolean
         // Useful for overriding functions with no-op in jrls and JSON
-        if ( ( foam.Undefined.isInstance(n) || foam.Null.isInstance(n) ) && foam.Boolean.isInstance(n) ) { return () => n }
+        if ( ( foam.Undefined.isInstance(n) || foam.Null.isInstance(n) ) && foam.Boolean.isInstance(n) ) { return () => n; }
         return n;
       }
     ],
@@ -450,11 +450,11 @@ foam.CLASS({
               // Force property update
               this.propertyChange.pub(self.name, this.slot(self.name));
               return val;
-            }
+            };
           },
           configurable: true
         });
-      })
+      });
       Object.defineProperty(proto, self.name + '$remove', {
         get: function classGetter() {
           return function (predicate) {
@@ -467,7 +467,7 @@ foam.CLASS({
               }
             }
             this[self.name] = newArry;
-          }
+          };
         },
         configurable: true
       });
@@ -483,7 +483,7 @@ foam.CLASS({
             }
             // Force property update
             this.propertyChange.pub(self.name, this.slot(self.name));
-          }
+          };
         },
         configurable: true
       });
@@ -493,7 +493,7 @@ foam.CLASS({
         get: function classGetter() {
           return function (predicate) {
             return foam.Array.filter(this[self.name], predicate);
-          }
+          };
         },
         configurable: true
       });
@@ -868,7 +868,7 @@ foam.CLASS({
 
   // TODO: Remove need for sorting
   properties: [
-    [ 'factory', function() { return {} } ],
+    [ 'factory', function() { return {}; } ],
     [
       'comparePropertyValues',
       function(o1, o2) {
@@ -919,7 +919,7 @@ foam.CLASS({
             this[self.name][k] = v;
             // Force property update
             this.propertyChange.pub(self.name, this.slot(self.name));
-          }
+          };
         },
         configurable: true
       });
@@ -930,10 +930,10 @@ foam.CLASS({
             delete this[self.name][k];
             // Force property update
             this.propertyChange.pub(self.name, this.slot(self.name));
-          }
+          };
         },
         configurable: true
-      })
+      });
     }
   ]
 });
@@ -998,7 +998,7 @@ foam.CLASS({
         }
         return false;
       }
-    ],
+    ]
   ],
 
   methods: [

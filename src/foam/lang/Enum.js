@@ -210,7 +210,7 @@ foam.CLASS({
   extends: 'Model',
 
   requires: [
-    'foam.lang.internal.EnumValueAxiom',
+    'foam.lang.internal.EnumValueAxiom'
   ],
 
   documentation: 'Model for defining Enum(erations).',
@@ -359,7 +359,7 @@ foam.CLASS({
     function toSummary() { return this.label; },
     function toStyle() {
       var style = {
-        'display': 'inline-block'
+        display: 'inline-block'
       };
 
       if ( this.color      ) style.color          = this.color;
@@ -402,7 +402,7 @@ foam.CLASS({
         if ( foam.String.isInstance(n) ) n = foam.lookup(this.type)[n];
         if ( foam.Object.isInstance(n) && n.class )
           n = foam.lookup(n.class).create(n);
-        return n
+        return n;
       },
       expression: function(type) {
         return type && foam.lookup(type).VALUES[0];

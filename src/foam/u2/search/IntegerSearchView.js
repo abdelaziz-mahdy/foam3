@@ -40,7 +40,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'qualifier',
-      documentation: `Lets the user choose an MLang predicate to filter by.`,
+      documentation: `Lets the user choose an MLang predicate to filter by.`
     },
     {
       class: 'Float',
@@ -97,7 +97,7 @@ foam.CLASS({
                 ['Gt', this.LABEL_GT],
                 ['Lt', this.LABEL_LT],
                 ['Gte', this.LABEL_GTE],
-                ['Lte', this.LABEL_LTE],
+                ['Lte', this.LABEL_LTE]
               ],
               defaultValue: 'True'
             })

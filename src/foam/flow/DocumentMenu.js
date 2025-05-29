@@ -39,7 +39,7 @@ foam.CLASS({
               label:  doc.title || foam.String.labelize(doc.id),
               parent: this.id,
               handler: this.DocumentFileMenu.create({
-                docKey: doc.id,
+                docKey: doc.id
               })
             });
             aDAO.put(menu);

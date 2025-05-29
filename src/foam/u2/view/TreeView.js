@@ -121,7 +121,7 @@ foam.CLASS({
           enableClass(this.myClass('select-level-selected'), row.selected_$).
           callIfElse(row.rowConfig?.[row.data.id],
             function() {
-              this.tag(row.rowConfig?.[row.data.id])
+              this.tag(row.rowConfig?.[row.data.id]);
             },
             function() {
               this.start()
@@ -136,7 +136,7 @@ foam.CLASS({
             return self.E().
               addClass(self.myClass('toggle-icon')).
               style({
-                'transform': row.expanded$.map(function(c) { return c ? 'rotate(90deg)': 'rotate(0deg)'; })
+                transform: row.expanded$.map(function(c) { return c ? 'rotate(90deg)': 'rotate(0deg)'; })
               }).
               on('click', this.toggleExpanded).
               tag(self.Image, { glyph: 'next' });

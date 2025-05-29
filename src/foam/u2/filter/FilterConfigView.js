@@ -63,13 +63,13 @@ foam.CLASS({
       const of = self.dao.of;
       this.ctrl.add(this.overlay_);
       let props = of.getAxiomsByClass(foam.lang.Property)
-        .filter( m => m.searchView && m.name != 'reactions_' && ! m.hidden )
-      let availableProps = []
+        .filter( m => m.searchView && m.name != 'reactions_' && ! m.hidden );
+      let availableProps = [];
       await Promise.all(props.map(p => {
         if ( ! this.auth || ! p.columnPermissionRequired )
           availableProps.push(p);
         else
-          this.auth.check(null, `${of.name.toLowerCase()}.column.${p.name}`).then(v => v && availableProps.push(p))
+          this.auth.check(null, `${of.name.toLowerCase()}.column.${p.name}`).then(v => v && availableProps.push(p));
       }));
       props = availableProps;
       this.overlay_.start()
@@ -83,7 +83,7 @@ foam.CLASS({
         .add(self.dynamic(function(filterView$filters, filterSearch, reload_) {
           var filteredProps = filterView$filters.filter(function(f) {
             return f.toLowerCase().includes(filterSearch.toLowerCase());
-          }).map(key => props.find(v => v.name == key))
+          }).map(key => props.find(v => v.name == key));
           if ( ! filteredProps?.length ) return;
           this.start()
             .start('p').addClass('p-label')
@@ -102,14 +102,14 @@ foam.CLASS({
         .add(self.dynamic(function(filterView$filters, filterSearch, reload_) {
           var otherProps = props.filter(function(f) {
             return f.name.toLowerCase().includes(filterSearch.toLowerCase()) && ! filterView$filters.includes(f.name);
-          })
+          });
           if ( ! otherProps?.length ) return;
           this.start()
             .start().addClass('p-label')
               .add(self.OPTIONS)
             .end()
             .forEach(otherProps, function(prop) {
-              var data = foam.lang.SimpleSlot.create({ value: false })
+              var data = foam.lang.SimpleSlot.create({ value: false });
               this.start()
                 .on('click', () => self.selectFilter(prop, data))
                 .tag({ class: 'foam.u2.CheckBox', data$: data, label: prop.columnLabel })
@@ -117,7 +117,7 @@ foam.CLASS({
             }).end();
         }))
       .end();
-      this.overlay_.open(x,y)
+      this.overlay_.open(x,y);
     },
 
     function selectFilter(key, data) {
@@ -138,6 +138,6 @@ foam.CLASS({
         this.filterView.filters$splice(index, 1);
         this.propertyChange.pub('reload_', this.reload_$);
       }
-    },
+    }
   ]
-})
+});

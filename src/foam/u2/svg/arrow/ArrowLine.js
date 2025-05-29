@@ -34,7 +34,7 @@ foam.CLASS({
 
   methods: [
     function render() {
-      console.log('amaline', this)
+      console.log('amaline', this);
       this.SUPER();
       var dy = Math.abs(this.endPos[1] - this.startPos[1]);
       var dx = Math.abs(this.endPos[0] - this.startPos[0]);
@@ -44,20 +44,20 @@ foam.CLASS({
           this.startPos[0],
           this.startPos[1],
           this.startPos[0],
-          this.startPos[1] + 0.5 * dy,
+          this.startPos[1] + 0.5 * dy
         ],
         [
           this.endPos[0],
           this.endPos[1] - 0.5 * dy,
           this.endPos[0],
-          this.endPos[1],
+          this.endPos[1]
         ],
         [
           this.startPos[0],
           this.startPos[1] + 0.5 * dy,
           this.endPos[0],
-          this.endPos[1] - 0.5 * dy,
-        ],
+          this.endPos[1] - 0.5 * dy
+        ]
       ];
       this
         .forEach(lines, function (line) {
@@ -92,7 +92,7 @@ foam.CLASS({
         var lines = [];
         let lastNode = startPos;
         for ( let anchor of anchors ) {
-          lines.push([lastNode, anchor])
+          lines.push([lastNode, anchor]);
           // lines.push([
           //   lastNode[0], lastNode[1], // x1, y1
           //   anchor[0]  , anchor[1]    // x2, y2
@@ -120,8 +120,8 @@ foam.CLASS({
     function render() {
       this.SUPER();
       this
-        .on('mouseover', () => { this.hoverState = true })
-        .on('mouseleave', () => { this.hoverState = false })
+        .on('mouseover', () => { this.hoverState = true; })
+        .on('mouseleave', () => { this.hoverState = false; })
         .on('click', () => { this.toggleState = ! this.toggleState; })
         .forEach(this.lines, function (line) {
           this
@@ -132,7 +132,7 @@ foam.CLASS({
                 x2: line[1].x$,
                 y2: line[1].y$,
                 stroke: this.stroke$,
-                'stroke-width': 3,
+                'stroke-width': 3
               })
             .end()
             ;

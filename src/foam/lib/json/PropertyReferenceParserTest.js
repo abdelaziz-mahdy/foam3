@@ -55,7 +55,7 @@ foam.CLASS({
         {
           name: 'message',
           type: 'String'
-        },
+        }
       ],
       javaCode: `
         // setup parser

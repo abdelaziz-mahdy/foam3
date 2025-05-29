@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.u2.View',
   requires: [
     'foam.u2.PropertyBorder',
-    'foam.u2.tag.TextArea',
+    'foam.u2.tag.TextArea'
   ],
   properties: [
     {
@@ -20,7 +20,7 @@ foam.CLASS({
       view: function(_, x) {
         return x.data.TextArea.create({
           rows: x.data.rows,
-          cols: x.data.cols,
+          cols: x.data.cols
         });
       },
       expression: function(data) {

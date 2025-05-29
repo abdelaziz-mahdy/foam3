@@ -34,7 +34,7 @@ foam.CLASS({
       javaDiffProperty: '// noop',
       javaCompare: 'return 0;',
       javaComparePropertyToObject: 'return 0;',
-      javaComparePropertyToValue: 'return 0;',
+      javaComparePropertyToValue: 'return 0;'
     }
   ],
 
@@ -52,7 +52,7 @@ foam.CLASS({
         [
           {
             name: 'o',
-            type: 'Object',
+            type: 'Object'
           }
         ],
       javaCode: `
@@ -64,7 +64,7 @@ foam.CLASS({
       code: function(other) {
         if ( other === null ) return 1;
         return this.id.localeCompare(other.id);
-      },
-    },
+      }
+    }
   ]
 });

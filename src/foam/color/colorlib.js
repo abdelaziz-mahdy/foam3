@@ -159,7 +159,7 @@ foam.LIB({
         lightyellow: "#ffffe0",
         ivory: "#fffff0",
         white: "#ffffff"
-      },
+      }
     },
     {
       name: 'COLOR_TO_NAME',

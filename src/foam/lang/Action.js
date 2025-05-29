@@ -158,7 +158,7 @@ If empty then no permissions are required.`
       generateJava: false,
       name: 'enabledPermissions',
       documentation: `Permissions required for the action to be enabled.
-If empty then no permissions are required.`,
+If empty then no permissions are required.`
     },
     {
       class: 'StringArray',

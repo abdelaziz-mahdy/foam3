@@ -31,7 +31,7 @@ foam.CLASS({
   ],
 
   exports: [
-    'filteredTableColumns',
+    'filteredTableColumns'
   ],
 
   properties: [

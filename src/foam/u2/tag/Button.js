@@ -45,11 +45,11 @@ foam.CLASS({
     },
     {
       name: 'buttonSecondaryBorderColor',
-      value: function(e) { return e.LIGHTEN(e.TOKEN('$buttonSecondaryColor'), -40) }
+      value: function(e) { return e.LIGHTEN(e.TOKEN('$buttonSecondaryColor'), -40); }
     },
     {
       name: 'buttonPrimaryLightColor',
-      value: function(e) { return e.FROM_HUE(e.TOKEN('$buttonPrimaryColor'), 41, 90) }
+      value: function(e) { return e.FROM_HUE(e.TOKEN('$buttonPrimaryColor'), 41, 90); }
     }
   ],
 
@@ -504,7 +504,7 @@ foam.CLASS({
         this.nodeName = 'i';
         this.addClass(this.action.name);
         this.addClass(this.iconFontClass); // required by font package
-        this.attr(role, 'presentation')
+        this.attr(role, 'presentation');
         this.style({ 'font-family': this.iconFontFamily });
         this.add(this.iconFontName);
       }
@@ -522,9 +522,9 @@ foam.CLASS({
           e.add(this.label$);
         }
         return e;
-      }))
+      }));
 
-      this.attrs({ 'data-loading': this.loading_$ })
+      this.attrs({ 'data-loading': this.loading_$ });
       this.add(this.slot(function(loading_) {
         return loading_ ? this.E().tag(self.LoadingSpinner, {size: '100%'}).addClass(self.myClass('loading')) : this.E().hide();
       }));

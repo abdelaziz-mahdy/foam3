@@ -22,7 +22,7 @@ access to an FObject under different circumstances.`,
         {
           name: 'obj',
           type: 'foam.lang.FObject'
-        },
+        }
       ],
       javaThrows: [
         'foam.core.auth.AuthorizationException'
@@ -38,7 +38,7 @@ access to an FObject under different circumstances.`,
         {
           name: 'obj',
           type: 'foam.lang.FObject'
-        },
+        }
       ],
       javaThrows: [
         'foam.core.auth.AuthorizationException'
@@ -58,7 +58,7 @@ access to an FObject under different circumstances.`,
         {
           name: 'newObj',
           type: 'foam.lang.FObject'
-        },
+        }
       ],
       javaThrows: [
         'foam.core.auth.AuthorizationException'

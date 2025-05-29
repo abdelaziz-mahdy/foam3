@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.swift.parse',
   name: 'StringPStream',
   implements: [
-    'foam.swift.parse.PStream',
+    'foam.swift.parse.PStream'
   ],
   properties: [
     {
@@ -19,34 +19,34 @@ if let s = newValue as? String {
   return Array(s)
 }
 return newValue as! [Character]
-      `,
+      `
     },
     {
-      name: 'value_',
+      name: 'value_'
     },
     {
       class: 'Int',
-      name: 'pos',
+      name: 'pos'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.swift.parse.StringPStream',
       required: false,
-      name: 'tail_',
-    },
+      name: 'tail_'
+    }
   ],
   methods: [
     {
       name: 'head',
       swiftCode: `
 return str[pos]
-      `,
+      `
     },
     {
       name: 'valid',
       swiftCode: `
 return pos < str.count
-      `,
+      `
     },
     {
       name: 'tail',
@@ -58,7 +58,7 @@ if tail_ == nil {
   ])
 }
 return tail_!
-      `,
+      `
     },
     {
       name: 'substring',
@@ -66,13 +66,13 @@ return tail_!
 let startIndex = pos
 let endIndex = (end as! foam_swift_parse_StringPStream).pos
 return String(str[startIndex..<endIndex])
-      `,
+      `
     },
     {
       name: 'value',
       swiftCode: `
 return value_
-      `,
+      `
     },
     {
       name: 'setValue',
@@ -83,7 +83,7 @@ let ps = foam_swift_parse_StringPStream([
   "value_": value,
 ])
 return ps
-      `,
-    },
+      `
+    }
   ]
 });

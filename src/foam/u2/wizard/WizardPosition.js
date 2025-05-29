@@ -60,7 +60,7 @@ foam.CLASS({
         return this.cls_.create({
           wizardletIndex: wi,
           sectionIndex: this.sectionIndex + 1
-        }, this.__context__)
+        }, this.__context__);
       }
 
       // Move to next wizardlet if one exists,
@@ -83,7 +83,7 @@ foam.CLASS({
         return this.cls_.create({
           wizardletIndex: wi,
           sectionIndex: this.sectionIndex - 1
-        }, this.__context__)
+        }, this.__context__);
       }
 
       // Move to previous wizardlet if one exists

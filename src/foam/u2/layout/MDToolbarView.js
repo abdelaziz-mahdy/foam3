@@ -20,7 +20,7 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.addClass()
+      this.addClass();
       this
         .start('toolbar')
           .start('div').add(this.leftAction$).addClass('left').end()
@@ -47,5 +47,5 @@ foam.CLASS({
       box-shadow: 0px 0px 50px 0px $primary700;
       color: $grey300;
     }
-  `,
+  `
 });

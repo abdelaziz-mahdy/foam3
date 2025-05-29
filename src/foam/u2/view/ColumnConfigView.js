@@ -319,7 +319,7 @@ foam.CLASS({
             rootProperty: rootProperty,
             level: 0,
             of: data.of,
-            selectedColumns$: data.selectedColumnNames$,
+            selectedColumns$: data.selectedColumnNames$
           }, this));
           topLevelProps.push(rootPropertyName);
         }
@@ -362,7 +362,7 @@ foam.CLASS({
             rootProperty: rootProperty,
             level: 0,
             of: data.of,
-            selectedColumns$: data.selectedColumnNames$,
+            selectedColumns$: data.selectedColumnNames$
           }, this));
         }
         nonSelectedViewModels.sort((a, b) => {
@@ -381,7 +381,7 @@ foam.CLASS({
       isMerged: true,
       mergeDelay: 500,
       code: function() {
-        var query = this.menuSearch.trim().toLowerCase()
+        var query = this.menuSearch.trim().toLowerCase();
         for ( var i = 0 ; i < this.columns.length ; i++ ) {
           this.columns[i].updateOnSearch(query);
         }
@@ -433,7 +433,7 @@ foam.CLASS({
       value: { class:'foam.u2.view.ColumnViewBody'}
     },
     {
-      name: 'prop',
+      name: 'prop'
     },
     'index',
     {
@@ -485,7 +485,7 @@ foam.CLASS({
               on('dragleave',   self.onDragLeave.bind(self)).
               on('drop',        self.onDrop.bind(self));
           })
-          .style({'cursor': prop.isPropertySelected$ ? 'pointer' : 'default'})
+          .style({cursor: prop.isPropertySelected$ ? 'pointer' : 'default'})
           .show(self.prop.showOnSearch$)
           .start()
             .add(foam.u2.ViewSpec.createView(self.head, {data$:self.prop$, onSelectionChangedParentFunction:self.onSelectionChangedParentFunction, onGroupByChangedParentFunction:self.onGroupByChangedParentFunction },  self, self.__subSubContext__))
@@ -613,13 +613,13 @@ foam.CLASS({
                        }
                        return this.E()
                        .start(self.Image, { data: image , displayHeight: '1.5em' , displayWidth: '1.5em' })
-                       .end()
-                     }))
+                       .end();
+                     }));
                    }
                    else {
                      this
                      .start().add(self.CheckBox.create({ data$: self.data.isPropertyGrouped$ }))
-                     .end()
+                     .end();
                    }
                  })
                  .on('click', this.toggleGroup)
@@ -633,9 +633,9 @@ foam.CLASS({
               .show(this.data.hasSubProperties)
               .style({
                 'vertical-align': 'middle',
-                'visibility':     'visible',
-                'float':          'right',
-                'transform':      this.data.expanded$.map(function(c) { return c ? 'rotate(180deg)' : 'rotate(90deg)'; })
+                visibility:     'visible',
+                float:          'right',
+                transform:      this.data.expanded$.map(function(c) { return c ? 'rotate(180deg)' : 'rotate(90deg)'; })
               })
               .addClass('h500')
               .on('click', this.toggleExpanded)
@@ -695,7 +695,7 @@ foam.CLASS({
             onGroupChanged: this.onGroupChanged,
             onSelectionChangedParentFunction: this.onChildrenSelectionChanged.bind(this),
             onGroupByChangedParentFunction: this.onChildrenGroupByChanged.bind(this),
-            onDragAndDropParentFunction: this.onChildrenDragAndDrop.bind(this),
+            onDragAndDropParentFunction: this.onChildrenDragAndDrop.bind(this)
           }));
         }
         return arr;
@@ -820,7 +820,7 @@ foam.CLASS({
         if ( ! this.of || ! this.of.getAxiomByName )
           return [];
         if ( prop && prop.cls_ && ( foam.lang.FObjectProperty.isInstance(prop) || ( foam.lang.Reference.isInstance(prop) && prop.showSubColumns ) ) )
-          return prop.of.getAxiomsByClass(foam.lang.Property).map(p => { if ( ! foam.dao.DAOProperty.isInstance(p) )  return [p.name, this.columnHandler.returnAxiomHeader(p)] }).filter(e => e != undefined);
+          return prop.of.getAxiomsByClass(foam.lang.Property).map(p => { if ( ! foam.dao.DAOProperty.isInstance(p) )  return [p.name, this.columnHandler.returnAxiomHeader(p)]; }).filter(e => e != undefined);
         return [];
       }
     },
@@ -850,7 +850,7 @@ foam.CLASS({
     },
     {
       name: 'level',
-      class: 'Int',
+      class: 'Int'
     },
     {
       name: 'parentExpanded',

@@ -47,7 +47,7 @@ foam.CLASS({
             data: this,
             prop: this.SEARCH
           })
-        .endContext()
+        .endContext();
     }
   ]
 });

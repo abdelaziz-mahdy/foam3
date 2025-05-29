@@ -26,7 +26,7 @@ foam.CLASS({
     {
       class: 'StringArray',
       name: 'annotations'
-    },
+    }
   ],
 
   methods: [

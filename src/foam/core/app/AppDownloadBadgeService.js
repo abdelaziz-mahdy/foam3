@@ -91,7 +91,7 @@ foam.CLASS({
               .add(this.APP_DOWNLOAD_TITLE)
             .end()
             .add(this.APP_DOWNLOAD_SUB)
-            .tag(this.AppBadgeView, {legalTextAbsolute: false})
+            .tag(this.AppBadgeView, {legalTextAbsolute: false});
             this.popup.open();
 
             // Remove the referral token from the URL
@@ -100,7 +100,7 @@ foam.CLASS({
             url.searchParams.delete('utm_id');
             window.history.replaceState('', '', url);
 
-          }})
+          }});
         }
       );
     }

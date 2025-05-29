@@ -12,11 +12,11 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'key',
+      name: 'key'
     },
     {
       class: 'String',
-      name: 'qrCode',
+      name: 'qrCode'
     }
   ]
 });

@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     'currentLine',
     { class: 'Int', name: 'nextLabel_' },
-    { name: 'vars', factory: function() { return { '_d': true }; } },
+    { name: 'vars', factory: function() { return { _d: true }; } },
     { name: 'defs', factory: function() { return []; } },
     { name: 'data', factory: function() { return []; } },
     { name: 'fors', factory: function() { return {}; } },
@@ -109,7 +109,7 @@ foam.CLASS({
               optional('$')
             ))
           };
-        }
+        };
       }
     }
   ],
@@ -118,7 +118,7 @@ foam.CLASS({
     function init() {
       var self = this;
       this.addActions({
-        START: function(lines) { return self.jsGenerator(lines).replace(/\n      /g,'\n').substring(1); },
+        START: function(lines) { return self.jsGenerator(lines).replace(/\n {6}/g,'\n').substring(1); },
         lineNumber: function(a) { self.currentLine = a; return a; },
         input: function(a) {
           a[3].forEach(v => self.addVar(v));
@@ -185,7 +185,7 @@ foam.CLASS({
             return `${s} = _data[_d++];`;
           }).join('');
         },
-        return: function() { return '_line = _stack.pop(); break;' },
+        return: function() { return '_line = _stack.pop(); break;'; },
         xxxsyntaxerror: function(a) {
           return ' SYNTAX ERROR: ' + a;
         }
@@ -250,7 +250,7 @@ foam.CLASS({
     function LEN(s) { return s.length; },
     function LOG(n) { return Math.log(n); },
     function MID$(s, b, n) { return s.substring(b-1, b+n-1); },
-    function RANGE(i, end, incr) { return incr > 0 ? i <= end : i >= end },
+    function RANGE(i, end, incr) { return incr > 0 ? i <= end : i >= end; },
     function RIGHT$(s, n) { return s.substring(s.length-n); },
     function RND(n) { return Math.random(); },
     function SGN(n) { return Math.sign(n); },

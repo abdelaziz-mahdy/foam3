@@ -56,7 +56,7 @@ foam.CLASS({
     'ticketDAO',
     'ticketStatusDAO',
     'userDAO',
-    'ticketCommentDAO',
+    'ticketCommentDAO'
   ],
 
   tableColumns: [
@@ -300,7 +300,7 @@ foam.CLASS({
       createVisibility: 'HIDDEN',
       updateVisibility: 'RO',
       includeInDigest: true,
-      section: 'metaSection',
+      section: 'metaSection'
     },
     {
       class: 'Reference',
@@ -320,7 +320,7 @@ foam.CLASS({
       updateVisibility: 'RO',
       includeInDigest: true,
       projectionSafe: false,
-      section: 'metaSection',
+      section: 'metaSection'
     },
     {
       class: 'DateTime',
@@ -337,7 +337,7 @@ foam.CLASS({
       createVisibility: 'HIDDEN',
       updateVisibility: 'RO',
       projectionSafe: false,
-      section: 'metaSection',
+      section: 'metaSection'
     },
     {
       class: 'Reference',
@@ -346,7 +346,7 @@ foam.CLASS({
       createVisibility: 'HIDDEN',
       updateVisibility: 'RO',
       projectionSafe: false,
-      section: 'metaSection',
+      section: 'metaSection'
     },
     {
       name: 'summary',

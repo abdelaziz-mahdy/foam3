@@ -9,12 +9,12 @@ foam.CLASS({
   name: 'UnknownPropertyParser',
   extends: 'foam.swift.parse.parser.ProxyParser',
   requires: [
-    'foam.swift.parse.json.KeyValueParser0',
+    'foam.swift.parse.json.KeyValueParser0'
   ],
   properties: [
     {
       name: 'delegate',
-      swiftFactory: 'return KeyValueParser0_create()',
-    },
-  ],
+      swiftFactory: 'return KeyValueParser0_create()'
+    }
+  ]
 });

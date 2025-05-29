@@ -15,7 +15,7 @@ foam.CLASS({
     'blobService'
   ],
   properties: [
-    'data',
+    'data'
   ],
   methods: [
     function render() {

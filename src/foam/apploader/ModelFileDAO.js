@@ -88,7 +88,7 @@ foam.CLASS({
             var ti = t.lastIndexOf('.');
 
             r.class = r.class || 'foam.dao.Relationship';
-            r.package = r.package || s.substring(0, si)
+            r.package = r.package || s.substring(0, si);
             r.name = r.name || s.substring(si+1) + t.substring(ti+1) + 'Relationship';
             context.foam.CLASS(r);
             if ( jsonId !== id ) {

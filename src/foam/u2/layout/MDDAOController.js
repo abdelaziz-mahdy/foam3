@@ -60,7 +60,7 @@ foam.CLASS({
           class: 'foam.u2.dao.MDDAOList',
           data: this.data,
           rowView: { class: 'foam.u2.layout.MDRowView' }
-        }
+        };
       }
     },
     {

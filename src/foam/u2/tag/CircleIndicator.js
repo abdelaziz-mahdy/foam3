@@ -110,12 +110,12 @@ foam.CLASS({
         .style({
           'background-color': this.backgroundColor,
           'border-color': this.stateBorderColor_$,
-          'width': size,
-          'height': size,
-          'color': this.textColor$,
-          'border': this.borderThickness + 'px solid',
-          'padding': this.padding,
-          'cursor': this.ExpressionSlot.create({
+          width: size,
+          height: size,
+          color: this.textColor$,
+          border: this.borderThickness + 'px solid',
+          padding: this.padding,
+          cursor: this.ExpressionSlot.create({
             obj: this,
             code: function (clickable) {
               return clickable ? 'pointer' : 'default';

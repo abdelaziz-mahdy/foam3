@@ -26,7 +26,7 @@
         return [];
       },
       javaFactory: 'return new String[0];'
-    },
+    }
   ],
 
   methods: [
@@ -35,7 +35,7 @@
       type: 'String',
       code: function() {
         if ( this.approvableIds.length === 0 ){
-          return this.id
+          return this.id;
         }
 
         var  firstApprovable = this.approvableIds[0];
@@ -43,7 +43,7 @@
         return this.__subContext__[this.daoKey].find(firstApprovable.id).then(obj => {
           return obj 
             ? `${obj.toSummary()},...`
-            :  `${this.id},...`
+            :  `${this.id},...`;
         });
       }
       // TODO: implement javaCode not needed now

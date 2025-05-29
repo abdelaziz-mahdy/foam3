@@ -10,18 +10,18 @@ foam.CLASS({
   refines: 'foam.lang.internal.InterfaceMethod',
   flags: ['swift'],
   requires: [
-    'foam.swift.ProtocolMethod',
+    'foam.swift.ProtocolMethod'
   ],
   properties: [
     {
       class: 'Boolean',
       name: 'swiftSupport',
-      value: true,
+      value: true
     },
     {
       class: 'String',
       name: 'swiftCode',
-      value: 'fatalError()',
+      value: 'fatalError()'
     }
   ],
   methods: [
@@ -32,8 +32,8 @@ foam.CLASS({
         name: this.swiftName,
         returnType: this.swiftType,
         args: this.swiftArgs,
-        throws: this.swiftThrows,
+        throws: this.swiftThrows
       }));
-    },
+    }
   ]
 });

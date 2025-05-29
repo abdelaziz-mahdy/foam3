@@ -22,7 +22,7 @@ foam.CLASS({
     {
       class: 'StringArray',
       name: 'types',
-      shortName: 'types',
+      shortName: 'types'
     }
   ],
 
@@ -38,4 +38,4 @@ foam.CLASS({
       `
     }
   ]
-})
+});

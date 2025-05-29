@@ -58,7 +58,7 @@ foam.CLASS({
       ret = this.menu.handler.select(this.__subContext__, this.menu);
       if ( ret && ret.then ) {
         this.loading_ = true;
-        ret.then(() => { this.loading_ = false; })
+        ret.then(() => { this.loading_ = false; });
       }
       if ( this.parentMenuDropdown ) this.parentMenuDropdown.close();
       return;

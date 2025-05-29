@@ -48,7 +48,7 @@ foam.CLASS({
             },
             {
               name: 'value',
-              label: data$data$arg2.label || data$data$arg2.cls_.name,
+              label: data$data$arg2.label || data$data$arg2.cls_.name
             },
             {
               name: 'listDAOName'
@@ -77,7 +77,7 @@ foam.CLASS({
               searchKey: self.searchKey,
               listDAOName: self.listDAOName
             }));
-          })
+          });
           return self.E()
             .addClass(this.myClass())
             .select(dao, function(obj) {
@@ -91,7 +91,7 @@ foam.CLASS({
                   .end()
                 .end();
            });
-       }))
+       }));
     }
   ],
 

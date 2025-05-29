@@ -41,12 +41,12 @@
        view: 'MultiPartTextField'
      }
    ]
- })
+ });
 
  var mptft = MultiPartTextFieldTest.create({val:'1234567'});
  foam.u2.DetailView.create({ data: mptft }).write();
  foam.u2.DetailView.create({ data: mptft }).write();
- mptft.val$.sub(function() { console.log('***** value: ', mptft.val)});
+ mptft.val$.sub(function() { console.log('***** value: ', mptft.val);});
 
 
 
@@ -455,9 +455,9 @@ foam.CLASS({
 
   actions: [
     function becomeString()  { this.anyValue = 'a String'; },
-    function becomeBoolean() { this.anyValue = true},
+    function becomeBoolean() { this.anyValue = true;},
     function becomeInt()     { this.anyValue = 42; },
-    function becomeDate()    { this.anyValue = new Date(); },
+    function becomeDate()    { this.anyValue = new Date(); }
   ]
 });
 
@@ -696,11 +696,11 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'textField',
+      name: 'textField'
     },
     {
       class: 'Boolean',
-      name: 'booleanField',
+      name: 'booleanField'
     },
     {
       class: 'Date',
@@ -735,7 +735,7 @@ foam.CLASS({
         class: 'foam.u2.TextField',
         choices: [ 'Red', 'Green', 'Blue', 'Purple', 'Peach', 'Pink' ]
       }
-    },
+    }
   ]
 });
 

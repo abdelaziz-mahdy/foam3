@@ -14,8 +14,8 @@ foam.CLASS({
   methods: [
     {
       name: 'parse',
-      swiftCode: 'return nil',
-    },
+      swiftCode: 'return nil'
+    }
   ]
 });
 

@@ -49,5 +49,5 @@ foam.CLASS({
       }));
       this.content = this.futureContent_;
     }
-  ],
+  ]
 });

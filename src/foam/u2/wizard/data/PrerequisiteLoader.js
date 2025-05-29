@@ -109,7 +109,7 @@ foam.CLASS({
 
       if ( ! prereqWizardletData ) {
         // if data is undefined then create a fresh instance
-        prereqWizardletData = this.of.create({}, this)
+        prereqWizardletData = this.of.create({}, this);
       }
 
       let clonedPrereqWizardletData;
@@ -119,7 +119,7 @@ foam.CLASS({
 
         if ( ! loadedFromData ) {
           console.error(
-            `prerequisiteCapabilityId: ${this.prerequisiteCapabilityId}'s data returns null for the path ${this.loadFromPath.toString()}`,
+            `prerequisiteCapabilityId: ${this.prerequisiteCapabilityId}'s data returns null for the path ${this.loadFromPath.toString()}`
           );
           if ( this.of ) {
             return initialData || this.of.create({}, this);

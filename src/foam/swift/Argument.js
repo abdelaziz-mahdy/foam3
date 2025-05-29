@@ -14,12 +14,12 @@ foam.CLASS({
     'localName',
     {
       class: 'StringArray',
-      name: 'annotations',
+      name: 'annotations'
     },
     'type',
     'defaultValue',
     'mutable',
-    'escaping',
+    'escaping'
   ],
 
   methods: [

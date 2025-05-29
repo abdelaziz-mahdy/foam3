@@ -42,34 +42,34 @@ foam.CLASS({
       language: 'foam.parse.json.Parsers',
       symbols: function() {
         return {
-          'obj': seq1(3,
+          obj: seq1(3,
                       sym('ws'),
                      '{', sym('ws'),
                      repeat(sym('keyValue'), seq0(',', sym('ws'))),
                      sym('ws'),
                      '}',
                      sym('ws')),
-          'keyValue': seq(sym('key'), sym('ws'),
+          keyValue: seq(sym('key'), sym('ws'),
                           ':', sym('ws'),
                           sym('value'), sym('ws')),
 
-          'key': alt(string(),
+          key: alt(string(),
                      sym('identifier')),
 
-          'ws': repeat0(chars(' \t\r\n')),
+          ws: repeat0(chars(' \t\r\n')),
 
           // TODO: Support all valid characters, should consult unicode tables for things like ID_Start
-          'id_start': alt(
+          id_start: alt(
             range('a', 'z'),
             range('A', 'Z'),
             '_',
             '$'),
 
-          'identifier': substring(seq0(
+          identifier: substring(seq0(
             sym('id_start'),
             repeat0(alt(range('0', '9'), sym('id_start'))))),
 
-          'value': alt(
+          value: alt(
             string(),
             sym('null'),
             sym('undefined'),
@@ -78,18 +78,18 @@ foam.CLASS({
             sym('array'),
             sym('obj')),
 
-          'null': literal('null', null),
-          'undefined': literal('undefined', undefined),
-          'number': substring(seq0(optional('-'),
+          null: literal('null', null),
+          undefined: literal('undefined', undefined),
+          number: substring(seq0(optional('-'),
                              repeat0(range('0', '9'), null, 1),
                              optional(
                                seq0('.', repeat0(range('0', '9')))),
                              optional(
                                seq0('e', alt('-', '+'), repeat0(range('0', '9')))))),
-          'bool': alt(literal('true', true),
+          bool: alt(literal('true', true),
                       literal('false', false)),
 
-          'array': seq1(2,
+          array: seq1(2,
                         '[', sym('ws'),
                         repeat(sym('value'), seq0(',', sym('ws'))), sym('ws'),
                        ']', sym('ws'))
@@ -101,7 +101,7 @@ foam.CLASS({
           for ( var i = 0 ; i < a.length ; i++ ) {
             obj[a[i][0]] = a[i][4];
           }
-          return obj
+          return obj;
         },
         function number(a) {
           return parseFloat(a);

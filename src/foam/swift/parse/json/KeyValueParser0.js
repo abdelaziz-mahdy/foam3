@@ -13,7 +13,7 @@ foam.CLASS({
     'foam.swift.parse.json.AnyParser',
     'foam.swift.parse.json.Whitespace',
     'foam.swift.parse.parser.Literal',
-    'foam.swift.parse.parser.Seq0',
+    'foam.swift.parse.parser.Seq0'
   ],
   properties: [
     {
@@ -27,7 +27,7 @@ return
     Literal_create(["string": ":"]),
     AnyParser_create(),
   ]])
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

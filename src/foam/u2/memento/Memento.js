@@ -163,7 +163,7 @@ foam.CLASS({
       // This only works for one level of nesting, can we use a foam parser?
       s.split(/&(?=[^\}]*(?:\{|$))/).forEach(p => {
         // Limit split to one in order to preserve nested mementos
-        var [k,v] = p.split(/=(.*)/, 2)
+        var [k,v] = p.split(/=(.*)/, 2);
         arr.push([k,v]);
       });
       return arr;
@@ -177,7 +177,7 @@ foam.CLASS({
         s = s.substring(i+1);
         s = route.map(p => 'route=' + p).join('&') + (s ? '&' + s : '');
       }
-      return s
+      return s;
     },
 
     function encodeBindings(bs) {
@@ -316,7 +316,7 @@ foam.CLASS({
       this.onHashChange();
       this.window.onpopstate = this.onHashChange;
       this.usedStr$.sub(this.onMementoChange);
-      this.window.history.replaceState({},'',this.window.location.href)
+      this.window.history.replaceState({},'',this.window.location.href);
     }
   ],
 
@@ -340,9 +340,9 @@ foam.CLASS({
         let winRoute = this.window.location.hash.substring(1).split('?')[0];
         let self = this;
         if ( route == winRoute ) {
-          this.window.history.replaceState(null,'','#' + this.usedStr)
+          this.window.history.replaceState(null,'','#' + this.usedStr);
         } else {
-          this.window.history.pushState(null, '', '#' + this.usedStr)
+          this.window.history.pushState(null, '', '#' + this.usedStr);
         }
         // Title needs to be set here otherwise title changes before the memento does and we get incorrect document titles
         if ( this.breadcrumbs ) {

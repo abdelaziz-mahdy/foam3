@@ -22,7 +22,7 @@ foam.CLASS({
     properties: [
       {
         name: 'username',
-        class: 'String',
+        class: 'String'
       },
       {
         name: 'password',

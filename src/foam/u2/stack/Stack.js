@@ -33,7 +33,7 @@ foam.CLASS({
   ],
 
   exports: [
-    'memento_',
+    'memento_'
   ],
 
   constants: [
@@ -135,7 +135,7 @@ foam.CLASS({
       ) {
         let menu = this.currentMenu;
         await this.pushDefaultMenu();
-        this.menuListener(menu)
+        this.menuListener(menu);
       }
 
       if ( foam.u2.Element.isInstance(block.view) ) {

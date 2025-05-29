@@ -125,7 +125,7 @@ foam.CLASS({
         When provided overrides primary action to launch provided menu.
       `,
       postSet: function(_, n) {
-        this.primaryMenu$find.then(v => this.primaryAction = v)
+        this.primaryMenu$find.then(v => this.primaryAction = v);
       },
       value: null
     },
@@ -373,7 +373,7 @@ foam.CLASS({
       class: 'Reference',
       of: 'foam.core.menu.Menu',
       name: 'createMenu',
-      documentation: 'Used as the menu to create a new object for this DAO',
+      documentation: 'Used as the menu to create a new object for this DAO'
     },
     // Legacy support
     {

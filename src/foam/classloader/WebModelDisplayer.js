@@ -36,27 +36,27 @@ foam.CLASS({
 
   imports: [
     'classloader',
-    'window',
+    'window'
   ],
 
   exports: [
-    'stack',
+    'stack'
   ],
 
   properties: [
     {
-      name: 'model',
+      name: 'model'
     },
     {
-      name: 'view',
+      name: 'view'
     },
     {
       name: 'stack',
-      factory: function() { return this.Stack.create() },
+      factory: function() { return this.Stack.create(); }
     },
     {
       name: 'showStackViewActions',
-      value: true,
+      value: true
     },
     {
       name: 'locale',
@@ -69,10 +69,10 @@ foam.CLASS({
         if ( ! n ) return;
         var self = this;
         n.split(',').forEach(function(p) {
-          self.classloader.addClassPath(p)
+          self.classloader.addClassPath(p);
         });
-      },
-    },
+      }
+    }
   ],
 
   methods: [
@@ -120,9 +120,9 @@ foam.CLASS({
         self.stack.push(viewSpec);
         self.StackView.create({
           showActions: self.showStackViewActions,
-          data: self.stack,
+          data: self.stack
         }).write();
-      })
+      });
     }
   ]
 });

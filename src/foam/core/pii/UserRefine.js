@@ -23,7 +23,7 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'PII_ALREADY_OPEN',    message: 'PII Report Ticket already Open.' },
+    { name: 'PII_ALREADY_OPEN',    message: 'PII Report Ticket already Open.' }
   ],
 
   actions: [

@@ -142,7 +142,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'clearPMs',
-      docmentation: 'clear PMs before executing the benchmark',
+      docmentation: 'clear PMs before executing the benchmark'
     },
     {
       class: 'Boolean',

@@ -227,7 +227,7 @@ foam.CLASS({
           .start()
             .tag(this.MESSAGE)
           .end()
-        .end()
+        .end();
     }
   ],
 
@@ -301,7 +301,7 @@ foam.CLASS({
                   self.submitAsPopUp.close();
                 })
                 .end();
-            })
+            });
           }, this.status$));
 
         this.submitAsMenuBtn_.add(this.submitAsPopUp);

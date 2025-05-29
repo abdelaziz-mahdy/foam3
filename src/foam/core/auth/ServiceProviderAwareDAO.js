@@ -32,7 +32,7 @@ foam.CLASS({
     'java.util.ArrayList',
     'java.util.Arrays',
     'java.util.List',
-    'java.util.stream.Collectors',
+    'java.util.stream.Collectors'
   ],
 
   properties: [
@@ -43,7 +43,7 @@ foam.CLASS({
       javaFactory: `
       return (PropertyInfo) getOf().getAxiomByName("spid");
       `
-    },
+    }
   ],
 
   methods: [

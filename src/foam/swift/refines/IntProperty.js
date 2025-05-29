@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     {
       name: 'swiftOptional',
-      value: false,
+      value: false
     },
     {
       name: 'swiftAdapt',
@@ -26,14 +26,14 @@ if let i = newValue as? Int {
   return i > max ? max : i < min ? min : i
 }
 return 0
-        `
-      },
+        `;
+      }
     },
     {
       name: 'swiftView',
-      value: 'foam.swift.ui.FOAMUITextFieldInt',
-    },
-  ],
+      value: 'foam.swift.ui.FOAMUITextFieldInt'
+    }
+  ]
 });
 
 foam.CLASS({
@@ -74,10 +74,10 @@ var newValue = newValue
 if let str = newValue as? String { newValue = Int(str) }
 if let i = newValue as? Int { return i }
 return 0
-        `
-      },
-    },
-  ],
+        `;
+      }
+    }
+  ]
 });
 
 foam.CLASS({
@@ -94,8 +94,8 @@ var newValue = newValue
 if let str = newValue as? String { newValue = ${this.swiftType}(str) }
 if let i = newValue as? ${this.swiftType} { return i }
 return 0
-        `
-      },
-    },
-  ],
+        `;
+      }
+    }
+  ]
 });

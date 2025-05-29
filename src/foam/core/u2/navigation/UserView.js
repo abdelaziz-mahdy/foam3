@@ -28,7 +28,7 @@ foam.CLASS({
 
   requires: [
     'foam.core.menu.Menu',
-    'foam.core.menu.SubMenuView',
+    'foam.core.menu.SubMenuView'
   ],
 
   css: `

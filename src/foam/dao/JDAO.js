@@ -32,7 +32,7 @@ foam.CLASS({
           // TODO: can't use `requires` for class used inside factory
           sink = foam.dao.JournalSink.create({
             journal: self.journal,
-            dao: self.delegate,
+            dao: self.delegate
           });
           dao.listen(sink);
           return dao;

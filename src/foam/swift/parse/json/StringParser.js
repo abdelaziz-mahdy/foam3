@@ -33,7 +33,7 @@ while ps.valid() {
   ps = ps.tail()!
 }
 return ps.tail()!.setValue(sb)
-      `,
-    },
+      `
+    }
   ]
 });

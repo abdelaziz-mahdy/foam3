@@ -9,21 +9,21 @@ foam.CLASS({
   name: 'Serializer',
   requires: [
     'foam.json2.Outputter',
-    'foam.json2.PrettyOutputterOutput',
+    'foam.json2.PrettyOutputterOutput'
   ],
   methods: [
     function stringify(x, v) {
       var serializer = this.InnerSerializer.create();
       serializer.output(x, v);
       return serializer.getString();
-    },
+    }
   ],
   classes: [
     {
       name: 'InnerSerializer',
       requires: [
         'foam.json2.Outputter',
-        'foam.json2.PrettyOutputterOutput',
+        'foam.json2.PrettyOutputterOutput'
       ],
       properties: [
         {
@@ -32,7 +32,7 @@ foam.CLASS({
           name: 'out',
           factory: function() {
             return this.Outputter.create({
-              out: this.PrettyOutputterOutput.create(),
+              out: this.PrettyOutputterOutput.create()
             });
           }
         }
@@ -61,9 +61,9 @@ foam.CLASS({
           } else if ( type == foam.Array ) {
             out.array();
             for ( var i = 0 ; i < v.length ; i++ ) {
-              this.output(x, v[i])
+              this.output(x, v[i]);
             }
-            out.end()
+            out.end();
           } else if ( type == foam.Date ) {
             out.obj();
             out.key("$DATE$");
@@ -165,7 +165,7 @@ foam.CLASS({
               out.key("$FUNC$");
               out.b(true);
 
-              out.key("name")
+              out.key("name");
               out.s(breakdown.name);
 
               out.key("async");

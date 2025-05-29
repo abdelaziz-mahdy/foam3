@@ -28,6 +28,6 @@ foam.CLASS({
       return foam.String.constantize(this.cls_.name) +
           '(' + this.arg1.toString() + ')';
     },
-    function toString() { return this.name + '(' + this.arg1 + ')'; },
+    function toString() { return this.name + '(' + this.arg1 + ')'; }
   ]
 });

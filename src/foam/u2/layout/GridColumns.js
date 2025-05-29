@@ -81,7 +81,7 @@ foam.CLASS({
         return columns;
       }
     }
-  ],
+  ]
 });
 
 foam.CLASS({
@@ -99,4 +99,4 @@ foam.CLASS({
       expression: function(gridColumns) { return gridColumns; }
     }
   ]
-})
+});

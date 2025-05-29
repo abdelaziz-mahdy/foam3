@@ -31,7 +31,7 @@ foam.CLASS({
             console.log('start locked task ' + i);
             setTimeout(function() { console.log('end locked task ' + i); resolve(); }, Math.random()*1000);
           });
-        }).catch(e =>  {console.error(e)});
+        }).catch(e =>  {console.error(e);});
       }
     }
   ],

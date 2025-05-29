@@ -25,5 +25,5 @@ foam.CLASS({
         return x;
       }
     ]
-  })
+  });
   

@@ -83,6 +83,6 @@ return try delegate.listen_(
     predicate)
       `,
       javaCode: 'super.listen_(x, sink, predicate == null ? getPredicate() : foam.mlang.MLang.AND(getPredicate(), predicate));'
-    },
+    }
   ]
 });

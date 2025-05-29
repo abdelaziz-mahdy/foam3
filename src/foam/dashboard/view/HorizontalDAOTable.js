@@ -46,7 +46,7 @@ foam.CLASS({
       class: 'FObjectProperty',
       name: 'size',
       factory: function() {
-        return this.VisualizationSize.MEDIUM
+        return this.VisualizationSize.MEDIUM;
       }
     },
     {

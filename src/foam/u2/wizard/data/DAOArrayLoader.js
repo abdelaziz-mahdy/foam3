@@ -33,4 +33,4 @@ foam.CLASS({
       return sink.array;
     }
   ]
-})
+});

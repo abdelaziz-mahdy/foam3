@@ -289,9 +289,9 @@ foam.CLASS({
         } else {
           this.forceFullscreen = false;
         }
-      }
+      };
       updateWidth();
-      this.onDetach(this.displayWidth$.sub(updateWidth))
+      this.onDetach(this.displayWidth$.sub(updateWidth));
       this.addClass()
 
         // These methods come from ControlBorder
@@ -455,11 +455,11 @@ foam.CLASS({
                             .add(self.theme.supportConfig.supportPhone)
                           .end()
                         .end()
-                      .end()
+                      .end();
                   })
                 .end()
               .end()
-            .end()
+            .end();
           })
         .end();
     }

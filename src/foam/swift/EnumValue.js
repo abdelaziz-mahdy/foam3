@@ -13,12 +13,12 @@ foam.CLASS({
     {
       class: 'String',
       name: 'name'
-    },
+    }
   ],
 
   methods: [
     function outputSwift(o) {
-      o.out('case ', this.name)
+      o.out('case ', this.name);
     }
   ]
 });

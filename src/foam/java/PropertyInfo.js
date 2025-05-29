@@ -296,7 +296,7 @@ foam.CLASS({
             type: 'int',
             visibility: 'public',
             args: [{ name: 'o1', type: 'Object' }, { name: 'o2', type: 'Object' }],
-            body: this.compare,
+            body: this.compare
           });
         }
         if ( this.comparePropertyToObject !== '' ) {
@@ -305,7 +305,7 @@ foam.CLASS({
             type: 'int',
             visibility: 'public',
             args: [{ name: 'key', type: 'Object' }, { name: 'o', type: 'Object' }],
-            body: this.comparePropertyToObject,
+            body: this.comparePropertyToObject
           });
         }
         if ( this.comparePropertyToValue !== '' ) {
@@ -314,7 +314,7 @@ foam.CLASS({
             type: 'int',
             visibility: 'public',
             args: [{ name: 'key', type: 'Object' }, { name: 'value', type: 'Object' }],
-            body: this.comparePropertyToValue,
+            body: this.comparePropertyToValue
           });
         }
         if ( numberType.includes(this.propType) ) {

@@ -35,7 +35,7 @@ foam.CLASS({
       label: 'Type',
       class: 'String',
       visibility: 'RO',
-      tableWidth: 100,
+      tableWidth: 100
     },
     {
       documentation: `Copy of the Relationship owner id.  Since the owner Reference can come from multiple DAOs (script, cron, test), the Reference Id doesn't show in Detail View. Could change owner to Reference but using a Relationship provides the Relationship table. See Relationship javaPostSet.`,

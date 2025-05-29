@@ -26,7 +26,7 @@ foam.CLASS({
           this.tag(this.MDCitationView, {
             of: this.data.cls_,
             data: this.data
-          })
+          });
     }
   ]
 });

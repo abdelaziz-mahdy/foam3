@@ -32,4 +32,4 @@ foam.SCRIPT({
       foam.register(foam.lookup(pkg + '.' + clss[i]), 'foam.net.' + clss[i]);
     }
   }
-})
+});

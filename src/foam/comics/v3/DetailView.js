@@ -24,7 +24,7 @@ foam.CLASS({
     'foam.u2.dialog.Popup',
     'foam.u2.stack.BreadcrumbView',
     'foam.u2.stack.StackBlock',
-    'foam.u2.ActionReference',
+    'foam.u2.ActionReference'
   ],
 
   imports: [
@@ -92,7 +92,7 @@ foam.CLASS({
       name: 'data',
       postSet: function(o, n) {
         if ( n ) {
-          n.sub('action', this.loadData.bind(this, null))
+          n.sub('action', this.loadData.bind(this, null));
         }
       }
     },
@@ -163,7 +163,7 @@ foam.CLASS({
         var self = this;
         var maybePromise = data?.toSummary() ?? '';
         if ( maybePromise.then ) {
-          maybePromise.then( v => { self.viewTitle = v })
+          maybePromise.then( v => { self.viewTitle = v; });
           return '';
         }
         return maybePromise;
@@ -204,7 +204,7 @@ foam.CLASS({
             self.currentData_ = data;
           }
         });
-      })
+      });
     },
 
     function render() {
@@ -237,11 +237,11 @@ foam.CLASS({
               .tag(actionsOverrides.copy)
               .tag(actionsOverrides.delete)
             .endOverlay()
-            .callIf(currentData_, function() { self.populatePrimaryAction(true) })
+            .callIf(currentData_, function() { self.populatePrimaryAction(true); })
           .end()
-        )
+        );
         self.onDetach(d);
-      }))
+      }));
       this.dynamic(function(route, data) {
         if ( ! data ) return;
         /*
@@ -260,7 +260,7 @@ foam.CLASS({
             self.routeToMe();
           }
         }
-      })
+      });
       self
         .start(this.config.viewBorder)
           .start(this.viewView, {
@@ -281,7 +281,7 @@ foam.CLASS({
         let actionsOverrides = {};
         let comicsActions = this.of.getAxiomsByClass(foam.comics.v3.ComicsAction);
         if ( comicsActions.length ) {
-          comicsActions?.forEach(v => {actionsOverrides[v.name] = v});
+          comicsActions?.forEach(v => {actionsOverrides[v.name] = v;});
         }
         ['edit', 'delete', 'copy', 'save'].forEach(v => {
           let defaultAction = this[v.toUpperCase()];
@@ -293,7 +293,7 @@ foam.CLASS({
           if ( actionsOverrides[v].hasOwnProperty('code') )
             newAction.overrideCodeData$ = this.currentData_$;
           actionsOverrides[v] = newAction;
-        })
+        });
         this.actionsOverrides = actionsOverrides;
       }
     },
@@ -332,9 +332,9 @@ foam.CLASS({
           this.buttonGroup_
             .startOverlay()
             .forEach(actionsToAdd, function(v) {
-              this.addActionReference(v, self.currentData_$)
+              this.addActionReference(v, self.currentData_$);
             })
-            .endOverlay()
+            .endOverlay();
         }
       }
     },

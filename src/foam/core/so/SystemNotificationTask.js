@@ -30,7 +30,7 @@ foam.CLASS({
     {
       class: 'FObjectProperty',
       of: 'foam.core.so.SystemNotification',
-      name: 'systemNotification',
+      name: 'systemNotification'
     },
     {
       documentation: 'Optionally filter display to particular themes',

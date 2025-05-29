@@ -12,13 +12,13 @@ foam.ENUM({
 
   values: [
     {
-      name: 'idle',
+      name: 'idle'
     },
     {
-      name: 'pending',
+      name: 'pending'
     },
     {
-      name: 'loading',
+      name: 'loading'
     }
   ]
 });

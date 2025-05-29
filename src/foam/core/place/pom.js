@@ -48,5 +48,5 @@ foam.POM({
       name: "PlaceAutocompletePrediction",
       flags: "js|java" 
     }
-  ],
-})
+  ]
+});

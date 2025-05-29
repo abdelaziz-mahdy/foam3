@@ -88,7 +88,7 @@ foam.CLASS({
 
                 var cardSelectViewConfig = {
                   isSelected$: isSelectedSlot
-                }
+                };
 
                 var valueSimpSlot;
 
@@ -110,7 +110,7 @@ foam.CLASS({
                 return self.E().style({ display: 'content' })
                   .addClass(self.myClass('innerFlexer'))
                   .style({
-                    'width': self.isVertical ? '100%' : `${100 / self.numCols}%`
+                    width: self.isVertical ? '100%' : `${100 / self.numCols}%`
                   })
                   .start(this.choiceView, cardSelectViewConfig)
                     .call(function () {
@@ -125,9 +125,9 @@ foam.CLASS({
                             self.clearProperty('data');
                           }
                         })
-                      )
+                      );
                     })
-                  .end()
+                  .end();
 
               });
 

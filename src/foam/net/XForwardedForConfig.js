@@ -29,5 +29,5 @@ foam.CLASS({
       class: 'Int'
     }
   ]
-})
+});
 

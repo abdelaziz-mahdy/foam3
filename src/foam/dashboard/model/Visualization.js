@@ -17,7 +17,7 @@ foam.CLASS({
     'foam.mlang.order.Desc',
     'foam.parse.QueryParser',
     'foam.mlang.predicate.False',
-    'foam.mlang.predicate.True',
+    'foam.mlang.predicate.True'
   ],
   properties: [
     {
@@ -78,11 +78,11 @@ foam.CLASS({
           [ 'foam.mlang.sink.ArraySink', 'LIST' ],
           [ 'foam.mlang.sink.Count', 'COUNT' ],
           [ 'foam.mlang.sink.Sum', 'SUM' ],
-          [ 'foam.mlang.sink.Average', 'AVG' ],
+          [ 'foam.mlang.sink.Average', 'AVG' ]
         ]
       },
       name: 'sink',
-      factory: function() { return this.ArraySink.create() },
+      factory: function() { return this.ArraySink.create(); }
     },
     {
       name: 'data',
@@ -94,7 +94,7 @@ foam.CLASS({
     {
       name: 'configView',
       hidden: true,
-      factory: function() { return this.CURRENT_VIEW },
+      factory: function() { return this.CURRENT_VIEW; }
     },
     {
       name: 'currentView',
@@ -110,10 +110,10 @@ foam.CLASS({
       },
       adapt: function(_, n) {
         if ( foam.String.isInstance(n) ) {
-          return this.views.find(function(o) { return o[1] == n })[0];
+          return this.views.find(function(o) { return o[1] == n; })[0];
         }
         return n;
-      },
+      }
     },
     {
       // TODO: An enum would be better'
@@ -132,7 +132,7 @@ foam.CLASS({
       factory: function() {
         return [
           [ this.DetailView, 'Configuration' ]
-        ]
+        ];
       }
     },
     {
@@ -154,9 +154,9 @@ foam.CLASS({
           '#166a8f',
           '#00a950',
           '#58595b',
-          '#8549ba',
-        ]
-      },
+          '#8549ba'
+        ];
+      }
     }
   ],
   methods: [
@@ -168,7 +168,7 @@ foam.CLASS({
     [ 'sink', 'propertyChange', 'update' ],
     [ 'sink', 'nestedPropertyChange', 'update' ],
     [ '', 'propertyChange.sink', 'update' ],
-    [ '', 'propertyChange.dao', 'update' ],
+    [ '', 'propertyChange.dao', 'update' ]
   ],
   listeners: [
     function update() {

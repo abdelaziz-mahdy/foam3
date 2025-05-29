@@ -157,14 +157,14 @@ foam.CLASS({
     {
       name: 'version',
       class: 'String',
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       name: 'of',
       class: 'Class',
       displayWidth: 70,
       documentation: `Model used to store information required by this credential`,
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       class: 'StringArray',
@@ -271,7 +271,7 @@ foam.CLASS({
       class: 'String',
       documentation: `A short introduction displayed as subtitle in CapabilityRequirementView`,
       section: 'uiSettings',
-      includeInDigest: false,
+      includeInDigest: false
     },
     {
       name: 'label',
@@ -283,7 +283,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'autoSave',
       documentation: 'If false, disable auto save for wizardlets associated to this capability.',
-      hidden: true,
+      hidden: true
       // value: true
     },
     {
@@ -449,7 +449,7 @@ foam.CLASS({
           }
         }
         return allGranted ? CapabilityJunctionStatus.GRANTED : CapabilityJunctionStatus.PENDING;
-      `,
+      `
     },
     {
       name: 'getPrereqChainedStatus',

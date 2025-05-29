@@ -12,27 +12,27 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'channel',
-      value: 0,
+      value: 0
     },
     {
       class: 'Int',
       name: 'note',
-      value: 60,
+      value: 60
     },
     {
       class: 'Int',
       name: 'velocity',
-      value: 64,
+      value: 64
     },
     {
       class: 'Int',
       name: 'releaseVelocity',
-      value: 0,
+      value: 0
     },
     {
       class: 'Float',
       name: 'duration',
-      value: 1,
+      value: 1
     },
     {
       swiftType: 'MIDINoteMessage',
@@ -51,8 +51,8 @@ return MIDINoteMessage(
     velocity: UInt8(velocity),
     releaseVelocity: UInt8(releaseVelocity),
     duration: Float32(duration))
-      `,
-    },
+      `
+    }
   ],
   actions: [
     {
@@ -80,7 +80,7 @@ _ = NewMusicPlayer(&musicPlayer)
 
 _ = MusicPlayerSetSequence(musicPlayer!, sequence!)
 _ = MusicPlayerStart(musicPlayer!)
-     `,
-    },
-  ],
+     `
+    }
+  ]
 });

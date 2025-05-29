@@ -43,7 +43,7 @@ foam.CLASS({
     {
       name: 'hostname',
       class: 'String',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'created',
@@ -98,7 +98,7 @@ foam.CLASS({
       name: 'thread',
       class: 'String',
       visibility: 'RO',
-      javaFactory: `return Thread.currentThread().getName();`,
+      javaFactory: `return Thread.currentThread().getName();`
     },
     {
       name: 'severity',
@@ -128,7 +128,7 @@ foam.CLASS({
       label: 'Log Message',
       view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
       updateVisibility: 'RO'
-    },
+    }
     // TODO: implement via an additional method on Logger logger.flag(x, y).log(message)
     // {
     //   name: 'flags',

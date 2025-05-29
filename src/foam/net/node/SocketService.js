@@ -98,9 +98,9 @@ foam.CLASS({
     function addSocket(socket) {
       var socketBox = this.RawSocketBox.create({
         socket: socket
-      })
+      });
       var X = this.creationContext.createSubContext({
-        returnBox: socketBox,
+        returnBox: socketBox
       });
 
       var s1 = socket.message.sub(function(s, _, mStr) {

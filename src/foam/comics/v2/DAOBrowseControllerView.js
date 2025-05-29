@@ -160,7 +160,7 @@ foam.CLASS({
               data: obj,
               config: this.config || this.__subContext__.config,
               idOfRecord: id,
-              title: 'View ' + obj.cls_.name + ' ' + id,
+              title: 'View ' + obj.cls_.name + ' ' + id
             }, parent: this.__subContext__ }, this));
         };
       }
@@ -304,13 +304,13 @@ foam.CLASS({
                             buttonStyle: foam.u2.ButtonStyle.PRIMARY,
                             size: 'LARGE'
                         })
-                      .endContext()
+                      .endContext();
                     })
                     .callIf( config.createControllerView, function() {
                       this.startContext({ data: self })
                         .tag(self.CREATE, {
                             label: translationService.getTranslation(foam.locale, menuId + '.handler.createControllerView.view.title', config$createControllerView.view.title),
-                            buttonStyle: foam.u2.ButtonStyle.PRIMARY,
+                            buttonStyle: foam.u2.ButtonStyle.PRIMARY
                         })
                       .endContext();
                     })

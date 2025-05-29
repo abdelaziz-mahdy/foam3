@@ -40,7 +40,7 @@
         {
           class: 'foam.lang.UnitValue',
           name: 'amount'
-        },
+        }
       ],
       type: 'String',
       javaCode: `

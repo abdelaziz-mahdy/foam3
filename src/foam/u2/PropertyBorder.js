@@ -128,7 +128,7 @@ foam.CLASS({
           }
 
           errorSlot.follow(slot);
-        }
+        };
         this.onDetach(this.data$.sub(linkErrorSlot));
         linkErrorSlot();
       } else {
@@ -146,11 +146,11 @@ foam.CLASS({
         let el = this.E().addClass(this.myClass('label'), this.myClass('label' + '-' + prop.name), 'p-light');
         return prop$label ?
           el.call(prop.labelFormatter, [data, prop]) :
-          ( prop$reserveLabelSpace ? el : this.E().style({ display: 'contents' }) )
+          ( prop$reserveLabelSpace ? el : this.E().style({ display: 'contents' }) );
       });
       var supportingLabelSlot = this.slot(function(prop$supportingLabel) {
         let el = this.E().addClass(this.myClass('supportingLabel'), this.myClass('supportingLabel' + '-' + prop.name), 'p-legal');
-        return prop$supportingLabel ? el.add(prop$supportingLabel) : this.E().style({ display: 'contents' }) 
+        return prop$supportingLabel ? el.add(prop$supportingLabel) : this.E().style({ display: 'contents' }); 
       });
 
       var viewSlot = prop.view$.map(v => {

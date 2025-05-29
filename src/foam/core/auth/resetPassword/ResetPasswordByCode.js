@@ -147,7 +147,7 @@ foam.CLASS({
         try {
           var verified = await  this.emailVerificationService.verifyCode(x, this.email, this.userName, this.resetPasswordCode);
           this.report('^verify-success', ['email-verification']);
-          this.assert(verified, 'verified should be true when no exception was thrown')
+          this.assert(verified, 'verified should be true when no exception was thrown');
           this.codeVerified = verified;
 
           // Clear new/confirmation passwords after the reset password

@@ -19,4 +19,4 @@ foam.POM({
     { name: "JettyThreadPoolConfig",
       flags: "js|java" }
   ]
-})
+});

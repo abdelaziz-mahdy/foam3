@@ -78,7 +78,7 @@ foam.CLASS({
       const wizardlets = [];
       const rootNode = this.capabilityGraph.roots[0];
       const pushWizardlets = (entry, inPrerequisteAwareStack) => {
-        let currentPrerequisiteStack = inPrerequisteAwareStack
+        let currentPrerequisiteStack = inPrerequisteAwareStack;
         if ( entry.beforeWizardlet ) wizardlets.push(entry.beforeWizardlet);
         if ( this.isPrerequisiteAware(entry.beforeWizardlet) ) inPrerequisteAwareStack = true;
         for ( const subEntry of entry.betweenWizardlets ) {
@@ -156,7 +156,7 @@ foam.CLASS({
           entry.availabilityDetach = entry.primaryWizardlet.isAvailable$.follow(entry.availabilitySlot);
         } else {
           entry.availabilityDetach.detach();
-          entry.availabilitySlot = entry.availabilitySlot.or(source.primaryWizardlet.isAvailable$)
+          entry.availabilitySlot = entry.availabilitySlot.or(source.primaryWizardlet.isAvailable$);
           entry.availabilityDetach = entry.primaryWizardlet.isAvailable$.follow(entry.availabilitySlot);
         }
         entry.primaryWizardlet.saveOnAvailable = oldSaveOnAvailable;

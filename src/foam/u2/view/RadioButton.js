@@ -54,7 +54,7 @@ foam.CLASS({
         .addClass('radio')
         .attrs({ width: 20, height: 20 })
         .start('circle')
-          .attrs({ cx: 10, cy: 10, r: 8, 'stroke': colorSlot, 'stroke-width': 2, 'transform-origin': '0 0', fill: 'none' })
+          .attrs({ cx: 10, cy: 10, r: 8, stroke: colorSlot, 'stroke-width': 2, 'transform-origin': '0 0', fill: 'none' })
         .end()
         .start('circle')
           .addClass(this.myClass('innerCircle'))

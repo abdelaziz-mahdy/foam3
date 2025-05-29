@@ -89,12 +89,12 @@ foam.CLASS({
             s1.detach();
             s2.detach();
             resolve();
-          })
+          });
           s1 = self.cancelled$.sub(() => {
             s1.detach();
             s2.detach();
             reject();
-          })
+          });
         });
       }
     },

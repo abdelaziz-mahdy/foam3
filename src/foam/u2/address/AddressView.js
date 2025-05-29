@@ -73,7 +73,7 @@ foam.CLASS({
               customCountryDAO$: self.customCountryDAO$,
               useAutocompleter$: self.useAutocompleter$,
               countrySelectionVisibility$: self.countrySelectionVisibility$
-            })
+            });
           case self.DisplayMode.RO:
             return this.E().startContext({data: self.data$ }).tag((self.data ?? foam.core.auth.Address).SUMMARY.__).endContext();
           case self.DisplayMode.HIDDEN:

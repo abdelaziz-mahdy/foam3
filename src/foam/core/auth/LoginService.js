@@ -19,7 +19,7 @@ foam.CLASS({
                 {
                     name: 'user',
                     type: 'foam.core.auth.User'
-                },
+                }
             ],
             javaThrows: ['foam.core.auth.AuthenticationException'],
             javaCode: `
@@ -71,6 +71,6 @@ foam.CLASS({
         throw e;
       }
       `
-        },
+        }
     ]
-})
+});

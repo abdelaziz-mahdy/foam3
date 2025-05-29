@@ -20,7 +20,7 @@ foam.CLASS({
   name: 'LoggedLookupContext',
 
   exports: [
-    'lookup',
+    'lookup'
   ],
 
   properties: [
@@ -39,12 +39,12 @@ foam.CLASS({
       args: [
         {
           type: 'Context',
-          name: 'X',
+          name: 'X'
         },
         {
           type: 'String',
-          name: 'id',
-        },
+          name: 'id'
+        }
       ],
       code: function(X, id, opt_suppress) {
         this.record[id] = id;

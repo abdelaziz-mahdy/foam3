@@ -15,7 +15,7 @@ foam.CLASS({
     'foam.log.LogLevel',
     'foam.u2.dialog.Popup',
     'foam.u2.ModalHeader',
-    'foam.support.model.SupportEmail',
+    'foam.support.model.SupportEmail'
   ],
 
   imports: [
@@ -77,17 +77,17 @@ foam.CLASS({
       },
       {
         class: 'String',
-        name: 'status',
+        name: 'status'
     }
     ],
 
     messages:[
-      { name:'titlelabel', message:'Do you want to delete the email xx@xx.com?' },
+      { name:'titlelabel', message:'Do you want to delete the email xx@xx.com?' }
     ],
 
     methods:[
       function render(){
-        this.addClass()
+        this.addClass();
 
         this
         .tag(this.ModalHeader.create({
@@ -111,7 +111,7 @@ foam.CLASS({
         name: 'deleteButton',
         label: 'Delete',
         code: function(X) {
-          this.data.status = "Disabled"
+          this.data.status = "Disabled";
           this.supportEmailDAO.put(this.data);
           this.notify('Your email address is disabled and you need to update it.', '', this.LogLevel.WARN, true);
           X.closeDialog();

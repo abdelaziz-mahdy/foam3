@@ -29,7 +29,7 @@ foam.CLASS({
           addClass(self.myClass('select-level')).
           start(self.Image, { glyph: 'next' }).
           addClass(self.myClass('toggle-icon')).
-          style({ 'transform': 'rotate(180deg)' }).
+          style({ transform: 'rotate(180deg)' }).
           end().
           callIfElse(row.rowConfig?.[row.data.id],
             function() {
@@ -137,7 +137,7 @@ foam.CLASS({
                   onClickAddOn: self.back,
                   level:        1
                 })
-              .end()
+              .end();
           })
           .select(dao, function(obj) {
             if ( ! isFirstSet && ! self.selection ) {
@@ -154,7 +154,7 @@ foam.CLASS({
               // Unless specified, stop nesting after one level
               onClickAddOn: this.continueNesting || ! currentRoot ? self.onClickAddOn1 : self.onClickAddOn,
               level:        1
-            }
+            };
             if ( this.U3 ) {
               this.tag(t);
             } else {
@@ -169,12 +169,12 @@ foam.CLASS({
       this.onClickAddOn(obj, hasChildren);
       if ( hasChildren ) {
         this.currentRootStack$push(obj);
-        this.currentRoot = this.currentRootStack?.[this.currentRootStack.length-1]
+        this.currentRoot = this.currentRootStack?.[this.currentRootStack.length-1];
       }
     },
     function back() {
       this.currentRootStack.pop();
-      this.currentRoot = this.currentRootStack?.[this.currentRootStack.length-1]
+      this.currentRoot = this.currentRootStack?.[this.currentRootStack.length-1];
     }
   ]
 });

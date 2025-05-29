@@ -11,7 +11,7 @@ foam.CLASS({
 
   methods: [
     function render() {
-      console.log('i be rendererd')
+      console.log('i be rendererd');
       this.SUPER();
       this
         .start('line')

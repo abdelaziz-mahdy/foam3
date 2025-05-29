@@ -15,14 +15,14 @@ foam.INTERFACE({
   methods: [
     {
       name: 'getUserFeedback',
-      type: 'foam.comics.v2.userfeedback.UserFeedback',
+      type: 'foam.comics.v2.userfeedback.UserFeedback'
     },
     {
       name: 'setUserFeedback',
       args: [
         {
           name: 'userFeedback',
-          type: 'foam.comics.v2.userfeedback.UserFeedback',
+          type: 'foam.comics.v2.userfeedback.UserFeedback'
         }
       ]
     }

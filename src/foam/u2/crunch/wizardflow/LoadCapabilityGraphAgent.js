@@ -22,7 +22,7 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.graph.GraphBuilder',
+    'foam.graph.GraphBuilder'
   ],
 
   properties: [

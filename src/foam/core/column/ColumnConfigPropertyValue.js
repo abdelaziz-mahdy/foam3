@@ -178,7 +178,7 @@ foam.CLASS({
         },
         {
           name: 'propName',
-          class: 'String',
+          class: 'String'
         },
         {
           name: 'obj',

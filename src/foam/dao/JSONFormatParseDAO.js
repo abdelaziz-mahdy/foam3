@@ -15,7 +15,7 @@ foam.CLASS({
     'foam.lang.FObject',
     'foam.lib.formatter.FObjectFormatter',
     'foam.lib.formatter.JSONFObjectFormatter',
-    'foam.lib.json.JSONParser',
+    'foam.lib.json.JSONParser'
   ],
 
   javaCode: `

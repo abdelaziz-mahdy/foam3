@@ -51,6 +51,6 @@ foam.CLASS({
       this.amount = typeof predicate.arg2.value === 'number' 
         ? (predicate.arg2.value / 100)
         : 0;
-    },
+    }
   ]
 });

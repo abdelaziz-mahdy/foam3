@@ -19,5 +19,5 @@ foam.CLASS({
       of: 'foam.core.crunch.Capability',
       menuKeys: ['admin.capabilities']
     }
-  ],
+  ]
 });

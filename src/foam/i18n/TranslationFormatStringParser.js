@@ -20,22 +20,22 @@ foam.CLASS({
   name: 'TranslationFormatStringParser',
   requires: [
     'foam.parse.Parsers',
-    'foam.parse.ImperativeGrammar',
+    'foam.parse.ImperativeGrammar'
   ],
   properties: [
     {
       name: 'value',
-      value: 'Hello ${toName} from ${fromName}',
+      value: 'Hello ${toName} from ${fromName}'
     },
     {
       name: 'parsedValue',
       expression: function(valueParserResults) {
         return valueParserResults.parsedValue;
-      },
+      }
     },
     {
       name: 'translationHint',
-      value: '${fromName} is who it was from. ${toName} is who it is to.',
+      value: '${fromName} is who it was from. ${toName} is who it is to.'
     },
     {
       name: 'parsedTranslationHint',
@@ -46,15 +46,15 @@ foam.CLASS({
           return matches[a[1]] || a.join('');
         };
         return this.grammar.parseString(translationHint);
-      },
+      }
     },
     {
       name: 'stringSymbol',
-      value: '@',
+      value: '@'
     },
     {
       name: 'onMatchFn',
-      hidden: true,
+      hidden: true
     },
     {
       name: 'valueParserResults',
@@ -75,10 +75,10 @@ foam.CLASS({
         var parsedValue = this.grammar.parseString(value);
         return {
           matches: matches,
-          parsedValue: parsedValue,
-        }
-      },
-    },
+          parsedValue: parsedValue
+        };
+      }
+    }
   ],
   grammars: [
     {
@@ -94,8 +94,8 @@ foam.CLASS({
             )
           ),
           parameter: seq('${', sym('identifier'), '}'),
-          identifier: repeat(not('}', anyChar())),
-        }
+          identifier: repeat(not('}', anyChar()))
+        };
       },
       actions: [
         function parameter(a) {
@@ -107,7 +107,7 @@ foam.CLASS({
         function string(a) {
           return a.join('');
         }
-      ],
-    },
-  ],
+      ]
+    }
+  ]
 });

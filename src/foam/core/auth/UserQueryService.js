@@ -31,6 +31,6 @@ foam.INTERFACE({
           type: 'String'
         }
       ]
-    },
+    }
   ]
 });

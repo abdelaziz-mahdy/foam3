@@ -193,7 +193,7 @@ foam.CLASS({
       class: 'Class',
       name: 'of'
     },
-    'predicates',
+    'predicates'
   ],
 
   methods: [
@@ -384,7 +384,7 @@ foam.CLASS({
       }
 
       return sink;
-    },
+    }
 
   ]
 });

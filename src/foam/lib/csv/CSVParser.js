@@ -46,7 +46,7 @@ foam.CLASS({
 
               // 0 or more whitespace characters.
               ws: repeat0(sym('white'))
-            }
+            };
           }
         }).addActions({
           unquotedText: function(a) {
@@ -84,7 +84,7 @@ foam.CLASS({
 
               // 0 or more whitespace characters.
               ws: repeat0(sym('white'))
-            }
+            };
           }
         }).addActions({
           text: function(a) {

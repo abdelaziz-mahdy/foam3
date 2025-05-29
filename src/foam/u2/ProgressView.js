@@ -48,7 +48,7 @@ foam.CLASS({
 
   properties: [
     [ 'nodeName', 'progress' ],
-    [ 'max', 100 ],
+    [ 'max', 100 ]
   ],
 
   methods: [

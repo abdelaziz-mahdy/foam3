@@ -50,7 +50,7 @@ foam.CLASS({
           .select(obj.PROJECTION(foam.core.crunch.Capability.NAME))
           .then(async result => {
             let name = await result?.array?.[0]?.toSummary();
-            this.add(name || value)
+            this.add(name || value);
           });
       },
       menuKeys: ['admin.capabilities']
@@ -80,7 +80,7 @@ foam.CLASS({
           .select(obj.PROJECTION(foam.core.crunch.Capability.NAME))
           .then(async result => {
             let name = await result?.array?.[0]?.toSummary();
-            this.add(name || value)
+            this.add(name || value);
           });
       },
       menuKeys: ['admin.capabilities']

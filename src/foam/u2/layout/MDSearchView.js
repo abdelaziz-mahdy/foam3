@@ -58,7 +58,7 @@ foam.CLASS({
   methods: [
     function render() {
       var self = this;
-      self.addClass()
+      self.addClass();
       this.start().addClass('md-text', 'container-search')
         .start(self.TextSearchView, {
              of: this.dao.of.id,
@@ -73,7 +73,7 @@ foam.CLASS({
       .end()
       .start().addClass('md-button', 'clear-btn')
         .add(this.CLEAR)
-      .end()
+      .end();
     },
 
     function init() {

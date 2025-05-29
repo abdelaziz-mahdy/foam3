@@ -11,15 +11,15 @@ foam.CLASS({
   flags: ['swift'],
   requires: [
     'foam.swift.Argument',
-    'foam.swift.Method',
+    'foam.swift.Method'
   ],
   properties: [
     {
       name: 'swiftType',
       expression: function(path) {
         return path.replace(/\./g, '_');
-      },
-    },
+      }
+    }
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -37,16 +37,16 @@ foam.CLASS({
           this.Argument.create({
             localName: 'args',
             defaultValue: '[:]',
-            type: '[String:Any?]',
+            type: '[String:Any?]'
           }),
           this.Argument.create({
             localName: 'x',
             defaultValue: 'nil',
-            type: 'Context?',
-          }),
-        ],
+            type: 'Context?'
+          })
+        ]
       }));
-    },
+    }
   ],
   templates: [
     {
@@ -54,7 +54,7 @@ foam.CLASS({
       args: [],
       template: `
 return (x ?? __subContext__).create(<%=this.swiftType%>.self, args: args)!
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

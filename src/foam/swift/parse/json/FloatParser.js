@@ -54,7 +54,7 @@ while ps.valid() {
 if !decimalFound { return nil }
 
 return ps.setValue(n.count > 0 ? Float(String(n)) : nil)
-      `,
-    },
+      `
+    }
   ]
 });

@@ -13,7 +13,7 @@ foam.SCRIPT({
     'foam.net.web.HTTPRequestScript', // For BaseHTTPRequest
     'foam.net.web.HTTPResponse',
     'foam.net.web.WebSocket',
-    'foam.net.web.WebSocketService',
+    'foam.net.web.WebSocketService'
   ],
   code: function() {
     var pkg = 'foam.net.web';
@@ -30,4 +30,4 @@ foam.SCRIPT({
       foam.register(foam.lookup(pkg + '.' + clss[i]), 'foam.net.' + clss[i]);
     }
   }
-})
+});

@@ -81,14 +81,14 @@ foam.CLASS({
             this.E().start()
               .addClass('h300', self.myClass('wizardletTitle'))
               .add(data$currentWizardlet.title)
-            .end() : null
+            .end() : null;
         }))
         .add(this.slot(function (data$currentWizardlet) {
           return data$currentWizardlet.subTitle ?
             this.E().start()
               .addClass(self.myClass('wizardletTitle'), 'p')
               .tag(foam.u2.HTMLView.create({ nodeName: 'div', data:this.translationService.getTranslation(foam.locale, data$currentWizardlet.id + 'wizardlet.subTitle', data$currentWizardlet.subTitle) }))
-            .end() : null
+            .end() : null;
         }))
         .start(this.contentsView, { data: this.data })
           .addClass(this.myClass('contents'))

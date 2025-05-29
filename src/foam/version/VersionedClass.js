@@ -24,7 +24,7 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.lang.Model',
+    'foam.lang.Model'
   ],
 
   properties: [

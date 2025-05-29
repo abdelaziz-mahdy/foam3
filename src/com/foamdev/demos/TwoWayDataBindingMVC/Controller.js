@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'com.foamdev.demos.twoWayDataBindingMVC.Temperature',
-    'com.foamdev.demos.twoWayDataBindingMVC.TemperatureView',
+    'com.foamdev.demos.twoWayDataBindingMVC.TemperatureView'
   ],
 
   properties: [

@@ -23,7 +23,7 @@ foam.CLASS({
       factory: function() {
         return foam.core.crunch.ui.CapabilityWizardlet.create({}, this);
       },
-      includeInDigest: false,
+      includeInDigest: false
     },
     {
       class: 'Object',
@@ -56,8 +56,8 @@ foam.CLASS({
         if ( foam.lib.json.UnknownFObject.isInstance(n) && n.json ) {
           n = foam.lookup(n.json.class).create(n.json);
         }
-        return n
+        return n;
       }
-    },
+    }
   ]
 });

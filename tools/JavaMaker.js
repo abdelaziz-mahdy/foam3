@@ -32,7 +32,7 @@ exports.init = function() {
   flags.genjava   = true;
   flags.java      = true;
   flags.loadFiles = true;
-}
+};
 
 exports.end = function() {
   var self = this;
@@ -65,4 +65,4 @@ exports.end = function() {
   } else {
     this.log(msg);
   }
-}
+};

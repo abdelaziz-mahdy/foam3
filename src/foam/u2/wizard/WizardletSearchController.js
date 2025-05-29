@@ -66,7 +66,7 @@ foam.CLASS({
           of: 'foam.u2.wizard.SearchableWizardlet'
         });
       }
-    },
+    }
   ],
 
   methods: [
@@ -81,7 +81,7 @@ foam.CLASS({
             this.queryParser.parseString(this.data) || this.FALSE,
             this.KEYWORD(this.data)
           )
-        )
+        );
       });
     },
     function generateSearchDao_() {
@@ -124,7 +124,7 @@ foam.CLASS({
         }
         array.push(this.SearchableWizardlet.create({
           value: str,
-          wizardlet: w,
+          wizardlet: w
         }));
       }
       this.searchDAO = this.ArrayDAO.create({

@@ -17,7 +17,7 @@ foam.CLASS({
     'foam.core.logger.Logger',
     'foam.mlang.predicate.Predicate',
     'foam.core.auth.*',
-    'static foam.mlang.MLang.*',
+    'static foam.mlang.MLang.*'
   ],
 
   properties: [

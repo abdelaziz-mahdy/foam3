@@ -43,7 +43,7 @@ foam.CLASS({
       var sequence = this.sequence || (() => {
         var instance = this.of.create(null, this.__subContext__);
         return instance[this.method]();
-      })()
+      })();
 
       var self = this;
       this
@@ -62,7 +62,7 @@ foam.CLASS({
                   this.addClass(self.myClass('nullAgent'))
                     .add('This agent was removed from a parent sequence.');
                 }, function () {
-                  this.add(self.getCls_(step.spec).model_.documentation)
+                  this.add(self.getCls_(step.spec).model_.documentation);
                 })
                 .callIf(step.args, function () {
                   var views = self.viewsFor_(step.args);
@@ -83,12 +83,12 @@ foam.CLASS({
                                 .tag(views[k], { data: step.args[k] })
                               .endContext();
                           })
-                        .end()
+                        .end();
                     })
-                  .end()
+                  .end();
                 })
               .end()
-            .end()
+            .end();
           })
         .end();
     },
@@ -107,5 +107,5 @@ foam.CLASS({
       if ( spec.create ) return spec;
       return this.__subContext__.lookup(spec.class);
     }
-  ],
+  ]
 });

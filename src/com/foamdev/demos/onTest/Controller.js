@@ -70,13 +70,13 @@ foam.CLASS({
       // on: 'this.propertyChange'
       // on: 'this.propertyChange.slotListener,this.propertyChange.yourName',//work
       code: function(evt, topic, slot, o) {
-        console.log('Test Listener code=> action on ' + o.obj.slotListener)
+        console.log('Test Listener code=> action on ' + o.obj.slotListener);
       }
     },
     {
       name: 'reactionTestListener',
       code: function() {
-        console.log('Reaction Test Listener ' + this.yourName)
+        console.log('Reaction Test Listener ' + this.yourName);
       }
     }
   ]

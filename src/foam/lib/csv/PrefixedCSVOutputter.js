@@ -22,7 +22,7 @@ foam.CLASS({
       },
       javaCode: `
         getDelegate().outputValue(getPrefix() + value.toString());
-      `,
+      `
     }
   ]
 });

@@ -76,6 +76,6 @@ foam.CLASS({
         }
       }, "Send Notification On Top Level Capability Status Update");
       `
-    },
+    }
   ]
 });

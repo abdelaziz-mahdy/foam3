@@ -32,5 +32,5 @@ foam.CLASS({
       name: 'end',
       class: 'Array'
     }
-  ],
+  ]
 });

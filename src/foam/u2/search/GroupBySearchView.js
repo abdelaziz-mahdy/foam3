@@ -50,7 +50,7 @@ foam.CLASS({
     {
       class: 'foam.dao.DAOProperty',
       name: 'dao',
-      required: true,
+      required: true
     },
     {
       name: 'property',

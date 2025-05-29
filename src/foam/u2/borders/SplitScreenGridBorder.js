@@ -65,7 +65,7 @@ foam.CLASS({
         lgColumns: 6,
         xlColumns: 6
       }
-    },
+    }
   ],
 
   methods: [
@@ -84,5 +84,4 @@ foam.CLASS({
     }
   ]
 });
-
 

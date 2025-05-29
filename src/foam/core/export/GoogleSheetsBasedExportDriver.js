@@ -67,7 +67,7 @@ foam.CLASS({
       },
       hidden: true,
       flags: ['js']
-    },
+    }
   ],
 
   methods: [

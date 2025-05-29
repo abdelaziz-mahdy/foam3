@@ -155,7 +155,7 @@ foam.CLASS({
         ret = ret.trim().replaceAll("[^\\\\\w]", "");
         if ( foam.util.SafetyUtil.isEmpty(ret) ) return "";
         return ret + "${this.formatter}";
-      `
+      `;
     },
 
     function buildJavaRemoveFormatting() {
@@ -163,7 +163,7 @@ foam.CLASS({
       return `
         if ( ! foam.util.SafetyUtil.isEmpty(val) && val.endsWith("${this.formatter}") )
           val = val.substring(0, val.length() - ${this.formatter.length});
-      `
+      `;
     }
   ]
 });
@@ -205,7 +205,7 @@ foam.CLASS({
         while ( start > 0 && isNaN(input[start - 1]) ) start--;
       } else {
         // if removing a digit from the end keep trailing delimiter
-        if ( input.substring(end).replace(/\D/g,'') == '' ) this.includeTrailingDelimiter = true
+        if ( input.substring(end).replace(/\D/g,'') == '' ) this.includeTrailingDelimiter = true;
       }
       return [start, end];
     },
@@ -255,11 +255,11 @@ foam.CLASS({
           str += `
             if ( ret.length() < ${index} ) return ret.toString();
             ret.insert(${index}, "${c}");
-          `
+          `;
           index++;
         }
       });
-      return str += `return ret.length() > ${index} ? ret.toString().substring(0, ${index}) : ret.toString();`
+      return str += `return ret.length() > ${index} ? ret.toString().substring(0, ${index}) : ret.toString();`;
     },
 
     function buildJavaRemoveFormatting() {

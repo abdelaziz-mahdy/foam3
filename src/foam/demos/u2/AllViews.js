@@ -64,7 +64,7 @@ foam.CLASS({
         return check ? '' : 'Please check the box';
       }
     }
-  ],
+  ]
 });
 
 
@@ -461,7 +461,7 @@ foam.CLASS({
       name: 'stringWithTextArea',
       view: {
         class: 'foam.u2.tag.TextArea',
-        rows: 8, cols: 80,
+        rows: 8, cols: 80
       }
     },
     {
@@ -497,7 +497,7 @@ foam.CLASS({
     },
     {
       class: 'DateTime',
-      name: 'defaultDateTime',
+      name: 'defaultDateTime'
     },
     {
       class: 'Time',
@@ -609,7 +609,7 @@ foam.CLASS({
       validationTextVisible: true,
       validateObj: function(FObjectArray3MultiView) {
         if ( FObjectArray3MultiView.length < 1 )
-          return 'Please enter FObjectArray3MultiView information'
+          return 'Please enter FObjectArray3MultiView information';
 
         for ( var i = 0; i < FObjectArray3MultiView.length; i++ ) {
           if ( FObjectArray3MultiView[i].errors_$ != null ) {
@@ -646,7 +646,7 @@ foam.CLASS({
       validateObj: function(TitledfobjectArray5, TitledfobjectArray5$errors) {
         console.log('called');
         if ( TitledfobjectArray5.length < 1 )
-          return 'Please enter fobjectArray5 information'
+          return 'Please enter fobjectArray5 information';
         console.log('...', TitledfobjectArray5$errors);
         return TitledfobjectArray5$errors;
       }
@@ -853,7 +853,7 @@ foam.CLASS({
       view: {
         class: 'foam.u2.view.DayOfMonthView'}
       
-    },
+    }
   ],
 
   listeners: [
@@ -864,4 +864,4 @@ foam.CLASS({
       }
     }
   ]
-})
+});

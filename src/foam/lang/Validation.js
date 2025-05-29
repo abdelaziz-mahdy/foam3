@@ -45,7 +45,7 @@ foam.CLASS({
 
           if ( ! predicate.f(obj) ) {
             const prop = this.forClass_ + '.' + foam.String.constantize(this.name);
-            console.debug(prop, 'validation failed:', query)
+            console.debug(prop, 'validation failed:', query);
             return jsErr(obj);
           }
         };
@@ -80,7 +80,7 @@ foam.CLASS({
             console.warn('Error finding message', errorMessage, '. No such message on object.', obj);
           }
           return errorString;
-        }
+        };
       }
     }
   ],
@@ -276,7 +276,7 @@ foam.CLASS({
     function init() {
       // Needed for props that override the default validateObj
       // Clearing required to recheck predicate on property clone
-      this.clearProperty('localeValidationPredicate')
+      this.clearProperty('localeValidationPredicate');
       if ( this.hasOwnProperty('validateObj') && this.localeValidationPredicate ) {
         let currValidate = this.validateObj;
         let vp   = this.localeValidationPredicate;
@@ -455,7 +455,7 @@ foam.CLASS({
 
       proto.describeErrors = function() {
         let a = (self.toSlot(this).get())?.map(a => {
-          return { name: a[0].name, error: a[1], value: a[0].f(this) }
+          return { name: a[0].name, error: a[1], value: a[0].f(this) };
         }) ?? [];
         console.table(a);
       };
@@ -466,7 +466,7 @@ foam.CLASS({
       var slot     = obj.getPrivate_(slotName);
 
       if ( ! slot ) {
-        slot = this.createErrorSlot_(obj)
+        slot = this.createErrorSlot_(obj);
         obj.setPrivate_(slotName, slot);
       }
 
@@ -619,7 +619,7 @@ foam.CLASS({
       name: 'internalValidationPredicates',
       // TODO: Not required for JS, so maybe just make work for Java.
       factory: function() {
-        var query = 'thisValue !exists||thisValue<=maxDate&&thisValue>=minDate'
+        var query = 'thisValue !exists||thisValue<=maxDate&&thisValue>=minDate';
         return [
           {
             args: [ this.name ],

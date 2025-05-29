@@ -237,7 +237,7 @@ foam.SCRIPT({
       var a = this.axiomMap_[key];
       a.validateClass && a.validateClass(this);
     }
-  }
+  };
 
   // Change 'false' to 'true' to enable error reporting for setting
   // non-Properties on FObjects.

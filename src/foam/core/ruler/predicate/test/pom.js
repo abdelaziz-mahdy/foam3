@@ -3,4 +3,4 @@ foam.POM({
   files: [
     { name: "FScriptRulePredicateTest",                                                   flags: "js|java" }
   ]
-})
+});

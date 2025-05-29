@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     {
       class: 'FObjectProperty',
-      name: 'wrapper',
+      name: 'wrapper'
     },
     {
       class: 'foam.u2.wizard.PathProperty',

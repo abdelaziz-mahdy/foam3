@@ -10,7 +10,7 @@
   extends: 'foam.core.google.api.sheets.views.wizardModal.WizardModalSubView',
   requires: [
     'foam.log.LogLevel',
-    'foam.u2.dialog.NotificationMessage',
+    'foam.u2.dialog.NotificationMessage'
   ],
   imports: [
     'importConfig',
@@ -24,7 +24,7 @@
     }
   `,
   messages: [
-    { name: 'ERROR_MSG', message: 'Something went wrong! Please contact support'},
+    { name: 'ERROR_MSG', message: 'Something went wrong! Please contact support'}
   ],
   methods: [
     function render() {

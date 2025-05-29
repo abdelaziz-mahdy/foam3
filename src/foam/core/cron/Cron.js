@@ -169,14 +169,14 @@ foam.CLASS({
       name: 'daoKey',
       value: 'cronJobDAO',
       transient: true,
-      visibility: 'HIDDEN',
+      visibility: 'HIDDEN'
     },
     {
       class: 'String',
       name: 'eventDaoKey',
       value: 'cronJobEventDAO',
       transient: true,
-      visibility: 'HIDDEN',
+      visibility: 'HIDDEN'
     }
   ],
 

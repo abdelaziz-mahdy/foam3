@@ -102,7 +102,7 @@ foam.CLASS({
           of: this.filterController.dao.of.id,
           onKey: true,
           viewSpec: {
-            class: 'foam.u2.SearchField',
+            class: 'foam.u2.SearchField'
           }
         }, this.searchView$).addClass(self.myClass('general-field'))
         .end()
@@ -117,7 +117,7 @@ foam.CLASS({
             })
             .end();
           }
-        })
+        });
     }
   ]
 

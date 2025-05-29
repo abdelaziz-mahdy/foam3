@@ -25,7 +25,7 @@ foam.CLASS({
         },
         {
           class: 'Map',
-          name: 'wizardlets',
+          name: 'wizardlets'
         }
       ],
       methods: [
@@ -38,7 +38,7 @@ foam.CLASS({
           Object.keys(this.wizardlets).forEach(v => {
             let w = this.wizardlets[v];
             if (w.status != 'GRANTED' && w.status != 'PENDING' ) anyIncomplete = true;
-          })
+          });
           if ( ! anyIncomplete ) this.status = 'GRANTED';
         },
         function handleSkipping() {
@@ -54,7 +54,7 @@ foam.CLASS({
             let ws = Object.values(this.wizardlets);
             if ( ! ws.length ) return;
             let arrSlot = foam.lang.ArraySlot.create({
-              slots: ws.map(w => w.isValid$.map(() => w)),
+              slots: ws.map(w => w.isValid$.map(() => w))
             });
             this.onDetach(this.isValid$.follow(arrSlot.map(arr => ! arr.some(v => v.isValid == false))));
           }
@@ -81,7 +81,7 @@ foam.CLASS({
             let w = this.spec.realWizardlets[v];
             await w.load({ enableLoad: true });
             this.args[foam.u2.wizard.Wizardlet.camelCaseCapabilityId(v)] = w.data;
-          }))
+          }));
           data = await sup(o);
           this.wizardlet.populateStatus();
           return data;
@@ -114,7 +114,7 @@ foam.CLASS({
           Object.keys(this.realWizardlets).map(async v => {
             let w = this.realWizardlets[v];
             w.wao = this.NoLoadWAO.create({ delegate: w.wao });
-          })
+          });
           return await this.delegate.save(o);
         }
       ]
@@ -176,7 +176,7 @@ foam.CLASS({
               this.facadeModelOverrides[element].view = function(args, X) {
                 args.data$ = wi.data$;
                 return foam.u2.ViewSpec.createView(view, args, wi, X);
-              }
+              };
             }
             return {
               name: this.createPropertyName(element),
@@ -192,7 +192,7 @@ foam.CLASS({
                 return wi.sections[0].createView();
               },
               ...(this.facadeModelOverrides[element] ?? {})
-            }
+            };
           }),
           {
             class: 'Array',
@@ -221,7 +221,7 @@ foam.CLASS({
                 // Need to do this manually since wizardlet data are FObjectProperties and the change is not made to the FObjectProperty itself
                 // but some nested property of it
                 this.pub('propertyChange', self.createPropertyName(v), this[self.createPropertyName(v)+'$']);
-              }))
+              }));
             });
             if ( status ) this.status = status;
           }
@@ -240,7 +240,7 @@ foam.CLASS({
         invisible: this.capabilityIds
       }});
       if ( altAction.canSkipData ) {
-        altAction.isEnabled = function(isLoading_) { return !isLoading_ };
+        altAction.isEnabled = function(isLoading_) { return !isLoading_; };
       }
       facadeWizardlet.dynamicActions.push(altAction);
 
@@ -248,15 +248,15 @@ foam.CLASS({
       facadeWizardlet.wao.loader = {
         class: 'foam.u2.wizard.wizardflow.AddFacadeWizardlet.FacadeLoader',
         spec: { class: facadeClass.id, realWizardlets: self.wizardlets_ }
-      }
+      };
 
       facadeWizardlet.wao.saver = {
         class: 'foam.u2.wizard.wizardflow.AddFacadeWizardlet.FacadeSaver',
         realWizardlets: self.wizardlets_
-      }
+      };
 
       return facadeWizardlet;
-    },
+    }
 
   ]
 });

@@ -97,7 +97,7 @@ foam.CLASS({
             case 8:
               if ( this.elements[this.currentIndex].data === ' ' || ! this.elements[this.currentIndex].data ) {
                 this.currentIndex--;
-              };
+              }
             break;
           }
           this.elements[this.currentIndex].focus();
@@ -123,5 +123,5 @@ foam.CLASS({
         }
       }
     }
-  ],
+  ]
 });

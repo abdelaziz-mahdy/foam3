@@ -24,7 +24,7 @@ foam.CLASS({
           this.stack.push(foam.u2.stack.StackBlock.create({
           view: {
             class: 'foam.core.theme.customisation.ThemeCustomisationView',
-            themeName: id,
+            themeName: id
           }, parent: this.__subContext__ }, this));
         };
       }

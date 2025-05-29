@@ -29,7 +29,7 @@ foam.CLASS({
             class: 'foam.u2.wizard.axiom.WizardAction',
             label: label ? 'Return to ' + label : 'Done'
           }
-        ]
+        ];
       } 
     },
     {

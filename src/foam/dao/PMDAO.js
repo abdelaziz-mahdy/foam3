@@ -120,7 +120,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'X',
+          type: 'X'
         },
         {
           name: 'pm',

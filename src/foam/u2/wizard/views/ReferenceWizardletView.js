@@ -31,7 +31,7 @@ foam.CLASS({
   methods: [
     function render() {
       this
-        .tag(this.RichChoiceView, { ...this.viewArgs, prop: this.prop, data$: this.selectedID$, fullObject_$: this.data$ })
+        .tag(this.RichChoiceView, { ...this.viewArgs, prop: this.prop, data$: this.selectedID$, fullObject_$: this.data$ });
     },
 
     function fromProperty(p) {

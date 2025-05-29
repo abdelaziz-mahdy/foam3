@@ -30,7 +30,7 @@ foam.CLASS({
   methods: [
     function init() {
       this.SUPER();
-      var days = []
+      var days = [];
       for ( var i = 1; i <= 31; i++ )
         days.push(i);
       this.choices = days;

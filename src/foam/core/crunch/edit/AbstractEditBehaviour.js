@@ -16,7 +16,7 @@ foam.CLASS({
       name: 'wizardletBorder',
       flags: ['web'],
       factory: function(){
-        return 'foam.u2.wizard.views.NullEditWizardletBorder'
+        return 'foam.u2.wizard.views.NullEditWizardletBorder';
       }
     },
     {

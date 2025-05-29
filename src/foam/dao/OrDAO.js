@@ -27,7 +27,7 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.dao.DedupSink',
+    'foam.dao.DedupSink'
   ],
 
   documentation: 'DAO composite which performs find() in second delegate if not found in first.',
@@ -67,9 +67,9 @@ foam.CLASS({
       code: function() {
         var self = this;
         sink = sink || self.ArraySink.create();
-        var ddSink = self.DedupSink.create({delegate: sink})
+        var ddSink = self.DedupSink.create({delegate: sink});
         return self.primary.select_(x, ddSink, skip, limit, order, predicate).then(function() {
-          return self.delegate.select_(x, ddSink, skip, limit, order, predicate)
+          return self.delegate.select_(x, ddSink, skip, limit, order, predicate);
         }).then(function() {
           return sink;
         });

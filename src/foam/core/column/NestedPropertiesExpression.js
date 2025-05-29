@@ -23,7 +23,7 @@ foam.CLASS({
     'foam.core.logger.Logger',
     'foam.util.StringUtil',
     'java.lang.reflect.Method',
-    'static foam.mlang.MLang.*',
+    'static foam.mlang.MLang.*'
   ],
 
   properties: [
@@ -153,7 +153,7 @@ foam.CLASS({
       args: [
         {
           name: 'prop',
-          javaType: 'foam.lang.PropertyInfo',
+          javaType: 'foam.lang.PropertyInfo'
         }
       ],
       javaCode: `
@@ -171,7 +171,7 @@ foam.CLASS({
       args: [
         {
           name: 'prop',
-          javaType: 'foam.mlang.Expr',
+          javaType: 'foam.mlang.Expr'
         },
         {
           name: 'expr',
@@ -198,7 +198,7 @@ foam.CLASS({
       args: [
         {
           name: 'prop',
-          javaType: 'foam.lang.PropertyInfo',
+          javaType: 'foam.lang.PropertyInfo'
         }
       ],
       javaCode: `
@@ -214,7 +214,7 @@ foam.CLASS({
       args: [
         {
           name: 'prop',
-          javaType: 'foam.lang.PropertyInfo',
+          javaType: 'foam.lang.PropertyInfo'
         }
       ],
       javaCode: `
@@ -275,7 +275,7 @@ foam.CLASS({
           if ( foam.dao.DAOProperty.isInstance(expr) ||
                foam.dao.OneToManyRelationshipProperty.isInstance(expr) ||
                foam.dao.ManyToManyRelationshipProperty.isInstance(expr) )
-            continue
+            continue;
           if ( expr )
             exprArray.push(expr);
         }

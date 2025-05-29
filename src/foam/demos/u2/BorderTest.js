@@ -1,4 +1,3 @@
-
 // Copy 'E' out of root context for convenience.
 var E = foam.__context__.E.bind(foam.__context__);
 

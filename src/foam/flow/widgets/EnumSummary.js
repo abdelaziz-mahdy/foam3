@@ -42,10 +42,10 @@ foam.CLASS({
               .start('tr')
                 .start('td').add(ax.name).end()
                 .start('td').add(ax.documentation).end()
-              .end()
+              .end();
           })
         .end()
         ;
     }
-  ],
+  ]
 });

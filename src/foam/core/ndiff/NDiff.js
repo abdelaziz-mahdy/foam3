@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'NDiff',
   documentation: `Tracks changes to cSpecs. Used for debugging`,
   requires: [
-    'foam.u2.dialog.Popup',
+    'foam.u2.dialog.Popup'
   ],
   tableColumns: [
     'cSpecName',
@@ -23,11 +23,11 @@ foam.CLASS({
     {
       name: 'cSpecName',
       label: 'CSpec',
-      class: 'String',
+      class: 'String'
     },
     {
       name: 'objectId',
-      class: 'String',
+      class: 'String'
     },
     {
       name: 'deletedAtRuntime',
@@ -43,7 +43,7 @@ foam.CLASS({
       visibility: 'HIDDEN',
       documentation: `
         The object as it was loaded from the repo journals (".0 file")
-        `,
+        `
     },
     {
       name: 'runtimeFObject',
@@ -52,7 +52,7 @@ foam.CLASS({
       documentation: `
         The object as it was loaded from the runtime journals
       `,
-      storageTransient: true,
+      storageTransient: true
     },
     {
       name: 'applyOriginal',
@@ -64,8 +64,8 @@ foam.CLASS({
         the initialFObject to its respective DAO.
         The flag will then automatically be set to false.
         `,
-      storageTransient: true,
-    },
+      storageTransient: true
+    }
   ],
   actions: [
     {
@@ -78,7 +78,7 @@ foam.CLASS({
       code: function(X) {
         this.applyOriginal = true;
         X.dao.put(this);
-      },
+      }
     },
     {
       name: 'compare',

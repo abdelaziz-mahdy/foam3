@@ -168,9 +168,9 @@ return Promise.resolve(foam.maybeLookup(id));
 
             if ( self.Script.isInstance(m) ) {
               return Promise.all(m.requires.map(function(r) {
-                return self.load(r)
+                return self.load(r);
               })).then(function() {
-                m.code()
+                m.code();
                 return m;
               });
             }
@@ -229,8 +229,8 @@ return Promise.resolve(foam.maybeLookup(id));
           //   debugger;
           // }
 
-          delete foam.UNUSED[model.id]
-          foam.USED[model.id] = model
+          delete foam.UNUSED[model.id];
+          foam.USED[model.id] = model;
           return cls;
         });
       }

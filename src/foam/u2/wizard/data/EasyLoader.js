@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     {
       class: 'foam.util.FObjectSpecArray',
-      name: 'loaders',
+      name: 'loaders'
     },
     {
       class: 'FObjectArray',

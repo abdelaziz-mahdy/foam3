@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'foam.apploader.ModelFileDAO',
-    'foam.apploader.NodeModelFileFetcher',
+    'foam.apploader.NodeModelFileFetcher'
   ],
 
   properties: [
@@ -20,7 +20,7 @@ foam.CLASS({
       name: 'delegate',
       factory: function() {
         return this.ModelFileDAO.create({
-          fetcher: this.NodeModelFileFetcher.create({root: this.root}), });
+          fetcher: this.NodeModelFileFetcher.create({root: this.root}) });
       }
     }
   ]

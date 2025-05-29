@@ -68,10 +68,10 @@ foam.CLASS({
             ctrl.add(
               self.Popup.create({
                 closeable: viewSpec.closeable ? viewSpec.closeable : false,
-                ...(onClose ? { onClose: onClose } : {}),
+                ...(onClose ? { onClose: onClose } : {})
               })
                 .tag(viewSpec)
-            )
+            );
           }
           : function (viewSpec) {
             self.stack.push(viewSpec, self);

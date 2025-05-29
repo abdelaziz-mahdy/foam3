@@ -13,17 +13,17 @@ foam.CLASS({
     {
       class: 'Proxy',
       of: 'foam.apploader.ClassLoader',
-      name: 'delegate',
+      name: 'delegate'
     },
     {
       name: 'path',
-      value: [],
-    },
+      value: []
+    }
   ],
 
   methods: [
     function maybeLoad(id) {
       return this.delegate.maybeLoad_(id, this.path);
-    },
-  ],
+    }
+  ]
 });

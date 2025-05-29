@@ -207,7 +207,7 @@ foam.CLASS({
       if ( false /*foam.util.equals(order.orderPrimaryProperty, this.prop)*/ ) {
         // If the sub-estimate is less than sort cost (N*lg(N) for a dummy size of 1000)
         return 9965 >
-          this.tail.estimate(1000, this.NullSink.create(), 0, 0, order.orderTail())
+          this.tail.estimate(1000, this.NullSink.create(), 0, 0, order.orderTail());
       }
       // can't use select() with the given ordering
       return false;
@@ -315,11 +315,11 @@ foam.CLASS({
   properties: [
     {
       class: 'Simple',
-      name: 'selectCount',
+      name: 'selectCount'
     },
     {
       class: 'Simple',
-      name: 'root',
+      name: 'root'
     }
   ],
 
@@ -474,7 +474,7 @@ foam.CLASS({
           if ( ic ) nodeKey = nodeKey.toLowerCase(); // TODO: handle case-insensitive better
 
           return nodeKey.indexOf(masterKey) > -1 ? 0 : 1;
-        }
+        };
 
         var indexes = [];
         if ( ! key || key.length === 0 ) {
@@ -637,7 +637,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.dao.index',
   name: 'SetIndex',
-  extends: 'foam.dao.index.TreeIndex',
+  extends: 'foam.dao.index.TreeIndex'
 });
 
 

@@ -17,7 +17,7 @@ foam.CLASS({
       // Support type short-form: 'Type argName'
       if ( foam.String.isInstance(e) ) {
         var a = e.trim().split(' ');
-        if ( a.length != 2 ) console.log('********************************** ArgumentArray.adaptArrayElement: ', a.length, e)
+        if ( a.length != 2 ) console.log('********************************** ArgumentArray.adaptArrayElement: ', a.length, e);
         // console.log('ArgumentArray.adaptArrayElement **************************************************************************',a);
         e = { type: a[0], name: a[1] };
       }

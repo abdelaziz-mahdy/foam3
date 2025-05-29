@@ -28,7 +28,7 @@ foam.CLASS({
     },
     {
       name: 'partialEval',
-      code: function() { return this },
+      code: function() { return this; },
       javaCode: 'return foam.mlang.MLang.TRUE;'
     }
   ]

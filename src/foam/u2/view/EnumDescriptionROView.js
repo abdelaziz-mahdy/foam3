@@ -75,6 +75,6 @@ foam.CLASS({
         if ( ! token ) return '';
         return foam.CSS.returnTokenValue(token, this.cls_, this.__subContext__);
       }
-    },
+    }
   ]
 });

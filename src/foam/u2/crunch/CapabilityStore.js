@@ -310,7 +310,7 @@ foam.CLASS({
     function accountAndAccountingCard() {
       // Capability Store Section Previews
       var self = this;
-      return self.E().style({ 'width': '94%', 'margin': 'auto '})
+      return self.E().style({ width: '94%', margin: 'auto '})
         .select(self.visibleCategoryDAO$proxy, function(category) {
           var sectionElement = this.E('span');
           var returnElement = this.E()
@@ -392,7 +392,7 @@ foam.CLASS({
           if ( ! addedFirstItem ) {
             addedFirstItem = true;
             sectionElement
-              .addClass(this.myClass('category'))
+              .addClass(this.myClass('category'));
               // TODO: uncomment when UCJs are editable again
               // .start('h3').add(this.EDITABLE).end()
           }
@@ -452,7 +452,7 @@ foam.CLASS({
               this.openWizard(cap, false);
             else
               this.window.location.reload();
-        })
+        });
     },
     async function openWizard(cap, showToast) {
       if ( this.wizardOpened ) return;

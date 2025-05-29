@@ -47,7 +47,7 @@ foam.CLASS({
       self.auth2 = new Promise(function(resolve, reject) {
         var authLoad = function() {
           if ( ! gapi ) {
-            self.warn("Google Authentication Platform API (gapi) not loaded in time. Retrying.")
+            self.warn("Google Authentication Platform API (gapi) not loaded in time. Retrying.");
             self.setTimeout(authLoad, 500);
           }
 
@@ -72,7 +72,7 @@ foam.CLASS({
           } else {
             getAuth2();
           }
-        }
+        };
         authLoad();
       });
     },

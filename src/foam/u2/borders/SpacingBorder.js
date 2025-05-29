@@ -29,8 +29,8 @@ foam.CLASS({
   methods: [
     function render() {
       this.style({
-        'margin': this.margin$.map(this.returnExpandedCSS),
-        'padding': this.padding$.map(this.returnExpandedCSS)
+        margin: this.margin$.map(this.returnExpandedCSS),
+        padding: this.padding$.map(this.returnExpandedCSS)
       });
     }
   ]

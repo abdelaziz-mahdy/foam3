@@ -72,7 +72,7 @@ foam.CLASS({
           var e  = foam.u2.ViewSpec.createView(view, null, this, X);
           this.children[0].removeClass('slide-in');
           this.children[0].style({
-            left: data.pos > self.curPos ? '100%' : '-100%',
+            left: data.pos > self.curPos ? '100%' : '-100%'
           });
           self.curPos = data.pos;
           self.curView = e;
@@ -88,9 +88,9 @@ foam.CLASS({
         isMerged:true,
         mergeDelay:1,
         code: function() {
-          this.children[0].addClass('slide-in')
+          this.children[0].addClass('slide-in');
         }
-      },
+      }
   ],
 
   css: `

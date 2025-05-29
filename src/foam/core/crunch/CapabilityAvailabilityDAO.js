@@ -104,6 +104,6 @@ foam.CLASS({
         return capability.getAvailabilityPredicate().f(x)
           || getAuth().check(x, AVAILABILITY_PERMISSION + capability.getId());
       `
-    },
-  ],
+    }
+  ]
 });

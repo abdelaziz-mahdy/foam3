@@ -67,20 +67,20 @@ foam.LIB({
           if ( o.asJavaValue ) return o.asJavaValue.call(o, o);
           return `foam.util.Arrays.asMap(new Object[] {
 ${Object.keys(o).map(function(k, i, a) {
-  return `  ${foam.java.asJavaValue(k)}, ${foam.java.asJavaValue(o[k])}` + ((i == a.length-1) ? '' : ',')
+  return `  ${foam.java.asJavaValue(k)}, ${foam.java.asJavaValue(o[k])}` + ((i == a.length-1) ? '' : ',');
 }).join('\n')}
 })`;
         },
         RegExp: function(o) {
           o = o.toString();
-          o = o.slice(o.indexOf('/') + 1, o.lastIndexOf('/'))
-          o = o.replace(/\\/g, '\\\\')
-          return `java.util.regex.Pattern.compile("${o}")`
+          o = o.slice(o.indexOf('/') + 1, o.lastIndexOf('/'));
+          o = o.replace(/\\/g, '\\\\');
+          return `java.util.regex.Pattern.compile("${o}")`;
         },
         Date: function(d) {
           var n = d.getTime();
           return `new java.util.Date(` + n +
-            (n > Math.pow(2, 31) || n < -Math.pow(2,31) ? 'L' : '') + `)`
+            (n > Math.pow(2, 31) || n < -Math.pow(2,31) ? 'L' : '') + `)`;
         }
       })
     },
@@ -113,7 +113,7 @@ foam.CLASS({
         // default value.
         return function(type) {
           return value || foam.java.toJavaType(type);
-        }
+        };
       }
     },
     {
@@ -258,7 +258,7 @@ var px     = new foam.lib.parse.ParserContextImpl();` +
           .map((vp) => {
             var exception = vp.errorMessage ?
               `throw new IllegalStateException(((${this.forClass_}) obj).${vp.errorMessage});` :
-              `throw new IllegalStateException(${foam.java.asJavaValue(vp.errorString)});`
+              `throw new IllegalStateException(${foam.java.asJavaValue(vp.errorString)});`;
             return `
 sps.setString(${foam.java.asJavaValue(vp.query)});
 if ( ! ((foam.mlang.predicate.Predicate) parser.parse(sps,px).value()).f(obj) ) {
@@ -825,7 +825,7 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'javaCode',
+      name: 'javaCode'
       // flags: ['java'],
     },
     { class: 'foam.java.JavaType' }, // JavaType defines 'name' and other properties
@@ -895,11 +895,11 @@ public Object call(foam.lang.X x, Object receiver, Object[] args) {
            foam.core.logger.Logger logger = (foam.core.logger.Logger) x.get("logger");
            logger.error(t.getMessage());
          }\n
-        `
+        `;
       }
 
       if ( exceptions || this.javaType == 'void' ) {
-        initializerString += "return null;"
+        initializerString += "return null;";
       }
 
       initializerString += `}
@@ -943,7 +943,7 @@ public Object call(foam.lang.X x, Object receiver, Object[] args) {
         final: true,
         type: 'foam.lang.MethodInfo',
         initializer: initializerString,
-        order: 0,
+        order: 0
       });
 
       var info = cls.getField('classInfo_');
@@ -1140,14 +1140,14 @@ foam.CLASS({
             return self.hasOwnProperty(a.name);
           })
           .map(function(p) {
-            return `.set${foam.String.capitalize(p.name)}(${foam.java.asJavaValue(self[p.name], p)})`
-          })
+            return `.set${foam.String.capitalize(p.name)}(${foam.java.asJavaValue(self[p.name], p)})`;
+          });
         return `
 new ${self.cls_.id}.Builder(foam.lang.EmptyX.instance())
   ${props.join('\n')}
   .build()
-        `
-      },
+        `;
+      }
     },
     {
       name: 'toString',
@@ -1168,8 +1168,8 @@ foam.CLASS({
       name: 'asJavaValue',
       code: function() {
         var self = this;
-        return `${self.cls_.id}.${self.name}`
-      },
+        return `${self.cls_.id}.${self.name}`;
+      }
     }
   ]
 });
@@ -1843,7 +1843,7 @@ foam.CLASS({
     {
       name: 'javaType',
       expression: function(type) {
-        return type ? foam.java.toJavaType(type) : 'Object[]'
+        return type ? foam.java.toJavaType(type) : 'Object[]';
       }
     },
     ['javaInfoType',   'foam.lang.AbstractArrayPropertyInfo'],
@@ -2147,14 +2147,14 @@ foam.CLASS({
   properties: [
     {
       name: 'javaName',
-      value: 'Multiton',
+      value: 'Multiton'
     },
     {
       name: 'javaInfoName',
       expression: function(javaName) {
         return foam.String.constantize(this.javaName);
-      },
-    },
+      }
+    }
   ],
 
   methods: [
@@ -2171,7 +2171,7 @@ foam.CLASS({
         initializer: `
 new foam.lang.MultitonInfo("${this.javaName}", ${cls.name}.${foam.String.constantize(this.property)});
         `,
-        order: 1,
+        order: 1
       });
     }
   ]
@@ -2647,7 +2647,7 @@ foam.CLASS({
     function buildJavaClass(cls) {
     var result = this.TemplateUtil.create().compileJava(this.template, this.name, this.args || []);
       var args = [{ type: 'java.lang.StringBuilder', name: 'builder' }];
-      args.push()
+      args.push();
       this.args.forEach(a => args.push({type: a.type, name: a.name}));
       cls.method({
         name: 'build' + this.name.charAt(0).toUpperCase() + this.name.slice(1),

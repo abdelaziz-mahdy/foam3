@@ -342,7 +342,7 @@ foam.CLASS({
       this.input = this.input.trim();
 
       if ( this.format === 'AUTO' ) {
-        this.input = this.input
+        this.input = this.input;
         if ( this.input.startsWith('<?xml') ) {
           this.format = 'XML';
         } else if ( this.input.startsWith('{') ) {

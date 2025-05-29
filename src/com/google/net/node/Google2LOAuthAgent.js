@@ -153,7 +153,7 @@ foam.CLASS({
           scope: this.scope_,
           aud: this.tokenURL,
           exp: exp,
-          iat: iat,
+          iat: iat
         });
       }
     },

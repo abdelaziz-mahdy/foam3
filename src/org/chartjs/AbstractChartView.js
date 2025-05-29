@@ -30,7 +30,7 @@ foam.CLASS({
       }
     },
     {
-      name: 'parentEl_',
+      name: 'parentEl_'
     },
     {
       name: 'chart_'

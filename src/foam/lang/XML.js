@@ -204,7 +204,7 @@ foam.CLASS({
     },
 
     function outputAttributes(v) {
-      var attributes = v.cls_.getAxiomsByClass(foam.lang.Property).filter(function (p) { return p.xmlAttribute });
+      var attributes = v.cls_.getAxiomsByClass(foam.lang.Property).filter(function (p) { return p.xmlAttribute; });
       if ( attributes.length === 0 ) return this;
 
       for ( var i = 0 ; i < attributes.length ; i++ ) {
@@ -214,7 +214,7 @@ foam.CLASS({
     },
 
     function propertyName(p) {
-      return this.maybeEscapeKey(this.useShortNames && p.shortName ? p.shortName : p.name)
+      return this.maybeEscapeKey(this.useShortNames && p.shortName ? p.shortName : p.name);
     },
 
     function outputProperty_(o, p) {
@@ -280,7 +280,7 @@ foam.CLASS({
             this.end('</' +  this.propertyName(p) + '>');
           }
         },
-        Object: function(v, p) { this.outputPrimitive(v, p); },
+        Object: function(v, p) { this.outputPrimitive(v, p); }
       })
     },
 
@@ -346,7 +346,7 @@ foam.CLASS({
         AbstractEnum: function(o) { },
         FObject:      function(o) {
           if ( o.outputXML ) {
-            o.outputXML(this)
+            o.outputXML(this);
             return;
           }
 

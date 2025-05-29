@@ -10,7 +10,7 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'filterClass',
+      name: 'filterClass'
     },
     {
       class: 'Map',

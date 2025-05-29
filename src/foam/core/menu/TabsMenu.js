@@ -15,7 +15,7 @@ foam.CLASS({
     {
       path: 'foam.u2.Tabs',
       javaPath: ''
-    },
+    }
   ],
 
   methods: [

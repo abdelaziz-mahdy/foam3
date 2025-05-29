@@ -171,7 +171,7 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.box.HTTPAuthorizationType',
       name: 'authType',
-      section: 'dugInfo',
+      section: 'dugInfo'
     },
     {
       class: 'String',
@@ -218,7 +218,7 @@ foam.CLASS({
           ['XML',  'XML']
         ],
         placeholder: '--'
-      },
+      }
     },
     {
       name: 'enabled',
@@ -227,7 +227,7 @@ foam.CLASS({
     },
     {
       name: 'async',
-      value: true,
+      value: true
     },
     {
       name: 'action',

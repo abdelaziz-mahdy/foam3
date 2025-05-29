@@ -17,7 +17,7 @@
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'importConfig',
@@ -32,7 +32,7 @@
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'importConfig',

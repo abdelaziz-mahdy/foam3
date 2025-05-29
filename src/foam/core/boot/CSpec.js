@@ -288,7 +288,7 @@ foam.CLASS({
         if ( ! auth.check(x, "service." + getName()) ) {
           throw ACCESS_DENIED;
         }
-      `,
+      `
     },
     {
       name: 'authorizeOnCreate',

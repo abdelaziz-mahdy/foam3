@@ -15,7 +15,7 @@ foam.CLASS({
   requires: [
     'foam.lang.Slot',
     'foam.mlang.expr.Dot',
-    'foam.lang.Property',
+    'foam.lang.Property'
   ],
   flags: ['web'],
 
@@ -31,12 +31,12 @@ foam.CLASS({
         if ( path ) {
           const parts = path.split('.');
           let of_ = of;
-          let obj = null
+          let obj = null;
           for ( let part of parts ) {
             obj = of_.getAxiomByName(part);
             of = obj.cls_;
           }
-          return foam.String.daoize(obj.of.name)
+          return foam.String.daoize(obj.of.name);
         }
         return foam.String.daoize(of.name);
       }
@@ -54,7 +54,7 @@ foam.CLASS({
       documentation: `
         Optional path used to specify the location of the desired wizardlet's data object that will
         be updated.
-      `,
+      `
     },
     {
       class: 'Boolean',
@@ -96,7 +96,7 @@ foam.CLASS({
             .catch(e => {
               console.error(e);
               wizardlet.reportNetworkFailure(e);
-            })
+            });
         this.setValue_(wizardlet, loadedData);
       }
       wizardlet.loading = false;

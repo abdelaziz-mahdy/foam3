@@ -48,7 +48,7 @@ foam.CLASS({
         .start()
           .addClass('p-legal')
           .add(this.data['value'])
-        .end()
+        .end();
     },
 
     function openFilteredListView(obj) {

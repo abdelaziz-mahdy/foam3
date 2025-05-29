@@ -87,7 +87,7 @@
       var ccj = this.CapabilityCapabilityJunction.create({
         sourceId: g_,
         targetId: c_
-      })
+      });
       if ( data.get() ) {
         this.prerequisiteCapabilityJunctionDAO.put(ccj);
       } else {

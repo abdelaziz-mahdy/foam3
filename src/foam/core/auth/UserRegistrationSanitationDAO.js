@@ -65,5 +65,5 @@ foam.CLASS({
         return nu;
       `
     }
-  ],
+  ]
 });

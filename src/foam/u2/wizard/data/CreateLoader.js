@@ -20,7 +20,7 @@ foam.CLASS({
       factory: function(){
         return {
           class: this.wizardletOf?.id
-        }
+        };
       }
     },
     {

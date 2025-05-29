@@ -14,4 +14,4 @@ foam.CLASS({
       name: 'fobject'
     }
   ]
-})
+});

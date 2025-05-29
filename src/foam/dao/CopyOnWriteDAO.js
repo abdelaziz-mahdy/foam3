@@ -162,7 +162,7 @@ foam.CLASS({
       name: 'select_',
       code: async function select_(x, sink, skip, limit, order, predicate) {
         sink = sink || this.ArraySink.create();
-        var ddSink = this.DedupSink.create({ delegate: sink })
+        var ddSink = this.DedupSink.create({ delegate: sink });
         await this.copyDAO.select_(x, ddSink, skip, limit, order, predicate);
         for ( const k of this.idCache ) {
           ddSink.results[k] = true;
@@ -184,7 +184,7 @@ foam.CLASS({
     {
       name: 'removeAll_',
       code: function (x, ...selectArgs) {
-        this.select_(x, this.RemoveSink.create({ x, dao: this }), ...selectArgs)
+        this.select_(x, this.RemoveSink.create({ x, dao: this }), ...selectArgs);
       },
       javaCode: `
         select_(x, new RemoveSink(x, this), skip, limit, order, predicate);

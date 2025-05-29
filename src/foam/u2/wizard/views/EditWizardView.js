@@ -55,7 +55,7 @@ foam.CLASS({
 
   methods: [
     function render () {
-      const self = this
+      const self = this;
       this
         .dynamic(function (data$wizardlets) {
           self.stack.setCompact(true, self);
@@ -63,21 +63,21 @@ foam.CLASS({
           this
             .addClass()
             .forEach(data$wizardlets, function (wizardlet) {
-              wizardlet.load()
-              const x = this.__subContext__.createSubContext({wizardlet})
+              wizardlet.load();
+              const x = this.__subContext__.createSubContext({wizardlet});
               self.wrapBorder_(x, this, wizardlet, function() {
                 this
                   .forEach(wizardlet.sections, function (section) {
                     this.tag(section.createView( {}, { controllerMode: this.__subSubContext__.controllerMode$ } ) ?? this.E());
-                  })
-              })
+                  });
+              });
             });
         });
     },
 
     function getBorder_(x, wizardlet) {
       if ( ! wizardlet.capability ) return this.Block;
-      return wizardlet.capability.editBehaviour.wizardletBorder
+      return wizardlet.capability.editBehaviour.wizardletBorder;
     },
 
     function wrapBorder_(x, el, wizardlet, callback) {
@@ -86,7 +86,7 @@ foam.CLASS({
           .start(this.getBorder_(x, wizardlet))
             .call(callback)
           .end()
-        .endContext()
+        .endContext();
     }
   ]
 });

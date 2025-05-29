@@ -30,7 +30,7 @@ foam.CLASS({
       factory: function(){
         return [
           '554af38a-8225-87c8-dfdf-eeb15f71215f-20'
-        ]
+        ];
       }
     }
   ],

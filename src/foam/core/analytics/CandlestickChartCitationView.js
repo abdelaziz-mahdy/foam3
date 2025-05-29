@@ -28,7 +28,7 @@ foam.CLASS({
           data: data,
           options: {
             legend: {
-              display: false,
+              display: false
             },
             tooltips: {
               // see: https://github.com/chartjs/Chart.js/issues/3953
@@ -51,4 +51,4 @@ foam.CLASS({
         end();
     }
   ]
-})
+});

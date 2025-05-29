@@ -85,9 +85,9 @@ foam.CLASS({
             class: 'foam.u2.view.FObjectView',
             of: 'foam.util.BaseFluentSpec'
           }
-        }
+        };
       }
-    },
+    }
   ],
 
   methods: [
@@ -122,7 +122,7 @@ foam.CLASS({
                 } catch (e) {
                   console.error(e);
                 }
-                console.log('sequence', sequence)
+                console.log('sequence', sequence);
                 return self.E()
                   .start({
                     class: 'foam.u2.Accordion',
@@ -135,11 +135,11 @@ foam.CLASS({
                     .on('click', () => {
                       sequence.execute(this.__subContext__);
                     })
-                  .end()
+                  .end();
               })()
             }));
           }))
-        .end()
+        .end();
       this.experimentsTab.selected = true;
     }
   ]

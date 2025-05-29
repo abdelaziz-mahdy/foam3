@@ -43,7 +43,7 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
-      name: 'initialized',
+      name: 'initialized'
     }
   ],
 

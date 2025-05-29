@@ -55,7 +55,7 @@ foam.CLASS({
           ndiff.setApplyOriginal(false);
         }
         return getDelegate().put_(x, ndiff);
-        `,
+        `
     },
     {
       name: 'select_',
@@ -135,7 +135,7 @@ foam.CLASS({
         super.select_(x, ourSink, skip, limit, order, p);
         
         return originalSink;
-        `,
-    },
-  ],
+        `
+    }
+  ]
 });

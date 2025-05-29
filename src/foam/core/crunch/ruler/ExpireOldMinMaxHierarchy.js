@@ -29,7 +29,7 @@ foam.CLASS({
     'foam.core.crunch.UserCapabilityJunction',
     'foam.core.crunch.MinMaxCapabilityData',
     'foam.core.logger.Logger',
-    'foam.core.logger.Loggers',
+    'foam.core.logger.Loggers'
   ],
 
   methods: [

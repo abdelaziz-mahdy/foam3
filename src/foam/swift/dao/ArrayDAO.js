@@ -9,15 +9,15 @@ foam.CLASS({
   name: 'ArrayDAO',
   extends: 'foam.dao.AbstractDAO',
   requires: [
-    'foam.mlang.predicate.True',
+    'foam.mlang.predicate.True'
   ],
   properties: [
     {
       class: 'Array',
       of: 'foam.lang.FObject',
       name: 'array',
-      swiftFactory: 'return []',
-    },
+      swiftFactory: 'return []'
+    }
   ],
   methods: [
     {
@@ -35,7 +35,7 @@ for (i, o) in array.enumerated() {
 if !found { array.append(obj) }
 _ = on["put"].pub([obj])
 return obj
-      `,
+      `
     },
     {
       name: 'remove_',
@@ -47,7 +47,7 @@ if i == nil { return nil }
 let o = array.remove(at: i!)
 _ = on["remove"].pub([obj])
 return o
-      `,
+      `
     },
     {
       name: 'find_',
@@ -57,7 +57,7 @@ let i = array.firstIndex { (o) -> Bool in
 }
 if i == nil { return nil }
 return array[i!]
-      `,
+      `
     },
     {
       name: 'select_',
@@ -75,7 +75,7 @@ for o in array {
 sink?.eof()
 
 return resultSink
-      `,
+      `
     },
     {
       name: 'removeAll_',
@@ -95,7 +95,7 @@ for (i, o) in array.enumerated() {
     _ = on["remove"].pub([o])
   }
 }
-      `,
-    },
+      `
+    }
   ]
 });

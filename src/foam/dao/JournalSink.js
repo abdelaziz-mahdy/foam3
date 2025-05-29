@@ -44,7 +44,7 @@ foam.CLASS({
     },
     {
       name: 'eof',
-      code: function() {},
+      code: function() {}
     },
     {
       name: 'reset',

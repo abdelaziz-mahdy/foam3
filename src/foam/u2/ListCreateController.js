@@ -171,8 +171,8 @@ foam.CLASS({
 
       methods: [
         function render() {
-          var view = this.createDetailView ? this.createDetailView : this.detailView
-          this.tag(view, {data: this.obj})
+          var view = this.createDetailView ? this.createDetailView : this.detailView;
+          this.tag(view, {data: this.obj});
           if ( this.showActions ) this.add(this.CANCEL, this.SAVE);
         }
       ],
@@ -205,7 +205,7 @@ foam.CLASS({
 
       methods: [
         function render() {
-          this.tag(this.detailView, {data: this.obj, controllerMode: foam.u2.ControllerMode.VIEW})
+          this.tag(this.detailView, {data: this.obj, controllerMode: foam.u2.ControllerMode.VIEW});
           if ( this.showActions ) this.add(this.BACK);
         }
       ],

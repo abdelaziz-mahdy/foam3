@@ -51,8 +51,8 @@ foam.CLASS({
     setPropertyInfos(propertyInfos);
   }
         `);
-      },
-    },
+      }
+    }
   ],
 
   methods: [

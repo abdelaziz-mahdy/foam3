@@ -26,31 +26,31 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'autoAdd',
-      postSet: function() { this.maybeAdd() }
+      postSet: function() { this.maybeAdd(); }
     },
     {
       name: 'bar',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view:  'org.chartjs.Bar',
+        view:  'org.chartjs.Bar'
       },
       factory: function() {
         var sink = this.GROUP_BY(this.Person.NAME, this.COUNT());
         this.dao.listen(sink);
         return sink;
-      },
+      }
     },
     {
       name: 'pie',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view:  'org.chartjs.Pie',
+        view:  'org.chartjs.Pie'
       },
       factory: function() {
         var sink = this.GROUP_BY(this.Person.NAME, this.COUNT());
         this.dao.listen(sink);
         return sink;
-      },
+      }
     },
     {
       class: 'foam.dao.DAOProperty',
@@ -59,10 +59,10 @@ foam.CLASS({
         return this.EasyDAO.create({
           of: this.Person,
           daoType: 'MDAO',
-          seqNo: true,
+          seqNo: true
         });
-      },
-    },
+      }
+    }
   ],
   classes: [
     {
@@ -71,9 +71,9 @@ foam.CLASS({
         { name: 'id' },
         { class: 'String', name: 'name' },
         { class: 'String', name: 'sex', value: 'M' },
-        { class: 'Int', name: 'age' },
+        { class: 'Int', name: 'age' }
       ]
-    },
+    }
   ],
   listeners: [
     {
@@ -84,8 +84,8 @@ foam.CLASS({
         if ( ! this.autoAdd ) return;
         this.addPerson();
         this.maybeAdd();
-      },
-    },
+      }
+    }
   ],
   actions: [
     {
@@ -96,14 +96,14 @@ foam.CLASS({
           'Adam',
           'Kevin',
           'Justin',
-          'Samantha',
+          'Samantha'
         ];
         this.dao.put(this.Person.create({
           name: names[Math.floor(Math.random()*names.length)],
           age: Math.floor(Math.random()*10),
-          sex: Math.floor(Math.random()*2) ? 'M' : 'F',
+          sex: Math.floor(Math.random()*2) ? 'M' : 'F'
         }));
-      },
-    },
-  ],
+      }
+    }
+  ]
 });

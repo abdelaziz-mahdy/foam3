@@ -17,16 +17,16 @@ foam.CLASS({
     {
       class: 'Object',
       name: 'sourceKey',
-      javaType: 'foam.lang.PropertyInfo',
+      javaType: 'foam.lang.PropertyInfo'
     },
     {
       class: 'Object',
       name: 'targetKey',
-      javaType: 'foam.lang.PropertyInfo',
+      javaType: 'foam.lang.PropertyInfo'
     },
     {
       class: 'String',
-      name: 'targetDAOKey',
+      name: 'targetDAOKey'
     }
   ],
 

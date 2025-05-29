@@ -18,7 +18,7 @@ foam.CLASS({
     {
       class: 'StringArray',
       name: 'cssClasses'
-    },
+    }
   ],
 
   methods: [

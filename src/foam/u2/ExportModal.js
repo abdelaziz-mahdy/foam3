@@ -165,7 +165,7 @@ foam.CLASS({
               this.start().addClass(self.myClass('datatype-group'))
                 .start().addClass(self.myClass('dimmed-text')).add('Data will be exported as').end()
                 .start().addClass(self.myClass('datatype-text')).add(`${dataType}.`).end()
-              .end()
+              .end();
             })
           .end()
 
@@ -189,7 +189,7 @@ foam.CLASS({
                 })
               )
             .end()
-            .start(this.Cols).style({ 'justify-content': 'flex-end', 'gap': '10px' })
+            .start(this.Cols).style({ 'justify-content': 'flex-end', gap: '10px' })
               .start(this.DOWNLOAD).end()
               .start(this.CONVERT).end()
               .start(this.OPEN).end()

@@ -17,7 +17,7 @@ foam.CLASS({
     {
       class: 'Object',
       name: 'oldValue',
-      view: 'foam.u2.view.AnyView',
+      view: 'foam.u2.view.AnyView'
     },
     {
       class: 'Object',

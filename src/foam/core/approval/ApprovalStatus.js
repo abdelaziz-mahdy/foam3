@@ -15,7 +15,7 @@
       ordinal: 0,
       documentation: 'Request pending.',
       color: '$warn500',
-      background: '$warn700',
+      background: '$warn700'
     },
     {
       name: 'APPROVED',
@@ -23,7 +23,7 @@
       ordinal: 1,
       documentation: 'Request was approved.',
       color: '$success700',
-      background: '$success50',
+      background: '$success50'
     },
     {
       name: 'REJECTED',
@@ -31,7 +31,7 @@
       ordinal: 2,
       documentation: 'Request was rejected.',
       color: '$destructive500',
-      background: '$destructive50',
+      background: '$destructive50'
     },
     {
       name: 'CANCELLED',
@@ -39,7 +39,7 @@
       ordinal: 3,
       documentation: 'Request was cancelled.',
       color: '$grey700',
-      background: '$grey50',
+      background: '$grey50'
     }
   ]
 });

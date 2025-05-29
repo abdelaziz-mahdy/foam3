@@ -34,8 +34,8 @@ return
     Whitespace_create(),
     Literal_create(["string": "}"]),
   ]])
-      `,
-    },
+      `
+    }
   ],
   methods: [
     {
@@ -44,20 +44,20 @@ return
       args: [
         {
           type: 'String',
-          name: 'str',
+          name: 'str'
         },
         {
           swiftType: 'Context?',
           swiftDefaultValue: 'nil',
-          name: 'x',
-        },
+          name: 'x'
+        }
       ],
       swiftCode: `
 let ps = StringPStream_create(["str": str])
 let parserContext = ParserContext()
 parserContext.set("X", x ?? __subContext__)
 return parse(ps, parserContext)?.value() as? foam_core_FObject
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

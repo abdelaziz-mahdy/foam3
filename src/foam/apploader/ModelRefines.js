@@ -14,11 +14,11 @@ foam.CLASS({
       name: 'getClassDeps',
       code: function() {
         var deps = this.requires ?
-          this.requires.map(function(r) { return r.path }) :
+          this.requires.map(function(r) { return r.path; }) :
           [];
 
         deps = deps.concat(this.implements ?
-          this.implements.map(function(i) { return i.path }) :
+          this.implements.map(function(i) { return i.path; }) :
           []);
 
         if ( this.extends ) deps.push(this.extends);

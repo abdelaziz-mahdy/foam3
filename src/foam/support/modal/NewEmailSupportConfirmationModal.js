@@ -74,12 +74,12 @@ foam.CLASS({
 
     messages:[
       {name:'title', message:'New Email'},
-      {name:'titlelabel', message:'Please go to the email box to validate the email address before you can connect to the help desk.'},
+      {name:'titlelabel', message:'Please go to the email box to validate the email address before you can connect to the help desk.'}
     ],
 
     methods:[
       function render(){
-        this.addClass()
+        this.addClass();
         this
         .tag(this.ModalHeader.create({
           title: 'New Email'
@@ -97,7 +97,7 @@ foam.CLASS({
         name: 'closeModal',
         label: 'OK',
         code: function(X){
-          X.closeDialog()
+          X.closeDialog();
         }
       }
     ]

@@ -81,7 +81,7 @@ foam.CLASS({
       */
       class: 'Boolean',
       name: 'refreshOnCacheHit',
-      value: false,
+      value: false
     },
     {
       /**
@@ -99,7 +99,7 @@ foam.CLASS({
       */
       class: 'Int',
       name: 'staleTimeout',
-      value: 500,
+      value: 500
       //units: 'ms',
     },
     {

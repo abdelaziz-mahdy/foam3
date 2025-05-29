@@ -37,7 +37,7 @@ foam.CLASS({
           // Maybe make forcepush a prop
           x.pushMenu?.(action.menu, true);
           return temp?.call(wizardController);
-        }
+        };
         wizardController.goNext();
       }
     },

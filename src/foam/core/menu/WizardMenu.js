@@ -35,7 +35,7 @@ foam.CLASS({
       factory: function() {
         return {
           class: 'foam.u2.crunch.EasyCrunchWizard'
-        }
+        };
       }
     },
     {
@@ -49,10 +49,10 @@ foam.CLASS({
       const runner = this.WizardRunner.create({
         source: foam.String.isInstance(this.source) ? this.source : this.source$create({}, x),
         isInline: this.tryInline
-      }, x)
+      }, x);
 
-      runner.sequence.addBefore('ConfigureFlowAgent', this.config)
-      runner.launch()
+      runner.sequence.addBefore('ConfigureFlowAgent', this.config);
+      runner.launch();
     }
   ]
 });

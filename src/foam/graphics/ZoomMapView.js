@@ -42,12 +42,12 @@ foam.CLASS({
       name: 'viewPortPosition',
       preSet: function(_, n) {
         if ( ! this.hasOwnProperty('navView_') || ! this.hasOwnProperty('viewPortView_') ) {
-          return { x: 0, y: 0 }
+          return { x: 0, y: 0 };
         }
         return {
           x: Math.max(0, Math.min(n.x || 0, this.navView_.width - this.viewPortView_.width)),
-          y: Math.max(0, Math.min(n.y || 0, this.navView_.height - this.viewPortView_.height)),
-        }
+          y: Math.max(0, Math.min(n.y || 0, this.navView_.height - this.viewPortView_.height))
+        };
       }
     },
     {
@@ -57,8 +57,8 @@ foam.CLASS({
       postSet: function(o, n) {
         this.viewPortPosition = {
           x: this.viewPortPosition.x * (n / o),
-          y: this.viewPortPosition.y * (n / o),
-        }
+          y: this.viewPortPosition.y * (n / o)
+        };
       }
     },
     {
@@ -102,8 +102,8 @@ foam.CLASS({
           }),
           height$: this.innerNavView_.slot(function(scaleY, height) {
             return scaleY * height;
-          }),
-        })
+          })
+        });
 
         v.add(this.innerNavView_);
         v.add(this.viewPortView_);
@@ -165,7 +165,7 @@ foam.CLASS({
           }),
           y$: this.slot(function(navScalerSize, navView_$y, navView_$height, navBorderWidth) {
             return navView_$y + navView_$height + navBorderWidth / 2 - navScalerSize / 2;
-          }),
+          })
         });
       }
     },
@@ -180,7 +180,7 @@ foam.CLASS({
           width$: this.view$.dot('width'),
           height$: this.view$.dot('height'),
           scaleX$: viewScale$,
-          scaleY$: viewScale$,
+          scaleY$: viewScale$
         });
         v.add(this.view);
         return v;
@@ -201,7 +201,7 @@ foam.CLASS({
           }),
           y$: this.slot(function(scale, viewPortView_$y, navView_$height, view$height) {
             return - scale * view$height * viewPortView_$y / navView_$height;
-          }),
+          })
         });
         v.add(this.view);
         return v;
@@ -233,7 +233,7 @@ foam.CLASS({
         if ( ! drag ) return;
         this.viewPortPosition = {
           x: e.offsetX - this.navView_.x - this.viewPortView_.width / 2,
-          y: e.offsetY - this.navView_.y - this.viewPortView_.height / 2,
+          y: e.offsetY - this.navView_.y - this.viewPortView_.height / 2
         };
       };
       this.onDetach(this.canvas.on('mousedown', e => {
@@ -269,7 +269,7 @@ foam.CLASS({
       this.onDetach(this.canvas.on('mousedown', e => {
         var p = {
           x: e.offsetX - this.navScaler_.x,
-          y: e.offsetY - this.navScaler_.y,
+          y: e.offsetY - this.navScaler_.y
         };
         drag = doHitTest(e) ? {
           x: e.offsetX,
@@ -283,7 +283,7 @@ foam.CLASS({
       this.onDetach(this.canvas.on('mouseup', _ => drag = null));
       this.onDetach(this.canvas.on('mousemove', e => {
         if ( drag || doHitTest(e) ) {
-          this.canvas.style({cursor: 'se-resize'})
+          this.canvas.style({cursor: 'se-resize'});
         }
         scaleNavView(e);
       }));
@@ -317,9 +317,9 @@ foam.CLASS({
       this.onDetach(this.canvas.on('mouseup', _ => drag = null));
       this.onDetach(this.canvas.on('mousemove', e => {
         if ( drag || doHitTest(e) ) {
-          this.canvas.style({cursor: 'move'})
+          this.canvas.style({cursor: 'move'});
         } else {
-          this.canvas.style({cursor: 'default'})
+          this.canvas.style({cursor: 'default'});
         }
         moveNavView(e);
       }));

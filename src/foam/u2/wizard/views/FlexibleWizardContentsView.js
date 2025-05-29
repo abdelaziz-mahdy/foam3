@@ -68,14 +68,14 @@ foam.CLASS({
         this
           .start(this.data.OPEN_WIZARD_INSPECTOR, { data: this.data })
             .addClass(this.myClass('developer-btn'))
-          .end()
+          .end();
       }
 
       const current$ = this.slot(function (data, data$currentWizardlet, data$currentSection) {
         return data$currentSection?.createView(undefined, {
           controlBorder: this.controlBorder
         }) ?? this.E();
-      })
+      });
       let actionsDetachable = foam.lang.FObject.create();
 
       this.addClass()
@@ -138,6 +138,6 @@ foam.CLASS({
             }).endContext();
         }))
         ;
-    },
+    }
   ]
 });

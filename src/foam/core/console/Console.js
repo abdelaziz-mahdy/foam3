@@ -122,7 +122,7 @@ foam.CLASS({
           on('dblclick', () => data.expanded = ! data.expanded).
           start('td').
             enableClass(self.myClass('error'), flowName.startsWith('error')).
-            style({'paddingLeft': (4 + depth * 12) + 'px'}).
+            style({paddingLeft: (4 + depth * 12) + 'px'}).
             add(flowName).
             callIf(data.flowParent, function() {
               this.start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end();
@@ -398,7 +398,7 @@ foam.CLASS({
         class: 'foam.u2.TextField', // Avoids ModeAltView focus() issue
         autocomplete: 'off',
         onKey: false
-      },
+      }
     },
     'input_', // Element pointer
     {
@@ -505,7 +505,7 @@ foam.CLASS({
         this.localScope[c.id] = (...args) => {
           var cmd = c.clone(this.currentBlock);
           return cmd.execute.apply(cmd, args);
-        }
+        };
       });
 
       var feedback_ = false;
@@ -805,7 +805,7 @@ foam.CLASS({
         var input = this.input;
         this.input = '';
         this.eval_(input);
-      },
+      }
       // Using 'enter' keyboard shortcut doesn't work because it prevents newlines in
       // text areas on the screen.
       // keyboardShortcuts: [ 'enter' ]

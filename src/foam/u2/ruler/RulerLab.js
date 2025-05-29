@@ -13,7 +13,7 @@ foam.CLASS({
   imports: [
     'cSpecDAO',
     'ruleDAO',
-    'ruleGroupDAO',
+    'ruleGroupDAO'
   ],
 
   exports: [
@@ -30,7 +30,7 @@ foam.CLASS({
     'foam.u2.ruler.ExprComparator',
     'foam.u2.ruler.ReferenceExpr',
     'foam.mlang.If',
-    'foam.mlang.Constant',
+    'foam.mlang.Constant'
   ],
 
   css: `
@@ -120,7 +120,7 @@ foam.CLASS({
           })
             .addClass(this.myClass('list'))
           .end()
-        .end()
+        .end();
     }
   ],
 

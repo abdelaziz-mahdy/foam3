@@ -40,7 +40,7 @@ foam.CLASS({
       this.SUPER();
       this.setHash(this.window.location.hash);
       this.window.addEventListener('hashchange', this.onHashChange);
-    },
+    }
   ],
 
   listeners: [

@@ -23,7 +23,7 @@ foam.CLASS({
   properties: [
     {
       class: 'Int',
-      name: 'skip_',
+      name: 'skip_'
     }
   ],
 
@@ -35,7 +35,7 @@ foam.CLASS({
       },
       swiftCode: `
 return try delegate.select_(x, sink, skip_, limit, order, predicate)
-      `,
+      `
     },
     function removeAll_(x, skip, limit, order, predicate) {
       return this.delegate.removeAll_(x, this.skip_, limit, order, predicate);

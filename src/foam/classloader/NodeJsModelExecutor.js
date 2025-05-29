@@ -22,11 +22,11 @@ foam.CLASS({
   requires: [
     'foam.apploader.ClassLoader',
     'foam.apploader.NodeModelFileDAO',
-    'foam.dao.OrDAO',
+    'foam.dao.OrDAO'
   ],
 
   imports: [
-    'classloader',
+    'classloader'
   ],
 
   properties: [
@@ -45,7 +45,7 @@ foam.CLASS({
     },
     {
       name: 'modelArgs'
-    },
+    }
   ],
 
   methods: [

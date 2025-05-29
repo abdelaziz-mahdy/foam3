@@ -18,7 +18,7 @@ foam.CLASS({
     'foam.swift.parse.json.MapParser',
     'foam.swift.parse.json.NullParser',
     'foam.swift.parse.json.StringParser',
-    'foam.swift.parse.parser.Alt',
+    'foam.swift.parse.parser.Alt'
   ],
   properties: [
     {
@@ -35,10 +35,10 @@ return Alt_create(["parsers": [
   ArrayParser_create(),
   MapParser_create(),
 ]])
-      `,
-    },
+      `
+    }
   ],
   axioms: [
     foam.pattern.Singleton.create()
-  ],
+  ]
 });

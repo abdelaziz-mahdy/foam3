@@ -74,7 +74,7 @@ foam.CLASS({
               }
             ]
           }
-        }
+        };
       },
       validateObj: function(groupId, users) {
         if ( ! groupId && ! ( users && users.length ) ) {
@@ -107,7 +107,7 @@ foam.CLASS({
         var self = this;
         this.notificationTemplateDAO.find(n).then(function(t) {
           self.template = t.template;
-        })
+        });
       },
       validateObj: function(body, notificationTemplate, toastMessage) {
         if ( ( ! body || ! body.length || ! body.trim() ) &&
@@ -132,7 +132,7 @@ foam.CLASS({
     {
       __copyFrom__: 'foam.core.notification.Notification.EMAIL_ARGS',
       label: "Email Template Args",
-      visibility: 'RW',
+      visibility: 'RW'
     },
     {
       class: 'Boolean',

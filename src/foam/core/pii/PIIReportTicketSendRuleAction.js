@@ -43,7 +43,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'emailTemplate',
-      value: 'foam-core-pii-report-EmailTemplate',
+      value: 'foam-core-pii-report-EmailTemplate'
     }
   ],
 
@@ -79,4 +79,4 @@ foam.CLASS({
       `
     }
   ]
-})
+});

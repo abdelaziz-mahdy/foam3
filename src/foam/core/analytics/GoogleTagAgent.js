@@ -90,7 +90,7 @@ foam.CLASS({
       mergeDelay: 20000,
       code: function() {
         if ( ! this.pushEvent ) return;
-        this.gtag('event', 'conversion', {'send_to': `${this.tagId}/x3hzCPTWssYZEOaul6oq`}); 
+        this.gtag('event', 'conversion', {send_to: `${this.tagId}/x3hzCPTWssYZEOaul6oq`}); 
         this.pushEvent = false;
       }
     }

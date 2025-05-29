@@ -27,7 +27,7 @@ foam.CLASS({
     'java.util.*',
     'java.util.stream.Stream',
     'java.util.stream.Collectors',
-    'java.util.function.BiFunction',
+    'java.util.function.BiFunction'
   ],
 
   constants: [
@@ -679,4 +679,4 @@ foam.CLASS({
       return result;
     }
   `
-})
+});

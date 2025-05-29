@@ -61,7 +61,7 @@ foam.CLASS({
           .start('tr')
             .start('th').add('Name').end()
             .call(function () {
-              self.generateAxiomClassHeadings.call(self, this)
+              self.generateAxiomClassHeadings.call(self, this);
             })
             .start('th').add('Documentation').end()
           .end()
@@ -70,7 +70,7 @@ foam.CLASS({
               .start('tr')
                 .start('td').add(ax.name).end()
                 .call(function () {
-                  self.generateAxiomClassFields.call(self, this, ax)
+                  self.generateAxiomClassFields.call(self, this, ax);
                 })
                 .start('td')
                   .addClass(self.myClass('preformatted'))
@@ -103,5 +103,5 @@ foam.CLASS({
       }
       return propCls;
     }
-  ],
+  ]
 });

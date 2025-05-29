@@ -215,7 +215,7 @@ foam.CLASS({
           data: data,
           options: {
             legend: {
-              display: false,
+              display: false
             },
             tooltips: {
               // see: https://github.com/chartjs/Chart.js/issues/3953
@@ -241,7 +241,7 @@ foam.CLASS({
         .tag(this.REFRESH, {
           buttonStyle: foam.u2.ButtonStyle.TERTIARY,
           icon: 'images/refresh-icon-black.svg',
-          label: '',
+          label: ''
         })
         .end()
         .endContext()
@@ -301,7 +301,7 @@ foam.CLASS({
               fill: false,
               borderColor: 'hsl('+(359/(i+1))+',100%,50%)',
               tension: 0.1
-            }
+            };
             datasets.set(c.key, dataset);
           }
           var data = dataset['data'];

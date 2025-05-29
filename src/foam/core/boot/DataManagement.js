@@ -148,7 +148,7 @@ foam.CLASS({
           var i = 0;
 
           this.filteredDAO.select().then(function(specs) {
-            specs.array.sort(function(o1, o2) { return foam.String.compare(o1.id.toUpperCase(), o2.id.toUpperCase())}).forEach(function(spec) {
+            specs.array.sort(function(o1, o2) { return foam.String.compare(o1.id.toUpperCase(), o2.id.toUpperCase());}).forEach(function(spec) {
               var label = foam.String.capitalize(spec.id.substring(0, spec.id.length-3));
               var l     = label.charAt(0);
 

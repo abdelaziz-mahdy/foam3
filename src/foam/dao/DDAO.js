@@ -160,4 +160,4 @@ Use of COREService retains lazy loading until first context request.
       `
     }
   ]
-})
+});

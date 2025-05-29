@@ -52,7 +52,7 @@ foam.CLASS({
               'blue',
               'orange',
               'purple'
-            ]
+            ];
           }
         }
       ]
@@ -69,9 +69,9 @@ foam.CLASS({
               data: data,
               colors: config$colors,
               height: config$height,
-              width: config$width,
-            })
-          }.bind(this))
+              width: config$width
+            });
+          }.bind(this));
         }));
     }
   ]

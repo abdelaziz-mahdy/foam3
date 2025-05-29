@@ -11,7 +11,7 @@ foam.CLASS({
   flags: ['swift'],
   requires: [
     'foam.swift.Field',
-    'foam.swift.Method',
+    'foam.swift.Method'
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -21,13 +21,13 @@ foam.CLASS({
         defaultValue: '[:]',
         lazy: true,
         type: `[${property.swiftType}:${foam.lang.FObject.model_.swiftName}]`,
-        name: 'multitonMap',
+        name: 'multitonMap'
       }));
       classInfo.fields.push(foam.swift.Field.create({
         defaultValue: `${property.swiftAxiomName}()`,
         lazy: true,
         type: 'PropertyInfo',
-        name: 'multitonProperty',
+        name: 'multitonProperty'
       }));
       classInfo.getMethod('create').body = `
 if let key = args[multitonProperty.name] as? ${property.swiftType},
@@ -41,6 +41,6 @@ if let key = args[multitonProperty.name] as? ${property.swiftType},
   return value
 }
       `;
-    },
-  ],
+    }
+  ]
 });

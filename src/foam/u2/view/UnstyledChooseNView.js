@@ -41,10 +41,10 @@ foam.CLASS({
         // Convert array input to a set (represented as an object of `true`)
         if ( Array.isArray(nu) ) {
           set = {};
-          nu.forEach(k => { set[k] = true; })
+          nu.forEach(k => { set[k] = true; });
         }
         return set;
-      },
+      }
     }
   ],
 
@@ -76,8 +76,8 @@ foam.CLASS({
                   self.data$remove(choice[0]);
                   delete self.data[choice[0]];
                 }
-              }))
-            })
+              }));
+            });
         }))
         ;
     }

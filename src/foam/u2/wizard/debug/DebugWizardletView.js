@@ -78,7 +78,7 @@ foam.CLASS({
             method: ev,
             seqNo: ++seqNo
           }));
-        })
+        });
       }
       var autoSaveEnabled = this.sequence.contains('AutoSaveWizardletsAgent');
       s.sub(() => {

@@ -266,7 +266,7 @@ foam.CLASS({
                 .end();
               }
             })
-          .end()
+          .end();
       }))
       .start()
         .addClass(self.myClass('settings-wrapper'))

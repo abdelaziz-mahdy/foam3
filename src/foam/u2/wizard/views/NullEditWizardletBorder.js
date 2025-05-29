@@ -39,7 +39,7 @@ foam.CLASS({
       name: 'title',
       class: 'String',
       expression: function(wizardlet) {
-        return wizardlet?.capability.editBehaviour.title ||  wizardlet?.title
+        return wizardlet?.capability.editBehaviour.title ||  wizardlet?.title;
       }
     },
     {
@@ -53,8 +53,8 @@ foam.CLASS({
 
       // set in init as factories are lazy
       this.wizardlet.loadEvent.sub(() => {
-        this.oldData = this.wizardlet.data.clone()
-      })
+        this.oldData = this.wizardlet.data.clone();
+      });
 
       this
         .addClass()
@@ -62,7 +62,7 @@ foam.CLASS({
           .start().addClass('p').add(this.INSTRUCTION).end()
           .start(this.CardBorder).addClass(this.myClass('card'))
             .tag('div', null, this.content$)
-          .end()
+          .end();
     }
   ]
   });

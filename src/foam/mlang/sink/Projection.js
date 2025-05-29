@@ -39,7 +39,7 @@ foam.CLASS({
       class: 'Array',
       type: 'foam.mlang.Expr[]',
       name: 'exprs',
-      documentation: 'The expressions to be evaluated and returned in the projection. Typically are Properties.',
+      documentation: 'The expressions to be evaluated and returned in the projection. Typically are Properties.'
     },
     {
       class: 'Boolean',
@@ -60,7 +60,7 @@ foam.CLASS({
       name: 'projection',
       transient: true,
       factory: function() { 
-        let val = []
+        let val = [];
         this.projectionWithClass.forEach(v => {
           let res = v.slice(this.PROJECTION_VALUES_OFFSET);
           if ( ! this.useProjection ) {
@@ -68,7 +68,7 @@ foam.CLASS({
               if ( foam.lang.Property.isInstance(e) ) {
                 res[i] = e.f(v[this.CLS_OR_OBJ_INDEX]);
               }
-            })
+            });
           }
           val.push(res);
         });

@@ -42,7 +42,7 @@ foam.CLASS({
         {
           name: 'message',
           type: 'foam.box.Message'
-        },
+        }
       ],
       code: function(message) {
         var p;
@@ -117,7 +117,7 @@ do {
     ]))
   }
 }
-      `,
+      `
     },
 
     {
@@ -142,7 +142,7 @@ if let _ = msg.object as? foam_box_RPCMessage {
 throw InvalidMessageException_create([
   "messageType": msg.ownClassInfo().id,
 ])
-      `,
-    },
+      `
+    }
   ]
 });

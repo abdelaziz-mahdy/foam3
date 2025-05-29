@@ -137,7 +137,7 @@ foam.CLASS({
       class: 'FObjectProperty',
       type: 'foam.core.boot.CSpec',
       javaFactory: 'return getX().get(CSpec.class);',
-      javaPostSet: 'if ( val != null ) setName(val.getName());',
+      javaPostSet: 'if ( val != null ) setName(val.getName());'
     },
     {
       documentation: 'Hold Last usuable dao in decorator chain. For example, an MDAO wrapped in FixedSizeDAO should always go through the FixedSizeDAO and not update the MDAO directly.',
@@ -692,7 +692,7 @@ foam.CLASS({
       class: 'Int',
       name: 'retryBoxMaxAttempts',
       value: 5,
-      generateJava: false,
+      generateJava: false
     },
     {
       name: 'crunchBoxEnabled',

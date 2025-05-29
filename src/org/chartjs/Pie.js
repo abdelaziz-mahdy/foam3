@@ -38,7 +38,7 @@ foam.CLASS({
       var chartData = this.toChartData(data);
       chartData.datasets.forEach((d, i) => {
         if ( d.data.length && foam.Object.isInstance(d.data[0]) ) {
-          d.data = d.data.map(function(d) { return d.y });
+          d.data = d.data.map(function(d) { return d.y; });
         }
         d.backgroundColor = this.colors.map(c =>
           Chart.helpers.color(c).alpha(0.5).rgbString()

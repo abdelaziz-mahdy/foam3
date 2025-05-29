@@ -29,10 +29,10 @@ foam.CLASS({
           this.addClass();
           let routingFn = async function() {
             if ( self.route ) {
-              let sub = (await self.menu.children.select()).array.find(v => v.id == self.menu.id + '/' + self.route)
+              let sub = (await self.menu.children.select()).array.find(v => v.id == self.menu.id + '/' + self.route);
               return await sub?.launch();
             }
-          }
+          };
           this.onDetach(this.route$.sub(routingFn));
           routingFn();
         }

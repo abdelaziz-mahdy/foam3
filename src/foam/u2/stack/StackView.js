@@ -89,7 +89,7 @@ foam.CLASS({
     // Overwritten in DesktopStackView
     function listenStackView() {
       let self = this;
-      this.add(this.dynamic(function(data$top) { this.add(self.renderStackView(data$top)) }));
+      this.add(this.dynamic(function(data$top) { this.add(self.renderStackView(data$top)); }));
     },
 
     function renderStackView(s, opt_popup) {

@@ -78,7 +78,7 @@ foam.CLASS({
 
         this.el().then((v) => {
           v.style.setProperty(`--img-postion`, this.insetPos);
-        })
+        });
     }
   ]
 });

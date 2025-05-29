@@ -19,7 +19,7 @@ foam.CLASS({
 let ps = ps!
 if ps.valid() { return ps.tail()!.setValue(ps.head()) }
 return nil
-      `,
-    },
+      `
+    }
   ]
 });

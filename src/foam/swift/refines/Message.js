@@ -11,14 +11,14 @@ foam.CLASS({
   flags: ['swift'],
   requires: [
     'foam.swift.Field',
-    'foam.i18n.TranslationFormatStringParser',
+    'foam.i18n.TranslationFormatStringParser'
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
       if ( ! parentCls.hasOwnAxiom(this.name) ) return;
       var parser = this.TranslationFormatStringParser.create({
         value: this.message,
-        translationHint: this.description,
+        translationHint: this.description
       });
       var v = parser.parsedValue;
       var d = parser.parsedTranslationHint;
@@ -27,8 +27,8 @@ foam.CLASS({
         type: 'String',
         static: true,
         final: true,
-        defaultValue: 'NSLocalizedString("'+v+'", comment: "'+d+'")',
+        defaultValue: 'NSLocalizedString("'+v+'", comment: "'+d+'")'
       }));
-    },
+    }
   ]
 });

@@ -24,7 +24,7 @@ foam.CLASS({
             self.choices.push([obj.id, obj.toSummary()]);
           });
         });
-      },
+      }
     }
   ]
 });

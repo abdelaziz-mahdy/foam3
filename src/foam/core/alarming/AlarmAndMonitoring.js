@@ -149,7 +149,7 @@ foam.CLASS({
       args: [
         {
           type: 'Context',
-          name: 'x',
+          name: 'x'
         },
         {
           type: 'foam.core.alarming.AlarmConfig',
@@ -157,7 +157,7 @@ foam.CLASS({
         },
         {
           type: 'foam.core.alarming.MonitoringReport',
-          name: 'report',
+          name: 'report'
         },
         {
           type: 'foam.core.alarming.Alarm',

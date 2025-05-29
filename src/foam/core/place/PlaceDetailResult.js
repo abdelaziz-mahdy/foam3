@@ -31,7 +31,7 @@ foam.CLASS({
       name: 'addressComponents',
       shortName: 'address_components',
       class: 'FObjectArray',
-      of: 'foam.core.place.PlaceDetailAddressComponent',
+      of: 'foam.core.place.PlaceDetailAddressComponent'
     },
     {
       name: 'address',

@@ -97,7 +97,7 @@ foam.CLASS({
           function(OR, EQ) {
             return OR(
               EQ(Abc.FOO, 100),
-              EQ(Abc.ID, 4))
+              EQ(Abc.ID, 4));
           })).select(this);
     }
   ]

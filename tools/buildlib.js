@@ -17,7 +17,7 @@ function adaptOrCreateArgs(X, args) {
     Otherwise, create a binding in X if argument has a factory: or value:.
   **/
   const adapt = {
-    'Boolean': function (v) {
+    Boolean: function (v) {
       if ( typeof v === 'boolean' ) return v;
 
       if ( ! v ) return false;

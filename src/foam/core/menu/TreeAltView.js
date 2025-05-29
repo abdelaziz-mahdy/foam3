@@ -43,7 +43,7 @@ foam.CLASS({
             startExpanded: true,
             formatter: function(data) { this.add(data.label); }
           }, 'Tree' ]
-      ]
+      ];
     }
   ]
 });

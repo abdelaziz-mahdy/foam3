@@ -126,7 +126,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'group',

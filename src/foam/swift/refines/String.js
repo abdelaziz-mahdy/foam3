@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     {
       name: 'swiftOptional',
-      value: false,
+      value: false
     },
     {
       name: 'swiftAdapt',
@@ -21,12 +21,12 @@ foam.CLASS({
 if let newValue = newValue as? String { return newValue }
 if newValue != nil { return String(describing: newValue!) }
 return ""
-        `
-      },
+        `;
+      }
     },
     {
       name: 'swiftView',
-      value: 'foam.swift.ui.FOAMUITextField',
-    },
-  ],
+      value: 'foam.swift.ui.FOAMUITextField'
+    }
+  ]
 });

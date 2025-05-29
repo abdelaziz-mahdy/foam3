@@ -40,11 +40,11 @@ foam.CLASS({
                   arguments: args
                 }));
                 return contextValue[prop].call(target, ...args);
-              }
+              };
             }
             return contextValue[prop];
           }
-        })
+        });
       }
       subContext['debugContextIntercept'] = this;
       return subContext;

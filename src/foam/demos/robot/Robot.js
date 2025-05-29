@@ -36,7 +36,7 @@ foam.CLASS({
 
   methods: [
     function initCView() {
-      this.SUPER
+      this.SUPER;
 
       var self = this;
 

@@ -29,7 +29,7 @@ foam.CLASS({
     {
       name: 'shape',
       factory: function() {
-        return [0,20]
+        return [0,20];
       }
     },
     {
@@ -53,7 +53,7 @@ foam.CLASS({
         let addCol = index => {
           var col = { position: index };
           if ( index >= columns.length ) {
-            columns.push(col)
+            columns.push(col);
             return col;
           }
           columns.splice(index, 0, col);
@@ -61,7 +61,7 @@ foam.CLASS({
             col.position++;
           }
           return col;
-        }
+        };
 
         let addingQueue = [];
 
@@ -81,7 +81,7 @@ foam.CLASS({
             entry = {
               row: { position: row },
               col: pushCols ? addCol(col) : columns[col],
-              obj: obj,
+              obj: obj
             };
             intermediatePlan[entry.obj.id] = entry;
           }
@@ -96,7 +96,7 @@ foam.CLASS({
           });
           return Promise.resolve();
         };
-        let maybeAddMore
+        let maybeAddMore;
         maybeAddMore = () => {
           if ( addingQueue.length < 1 ) return;
 
@@ -131,7 +131,7 @@ foam.CLASS({
 
             var baseCellSize = this.embeddedSecondaryRelationshipStrategy 
               ? this.embeddedSecondaryRelationshipStrategy.getBaseCellSize(entry.obj)
-              : [1,1]
+              : [1,1];
 
             plan.addAssociation_(
               entry.obj.id,
@@ -140,12 +140,12 @@ foam.CLASS({
                 entry.row.position
               ],
               baseCellSize
-            )
+            );
           });
 
           return plan;
         });
       }
     }
-  ],
+  ]
 });

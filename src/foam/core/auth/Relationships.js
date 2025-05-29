@@ -95,7 +95,7 @@ foam.RELATIONSHIP({
           ],
           placeholder: '--'
         }
-      }
+      };
     },
     tableCellFormatter: { class: 'foam.u2.view.ReferenceToSummaryCellFormatter' }
   }

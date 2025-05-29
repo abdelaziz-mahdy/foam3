@@ -12,5 +12,5 @@ foam.CLASS({
     ^row {
       font-size: 1.5255rem;
     }
-  `,
+  `
 });

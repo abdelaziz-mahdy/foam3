@@ -14,7 +14,7 @@ foam.CLASS({
       swiftCode: `
 let ret = delegate.parse(ps, x)
 return ret != nil ? nil : ps
-     `,
-    },
+     `
+    }
   ]
 });

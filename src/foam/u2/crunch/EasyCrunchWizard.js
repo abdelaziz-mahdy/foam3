@@ -80,7 +80,7 @@ foam.CLASS({
       documentation: `
         Set to true when ScrollingWizard is used in association with an Approval Request
         and requires the approval request to be rejected if invalidated data is saved.
-      `,
+      `
     },
     {
       class: 'Boolean',
@@ -104,7 +104,7 @@ foam.CLASS({
         return {
           class: 'foam.u2.dialog.ApplicationPopup',
           fullscreen: true
-        }
+        };
       }
     },
     {
@@ -112,7 +112,7 @@ foam.CLASS({
       // of: 'foam.util.FluentSpec',
       of: 'foam.lang.FObject',
       name: 'sequenceExtras'
-    },
+    }
   ],
 
   methods: [
@@ -131,11 +131,11 @@ foam.CLASS({
         sequence.reconfigure('ConfigureFlowAgent', { popupMode: true });
         config.popup = {
           class: 'foam.u2.dialog.Popup',
-          ...this.popup,
+          ...this.popup
         };
       } else {
         sequence.reconfigure('ConfigureFlowAgent', { popupMode: false });
-      };
+      }
 
       sequence.reconfigure('CreateControllerAgent', { config: config });
       if ( this.skipMode                  ) sequence.reconfigure('SkipGrantedAgent', { mode: this.skipMode });

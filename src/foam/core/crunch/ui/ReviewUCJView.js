@@ -22,7 +22,7 @@ foam.CLASS({
   imports: [
     'capabilityDAO',
     'crunchService',
-    'crunchController',
+    'crunchController'
   ],
 
   requires: [
@@ -37,14 +37,14 @@ foam.CLASS({
     'foam.u2.crunch.wizardflow.PutFinalJunctionsAgent',
 
     'foam.u2.detail.SectionedDetailView',
-    'foam.util.async.Sequence',
+    'foam.util.async.Sequence'
   ],
 
   properties: [
     {
       name: 'ucjData',
       class: 'FObjectProperty',
-      of: 'FObject',
+      of: 'FObject'
     }
   ],
 
@@ -57,11 +57,11 @@ foam.CLASS({
           controllerMode: foam.u2.ControllerMode.VIEW
         })
           .tag(this.SectionedDetailView, {
-            data$: this.ucjData$,
+            data$: this.ucjData$
           })
         .endContext()
         .startContext({
-          data: this,
+          data: this
         })
           .add(this.EDIT)
         .endContext()
@@ -76,7 +76,7 @@ foam.CLASS({
             return;
           }
           this.ucjData = defaultData;
-        })
+        });
       });
     }
   ],
@@ -105,5 +105,5 @@ foam.CLASS({
         })
         ;
     }
-  ],
+  ]
 });

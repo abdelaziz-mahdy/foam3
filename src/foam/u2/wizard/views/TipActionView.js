@@ -31,7 +31,7 @@ foam.CLASS({
     },
     {
       name: 'buttonPrimaryLightColor',
-      value: function(e) { return e.FROM_HUE(e.TOKEN('$tipActionColor'), 41, 90) }
+      value: function(e) { return e.FROM_HUE(e.TOKEN('$tipActionColor'), 41, 90); }
     }
   ],
 

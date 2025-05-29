@@ -34,6 +34,6 @@ foam.CLASS({
         this.fn(m.object);
       },
       swiftCode: 'fn(msg?.object)'
-    },
+    }
   ]
 });

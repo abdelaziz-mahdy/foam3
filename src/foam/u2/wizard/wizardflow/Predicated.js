@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'Predicated',
   extends: 'foam.util.async.SequenceInstaller',
   implements: [
-    'foam.lang.ContextAgent',
+    'foam.lang.ContextAgent'
   ],
   mixins: [
     'foam.u2.wizard.wizardflow.WizardDSL',
@@ -43,4 +43,4 @@ foam.CLASS({
       return this.parent;
     }
   ]
-})
+});

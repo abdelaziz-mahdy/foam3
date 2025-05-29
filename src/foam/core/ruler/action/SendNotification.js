@@ -20,7 +20,7 @@ foam.CLASS({
     'foam.core.auth.User',
     'foam.core.logger.Logger',
     'foam.lang.ContextAgent',
-    'foam.core.notification.Notification',
+    'foam.core.notification.Notification'
   ],
 
   properties: [

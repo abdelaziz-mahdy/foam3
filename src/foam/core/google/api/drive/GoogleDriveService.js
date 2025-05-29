@@ -46,7 +46,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'fileId',
@@ -73,7 +73,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'folderName',
@@ -115,7 +115,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'folderId',
@@ -156,7 +156,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'folderId',

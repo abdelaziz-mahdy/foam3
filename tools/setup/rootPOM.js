@@ -10,7 +10,7 @@ foam.POM({
     // Add your license header here
   `,
   envs: {
-    VERSION: '1.0.0',
+    VERSION: '1.0.0'
     // javaMainArgs: 'spid:{spid}'
   },
   tasks: [

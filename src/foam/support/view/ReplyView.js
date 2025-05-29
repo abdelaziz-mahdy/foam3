@@ -117,7 +117,7 @@ foam.CLASS({
         .end()
       .endContext()
       .start(this.MESSAGE).addClass('Rectangle').enableClass('background-color', this.variant$).end();
-    },
+    }
   ],
   actions: [
     {

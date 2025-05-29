@@ -42,8 +42,8 @@ foam.CLASS({
     function toE(_, x) {
       return x.E().add(this.slot(function(data) {
         return x.E().forEach(data, function(d) {
-          this.add(d)
-        })
+          this.add(d);
+        });
       }));
     }
   ]

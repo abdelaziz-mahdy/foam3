@@ -34,7 +34,7 @@ foam.CLASS({
       name: 'scriptOutput',
       class: 'String',
       updateVisibility: 'RO',
-      view: { class: 'foam.u2.view.PreView' },
+      view: { class: 'foam.u2.view.PreView' }
     },
     {
       name: 'scriptId',
@@ -62,7 +62,7 @@ foam.CLASS({
       this.code = this.innerFLOW;
       this.innerFLOW$.sub(() => {
         this.code = this.innerFLOW;
-      })
+      });
     },
     function render() {
       this
@@ -73,7 +73,7 @@ foam.CLASS({
           .tag(this.RUN)
         .endContext()
         ;
-    },
+    }
   ],
 
   actions: [

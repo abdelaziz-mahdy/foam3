@@ -110,7 +110,7 @@ foam.CLASS({
                 .callIf(this.message.type == 'Internal', function(){
                   this.start().addClass('p-label-light', 'internal-status')
                     .add('Internal Note')
-                  .end()
+                  .end();
                 })
               .end()
               .start().add(this.message.message).addClass('p-legal-light', 'text').end()

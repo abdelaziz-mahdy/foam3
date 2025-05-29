@@ -12,7 +12,7 @@ foam.CLASS({
   documentation: 'Settings / Personal View',
 
   implements: [
-    'foam.mlang.Expressions',
+    'foam.mlang.Expressions'
   ],
 
   imports: [
@@ -26,7 +26,7 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'TITLE', message: 'Notification Preferences' },
+    { name: 'TITLE', message: 'Notification Preferences' }
   ],
 
   css: `

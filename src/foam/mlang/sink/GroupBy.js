@@ -47,7 +47,7 @@ foam.CLASS({
       javaCloneProperty: '// noop',
       transient: true,
       javaFactory: 'return new java.util.ArrayList(this.getGroups().keySet());',
-      factory: function() { return Object.keys(this.groups); },
+      factory: function() { return Object.keys(this.groups); }
     },
     {
       class: 'Boolean',

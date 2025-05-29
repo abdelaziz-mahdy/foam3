@@ -56,14 +56,14 @@ foam.CLASS({
     'java.util.TreeSet',
     'com.openhtmltopdf.pdfboxout.PdfRendererBuilder',
     'org.jsoup.Jsoup',
-    'org.jsoup.nodes.Document',
+    'org.jsoup.nodes.Document'
   ],
 
   properties: [
     {
       class: 'String',
       name: 'emailTemplateKVData',
-      value: 'foam-core-pii-report-kv-EmailTemplate',
+      value: 'foam-core-pii-report-kv-EmailTemplate'
     }
   ],
 

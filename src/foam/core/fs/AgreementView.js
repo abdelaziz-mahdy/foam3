@@ -49,8 +49,8 @@ foam.CLASS({
             .start('embed')
               .attrs({
 //                'src': URL.createObjectURL(file.data.blob),
-                'src': url,
-                'type': 'application/pdf'
+                src: url,
+                type: 'application/pdf'
 //                'type': file.mimeType
               })
             .end();
@@ -65,4 +65,4 @@ foam.CLASS({
 //      }
     }
   ]
-})
+});

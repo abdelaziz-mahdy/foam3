@@ -9,6 +9,6 @@ foam.CLASS({
   name: 'EmptyClass',
   flags: ['swift'],
   methods: [
-    function toSwiftSource() { return ' ' },
+    function toSwiftSource() { return ' '; }
   ]
 });

@@ -141,8 +141,8 @@ foam.CLASS({
         .start(this.Rows)
           .addClass(this.myClass('wrapper'))
           .style({
-            'max-height': this.slot(function(fullscreen, maxHeight) { return ! fullscreen ? maxHeight : ''}),
-            'max-width': this.slot(function(fullscreen, maxWidth) { return ! fullscreen ? maxWidth : ''})
+            'max-height': this.slot(function(fullscreen, maxHeight) { return ! fullscreen ? maxHeight : '';}),
+            'max-width': this.slot(function(fullscreen, maxWidth) { return ! fullscreen ? maxWidth : '';})
           })
           .enableClass(this.myClass('top'), this.isTop$)
           .start()

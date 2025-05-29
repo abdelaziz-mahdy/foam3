@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'NavigationButton',
   extends: 'foam.u2.ActionView',
   mixins: ['foam.u2.view.NavButtonMixin'],
-  documentation: 'Button style to be used by nav components, typically differs drastically from other buttons so is subclassed',
+  documentation: 'Button style to be used by nav components, typically differs drastically from other buttons so is subclassed'
 });
 
 foam.CLASS({
@@ -17,7 +17,7 @@ foam.CLASS({
   name: 'NavigationMenu',
   extends: 'foam.u2.view.MenuView',
   mixins: ['foam.u2.view.NavButtonMixin'],
-  documentation: 'MenuView style to be used by nav components, typically differs drastically from other menuViews so is subclassed',
+  documentation: 'MenuView style to be used by nav components, typically differs drastically from other menuViews so is subclassed'
 });
 
 foam.CLASS({
@@ -25,7 +25,7 @@ foam.CLASS({
   name: 'NavigationOverlayButton',
   extends: 'foam.u2.view.OverlayActionListView',
   mixins: ['foam.u2.view.NavButtonMixin'],
-  documentation: 'OverlayActionListButton style to be used by nav components, typically differs drastically from other buttons so is subclassed',
+  documentation: 'OverlayActionListButton style to be used by nav components, typically differs drastically from other buttons so is subclassed'
 });
 
 foam.CLASS({
@@ -44,7 +44,7 @@ foam.CLASS({
     },
     {
       name: 'NavSelectedIconColor',
-      value: function(e) { return e.LIGHTEN(e.TOKEN('$NavButtonSelectedLabelColor'), 10) }
+      value: function(e) { return e.LIGHTEN(e.TOKEN('$NavButtonSelectedLabelColor'), 10); }
     },
     {
       class: 'foam.u2.ColorToken',

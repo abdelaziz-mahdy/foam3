@@ -14,7 +14,7 @@ foam.CLASS({
     'foam.swift.parse.json.Whitespace',
     'foam.swift.parse.parser.Literal',
     'foam.swift.parse.parser.Optional',
-    'foam.swift.parse.parser.Seq1',
+    'foam.swift.parse.parser.Seq1'
   ],
   axioms: [
     foam.pattern.Singleton.create()
@@ -34,8 +34,8 @@ return
       Literal_create(["string": ","]),
     ])
   ]])
-      `,
-    },
+      `
+    }
   ],
   methods: [
     {
@@ -60,7 +60,7 @@ if ps != nil {
 }
 
 return nil
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

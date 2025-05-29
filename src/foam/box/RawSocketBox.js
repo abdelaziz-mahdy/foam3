@@ -23,7 +23,7 @@ foam.CLASS({
   requires: [ 'foam.box.ReplyBox' ],
   imports: [
     'me',
-    'registry',
+    'registry'
   ],
 
   properties: [

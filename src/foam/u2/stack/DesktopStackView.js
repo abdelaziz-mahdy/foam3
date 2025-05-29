@@ -46,13 +46,13 @@ foam.CLASS({
               delete this.popupsOpened[pos];
               this.data.back();
             }
-          })
+          });
           popup.add(this.renderStackView(top, popup));
           this.popupsOpened[pos] = popup;
           ctrl.add(popup);
         }
       });
-      this.add(this.dynamic(function(data$topNonPopup)  { this.add(self.renderStackView(data$topNonPopup)) }))
+      this.add(this.dynamic(function(data$topNonPopup)  { this.add(self.renderStackView(data$topNonPopup)); }));
     }
   ]
 });

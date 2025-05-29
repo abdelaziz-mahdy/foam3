@@ -15,7 +15,7 @@ foam.CLASS({
 let ret = delegate.parse(ps, x)
 if ret != nil { return ret }
 return ps?.setValue(nil)
-      `,
-    },
+      `
+    }
   ]
 });

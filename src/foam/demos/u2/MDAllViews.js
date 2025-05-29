@@ -16,7 +16,7 @@ foam.CLASS({
     'foam.u2.view.ReferenceView',
     'foam.u2.layout.DisplayWidth',
     'foam.u2.detail.MDDetailView',
-    'foam.u2.dao.MDDAOList',
+    'foam.u2.dao.MDDAOList'
    ],
 
   exports: [ 'sampleDataDAO', 'displayWidth' ],
@@ -266,7 +266,7 @@ foam.CLASS({
       name: 'stringWithTextArea',
       view: {
         class: 'foam.u2.tag.TextArea',
-        rows: 8, cols: 80,
+        rows: 8, cols: 80
       }
     },
     {
@@ -358,7 +358,7 @@ foam.CLASS({
       validationTextVisible: true,
       validateObj: function(fobjectArray3) {
         if ( fobjectArray3.length < 1 )
-          return 'Please enter fobjectArray3 information'
+          return 'Please enter fobjectArray3 information';
 
         for ( var i = 0; i < fobjectArray3.length; i++ ) {
           if ( fobjectArray3[i].errors_$ != null ) {
@@ -571,5 +571,5 @@ foam.CLASS({
         return errs.get();
       }
     }
-  ],
-})
+  ]
+});

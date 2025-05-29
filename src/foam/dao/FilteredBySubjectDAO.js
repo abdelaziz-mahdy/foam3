@@ -27,7 +27,7 @@ NOTE: If MQL caching and context issues are fixed on the java side, this DAO can
       class: 'Object',
       of: 'foam.lang.PropertyInfo',
       name: 'propertyInfo'
-    },
+    }
   ],
 
   javaCode: `
@@ -79,4 +79,4 @@ return null;`
       `
     }
   ]
-})
+});

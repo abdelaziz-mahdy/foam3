@@ -24,7 +24,7 @@ foam.CLASS({
     },
     function configureIndicator(wizardlet, isCurrent, number) {
       var args = {
-        size: 24, borderThickness: 2,
+        size: 24, borderThickness: 2
       };
       if ( wizardlet.indicator == this.WizardletIndicator.COMPLETED ) {
         args = {
@@ -34,7 +34,7 @@ foam.CLASS({
           borderColorHover: this.theme.approval3,
           icon: this.theme.glyphs.checkmark.getDataUrl({
             fill: this.theme.white
-          }),
+          })
         };
       } else if (
         wizardlet.indicator == this.WizardletIndicator.SAVING ||
@@ -44,7 +44,7 @@ foam.CLASS({
           ...args,
           indicateProcessing: true,
           borderColor: 'rgba(0,0,0,0)',
-          borderColorHover: 'rgba(0,0,0,0)',
+          borderColorHover: 'rgba(0,0,0,0)'
         };
       } else {
         args = {
@@ -193,7 +193,7 @@ foam.CLASS({
 
             elem = elem
               .start()
-                .call(function () { self.stepElements.push(this) })
+                .call(function () { self.stepElements.push(this); })
                 .setAttribute('data-wizardlet', wizardlet.id)
                 .addClass(self.myClass('item'))
                 .addClass(wizardlet.isHidden$.map(v => v && self.myClass('hide')))
@@ -216,7 +216,7 @@ foam.CLASS({
                       .start('p').addClass(self.myClass('title'))
                         .translate(wizardlet.id+'.name', wizardlet.title)
                         .style({
-                          'color': isCurrent ? this.theme.black : this.theme.grey2
+                          color: isCurrent ? this.theme.black : this.theme.grey2
                         })
                       .end()
                       ;
@@ -235,8 +235,8 @@ foam.CLASS({
             for ( let s = 0 ; s < sections.length ; s++ ) {
               let pos = this.WizardPosition.create({
                 wizardletIndex: w,
-                sectionIndex: s,
-              })
+                sectionIndex: s
+              });
               let section = sections[s];
               let isCurrentSection = isCurrent && si === s;
               let isBeforeCurrentSection = w < wi || isCurrent && s < si;
@@ -254,7 +254,7 @@ foam.CLASS({
                   }
                   return;
                 }) : self.E('span');
-              })
+              });
               elem.add(slot);
             }
 
@@ -266,7 +266,7 @@ foam.CLASS({
 
           elem.onload.sub(self.setScrollPos);
           return elem;
-        }))
+        }));
     },
     function renderSectionLabel(elem, section, index, isCurrent) {
       let title = section.title;
@@ -280,12 +280,12 @@ foam.CLASS({
 
       return elem
         .style({
-          'color': isCurrent
+          color: isCurrent
             ? this.theme.black
             : this.theme.grey2
         })
         .translate(title, title);
-    },
+    }
   ],
 
   listeners: [

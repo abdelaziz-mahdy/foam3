@@ -11,7 +11,7 @@ foam.INTERFACE({
   methods: [
     {
       name: 'start',
-      async: true,
+      async: true
     },
     {
       name: 'sendEmail',

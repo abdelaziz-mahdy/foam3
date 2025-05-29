@@ -34,11 +34,11 @@ foam.CLASS({
     {
       name: 'greeting',
       label: {
-        'en'   : 'Hello ',
+        en   : 'Hello ',
         'en-US': 'Howdy ',
-        'fr'   : 'Bonjour ',
-      },
-    },
+        fr   : 'Bonjour '
+      }
+    }
   ],
 
   methods: [

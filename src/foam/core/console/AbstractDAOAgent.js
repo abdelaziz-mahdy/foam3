@@ -51,7 +51,7 @@ foam.CLASS({
       value: '// var o is the current object\n\nconsole.log(o);\n',
       view: { class: 'foam.u2.tag.TextArea', rows: 6 },
       displayWidth: 60
-    },
+    }
   ],
 
   methods: [
@@ -406,7 +406,7 @@ foam.CLASS({
   requires: [ 'foam.core.console.ViewSink' ],
 
   methods: [
-    function createSink() { return this.ViewSink.create({arg1: this.prop}); },
+    function createSink() { return this.ViewSink.create({arg1: this.prop}); }
   ]
 });
 
@@ -419,7 +419,7 @@ foam.CLASS({
   requires: [ 'foam.core.console.EditSink' ],
 
   methods: [
-    function createSink() { return this.EditSink.create({arg1: this.prop}); },
+    function createSink() { return this.EditSink.create({arg1: this.prop}); }
   ]
 });
 

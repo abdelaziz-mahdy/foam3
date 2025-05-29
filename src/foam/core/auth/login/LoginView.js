@@ -190,7 +190,7 @@ foam.CLASS({
                 .startContext({ data: self })
                   .start().addClass('align-end').callIf(mode_ == self.SIGN_IN && showAction && self.loginVariables.emailRequired_, function() {
                     this.start(self.RESET_PASSWORD)
-                      .attr('type', 'button').end()
+                      .attr('type', 'button').end();
                   }).end()
                   .callIfElse(
                     mode_ == self.SIGN_IN,

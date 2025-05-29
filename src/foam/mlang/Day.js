@@ -37,7 +37,7 @@ foam.CLASS({
         date.setDate(1);
         date.setHours(0);
         date.setMinutes(0);
-        return date
+        return date;
       },
       javaCode: `
         Calendar cal = Calendar.getInstance();

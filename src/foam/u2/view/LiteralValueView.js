@@ -25,8 +25,8 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.tag(this.view, { data$: this.value$ })
+      this.tag(this.view, { data$: this.value$ });
     }
-  ],
+  ]
 });
   

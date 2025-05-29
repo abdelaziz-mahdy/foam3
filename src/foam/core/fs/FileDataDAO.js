@@ -16,7 +16,7 @@ foam.CLASS({
     'foam.dao.Sink',
     'foam.util.SafetyUtil',
     'static foam.mlang.MLang.AND',
-    'static foam.mlang.MLang.EQ',
+    'static foam.mlang.MLang.EQ'
   ],
 
   properties: [

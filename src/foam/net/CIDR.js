@@ -112,7 +112,7 @@ List entries are of the form: 172.0.0.0/24 - this would restrict logins to 172.x
         // https://stackoverflow.com/a/33003795
         function u(n) {
           return n >>> 0; // unsigned
-        };
+        }
         function ip(n) {
           return [
             (n >>> 24) & 0xFF,
@@ -120,7 +120,7 @@ List entries are of the form: 172.0.0.0/24 - this would restrict logins to 172.x
             (n >>>  8) & 0xFF,
             (n >>>  0) & 0xFF
           ].join('.');
-        };
+        }
 
         var m = notation.match(/\d+/g); // 198.162.1.1/24 -> ['198','162','1','1','24']
         if ( ! m || m.length < 5 ) {

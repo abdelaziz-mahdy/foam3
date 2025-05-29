@@ -27,5 +27,5 @@ foam.INTERFACE({
     { name: 'info',  documentation: 'Log at "info" log level.'  },
     { name: 'warn',  documentation: 'Log at "warn" log level.'  },
     { name: 'error', documentation: 'Log at "error" log level.' }
-  ],
+  ]
 });

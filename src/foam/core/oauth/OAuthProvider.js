@@ -33,7 +33,7 @@ foam.CLASS({
       class: 'URL',
       name: 'tokenURL',
       documentation: 'URL to fetch JWTs from using authorization code'
-    },
+    }
   ],
   methods: [
     {
@@ -81,7 +81,7 @@ foam.CLASS({
       name: 'refreshAccessToken',
       args: [
         { name: 'x', type: "Context" },
-        { name: 'refreshToken', type: 'String' },
+        { name: 'refreshToken', type: 'String' }
       ],
       type: 'String',
       throws: [ 'java.io.IOException' ],

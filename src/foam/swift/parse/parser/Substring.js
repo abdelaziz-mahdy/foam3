@@ -18,8 +18,8 @@ if ps != nil {
   return ps!.setValue(start.substring(ps!))
 }
 return ps
-      `,
-    },
+      `
+    }
   ]
 });
 

@@ -10,13 +10,13 @@ foam.CLASS({
   refines: 'foam.lang.Import',
   flags: ['swift'],
   requires: [
-    'foam.swift.Field',
+    'foam.swift.Field'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftName',
-      expression: function(name) { return name; },
+      expression: function(name) { return name; }
     },
     {
       class: 'String',
@@ -31,17 +31,17 @@ foam.CLASS({
       name: 'swiftCast',
       expression: function(swiftType) {
         return swiftType == 'Any?' ? '' : ' as! ' + swiftType;
-      },
+      }
     },
     {
       class: 'Boolean',
       name: 'swiftSupport',
-      value: true,
+      value: true
     },
     {
       class: 'String',
       name: 'swiftPrivateAxiomName',
-      expression: function(swiftName) { return '_' + foam.String.constantize(swiftName) + '_'; },
+      expression: function(swiftName) { return '_' + foam.String.constantize(swiftName) + '_'; }
     }
   ],
 
@@ -53,13 +53,13 @@ foam.CLASS({
         type: this.swiftType,
         getter: this.valueGetter(),
         setter: this.valueSetter(),
-        visibility: 'public',
+        visibility: 'public'
       }));
       cls.fields.push(this.Field.create({
         name: this.name + '$',
         type: foam.swift.core.Slot.model_.swiftName + '?',
         getter: this.slotGetter(),
-        visibility: 'public',
+        visibility: 'public'
       }));
       cls.fields.push(this.Field.create({
         visibility: 'private',
@@ -67,9 +67,9 @@ foam.CLASS({
         final: true,
         name: this.swiftPrivateAxiomName,
         type: 'Axiom',
-        initializer: this.swiftPropertyInfoInit(),
+        initializer: this.swiftPropertyInfoInit()
       }));
-    },
+    }
   ],
 
   templates: [

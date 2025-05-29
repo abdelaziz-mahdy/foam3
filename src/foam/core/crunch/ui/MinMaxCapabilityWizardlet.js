@@ -71,8 +71,8 @@ foam.CLASS({
             wizardlet.status === this.CapabilityJunctionStatus.PENDING;
 
           var capId = wizardlet.capability?.id || wizardlet.id;
-          return [capId, self.translationService.getTranslation(foam.locale, `${capId}.name`,wizardlet.title), isFinal]
-        })
+          return [capId, self.translationService.getTranslation(foam.locale, `${capId}.name`,wizardlet.title), isFinal];
+        });
       }
     },
     {
@@ -205,19 +205,19 @@ foam.CLASS({
 
         if ( this.of && this.showDefaultSections ){
           var ofSections = foam.u2.detail.AbstractSectionedDetailView.create({
-            of: this.of,
+            of: this.of
           }, this).sections.map(section => this.WizardletSection.create({
             section: section,
             data$: this.data$,
             isAvailable$: section.createIsAvailableFor(
-              this.data$,
+              this.data$
             )
           }));
 
           sections = [
             ...ofSections,
             ...sections
-          ]
+          ];
         }
         return this.hideChoiceView ? [] : sections;
       }
@@ -264,7 +264,7 @@ foam.CLASS({
       this.choiceWizardlets.push(wizardlet);
       if ( wizardlet.saveOnAvailable ) {
         console.warn( 'MinMax choice', wizardlet.id, 'of MinMax', this.id, `has saveOnAvailable active, 
-        this can cause unexpected wizardelet.save() calls, disabling this behavior`)
+        this can cause unexpected wizardelet.save() calls, disabling this behavior`);
         wizardlet.saveOnAvailable = false;
       }
 
@@ -293,7 +293,7 @@ foam.CLASS({
           else foam.Array.remove(newSelectedData, w.capability);
         }
         this.data.selectedData = foam.Array.unique(newSelectedData);
-      }
+      };
       const slots = liftedWizardlets.map(w => w.isAvailable$);
       this.ArraySlot.create({ slots }).sub(updated);
       this.isAvailable$.sub(updated);
@@ -331,7 +331,7 @@ foam.CLASS({
         if ( foam.util.equals(idToCompare, prereqWizardlet.id) ) return true;
       }
       return false;
-    },
+    }
   ],
   listeners: [
     {

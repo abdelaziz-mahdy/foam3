@@ -78,15 +78,15 @@ foam.CLASS({
             }, function() {
               let createAction = self.config.of.getAxiomByName('create');
               if ( createAction && foam.comics.v3.ComicsAction.isInstance(createAction) ) {
-                createAction = self.CREATE.clone(self).copyFrom({ ...createAction })
+                createAction = self.CREATE.clone(self).copyFrom({ ...createAction });
               } else {
                 createAction = self.CREATE;
               }
               this.startContext({ data: self })
                 .tag(createAction, { label$: self.config$.dot('createTitle'), size: 'LARGE' })
-              .endContext()
+              .endContext();
             })
-        ))
+        ));
       });
       this
         .addClass()  
@@ -127,5 +127,5 @@ foam.CLASS({
         x.daoController.route = 'create';
       }
     }
-  ],
+  ]
 });

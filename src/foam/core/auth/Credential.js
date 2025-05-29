@@ -41,7 +41,7 @@ foam.CLASS({
       order: 1,
       createVisibility: 'RW',
       readVisibility: 'RO',
-      updateVisibility: 'RO',
+      updateVisibility: 'RO'
     },
     {
       class: 'String',

@@ -59,7 +59,7 @@ foam.CLASS({
       },
       adapt: function(o, n) {
         if ( ! this.Section.isInstance(n) && n ) {
-          foam.assert(this.of, `${this.cls_.name} needs of in order to create transient sections`)
+          foam.assert(this.of, `${this.cls_.name} needs of in order to create transient sections`);
           return this.Section.create().fromSectionAxiom(n, this.of);
         }
         return n;
@@ -104,8 +104,8 @@ foam.CLASS({
         return (obj, path) => {
           if ( ! path ) return obj;
           const props = path.split('.');
-          return this.getNestedPropValue(obj[props.shift()], props.join('.'))
-        }
+          return this.getNestedPropValue(obj[props.shift()], props.join('.'));
+        };
       }
     },
     {
@@ -139,7 +139,7 @@ foam.CLASS({
       self
         .addClass(self.myClass())
         .callIf(self.section, function() {
-          self.addClass(self.myClass(self.section.name))
+          self.addClass(self.myClass(self.section.name));
         })
         .add(self.slot(function(section, showTitle, section$title, section$subTitle, shown) {
           if ( ! section || ! shown ) return;

@@ -168,11 +168,11 @@ foam.CLASS({
             .start().addClass('attachment-footer')
              .start({ class: 'foam.u2.tag.Image', data: 'images/ic-delete.svg'}).hide(this.removeHidden).end()
              .on('click', function(e) {
-               self.document.querySelector('.attachment-view').remove()
+               self.document.querySelector('.attachment-view').remove();
                self.data = null;
              })
            .end()
-           .end()
+           .end();
          }
          return e;
          }, this.data$))
@@ -217,7 +217,7 @@ foam.CLASS({
 
       var inputFile;
       if ( e.dataTransfer.items ) {
-        inputFile = e.dataTransfer.items[0]
+        inputFile = e.dataTransfer.items[0];
         if ( inputFile.kind === 'file' ) {
           var file = inputFile.getAsFile();
           if ( this.isFileType(file) )

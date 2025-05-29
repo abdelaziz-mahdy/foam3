@@ -162,6 +162,6 @@ foam.CLASS({
     function TOKEN(name) { return this.TokenExpr.create({ arg1: name }); },
     function LIGHTEN(a, b) { return this.LightenExpr.create({ arg1: a, arg2: b }); },
     function FROM_HUE(a, b, c) { return this.FromHueExpr.create({ arg1: a, arg2: b, arg3: c }); },
-    function FOREGROUND(a, b, c) { return this.FindForegroundExpr.create({ baseColor: a, darkColor: b, lightColor: c }); },
+    function FOREGROUND(a, b, c) { return this.FindForegroundExpr.create({ baseColor: a, darkColor: b, lightColor: c }); }
   ]
 });

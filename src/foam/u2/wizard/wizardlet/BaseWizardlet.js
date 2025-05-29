@@ -107,7 +107,7 @@ foam.CLASS({
     {
       name: 'subTitle',
       class: 'String',
-      documentation: 'Description of current wizardlet, may be used to provide help for the wizardlet.',
+      documentation: 'Description of current wizardlet, may be used to provide help for the wizardlet.'
     },
     {
       name: 'isValid',
@@ -281,7 +281,7 @@ foam.CLASS({
                 true
               );
               return x.createSubContext({
-                hint: self.WizardErrorHint.AWAIT_FURTHER_ACTION,
+                hint: self.WizardErrorHint.AWAIT_FURTHER_ACTION
               });
             }
 
@@ -294,7 +294,7 @@ foam.CLASS({
               );
               x.wizardController.lastException = x.exception;
               return x.createSubContext({
-                hint: self.WizardErrorHint.AWAIT_FURTHER_ACTION,
+                hint: self.WizardErrorHint.AWAIT_FURTHER_ACTION
               });
             }
 
@@ -335,7 +335,7 @@ foam.CLASS({
     },
     {
       name: 'wizardController',
-      documentation: 'Populated by ContextAgent to add the wizard controller to wizardlet context after wizardlet creation',
+      documentation: 'Populated by ContextAgent to add the wizard controller to wizardlet context after wizardlet creation'
     },
     {
       class: 'Boolean',
@@ -448,7 +448,7 @@ foam.CLASS({
               saveEvent: this.loading$,
               // Listen to property updates if not loading
               other: filter(updateSlot, () => ! this.loading),
-              delay: this.SAVE_DELAY,
+              delay: this.SAVE_DELAY
             });
           });
         slotSlot.valueSub(() => { s.set(slotSlot.get().get()); });
@@ -478,7 +478,7 @@ foam.CLASS({
 
       // Internal method used by SECTIONS.factory
       var sections = this.AbstractSectionedDetailView.create({
-        of: this.of,
+        of: this.of
       }, this).sections
         .filter(section => this.defaultSections.includes(
           // section.name can be undefined, so it must be converted to a string
@@ -489,7 +489,7 @@ foam.CLASS({
             section: section,
             wizardlet: this,
             isAvailable$: section.createIsAvailableFor(
-              this.data$,
+              this.data$
             )
           });
         });

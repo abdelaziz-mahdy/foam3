@@ -30,7 +30,7 @@ foam.CLASS({
       name: 'LRUCacheItem',
       properties: [
         {
-          name: 'id',
+          name: 'id'
         },
         {
           class: 'Int',

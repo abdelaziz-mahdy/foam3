@@ -184,7 +184,7 @@ return file;`
         var bufsize = 8192;
         var buffer = Buffer.alloc(bufsize);
 
-        var size = obj.size
+        var size = obj.size;
         var remaining = size;
         var offset = 0;
         var self = this;

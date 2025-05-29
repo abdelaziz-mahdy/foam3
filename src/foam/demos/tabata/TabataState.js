@@ -12,18 +12,18 @@ foam.INTERFACE({
       args: [
         {
           name: 't',
-          swiftType: 'Tabata',
-        },
-      ],
+          swiftType: 'Tabata'
+        }
+      ]
     },
     {
       name: 'next',
       args: [
         {
           name: 't',
-          swiftType: 'Tabata',
-        },
-      ],
-    },
+          swiftType: 'Tabata'
+        }
+      ]
+    }
   ]
 });

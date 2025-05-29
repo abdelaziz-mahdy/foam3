@@ -46,8 +46,8 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.net.node.RequestIdentifier',
       name: 'requestIdentifier',
-      factory: function() { return this.RequestIdentifier.create(); },
-    },
+      factory: function() { return this.RequestIdentifier.create(); }
+    }
   ],
 
   methods: [

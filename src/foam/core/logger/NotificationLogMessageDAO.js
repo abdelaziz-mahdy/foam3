@@ -25,7 +25,7 @@ foam.CLASS({
 
   requires: [
     'foam.log.LogLevel',
-    'foam.core.notification.Notification',
+    'foam.core.notification.Notification'
   ],
 
   properties: [
@@ -47,7 +47,7 @@ foam.CLASS({
       documentation: `The value of Threshhold control when this logger executes.
       Ordinal values for LogLevels are: DEBUG -> 0, INFO -> 1, WARNING -> 2, ERROR -> 3.
       The equality condition for execution is greater than or equal to Threshhold.`
-    },
+    }
   ],
   javaCode: `
     protected ThreadLocal<Boolean> currentlyLogging = new ThreadLocal<Boolean>() {
@@ -76,7 +76,7 @@ foam.CLASS({
         {
           name: 'log',
           type: 'foam.core.logger.LogMessage'
-        },
+        }
       ],
       javaCode: `
   if (currentlyLogging.get()) {

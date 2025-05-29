@@ -55,7 +55,7 @@ foam.CLASS({
             .addClass('special-status-tag')
             .add(this.status)
           .end()
-        .end()
-    },
+        .end();
+    }
   ]
 });

@@ -62,7 +62,7 @@ foam.CLASS({
       }, this.__subContext__);
 
       this.wizardFlow.wizardController = this.wizardController;
-      this.wizardlets.forEach(v => { v.wizardController$ = this.wizardController$ })
+      this.wizardlets.forEach(v => { v.wizardController$ = this.wizardController$; });
     }
   ]
 });

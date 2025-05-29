@@ -211,6 +211,6 @@ foam.CLASS({
       user.getPushRegistrations(x).select(
         new UserLifecycleTicketSink(x, state, "pushRegistrationDAO"));
       `
-    },
+    }
   ]
 });

@@ -57,7 +57,7 @@ foam.CLASS({
       title: 'System Information',
       order: 2,
       permissionRequired: true
-    },
+    }
   ],
 
   axioms: [
@@ -66,7 +66,7 @@ foam.CLASS({
       label: 'Unread',
       predicateFactory: function(e) {
         return e.AND(
-          e.EQ(foam.core.notification.Notification.READ, false),
+          e.EQ(foam.core.notification.Notification.READ, false)
         );
       }
     },
@@ -75,7 +75,7 @@ foam.CLASS({
       label: 'Read',
       predicateFactory: function(e) {
         return e.AND(
-          e.EQ(foam.core.notification.Notification.READ, true),
+          e.EQ(foam.core.notification.Notification.READ, true)
         );
       }
     }
@@ -105,7 +105,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'template',
-      documentation: `This is the 'id' property used to find a template.`,
+      documentation: `This is the 'id' property used to find a template.`
     },
     {
       class: 'String',
@@ -126,7 +126,7 @@ foam.CLASS({
       name: 'createdBy',
       documentation: 'User that created the Notification.',
       createVisibility: 'HIDDEN',
-      updateVisibility: 'RO',
+      updateVisibility: 'RO'
     },
     {
       class: 'Reference',
@@ -136,7 +136,7 @@ foam.CLASS({
       readPermissionRequired: true,
       writePermissionRequired: true,
       createVisibility: 'HIDDEN',
-      updateVisibility: 'RO',
+      updateVisibility: 'RO'
     },
     {
       class: 'Date',
@@ -167,7 +167,7 @@ foam.CLASS({
       name: 'toastState',
       of: 'foam.core.notification.ToastState',
       createVisibility: 'HIDDEN',
-      updateVisibility: 'RO',
+      updateVisibility: 'RO'
     },
     {
       class: 'Enum',

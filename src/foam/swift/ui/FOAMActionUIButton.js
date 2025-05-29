@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.swift.ui',
   name: 'FOAMActionUIButton',
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   properties: [
     {
@@ -18,22 +18,22 @@ foam.CLASS({
       swiftPostSet: `
 newValue.addTarget(self, action: #selector(onButtonClick), for: .touchUpInside)
 newValue.setTitle(self.action?.label, for: .normal)
-      `,
+      `
     },
     {
       class: 'FObjectProperty',
       required: false,
-      name: 'fobj',
+      name: 'fobj'
     },
     {
       swiftType: 'ActionInfo?',
-      name: 'action',
+      name: 'action'
     },
     {
       class: 'Boolean',
       name: 'dismissKeyboardOnTap',
-      value: true,
-    },
+      value: true
+    }
   ],
   methods: [
     {
@@ -44,7 +44,7 @@ if dismissKeyboardOnTap {
 }
 if fobj != nil { _ = try? action?.call(fobj!) }
       `,
-      swiftAnnotations: ['@objc'],
-    },
-  ],
+      swiftAnnotations: ['@objc']
+    }
+  ]
 });

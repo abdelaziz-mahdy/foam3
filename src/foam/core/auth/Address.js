@@ -15,7 +15,7 @@ foam.CLASS({
   implements: [
     {
       path: 'foam.mlang.Expressions',
-      flags: ['js'],
+      flags: ['js']
     }
   ],
 

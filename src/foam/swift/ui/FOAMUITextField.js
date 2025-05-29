@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.swift.ui',
   name: 'FOAMUITextField',
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   swiftImplements: ['UITextFieldDelegate'],
   implements: ['foam.swift.ui.PropertyView'],
@@ -27,19 +27,19 @@ viewSub?.detach()
 viewSub = data$.swiftSub(updateTextField)
 updateTextField(viewSub!, [])
 newValue.delegate = self
-      `,
+      `
     },
     {
       swiftType: 'Subscription?',
-      name: 'viewSub',
+      name: 'viewSub'
     },
     {
-      name: 'data',
+      name: 'data'
     },
     {
       class: 'String',
-      name: 'emptyValue',
-    },
+      name: 'emptyValue'
+    }
   ],
   methods: [
     {
@@ -49,33 +49,33 @@ view.isEnabled = prop.visibility == foam_u2_DisplayMode.RW
 if view.isEnabled {
   view.backgroundColor = UIColor(red: 0.97, green: 0.97, blue: 0.97, alpha: 1)
 }
-     `,
+     `
     },
     {
       name: 'textFieldDidEndEditing',
       args: [
         {
           name: 'textField',
-          swiftType: 'UITextField',
-        },
+          swiftType: 'UITextField'
+        }
       ],
       swiftCode: `
 data = textField.text ?? ""
-     `,
+     `
     },
     {
       name: 'textFieldShouldReturn',
       args: [
         {
           name: 'textField',
-          swiftType: 'UITextField',
-        },
+          swiftType: 'UITextField'
+        }
       ],
       type: 'Boolean',
       swiftCode: `
 textField.resignFirstResponder()
 return true
-     `,
-    },
-  ],
+     `
+    }
+  ]
 });

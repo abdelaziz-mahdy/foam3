@@ -90,7 +90,7 @@ foam.CLASS({
         }).bind(this, b));
       }
 
-      this.timer.i$.sub(this.invalidated.pub)
+      this.timer.i$.sub(this.invalidated.pub);
     }
   ]
 });

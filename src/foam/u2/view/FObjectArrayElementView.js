@@ -24,7 +24,7 @@ foam.CLASS({
     },
     {
       class: 'foam.u2.ViewSpec',
-      name: 'view',
+      name: 'view'
     }
   ],
   methods: [
@@ -38,5 +38,5 @@ foam.CLASS({
     function fromProperty(prop) {
       this.idFetch = prop.indexFunction;
     }
-  ],
+  ]
 });

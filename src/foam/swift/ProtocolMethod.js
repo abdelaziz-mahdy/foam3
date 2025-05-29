@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'ProtocolMethod',
   flags: ['swift'],
   requires: [
-    'foam.swift.ProtocolArgument',
+    'foam.swift.ProtocolArgument'
   ],
   properties: [
     'name',
@@ -21,8 +21,8 @@ foam.CLASS({
       name: 'args',
       adaptArrayElement: function(e) {
         return foam.swift.ProtocolArgument.create(e);
-      },
-    },
+      }
+    }
   ],
   methods: [
     function outputSwift(o) {
@@ -42,7 +42,7 @@ foam.CLASS({
         ')',
         this.throws ? ' throws' : '',
         this.returnType && this.returnType != 'Void' ? ' -> ' + this.returnType : ''
-      )
+      );
     }
   ]
 });

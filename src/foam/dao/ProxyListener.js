@@ -45,7 +45,7 @@ if oldValue != nil {
       code: function put(obj, s) {
         this.delegate.put(obj, this);
       },
-      swiftCode: 'delegate.put(obj, self)',
+      swiftCode: 'delegate.put(obj, self)'
     },
 
     function outputJSON(outputter) {
@@ -57,7 +57,7 @@ if oldValue != nil {
       code: function remove(obj, s) {
         this.delegate.remove(obj, this);
       },
-      swiftCode: 'delegate.remove(obj, self)',
+      swiftCode: 'delegate.remove(obj, self)'
     },
 
     {
@@ -65,7 +65,7 @@ if oldValue != nil {
       code: function reset(s) {
         this.delegate.reset(this);
       },
-      swiftCode: 'delegate.reset(self)',
+      swiftCode: 'delegate.reset(self)'
     },
 
     function detach() {

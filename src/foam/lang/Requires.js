@@ -49,7 +49,7 @@ foam.CLASS({
       name: 'name',
       factory: function() {
         return this.path.split('.').pop();
-      },
+      }
     },
     // Lower priority so it is set after Properties, so that it can override
     // Property constants if there is a conflict.

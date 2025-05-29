@@ -9,7 +9,7 @@ foam.LIB({
   methods: [
     function toType(str) {
       if ( ! str ) {
-        return foam.lang.type.Any.create()
+        return foam.lang.type.Any.create();
       }
 
       if ( foam.isRegistered('foam.lang.type.' + str) ) {
@@ -19,11 +19,11 @@ foam.LIB({
       if ( str.endsWith('[]') ) {
         return foam.lang.type.Array.create({
           type: foam.lang.type.toType(str.substring(0, str.lastIndexOf('[]')))
-        })
+        });
       }
 
       if ( foam.isRegistered(str) ) {
-        return foam.lang.type.FObject.create({ of: str })
+        return foam.lang.type.FObject.create({ of: str });
       }
 
       return foam.lang.type.SimpleType.create({
@@ -41,7 +41,7 @@ foam.INTERFACE({
   methods: [
     {
       name: 'refs',
-      type: 'String[]',
+      type: 'String[]'
     },
     {
       name: 'toJavaType',
@@ -50,7 +50,7 @@ foam.INTERFACE({
     {
       name: 'toSwiftType',
       args: [
-        { type: 'Boolean', name: 'optional' },
+        { type: 'Boolean', name: 'optional' }
       ],
       type: 'String'
     }
@@ -69,14 +69,14 @@ foam.CLASS({
     {
       class: 'String',
       name: 'swift'
-    },
+    }
   ],
   methods: [
-    function refs() { return [] },
-    function toJavaType() { return this.java },
+    function refs() { return []; },
+    function toJavaType() { return this.java; },
     function toSwiftType(optional) {
-      return this.swift + (optional ? '?' : '')
-    },
+      return this.swift + (optional ? '?' : '');
+    }
   ]
 });
 
@@ -87,10 +87,10 @@ foam.CLASS({
   implements: ['foam.lang.type.Type'],
   axioms: [ { class: 'foam.pattern.Singleton' } ],
   methods: [
-    function refs() { return [] },
-    function toJavaType() { return 'Object' },
-    function toSwiftType() { return 'Any?' }
-  ],
+    function refs() { return []; },
+    function toJavaType() { return 'Object'; },
+    function toSwiftType() { return 'Any?'; }
+  ]
 });
 
 
@@ -195,12 +195,12 @@ foam.CLASS({
     }
   ],
   methods: [
-    function refs() { return this.type.refs() },
+    function refs() { return this.type.refs(); },
     function toJavaType() {
-      return `${this.type.toJavaType()}[]`
+      return `${this.type.toJavaType()}[]`;
     },
     function toSwiftType(optional) {
-      return `[${this.type.toSwiftType()}]` + (optional ? '?' : '')
+      return `[${this.type.toSwiftType()}]` + (optional ? '?' : '');
     }
   ]
 });
@@ -227,14 +227,14 @@ foam.CLASS({
     {
       class: 'Class',
       name: 'of',
-      value: 'foam.lang.FObject',
+      value: 'foam.lang.FObject'
     }
   ],
   methods: [
-    function refs() { return [this.of.id] },
-    function toJavaType() { return this.of.id },
+    function refs() { return [this.of.id]; },
+    function toJavaType() { return this.of.id; },
     function toSwiftType(optional) {
-      return this.of.model_.swiftName + (optional ? '?' : '')
+      return this.of.model_.swiftName + (optional ? '?' : '');
     }
   ]
 });

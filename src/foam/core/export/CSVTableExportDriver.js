@@ -47,7 +47,7 @@ foam.CLASS({
               d => d.toLocaleTimeString(foam.locale)
             ],
             this.LOCALE + ' (' + foam.locale + ')'
-          ],
+          ]
         ].map(c => [ c[0], c[1] + ': ' + c[0][0](new Date()) ]);
       }
     },

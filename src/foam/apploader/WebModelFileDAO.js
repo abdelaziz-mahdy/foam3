@@ -34,7 +34,7 @@ foam.CLASS({
       expression: function(root) {
         return this.ModelFileDAO.create({
           fetcher: this.WebModelFileFetcher.create({root: root})});
-      },
-    },
-  ],
+      }
+    }
+  ]
 });

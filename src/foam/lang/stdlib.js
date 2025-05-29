@@ -162,7 +162,7 @@ foam.LIB({
 
   methods: [
     function isInstance(o) { return typeof o === 'function'; },
-    function is(a, b) { return a === b },
+    function is(a, b) { return a === b; },
     function clone(o) { return o; },
     function equals(a, b) { return b ? a.toString() === b.toString() : false; },
     function compare(a, b) {
@@ -188,9 +188,9 @@ foam.LIB({
         'memoize0(' + f.name + ')');
       ret.toString = function() {
         return f.toString();
-        return `foam.Function.memoize0(${f.toString()})`
+        return `foam.Function.memoize0(${f.toString()})`;
       };
-      ret.args = []
+      ret.args = [];
       return ret;
     },
 
@@ -218,7 +218,7 @@ foam.LIB({
         'memoize1(' + f.name + ')');
       ret.toString = function() {
         return f.toString();
-        return `foam.Function.memoize1(${f.toString()})`
+        return `foam.Function.memoize1(${f.toString()})`;
       };
       ret.args = [];
       return ret;
@@ -801,13 +801,13 @@ foam.LIB({
     function isInstance(o) { return o instanceof RegExp; },
     function is(a, b) { return a === b; },
     function clone(o) { return new RegExp(o); },
-    function equals(a, b) { return this.compare(a, b) == 0 },
+    function equals(a, b) { return this.compare(a, b) == 0; },
     function compare(a, b) {
       if ( ! foam.RegExp.isInstance(b) ) return 1;
       return foam.String.compare(a.toString(), b.toString());
     },
     // Hash n & n: Truncate to 32 bits.
-    function hashCode(d) { foam.String.hashCode(d.toString()) },
+    function hashCode(d) { foam.String.hashCode(d.toString()); }
   ]
 });
 
@@ -999,7 +999,7 @@ foam.LIB({
       if ( ! ( date instanceof Date ) ) return null;
       let offsetInMillis = date.getTimezoneOffset() * 60 * 1000;
       let newValue = date.valueOf() - offsetInMillis;
-      date = new Date(newValue)
+      date = new Date(newValue);
       return date.toISOString().substring(0,16);
     },
     function toInputCompatibleDateString(date) {
@@ -1168,7 +1168,7 @@ foam.LIB({
             if ( a.flags.indexOf(f) != -1 ) return true;
           }
           return false;
-        }
+        };
       },
       function isPrimitive(value) {
         return typeof value === 'string' ||
@@ -1313,7 +1313,7 @@ foam.LIB({
         var ret = result.value(expr).f({cls_: cls, __subContext__: ctx});
         if ( ret )
           ret = foam.CSS.returnTokenValue(ret, cls, ctx);
-        return ret || result.fallback || `/* failed mlang token replacement ${tokenString}, ${cls}*/`
+        return ret || result.fallback || `/* failed mlang token replacement ${tokenString}, ${cls}*/`;
       }
       if ( result?.value?.startsWith('$') ) {
         // Using await as this method may be overriden with one that returns a promise
@@ -1334,7 +1334,7 @@ foam.LIB({
         cls = foam.String.isInstance(cls) ? ( foam.maybeLookup(cls) || '' ) : cls;
         fullString = cls?.id + '.' + tokenName;
       }
-      return [ tokenName, cls, fullString ]
+      return [ tokenName, cls, fullString ];
     },
     function returnTokenValue(token, cls, ctx) {
       // Safe method to always call the right getTokenValue() depending on ctx
@@ -1349,9 +1349,9 @@ foam.LIB({
       let tokensToFind = text.match(tokenPattern);
       if ( ! tokensToFind?.length ) return text;
       for ( var i = 0 ; i < tokensToFind.length ; i++ ) {
-        let sanitizedToken = opt_tokenPattern ? tokensToFind[i].match(/\$[^\*\s]*/)[0] : tokensToFind[i] //if using a non-standard token pattern
+        let sanitizedToken = opt_tokenPattern ? tokensToFind[i].match(/\$[^\*\s]*/)[0] : tokensToFind[i]; //if using a non-standard token pattern
         let replacement = foam.CSS.returnTokenValue(sanitizedToken, cls, ctx);
-        foundTokens[tokensToFind[i]] = { sanitizedToken: sanitizedToken, value: replacement}
+        foundTokens[tokensToFind[i]] = { sanitizedToken: sanitizedToken, value: replacement};
       }
       return text.replace(tokenPattern, function(match) {
         return foundTokens[match] ? `/*${foundTokens[match].sanitizedToken}*/ ${foundTokens[match].value}` : '/* Token not found */';

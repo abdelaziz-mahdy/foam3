@@ -13,28 +13,28 @@ foam.CLASS({
     'foam.lang.Argument',
     'foam.swift.Argument as SwiftArgument',
     'foam.swift.Field',
-    'foam.swift.Method',
+    'foam.swift.Method'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftName',
-      expression: function(name) { return name == 'init' ? '__foamInit__' : name; },
+      expression: function(name) { return name == 'init' ? '__foamInit__' : name; }
     },
     {
       class: 'String',
       name: 'swiftPrivateAxiomName',
-      expression: function(swiftName) { return '_' + foam.String.constantize(swiftName) + '_'; },
+      expression: function(swiftName) { return '_' + foam.String.constantize(swiftName) + '_'; }
     },
     {
       class: 'String',
       name: 'swiftAxiomName',
-      expression: function(swiftName) { return foam.String.constantize(swiftName) },
+      expression: function(swiftName) { return foam.String.constantize(swiftName); }
     },
     {
       class: 'String',
       name: 'swiftSlotName',
-      expression: function(swiftName) { return swiftName + '$'; },
+      expression: function(swiftName) { return swiftName + '$'; }
     },
     {
       class: 'Boolean',
@@ -44,22 +44,22 @@ foam.CLASS({
     {
       class: 'String',
       name: 'swiftSynchronizedSemaphoreName',
-      expression: function(swiftName) { return swiftName + '_semaphore_' },
+      expression: function(swiftName) { return swiftName + '_semaphore_'; }
     },
     {
       class: 'String',
       name: 'swiftSynchronizedMethodName',
-      expression: function(swiftName) { return swiftName + '_synchronized_' },
+      expression: function(swiftName) { return swiftName + '_synchronized_'; }
     },
     {
       class: 'Boolean',
-      name: 'swiftThrows',
+      name: 'swiftThrows'
     },
     {
       name: 'swiftArgs',
       expression: function(args) {
        return args.map(function(a) {
-          return this.Argument.create(a).toSwiftArg()
+          return this.Argument.create(a).toSwiftArg();
         }.bind(this));
       },
       adapt: function(_, n) {
@@ -71,38 +71,38 @@ foam.CLASS({
             return m.create(o, self);
           }
           return self.SwiftArgument.isInstance(o) ? o : self.SwiftArgument.create(o);
-        }
+        };
         return n.map(adaptElement);
-      },
+      }
     },
     {
       class: 'String',
       name: 'swiftVisibility',
-      value: 'public',
+      value: 'public'
     },
     {
       class: 'String',
-      name: 'swiftCode',
+      name: 'swiftCode'
     },
     {
       class: 'Boolean',
-      name: 'swiftOverride',
+      name: 'swiftOverride'
     },
     {
       class: 'Boolean',
-      name: 'swiftSupport',
+      name: 'swiftSupport'
     },
     {
       class: 'String',
       name: 'swiftType',
       expression: function(type) {
         return foam.swift.toSwiftType(type, true);
-      },
+      }
     },
     {
       class: 'StringArray',
-      name: 'swiftAnnotations',
-    },
+      name: 'swiftAnnotations'
+    }
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -116,7 +116,7 @@ foam.CLASS({
           lazy: true,
           name: this.swiftSlotName,
           initializer: this.slotInit(),
-          type: foam.swift.core.Slot.model_.swiftName,
+          type: foam.swift.core.Slot.model_.swiftName
         }));
       }
       cls.fields.push(this.Field.create({
@@ -125,7 +125,7 @@ foam.CLASS({
         final: true,
         name: this.swiftPrivateAxiomName,
         type: 'MethodInfo',
-        initializer: this.swiftMethodInfoInit(parentCls),
+        initializer: this.swiftMethodInfoInit(parentCls)
       }));
       if (this.name != 'init') {
         cls.methods.push(this.Method.create({
@@ -134,18 +134,18 @@ foam.CLASS({
           name: this.swiftAxiomName,
           returnType: 'MethodInfo',
           body: 'return ' + this.swiftPrivateAxiomName,
-          override: this.getSwiftOverride(parentCls),
+          override: this.getSwiftOverride(parentCls)
         }));
       }
       var code = this.getSwiftCode(parentCls);
       if ( this.swiftSynchronized ) {
-        var sem = this.swiftSynchronizedSemaphoreName
+        var sem = this.swiftSynchronizedSemaphoreName;
         cls.fields.push(this.Field.create({
           visibility: 'private',
           final: true,
           name: sem,
           type: 'DispatchSemaphore',
-          defaultValue: 'DispatchSemaphore(value: 1)',
+          defaultValue: 'DispatchSemaphore(value: 1)'
         }));
         cls.method(this.Method.create({
           name: this.swiftSynchronizedMethodName,
@@ -154,7 +154,7 @@ foam.CLASS({
           returnType: this.swiftType,
           args: this.swiftArgs,
           visibility: 'private',
-          annotations: this.swiftAnnotations,
+          annotations: this.swiftAnnotations
         }));
         cls.method(this.Method.create({
           name: this.swiftName,
@@ -164,7 +164,7 @@ foam.CLASS({
           args: this.swiftArgs,
           visibility: this.swiftVisibility,
           override: this.getSwiftOverride(parentCls),
-          annotations: this.swiftAnnotations,
+          annotations: this.swiftAnnotations
         }));
       } else {
         cls.method(this.Method.create({
@@ -175,7 +175,7 @@ foam.CLASS({
           args: this.swiftArgs,
           visibility: this.swiftVisibility,
           override: this.getSwiftOverride(parentCls),
-          annotations: this.swiftAnnotations,
+          annotations: this.swiftAnnotations
         }));
       }
     },
@@ -206,21 +206,21 @@ foam.CLASS({
         var methodInterface = parentCls.getAxiomsByClass(foam.lang.Implements).find(function(i) {
           return foam.lookup(i.path).getAxiomsByClass(InterfaceMethod).find(function(m) {
             return m === parentMethod;
-          })
+          });
         });
         return ! methodInterface ||
             !! parentCls.getSuperClass().getAxiomByName(methodInterface.name);
       }
 
       // Determine if anything that's extended implements this interface.
-      var pCl = parentCls
+      var pCl = parentCls;
       while (true) {
         pCl = pCl.getSuperClass();
         // Stop when we reach 'FObject' since we generate our own FObject.
         if (pCl === pCl.getSuperClass()) return false;
         if (pCl.hasOwnAxiom(this.name)) return true;
       }
-    },
+    }
   ],
   templates: [
     {
@@ -243,7 +243,7 @@ return <%=foam.swift.core.ConstantSlot.model_.swiftName%>([
         }).join(', ')%>)
   }
 ])
-      `,
+      `
     },
     {
       name: 'syncronizedCode',
@@ -256,7 +256,7 @@ return <%=foam.swift.core.ConstantSlot.model_.swiftName%>([
         this.swiftArgs.map(function(a) { return a.localName }).join(',')%>)
 <%=this.swiftSynchronizedSemaphoreName%>.signal()
 <%if (this.swiftType != 'Void') {%>return ret<%}%>
-      `,
+      `
     },
     {
       name: 'swiftMethodInfoInit',
@@ -273,7 +273,7 @@ class MInfo: MethodInfo {
   }
 }
 return MInfo(classInfo())
-      `,
+      `
     }
-  ],
+  ]
 });

@@ -14,11 +14,11 @@ foam.INTERFACE({
       args: [
         {
           type: 'foam.swift.parse.PStream',
-          name: 'ps',
+          name: 'ps'
         },
         {
           swiftType: 'ParserContext',
-          name: 'x',
+          name: 'x'
         }
       ]
     }

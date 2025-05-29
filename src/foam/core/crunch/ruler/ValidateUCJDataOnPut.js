@@ -88,6 +88,6 @@ foam.CLASS({
           }
         }, "validate ucj data on put");
       `
-    },
+    }
   ]
 });

@@ -64,7 +64,7 @@ foam.CLASS({
     function and(views) {
       return this.And.create({
         args: Object.keys(views).map(function(k) { return views[k].predicate; })
-          .filter(function(predicate) { return predicate !== undefined })
+          .filter(function(predicate) { return predicate !== undefined; })
       }).partialEval();
     },
 

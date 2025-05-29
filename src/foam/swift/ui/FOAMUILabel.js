@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.swift.ui',
   name: 'FOAMUILabel',
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   properties: [
     {
@@ -17,21 +17,21 @@ foam.CLASS({
       swiftFactory: 'return UILabel()',
       swiftPostSet: `
 updateLabel();
-     `,
+     `
     },
     {
       name: 'data',
       swiftPostSet: `
 updateLabel();
-      `,
+      `
     },
     {
       swiftType: 'UIColor?',
       name: 'textColor',
       swiftPostSet: `
 updateLabel();
-      `,
-    },
+      `
+    }
   ],
   listeners: [
     {
@@ -39,7 +39,7 @@ updateLabel();
       swiftCode: `
 view.text = data == nil ? "nil" : String(describing: data!)
 if let textColor = textColor { view.textColor = textColor }
-     `,
-    },
-  ],
+     `
+    }
+  ]
 });

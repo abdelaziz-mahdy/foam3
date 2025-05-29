@@ -141,7 +141,7 @@ foam.CLASS({
             return Tag.create({
               type: v[5] || lib.isSelfClosing(v[1]) ? OPEN_CLOSE : OPEN,
               nodeName: v[1],
-              attributes: v[3],
+              attributes: v[3]
             });
           },
 
@@ -158,7 +158,7 @@ foam.CLASS({
           comment: function(v) { return null; },
           attribute: function(v) {
             return Attribute.create({ name: v[0], value: v[1] || null });
-          },
+          }
         };
       }
     },

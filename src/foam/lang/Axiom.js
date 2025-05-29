@@ -13,7 +13,7 @@ foam.INTERFACE({
   methods: [
     {
       name: 'getName',
-      type: 'String',
+      type: 'String'
     }
   ]
 });

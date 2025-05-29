@@ -12,7 +12,7 @@ foam.CLASS({
     'name',
     'type',
     'get',
-    'set',
+    'set'
   ],
 
   methods: [

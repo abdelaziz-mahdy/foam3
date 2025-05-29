@@ -11,7 +11,7 @@ foam.CLASS({
   flags: ['swift'],
   requires: [
     'foam.swift.Method',
-    'foam.swift.Argument',
+    'foam.swift.Argument'
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -31,9 +31,9 @@ foam.CLASS({
           this.Argument.create({
             localName: 'args',
             defaultValue: '[:]',
-            type: '[String:Any?]',
-          }),
-        ],
+            type: '[String:Any?]'
+          })
+        ]
       }));
     }
   ],
@@ -43,7 +43,7 @@ foam.CLASS({
       args: [],
       template: `
 return <%=this.model.swiftName%>(args, __subContext__)
-       `,
-    },
-  ],
+       `
+    }
+  ]
 });

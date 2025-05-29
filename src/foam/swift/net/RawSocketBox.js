@@ -28,21 +28,21 @@ foam.CLASS({
     {
       name: 'registry',
       key: 'registry',
-      swiftType: 'BoxRegistry',
-    },
+      swiftType: 'BoxRegistry'
+    }
   ],
 
   properties: [
     {
       class: 'FObjectProperty',
       of: 'foam.swift.net.Socket',
-      name: 'socket',
+      name: 'socket'
     },
     {
       swiftType: 'JSONOutputter',
       name: 'outputter',
-      swiftFactory: `return JSONOutputter_create()`,
-    },
+      swiftFactory: `return JSONOutputter_create()`
+    }
   ],
 
   classes: [
@@ -54,8 +54,8 @@ foam.CLASS({
         {
           name: 'me',
           key: 'me',
-          swiftType: 'Box',
-        },
+          swiftType: 'Box'
+        }
       ],
       methods: [
         {
@@ -65,8 +65,8 @@ if data as AnyObject === me as AnyObject {
   return super.output(&out, ReturnBox_create())
 }
 return super.output(&out, data)
-          `,
-        },
+          `
+        }
       ]
     }
   ],
@@ -84,7 +84,7 @@ if replyBox != nil {
 let payload = outputter.swiftStringify(msg)
 socket?.write(payload)
 msg.attributes["replyBox"] = replyBox
-      `,
+      `
     }
   ]
 });

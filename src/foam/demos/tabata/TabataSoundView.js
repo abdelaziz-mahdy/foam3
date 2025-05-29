@@ -15,7 +15,7 @@ foam.CLASS({
     {
       path: 'foam.swift.ui.MidiNote',
       flags: ['swift']
-    },
+    }
   ],
 
   properties: [

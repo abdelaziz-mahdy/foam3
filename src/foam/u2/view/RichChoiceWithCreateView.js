@@ -80,9 +80,9 @@ foam.CLASS({
           .start(this.DraftDetailView, {
             view: {
               ...createView,
-              propertyWhitelist$: this.propertyWhitelist$,
+              propertyWhitelist$: this.propertyWhitelist$
             },
-            data$: this.workingData$,
+            data$: this.workingData$
           })
             .addClass(this.myClass('createView'))
           .end();
@@ -115,7 +115,7 @@ foam.CLASS({
         this.feedback_ = false;
       }, e => {
         this.feedback_ = false;
-        ctrl.notify('Something went wrong', e.message, 'ERROR', true)
+        ctrl.notify('Something went wrong', e.message, 'ERROR', true);
       });
     },
     function cancel() {

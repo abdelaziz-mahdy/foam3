@@ -85,7 +85,7 @@ foam.CLASS({
           data: self.selectedUser?.id,
           fullObject_$: self.selectedUser$
         }).style({
-          'width': '100%'
+          width: '100%'
         }).end()
       .end();
     },

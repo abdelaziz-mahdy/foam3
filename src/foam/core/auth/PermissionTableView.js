@@ -267,7 +267,7 @@ foam.CLASS({
         .style({
           'padding-left':  '16px',
           'padding-top':   '0',
-          'padding-right': '16px',
+          'padding-right': '16px'
         }).
 
         callIf(this.showSearch, function() { this.start()
@@ -302,7 +302,7 @@ foam.CLASS({
       return this.E().start()
         .addClass(this.myClass('table-wrapper'))
         .start('table')
-          .style({ 'width': '100%', 'flex': '1' })
+          .style({ width: '100%', flex: '1' })
           .on('wheel', this.onWheel)
           .start('thead')
             .start('tr')

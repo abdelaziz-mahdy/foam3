@@ -15,7 +15,7 @@ foam.CLASS( {
     'foam.graphics.ColumnGraph',
     'foam.graphics.DataSource',
     'foam.graphics.PieGraph',
-    'foam.graphics.PlotGraph',
+    'foam.graphics.PlotGraph'
   ],
 
   css: `
@@ -69,7 +69,7 @@ foam.CLASS( {
 
       dataSource.LegendEntries[ 0 ] = foam.graphics.LegendEntries.create( {} );
       dataSource.LegendEntries[ 0 ].seriesName = 'Day';
-      dataSource.LegendEntries[ 0 ].seriesValues = [ 10, 20, 30, 20, 20 ]
+      dataSource.LegendEntries[ 0 ].seriesValues = [ 10, 20, 30, 20, 20 ];
 
       dataSource.LegendEntries[ 1 ] = foam.graphics.LegendEntries.create( {} );
       dataSource.LegendEntries[ 1 ].seriesName = 'Month';
@@ -81,17 +81,17 @@ foam.CLASS( {
 
       var graphColors = [ '#d81e05', '#093649', '#59a5d5', '#2cab70' ];
 
-      var highlightedValues = [ 0.25, 0.5, 0.75 ]
-      var colors = [ '#d71c06', '#2cab70', '#59a5d5' ]
-      var labels = [ 'Average Minimum', 'Average', 'Average Maximum' ]
+      var highlightedValues = [ 0.25, 0.5, 0.75 ];
+      var colors = [ '#d71c06', '#2cab70', '#59a5d5' ];
+      var labels = [ 'Average Minimum', 'Average', 'Average Maximum' ];
 
       var dataToHighlight = {
         values: highlightedValues,
         colors: colors,
         labels: labels
-      }
+      };
 
-      var axisUnit = [ 0.25, 0.5, 0.75, 1 ]
+      var axisUnit = [ 0.25, 0.5, 0.75, 1 ];
 
       var gap = 30;
       var margin = 1.3;
@@ -170,8 +170,8 @@ foam.CLASS( {
 
       this.addClass( this.myClass() ).start( this.canvas ).
       on( 'click', this.onClick ).
-      end()
-    },
+      end();
+    }
   ],
 
   listeners: [

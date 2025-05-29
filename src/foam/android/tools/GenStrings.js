@@ -21,7 +21,7 @@ foam.CLASS({
   extends: 'foam.android.tools.GenResources',
 
   requires: [
-    'foam.i18n.TranslationFormatStringParser',
+    'foam.i18n.TranslationFormatStringParser'
   ],
 
   properties: [
@@ -35,7 +35,7 @@ foam.CLASS({
       name: 'parser',
       factory: function() {
         return this.TranslationFormatStringParser.create({
-          stringSymbol: 's',
+          stringSymbol: 's'
         });
       }
     }
@@ -46,11 +46,11 @@ foam.CLASS({
       var resources = cls.model_.toAndroidStringResources();
       var p = this.parser;
       for (var i = 0, r; r = resources[i]; i++) {
-        p.copyFrom({value: r.message, translationHint: r.description})
+        p.copyFrom({value: r.message, translationHint: r.description});
         r.copyFrom({
           name: cls.model_.id.replace(/\./g, '_') + '_' + r.name,
           message: p.parsedValue,
-          description: p.parsedTranslationHint,
+          description: p.parsedTranslationHint
         });
       }
       return resources;
@@ -121,7 +121,7 @@ foam.CLASS({
   flags: ['android'],
 
   requires: [
-    'foam.android.tools.StringResource',
+    'foam.android.tools.StringResource'
   ],
 
   methods: [
@@ -130,7 +130,7 @@ foam.CLASS({
       resources.push(this.StringResource.create({
         name: this.name + '_label',
         description: this.help || '',
-        message: this.label,
+        message: this.label
       }));
       return resources;
     }
@@ -145,7 +145,7 @@ foam.CLASS({
   flags: ['android'],
 
   requires: [
-    'foam.android.tools.StringResource',
+    'foam.android.tools.StringResource'
   ],
 
   methods: [
@@ -154,7 +154,7 @@ foam.CLASS({
       resources.push(this.StringResource.create({
         name: this.name + '_label',
         description: this.help || '',
-        message: this.label,
+        message: this.label
       }));
       return resources;
     }
@@ -169,7 +169,7 @@ foam.CLASS({
   flags: ['android'],
 
   requires: [
-    'foam.android.tools.StringResource',
+    'foam.android.tools.StringResource'
   ],
 
   methods: [
@@ -178,7 +178,7 @@ foam.CLASS({
       resources.push(this.StringResource.create({
         name: this.name,
         description: this.description,
-        message: this.message,
+        message: this.message
       }));
       return resources;
     }

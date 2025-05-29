@@ -36,7 +36,7 @@ foam.SCRIPT({
   name: 'NoClassLoaderContextScript',
 
   requires: [
-    'foam.apploader.NoClassLoaderContext',
+    'foam.apploader.NoClassLoaderContext'
   ],
 
   code: function() {

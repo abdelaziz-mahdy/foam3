@@ -66,13 +66,13 @@ foam.CLASS({
           bufferEncoding: 'ucs2',
           charsetRegExp: /^$ISO-10646-UCS-2/i
         })
-      ]
+      ];
     },
     DEFAULT_DEFAULT_ENTITY_ENCODING: function() {
       return foam.net.node.EntityEncoding.create({
         bufferEncoding: 'ascii',
         charsetRegExp: /^(US-ASCII|us|IBM367|cp367|csASCII|iso-ir-100|ISO_8859-1|ISO-8859-1)$/i
-      })
+      });
     }
   },
 
@@ -119,15 +119,15 @@ foam.CLASS({
       factory: function() {
         return this.ctxDefaultEntityEncoding ||
             this.DEFAULT_DEFAULT_ENTITY_ENCODING;
-      },
+      }
     },
     {
       name: 'entityEncodings',
       factory: function() {
         return this.ctxEntityEncoding ||
             this.DEFAULT_ENTITY_ENCODINGS;
-      },
-    },
+      }
+    }
   ],
 
   methods: [

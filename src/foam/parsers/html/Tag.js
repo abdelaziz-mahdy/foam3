@@ -34,7 +34,7 @@ foam.CLASS({
     {
       class: 'FObjectArray',
       of: 'foam.parsers.html.Attribute',
-      name: 'attributes',
+      name: 'attributes'
     }
   ]
 });

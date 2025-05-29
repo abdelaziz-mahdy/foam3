@@ -13,6 +13,6 @@ foam.POM({
   ],
   files: [
     { name: 'FBE' },
-    { name: "../../core/pm/TemperatureCView" },
+    { name: "../../core/pm/TemperatureCView" }
   ]
 });

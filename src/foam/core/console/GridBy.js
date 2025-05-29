@@ -42,7 +42,7 @@ foam.CLASS({
       name:  'acc',
       label: 'Accumulator',
       // type:  'Expr',
-      help:  'Sub-expression',
+      help:  'Sub-expression'
     },
     {
       class: 'foam.mlang.SinkProperty',

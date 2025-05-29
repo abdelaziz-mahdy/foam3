@@ -11,7 +11,7 @@ foam.CLASS({
   implements: [ 'foam.dao.Sink' ],
 
   properties: [
-    { class: 'foam.dao.DAOProperty', name: 'dao' },
+    { class: 'foam.dao.DAOProperty', name: 'dao' }
   ],
 
   methods: [
@@ -37,7 +37,7 @@ foam.CLASS({
       name: 'reset',
       code: function() { this.dao.removeAll(); },
       javaCode: `getDao().removeAll();`,
-      swiftCode: '_ = try? dao?.removeAll()',
+      swiftCode: '_ = try? dao?.removeAll()'
     }
   ]
 });

@@ -45,7 +45,7 @@ foam.CLASS({
           return this.Or.create({
             args: [
               this.Lt.create({ arg1: predicate.arg1, arg2: predicate.arg2 }),
-              this.Gt.create({ arg1: predicate.arg1, arg2: predicate.arg2 }),
+              this.Gt.create({ arg1: predicate.arg1, arg2: predicate.arg2 })
             ]
           }, predicate);
         },

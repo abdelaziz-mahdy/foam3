@@ -97,7 +97,7 @@ foam.CLASS({
           gridPlacementPlan$: this.gridPlacement$,
           gridGap$: this.gridGap$,
           cellSize: this.cellSize
-        })
+        });
       }
     },
     {
@@ -108,7 +108,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'isArrowheadShown',
-      value: true,
+      value: true
     },
     {
       name: 'zoom',
@@ -169,8 +169,8 @@ foam.CLASS({
       var g = this.start('svg');
       this.svg = g;
       g.attrs({
-        'xmlns': 'http://www.w3.org/2000/svg',
-        'viewBox': '0 0 ' +
+        xmlns: 'http://www.w3.org/2000/svg',
+        viewBox: '0 0 ' +
           ('' + (this.placement_.width)) + ' ' +
           ('' + (this.placement_.height)),
         width: this.placement_.width * this.zoom,
@@ -204,16 +204,16 @@ foam.CLASS({
             data: node.data,
             position: coords,
             size: self.cellSize
-          }
+          };
 
           if ( self.selectedNodeId && self.nodeViewClass_.hasOwnAxiom("isSelected") ){ 
             args.isSelected$ = self.slot(function(selectedNodeId) {
               return selectedNodeId === node.data.id; 
-            })
+            });
           }
 
           if ( self.gridGap && self.nodeViewClass_.hasOwnAxiom("gridGap") ){
-            args.gridGap = self.gridGap
+            args.gridGap = self.gridGap;
           }
           
           this
@@ -233,7 +233,7 @@ foam.CLASS({
                 height: self.cellSize[1]
               })
               .tag(self.nodeView, args)
-            .end()
+            .end();
         })
         // .callIf(parent, function () {
         //   var pcoords = self.placement_.getPlacement(parent);
@@ -264,7 +264,7 @@ foam.CLASS({
 
       this.graph.getDirectChildren(node.id).forEach(childNode => {
         this.renderBoxes(g, childNode, node);
-      })
+      });
     },
     function renderArrows(g, node, parent) {
       const self = this;
@@ -293,7 +293,7 @@ foam.CLASS({
             anchors.push(self.Position.create({
               x$: parentDraggable.pos.x$.map(x => x + exitCellLane),
               y: this.placement_.getRowLanePosition(exitCell[1], arrow.topRowLane)
-            }))
+            }));
           }
 
           if ( arrow.hasOwnProperty('columnLane') ) {
@@ -301,13 +301,13 @@ foam.CLASS({
             anchors.push(self.Position.create({
               x: this.placement_.getColLanePosition(enterCell[0], arrow.columnLane),
               y: this.placement_.getRowLanePosition(exitCell[1], arrow.topRowLane)
-            }))
+            }));
 
             // Start second row from the column
             anchors.push(self.Position.create({
               x: this.placement_.getColLanePosition(enterCell[0], arrow.columnLane),
               y: this.placement_.getRowLanePosition(enterCell[1], arrow.bottomRowLane)
-            }))
+            }));
           }
 
           // Penultimate line meets line connecting to enterCell
@@ -316,7 +316,7 @@ foam.CLASS({
           anchors.push(self.Position.create({
             x$: nodeDraggable.pos.x$.map(x => x + enterCellLane),
             y: this.placement_.getRowLanePosition(enterCell[1], lane)
-          }))
+          }));
 
           // TODO: calculate cell lane factor
           g.tag(this.SegmentedArrowLine, {
@@ -351,13 +351,13 @@ foam.CLASS({
               }),
               angle: 0,
               size: 5
-            })
+            });
           }
         }
       }
       this.graph.getDirectChildren(node.id).forEach(childNode => {
         this.renderArrows(g, childNode, node);
-      })
+      });
     },
     function generateArrows(node, parent) {
       if ( parent ) {
@@ -370,7 +370,7 @@ foam.CLASS({
         let parentCoords = this.gridPlacement.getPlacement(parent);
         let nodeCoords = this.gridPlacement.getPlacement(node);
 
-        var yAdj = 1
+        var yAdj = 1;
 
         if ( this.embeddedSecondaryRelationshipStrategy ){
           // get the scaled node side of the parent to determin if there is truly a dY
@@ -409,7 +409,7 @@ foam.CLASS({
       }
       this.graph.getDirectChildren(node.id).forEach(childNode => {
         this.generateArrows(childNode, node);
-      })
+      });
     },
     function getCellLane(cell, id) {
       return this.getLane(this.cellLanes_, this.hash_(...cell), id);

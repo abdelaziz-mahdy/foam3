@@ -53,7 +53,7 @@ foam.CLASS({
         .start('div',  { namespace: 'http://www.w3.org/1999/xhtml' })
           .addClass(this.myClass('view'))
           .add(this.data)
-        .end()
+        .end();
     }
   ]
 });

@@ -10,14 +10,14 @@ foam.CLASS({
   implements: ['foam.swift.type.Type'],
   axioms: [ { class: 'foam.pattern.Singleton' } ],
   properties: [
-    { name: 'ordinal', value: 2 },
+    { name: 'ordinal', value: 2 }
   ],
   methods: [
     {
       name: 'isInstance',
       swiftCode: `
         return o is [String:Any?]
-      `,
+      `
     },
     {
       name: 'compare',
@@ -37,7 +37,7 @@ foam.CLASS({
           if ( c != 0 ) { return c }
         }
         return 0
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

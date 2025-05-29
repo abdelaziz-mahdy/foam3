@@ -49,7 +49,7 @@ foam.CLASS({
         if returns true, PredicatedDualDelegateDAO.predicatedDelegate is used.
         else uses PredicatedDualDelegateDAO.delegate.
       `
-    },
+    }
   ],
 
   methods: [
@@ -69,7 +69,7 @@ foam.CLASS({
       name: 'getDelegateFor',
       type: 'foam.dao.DAO',
       args: [
-        { name: 'obj', type: 'foam.lang.FObject' },
+        { name: 'obj', type: 'foam.lang.FObject' }
       ],
       javaCode: `
         if ( getPredicate().f(obj) ) {
@@ -79,5 +79,5 @@ foam.CLASS({
         return getDelegate();
       `
     }
-  ],
+  ]
 });

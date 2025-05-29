@@ -46,7 +46,7 @@ foam.CLASS({
         };
       },
       javaType: 'foam.lang.PropertyInfo',
-      javaInfoType: 'foam.lang.AbstractObjectPropertyInfo',
+      javaInfoType: 'foam.lang.AbstractObjectPropertyInfo'
     }
   ],
 

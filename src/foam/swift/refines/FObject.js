@@ -11,7 +11,7 @@ foam.LIB({
     function toSwiftClass() {
       var axiomFilter = foam.util.flagFilter(['swift']);
 
-      if ( !this.model_.generateSwift ) return foam.swift.EmptyClass.create()
+      if ( !this.model_.generateSwift ) return foam.swift.EmptyClass.create();
       var templates = foam.swift.FObjectTemplates.create();
 
       var initImports = function(model) {
@@ -26,7 +26,7 @@ foam.LIB({
         imports: ['Foundation'].concat(initImports(this.model_)),
         implements: [this.model_.swiftExtends].concat(this.model_.swiftAllImplements()),
         visibility: 'public',
-        code: this.model_.swiftCode,
+        code: this.model_.swiftCode
       });
 
       var classInfo = foam.swift.SwiftClass.create({
@@ -38,32 +38,32 @@ foam.LIB({
             lazy: true,
             name: 'id',
             type: 'String',
-            defaultValue: '"' + this.model_.id + '"',
+            defaultValue: '"' + this.model_.id + '"'
           }),
           foam.swift.Field.create({
             lazy: true,
             name: 'axioms',
             type: '[Axiom]',
-            initializer: templates.axiomsInitializer(),
+            initializer: templates.axiomsInitializer()
           }),
           foam.swift.Field.create({
             lazy: true,
             name: 'nameAxiomMap_',
             type: '[String:Axiom]',
-            initializer: templates.nameAxiomMapInitializer(),
+            initializer: templates.nameAxiomMapInitializer()
           }),
           foam.swift.Field.create({
             lazy: true,
             name: 'label',
             type: 'String',
-            defaultValue: '"' + this.model_.label + '"',
+            defaultValue: '"' + this.model_.label + '"'
           }),
           foam.swift.Field.create({
             lazy: true,
             name: 'parent',
             type: 'ClassInfo?',
             defaultValue: this.model_.swiftExtends == 'AbstractFObject' ?
-                'nil' : this.model_.swiftExtends + '.classInfo()',
+                'nil' : this.model_.swiftExtends + '.classInfo()'
           }),
           foam.swift.Field.create({
             lazy: true,
@@ -74,17 +74,17 @@ foam.LIB({
                 .filter(axiomFilter)
                 .filter(function(a) {
                   return a.getSwiftSupport ?
-                      a.getSwiftSupport(this) : a.swiftSupport
+                      a.getSwiftSupport(this) : a.swiftSupport;
                 }.bind(this))
-                .map(function(a) { return a.swiftPrivateAxiomName }) +
-            ']',
+                .map(function(a) { return a.swiftPrivateAxiomName; }) +
+            ']'
           }),
           foam.swift.Field.create({
             lazy: true,
             name: 'cls',
             type: 'AnyClass',
-            defaultValue: this.model_.swiftName + '.self',
-          }),
+            defaultValue: this.model_.swiftName + '.self'
+          })
         ],
         methods: [
           foam.swift.Method.create({
@@ -95,15 +95,15 @@ foam.LIB({
                 externalName: 'args',
                 localName: 'args',
                 defaultValue: '[:]',
-                type: '[String:Any?]',
+                type: '[String:Any?]'
               }),
               foam.swift.Argument.create({
                 externalName: 'x',
                 localName: 'x',
-                type: 'Context',
-              }),
+                type: 'Context'
+              })
             ],
-            body: `return ${this.model_.swiftName}(args, x)`,
+            body: `return ${this.model_.swiftName}(args, x)`
           }),
           foam.swift.Method.create({
             name: 'axiom',
@@ -112,10 +112,10 @@ foam.LIB({
               foam.swift.Argument.create({
                 externalName: 'byName',
                 localName: 'name',
-                type: 'String',
-              }),
+                type: 'String'
+              })
             ],
-            body: 'return nameAxiomMap_[name]',
+            body: 'return nameAxiomMap_[name]'
           }),
           foam.swift.Method.create({
             name: 'instanceOf',
@@ -124,12 +124,12 @@ foam.LIB({
               foam.swift.Argument.create({
                 externalName: '_',
                 localName: 'o',
-                type: 'Any?',
-              }),
+                type: 'Any?'
+              })
             ],
-            body: `return o is ${this.model_.swiftName}`,
-          }),
-        ],
+            body: `return o is ${this.model_.swiftName}`
+          })
+        ]
       });
       cls.classes.push(classInfo);
       cls.fields.push(foam.swift.Field.create({
@@ -137,14 +137,14 @@ foam.LIB({
         visibility: 'private',
         name: 'classInfo_',
         type: 'ClassInfo',
-        defaultValue: 'ClassInfo_()',
+        defaultValue: 'ClassInfo_()'
       }));
       cls.methods.push(foam.swift.Method.create({
         override: true,
         name: 'ownClassInfo',
         visibility: 'public',
         returnType: 'ClassInfo',
-        body: 'return ' + this.model_.swiftName + '.classInfo_',
+        body: 'return ' + this.model_.swiftName + '.classInfo_'
       }));
       cls.methods.push(foam.swift.Method.create({
         override: true,
@@ -152,7 +152,7 @@ foam.LIB({
         visibility: 'public',
         class: true,
         returnType: 'ClassInfo',
-        body: 'return ' + this.model_.swiftName + '.classInfo_',
+        body: 'return ' + this.model_.swiftName + '.classInfo_'
       }));
 
       var exports = this.getOwnAxiomsByClass(foam.lang.Export)
@@ -164,7 +164,7 @@ foam.LIB({
           override: true,
           name: '_createExports_',
           body: templates.exportsBody(exports),
-          returnType: '[String:Any?]',
+          returnType: '[String:Any?]'
         }));
       }
 
@@ -184,8 +184,8 @@ foam.LIB({
       }
 
       return cls;
-    },
-  ],
+    }
+  ]
 });
 
 foam.CLASS({
@@ -202,7 +202,7 @@ var args = super._createExports_()
 args["<%=p.exportName%>"] = <%if (p.key) {%><%=p.exportName%>$<%}else{%>__context__.create(ConstantSlot.self, args: ["value": self])<%}%>
 <% } %>
 return args
-      `,
+      `
     },
     {
       name: 'axiomsInitializer',
@@ -230,6 +230,6 @@ for axiom in axioms {
 }
 return map
       `
-    },
-  ],
+    }
+  ]
 });

@@ -21,7 +21,7 @@ foam.CLASS({
   requires: [
     'foam.core.approval.Approvable',
     'foam.core.approval.ApprovalStatus',
-    'foam.core.crunch.UserCapabilityJunction',
+    'foam.core.crunch.UserCapabilityJunction'
   ],
 
   properties: [],
@@ -98,6 +98,6 @@ foam.CLASS({
         ucj[k] = approvable.propertiesToUpdate[k];
       }
       return ucj;
-    },
+    }
   ]
 });

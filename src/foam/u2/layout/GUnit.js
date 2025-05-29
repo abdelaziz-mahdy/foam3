@@ -42,5 +42,5 @@ foam.CLASS({
       expression: function(columns) { return columns; }
     },
     'prop'
-  ],
+  ]
 });

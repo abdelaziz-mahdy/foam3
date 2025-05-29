@@ -203,7 +203,7 @@ console.log(self.$UID, "BUILDING INDEX", existingPlanCost, estimateRatio, this.c
 
     function toString() {
       return 'AutoIndex(' + (this.index || this).delegate.toString() + ')';
-    },
+    }
 
   ]
 });

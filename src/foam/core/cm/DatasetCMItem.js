@@ -29,6 +29,6 @@ foam.CLASS({
       javaFactory: `
         return new java.util.ArrayList<Double>();
       `
-    },
+    }
   ]
-})
+});

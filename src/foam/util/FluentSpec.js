@@ -45,7 +45,7 @@ foam.CLASS({
       }
     }
   ]
-})
+});
 
 foam.CLASS({
   package: 'foam.util',

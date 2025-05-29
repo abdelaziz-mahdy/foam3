@@ -53,7 +53,7 @@ foam.CLASS({
         add(this.slot(function(data) {
           var url = data && view.blobService.urlFor(data);
           return ! url ? this.E('span') :
-            this.E('a').attrs({ href: url }).add('Download')
+            this.E('a').attrs({ href: url }).add('Download');
         }, this.data$));
     }
   ],

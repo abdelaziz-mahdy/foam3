@@ -11,13 +11,13 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'string',
+      name: 'string'
     },
     {
       name: 'value',
       swiftExpressionArgs: ['string'],
       swiftExpression: 'return string'
-    },
+    }
   ],
   methods: [
     {
@@ -31,7 +31,7 @@ for i in 0..<string.count {
   ps = ps.tail()!
 }
 return ps.setValue(self.value)
-      `,
-    },
+      `
+    }
   ]
 });

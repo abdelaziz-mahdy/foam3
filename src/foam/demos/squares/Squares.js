@@ -49,7 +49,7 @@ foam.CLASS({
     [ 'color',     'black' ],
     [ 'frequency', 1 ],
     { class: 'Boolean', name: 'inColour',  value: true },
-    [ 'rotationPerSquare', 1/45 ],
+    [ 'rotationPerSquare', 1/45 ]
   ],
 
   methods: [

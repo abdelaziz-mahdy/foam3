@@ -13,7 +13,7 @@ foam.CLASS({
     {
       name: 'wizardletBorder',
       factory: function(){
-        return 'foam.u2.wizard.views.PermissiveEditWizardletBorder'
+        return 'foam.u2.wizard.views.PermissiveEditWizardletBorder';
       }
     }
   ],

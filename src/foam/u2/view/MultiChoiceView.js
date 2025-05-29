@@ -239,7 +239,7 @@ foam.CLASS({
       let self = this;
       slot.sub(() => {
         var arr = [
-          ...self.data,
+          ...self.data
         ];
         arr = arr.filter(o => ! foam.util.equals(o, choice));
         if ( slot.get() ) {
@@ -375,7 +375,7 @@ foam.CLASS({
                     var isSelected = self.isChoiceSelected(data, choices[index][0]);
                     return !! isSelected;
                   } catch(err) {
-                    console.error('isSelectedSlot', err)
+                    console.error('isSelectedSlot', err);
                     return false;
                   }
 
@@ -402,7 +402,7 @@ foam.CLASS({
                 return selfE
                   // NOTE: This should not be the way we implement columns.
                   .style({
-                    'flex': `0 0 calc(${100 / self.numberColumns}%)`,
+                    flex: `0 0 calc(${100 / self.numberColumns}%)`,
                     'max-width': `calc(${100 / self.numberColumns}%)`,
                     'box-sizing': 'border-box'
                   })
@@ -430,13 +430,13 @@ foam.CLASS({
                           } else {
                             array = [
                               ...self.data
-                            ]
+                            ];
 
                             array.splice(indexDataToAdd, 1);
                           }
                           self.data = array;
                         })
-                      )
+                      );
                     })
                   .end();
 
@@ -561,7 +561,7 @@ foam.CLASS({
         choice$:          self.choice$,
         choices$:         self.choices$,
         placeholder$:     self.placeholder$,
-        mode$:            self.mode$,
+        mode$:            self.mode$
       })
         .attrs({ name: self.name })
       .end();

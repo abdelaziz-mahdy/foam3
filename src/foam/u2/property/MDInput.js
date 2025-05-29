@@ -28,7 +28,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'onKey',
-      attribute: true,
+      attribute: true
       // documentation: 'When true, $$DOC{ref:".data"} is updated on every keystroke, rather than on blur.'
     },
     {
@@ -38,7 +38,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'maxLength',
-      attribute: true,
+      attribute: true
       // documentation: 'When set, will limit the length of the input to a certain number'
     },
     'type',
@@ -48,7 +48,7 @@ foam.CLASS({
 //      expression: function() { this.placeholder = this.placeholder; }
     },
     {
-      name: 'label',
+      name: 'label'
     },
     {
       type: 'Boolean',
@@ -105,7 +105,7 @@ foam.CLASS({
           }, this.data$, this.focused_$))
           .add(this.label$)
         .end()
-        .add(this.inputE())
+        .add(this.inputE());
       if ( this.prop ) {
         var errorSlot = this.prop.validateObj && this.prop.validationTextVisible ?
           this.__context__.data.slot(this.prop.validateObj) :
@@ -131,24 +131,24 @@ foam.CLASS({
           onKey: this.onKey,
           value: this.data$,
           size: this.size,
-          placeholder: this.placeholder,
+          placeholder: this.placeholder
         })
         .on('focus', function() { self.focused_ = true; })
         .on('blur',  function() { self.focused_ = false; }).on('change', function(e) {
-        self.data = e.target.value; })
+        self.data = e.target.value; });
         if ( this.choices && this.choices.length ) {
           input
-            .setAttribute('list', this.id + '-datalist')
+            .setAttribute('list', this.id + '-datalist');
             this.start('datalist').
               // TODO: I should be able to just set the 'id' in the start() above
               // but it doesn't work. Find out why.
-              call(function() { this.id = self.id + '-datalist' }).
+              call(function() { this.id = self.id + '-datalist'; }).
               forEach(this.choices, function(c) {
                 var key   = c[0];
                 var label = c[1];
                 this.start('option').attrs({value: key}).add(label).end();
               }).
-            end()
+            end();
         }
 
       input.attrSlot(null, this.onKey ? 'input' : null).linkFrom(this.data$);

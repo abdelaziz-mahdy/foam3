@@ -22,14 +22,14 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.lang.Action',
       name: 'primaryAction',
-      documentation: 'The primary action for this modal dialog (Save/Submit/Continue)',
+      documentation: 'The primary action for this modal dialog (Save/Submit/Continue)'
     },
     {
       class: 'FObjectProperty',
       of: 'foam.lang.Action',
       name: 'secondaryAction',
       documentation: `The secondary action for this modal dialog (Close/Cancel)
-      can be turned off using the 'showCancel' property`,
+      can be turned off using the 'showCancel' property`
     },
     ['showCancel', true],
     'data'

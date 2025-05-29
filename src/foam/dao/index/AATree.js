@@ -401,22 +401,22 @@ foam.CLASS({
     },
     {
       class: 'Simple',
-      name: 'left',
+      name: 'left'
       //getter: function() { return undefined; }
     },
     {
       class: 'Simple',
-      name: 'right',
+      name: 'right'
       //getter: function() { return undefined; }
     },
     {
       class: 'Simple',
-      name: 'size',
+      name: 'size'
       //getter: function() { return 0; }
     },
     {
       class: 'Simple',
-      name: 'level',
+      name: 'level'
       //getter: function() { return 0; }
     }
   ],

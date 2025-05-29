@@ -22,7 +22,7 @@ foam.CLASS({
       class: 'String',
       name: 'output',
       visibility: 'RO',
-      view: { class: 'foam.u2.tag.TextArea', rows: 40, cols: 100 },
+      view: { class: 'foam.u2.tag.TextArea', rows: 40, cols: 100 }
     }
   ],
 

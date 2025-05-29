@@ -27,7 +27,7 @@
       factory: function() {
         return {
           class: 'foam.u2.wizard.data.CreateLoader'
-        }
+        };
       }
     },
     {

@@ -19,7 +19,7 @@ foam.CLASS({
   javaImports: [
     'foam.core.approval.ApprovalStatus',
     'foam.core.approval.Approvable',
-    'static foam.mlang.MLang.*',
+    'static foam.mlang.MLang.*'
   ],
 
   methods: [

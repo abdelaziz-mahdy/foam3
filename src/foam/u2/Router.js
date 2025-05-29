@@ -40,7 +40,7 @@ foam.CLASS({
       this.breadcrumbs?.push(this);
       this.dynamic(function(route) {
         this.routeChange();
-      })
+      });
     },
     function routeToMe() {
       if ( this.routingFeedback_ ) return;

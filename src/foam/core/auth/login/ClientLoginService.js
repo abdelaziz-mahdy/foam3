@@ -21,7 +21,7 @@ foam.CLASS({
     'subject',
     'onUserAgentAndGroupLoaded',
     'sessionID',
-    'window',
+    'window'
   ],
 
   requires: [
@@ -130,9 +130,9 @@ foam.CLASS({
             sign_up: signUp,
             sign_up_username: signUpUsername
           })
-        }
+        };
 
-        let authURL = provider.authURL + '?' + Object.entries(reqParams).map(v => v.map(p => encodeURIComponent(p)).join('=')).join('&')
+        let authURL = provider.authURL + '?' + Object.entries(reqParams).map(v => v.map(p => encodeURIComponent(p)).join('=')).join('&');
         ///this.window.location = authURL;
         //return;
         // If you want to run the login flow in a separate window
@@ -147,7 +147,7 @@ foam.CLASS({
                   authwindow.close();
                   resolve();
                 } else {
-                  reject(e.data.error)
+                  reject(e.data.error);
                 }
               }
             };
@@ -220,7 +220,7 @@ foam.CLASS({
     {
       name: 'wizardVerifyEmail',
       code: async function(x, email, username, password) {
-        var ctx = this.__subContext__.createSubContext({ email: email, username: username })
+        var ctx = this.__subContext__.createSubContext({ email: email, username: username });
         const wizardRunner = foam.u2.crunch.WizardRunner.create({
           wizardType: foam.u2.wizard.WizardType.TRANSIENT,
           source: 'net.nanopay.auth.VerifyEmailByCode',

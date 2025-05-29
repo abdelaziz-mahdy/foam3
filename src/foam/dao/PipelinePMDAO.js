@@ -151,7 +151,7 @@ If the delegate of that is also a ProxyDAO, creates a new PipelinePMDAO in the c
       args: [
         {
           name: 'x',
-          type: 'X',
+          type: 'X'
         },
         {
           name: 'old',
@@ -276,7 +276,7 @@ If the delegate of that is also a ProxyDAO, creates a new PipelinePMDAO in the c
           args: [
             {
               name: 'x',
-              type: 'X',
+              type: 'X'
             }
           ],
           javaType: 'X',

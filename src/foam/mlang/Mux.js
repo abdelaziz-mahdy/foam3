@@ -11,11 +11,11 @@ foam.CLASS({
   properties: [
     {
 //      class: 'foam.mlang.ExprProperty',
-      name: 'cond',
+      name: 'cond'
     },
     {
 //      class: 'foam.mlang.ExprProperty',
-      name: 'a',
+      name: 'a'
     },
     {
   //    class: 'foam.mlang.ExprProperty',
@@ -27,7 +27,7 @@ foam.CLASS({
       name: 'put',
       code: function(obj, s) {
         if ( this.cond.f(obj) )
-          this.a.put(obj, s)
+          this.a.put(obj, s);
         else
           this.b.put(obj, s);
       }

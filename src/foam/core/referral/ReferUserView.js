@@ -119,8 +119,8 @@ foam.CLASS({
       let iconConfig = {
         size: 32,
         backgroundColor: this.color = foam.CSS.returnTokenValue('$primary50', this.cls_, this.__subContext__)
-      }
-      let fill = foam.CSS.returnTokenValue('$primary700', this.cls_, this.__subContext__)
+      };
+      let fill = foam.CSS.returnTokenValue('$primary700', this.cls_, this.__subContext__);
 
       let button = navigator.canShare?.({text: this.referralText}) ? this.SHARE_TEXT : this.COPY_TEXT;
       this
@@ -140,7 +140,7 @@ foam.CLASS({
           .addClass(this.myClass('copy-box'))
           .enableClass(this.myClass('error'), this.refLink$.map(v => ! v))
           .add(this.dynamic(function(refLink) {
-            this.removeAllChildren()
+            this.removeAllChildren();
             if (refLink) {
               this.add(self.COPYTEXT)
               .tag('br')
@@ -153,7 +153,7 @@ foam.CLASS({
         .end()
         .startContext({data:this})
           .start(button, { buttonStyle: 'PRIMARY', size: 'LARGE' }).addClass(this.myClass('share-button')).end()
-        .endContext()
+        .endContext();
     },
     {
       name: 'addContent',
@@ -166,7 +166,7 @@ foam.CLASS({
     {
       name: 'shareText',
       label: 'Share',
-      isAvailable: function(refLink) { return refLink },
+      isAvailable: function(refLink) { return refLink; },
       code: async function(_, x) {
 
         var shareData = {
@@ -179,9 +179,9 @@ foam.CLASS({
     {
       name: 'copyText',
       label: 'Copy',
-      isAvailable: function(refLink) { return refLink },
+      isAvailable: function(refLink) { return refLink; },
       code: async function() {
-        this.copy(this.referralText)
+        this.copy(this.referralText);
       }
     }
   ]

@@ -129,7 +129,7 @@
       },
       javaFactory: `
         return foam.mlang.MLang.TRUE;
-      `,
+      `
     },
     {
       class: 'StringArray',
@@ -158,7 +158,7 @@
     {
       class: 'foam.u2.ViewSpec',
       name: 'view',
-      factory: function() { return 'foam.u2.view.MenuView' }
+      factory: function() { return 'foam.u2.view.MenuView'; }
     },
     {
       class: 'String',

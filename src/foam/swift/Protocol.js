@@ -26,7 +26,7 @@ foam.CLASS({
     },
     {
       class: 'StringArray',
-      name: 'implements',
+      name: 'implements'
     },
     {
       class: 'FObjectArray',
@@ -48,7 +48,7 @@ foam.CLASS({
 
   methods: [
     function method(m) {
-      if ( ! foam.lang.FObject.isInstance(m) ) m = this.ProtocolMethod.create(m)
+      if ( ! foam.lang.FObject.isInstance(m) ) m = this.ProtocolMethod.create(m);
       this.methods.push(m);
       return this;
     },
@@ -66,7 +66,7 @@ foam.CLASS({
     function outputSwift(o) {
       o.indent();
       o.out('// GENERATED CODE. DO NOT MODIFY BY HAND.\n');
-      this.imports.forEach(function(i) { o.out('import ', i, '\n') });
+      this.imports.forEach(function(i) { o.out('import ', i, '\n'); });
       o.out(
         this.visibility,
         this.visibility ? ' ' : '',

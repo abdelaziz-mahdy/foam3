@@ -21,6 +21,6 @@ foam.CLASS({
   ],
 
   methods: [
-    function toString() { return this.plan; },
+    function toString() { return this.plan; }
   ]
 });

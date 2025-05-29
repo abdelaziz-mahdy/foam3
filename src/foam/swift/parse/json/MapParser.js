@@ -16,7 +16,7 @@ foam.CLASS({
     'foam.swift.parse.parser.Repeat',
     'foam.swift.parse.parser.Seq0',
     'foam.swift.parse.parser.Seq1',
-    'foam.swift.parse.parser.Seq2',
+    'foam.swift.parse.parser.Seq2'
   ],
 
   axioms: [
@@ -50,8 +50,8 @@ return
     Whitespace_create(),
     Literal_create(["string": "}"]),
   ]])
-      `,
-    },
+      `
+    }
   ],
   methods: [
     {

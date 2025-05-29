@@ -38,7 +38,7 @@ foam.CLASS({
       type: 'String',
       javaCode: 'return "If(predicate:" + getPredicate() + ", trueExpr:" + getTrueExpr() + ", falseExpr:" + getFalseExpr() + ")";',
       code: function() {
-        return
+        return;
         'If(predicate:' + (this.predicate && this.predicate.toString() || 'NA') +
           ', trueExpr:' + (this.trueExpr && this.trueExpr.toString() || 'NA') +
           ', falseExpr:' + (this.falseExpr && this.falseExpr.toString() || 'NA') +

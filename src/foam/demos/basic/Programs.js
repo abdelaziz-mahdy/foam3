@@ -6622,7 +6622,7 @@ foam.CLASS({
 860 IF A$="YES" THEN 390
 870 PRINT: PRINT "CONTROL OUT.": PRINT
 999 END
-`],
+`]
 /*
 [ '',
 `

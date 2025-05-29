@@ -30,7 +30,7 @@ foam.CLASS({
       name: 'delegate'
     },
     {
-      name: 'name',
+      name: 'name'
     },
     {
       name: 'logger',

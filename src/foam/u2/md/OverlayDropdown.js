@@ -183,8 +183,8 @@ foam.CLASS({
           }
           this.setPosition();
         });
-        this.onDetach(() => { this.ro_?.disconnect(); })
-      }
+        this.onDetach(() => { this.ro_?.disconnect(); });
+      };
       this.parentEl$.sub(fn);
       fn();
 
@@ -214,7 +214,7 @@ foam.CLASS({
         .callIf(this.closeOnLeave, function() {
           this
           .on('mouseenter', this.onMouseEnter)
-          .on('mouseleave', this.onMouseLeave)
+          .on('mouseleave', this.onMouseLeave);
         })
         .on('keydown', this.onKeyDown)
         .on('click', this.onClick);

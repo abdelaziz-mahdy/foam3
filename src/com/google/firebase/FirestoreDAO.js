@@ -17,7 +17,7 @@ foam.CLASS({
   imports: [
     'gcloudProjectId?',
     'gcloudCredentialsPath?',
-    'window?',
+    'window?'
   ],
 
   documentation: `DAO that wraps a Firestore collection. Implemented against
@@ -27,13 +27,13 @@ foam.CLASS({
     {
       class: 'String',
       documentation: 'The collection/document path to the Firestore collection',
-      name: 'collectionPath',
+      name: 'collectionPath'
     },
     {
       name: 'firestoreModule',
       documentation: 'The Google Cloud Firestore NodeJS module',
       transient: true,
-      factory: function() { return require('@google-cloud/firestore'); },
+      factory: function() { return require('@google-cloud/firestore'); }
     },
     {
       name: 'firestore',
@@ -51,7 +51,7 @@ foam.CLASS({
         if ( this.gcloudCredentialsPath )
           config.keyFilename = this.gcloudCredentialsPath;
         return new this.firestoreModule(config);
-      },
+      }
     },
     {
       name: 'collection',
@@ -60,7 +60,7 @@ foam.CLASS({
       transient: true,
       factory: function() {
         return this.firestore.collection(this.collectionPath);
-      },
+      }
     },
     {
       // class: 'FObjectProperty',
@@ -88,7 +88,7 @@ foam.CLASS({
     },
     {
       class: 'Array',
-      name: 'putBacklog_',
+      name: 'putBacklog_'
     }
   ],
 
@@ -104,7 +104,7 @@ foam.CLASS({
         obj: obj,
         resolve: resolve,
         reject: reject,
-        promise: promise,
+        promise: promise
       });
       if ( this.putBacklog_.length > 400 ) {
         this.putBatch_();
@@ -208,7 +208,7 @@ foam.CLASS({
     },
     function getDoc_(obj) {
       return this.collection.doc(this.firestoreDocumentID.f(obj));
-    },
+    }
   ],
 
   listeners: [

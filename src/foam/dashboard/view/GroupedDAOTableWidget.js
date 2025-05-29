@@ -43,7 +43,7 @@ foam.CLASS({
       for ( var i = 0; i < result.groupKeys.length; i ++ ) {
         var value = await self.format(result.groupKeys[i], result.groups[result.groupKeys[i]].value);
         a.push(value);
-      };
+      }
       self.dao = foam.dao.ArrayDAO.create({ array: a  }, self);
     },
     function format(key, value) {

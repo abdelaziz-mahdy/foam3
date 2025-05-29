@@ -10,15 +10,15 @@ foam.INTERFACE({
   methods: [
     {
       name: 'head',
-      type: 'Char',
+      type: 'Char'
     },
     {
       name: 'valid',
-      type: 'Boolean',
+      type: 'Boolean'
     },
     {
       name: 'tail',
-      type: 'foam.swift.parse.PStream',
+      type: 'foam.swift.parse.PStream'
     },
     {
       name: 'substring',
@@ -26,22 +26,22 @@ foam.INTERFACE({
       args: [
         {
           name: 'end',
-          type: 'foam.swift.parse.PStream',
-        },
-      ],
+          type: 'foam.swift.parse.PStream'
+        }
+      ]
     },
     {
       name: 'value',
-      type: 'Any',
+      type: 'Any'
     },
     {
       name: 'setValue',
       type: 'foam.swift.parse.PStream',
       args: [
         {
-          name: 'value',
-        },
-      ],
-    },
+          name: 'value'
+        }
+      ]
+    }
   ]
 });

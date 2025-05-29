@@ -31,7 +31,7 @@ foam.CLASS({
       type: 'Boolean',
       name: 'onKey',
       value: true,
-      documentation: 'Set true to update $$DOC{ref:".data"} on every keystroke, rather than on blur.',
+      documentation: 'Set true to update $$DOC{ref:".data"} on every keystroke, rather than on blur.'
     },
     {
       type: 'Boolean',
@@ -70,7 +70,7 @@ foam.CLASS({
             }
           }.bind(this), 200);
         }
-      },
+      }
     },
     {
       name: 'autocompleter',

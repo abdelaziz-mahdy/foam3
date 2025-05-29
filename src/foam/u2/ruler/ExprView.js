@@ -45,7 +45,7 @@ foam.CLASS({
       border-color: #DD9999;
     }
   `
-})
+});
 foam.CLASS({
   package: 'foam.u2.ruler',
   name: 'ExprView',
@@ -61,7 +61,7 @@ foam.CLASS({
       this
         .addClass()
         .addClass(this.myClass('operand'))
-        .add(this.data$.map(data => '' + data?.toString() ?? 'null'))
+        .add(this.data$.map(data => '' + data?.toString() ?? 'null'));
     }
   ]
 });
@@ -101,10 +101,10 @@ foam.CLASS({
           .addClass(this.myClass('operand'))
           .addClass(this.myClass('key'))
           .add(this.data.key)
-        .end()
+        .end();
     }
   ]
-})
+});
 
 foam.CLASS({
   package: 'foam.mlang.predicate',
@@ -142,11 +142,11 @@ foam.CLASS({
             .tag(this.ExprView, {
               of: arg.cls_,
               data: arg
-            })
-        })
+            });
+        });
     }
   ]
-})
+});
 
 foam.CLASS({
   package: 'foam.mlang.predicate',
@@ -183,10 +183,10 @@ foam.CLASS({
         .tag(this.ExprView, {
           of: this.data.arg2?.cls_,
           data: this.data.arg2
-        })
+        });
     }
   ]
-})
+});
 
 foam.CLASS({
   package: 'foam.mlang.predicate',
@@ -219,10 +219,10 @@ foam.CLASS({
         .tag(this.ExprView, {
           of: this.data.arg1?.cls_,
           data: this.data.arg1
-        })
+        });
     }
   ]
-})
+});
 
 foam.CLASS({
   package: 'foam.mlang.expr',
@@ -252,7 +252,7 @@ foam.CLASS({
         .tag(this.ExprView, {
           of: this.data.arg2?.cls_,
           data: this.data.arg2
-        })
+        });
     }
   ]
-})
+});

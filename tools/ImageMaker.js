@@ -9,7 +9,7 @@ exports.description = 'Copies image/* files into /build/images';
 exports.init = function() {
   X.imagedir = X.builddir + '/images';
   this.ensureDir(X.imagedir);
-}
+};
 
 
 exports.visitDir = function(pom, f, fn) {
@@ -17,4 +17,4 @@ exports.visitDir = function(pom, f, fn) {
     this.log(`[Image Maker] Copying ${fn} to ${X.imagedir}`);
     this.copyDir(fn, X.imagedir);
   }
-}
+};

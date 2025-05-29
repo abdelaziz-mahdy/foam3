@@ -14,5 +14,5 @@ foam.CLASS({
   messages: [
     { name: 'TITLE', message: 'Set your password' },
     { name: 'INSTRUCTION', message: 'Create a password in order to log into your account.' }
-  ],
+  ]
 });

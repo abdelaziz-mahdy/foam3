@@ -108,7 +108,7 @@ foam.CLASS({
             { name: "Dynama" },
             { name: "Dr. IQ" },
             { name: "Dr. Bad" },
-            { name: "Magma" },
+            { name: "Magma" }
           ]
         });
       },

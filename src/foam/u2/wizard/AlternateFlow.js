@@ -86,7 +86,7 @@ foam.CLASS({
 
       if ( this.select.length != 0 ) {
         for ( let item of this.select ) {
-          foam.assert(item.length == 2, "'select' entries in AlternateFlow must have two elements")
+          foam.assert(item.length == 2, "'select' entries in AlternateFlow must have two elements");
 
           let minMaxId = item[0];
           let choices = item[1];
@@ -107,7 +107,7 @@ foam.CLASS({
           if ( w )
             w[propToChange] = newValue;
         }
-      })
+      });
     },
     function handleNext(wizardController) {
       if ( ! this.wizardletId ) {
@@ -123,7 +123,7 @@ foam.CLASS({
       const pos = this.WizardPosition.create({
         wizardletIndex: wi,
         sectionIndex: 0
-      })
+      });
       wizardController.wizardPosition = pos;
 
       if ( ! wizardController.currentWizardlet.isVisible || 
@@ -132,4 +132,4 @@ foam.CLASS({
       }
     }
   ]
-})
+});

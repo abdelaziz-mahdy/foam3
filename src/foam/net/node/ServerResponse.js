@@ -64,12 +64,12 @@ foam.INTERFACE({
           name: 'data',
           documentation: `Data to write to response body. Type must be supported
               by first argument in
-              https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback`,
+              https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback`
         },
         {
           name: 'encoding',
           documentation: `Encoding of data supported by second argument in
-              https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback`,
+              https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback`
         }
       ],
       code: function(data, encoding) {}
@@ -82,12 +82,12 @@ foam.INTERFACE({
           name: 'data',
           documentation: `Data to write to response body. Type must be supported
               by first argument in
-              https://nodejs.org/api/stream.html#stream_writable_end_chunk_encoding_callback`,
+              https://nodejs.org/api/stream.html#stream_writable_end_chunk_encoding_callback`
         },
         {
           name: 'encoding',
           documentation: `Encoding of data supported by second argument in
-              https://nodejs.org/api/stream.html#stream_writable_end_chunk_encoding_callback`,
+              https://nodejs.org/api/stream.html#stream_writable_end_chunk_encoding_callback`
         }
       ],
       code: function(data, encoding) {}
@@ -100,7 +100,7 @@ foam.INTERFACE({
         {
           name: 'stream',
           documentation: `Stream to pipe from (implementer of
-              https://nodejs.org/api/stream.html#stream_readable_pipe_destination_options`,
+              https://nodejs.org/api/stream.html#stream_readable_pipe_destination_options`
         }
       ],
       code: function(stream) {}

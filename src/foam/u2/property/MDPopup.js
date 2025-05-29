@@ -186,7 +186,7 @@ foam.CLASS({
       this.delegate_.style({
         transition: 'transform cubic-bezier(0.0, 0.0, 0.2, 1) .1s',
         transform: 'scaleY(1)',
-        '-webkit-transform': 'scaleY(1)',
+        '-webkit-transform': 'scaleY(1)'
       });
       this.isHidden = false;
     },

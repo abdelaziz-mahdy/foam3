@@ -20,16 +20,16 @@ foam.CLASS({
     },
     {
       class: 'Int',
-      name: 'startCount',
+      name: 'startCount'
     },
     {
       class: 'Int',
-      name: 'endCount',
+      name: 'endCount'
     },
     {
       class: 'Int',
-      name: 'timeoutCount',
+      name: 'timeoutCount'
     }
-  ],
+  ]
 
 });

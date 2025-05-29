@@ -72,12 +72,12 @@ foam.CLASS({
       args: [
         { name: 'x', type: 'Context' },
         { name: 'nu', type: 'foam.lang.FObject' },
-        { name: 'dao', type: 'foam.dao.DAO' },
+        { name: 'dao', type: 'foam.dao.DAO' }
       ],
       javaCode: `
        // Template method, add code in sub-class
       `
-    },
+    }
 
   ]
 });

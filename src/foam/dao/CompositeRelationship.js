@@ -20,7 +20,7 @@
     {
       name: 'secondaryRelationships',
       factory: function(){
-        return []
+        return [];
       }
     }
   ],

@@ -21,7 +21,7 @@ foam.CLASS({
     {
       template: `<% if ( testsPassed ) %>This is my legacy<% else %>Please find somebody to blame`,
       name: `testCode`,
-      args: [ { name: 'testsPassed', type: 'Boolean' } ],
+      args: [ { name: 'testsPassed', type: 'Boolean' } ]
     }
   ],
 

@@ -87,7 +87,7 @@ foam.CLASS({
         p.rotateY(0.008*time);
         p.rotateX(0.005*time);
 
-        var on = Math.abs((time % this.n - i + this.n)%this.n) < 20
+        var on = Math.abs((time % this.n - i + this.n)%this.n) < 20;
         p.glowRadius = on ? 8 : 0;
         var s = on ? 100 : 70;
         var l = on ?  70 : 40;

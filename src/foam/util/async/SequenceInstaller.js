@@ -48,7 +48,7 @@ foam.CLASS({
           targetPosition$.get(),
           0,
           this.contextAgentSpecs[i]
-        )
+        );
         targetPosition$.set(targetPosition$.get() + 1);
       }
     },

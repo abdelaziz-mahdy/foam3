@@ -55,7 +55,7 @@ foam.CLASS({
 
               data: seq('data: ', sym('data payload')),
               'data payload': repeat(notChars('\r\n'))
-            }
+            };
           }
         }).addActions({
           'event name': function(v) {
@@ -82,7 +82,7 @@ foam.CLASS({
     {
       name: 'decoder',
       factory: function() {
-        return this.UTF8.create()
+        return this.UTF8.create();
       }
     },
     {
@@ -107,7 +107,7 @@ foam.CLASS({
         method: "GET",
         url: this.uri,
         headers: {
-          'accept': 'text/event-stream'
+          accept: 'text/event-stream'
         }
       });
 

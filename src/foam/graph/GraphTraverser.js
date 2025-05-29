@@ -61,7 +61,7 @@ foam.CLASS({
     },
     function updateNodeToDescendants(currentNodeId) {
       this.currentPath.forEach(ancestorId => {
-        this.nodeToDescendants[`${ancestorId}:${currentNodeId}`] = true
+        this.nodeToDescendants[`${ancestorId}:${currentNodeId}`] = true;
       });
     },
 
@@ -85,7 +85,7 @@ foam.CLASS({
         }
 
         if ( this.weightPriorityStrategy == this.weightPriorityStrategy.MAX ){
-          forwardLinks.sort((l1,l2) => l2.weight - l1.weight)
+          forwardLinks.sort((l1,l2) => l2.weight - l1.weight);
         }
 
         const childNodes = forwardLinks.map(link => this.graph.data[link.id]);
@@ -104,7 +104,7 @@ foam.CLASS({
         const memoKey = JSON.stringify([x.parent?.id, x.current?.id]);
         if ( this.memo_[memoKey] && ! this.allowDuplicatePairs ) return;
         this.memo_[memoKey] = true;
-        this.process.pub(x)
+        this.process.pub(x);
       };
       const sequence = this.order === this.TraversalOrder.PRE_ORDER ?
         [RECUR, VISIT] : [VISIT, RECUR];

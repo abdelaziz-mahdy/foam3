@@ -14,13 +14,13 @@ foam.CLASS({
     'foam.mlang.sink.GroupBy',
     'foam.dashboard.view.DAOTable',
     'foam.u2.ContextSensitiveDetailView as DetailView',
-    'foam.mlang.sink.NullSink',
+    'foam.mlang.sink.NullSink'
   ],
   properties: [
     {
       class: 'Int',
       name: 'limit',
-      value: 5,
+      value: 5
     },
     {
       name: 'columns',
@@ -31,10 +31,10 @@ foam.CLASS({
       factory: function() {
         return [
           [ this.DAOTable, 'Table' ],
-          [ this.DetailView, 'Configure' ],
-        ]
+          [ this.DetailView, 'Configure' ]
+        ];
       }
-    },
+    }
   ],
   listeners: [
     {

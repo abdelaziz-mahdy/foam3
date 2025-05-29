@@ -24,7 +24,7 @@ foam.CLASS({
   methods: [
     function toSummary() { return this.name; }
   ]
-})
+});
 
 foam.RELATIONSHIP({
   sourceModel: 'foam.core.fs.FileLabel',

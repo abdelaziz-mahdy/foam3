@@ -140,8 +140,8 @@ foam.CLASS({
             defaultRoot: 'user-config',
             currentRoot$: this.bottomRoot_$,
             rowConfig: {
-              'notifications': { class: 'foam.core.u2.navigation.NotificationMenuItem', showText: true },
-              'settings': { class: 'foam.core.u2.navigation.UserInfoView', horizontal: true }
+              notifications: { class: 'foam.core.u2.navigation.NotificationMenuItem', showText: true },
+              settings: { class: 'foam.core.u2.navigation.UserInfoView', horizontal: true }
             }
           })
             .addClass(this.myClass('menuList'))

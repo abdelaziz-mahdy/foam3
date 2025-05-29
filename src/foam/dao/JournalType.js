@@ -33,6 +33,6 @@ foam.ENUM({
     {
       name: 'SHARED_JOURNAL',
       label: 'Shared journal'
-    },
+    }
   ]
 });

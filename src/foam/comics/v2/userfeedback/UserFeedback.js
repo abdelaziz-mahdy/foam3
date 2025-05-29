@@ -30,5 +30,5 @@ foam.CLASS({
       javaToCSV: `// intentionally left empty to prevent circular reference`,
       javaToCSVLabel: ``
     }
-  ],
+  ]
 });

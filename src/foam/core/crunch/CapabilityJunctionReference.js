@@ -35,5 +35,5 @@ foam.CLASS({
         objects in a list passed to CrunchService methods like getGrantPath.
       `
     }
-  ],
+  ]
 });

@@ -160,7 +160,7 @@ foam.CLASS({
           return e
             .callIf(currentValues.length == 0, function() {
               e.addClass(self.myClass('center'))
-                .start().addClass('p-semiBold').translate(self.emptyTitle, self.emptyTitle,).end()
+                .start().addClass('p-semiBold').translate(self.emptyTitle, self.emptyTitle).end()
                 .start().addClass('p').translate(self.emptySubTitle, self.emptySubTitle).end();
             })
             .forEach(currentValues, function(obj) {
@@ -180,7 +180,7 @@ foam.CLASS({
                 })
               .endContext()
             .end();
-           })
+           });
         }));
     }
   ],

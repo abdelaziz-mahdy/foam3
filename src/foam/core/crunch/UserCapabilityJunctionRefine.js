@@ -192,7 +192,7 @@ foam.CLASS({
           .then((capability) => {
             this
               .attrs({ title: capability.id })
-              .add(capability.name || capability.id)
+              .add(capability.name || capability.id);
           })
           .catch((error) => {
             this.add(value);
@@ -204,7 +204,7 @@ foam.CLASS({
       name: 'data',
       view: function(_, X) {
         let slot = foam.lang.SimpleSlot.create({}, X);
-        X.data.targetId$find.then(v => { slot.set(v.of) });
+        X.data.targetId$find.then(v => { slot.set(v.of); });
         return {
           class: 'foam.u2.view.OptionalFObjectView',
           of$: slot
@@ -231,7 +231,7 @@ foam.CLASS({
       of: 'foam.core.auth.LifecycleState',
       value: 'ACTIVE',
       visibility: 'RO',
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       class: 'Reference',
@@ -241,7 +241,7 @@ foam.CLASS({
         This property is helpful when it's necessary to know which real
         user last changed a capability of an effective user.
       `,
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       name: 'expiry',
@@ -510,4 +510,4 @@ foam.CLASS({
       `
     }
   ]
-})
+});

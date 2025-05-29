@@ -9,4 +9,4 @@ foam.CLASS({
   name: 'SMTPConfig',
 
   documentation: 'Deprecated and removed.'
-})
+});

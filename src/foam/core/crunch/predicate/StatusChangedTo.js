@@ -12,7 +12,7 @@ foam.RULE_PREDICATE({
     'foam.dao.DAO',
     'foam.core.crunch.CrunchService',
     'foam.core.crunch.UserCapabilityJunction',
-    'static foam.core.crunch.CapabilityJunctionStatus.*',
+    'static foam.core.crunch.CapabilityJunctionStatus.*'
   ],
 
   properties: [

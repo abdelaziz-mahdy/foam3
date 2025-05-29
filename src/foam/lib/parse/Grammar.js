@@ -132,7 +132,7 @@ foam.CLASS({
         {
           name: 'x',
           javaType: 'foam.lib.parse.ParserContext'
-        },
+        }
       ],
       javaCode: `
 ps = getParser().parse(ps, x);

@@ -108,7 +108,7 @@ foam.LIB({
   name: 'foam.boot',
 
   constants: {
-    startTime: Date.now(),
+    startTime: Date.now()
   },
 
   methods: [

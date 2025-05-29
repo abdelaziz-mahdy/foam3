@@ -13,7 +13,7 @@ foam.CLASS({
     'foam.lang.FObject',
     'foam.lang.X',
     'foam.core.auth.EnabledAwareDummy',
-    'java.util.List',
+    'java.util.List'
   ],
 
   methods: [

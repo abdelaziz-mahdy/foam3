@@ -151,7 +151,7 @@ foam.CLASS({
           .remove('FilterGrantModeAgent')
           .remove('SkipGrantedAgent')
           .remove('RequirementsPreviewAgent')
-          .remove('AutoSaveWizardletsAgent')
+          .remove('AutoSaveWizardletsAgent');
       } else {
         sequence = this.crunchController.createWizardSequence(this.data.targetId, x);
         sequence

@@ -29,7 +29,7 @@
         if ( payload.capability == this.rootCapability.id && payload.status == this.CapabilityJunctionStatus.GRANTED ) {
           this.sequence.endSequence();
         }
-      })
+      });
 
     }
   ]

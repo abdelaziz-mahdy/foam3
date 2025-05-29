@@ -9,16 +9,16 @@ foam.CLASS({
   name: 'DetailView',
   requires: [
     'foam.swift.ui.FOAMActionUIButton',
-    'foam.swift.ui.PropertyView',
+    'foam.swift.ui.PropertyView'
   ],
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   properties: [
     {
       name: 'view',
       swiftType: 'UIView',
-      swiftFactory: 'return UIView()',
+      swiftFactory: 'return UIView()'
     },
     {
       class: 'String',
@@ -26,37 +26,37 @@ foam.CLASS({
       swiftExpressionArgs: ['data'],
       swiftExpression: `
 return data?.ownClassInfo().label ?? self.ownClassInfo().label
-      `,
+      `
     },
     {
       name: 'propertyViews',
       swiftType: '[String:foam_core_FObject]',
-      swiftFactory: 'return [:]',
+      swiftFactory: 'return [:]'
     },
     {
       name: 'actionViews',
       swiftType: '[String:foam_swift_ui_FOAMActionUIButton]',
-      swiftFactory: 'return [:]',
+      swiftFactory: 'return [:]'
     },
     {
       name: 'subViewSubscriptions',
       swiftType: '[String:Subscription]',
-      swiftFactory: 'return [:]',
+      swiftFactory: 'return [:]'
     },
     {
       swiftType: 'ClassInfo?',
       name: 'of',
       swiftExpressionArgs: ['data'],
-      swiftExpression: 'return data?.ownClassInfo() ?? nil',
+      swiftExpression: 'return data?.ownClassInfo() ?? nil'
     },
     {
       swiftType: 'foam_core_FObject?',
-      name: 'data',
+      name: 'data'
     },
     {
       class: 'Map',
-      name: 'config',
-    },
+      name: 'config'
+    }
   ],
   methods: [
     {
@@ -65,7 +65,7 @@ return data?.ownClassInfo().label ?? self.ownClassInfo().label
 onDetach(of$.sub(listener: { (_, _) in
   self.reset()
 }))
-      `,
+      `
     },
     {
       name: 'reset',
@@ -76,7 +76,7 @@ for (_, sub) in subViewSubscriptions {
   sub.detach()
 }
 subViewSubscriptions = [:]
-      `,
+      `
     },
     {
       name: 'initAllViews',
@@ -174,14 +174,14 @@ if let bottom: UIView = actionViews.first ?? labelViews.last {
     multiplier: 1,
     constant: 0))
 }
-      `,
+      `
     },
     {
       name: 'getView',
       args: [
         {
           name: 'a',
-          swiftType: 'PropertyInfo',
+          swiftType: 'PropertyInfo'
         }
       ],
       swiftType: 'foam_core_FObject?',
@@ -191,8 +191,8 @@ if let c = config[a.name] as? [String:Any?],
   return vf(__context__)
 }
 return a.viewFactory(x: __context__)
-      `,
-    },
+      `
+    }
   ],
   swiftCode: `
 public subscript(key: String) -> foam_core_FObject? {
@@ -223,5 +223,5 @@ public subscript(key: String) -> foam_core_FObject? {
   }
   return nil
 }
-  `,
+  `
 });

@@ -12,8 +12,8 @@ foam.CLASS({
     {
       class: 'Array',
       of: 'foam.swift.parse.parser.Parser',
-      name: 'parsers',
-    },
+      name: 'parsers'
+    }
   ],
   methods: [
     {
@@ -27,7 +27,7 @@ for (i, parser) in parsers.enumerated() {
   values[i] = ps!.value()
 }
 return ps!.setValue(values)
-      `,
-    },
+      `
+    }
   ]
 });

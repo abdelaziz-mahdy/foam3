@@ -38,7 +38,7 @@ foam.CLASS({
     return b;
   }
 };`
-        }))
+        }));
       }
     }
   ],
@@ -48,7 +48,7 @@ foam.CLASS({
       name: 'f',
       code: function() { return this.value; },
       swiftCode: 'return value',
-      javaCode: 'return getValue();',
+      javaCode: 'return getValue();'
     },
     {
       name: 'createStatement',

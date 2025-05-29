@@ -25,12 +25,12 @@ foam.INTERFACE({
       args: [
         {
           name: 'req',
-          documentation: 'Node JS HTTP request object. http.IncomingMessage',
+          documentation: 'Node JS HTTP request object. http.IncomingMessage'
         },
         {
           name: 'res',
-          documentation: 'Node JS HTTP response object. http.ServerResponse',
-        },
+          documentation: 'Node JS HTTP response object. http.ServerResponse'
+        }
       ],
       type: 'Boolean',
       code: function(req, res) {}

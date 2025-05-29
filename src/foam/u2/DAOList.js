@@ -100,7 +100,7 @@ foam.CLASS({
       class: 'foam.u2.ViewSpec',
       name: 'rowView_',
       expression: function(rowView) {
-        return { class: 'foam.u2.RowWrapper', rowView: rowView }
+        return { class: 'foam.u2.RowWrapper', rowView: rowView };
       }
     },
     'selection',
@@ -109,7 +109,7 @@ foam.CLASS({
     'scrollEl_',
     {
       class: 'Boolean',
-      name: 'loadLatch',
+      name: 'loadLatch'
     },
     {
       class: 'foam.mlang.ExprProperty',
@@ -168,7 +168,7 @@ foam.CLASS({
               .end()
             .endContext()
             .add(this.groupLabel)
-          .end()
+          .end();
         }
       ],
       actions: [

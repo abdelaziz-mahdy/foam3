@@ -25,7 +25,7 @@ foam.CLASS({
     {
       name: 'exceptionMessage',
       class: 'String',
-      value: 'DAO not found {{message}}',
+      value: 'DAO not found {{message}}'
     },
     {
       class: 'String',

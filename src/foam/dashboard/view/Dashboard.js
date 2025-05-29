@@ -22,7 +22,7 @@ foam.CLASS({
     'foam.dashboard.model.VisualizationSize'
   ],
   properties: [
-    [ 'nodeName', 'div' ],
+    [ 'nodeName', 'div' ]
   ],
   css: `
 ^ {

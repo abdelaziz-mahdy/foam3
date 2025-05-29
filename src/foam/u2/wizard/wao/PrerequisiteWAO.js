@@ -51,8 +51,8 @@
       factory: function () {
         const spec = {
           class: 'foam.u2.wizard.data.PrerequisiteLoader',
-          delegate: { class: 'foam.u2.wizard.data.NullLoader' },
-        }
+          delegate: { class: 'foam.u2.wizard.data.NullLoader' }
+        };
         foam.u2.wizard.data.PrerequisiteLoader
           .getOwnAxiomsByClass(foam.lang.Property)
           .forEach(a => {

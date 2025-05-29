@@ -17,7 +17,7 @@ foam.CLASS({
   javaImports: [
     'foam.dao.DAO',
     'foam.core.auth.Group',
-    'foam.util.SafetyUtil',
+    'foam.util.SafetyUtil'
   ],
 
   methods: [

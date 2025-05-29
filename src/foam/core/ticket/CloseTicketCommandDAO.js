@@ -34,6 +34,6 @@ foam.CLASS({
 
     return getDelegate().cmd_(x, obj);
       `
-    },
+    }
   ]
 });

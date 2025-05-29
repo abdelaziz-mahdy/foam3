@@ -48,7 +48,7 @@ foam.CLASS({
           dataSourceNormalized.LegendEntries[ key ].seriesValues[ i ] = this.LegendEntries[ key ].seriesValues[ i ] / this.max;
         }
       }
-      return dataSourceNormalized
+      return dataSourceNormalized;
     }
   ]
 });

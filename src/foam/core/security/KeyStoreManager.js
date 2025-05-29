@@ -38,7 +38,7 @@ foam.INTERFACE({
         'java.security.NoSuchAlgorithmException',
         'java.security.KeyStoreException'
       ],
-      args: 'String alias',
+      args: 'String alias'
     },
     {
       name: 'loadKey_',

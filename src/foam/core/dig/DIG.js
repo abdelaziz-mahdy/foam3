@@ -54,7 +54,7 @@ NOTE: when using the java client, the first call to a newly started instance may
     'java.util.Base64',
     'java.util.List',
     'javax.net.ssl.SSLContext',
-    'jakarta.servlet.http.HttpServletRequest',
+    'jakarta.servlet.http.HttpServletRequest'
   ],
 
   imports: [
@@ -223,7 +223,7 @@ NOTE: when using the java client, the first call to a newly started instance may
       help: 'Specify column names as a comma-separated list. Leave empty to receive all columns.',
       visibility: function(cmd) {
         return (cmd == 'SELECT') ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
-      },
+      }
     },
     {
       class: 'Long',
@@ -496,7 +496,7 @@ NOTE: when using the java client, the first call to a newly started instance may
         var req = this.HTTPRequest.create({
           url: url,
           method: 'POST',
-          payload: this.data,
+          payload: this.data
         }).send();
 
         var resp = await req.then(async function(resp) {
@@ -710,7 +710,7 @@ NOTE: when using the java client, the first call to a newly started instance may
         {
           name: 'obj',
           type: 'Object'
-        },
+        }
       ],
       type: 'foam.lang.FObject',
       javaCode: `
@@ -915,7 +915,7 @@ NOTE: when using the java client, the first call to a newly started instance may
         {
           name: 'session',
           type: 'foam.core.session.Session'
-        },
+        }
       ],
       type: 'String',
       javaCode: `

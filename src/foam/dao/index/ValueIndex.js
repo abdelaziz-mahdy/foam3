@@ -73,6 +73,6 @@ foam.CLASS({
       if ( skip && skip[0]-- > 0 ) return;
       if ( limit && limit[0]-- <= 0 ) return;
       sink.put(this.value);
-    },
+    }
   ]
 });

@@ -178,7 +178,7 @@ foam.CLASS({
           } else {
             this.statusUpdate();
           }
-        })
+        });
       }
     }
   ]

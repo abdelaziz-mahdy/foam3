@@ -13,5 +13,5 @@ foam.INTERFACE({
       name: 'launchViewReference',
       flags: ['web']
     }
-  ],
+  ]
 });

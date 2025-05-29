@@ -380,7 +380,7 @@ function moreUsage(arg) {
         v = '';
       else
         v = v.toString();
-      log(''.padStart(0), k+':', ''.padStart(20-k.length), '\x1b[0;35m', v, '\x1b[0;0m',);
+      log(''.padStart(0), k+':', ''.padStart(20-k.length), '\x1b[0;35m', v, '\x1b[0;0m');
       if ( ! showEnvs && desc ) {
         log(''.padStart(3), desc);
       }
@@ -399,7 +399,7 @@ var ENVS = {
   POM_ENVS:          ['Supports translating top level POM parameters to build parameters, such as pom.name -> APP_NAME, pom.version -> VERSION.  Also provides legacy support to POMs still using top level POM parametes for Java Manifest and Javac Parameters. Java Manifest property \'vendor\' should be set in POM task \'javaManifest\' and \'java\' should be set in POM task \'javacParameters\'.', 'APP_NAME=name,VERSION=version,JAVA_RELEASE=java,JAVA_MANIFEST_VENDOR=vendor'],
   POM_TASKS:         ['Map of named tasks captured from build POMs. Will be executed when same named build task is executed.', {}],
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with variable \'POMS\', which is the name of the POM(s) to be processed by the build'],
-  TOOLING_OPTIONS:   ['Options which control the tooling phase of the build', {}],
+  TOOLING_OPTIONS:   ['Options which control the tooling phase of the build', {}]
 };
 ENVS['TOOLING_TASKS'] = ['Tasks defined in Tooling poms and this build itself', TOOLING_TASKS];
 let NO_SHOW_ENVS = Object.assign({}, ENVS);
@@ -600,7 +600,7 @@ function pom() {
       warning('File not found ' + fn + '.js');
     else
       poms.push(fn);
-  };
+  }
 
   if ( ! POMS ) {
     POMS = 'pom';

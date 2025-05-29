@@ -77,17 +77,17 @@ foam.CLASS({
                                     sym('content'),
                                     eof()),
 
-          'title': seq1(1, '<title>', join(until('</title>'))),
+          title: seq1(1, '<title>', join(until('</title>'))),
 
-          'content': repeat(alt(sym('entity'),
+          content: repeat(alt(sym('entity'),
                                 sym('tag'),
                                 sym('text'))),
 
-          'text': substring(plus(not(alt(sym('entity'),
+          text: substring(plus(not(alt(sym('entity'),
                                          chars('<')),
                                      anyChar()))),
 
-          'entity': seq1(1, '&', alt(
+          entity: seq1(1, '&', alt(
             literal('nbsp', '\xa0'),
             literal('lt',   '<'),
             literal('gt',   '>'),
@@ -99,7 +99,7 @@ foam.CLASS({
 
           // TODO: FOAM tags have their own entry because the registerElement support
           // does not actually take effect during Element.start/tag/add
-          'tag': alt(sym('foam'),
+          tag: alt(sym('foam'),
                      sym('foam-with-contents'),
                      sym('code'),
                      sym('self-closed-tag'),
@@ -107,7 +107,7 @@ foam.CLASS({
 
           'tag-identifier': substring(plus(notChars(' />'))),
 
-          'xtag': alt(sym('br'),
+          xtag: alt(sym('br'),
                      sym('bold'),
                      sym('italic'),
                      sym('paragraph'),
@@ -124,22 +124,22 @@ foam.CLASS({
                      sym('h6'),
                      sym('foam')),
 
-          'br': seq('<br/>'),
+          br: seq('<br/>'),
 
-          'section': seq('<section', sym('attributes'), '>', sym('content'), '</section>'),
-          'paragraph': seq1(1, '<p>', sym('content'), '</p>'),
-          'anchor': seq('<a', sym('attributes'), '>', sym('content'), '</a>'),
-          'h1': seq1(1, '<h1>', sym('content'), '</h1>'),
-          'h2': seq1(1, '<h2>', sym('content'), '</h2>'),
-          'h3': seq1(1, '<h3>', sym('content'), '</h3>'),
-          'h4': seq1(1, '<h4>', sym('content'), '</h4>'),
-          'h5': seq1(1, '<h5>', sym('content'), '</h5>'),
-          'h6': seq1(1, '<h6>', sym('content'), '</h6>'),
+          section: seq('<section', sym('attributes'), '>', sym('content'), '</section>'),
+          paragraph: seq1(1, '<p>', sym('content'), '</p>'),
+          anchor: seq('<a', sym('attributes'), '>', sym('content'), '</a>'),
+          h1: seq1(1, '<h1>', sym('content'), '</h1>'),
+          h2: seq1(1, '<h2>', sym('content'), '</h2>'),
+          h3: seq1(1, '<h3>', sym('content'), '</h3>'),
+          h4: seq1(1, '<h4>', sym('content'), '</h4>'),
+          h5: seq1(1, '<h5>', sym('content'), '</h5>'),
+          h6: seq1(1, '<h6>', sym('content'), '</h6>'),
 
-          'bold': seq1(1, '<b>', sym('content'), '</b>'),
-          'italic': seq1(1, '<i>', sym('content'), '</i>'),
+          bold: seq1(1, '<b>', sym('content'), '</b>'),
+          italic: seq1(1, '<i>', sym('content'), '</i>'),
 
-          'ws': repeat(chars(' \r\n\t')),
+          ws: repeat(chars(' \r\n\t')),
 
           'unordered-list':seq1(1,
                                 '<ul>',
@@ -162,14 +162,14 @@ foam.CLASS({
                             sym('content'),
                             '</li>'),
 
-          'code': seq1(1, '<code>', join(until('</code>'))),
+          code: seq1(1, '<code>', join(until('</code>'))),
 
-          'foam': seq1(1, '<foam', sym('attributes'), '/>'),
+          foam: seq1(1, '<foam', sym('attributes'), '/>'),
           'foam-with-contents': seq(
             seq1(1, '<foam', sym('attributes'), '>'),
             join(until('</foam>'))),
 
-          'attributes': seq(
+          attributes: seq(
             repeat(sym('attrib-key-value'), ' '),
             optional(sym('ws'))),
 
@@ -180,7 +180,7 @@ foam.CLASS({
 
           'attrib-key': seq1(1, repeat0(' '), plus(notChars('=>'))),
           'attrib-value': repeat(notChars('"'))
-        }
+        };
       },
 
       actions: {
@@ -203,17 +203,17 @@ foam.CLASS({
           };
         },
 
-        'text': function(str) {
+        text: function(str) {
           return function(x) {
             this.add(str);
           };
         },
 
-        'br': function() {
-          return function(x) { this.tag('br'); }
+        br: function() {
+          return function(x) { this.tag('br'); };
         },
 
-        'content': function(children) {
+        content: function(children) {
           return function(x) {
             this.forEach(children, function(c) { c.call(this, x); });
           };
@@ -235,7 +235,7 @@ foam.CLASS({
                 attrs(attributes).
                 call(children, [x]).
               end();
-          }
+          };
         },
 
         'self-closed-tag': function(v) {
@@ -249,7 +249,7 @@ foam.CLASS({
           };
         },
 
-        'section': function(v) {
+        section: function(v) {
           var attributes = v[1];
           var children   = v[3];
           return function(x) {
@@ -260,7 +260,7 @@ foam.CLASS({
           };
         },
 
-        'paragraph': function(content) {
+        paragraph: function(content) {
           return function(x) {
             this.
               start('p').
@@ -269,7 +269,7 @@ foam.CLASS({
           };
         },
 
-        'anchor': function(v) {
+        anchor: function(v) {
           var attributes = v[1];
           var children   = v[3];
           return function(x) {
@@ -281,11 +281,11 @@ foam.CLASS({
           };
         },
 
-        'entity': function(e) {
+        entity: function(e) {
           return function() { this.add(e); };
         },
 
-        'h1': function(content) {
+        h1: function(content) {
           return function(x) {
             this.start('h1').
               call(content, [x]).
@@ -293,7 +293,7 @@ foam.CLASS({
           };
         },
 
-        'h2': function(v) {
+        h2: function(v) {
           return function(x) {
             this.start('h2').
               call(v, [x]).
@@ -301,7 +301,7 @@ foam.CLASS({
           };
         },
 
-        'h3': function(v) {
+        h3: function(v) {
           return function(x) {
             this.start('h3').
               call(v, [x]).
@@ -309,7 +309,7 @@ foam.CLASS({
           };
         },
 
-        'h4': function(v) {
+        h4: function(v) {
           return function(x) {
             this.start('h4').
               call(v, [x]).
@@ -317,7 +317,7 @@ foam.CLASS({
           };
         },
 
-        'h5': function(v) {
+        h5: function(v) {
           return function(x) {
             this.start('h5').
               call(v, [x]).
@@ -325,7 +325,7 @@ foam.CLASS({
           };
         },
 
-        'h6': function(v) {
+        h6: function(v) {
           return function(x) {
             this.start('h6').
               call(v, [x]).
@@ -333,7 +333,7 @@ foam.CLASS({
           };
         },
 
-        'bold': function(v) {
+        bold: function(v) {
           var children = v;
           return function(x) {
             this.
@@ -343,7 +343,7 @@ foam.CLASS({
           };
         },
 
-        'italic': function(v) {
+        italic: function(v) {
           var children = v;
           return function(x) {
             this.
@@ -384,7 +384,7 @@ foam.CLASS({
           };
         },
 
-        'code': function(code) {
+        code: function(code) {
           return function(x) {
             this.
               start('pre').
@@ -394,7 +394,7 @@ foam.CLASS({
           };
         },
 
-        'foam': function(attributes) {
+        foam: function(attributes) {
           return function(x) {
             var viewName  = attributes.view;
             var className = attributes.class;
@@ -402,8 +402,8 @@ foam.CLASS({
             // TODO: Reuse FoamTagLoader support
             var promise = Promise.all([
               viewName  ? x.classloader.load(viewName)  : Promise.resolve(),
-              className ? x.classloader.load(className) : Promise.resolve(),
-            ])
+              className ? x.classloader.load(className) : Promise.resolve()
+            ]);
 
             var self = this;
             this.add(promise.then(function(o) {
@@ -419,7 +419,7 @@ foam.CLASS({
 
                   var obj = cls.create(attributes, this);
 
-                  if ( ! viewName ) this.add(obj)
+                  if ( ! viewName ) this.add(obj);
                   else this.tag(view, { data: obj });
                 });
             }));
@@ -438,7 +438,7 @@ foam.CLASS({
             var promise = Promise.all([
               viewName  ? x.classloader.load(viewName)  : Promise.resolve(),
               className ? x.classloader.load(className) : Promise.resolve()
-            ])
+            ]);
 
             var self = this;
             this.add(promise.then(function(o) {
@@ -474,7 +474,7 @@ foam.CLASS({
           };
         },
 
-        'attributes': function(v) {
+        attributes: function(v) {
           return v[0].reduce(function(a, kv) {
             a[kv[0]] = kv[1];
             return a;

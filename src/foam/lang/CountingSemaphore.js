@@ -33,7 +33,7 @@ foam.CLASS({
             console.log('start locked task ' + i);
             setTimeout(function() { console.log('end locked task ' + i); resolve(); }, Math.random()*1000);
           });
-        }).catch(e =>  {console.error(e)});
+        }).catch(e =>  {console.error(e);});
       }
     }
   ],
@@ -69,7 +69,7 @@ foam.CLASS({
 
       var latch = this.Latch.create();
       this.queue_.push(latch);
-      return latch.then(resolve).then(this.decr.bind(this))
+      return latch.then(resolve).then(this.decr.bind(this));
     }
   ]
 });

@@ -30,7 +30,7 @@ foam.CLASS({
 
   requires: [
     'foam.core.ruler.Rule',
-    'foam.u2.DAOList',
+    'foam.u2.DAOList'
   ],
 
   properties: [
@@ -65,7 +65,7 @@ foam.CLASS({
           })
             .addClass(this.myClass('list'))
           .end()
-        .end()
+        .end();
     }
   ]
 });

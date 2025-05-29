@@ -118,7 +118,7 @@ foam.CLASS({
       updateVisibility: 'HIDDEN',
       readVisibility: 'HIDDEN',
       documentation: 'File mime type',
-      storageTransient: true,
+      storageTransient: true
     },
     {
       class: 'String',
@@ -134,7 +134,7 @@ foam.CLASS({
             rows: 4, cols: 80
           }
         ]
-      },
+      }
     },
     {
       class: 'String',
@@ -208,7 +208,7 @@ foam.CLASS({
             }
 
             return new Blob(byteArrays, { type: contentType });
-          }
+          };
 
           return this.BlobBlob.create({ blob: b64toBlob(b64Data) });
         }

@@ -16,7 +16,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'slashReplacement',
-      value: String.fromCharCode(0),
+      value: String.fromCharCode(0)
     }
   ],
 

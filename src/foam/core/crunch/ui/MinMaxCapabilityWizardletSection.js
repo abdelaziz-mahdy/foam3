@@ -16,7 +16,7 @@ foam.CLASS({
   requires: [
     'foam.u2.detail.SectionView',
     'foam.u2.detail.VerticalDetailView',
-    'foam.u2.ViewSpec',
+    'foam.u2.ViewSpec'
   ],
 
   properties: [
@@ -46,12 +46,12 @@ foam.CLASS({
           this.onDetach(this.wizardlet.isValid$.follow(vs.isValidNumberOfChoices$));
           this.choiceWizardlets.forEach((choiceWizardlet) => {
             vs.getSelectedSlot(choiceWizardlet.capability?.id || choiceWizardlet.id).linkFrom(choiceWizardlet.isAvailable$);
-          })
+          });
 
           return vs;
         }
         return null;
       }));
     }
-  ],
+  ]
 });

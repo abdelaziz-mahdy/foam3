@@ -107,7 +107,7 @@ foam.CLASS({
       code: function() {
         this.refreshEntries();
       }
-    },
+    }
 
   ]
 });

@@ -32,9 +32,9 @@ foam.CLASS({
       factory: function() {
         return this.WizardPosition.create({
           wizardletIndex: 0,
-          sectionIndex: 0,
+          sectionIndex: 0
         });
-      },
+      }
     },
     {
       name: 'mode',
@@ -72,5 +72,5 @@ foam.CLASS({
 
       this.initialPosition.wizardletIndex = passedAtBeginning;
     }
-  ],
+  ]
 });

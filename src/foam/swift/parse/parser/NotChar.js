@@ -14,8 +14,8 @@ foam.CLASS({
   properties: [
     {
       swiftType: 'Character',
-      name: 'ch',
-    },
+      name: 'ch'
+    }
   ],
   methods: [
     {
@@ -23,7 +23,7 @@ foam.CLASS({
       swiftCode: `
  let ps = ps!
 return ps.valid() && ps.head() != ch ? ps.tail()!.setValue(ps.head()) : nil
-      `,
-    },
+      `
+    }
   ]
 });

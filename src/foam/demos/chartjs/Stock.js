@@ -26,18 +26,18 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'autoAddRandomOrder',
-      postSet: function() { this.maybeAddRandomOrder() },
+      postSet: function() { this.maybeAddRandomOrder(); }
     },
     {
       class: 'Boolean',
       name: 'autoAddRandomSnapshots',
-      postSet: function() { this.maybeAddRandomSnapshots() },
+      postSet: function() { this.maybeAddRandomSnapshots(); }
     },
     {
       name: 'plottedStockPrices',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view: 'org.chartjs.Line',
+        view: 'org.chartjs.Line'
       },
       factory: function() {
         var sink = this.GROUP_BY(
@@ -53,7 +53,7 @@ foam.CLASS({
       name: 'stockPrices',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view: 'org.chartjs.Line',
+        view: 'org.chartjs.Line'
       },
       factory: function() {
         var sink = this.GROUP_BY(
@@ -69,7 +69,7 @@ foam.CLASS({
       name: 'totalHoldings',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view: 'org.chartjs.Bar',
+        view: 'org.chartjs.Bar'
       },
       factory: function() {
         var sink = this.GROUP_BY(this.StockOrder.SYMBOL, this.SUM(this.StockOrder.SHARES));
@@ -81,7 +81,7 @@ foam.CLASS({
       name: 'holdingsByPersonPie',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view: 'org.chartjs.Pie',
+        view: 'org.chartjs.Pie'
       },
       factory: function() {
         var sink = this.GROUP_BY(
@@ -97,7 +97,7 @@ foam.CLASS({
       name: 'holdingsByPersonBar',
       view: {
         class: 'org.chartjs.demos.ConfigurableChartView',
-        view: 'org.chartjs.Bar',
+        view: 'org.chartjs.Bar'
       },
       expression: function(holdingsByPersonPie) {
         return holdingsByPersonPie;
@@ -110,7 +110,7 @@ foam.CLASS({
         return this.EasyDAO.create({
           of: this.StockOrder,
           daoType: 'MDAO',
-          seqNo: true,
+          seqNo: true
         });
       }
     },
@@ -152,7 +152,7 @@ foam.CLASS({
     {
       class: 'Date',
       name: 'date',
-      factory: function() { return new Date() },
+      factory: function() { return new Date(); }
     }
   ],
 
@@ -175,7 +175,7 @@ foam.CLASS({
           class: 'String',
           name: 'person',
           chartJsFormatter: function(v) {
-            return v + '!'
+            return v + '!';
           }
         },
         { class: 'UnitValue', name: 'pricePerShare' },
@@ -183,7 +183,7 @@ foam.CLASS({
           class: 'Int',
           name: 'shares',
           chartJsFormatter: function(v) {
-            return v + ' shares'
+            return v + ' shares';
           }
         }
       ]
@@ -221,7 +221,7 @@ foam.CLASS({
           symbol: symbols[Math.floor(Math.random()*symbols.length)],
           person: names[Math.floor(Math.random()*names.length)],
           shares: Math.floor(Math.random()*100) - 50,
-          pricePerShare: Math.random()*100000,
+          pricePerShare: Math.random()*100000
         }));
       }
     },
@@ -234,9 +234,9 @@ foam.CLASS({
           self.stockPriceSnapshotDAO.put(self.StockPriceSnapshot.create({
             date: self.date,
             symbol: n,
-            price: Math.random()*100000,
+            price: Math.random()*100000
           }));
-        })
+        });
         self.date = new Date(self.date.getTime() + 24*60*60*1000);
       }
     }

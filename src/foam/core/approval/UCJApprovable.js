@@ -72,7 +72,7 @@
           view: {
             class: this.config.view,
             data: this.ucj,
-            config: this.config,
+            config: this.config
           }, parent: this
          })
         );

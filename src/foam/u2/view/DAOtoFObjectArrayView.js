@@ -34,7 +34,7 @@ foam.CLASS({
         return this.ArrayDAO.create({of: this.of, array$: this.data$});
       }
     },
-    'of',
+    'of'
   ],
 
   methods: [

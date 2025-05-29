@@ -39,5 +39,5 @@ foam.CLASS({
           )).select_(getX(), sink, skip, limit, order, predicate);
       `
     }
-  ],
+  ]
 });

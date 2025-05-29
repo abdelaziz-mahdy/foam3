@@ -51,7 +51,7 @@
         }
 
         wizardletToOverride.isVisible = facadeSpec.isOverridedWizardletVisible;
-      })      
+      });      
     },
 
     function grabWizardletFromFacadeSpec(facadeSpec){

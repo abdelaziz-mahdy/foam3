@@ -41,7 +41,7 @@ foam.CLASS({
     'java.util.HashMap',
     'java.util.List',
     'java.util.Map',
-    'foam.util.SafetyUtil',
+    'foam.util.SafetyUtil'
   ],
 
   implements: ['foam.core.ruler.RuleAction'],

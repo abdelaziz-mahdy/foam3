@@ -103,10 +103,10 @@ foam.CLASS({
           .addClass(this.myClass('icon'))
           .addClass(style.myClass('icon-circle'))
           .style({
-            'background-image': "url('" + self.data.icon + "')",
+            'background-image': "url('" + self.data.icon + "')"
           })
         .end()
-        .start().style({ 'flex': 1 })
+        .start().style({ flex: 1 })
           .start('p')
             .addClass(style.myClass('card-title'))
             .translate(self.data.id + '.' + self.data.cls_.NAME.name, self.data.name)

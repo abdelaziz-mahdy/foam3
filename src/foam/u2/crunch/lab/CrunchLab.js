@@ -64,7 +64,7 @@ foam.CLASS({
 
   messages: [
     { name: 'ALL_TAB', message: 'All Capabilities' },
-    { name: 'UCJ_TAB', message: 'User-Capability Junction' },
+    { name: 'UCJ_TAB', message: 'User-Capability Junction' }
   ],
 
   properties: [
@@ -112,7 +112,7 @@ foam.CLASS({
             }
           ]
         };
-      },
+      }
     },
     {
       class: 'foam.dao.DAOProperty',
@@ -144,7 +144,7 @@ foam.CLASS({
       name: 'featuredCapabilityDAO',
       hidden: true,
       expression: function (filteredCapabilityDAO) {
-        return filteredCapabilityDAO.where(this.CONTAINS(this.Capability.KEYWORDS, "featured"))
+        return filteredCapabilityDAO.where(this.CONTAINS(this.Capability.KEYWORDS, "featured"));
       }
     },
     {
@@ -152,7 +152,7 @@ foam.CLASS({
       name: 'otherCapabilityDAO',
       hidden: true,
       expression: function (filteredCapabilityDAO) {
-        return filteredCapabilityDAO.where(this.NOT(this.CONTAINS(this.Capability.KEYWORDS, "featured")))
+        return filteredCapabilityDAO.where(this.NOT(this.CONTAINS(this.Capability.KEYWORDS, "featured")));
       }
     },
     {
@@ -238,13 +238,13 @@ foam.CLASS({
           .start(this.Tabs)
             .start(this.Tab, {
               label: this.ALL_TAB,
-              selected: true,
+              selected: true
             })
               .tag(this.ROOT_CAPABILITY.__, { data: this })
               .start().style({ display: 'block' }).add(this.getGraphSlot()).end()
             .end()
             .start(this.Tab, {
-              label: this.UCJ_TAB,
+              label: this.UCJ_TAB
             })
               .startContext({ data: this })
                 .tag(this.ROOT_CAPABILITY.__)
@@ -274,12 +274,12 @@ foam.CLASS({
         return self.rootCapability$find
           .then(o => {
             rootCapabilityObj = o;
-            return graphBuilder.fromRelationship(o, self.relation)
+            return graphBuilder.fromRelationship(o, self.relation);
           })
           .then(() => {
             graph = graphBuilder.build();
             return self.RelationshipGridPlacementStrategy.create({
-              graph: graph,
+              graph: graph
             }).getPlan();
           })
           .then(placementPlan_ => {
@@ -302,8 +302,8 @@ foam.CLASS({
                   graph.data[ucj.targetId].data = [
                     capability, ucj
                   ];
-                })
-              })
+                });
+              });
             }
           })
           .then(() => {
@@ -344,7 +344,7 @@ foam.CLASS({
           label: 'User-Capability Wizard',
           service: 'crunchController',
           method: 'createWizardSequence' }
-      ]
+      ];
 
       values.
         map(v => foam.json.parse(v, undefined, this.__subContext__)).
@@ -363,14 +363,14 @@ foam.CLASS({
       this.sideView = {
         ...this.capabilityExperimentView,
         data: capability
-      }
+      };
       this.sideVisible = true;
     },
     function ucjClicked(ucj) {
       this.sideView = {
         class: 'foam.u2.detail.TabbedDetailView',
         data: ucj
-      }
+      };
       this.sideVisible = true;
     }
   ]

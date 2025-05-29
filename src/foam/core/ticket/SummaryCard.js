@@ -56,6 +56,6 @@ foam.CLASS({
             .add(this.status)
           .end()
         .end();
-    },
+    }
   ]
 });

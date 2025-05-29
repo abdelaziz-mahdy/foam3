@@ -128,7 +128,7 @@ foam.CLASS({
         'SEkk bbbc cccc cccc cccc cccc'
         */
       ].forEach(function (c) {
-        var format = c[0]
+        var format = c[0];
         m[format.substring(0,2)] = [format.substring(2).replace(/ /g, ''), c[1], c[2]];
       });
 
@@ -202,7 +202,7 @@ foam.CLASS({
       for ( var l = iban.length ; l >= 0 ; l-- ) {
         var c = iban.charAt(l);
         if ( c >= 'A' && c <= 'Z' ) {
-          iban = iban.substring(0, l) + (10 + ( c.charCodeAt(0) - 'A'.charCodeAt(0) )) + iban.substring(l+1)
+          iban = iban.substring(0, l) + (10 + ( c.charCodeAt(0) - 'A'.charCodeAt(0) )) + iban.substring(l+1);
         }
       }
       return iban;

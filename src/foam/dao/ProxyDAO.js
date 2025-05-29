@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'foam.dao.NullDAO',
-    'foam.dao.ProxyListener',
+    'foam.dao.ProxyListener'
   ],
 
   documentation: 'Proxy implementation for the DAO interface.',
@@ -23,7 +23,7 @@ foam.CLASS({
       name: 'delegate',
       forwards: [ 'put_', 'remove_', 'find_', 'select_', 'removeAll_', 'listen_' ],
       topics: [ 'on' ], // TODO: Remove this when all users of it are updated.
-      factory: function() { return this.NullDAO.create() },
+      factory: function() { return this.NullDAO.create(); },
       postSet: function(old, nu) {
         if ( old ) this.on.reset.pub();
       },
@@ -32,7 +32,7 @@ foam.CLASS({
 if let oldValue = oldValue as? foam_dao_AbstractDAO {
   _ = oldValue.on["reset"].pub()
 }
-      `,
+      `
     },
     {
       name: 'of',

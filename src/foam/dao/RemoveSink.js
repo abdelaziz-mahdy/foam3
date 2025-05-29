@@ -40,7 +40,7 @@ foam.CLASS({
         }
       ],
       code: function (obj, sub) {
-        this.dao.remove_(this.__context__, obj)
+        this.dao.remove_(this.__context__, obj);
       },
       javaCode: `
         getDao().remove_(getX(), (FObject) obj);

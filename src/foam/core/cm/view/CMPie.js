@@ -32,18 +32,18 @@ foam.CLASS({
             label: k,
             data: v.values
           }]
-        })
+        });
       }
 
-      return dataSets
+      return dataSets;
     },
 
     async function generatePlots(data) {
       return data.map(d => {
         return this.Pie2.create({
           data: d
-        })
+        });
       });
     }
   ]
-})
+});

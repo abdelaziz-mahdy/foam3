@@ -140,7 +140,7 @@ foam.CLASS({
                             .forEach(subTable.adapt(vRow), function (vCell) {
                               this.start('td').add(self.matchRef(vCell)).end();
                             })
-                            .end()
+                            .end();
                         })
                       .end()
                       ;
@@ -148,7 +148,7 @@ foam.CLASS({
                     this.add(value);
                   })
                 .end()
-              .end()
+              .end();
           })
         .end()
         ;

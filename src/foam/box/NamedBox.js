@@ -21,7 +21,7 @@ foam.CLASS({
   extends: 'foam.box.ProxyBox',
 
   requires: [
-    'foam.box.LookupBox',
+    'foam.box.LookupBox'
   ],
 
   axioms: [
@@ -70,7 +70,7 @@ if let index = self.name.range(of: "/", options: .backwards)?.lowerBound {
 return ownClassInfo().create(args: [
   "name": name
 ], x: __subContext__) as? foam_box_Box
-      `,
+      `
     },
     {
       name: 'getBaseName',

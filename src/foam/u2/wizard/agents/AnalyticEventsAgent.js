@@ -93,7 +93,7 @@ foam.CLASS({
       }
       if ( this.wizardName ) {
         this.analyticsAgent.pub('event', {
-          name: this.wizardName + '_STARTED',
+          name: this.wizardName + '_STARTED'
         });
       }
 

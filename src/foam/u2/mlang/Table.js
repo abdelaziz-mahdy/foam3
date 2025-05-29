@@ -40,7 +40,7 @@ foam.CLASS({
         var view = self.TableView.create({ data: dao });
 
         if ( columns.length ) {
-          view.columns = columns.map(function(c) { return of.getAxiomByName(c) });
+          view.columns = columns.map(function(c) { return of.getAxiomByName(c); });
         }
 
         e.tag(view).style({width: '100%'});

@@ -10,7 +10,7 @@ foam.CLASS({
   refines: 'foam.pattern.Singleton',
   flags: ['swift'],
   requires: [
-    'foam.swift.Field',
+    'foam.swift.Field'
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -18,7 +18,7 @@ foam.CLASS({
       classInfo.fields.push(this.Field.create({
         visibility: 'private',
         type: foam.lang.FObject.model_.swiftName + '?',
-        name: 'instance',
+        name: 'instance'
       }));
       classInfo.getMethod('create').body = `
 if instance == nil {
@@ -26,6 +26,6 @@ if instance == nil {
 }
 return instance!
       `;
-    },
-  ],
+    }
+  ]
 });

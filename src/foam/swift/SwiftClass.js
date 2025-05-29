@@ -36,11 +36,11 @@ foam.CLASS({
     {
       class: 'FObjectArray',
       of: 'foam.swift.Field',
-      name: 'fields',
+      name: 'fields'
     },
     {
       name: 'classes',
-      factory: function() { return []; },
+      factory: function() { return []; }
     },
     {
       class: 'FObjectArray',
@@ -50,22 +50,22 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'code',
+      name: 'code'
     },
     {
       class: 'String',
       name: 'type',
-      value: 'class',
+      value: 'class'
     },
     {
       class: 'StringArray',
-      name: 'annotations',
-    },
+      name: 'annotations'
+    }
   ],
 
   methods: [
     function method(m) {
-      if ( ! foam.lang.FObject.isInstance(m) ) m = this.Method.create(m)
+      if ( ! foam.lang.FObject.isInstance(m) ) m = this.Method.create(m);
       this.methods.push(m);
       return this;
     },
@@ -87,7 +87,7 @@ foam.CLASS({
     function outputSwift(o) {
       o.indent();
       o.out('// GENERATED CODE. DO NOT MODIFY BY HAND.\n');
-      this.imports.forEach(function(i) { o.out('import ', i, '\n') });
+      this.imports.forEach(function(i) { o.out('import ', i, '\n'); });
       o.indent();
       o.out(this.annotations.join('\n'), '\n');
       o.indent();

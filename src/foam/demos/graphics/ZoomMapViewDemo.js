@@ -13,7 +13,7 @@ foam.CLASS({
     'foam.graphics.ZoomMapView',
     'foam.graphics.Box',
     'foam.graphics.Circle',
-    'foam.u2.detail.SectionedDetailView',
+    'foam.u2.detail.SectionedDetailView'
   ],
   exports: [
     'displayWidth'
@@ -24,7 +24,7 @@ foam.CLASS({
       of: 'foam.u2.layout.DisplayWidth',
       name: 'displayWidth',
       value: 'XL'
-    },
+    }
   ],
   methods: [
     function render() {
@@ -33,9 +33,9 @@ foam.CLASS({
         'Circle'
       ];
       var color = function() {
-        var hex = Math.floor(Math.random() * parseInt('FFFFFF', 16)).toString(16).padStart(6, '0')
+        var hex = Math.floor(Math.random() * parseInt('FFFFFF', 16)).toString(16).padStart(6, '0');
         return '#' + hex;
-      }
+      };
       var width = 10000;
       var height = 10000;
       var scale = 0.2;
@@ -56,16 +56,16 @@ foam.CLASS({
           border: color(),
           borderWidth: 5,
           arcWidth: 5,
-          radius: scale * width * Math.random(),
+          radius: scale * width * Math.random()
 
-        }))
+        }));
       }
 
       var cview = this.ZoomMapView.create({
         view: view,
         height: 1000,
         width: 1500,
-        scale: 1,
+        scale: 1
       });
       this
         .add(cview)

@@ -10,23 +10,23 @@ foam.CLASS({
   refines: 'foam.lang.Listener',
   flags: ['swift'],
   requires: [
-    'foam.swift.Field',
+    'foam.swift.Field'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftListenerName',
-      expression: function(swiftName) { return swiftName + '_listener'; },
+      expression: function(swiftName) { return swiftName + '_listener'; }
     },
     {
       class: 'String',
       name: 'swiftListenerDispatchQueue',
-      value: 'DispatchQueue.main',
+      value: 'DispatchQueue.main'
     },
     {
       class: 'String',
       name: 'swiftListenerMethodName',
-      expression: function(swiftName) { return swiftName + '_method'; },
+      expression: function(swiftName) { return swiftName + '_method'; }
     },
     {
       name: 'swiftArgs',
@@ -35,36 +35,36 @@ foam.CLASS({
           this.SwiftArgument.create({
             localName: 'sub',
             defaultValue: 'Subscription(detach: {})',
-            type: 'Subscription',
+            type: 'Subscription'
           }),
           this.SwiftArgument.create({
             localName: 'args',
             defaultValue: '[]',
-            type: '[Any?]',
-          }),
+            type: '[Any?]'
+          })
         ];
-      },
-    },
+      }
+    }
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
       if ( ! parentCls.hasOwnAxiom(this.name) ) return;
       if ( !this.swiftCode ) return;
       var superAxiom = parentCls.getSuperClass().getAxiomByName(this.name);
-      var override = !!(superAxiom && superAxiom.swiftCode)
+      var override = !!(superAxiom && superAxiom.swiftCode);
       cls.field(this.Field.create({
         name: this.swiftListenerName,
         initializer: this.swiftInit(),
         type: 'Listener',
         override: override,
-        lazy: true,
+        lazy: true
       }));
       if (!override) {
         cls.method(this.Method.create({
           name: this.swiftName,
           args: this.swiftArgs,
           body: this.swiftListenerName + '(sub, args)',
-          override: !!(superAxiom && superAxiom.swiftCode),
+          override: !!(superAxiom && superAxiom.swiftCode)
         }));
         cls.fields.push(this.Field.create({
           visibility: 'public',
@@ -72,7 +72,7 @@ foam.CLASS({
           final: true,
           name: this.swiftPrivateAxiomName,
           type: 'MethodInfo',
-          initializer: this.swiftMethodInfoInit(parentCls),
+          initializer: this.swiftMethodInfoInit(parentCls)
         }));
         cls.methods.push(this.Method.create({
           visibility: 'public',
@@ -80,13 +80,13 @@ foam.CLASS({
           name: this.swiftAxiomName,
           returnType: 'MethodInfo',
           body: 'return ' + this.swiftPrivateAxiomName,
-          override: this.getSwiftOverride(parentCls),
+          override: this.getSwiftOverride(parentCls)
         }));
         cls.fields.push(this.Field.create({
           lazy: true,
           name: this.swiftSlotName,
           initializer: this.slotInit(),
-          type: foam.swift.core.Slot.model_.swiftName,
+          type: foam.swift.core.Slot.model_.swiftName
         }));
       }
       cls.method(this.Method.create({
@@ -94,9 +94,9 @@ foam.CLASS({
         body: this.swiftCode,
         args: this.swiftArgs,
         visibility: 'private',
-        override: !!(superAxiom && superAxiom.swiftCode),
+        override: !!(superAxiom && superAxiom.swiftCode)
       }));
-    },
+    }
   ],
   templates: [
     {
@@ -128,7 +128,7 @@ return { [weak self] sub, args in
 } as (Subscription, [Any?]) -> Void
 
 <% } %>
-      `,
+      `
     }
-  ],
+  ]
 });

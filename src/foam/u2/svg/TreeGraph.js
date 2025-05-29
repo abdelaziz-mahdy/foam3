@@ -11,7 +11,7 @@ foam.CLASS({
 
   requires: [
     'foam.u2.svg.arrow.VHVArrowLine',
-    'foam.u2.svg.arrow.SimpleArrowHead',
+    'foam.u2.svg.arrow.SimpleArrowHead'
   ],
 
   documentation: `
@@ -27,7 +27,7 @@ foam.CLASS({
     {
       name: 'nodePlacementPlan',
       class: 'FObjectProperty',
-      of: 'FObject',
+      of: 'FObject'
       // of: 'foam.u2.svg.graph.GridPlacementPlan',
     },
     {
@@ -60,16 +60,16 @@ foam.CLASS({
       this.graph.roots.forEach(node => {
         console.log('rendering root', node);
         this.renderBoxes(g, node);
-      })
+      });
       var shape = this.nodePlacementPlan.shape;
       g
         .attrs({
-          'xmlns': 'http://www.w3.org/2000/svg',
-          'viewBox': '0 0 ' +
+          xmlns: 'http://www.w3.org/2000/svg',
+          viewBox: '0 0 ' +
             ('' + (shape[0]*(size + gap) + gap)) + ' ' +
             ('' + (shape[1]*(size + gap) + gap))
         })
-        .end()
+        .end();
     },
     function renderBoxes(g, node, parent) {
       var self = this;
@@ -78,7 +78,7 @@ foam.CLASS({
       if ( coords == null ) return;
       if ( ! Array.isArray(coords) ) {
         console.warn('unexpected return time from placement',
-          typeof coords, coords)
+          typeof coords, coords);
       }
 
       g
@@ -89,7 +89,7 @@ foam.CLASS({
               data: node.data,
               position: coords.map(v => gap + v*(size + gap)),
               size: Array(coords.length).fill(self.size)
-            })
+            });
         })
         .callIf(parent, function () {
           var pcoords = self.nodePlacementPlan.getPlacement(parent);
@@ -97,27 +97,27 @@ foam.CLASS({
             .tag(self.VHVArrowLine, {
               startPos: [
                 (pcoords[0]*(size + gap) + gap + 0.5*size),
-                (pcoords[1]*(size + gap) + gap + size),
+                (pcoords[1]*(size + gap) + gap + size)
               ],
               endPos: [
                 (coords[0]*(size + gap) + gap + 0.5*size),
-                (coords[1]*(size + gap) + gap),
+                (coords[1]*(size + gap) + gap)
               ]
             })
             .tag(self.SimpleArrowHead, {
               originPos: [
                 // same as end position of line
                 (coords[0]*(size + gap) + gap + 0.5*size),
-                (coords[1]*(size + gap) + gap),
+                (coords[1]*(size + gap) + gap)
               ],
               angle: 0,
               size: 5
-            })
-        })
+            });
+        });
 
       this.graph.getDirectChildren(node.id).forEach(childNode => {
         this.renderBoxes(g, childNode, node);
-      })
+      });
     }
   ]
 });

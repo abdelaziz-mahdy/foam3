@@ -81,7 +81,7 @@ foam.CLASS({
       this.gridColumns$ = realProp.gridColumns$;
       // Override any data/data$ provided with appropriate replacements for real propertys
       let data$ = args?.data?.slot(this.parentSlotPath) || (args?.data$ || X.data$).dot(this.parentSlotPath);
-      X = X.createSubContext({ data: data$, objData: data$ })
+      X = X.createSubContext({ data: data$, objData: data$ });
       return realProp.createElFromSpec_({ class: 'foam.u2.PropertyBorder', prop: realProp }, {...args, data$: data$}, X);
     }
   ]

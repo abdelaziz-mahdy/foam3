@@ -40,7 +40,7 @@ foam.CLASS({
         proto.render = async function() {
           await self.installLib();
           oldRender.apply(this, arguments);
-        }
+        };
       }
 
       var oldPaint = proto.paintSelf;
@@ -48,7 +48,7 @@ foam.CLASS({
         proto.paintSelf = async function() {
           await self.installLib();
           oldPaint.apply(this, arguments);
-        }
+        };
       }
     },
 

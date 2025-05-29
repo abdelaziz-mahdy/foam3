@@ -231,7 +231,7 @@ foam.CLASS({
     {
       name: 'raiseAlarm',
       class: 'Boolean',
-      value: true,
+      value: true
     },
     {
       name: 'alarm',
@@ -399,4 +399,4 @@ foam.CLASS({
       `
     }
   ]
-})
+});

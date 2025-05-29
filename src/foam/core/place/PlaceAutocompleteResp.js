@@ -19,4 +19,4 @@ foam.CLASS({
 			of: "foam.core.place.PlaceAutocompletePrediction"
 		}
   ]
-})
+});

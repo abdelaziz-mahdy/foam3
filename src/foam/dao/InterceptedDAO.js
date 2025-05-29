@@ -62,7 +62,7 @@ foam.CLASS({
           return self.decorator.read(x, self.dao, obj);
         });
       }
-    },
+    }
 
     /*
     TODO: works, but is expensive, so shouldn't be used if decorator.read isn't set

@@ -35,6 +35,6 @@ foam.CLASS({
             .enableClass(this.myClass('resize'), this.resizable$)
           .end()
         .end();
-    },
+    }
   ]
 });

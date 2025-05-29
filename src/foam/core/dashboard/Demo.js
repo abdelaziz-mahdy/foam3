@@ -12,7 +12,7 @@ foam.CLASS({
   flags: ['web'],
 
   imports: [
-    'cSpecDAO',
+    'cSpecDAO'
   ],
 
   requires: [
@@ -49,7 +49,7 @@ foam.CLASS({
           arg1: 'serve',
           arg2: 'authenticate',
           size: this.VisualizationSize.MEDIUM,
-          label: 'Grouped by served/authenticate',
+          label: 'Grouped by served/authenticate'
         })).
         add(this.GroupBy.create({
           daoName: 'cSpecDAO',

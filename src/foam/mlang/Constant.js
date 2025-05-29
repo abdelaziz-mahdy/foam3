@@ -28,7 +28,7 @@ foam.CLASS({
     {
       type: 'FObject',
       name: 'fclone',
-      javaCode: 'return this;',
+      javaCode: 'return this;'
     },
     {
       name: 'f',

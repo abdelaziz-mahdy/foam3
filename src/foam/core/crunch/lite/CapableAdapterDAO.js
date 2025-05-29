@@ -190,7 +190,7 @@ foam.CLASS({
           ? obj : obj.capability ;
         return this.ifFoundElseIfNotFound_(
           capability,
-          (payloads, i) => { return payloads[i] },
+          (payloads, i) => { return payloads[i]; },
           (payloads) => null
         );
       }

@@ -48,7 +48,7 @@ foam.CLASS({
       factory: function() {
         const IN_PROGRESS = this.crunchController.WizardStatus.IN_PROGRESS;
         const seq = this.getSequence_(this.__context__, this.isInline);
-        return seq
+        return seq;
       } 
     },
     {
@@ -131,7 +131,7 @@ foam.CLASS({
         if ( wizardType == this.WizardType.UCJ ) {
           seq = this.crunchController.toGraphAgentWizard(this.crunchController.createUCJInlineWizardSequence(x));
         } else {
-          seq = this.crunchController.toGraphAgentWizard(this.crunchController.createInlineWizardSequence(x))
+          seq = this.crunchController.toGraphAgentWizard(this.crunchController.createInlineWizardSequence(x));
         }
         seq.addBefore('CapabilityAdaptAgent', {
           class: 'foam.u2.wizard.agents.RootCapabilityAgent',
@@ -151,7 +151,7 @@ foam.CLASS({
             waoSetting: foam.u2.crunch.wizardflow.WAOSettingAgent.WAOSetting.UCJ
           })
           .remove('RequirementsPreviewAgent');
-        return this.crunchController.toGraphAgentWizard(seq)
+        return this.crunchController.toGraphAgentWizard(seq);
       }
 
       if ( wizardType == this.WizardType.TRANSIENT ) {
@@ -164,7 +164,7 @@ foam.CLASS({
           .reconfigure('WAOSettingAgent', {
             waoSetting: foam.u2.crunch.wizardflow.WAOSettingAgent.WAOSetting.CAPABLE
           })
-          .remove('RequirementsPreviewAgent')
+          .remove('RequirementsPreviewAgent');
         return this.crunchController.toGraphAgentWizard(seq);
       }
       console.error(

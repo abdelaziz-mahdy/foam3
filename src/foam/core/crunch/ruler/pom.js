@@ -8,4 +8,4 @@ foam.POM({
     { name: "ExpireOldMinMaxHierarchy",
       flags: "js|java" }
   ]
-})
+});

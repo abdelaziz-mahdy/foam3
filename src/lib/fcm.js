@@ -37,7 +37,7 @@ foam.CLASS({
         method: 'POST',
         headers: {
           "content-type": "application/json",
-          "Authorization": "key=" + this.serverKey
+          Authorization: "key=" + this.serverKey
         },
         responseType: 'json',
         payload: JSON.stringify({

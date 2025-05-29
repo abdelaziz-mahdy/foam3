@@ -27,12 +27,12 @@ foam.CLASS({
     {
       name: 'String',
       path: 'foam.lang.String',
-      flags: ['js'],
+      flags: ['js']
     },
     {
       name: 'FObjectProperty',
       path: 'foam.lang.FObjectProperty',
-      flags: ['js'],
+      flags: ['js']
     },
     {
       name: 'Long',

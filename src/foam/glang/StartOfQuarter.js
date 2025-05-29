@@ -19,7 +19,7 @@ foam.CLASS({
         ts.setDate(0);
         ts.setHours(0, 0, 0, 0);
         return ts;
-      },
+      }
     }
   ]
 });

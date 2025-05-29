@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'Template',
 
   imports: [
-    'columnConfigToPropertyConverter',
+    'columnConfigToPropertyConverter'
   ],
 
   requires: [
@@ -28,7 +28,7 @@ foam.CLASS({
     },
     {
       name: 'name',
-      class: 'String',
+      class: 'String'
     },
     {
       class: 'StringArray',

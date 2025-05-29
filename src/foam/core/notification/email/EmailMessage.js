@@ -54,7 +54,7 @@ foam.CLASS({
       help: 'Properties that are used internally by the system.',
       order: 40,
       permissionRequired: true
-    },
+    }
   ],
 
   javaCode: `
@@ -219,7 +219,7 @@ foam.CLASS({
       order: 120,
       gridColumns: 6,
       documentation: 'User who created the entry',
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       class: 'Reference',
@@ -229,7 +229,7 @@ foam.CLASS({
       order: 130,
       gridColumns: 6,
       documentation: 'User who created the entry',
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       class: 'Reference',

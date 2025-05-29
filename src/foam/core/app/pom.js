@@ -5,4 +5,4 @@ foam.POM({
     { name: "AppDownloadBadgeService",            flags: "web" },
     { name: "AppBadgeView",                       flags: "web" }
   ]
-})
+});

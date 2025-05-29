@@ -18,7 +18,7 @@ foam.CLASS({
     'crunchController',
     'ctrl',
     'menuDAO',
-    'subject',
+    'subject'
   ],
 
   methods: [
@@ -32,6 +32,6 @@ foam.CLASS({
         this.crunchController.purgeCachedCapabilityDAOs();
         return result;
       }
-    },
-  ],
+    }
+  ]
 });

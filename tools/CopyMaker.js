@@ -44,4 +44,4 @@ exports.visitPOM = function(pom) {
       b_.copyFile(source, targetDir+'/'+targetName);
     }
   });
-}
+};

@@ -52,9 +52,9 @@ if let o = o as? <%=this.swiftType%> {
 throw FoamError(o ?? "Failed to cast response to <%=this.swiftName%> as <%=this.swiftType%>")
   <% } %>
 <% } %>
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });
 
 
@@ -83,9 +83,9 @@ let msg = Message_create([
   ]),
 ])
 try? delegate.send(msg)
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });
 
 foam.CLASS({
@@ -96,7 +96,7 @@ foam.CLASS({
   properties: [
     {
       name: 'swiftType',
-      factory: function() { return foam.box.Box.model_.swiftName },
+      factory: function() { return foam.box.Box.model_.swiftName; }
     }
   ]
 });

@@ -43,7 +43,7 @@ foam.CLASS({
       name: 'hideStatus',
       class: 'Boolean',
       value: false
-    },
+    }
   ],
 
   actions: [

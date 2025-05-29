@@ -150,7 +150,7 @@ foam.CLASS({
         'nanoMeter',
         'QA',
         'Transactions',
-        'UX-Design',
+        'UX-Design'
       ]
     },
     {
@@ -254,7 +254,7 @@ foam.CLASS({
         start('a').
           attrs({href: '', title: item.tooltip()}).
           style({
-            color: item.status.color,
+            color: item.status.color
           }).
           callIf(item.isBlocked,     function() { this.addClass('blocked'); }).
           callIf(item.status.active, function() { this.addClass('active'); }).

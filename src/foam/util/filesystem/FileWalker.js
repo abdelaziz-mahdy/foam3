@@ -49,7 +49,7 @@ foam.CLASS({
       this.require_('fs');
       this.skip.sub(() => {
         this.skipNext = true;
-      })
+      });
     },
     function require_(name, asName) {
       Object.defineProperty(this.nodejs_, asName || name, {
@@ -86,7 +86,7 @@ foam.CLASS({
                   fullPath: fullPath,
                   stats: stats,
                   path: path
-                }
+                };
               } catch (e) {
                 console.warn('Failed to stat file: ' + fullPath);
                 self.error.pub('stat', e);
@@ -133,7 +133,7 @@ foam.CLASS({
           }
 
         });
-      })
+      });
     }
   ]
 });

@@ -10,13 +10,13 @@ foam.CLASS({
   refines: 'foam.lang.Constant',
   flags: ['swift'],
   requires: [
-    'foam.swift.Field',
+    'foam.swift.Field'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftName',
-      expression: function(name) { return name },
+      expression: function(name) { return name; }
     },
     {
       class: 'foam.swift.SwiftTypeProperty',
@@ -24,14 +24,14 @@ foam.CLASS({
         var swiftType = foam.swift.toSwiftType(type);
         if ( foam.swift.isNullable(swiftType) ) {
           // A nullable constant isn't useful so don't let them be nullable.
-          swiftType = swiftType.slice(0, -1)
+          swiftType = swiftType.slice(0, -1);
         }
-        return swiftType
-      },
+        return swiftType;
+      }
     },
     {
       class: 'String',
-      name: 'swiftFactory',
+      name: 'swiftFactory'
     },
     {
       class: 'String',
@@ -39,7 +39,7 @@ foam.CLASS({
       expression: function(value, swiftFactory) {
         return swiftFactory ? '' : foam.swift.asSwiftValue(value);
       }
-    },
+    }
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -55,8 +55,8 @@ foam.CLASS({
         static: true,
         final: true,
         defaultValue: this.swiftValue,
-        initializer: this.swiftFactory,
+        initializer: this.swiftFactory
       }));
-    },
+    }
   ]
 });

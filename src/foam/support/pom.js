@@ -12,7 +12,7 @@ foam.POM({
     { name: "modal/NewEmailSupportConfirmationModal",                                    flags: "web" },
     { name: "modal/DeleteEmailSupportModal",                                              flags: "web" },
     { name: "model/SupportEmail",                                                         flags: "js|java" },
-    { name: "model/TicketMessage",                                                        flags: "js|java", },
+    { name: "model/TicketMessage",                                                        flags: "js|java" },
     { name: "model/Ticket",                                                               flags: "js|java" },
     { name: "view/CreateTicketView",                                                      flags: "web" },
     { name: "view/MessageCard",                                                           flags: "web" },

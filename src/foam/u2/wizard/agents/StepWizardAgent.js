@@ -67,7 +67,7 @@ foam.CLASS({
         this.resolveAgent();
         let closePromise = this.wizardController.onClose();
         if ( closePromise?.then )
-          closePromise.then(() => {})
+          closePromise.then(() => {});
       }));
 
       if ( (view?.class || view?.cls_?.id).endsWith('ScrollingStepWizardView') ) {
@@ -91,16 +91,16 @@ foam.CLASS({
         // If this is published to, wizard status will stay IN_PROGRESS
         this.flowAgent?.sub(this.cls_.name,() => {
           resolve();
-        })
+        });
 
         if ( this.crunchController ) {
           this.lastLastActiveWizard = this.crunchController.lastActiveWizard;
           this.crunchController.lastActiveWizard = this.wizardController;
         }
         if ( this.popupMode ) {
-          this.wizardView = this.popupManager.push(view, this, this.config.popup || {})
+          this.wizardView = this.popupManager.push(view, this, this.config.popup || {});
         } else {
-          this.wizardView = this.stack.set(view, this)
+          this.wizardView = this.stack.set(view, this);
           // If wizard uses stack then remove returnToLaunchPointAgent
           this.sequence.remove('ReturnToLaunchPointAgent');
         }
@@ -112,7 +112,7 @@ foam.CLASS({
             this.wizardController.status = this.WizardStatus.DISCARDED;
           }
           resolve();
-        })
+        });
       }).catch(e => {
         this.resolveAgent();
       });

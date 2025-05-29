@@ -161,7 +161,7 @@ foam.CLASS({
         try {
           var verified = await this.emailVerificationService.verifyCode(x, this.email, this.userName, this.verificationCode);
           this.report('^verify-success', ['email-verification']);
-          this.assert(verified, 'verified should be true when no exception was thrown')
+          this.assert(verified, 'verified should be true when no exception was thrown');
           this.codeVerified = verified;
         } catch (error) {
           this.report('^verify-failure', error);

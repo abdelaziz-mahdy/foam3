@@ -129,6 +129,6 @@ foam.CLASS({
         this.isVisible = false;
       }
       return ret;
-    },
+    }
   ]
 });

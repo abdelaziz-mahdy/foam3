@@ -14,7 +14,7 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.core.menu.Menu',
+    'foam.core.menu.Menu'
   ],
 
   css:`
@@ -51,7 +51,7 @@ foam.CLASS({
           .enableClass(this.myClass('selected'), view.currentMenu$.map(function (value) {
             return view.currentMenu.id === (view.data.id);
           }))
-          .style({'padding-left': paddingLeft +  'px', 'font-size': fontSize + 'px', 'opacity': opacity})
+          .style({'padding-left': paddingLeft +  'px', 'font-size': fontSize + 'px', opacity: opacity})
           .on('click', this.onClick)
         .end()
         .add(this.slot(function(expanded, data) {

@@ -46,5 +46,5 @@ foam.CLASS({
       }
       return propCls;
     }
-  ],
+  ]
 });

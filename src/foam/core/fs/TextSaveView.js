@@ -53,7 +53,7 @@ foam.CLASS({
         .start('p')
           .add('Text')
         .end()
-        .add(this.TEXT)
+        .add(this.TEXT);
     }
   ],
 
@@ -73,4 +73,4 @@ foam.CLASS({
       });
     }
   ]
-})
+});

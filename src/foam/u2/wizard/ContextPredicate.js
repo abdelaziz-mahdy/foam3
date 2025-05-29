@@ -40,7 +40,7 @@
         throw new Error(`Unable to find ${this.contextKey} in this context`);
 
       if ( ! this.valuePath )
-        return foam.util.equals(objToCheck, this.matchValue)
+        return foam.util.equals(objToCheck, this.matchValue);
 
       var valueToCheck = this.valuePath.f(objToCheck);
       return foam.util.equals(valueToCheck, this.matchValue);

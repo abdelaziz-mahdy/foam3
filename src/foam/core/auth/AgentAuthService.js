@@ -34,7 +34,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'entity',
@@ -51,7 +51,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'agent',

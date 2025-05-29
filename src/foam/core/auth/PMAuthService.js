@@ -146,6 +146,6 @@ foam.CLASS({
         if ( pm != null ) pm.log(x);
       }
      `
-    },
+    }
   ]
 });

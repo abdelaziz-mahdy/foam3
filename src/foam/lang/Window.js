@@ -295,7 +295,7 @@ foam.SCRIPT({
   package: 'foam.lang',
   name: 'WindowScript',
   requires: [
-    'foam.lang.Window',
+    'foam.lang.Window'
   ],
   code: function() {
     foam.__context__ = foam.lang.Window.create(

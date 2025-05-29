@@ -6,7 +6,7 @@ foam.CLASS({
     'foam.u2.memento.Memorable'
   ],
   requires: [
-    'foam.core.menu.VerticalMenu',
+    'foam.core.menu.VerticalMenu'
   ],
   imports: [
     'window',
@@ -16,12 +16,12 @@ foam.CLASS({
   ],
   exports: [
     'routeTo',
-    'as stack',
+    'as stack'
   ],
   properties: [
     {
       name: 'route',
-      memorable: true,
+      memorable: true
     },
     'stack',
     {
@@ -203,7 +203,7 @@ foam.CLASS({
       this.stack = [viewSpec, context];
     },
     function routeTo(menu) {
-      this.window.location.hash = menu
+      this.window.location.hash = menu;
     },
     function render() {
       this.SUPER();
@@ -240,7 +240,7 @@ foam.CLASS({
       const listener = async () => {
         var menu = await this.menuDAO.find(this.route);
         menu && menu.launch(this.__subContext__);
-      }
+      };
       this.onDetach((() => {
         var s = this.route$.sub(listener);
         return () => {
@@ -251,6 +251,6 @@ foam.CLASS({
                        
           
       listener();
-    },
+    }
   ]
 });

@@ -31,7 +31,7 @@ foam.RELATIONSHIP({
         } else {
           this.add(value);
         }
-      })
+      });
     }
   },
   targetProperty: {

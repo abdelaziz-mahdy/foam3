@@ -15,11 +15,11 @@ foam.CLASS({
 let t = UITextField()
 t.keyboardType = .numberPad
 return t
-      `,
+      `
     },
     {
       name: 'emptyValue',
-      value: "0",
-    },
-  ],
+      value: "0"
+    }
+  ]
 });

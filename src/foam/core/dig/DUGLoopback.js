@@ -20,7 +20,7 @@ foam.CLASS({
     },
     {
       name: 'timestamp',
-      class: 'DateTime',
+      class: 'DateTime'
     }
   ]
-})
+});

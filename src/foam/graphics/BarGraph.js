@@ -72,7 +72,7 @@ foam.CLASS({
         this.invalidate();
 
         var legendBoxUnit;
-        var total = this.dataSource.LegendEntries[ key ].total
+        var total = this.dataSource.LegendEntries[ key ].total;
 
         for ( var i in this.dataSource.LegendEntries[ key ].seriesValues ) {
           var presentationBoxH = foam.graphics.Box.create({

@@ -13,7 +13,7 @@ const documentFiles = [];
 exports.init = function() {
   X.documentdir = X.documentdir || (X.builddir + '/documents');
   this.ensureDir(X.documentdir);
-}
+};
 
 
 exports.visitFile = function(pom, f, fn) {
@@ -28,9 +28,9 @@ exports.visitFile = function(pom, f, fn) {
       documentFiles.push(fn);
     }
   }
-}
+};
 
 
 exports.end = function() {
   this.log(`[Doc Maker] Copied ${documentFiles.length} flow document files to ${X.documentdir}.`);
-}
+};

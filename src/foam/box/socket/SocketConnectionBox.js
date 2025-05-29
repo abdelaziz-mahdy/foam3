@@ -88,7 +88,7 @@ foam.CLASS({
       name: 'replyBoxes',
       class: 'Map',
       javaFactory: `return new java.util.concurrent.ConcurrentHashMap<String, BoxHolder>();`,
-      visibility: 'HIDDEN',
+      visibility: 'HIDDEN'
     },
     {
       name: 'logger',

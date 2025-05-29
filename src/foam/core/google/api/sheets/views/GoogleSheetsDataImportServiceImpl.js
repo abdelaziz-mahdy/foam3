@@ -56,7 +56,7 @@
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'importConfig',
@@ -89,7 +89,7 @@
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'importConfig',
@@ -147,7 +147,7 @@
     args: [
       {
         name: 'x',
-        type: 'Context',
+        type: 'Context'
       },
       {
         name: 'daoId',
@@ -189,7 +189,7 @@
     args: [
       {
         name: 'x',
-        type: 'Context',
+        type: 'Context'
       },
       {
         name: 'importConfig',
@@ -198,7 +198,7 @@
       {
         name: 'data',
         javaType: 'List<List<Object>>'
-      },
+      }
     ],
     javaCode: `
       List<String> columnHeaders = new ArrayList<>();
@@ -236,12 +236,12 @@
     args: [
       {
         name: 'x',
-        type: 'Context',
+        type: 'Context'
       },
       {
         name: 'obj',
         javaType: 'Object'
-      },
+      }
     ],
     javaCode: `
       return true;
@@ -253,7 +253,7 @@
     args: [
       {
         name: 'x',
-        type: 'Context',
+        type: 'Context'
       },
       {
         name: 'obj',
@@ -333,7 +333,7 @@
     args: [
       {
         name: 'x',
-        type: 'Context',
+        type: 'Context'
       },
       {
         name: 'importConfig',
@@ -422,5 +422,5 @@
       return prop.get(obj).toString();
     `
   }
-],
+]
 });

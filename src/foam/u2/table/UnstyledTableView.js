@@ -106,7 +106,7 @@ foam.CLASS({
     },
     {
       name: 'selection',
-      expression: function(importSelection) { return importSelection || null; },
+      expression: function(importSelection) { return importSelection || null; }
     },
     {
       name: 'order'
@@ -131,7 +131,7 @@ foam.CLASS({
         Can also be set by any column config view to change the current columns loaded by the table`,
       memorable: true,
       expression: function(columns, of) {
-        var ls = JSON.parse(localStorage.getItem(of.id))?.map(c => foam.Array.isInstance(c) ? c[0] : c)
+        var ls = JSON.parse(localStorage.getItem(of.id))?.map(c => foam.Array.isInstance(c) ? c[0] : c);
         return ls || columns;
       },
       adapt: function(_,n) {
@@ -344,7 +344,7 @@ foam.CLASS({
         return;
 
       var columns = this.memento.head.split(',');
-      var mementoColumn = columns.find(c => this.returnMementoColumnNameDisregardSorting(c) === column.name)
+      var mementoColumn = columns.find(c => this.returnMementoColumnNameDisregardSorting(c) === column.name);
       var orderChar = isNewOrderDesc ? this.DESCENDING_ORDER_CHAR : this.ASCENDING_ORDER_CHAR;
       if ( ! mementoColumn ) {
         columns.push(column.name + orderChar);

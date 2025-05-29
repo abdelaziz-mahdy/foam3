@@ -43,5 +43,5 @@ foam.CLASS({
       },
       javaFactory: 'return ReviewCapabilityData.getOwnClassInfo();'
     }
-  ],
+  ]
 });

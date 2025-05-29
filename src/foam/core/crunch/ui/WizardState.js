@@ -45,7 +45,7 @@ foam.CLASS({
         List of capabilities to ignore when rendering the wizard.
       `
     }
-  ],
+  ]
 });
 
 // This did not work - used multiple ID instead

@@ -35,7 +35,7 @@ foam.CLASS({
     },
 
     function link() {
-      this.attrSlot(null, this.onKey ? 'input' : null).linkFrom(this.data$)
+      this.attrSlot(null, this.onKey ? 'input' : null).linkFrom(this.data$);
     },
 
     function fromProperty(p) {

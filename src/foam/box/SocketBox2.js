@@ -20,7 +20,7 @@ foam.CLASS({
   name: 'SocketBox2',
 
   imports: [
-    'socketService',
+    'socketService'
   ],
 
   axioms: [

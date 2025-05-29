@@ -432,7 +432,7 @@ foam.CLASS({
         {
           name: 'rule',
           type: 'foam.core.ruler.Rule'
-        },
+        }
       ],
       javaCode: `
         try {

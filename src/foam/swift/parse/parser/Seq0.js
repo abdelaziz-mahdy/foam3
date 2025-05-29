@@ -12,8 +12,8 @@ foam.CLASS({
     {
       class: 'Array',
       of: 'foam.swift.parse.parser.Parser',
-      name: 'parsers',
-    },
+      name: 'parsers'
+    }
   ],
   methods: [
     {
@@ -25,8 +25,8 @@ for parser in parsers {
   if ps == nil { return nil }
 }
 return ps
-      `,
-    },
+      `
+    }
   ]
 });
 

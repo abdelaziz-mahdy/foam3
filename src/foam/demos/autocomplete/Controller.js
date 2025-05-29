@@ -1,4 +1,3 @@
-
 foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'AutoCompleter',
@@ -43,7 +42,7 @@ foam.CLASS({
           }
 
           return p.parse(this, obj);
-        }
+        };
       }
     }
   ],

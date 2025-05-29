@@ -50,10 +50,10 @@ foam.CLASS({
         this
           .enableClass(this.myClass('pill'), isPill)
           .addClass('enum-label', this.myClass())
-          .style({ 'width': 'max-content' })
+          .style({ width: 'max-content' })
           .style({
             'background-color': background,
-            'color': color,
+            color: color,
             'border-color': background.includes('#FFFFFF') || ! background ? color : background
           })
           .callIf(this.showGlyph && data.glyph, () => {

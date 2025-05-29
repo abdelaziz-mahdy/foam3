@@ -186,7 +186,7 @@ foam.CLASS({
           .forEach(p => {
             p.toCSVLabel.call(p, x, outputter);
           });
-      },
+      }
     },
     {
       name: 'javaToCSVLabel',

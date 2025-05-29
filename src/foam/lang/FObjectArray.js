@@ -45,7 +45,7 @@ foam.CLASS({
 
             // Alternative to ArraySlot.create(...).map(...), which fails here
             var l = () => {
-              val.forEach(v => { let _ = v.errors_ });
+              val.forEach(v => { let _ = v.errors_; });
               setErrors(val.map(v => v.errors_));
             };
             var subs = errorSlots.map(s => s.sub(l));
@@ -59,11 +59,11 @@ foam.CLASS({
             sub = foam.lang.FObject.create();
             var val = this[self.name];
             if ( Array.isArray(val) ) subToArray(val);
-          })
+          });
           return errors_$;
         },
         configurable: true
-      })
+      });
     }
   ],
 
@@ -113,7 +113,7 @@ foam.CLASS({
       name: 'indexFunction',
       class: 'Function',
       documentation: 'Given an FObject, should return a unique index for objects',
-      value: o => { return o.id }
+      value: o => { return o.id; }
     }
   ]
 });

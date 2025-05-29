@@ -19,7 +19,7 @@ foam.CLASS({
     'foam.u2.crunch.wizardflow.WAOSettingAgent',
     'foam.u2.crunch.wizardflow.GraphWizardletsAgent',
     'foam.u2.crunch.wizardflow.PublishToWizardletsAgent',
-    'foam.util.async.Sequence',
+    'foam.util.async.Sequence'
   ],
   properties: [
     {
@@ -94,7 +94,7 @@ foam.CLASS({
     },
 
     function createSequence_UCJ_SIMPLE (x) {
-      return this.createSequence_UCJ(x, this.WAOSettingAgent.WAOSetting.UCJ_SIMPLE)
+      return this.createSequence_UCJ(x, this.WAOSettingAgent.WAOSetting.UCJ_SIMPLE);
     }
   ]
 });

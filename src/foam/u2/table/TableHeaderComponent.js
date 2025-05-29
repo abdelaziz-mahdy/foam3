@@ -85,7 +85,7 @@ foam.CLASS({
           'align-items': 'center',
           display: 'flex',
           flex: this.slot(function(colWidth) {
-            return colWidth ? `1 0 ${colWidth}px` : `1 0 ${this.data.MIN_COLUMN_WIDTH_FALLBACK}px`
+            return colWidth ? `1 0 ${colWidth}px` : `1 0 ${this.data.MIN_COLUMN_WIDTH_FALLBACK}px`;
           }),
           'justify-content': 'space-between',
           'word-wrap': 'break-word'

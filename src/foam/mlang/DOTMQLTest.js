@@ -46,6 +46,6 @@ foam.CLASS({
         { name: 'statement',type: 'String' }
       ],
       javaCode: ``
-    },
+    }
   ]
 });

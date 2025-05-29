@@ -15,7 +15,7 @@ foam.POM({
   envs: {
     ADMIN_PASSWORD_HASH: ['Hashed admin password'],
     APP_NAME_CAP: ['Application name capitalized'],
-    MODEL_NAME_CAP: ['Model name capitalized'],
+    MODEL_NAME_CAP: ['Model name capitalized']
   },
 
   options: {
@@ -27,7 +27,7 @@ foam.POM({
     }],
     appNameLow: ['', 'app-name-low', 'APP_NAME_LOW', 'Application name with first letter lowercase. Used for directory name, spid, packages, ...', function() { return APP_NAME && APP_NAME[0].toLowerCase() + APP_NAME.substring(1); }, arg => APP_NAME_LOW = arg],
     domain: ['', 'domain', 'DOMAIN', 'Inverse package name for email', function() { return PACKAGE.split('.').reverse().join('.'); /* for email*/ }, arg => DOMAIN = arg ],
-    group: ['', 'group', 'GROUP', 'Registration group of application theme.', function() { return APP_NAME_LOW }, arg => GROUP = arg],
+    group: ['', 'group', 'GROUP', 'Registration group of application theme.', function() { return APP_NAME_LOW; }, arg => GROUP = arg],
     journalDir: ['', 'journal_dir', 'JOURNAL_DIR', 'Location of generated journal files', function() { return `deployment/${APP_NAME_LOW}`; }, arg => JOURNAL_DIR = arg],
     package: ['', 'package', 'PACKAGE', 'Source code path - typically following Java package naming conventions which takes a FQDN inverts it and drops the sub-domain. Ex: www.foamdev.com -> com.foamdev.  This will become the source directory structure under src/. For the purposes of this Project creation the result would be src/com/foamdev/APP_NAME/', function() { return APP_NAME_LOW; }, arg => PACKAGE = arg ],
     projectDir: ['', 'project-dir', 'PROJECT_DIR', 'Path to root of project to prepare. Normally this is the parent of foam3/', function() {

@@ -45,7 +45,7 @@ foam.CLASS({
         .start('span')
         .addClass(this.myClass('text'))
         .add('Sign in')
-        .end()
+        .end();
     }
   ]
 });

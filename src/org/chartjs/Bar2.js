@@ -28,7 +28,7 @@ foam.CLASS({
       name: 'chartJSOptions',
       factory: function() {
         return {};
-      },
+      }
     },
     {
       name: 'config',

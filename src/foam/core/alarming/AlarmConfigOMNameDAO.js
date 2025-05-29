@@ -13,7 +13,7 @@ foam.CLASS({
 
   javaImports: [
     'foam.dao.DAO',
-    'foam.dao.Sink',
+    'foam.dao.Sink'
   ],
 
   methods: [

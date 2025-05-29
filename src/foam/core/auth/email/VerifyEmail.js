@@ -34,7 +34,7 @@
 
   messages: [
     { name: 'CODE_INSTRUC_TITLE',       message: 'Verification code sent' },
-    { name: 'CODE_INSTRUC',             message: 'Please check your inbox to verify your email' },
+    { name: 'CODE_INSTRUC',             message: 'Please check your inbox to verify your email' }
   ],
 
 
@@ -48,7 +48,7 @@
         return this.loginVariables.identifier;
       },
       visibility: function(emailDisabled) {
-        return emailDisabled ? foam.u2.DisplayMode.DISABLED : foam.u2.DisplayMode.RW
+        return emailDisabled ? foam.u2.DisplayMode.DISABLED : foam.u2.DisplayMode.RW;
       }
     },
     {
@@ -113,7 +113,7 @@
             throw new Error('User not found.');
           }
         } else {
-          this.userNameRequired = true
+          this.userNameRequired = true;
           throw new Error('Username is required.');
         }
       }

@@ -145,7 +145,7 @@ foam.CLASS({
           get: function() {
             return function(replacementMap) {
               let parsedValue = parser.valueParserResults;
-              return parsedValue.reduce(function(ret, v) {return ret + v(replacementMap)}, '');
+              return parsedValue.reduce(function(ret, v) {return ret + v(replacementMap);}, '');
             };
           },
           configurable: true

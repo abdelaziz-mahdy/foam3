@@ -40,7 +40,7 @@ foam.CLASS({
         interp: Math.sqrt
       }).start();
     }
-  ],
+  ]
 });
 
 
@@ -294,7 +294,7 @@ foam.CLASS({
           x: 2*this.R,
           y: 2*this.R,
           width: this.canvas.width-4*this.R-1,
-          height: this.canvas.height-4*this.R-1})
+          height: this.canvas.height-4*this.R-1});
         }
     },
     {
@@ -393,7 +393,7 @@ foam.CLASS({
       var R = this.R;
       var f = this.Food.create({
         x: Math.round(1+Math.random()*(this.canvas.width -4*R)/R)*2*R,
-        y: Math.round(1+Math.random()*(this.canvas.height-4*R)/R)*2*R,
+        y: Math.round(1+Math.random()*(this.canvas.height-4*R)/R)*2*R
       });
       this.addSprite(f);
     },

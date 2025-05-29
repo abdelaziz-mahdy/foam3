@@ -68,13 +68,13 @@ foam.CLASS({
                 a.code = function (...args) {
                   self.closeDialog();
                   return action.code.call(action, ...args);
-                }
+                };
                 this.add(a);
               })
             .end()
           .end()
         .end()
       .end();
-    },
+    }
   ]
 });

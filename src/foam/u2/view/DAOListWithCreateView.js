@@ -186,7 +186,7 @@ foam.CLASS({
               ...addView,
               propertyWhitelist$: this.propertyWhitelist$
             },
-            data$: this.workingData$,
+            data$: this.workingData$
           })
             .addClass(this.myClass('createView'))
           .end();
@@ -251,7 +251,7 @@ foam.CLASS({
           view: {
             class: this.DAOBrowseControllerView,
             data$: this.dao$,
-            config: this.DAOControllerConfig.create({ dao: this.dao }),
+            config: this.DAOControllerConfig.create({ dao: this.dao })
           }, parent: this.__subContext__.createSubContext({ controllerMode: 'CREATE' }) }));
       }
     }

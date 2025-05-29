@@ -74,6 +74,6 @@ foam.CLASS({
 
         return obj;
       `
-    },
+    }
   ]
 });

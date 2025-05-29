@@ -19,7 +19,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'metadataObj',
@@ -41,7 +41,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'metadataObj',
@@ -59,7 +59,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'sheetId',
@@ -76,7 +76,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'obj',
@@ -102,7 +102,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'obj',

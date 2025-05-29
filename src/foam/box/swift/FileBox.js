@@ -9,13 +9,13 @@ foam.CLASS({
   package: 'foam.box.swift',
   implements: ['foam.box.Box'],
   requires: [
-    'foam.swift.parse.json.output.Outputter',
+    'foam.swift.parse.json.output.Outputter'
   ],
   properties: [
     {
       swiftType: 'URL',
-      name: 'path',
-    },
+      name: 'path'
+    }
   ],
   methods: [
     {
@@ -24,7 +24,7 @@ foam.CLASS({
 let str = Outputter_create().swiftStringify(msg)!
 let data = str.data(using: .utf8)!
 try data.write(to: path)
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

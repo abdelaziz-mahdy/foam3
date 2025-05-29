@@ -188,7 +188,7 @@ foam.CLASS({
           name: 'bar',
           visibility: foam.u2.DisplayMode.RW
         }
-      `,
+      `
     },
     {
       name: 'CODE_EXAMPLE_2',
@@ -205,7 +205,7 @@ foam.CLASS({
             return bar ? DisplayMode.RW : DisplayMode.HIDDEN;
           }
         }
-      `,
+      `
     },
     {
       name: 'CODE_EXAMPLE_3',
@@ -215,7 +215,7 @@ foam.CLASS({
           name: 'foo',
           visibility: foam.lang.ConstantSlot.create({ value: foam.u2.DisplayMode.RW })
         }
-      `,
+      `
     }
   ],
 
@@ -244,7 +244,7 @@ foam.CLASS({
             if ( permission.includes('.ro.') && this.permission == 'RO' ) return true;
             return this.permission == 'RW';
           }
-        }
+        };
       }
     },
     {

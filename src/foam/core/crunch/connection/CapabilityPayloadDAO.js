@@ -334,5 +334,5 @@ foam.CLASS({
         }, "Save CapabilityPayloadRecord");
       `
     }
-  ],
+  ]
 });

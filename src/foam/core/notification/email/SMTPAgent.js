@@ -47,7 +47,7 @@ foam.CLASS({
     'jakarta.mail.*',
     'jakarta.mail.internet.*',
     'jakarta.mail.util.ByteArrayDataSource',
-    'org.apache.commons.lang3.StringUtils',
+    'org.apache.commons.lang3.StringUtils'
   ],
 
   javaCode: `
@@ -148,7 +148,7 @@ foam.CLASS({
         }
         return transport;
       `
-    },
+    }
   ],
 
   methods: [
@@ -166,7 +166,7 @@ foam.CLASS({
         config.getInitialDelay(),
         config.getPollInterval()
       );
-      `,
+      `
     },
     {
       name: 'stop',

@@ -27,7 +27,7 @@ foam.INTERFACE({
     {
       name: 'RESET_CMD',
       type: 'String',
-      value: 'RESET_CMD',
+      value: 'RESET_CMD'
     },
     {
       name: 'LAST_CMD',
@@ -190,7 +190,7 @@ foam.INTERFACE({
         {
           name: 'sink',
           type: 'foam.dao.Sink',
-          swiftDefaultValue: 'foam_dao_ArraySink()',
+          swiftDefaultValue: 'foam_dao_ArraySink()'
         },
         {
           name: 'predicate',
@@ -235,7 +235,7 @@ foam.INTERFACE({
         {
           name: 'predicate',
           type: 'foam.mlang.predicate.Predicate',
-          swiftDefaultValue: 'nil',
+          swiftDefaultValue: 'nil'
         }
       ]
     },
@@ -247,7 +247,7 @@ foam.INTERFACE({
         {
           name: 'predicate',
           type: 'foam.mlang.predicate.Predicate',
-          swiftDefaultValue: 'nil',
+          swiftDefaultValue: 'nil'
         }
       ]
     },

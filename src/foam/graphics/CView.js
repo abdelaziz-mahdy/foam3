@@ -217,7 +217,7 @@ foam.CLASS({
 
       var a = p.x;
       var b = p.y;
-      var c = p.z
+      var c = p.z;
       var d = p.w;
 
       p.x = ta * a + tb * b + tc * c + td * d;
@@ -423,7 +423,7 @@ foam.CLASS({
     {
       class: 'Float',
       name: 'width',
-      shortName: 'w',
+      shortName: 'w'
     },
     {
       class: 'Float',
@@ -918,7 +918,7 @@ foam.CLASS({
     function paintSelf(x) {
       x.beginPath();
       if ( this.cornerRadius ){
-        this.roundRect(x, 0, 0, this.width, this.height, this.cornerRadius)
+        this.roundRect(x, 0, 0, this.width, this.height, this.cornerRadius);
       } else {
         x.rect(0, 0, this.width, this.height);
       }
@@ -1003,7 +1003,7 @@ foam.CLASS({
     { class: 'Float',    name: 'endY' },
     { class: 'Float',    name: 'lineWidth', value: 1 },
     { class: 'Color',    name: 'color',     value: '#000000' },
-    { class: 'IntegerArray', name: 'lineDash', documentation: 'An Array of numbers which specify distances to alternately draw lines and gaps. Full line if not set.' },
+    { class: 'IntegerArray', name: 'lineDash', documentation: 'An Array of numbers which specify distances to alternately draw lines and gaps. Full line if not set.' }
   ],
 
   methods: [
@@ -1046,7 +1046,7 @@ foam.CLASS({
       var distance = Math.sqrt(rejX * rejX + rejY * rejY);
       var pos = scalarProj;
 
-      return distance < 5 && pos > -5 && pos < (blen + 5)
+      return distance < 5 && pos > -5 && pos < (blen + 5);
 
       return false;
     }
@@ -1066,7 +1066,7 @@ foam.CLASS({
     { class: 'Array', of: 'Float', name: 'yCoordinates' }, // 'of' not used
     { class: 'foam.lang.Color', name: 'color', value: '#000' },
     { class: 'Float', name: 'lineWidth', value: 1 },
-    { class: 'IntegerArray', name: 'lineDash', documentation: 'An Array of numbers which specify distances to alternately draw lines and gaps. Full line if not set.' },
+    { class: 'IntegerArray', name: 'lineDash', documentation: 'An Array of numbers which specify distances to alternately draw lines and gaps. Full line if not set.' }
   ],
 
   methods: [
@@ -1310,7 +1310,7 @@ foam.CLASS({
     { name: 'top_',    hidden: true, transient: true, getter: function() { return this.y; } },
     { name: 'left_',   hidden: true, transient: true, getter: function() { return this.x; } },
     { name: 'bottom_', hidden: true, transient: true, getter: function() { return this.y+2*this.radiusY; } },
-    { name: 'right_',  hidden: true, transient: true, getter: function() { return this.x+2*this.radiusX; } },
+    { name: 'right_',  hidden: true, transient: true, getter: function() { return this.x+2*this.radiusX; } }
   ],
 
   methods: [

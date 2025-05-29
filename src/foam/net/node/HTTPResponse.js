@@ -28,7 +28,7 @@ foam.CLASS({
 
         var self = this;
         return new Promise(function(resolve, reject) {
-          var buffer = ""
+          var buffer = "";
           self.resp.on('data', function(d) {
             buffer += d.toString();
           });

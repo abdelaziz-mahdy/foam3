@@ -153,7 +153,7 @@ foam.CLASS({
       class: 'foam.comics.v2.namedViews.NamedViewCollection',
       name: 'Table',
       view: { class: 'foam.comics.v2.DAOBrowserView' },
-      icon: 'images/list-view.svg',
+      icon: 'images/list-view.svg'
     }
   ],
 
@@ -411,7 +411,7 @@ foam.CLASS({
       Should not be used to retrieve approval requests for a given objects
       since an object can have multiple requests of different nature. When used in conjunction with serverDaoKey,
       the daoKey is mainly used for interaction on the client such as view reference and the properties to update view.`,
-      includeInDigest: true,
+      includeInDigest: true
     },
     {
       class: 'String',
@@ -894,7 +894,7 @@ foam.CLASS({
         // This should already be filtered out by the isAvailable, but adding here as duplicate protection
         if ( self.status == foam.core.approval.ApprovalStatus.REJECTED ||
            (self.status == foam.core.approval.ApprovalStatus.APPROVED && self.operation == foam.core.dao.Operation.REMOVE) ) {
-             console.warn('Object is inaccessible')
+             console.warn('Object is inaccessible');
              return;
         }
 

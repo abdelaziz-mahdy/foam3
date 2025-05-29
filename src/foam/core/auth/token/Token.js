@@ -16,7 +16,7 @@ foam.CLASS({
   ],
 
   implements: [
-    'foam.core.auth.CreatedAware',
+    'foam.core.auth.CreatedAware'
   ],
 
   properties: [
@@ -27,7 +27,7 @@ foam.CLASS({
     {
       class: 'Reference',
       name: 'userId',
-      of: 'foam.core.auth.User',
+      of: 'foam.core.auth.User'
     },
     {
       class: 'Boolean',

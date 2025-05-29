@@ -17,8 +17,8 @@ foam.CLASS({
         var f = foam.lang.FObject.model_.swiftName;
         var o = required ? '' : '?';
         return `(${d} & ${f})${o}`;
-      },
-    },
+      }
+    }
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -41,9 +41,9 @@ _ = ${this.swiftSlotName}.sub(listener: { sub, topics in
   }
 })
 return d
-          `,
+          `
         })
-      )
-    },
-  ],
+      );
+    }
+  ]
 });

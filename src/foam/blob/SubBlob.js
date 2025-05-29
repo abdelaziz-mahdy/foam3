@@ -12,7 +12,7 @@ foam.CLASS({
   properties: [
     {
       class: 'Blob',
-      name: 'parent',
+      name: 'parent'
     },
     {
       class: 'Long',

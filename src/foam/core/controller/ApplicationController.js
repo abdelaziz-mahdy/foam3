@@ -236,7 +236,7 @@ foam.CLASS({
       }
     },
     {
-      name: 'client',
+      name: 'client'
     },
     {
       name: 'appConfig',
@@ -302,7 +302,7 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
-      name: 'isMenuOpen',
+      name: 'isMenuOpen'
     },
     {
       class: 'Boolean',
@@ -405,7 +405,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'layoutInitialized',
-      documentation: 'True if layout has been initialized.',
+      documentation: 'True if layout has been initialized.'
     },
     {
       class: 'Boolean',
@@ -623,7 +623,7 @@ foam.CLASS({
     function expandShortFormMacro(css, m) {
       /* A short-form macros is of the form %PRIMARY_COLOR%. */
       const M = m.toUpperCase();
-      var prop = m.startsWith('DisplayWidth') ? m + '.minWidthString' : m
+      var prop = m.startsWith('DisplayWidth') ? m + '.minWidthString' : m;
       var val = this.theme ? foam.util.path(this.theme, prop, false) : undefined;
 
       // NOTE: We add a negative lookahead for */, which is used to close a
@@ -643,7 +643,7 @@ foam.CLASS({
     function expandLongFormMacro(css, m) {
       // A long-form macros is of the form "/*%PRIMARY_COLOR%*/ blue".
       const M = m.toUpperCase();
-      var prop = m.startsWith('DisplayWidth') ? m + '.minWidthString' : m
+      var prop = m.startsWith('DisplayWidth') ? m + '.minWidthString' : m;
       var val = this.theme ? foam.util.path(this.theme, prop, false) : undefined;
       return val ? css.replace(
         new RegExp('/\\*%' + M + '%\\*/[^);!]*', 'g'),
@@ -737,7 +737,7 @@ foam.CLASS({
       for ( menuId in menuArray ) {
         menu = await dao.find(menuArray[menuId]);
         if ( menu ) break;
-      };
+      }
       return menu;
     },
 
@@ -863,7 +863,7 @@ foam.CLASS({
       if ( ! hash || hash == 'null' /* How does it even get set to null? */ ) {
         await this.pushDefaultMenu();
       } else if ( hash != this.currentMenu?.id || this.currentMenu.authorizationStatus == this.AuthorizationStatus.UNAUTHENTICATED ) {
-        this.routeUpdated()
+        this.routeUpdated();
       }
       this.initLayout.resolve();
 
@@ -937,7 +937,7 @@ foam.CLASS({
     },
 
     function subToNotifications() {
-      let unsub = () => { this.notificationSub?.detach(); this.notificationSub = undefined; }
+      let unsub = () => { this.notificationSub?.detach(); this.notificationSub = undefined; };
       if ( this.notificationSub ) unsub();
       this.notificationSub =  this.__subContext__.myNotificationDAO?.on.put.sub(this.displayToastMessage.bind(this));
       this.clientReloading.sub(unsub);
@@ -1063,7 +1063,7 @@ foam.CLASS({
       for ( var i = 0; i < menuDAOs.length; i++ ) {
         var result = await menuDAOs[i].handler.config_.dao.find(id);
         if ( result ) {
-          this.routeTo(menuDAOs[i].id + (id ? '/' + id : ''))
+          this.routeTo(menuDAOs[i].id + (id ? '/' + id : ''));
           return;
         }
           // TODO: add support for being able to pick if multiple menus have the same obj

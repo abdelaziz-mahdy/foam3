@@ -37,5 +37,5 @@ foam.CLASS({
       }
       this.rootCapability = this.unadaptedRootCapability;
     }
-  ],
+  ]
 });

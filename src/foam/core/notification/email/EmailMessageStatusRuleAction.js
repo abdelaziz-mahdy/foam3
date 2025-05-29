@@ -13,7 +13,7 @@ foam.CLASS({
 
   javaImports: [
     'foam.core.notification.email.EmailMessage',
-    'foam.core.notification.email.Status',
+    'foam.core.notification.email.Status'
   ],
 
   methods: [

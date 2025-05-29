@@ -15,15 +15,15 @@ foam.CLASS({
     'foam.swift.SwiftClass',
     'foam.swift.EmptyClass',
     'foam.swift.Field',
-    'foam.swift.Method',
+    'foam.swift.Method'
   ],
   imports: [
-    'classloader',
+    'classloader'
   ],
   properties: [
     {
       class: 'StringArray',
-      name: 'models',
+      name: 'models'
     },
     {
       name: 'coreModels',
@@ -68,8 +68,8 @@ foam.CLASS({
         'foam.swift.parse.parser.Seq',
         'foam.swift.parse.parser.Seq0',
         'foam.swift.parse.parser.Seq2',
-        'foam.swift.parse.parser.Substring',
-      ],
+        'foam.swift.parse.parser.Substring'
+      ]
     },
     {
       name: 'blacklist',
@@ -81,17 +81,17 @@ foam.CLASS({
         'foam.dao.index.TreeIndex',
         'foam.swift.SwiftClass',
         'foam.swift.Method',
-        'foam.swift.Field',
-      ],
+        'foam.swift.Field'
+      ]
     },
     {
       class: 'String',
-      name: 'outdir',
+      name: 'outdir'
     },
     {
       name: 'fs',
       factory: function() { return require('fs'); }
-    },
+    }
   ],
   methods: [
     function execute() {
@@ -111,7 +111,7 @@ foam.CLASS({
             map(awrap(self.classloader.load.bind(self.classloader))),
             value(self.coreModels.concat(self.models))
           )
-        )
+        );
       }
 
       return p.then(function() {
@@ -151,19 +151,19 @@ foam.CLASS({
         }
         var regClass = self.SwiftClass.create({
           type: 'extension',
-          name: 'FOAM_utils',
+          name: 'FOAM_utils'
         });
         regClass.methods.push(self.Method.create({
           name: 'registerClasses',
           args: [
             foam.swift.Argument.create({
               localName: 'x',
-              type: 'Context',
+              type: 'Context'
             })
           ],
           static: true,
           body: classes.map(function(c) {
-            return 'x.registerClass(cls: '+c+'.classInfo())'
+            return 'x.registerClass(cls: '+c+'.classInfo())';
           }).join('\n')
         }));
         var fileName = self.outdir + sep + 'RegisterClasses.swift';

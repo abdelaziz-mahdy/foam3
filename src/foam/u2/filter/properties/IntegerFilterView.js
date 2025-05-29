@@ -12,7 +12,7 @@ foam.CLASS({
   documentation: 'Filter view for integers.',
 
   implements: [
-    'foam.mlang.Expressions',
+    'foam.mlang.Expressions'
   ],
 
   css: `

@@ -8,13 +8,13 @@ foam.CLASS({
   package: 'foam.swift.parse.json.output',
   name: 'Outputter',
   requires: [
-    'foam.json2.Outputter',
+    'foam.json2.Outputter'
   ],
   constants: [
     {
       name: 'DEFAULT',
       type: 'foam.swift.parse.json.output.Outputter',
-      swiftFactory: `return Context.GLOBAL.create(foam_swift_parse_json_output_Outputter.self)!`,
+      swiftFactory: `return Context.GLOBAL.create(foam_swift_parse_json_output_Outputter.self)!`
     },
     {
       name: 'PRETTY',
@@ -28,8 +28,8 @@ return x.create(foam_swift_parse_json_output_Outputter.self, args: [
     ])!
   }
 ])!
-      `,
-    },
+      `
+    }
   ],
   properties: [
     {
@@ -38,7 +38,7 @@ return x.create(foam_swift_parse_json_output_Outputter.self, args: [
       name: 'outputterFactory',
       swiftValue: `{ (x: Context) -> foam_json2_Outputter in
         return x.create(foam_json2_Outputter.self)!
-      }`,
+      }`
     },
     {
       swiftType: '((foam_core_FObject, PropertyInfo) -> Bool)',
@@ -46,8 +46,8 @@ return x.create(foam_swift_parse_json_output_Outputter.self, args: [
       name: 'propertyPredicate',
       swiftValue: `{ (_: foam_core_FObject, p: PropertyInfo) -> Bool in
         return !p.transient
-      }`,
-    },
+      }`
+    }
   ],
   methods: [
     {
@@ -55,12 +55,12 @@ return x.create(foam_swift_parse_json_output_Outputter.self, args: [
       args: [
         {
           type: 'foam.json2.Outputter',
-          name: 'out',
+          name: 'out'
         },
         {
           swiftType: 'Any?',
-          name: 'data',
-        },
+          name: 'data'
+        }
       ],
       swiftCode: `
 let out = out!
@@ -111,19 +111,19 @@ if let data = data as? JSONOutputter {
   NSLog("Unable to output %@", (data as AnyObject).description)
   _ = out.nul()
 }
-      `,
+      `
     },
     {
       name: 'outputFObject',
       args: [
         {
           type: 'foam.json2.Outputter',
-          name: 'out',
+          name: 'out'
         },
         {
           type: 'FObject',
-          name: 'data',
-        },
+          name: 'data'
+        }
       ],
       swiftCode: `
 let data = data!
@@ -142,7 +142,7 @@ for p in info.axioms(byType: PropertyInfo.self) {
 }
 
 _ = out.end()
-      `,
+      `
     },
     {
       // Can't call it stringify because that method is actually inherited so
@@ -151,15 +151,15 @@ _ = out.end()
       args: [
         {
           type: 'FObject',
-          name: 'data',
-        },
+          name: 'data'
+        }
       ],
       type: 'String',
       swiftCode: `
 let s = outputterFactory(__subContext__)
 output(s, data)
 return s.out.output()
-      `,
-    },
+      `
+    }
   ]
 });

@@ -40,7 +40,7 @@ foam.CLASS({
           class: 'foam.mlang.predicate.PredicateProperty',
           name: 'predicate'
         }
-      ],
+      ]
     }
   ],
 

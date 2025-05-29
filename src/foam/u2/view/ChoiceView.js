@@ -322,7 +322,7 @@ foam.CLASS({
         var dao = this.dao;
         if ( ! foam.dao.DAO.isInstance(this.dao) ) return;
 
-        var of = this.dao.of
+        var of = this.dao.of;
         if ( of._CHOICE_TEXT_ ) {
           dao.select(this.PROJECTION(of.ID, of._CHOICE_TEXT_)).then((s) => {
             if ( seq !== self.seq_ ) return; // stale select
@@ -372,5 +372,5 @@ foam.CLASS({
         });
       }
     }
-  ],
+  ]
 });

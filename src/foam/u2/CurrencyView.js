@@ -35,7 +35,7 @@ foam.CLASS({
 
     function textToData(text) {
       const delim = new RegExp((this.curr_?.delimiter ?? ','), 'g');
-      let plainText = text.replace(delim, '')
+      let plainText = text.replace(delim, '');
       plainText = 
         ! this.hideSymbol && this.curr_.symbol && plainText.startsWith(this.curr_.symbol) ?
         plainText.substring(1) :

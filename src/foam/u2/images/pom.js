@@ -1,3 +1,3 @@
 foam.POM({
   name:'images'
-})
+});

@@ -31,7 +31,7 @@ foam.CLASS({
       of: 'foam.layout.Section',
       expression: function (wizardlet$of, modelSectionName) {
         var sections = this.AbstractSectionedDetailView.create({
-          of: wizardlet$of,
+          of: wizardlet$of
         }, this).sections;
         return sections.find(s => s.name == modelSectionName) || null;
       },
@@ -152,7 +152,7 @@ foam.CLASS({
       });
 
       if ( this.customView ) {
-        let vs = { ...this.customView, data$: this.wizardlet.data$ }
+        let vs = { ...this.customView, data$: this.wizardlet.data$ };
         return this.ViewSpec.createView( (this.border ? { ...this.border, children: [ vs ] } : vs) , {}, this, ctx);
       }
 

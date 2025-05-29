@@ -160,7 +160,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'createFile',
       documentation: 'Flag to create file if not present',
-      value: true,
+      value: true
     },
     // reader uses a getter because we want a new reader on file replay
     {

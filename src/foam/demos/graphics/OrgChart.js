@@ -172,7 +172,7 @@ foam.CLASS({
             team: e[1],
             title: e[2],
             salary: e[3] ? Number.parseInt(e[3]) : 0
-          }
+          };
         }
 
         return es;

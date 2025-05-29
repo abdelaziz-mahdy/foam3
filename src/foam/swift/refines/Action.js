@@ -11,44 +11,44 @@ foam.CLASS({
   flags: ['swift'],
   requires: [
     'foam.swift.Field',
-    'foam.swift.Method',
+    'foam.swift.Method'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftName',
-      expression: function(name) { return name; },
+      expression: function(name) { return name; }
     },
     {
       class: 'String',
-      name: 'swiftCode',
+      name: 'swiftCode'
     },
     {
       class: 'String',
       name: 'swiftAxiomName',
       expression: function(name) {
         return foam.String.constantize(name);
-      },
+      }
     },
     {
       class: 'String',
       name: 'swiftPrivateAxiomName',
-      expression: function(swiftName) { return '_' + foam.String.constantize(swiftName) + '_'; },
+      expression: function(swiftName) { return '_' + foam.String.constantize(swiftName) + '_'; }
     },
     {
       class: 'String',
       name: 'swiftSlotName',
-      expression: function(swiftName) { return swiftName + '$'; },
+      expression: function(swiftName) { return swiftName + '$'; }
     },
     {
       name: 'code',
-      value: function() {},
+      value: function() {}
     },
     {
       class: 'Boolean',
       name: 'swiftSupport',
-      expression: function(swiftCode) { return !!swiftCode },
-    },
+      expression: function(swiftCode) { return !!swiftCode; }
+    }
   ],
   methods: [
     function writeToSwiftClass(cls, parentCls) {
@@ -58,12 +58,12 @@ foam.CLASS({
         lazy: true,
         name: this.swiftSlotName,
         initializer: this.slotInit(),
-        type: 'foam_swift_core_Slot',
+        type: 'foam_swift_core_Slot'
       }));
       cls.methods.push(this.Method.create({
         name: this.swiftName,
         body: this.swiftCode,
-        visibility: 'public',
+        visibility: 'public'
       }));
       cls.fields.push(this.Field.create({
         visibility: 'public',
@@ -71,16 +71,16 @@ foam.CLASS({
         final: true,
         name: this.swiftPrivateAxiomName,
         type: 'ActionInfo',
-        initializer: this.swiftAxiomInit(parentCls),
+        initializer: this.swiftAxiomInit(parentCls)
       }));
       cls.methods.push(this.Method.create({
         visibility: 'public',
         class: true,
         name: this.swiftAxiomName,
         returnType: 'MethodInfo',
-        body: 'return ' + this.swiftPrivateAxiomName,
+        body: 'return ' + this.swiftPrivateAxiomName
       }));
-    },
+    }
   ],
   templates: [
     {
@@ -97,7 +97,7 @@ class ActionInfo_: ActionInfo {
   }
 }
 return ActionInfo_()
-      `,
+      `
     },
     {
       name: 'slotInit',
@@ -109,7 +109,7 @@ return foam_swift_core_ConstantSlot([
     return self!.\`<%=this.swiftName%>\`()
   }
 ])
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

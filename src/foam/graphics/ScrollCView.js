@@ -206,6 +206,6 @@ foam.CLASS({
         // prevents highlighting of other elements while scrolling
         touch.claimed = true;
       }
-    },
+    }
   ]
 });

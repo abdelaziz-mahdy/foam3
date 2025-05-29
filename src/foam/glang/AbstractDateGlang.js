@@ -11,7 +11,7 @@ foam.CLASS({
   abstract: true,
 
   requires: [
-    'foam.mlang.IdentityExpr',
+    'foam.mlang.IdentityExpr'
   ],
 
   implements: [
@@ -23,7 +23,7 @@ foam.CLASS({
     {
       class: 'foam.mlang.ExprProperty',
       name: 'delegate',
-      factory: function() { return this.IdentityExpr.create() }
+      factory: function() { return this.IdentityExpr.create(); }
     }
   ],
 

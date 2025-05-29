@@ -15,7 +15,7 @@ foam.CLASS({
     'foam.core.ndiff.NDiffDAO',
     'foam.dao.DAO',
     'foam.dao.AbstractF3FileJournal',
-    'foam.util.SafetyUtil',
+    'foam.util.SafetyUtil'
   ],
   properties: [
     {
@@ -23,7 +23,7 @@ foam.CLASS({
       class: 'String',
       documentation: `
         The name of the originating CSpec.
-        `,
+        `
     },
     {
       name: 'runtimeOrigin',
@@ -31,8 +31,8 @@ foam.CLASS({
       documentation: `
         If true, this entry was fed in at runtime, rather
         than from one of the repo journals.
-        `,
-    },
+        `
+    }
   ],
   methods: [
     {
@@ -67,7 +67,7 @@ foam.CLASS({
                     "runtimeOrigin",
                     runtimeOrigin,
                     "Done");
-        `,
-    },
-  ],
+        `
+    }
+  ]
 });

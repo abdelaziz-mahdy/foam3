@@ -43,7 +43,7 @@ foam.CLASS({
 if let oldValue = oldValue as? foam_box_SkeletonBox {
   oldValue.clearProperty("data")
 }
-       `,
+       `
     }
   ],
 
@@ -57,7 +57,7 @@ self.onDetach(Subscription(detach: {
   }
 }))
      `,
-      code: function() { this.SUPER() },
+      code: function() { this.SUPER(); }
     },
     {
       name: 'send',

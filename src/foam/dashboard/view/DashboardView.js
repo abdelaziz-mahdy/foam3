@@ -137,15 +137,15 @@ foam.CLASS({
         .style({ height: '2em' })
         .add(this.dashboardTitle)
       .end()
-      .tag(widgetContainer)
+      .tag(widgetContainer);
 
-      let menuArray = Object.keys(this.widgets)
-      let menuLength = menuArray.length
+      let menuArray = Object.keys(this.widgets);
+      let menuLength = menuArray.length;
       for(let step = 0; step < menuLength; step++) {
 
           let menuId = menuArray[step];
           let menu = await this.menuDAO.find(menuId);
-          if (! await menu?.readPredicate.f(menu)) {menu = null}
+          if (! await menu?.readPredicate.f(menu)) {menu = null;}
           if ( menu ) {
             widgetContainer.startContext().start(menu.handler.view).style({
               'grid-column': this.containerMap$.map(v => {
@@ -155,7 +155,7 @@ foam.CLASS({
           } else {
             delete this.widgets[menuId];
           }
-      };
+      }
 
       this.updateCols();
       this.containerWidth$.sub(this.updateCols);
@@ -172,7 +172,7 @@ foam.CLASS({
         let cw = this.containerWidth;
         let currentWidgetSet = 0;
         let widgetSetCount = 0;
-        let cm = {}
+        let cm = {};
         Object.keys(this.widgets).forEach(v => {
           let colConfig = this.widgets[v];
           let col = colConfig[`${cw}Column`] ?? colConfig['column'];
@@ -188,7 +188,7 @@ foam.CLASS({
             widgetSetCount = 0;
             cm[v] = 'span ' + col;
           }
-        })
+        });
         this.containerMap = cm;
       }
     }

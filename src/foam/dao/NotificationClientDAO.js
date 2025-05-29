@@ -77,7 +77,7 @@ return sink
       },
       javaCode: 'return super.cmd_(null, obj);',
       swiftCode: 'return try super.cmd_(nil, obj)'
-    },
+    }
     // TODO/REVIEW: ?
     // {
     //   name: 'listen_',

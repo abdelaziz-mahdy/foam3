@@ -23,7 +23,7 @@ foam.CLASS({
   requires: [
     {
       flags: ['js'],
-      path: 'foam.box.RawSocketBox',
+      path: 'foam.box.RawSocketBox'
     }
   ],
 

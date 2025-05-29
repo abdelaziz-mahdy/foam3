@@ -74,13 +74,13 @@ foam.CLASS({
         }
 
         if ( foam.String.isInstance(s) ) {
-          p.class = 'String'
+          p.class = 'String';
         } else if ( foam.Date.isInstance(s) ) {
-          p.class = 'Date'
+          p.class = 'Date';
         } else if ( foam.Number.isInstance(s) ) {
-          p.class = 'Int'
+          p.class = 'Int';
         } else if ( foam.Boolean.isInstance(s) ) {
-          p.class = 'Boolean'
+          p.class = 'Boolean';
         } else if ( foam.Object.isInstance(s) ) {
           // TODO: handle nested objects
           p.class = 'FObjectProperty';

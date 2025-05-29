@@ -27,7 +27,7 @@ foam.CLASS({
     'foam.box.LoggedLookupContext',
     {
       path: 'foam.net.WebSocketService',
-      flags: ['js'],
+      flags: ['js']
     }
   ],
 
@@ -70,7 +70,7 @@ foam.CLASS({
 return __context__.lookup("foam.swift.net.SocketService")!.create(args: [
   "delegate$": registry$,
 ], x: __subContext__)
-      `,
+      `
     },
     {
       name: 'webSocketService',
@@ -89,7 +89,7 @@ return __context__.lookup("foam.swift.net.SocketService")!.create(args: [
       factory: function() {
         return this.BoxRegistryBox.create();
       },
-      swiftFactory: 'return BoxRegistryBox_create()',
+      swiftFactory: 'return BoxRegistryBox_create()'
     },
     {
       class: 'FObjectProperty',
@@ -99,7 +99,7 @@ return __context__.lookup("foam.swift.net.SocketService")!.create(args: [
       postSet: function(_, root) {
         foam.box.NamedBox.create({ name: '' }).delegate = root;
       },
-      swiftPostSet: 'NamedBox_create(["name": ""]).delegate = newValue!',
+      swiftPostSet: 'NamedBox_create(["name": ""]).delegate = newValue!'
     },
     {
       class: 'String',
@@ -124,7 +124,7 @@ return __context__.lookup("foam.swift.net.SocketService")!.create(args: [
         let me = NamedBox_create(["name": self.myname])
         me.delegate = self.registry!
         return me
-      `,
+      `
     },
     {
       class: 'Boolean',
@@ -155,7 +155,7 @@ return __context__.lookup("foam.swift.net.SocketService")!.create(args: [
 return ClassWhitelistContext_create([
   "whitelist$": classWhitelist$,
 ]).__subContext__
-      `,
+      `
     }
   ]
 });

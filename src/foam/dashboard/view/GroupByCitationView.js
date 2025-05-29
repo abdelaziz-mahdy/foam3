@@ -68,7 +68,7 @@
         .startContext({ data : this })
           .tag(this.CLICK, { 
             label: this.E().addClass(this.myClass('row-label')).start().add(label).end().start().add(count).end(),
-            buttonStyle: foam.u2.ButtonStyle.UNSTYLED,
+            buttonStyle: foam.u2.ButtonStyle.UNSTYLED
           })
         .endContext();
     }

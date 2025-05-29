@@ -63,7 +63,7 @@ foam.CLASS({
     [ 'height', 800 ],
     'heightFactor',
     'lean', 'myCss',
-    { name: 'maxLvl', value: 11 },
+    { name: 'maxLvl', value: 11 }
   ],
 
   methods: [

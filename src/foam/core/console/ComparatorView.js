@@ -53,6 +53,6 @@ foam.CLASS({
   ],
 
   listeners: [
-  ],
+  ]
 
 });

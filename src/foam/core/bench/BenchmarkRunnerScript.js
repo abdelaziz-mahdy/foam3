@@ -22,7 +22,7 @@ foam.CLASS({
     'foam.core.logger.LogLevelFilterLogger',
     'foam.core.logger.Logger',
     'foam.util.SafetyUtil',
-    'java.util.*',
+    'java.util.*'
   ],
 
   constants: [

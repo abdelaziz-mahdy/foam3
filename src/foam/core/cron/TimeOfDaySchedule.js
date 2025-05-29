@@ -22,7 +22,7 @@ foam.CLASS({
   javaImports: [
     'foam.lang.X',
     'java.time.*',
-    'static foam.util.DateUtil.*',
+    'static foam.util.DateUtil.*'
   ],
 
   properties: [

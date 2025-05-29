@@ -64,7 +64,7 @@ foam.CLASS({
       name: 'remaining',
       hidden: true,
       units: 'seconds',
-      preSet: function(_, n) { return Math.max(0, n) },
+      preSet: function(_, n) { return Math.max(0, n); },
       swiftPreSet: 'return max(0, newValue)',
       swiftPostSet: `
 if newValue == 0 {
@@ -107,7 +107,7 @@ self.seconds$ = t.time$.map({ t in
   return t/1000
 })
 return t
-      `,
+      `
     },
     {
       class: 'FObjectProperty',
@@ -137,7 +137,7 @@ remaining$ = ExpressionSlot([
     return (args[1] as! Int) - (args[0] as! Int)
   },
 ])
-      `,
+      `
     }
   ],
 
@@ -157,7 +157,7 @@ remaining$ = ExpressionSlot([
 t.roundLength = t.setupTime
 t.roundStart = t.seconds
 t.action = "Warmup"
-          `,
+          `
         },
         {
           name: 'next',
@@ -168,8 +168,8 @@ t.action = "Warmup"
           swiftCode: `
 t.state = t.Work_create();
 t.state.start(t);
-          `,
-        },
+          `
+        }
       ]
     },
     {
@@ -177,8 +177,8 @@ t.state.start(t);
       messages: [
         {
           name: 'action_string',
-          message: 'WORK!',
-        },
+          message: 'WORK!'
+        }
       ],
       implements: ['TabataState'],
       methods: [
@@ -193,7 +193,7 @@ t.state.start(t);
 t.roundLength = t.workTime
 t.roundStart = t.seconds
 t.action = type(of: self).action_string
-          `,
+          `
         },
         {
           name: 'next',
@@ -217,8 +217,8 @@ if t.currentRound >= t.rounds + 1 {
   t.state = t.Rest_create()
 }
 t.state.start(t);
-          `,
-        },
+          `
+        }
       ]
     },
     {
@@ -227,8 +227,8 @@ t.state.start(t);
       messages: [
         {
           name: 'action_string',
-          message: 'Rest',
-        },
+          message: 'Rest'
+        }
       ],
       methods: [
         {
@@ -242,7 +242,7 @@ t.state.start(t);
 t.roundLength = t.restTime
 t.roundStart = t.seconds
 t.action = type(of: self).action_string
-          `,
+          `
         },
         {
           name: 'next',
@@ -253,8 +253,8 @@ t.action = type(of: self).action_string
           swiftCode: `
 t.state = t.Work_create();
 t.state.start(t);
-          `,
-        },
+          `
+        }
       ]
     },
     {
@@ -263,8 +263,8 @@ t.state.start(t);
       messages: [
         {
           name: 'action_string',
-          message: 'Finished',
-        },
+          message: 'Finished'
+        }
       ],
       methods: [
         {
@@ -280,13 +280,13 @@ t.action = type(of: self).action_string
 t.roundLength = 0;
 t.roundStart = t.seconds;
 t.stop()
-          `,
+          `
         },
         {
           name: 'next',
           code: function(t) {},
-          swiftCode: '// Finished!',
-        },
+          swiftCode: '// Finished!'
+        }
       ]
     }
   ],
@@ -306,7 +306,7 @@ state.start(self)
     {
       name: 'stop',
       code: function() { this.timer.stop(); },
-      swiftCode: 'timer.stop()',
+      swiftCode: 'timer.stop()'
     },
     {
       name: 'reset',

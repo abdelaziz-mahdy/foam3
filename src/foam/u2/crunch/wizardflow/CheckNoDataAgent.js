@@ -53,7 +53,7 @@ foam.CLASS({
         });
         var updateJunctionPromises = filteredCapabilitiesNeeded.map(capa => {
           return this.crunchService.updateJunction(null, capa.id, null, null);
-        })
+        });
 
         this.submitted = true;
         this.sequence.endSequence();
@@ -80,7 +80,7 @@ foam.CLASS({
         if ( Array.isArray(capa) ){
           shouldOpen = this.shouldOpenCapabilitiesArray(capa) ? true : shouldOpen;
         }
-      })
+      });
 
       return shouldOpen;
     }

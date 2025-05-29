@@ -80,7 +80,7 @@ foam.CLASS({
         for ( delegate of n ) {
           this.onDetach(delegate.isValid$.sub(x => {
             this.delegateValidationToggle = ! this.delegateValidationToggle;
-          }))
+          }));
         }
       }
     },
@@ -96,12 +96,12 @@ foam.CLASS({
       },
       factory: function () {
         var sections = foam.u2.detail.AbstractSectionedDetailView.create({
-          of: this.of,
+          of: this.of
         }, this).sections.map(section => this.WizardletSection.create({
           section: section,
           wizardlet: this,
           isAvailable$: section.createIsAvailableFor(
-            this.data$,
+            this.data$
           )
         }));
 

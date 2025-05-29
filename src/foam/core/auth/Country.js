@@ -51,7 +51,7 @@ foam.CLASS({
       name: 'nativeName',
       shortName: 'native',
       factory: function() {
-        return this.name
+        return this.name;
       }
     },
     {

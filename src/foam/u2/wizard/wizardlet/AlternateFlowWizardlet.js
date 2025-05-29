@@ -52,7 +52,7 @@ foam.CLASS({
         var choices = this.choices.map(alternateFlow => {
           var action = this.AlternateFlowAction.create({ alternateFlow });
           if ( alternateFlow.canSkipData ) {
-            action.isEnabled = function(isLoading_) { return !isLoading_ };
+            action.isEnabled = function(isLoading_) { return !isLoading_; };
           }
           return action;
         });

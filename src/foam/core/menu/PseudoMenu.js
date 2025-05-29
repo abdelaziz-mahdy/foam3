@@ -44,7 +44,7 @@ foam.CLASS({
     },
     {
       name: 'view',
-      factory: function() { return 'foam.core.menu.PseudoMenuView' }
+      factory: function() { return 'foam.core.menu.PseudoMenuView'; }
     }
   ]
 });

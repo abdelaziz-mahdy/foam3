@@ -134,12 +134,12 @@ foam.CLASS({
           class: 'foam.u2.view.ChoiceView',
           choices$: choices,
           data$: X.data.frequency$
-        }
+        };
       },
       gridColumns: 6,
       visibility: function(repeat) {
         if ( repeat < 1 ) {
-          return foam.u2.DisplayMode.DISABLED};
+          return foam.u2.DisplayMode.DISABLED;}
         return foam.u2.DisplayMode.RW;
       },
       tableCellFormatter: function(value) {
@@ -164,7 +164,7 @@ foam.CLASS({
       name: 'dayOfWeek',
       label: 'On',
       view: {
-        class: 'foam.u2.view.DayOfWeekView',
+        class: 'foam.u2.view.DayOfWeekView'
       },
       validateObj: function(frequency, dayOfWeek) {
         if ( frequency != this.TimeUnit.WEEK ) return;
@@ -296,7 +296,7 @@ foam.CLASS({
       hidden: true,
       visibility: function(repeat) {
         if ( repeat < 1 ) {
-          return foam.u2.DisplayMode.HIDDEN};
+          return foam.u2.DisplayMode.HIDDEN;}
         return foam.u2.DisplayMode.RW;
       }
     },
@@ -562,7 +562,7 @@ foam.CLASS({
     },
 
     function clearHours() {
-      for ( var i = 0; i < arguments.length; i++ ) { arguments[i].setHours(0, 0, 0, 0) }
+      for ( var i = 0; i < arguments.length; i++ ) { arguments[i].setHours(0, 0, 0, 0); }
     },
 
     // Helper function for calculateNextMonth_()
@@ -604,7 +604,7 @@ foam.CLASS({
     */
     function getLastInMonth_(date, weekDayVal) {
       let year = date.getFullYear();
-      let month = date.getMonth() + 1// getMonth() starts with 0
+      let month = date.getMonth() + 1;// getMonth() starts with 0
       date = new Date(year, month, 1);
       // Subtract dateDiff from the first day of the next month
       // e.g., date(Jan 1 2023) - dateDiff(6) = Dec 26 2022
@@ -933,7 +933,7 @@ foam.CLASS({
     {
       name: 'getEndDate',
       code: function() {
-        return this.ends + ' ' + ( this.ends == this.ScheduleEnd.ON ? this.ENDS_ON.format(this.endsOn) : this.endsAfter )
+        return this.ends + ' ' + ( this.ends == this.ScheduleEnd.ON ? this.ENDS_ON.format(this.endsOn) : this.endsAfter );
       }
     },
     {

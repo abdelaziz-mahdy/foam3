@@ -46,6 +46,6 @@ foam.CLASS({
       swiftCode: `
         return try self.delegate.removeAll_(x, skip, limit, order ?? self.comparator ?? nil, predicate);
       `
-    },
+    }
   ]
 });

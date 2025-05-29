@@ -31,5 +31,5 @@ foam.CLASS({
       this.prop = p;
       this.SUPER(p);
     }
-  ],
+  ]
 });

@@ -14,7 +14,7 @@ foam.CLASS({
   cssTokens: [
     {
       name: 'sidebarBoxShadow',
-      value: '1px 1px 7px 0px rgba(209, 217, 230, 0.60)',
+      value: '1px 1px 7px 0px rgba(209, 217, 230, 0.60)'
     },
     {
       name: 'borderColor',
@@ -159,7 +159,7 @@ foam.CLASS({
           this.onDetach(resize.disconnect());
           this.headerSlot_?.el().then(el => {
             resize.observe(el);
-          })
+          });
           return e
             .addClass(this.myClass('header'))
             // Fix this
@@ -184,7 +184,7 @@ foam.CLASS({
           return this.E()
             .add(mainView)
             .addClass(this.myClass('stack-view'));
-        }))
+        }));
 
       // TODO: Maybe add footer support if needed
     }
@@ -207,9 +207,9 @@ foam.CLASS({
       },
     function maybeCloseNav() {
       if (this.displayWidth.ordinal <= this.DisplayWidth.MD.ordinal) {
-        this.isMenuOpen = false
+        this.isMenuOpen = false;
       } else if ( this.displayWidth.ordinal >= this.DisplayWidth.MD.ordinal && this.prefersMenuOpen === true) {
-        this.isMenuOpen = true
+        this.isMenuOpen = true;
       }
     },
     function adjustTopBarHeight() {
@@ -217,7 +217,7 @@ foam.CLASS({
       let root = this.document.documentElement;
       this.headerSlot_.el().then(el => {
         root?.style.setProperty('--topbar-height', el.offsetHeight + 'px' );
-      })
+      });
     }
   ]
 });

@@ -23,5 +23,5 @@ foam.CLASS({
   documentation: `Handler that receives its pathname from a PathnameRoute (or
       similar) export.`,
 
-  imports: [ 'pathname?' ],
+  imports: [ 'pathname?' ]
 });

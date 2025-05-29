@@ -102,7 +102,7 @@ foam.CLASS({
           isAvailable$: X.data.passwordAvailable$,
           autocomplete: 'new-password',
           passwordIcon: true
-        }
+        };
       },
       validationPredicates: [
         {

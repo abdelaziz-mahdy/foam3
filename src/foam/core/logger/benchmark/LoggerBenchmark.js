@@ -20,7 +20,7 @@ foam.CLASS({
       name: 'savedMode',
       class: 'Enum',
       of: 'foam.core.app.Mode'
-    },
+    }
   ],
 
   methods: [
@@ -30,7 +30,7 @@ foam.CLASS({
         {
           name: 'x',
           type: 'X'
-        },
+        }
       ],
       javaCode: `
       AppConfig config = (AppConfig) x.get("appConfig");
@@ -45,7 +45,7 @@ foam.CLASS({
         {
           name: 'x',
           type: 'X'
-        },
+        }
       ],
       javaCode: `
     AppConfig config = (AppConfig) x.get("appConfig");

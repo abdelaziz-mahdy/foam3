@@ -51,4 +51,4 @@ foam.CLASS({
       return navigator.userAgent.includes("Chrome") && navigator.vendor.includes("Google Inc");
     }
   ]
-})
+});

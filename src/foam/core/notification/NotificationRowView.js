@@ -145,7 +145,7 @@
         },
         confirmationRequired: function() {
           return true;
-        },
+        }
       },
       {
         name: 'hideNotificationType',

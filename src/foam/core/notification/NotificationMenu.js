@@ -14,8 +14,8 @@ foam.CLASS({
                return !localStorage.getItem('refusedNotification') && 
                   (await o.__subContext__.pushRegistryAgent.currentState.promise) === 'DEFAULT';
                }
-            }, this)
+            }, this);
          }
       }
-   ],
-})
+   ]
+});

@@ -15,7 +15,7 @@ foam.CLASS({
       value: {
         class: 'foam.u2.DetailView'
       }
-    },
+    }
   ],
   methods: [
     function render() {
@@ -28,7 +28,7 @@ foam.CLASS({
             .startContext({ controllerMode: foam.u2.ControllerMode.VIEW })
               .tag(detailView, { data: d })
             .endContext();
-        })
+        });
       }));
     }
   ]

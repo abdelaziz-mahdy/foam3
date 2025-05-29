@@ -89,7 +89,7 @@ foam.CLASS({
 
       var generalQueryView = foam.u2.ViewSpec.createView(
         {
-          class: 'foam.u2.search.TextSearchView',
+          class: 'foam.u2.search.TextSearchView'
         },
         {
           richSearch: true,

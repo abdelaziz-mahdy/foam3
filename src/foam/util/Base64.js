@@ -34,7 +34,7 @@ foam.LIB({
 
       for (let i = 0; i < str.length; i++) {
 	// Find index in either base64 or URL-safe base64 alphabet
-	var b = this.BASE_64_LOOKUP[str[i]]
+	var b = this.BASE_64_LOOKUP[str[i]];
 	if (foam.Undefined.isInstance(b)) {
 	  continue;
 	}

@@ -233,7 +233,7 @@ foam.CLASS({
 
   requires: [
     'foam.lang.Import',
-    'foam.lang.Export',
+    'foam.lang.Export'
   ],
 
   properties: [

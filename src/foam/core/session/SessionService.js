@@ -35,5 +35,5 @@ foam.INTERFACE({
       documentation: 'Expire your own session',
       args: 'Context x'
     }
-  ],
+  ]
 });

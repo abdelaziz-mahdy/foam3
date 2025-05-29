@@ -49,8 +49,8 @@ foam.CLASS({
     function init() {
       // set in init as factories are lazy
       this.wizardlet.loadEvent.sub(() => {
-        this.oldData = this.wizardlet.data?.clone()
-      })
+        this.oldData = this.wizardlet.data?.clone();
+      });
 
       this
         .addClass()
@@ -66,7 +66,7 @@ foam.CLASS({
           .endContext()
           .start(this.CardBorder).addClass(this.myClass('card'))
           .tag('div', null, this.content$)
-        .end()
+        .end();
     }
   ],
 
@@ -76,10 +76,10 @@ foam.CLASS({
       label: 'Edit',
       buttonStyle: 'TERTIARY',
       isAvailable: function(controllerMode) {
-        return this.controllerMode !== foam.u2.ControllerMode.EDIT
+        return this.controllerMode !== foam.u2.ControllerMode.EDIT;
       },
       code: function() {
-        this.controllerMode = foam.u2.ControllerMode.EDIT
+        this.controllerMode = foam.u2.ControllerMode.EDIT;
       }
     },
     {
@@ -87,16 +87,16 @@ foam.CLASS({
       label: 'Save',
       buttonStyle: 'PRIMARY',
       isAvailable: function(controllerMode) {
-        return this.controllerMode === foam.u2.ControllerMode.EDIT
+        return this.controllerMode === foam.u2.ControllerMode.EDIT;
       },
       isEnabled: function(wizardlet$data$errors_) {
-        return !wizardlet$data$errors_
+        return !wizardlet$data$errors_;
       },
       code: async function () {      
        try {
-        await this.wizardlet.save()
-        this.ctrl.reloadClient()
-        this.controllerMode = foam.u2.ControllerMode.VIEW
+        await this.wizardlet.save();
+        this.ctrl.reloadClient();
+        this.controllerMode = foam.u2.ControllerMode.VIEW;
        } catch (e) {
         this.notify(this.SAVE_FAILED, e.message, 'ERROR', true);
        }
@@ -107,11 +107,11 @@ foam.CLASS({
       label: 'Cancel',
       buttonStyle: 'TERTIARY',
       isAvailable: function(controllerMode) {
-        return this.controllerMode === foam.u2.ControllerMode.EDIT
+        return this.controllerMode === foam.u2.ControllerMode.EDIT;
       },
       code: function() {
-        this.wizardlet.data = this.oldData
-        this.controllerMode = foam.u2.ControllerMode.VIEW
+        this.wizardlet.data = this.oldData;
+        this.controllerMode = foam.u2.ControllerMode.VIEW;
       }
     }
   ]

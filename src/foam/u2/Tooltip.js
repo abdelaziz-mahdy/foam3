@@ -60,9 +60,9 @@ foam.CLASS({
       }
       this.tooltipStore.style({
         'max-width': (this.screenWidth / 2)+'px',
-          'top':   this.top$,
-          'left':  this.left$,
-          'right': this.right$
+          top:   this.top$,
+          left:  this.left$,
+          right: this.right$
       });
       this.tooltipStore.write();
     }
@@ -132,7 +132,7 @@ foam.CLASS({
       this.SUPER();
       this
       .add(this.data)
-      .addClass()
+      .addClass();
     }
   ]
 });

@@ -120,7 +120,7 @@ foam.CLASS({
     {
       class: 'FObjectProperty',
       of: 'foam.lang.Latch',
-      name: 'closedLatch',
+      name: 'closedLatch'
     }
   ],
 
@@ -128,7 +128,7 @@ foam.CLASS({
     function init() {
       this.SUPER();
       var content;
-      this.onDetach({ detach: () => { this.closedLatch?.resolve(); } })
+      this.onDetach({ detach: () => { this.closedLatch?.resolve(); } });
 
       this.addClass()
         .enableClass(this.myClass('fullscreen'), this.fullscreen$)
@@ -173,7 +173,7 @@ foam.CLASS({
         // Delay removal by 32ms (two animation frames) so the action.closeModal
         // topic has a chance to be published
         this.hide();
-        this.setTimeout(() => {this.remove()}, 32);
+        this.setTimeout(() => {this.remove();}, 32);
       }
     }
   ]

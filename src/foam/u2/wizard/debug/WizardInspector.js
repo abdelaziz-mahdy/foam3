@@ -117,7 +117,7 @@ foam.CLASS({
                 ;
               })
             ))
-          .end()
+          .end();
         }))
         ;
     }
@@ -146,7 +146,7 @@ foam.CLASS({
       name: 'logDataUpdate',
       label: 'Log on data update',
       code: function() {
-        this.getDataUpdateSub().sub(() => { console.log(this.id, this.data) })
+        this.getDataUpdateSub().sub(() => { console.log(this.id, this.data); });
       }
     }
   ]

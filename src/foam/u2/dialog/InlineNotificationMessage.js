@@ -82,7 +82,7 @@ foam.CLASS({
             fill: this.iconColor
           })
         };
-        return { class: 'foam.u2.tag.CircleIndicator', ...props }
+        return { class: 'foam.u2.tag.CircleIndicator', ...props };
       }
     },
     {
@@ -148,7 +148,7 @@ foam.CLASS({
             .attrs({ src: self.icon$ })
             .end();
           } else {
-            this.tag(self.icon)
+            this.tag(self.icon);
           }
         })
         .startContext({ controllerMode: this.ControllerMode.VIEW })

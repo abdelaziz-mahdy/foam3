@@ -13,12 +13,12 @@ foam.CLASS({
     {
       swiftType: '[foam_swift_core_Slot]',
       name: 'args',
-      swiftPostSet: 'subToArgs_(newValue)',
+      swiftPostSet: 'subToArgs_(newValue)'
     },
     {
       swiftType: '(([Any?]) -> Any?)',
       swiftRequiresEscaping: true,
-      name: 'code',
+      name: 'code'
     },
     {
       name: 'value',
@@ -28,32 +28,32 @@ return code(args.map { (slot) -> Any? in return slot.swiftGet() })
     },
     {
       name: 'cleanup_', // detachable to cleanup old subs when obj changes
-      swiftType: 'Subscription?',
-    },
+      swiftType: 'Subscription?'
+    }
   ],
 
   methods: [
     {
       name: 'swiftGet',
-      swiftCode: 'return value',
+      swiftCode: 'return value'
     },
     {
       name: 'swiftSet',
-      swiftCode: '// NOP',
+      swiftCode: '// NOP'
     },
     {
       name: 'swiftSub',
       swiftCode: `
       return sub(topics: ["propertyChange", "value"], listener: listener)
-      `,
+      `
     },
     {
       name: 'subToArgs_',
       args: [
         {
           name: 'slots',
-          swiftType: '[foam_swift_core_Slot]',
-        },
+          swiftType: '[foam_swift_core_Slot]'
+        }
       ],
       swiftCode: `
 cleanup();
@@ -61,18 +61,18 @@ let subs = slots.map { (slot) -> Subscription in
   return slot.swiftSub(invalidate_listener)
 }
 cleanup_ = Subscription(detach: { for sub in subs { sub.detach() } })
-      `,
+      `
     }
   ],
 
   listeners: [
     {
       name: 'cleanup',
-      swiftCode: 'cleanup_?.detach()',
+      swiftCode: 'cleanup_?.detach()'
     },
     {
       name: 'invalidate',
-      swiftCode: 'clearProperty("value")',
-    },
+      swiftCode: 'clearProperty("value")'
+    }
   ]
 });

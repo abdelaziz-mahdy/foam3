@@ -61,7 +61,7 @@ foam.CLASS({
       class: 'Class',
       javaInfoType: 'foam.lang.AbstractObjectPropertyInfo',
       javaType: 'foam.lang.ClassInfo',
-      name: 'of',
+      name: 'of'
     },
     {
       javaType: 'foam.lang.PropertyInfo',
@@ -72,7 +72,7 @@ foam.CLASS({
       swiftExpression: 'return of.axiom(byName: "id") as! PropertyInfo',
       javaFactory: `
 return getOf() == null ? null : (foam.lang.PropertyInfo) getOf().getAxiomByName("id");
-      `,
+      `
     }
   ],
 
@@ -132,7 +132,7 @@ return OrderedDAO_create([
       `,
       javaCode: `
 return new OrderedDAO(this.getX(), comparator, this);
-      `,
+      `
     },
 
     {
@@ -155,7 +155,7 @@ return SkipDAO_create([
       `,
       javaCode: `
 return new SkipDAO(this.getX(), count, this);
-      `,
+      `
     },
 
     {
@@ -178,7 +178,7 @@ return LimitedDAO_create([
       `,
       javaCode: `
 return new LimitedDAO(this.getX(), count, this);
-      `,
+      `
     },
 
     {
@@ -187,7 +187,7 @@ return new LimitedDAO(this.getX(), count, this);
         return this.put_(this.__context__, obj);
       },
       swiftCode: 'return try put_(__context__, obj)',
-      javaCode: `return this.put_(this.getX(), obj);`,
+      javaCode: `return this.put_(this.getX(), obj);`
     },
 
     /**
@@ -204,7 +204,7 @@ return new LimitedDAO(this.getX(), count, this);
         this.pipe_(this.__context__, sink, undefined);
       },
       swiftCode: 'return try pipe_(__context__, sink)',
-      javaCode: `this.pipe_(this.getX(), sink, null);`,
+      javaCode: `this.pipe_(this.getX(), sink, null);`
     },
 
     {
@@ -224,7 +224,7 @@ return new LimitedDAO(this.getX(), count, this);
       },
       javaCode: `
 throw new UnsupportedOperationException();
-      `,
+      `
     },
 
     {
@@ -241,7 +241,7 @@ throw new UnsupportedOperationException();
         return this.listen_(this.__context__, sink, undefined);
       },
       swiftCode: 'return try listen_(__context__, sink)',
-      javaCode: 'this.listen_(this.getX(), sink, predicate);',
+      javaCode: 'this.listen_(this.getX(), sink, predicate);'
     },
 
     /**
@@ -292,7 +292,7 @@ return on.sub(listener: { (sub: Subscription, args: [Any?]) -> Void in
       javaCode: `
 sink = decorateListener_(sink, predicate);
 listeners_.add(new DAOListener(sink, listeners_));
-      `,
+      `
     },
 
     {
@@ -305,8 +305,8 @@ listeners_.add(new DAOListener(sink, listeners_));
         },
         {
           name: 'predicate',
-          type: 'foam.mlang.predicate.Predicate',
-        },
+          type: 'foam.mlang.predicate.Predicate'
+        }
       ],
       code: function decorateListener_(sink, predicate) {
         if ( predicate ) {
@@ -331,7 +331,7 @@ if ( predicate != null ) {
 }
 
 return sink;
-      `,
+      `
     },
 
     /**
@@ -357,12 +357,12 @@ return sink;
         },
         {
           name: 'order',
-          type: 'foam.mlang.order.Comparator',
+          type: 'foam.mlang.order.Comparator'
         },
         {
           name: 'predicate',
-          type: 'foam.mlang.predicate.Predicate',
-        },
+          type: 'foam.mlang.predicate.Predicate'
+        }
       ],
       code: function decorateSink_(sink, skip, limit, order, predicate) {
         if ( limit != undefined ) {
@@ -427,7 +427,7 @@ return sink
       `,
       javaCode: `
 return decorateSink(getX(), sink, skip, limit, order, predicate);
-      `,
+      `
     },
 
     {
@@ -436,7 +436,7 @@ return decorateSink(getX(), sink, skip, limit, order, predicate);
         return this.remove_(this.__context__, obj);
       },
       swiftCode: 'return try remove_(__context__, obj)',
-      javaCode: 'return this.remove_(this.getX(), obj);',
+      javaCode: 'return this.remove_(this.getX(), obj);'
     },
 
     {
@@ -447,7 +447,7 @@ return decorateSink(getX(), sink, skip, limit, order, predicate);
       swiftCode: 'return try removeAll_(__context__)',
       javaCode: `
 this.removeAll_(this.getX(), 0, this.MAX_SAFE_INTEGER, null, null);
-      `,
+      `
     },
 
     function compareTo(other) {
@@ -482,7 +482,7 @@ this.removeAll_(this.getX(), 0, this.MAX_SAFE_INTEGER, null, null);
       javaCode: `
 sink = prepareSink(sink);
 return this.select_(this.getX(), sink, 0, this.MAX_SAFE_INTEGER, null, null);
-      `,
+      `
     },
 
     {
@@ -512,7 +512,7 @@ if ( id instanceof foam.mlang.predicate.Predicate ) {
 }
 
 return this.find_(this.getX(), id);
-      `,
+      `
     },
 
     {
@@ -540,7 +540,7 @@ return this.find_(this.getX(), id);
 
       // null return indicates cmd not handled.
       return null;
-      `,
+      `
     },
 
     {
@@ -550,7 +550,7 @@ return this.find_(this.getX(), id);
       },
       javaCode: `
 return this.cmd_(this.getX(), obj);
-      `,
+      `
     },
 
     // Placeholder functions to that selecting from DAO to DAO works.
@@ -564,7 +564,7 @@ return this.cmd_(this.getX(), obj);
       name: 'removeAll_',
       javaCode: `
 this.select_(x, new RemoveSink(x, this), skip, limit, order, predicate);
-      `,
+      `
     },
 
     function clone() {
@@ -583,7 +583,7 @@ this.select_(x, new RemoveSink(x, this), skip, limit, order, predicate);
         },
         {
           name: 'sink',
-          type: 'foam.dao.Sink',
+          type: 'foam.dao.Sink'
         },
         {
           name: 'skip',
@@ -600,7 +600,7 @@ this.select_(x, new RemoveSink(x, this), skip, limit, order, predicate);
         {
           name: 'predicate',
           type: 'foam.mlang.predicate.Predicate'
-        },
+        }
       ],
       javaCode: `
 if ( ( limit > 0 ) && ( limit < AbstractDAO.MAX_SAFE_INTEGER ) ) {
@@ -627,8 +627,8 @@ if ( predicate != null && predicate.partialEval() != null && ! ( predicate insta
 }
 
 return sink;
-      `,
-    },
+      `
+    }
   ],
   axioms: [
     {
@@ -732,7 +732,7 @@ public static Sink decorateDedupSink_(Sink sink) {
   return sink;
 }
         `);
-      },
-    },
-  ],
+      }
+    }
+  ]
 });

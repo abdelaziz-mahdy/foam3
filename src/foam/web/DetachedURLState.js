@@ -81,8 +81,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'hash_',
-      documentation: 'Complete state serialized to a URL hash value.',
-    },
+      documentation: 'Complete state serialized to a URL hash value.'
+    }
   ],
 
   methods: [

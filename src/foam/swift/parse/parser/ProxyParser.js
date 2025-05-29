@@ -14,15 +14,15 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.swift.parse.parser.Parser',
       required: true,
-      name: 'delegate',
-    },
+      name: 'delegate'
+    }
   ],
   methods: [
     {
       name: 'parse',
       swiftCode: `
 return delegate.parse(ps, x)
-      `,
-    },
+      `
+    }
   ]
 });

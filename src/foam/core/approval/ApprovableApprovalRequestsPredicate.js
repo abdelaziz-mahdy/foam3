@@ -19,7 +19,7 @@
   javaImports: [
     'foam.core.approval.ApprovalRequest',
     'foam.core.approval.ApprovalStatus',
-    'static foam.mlang.MLang.*',
+    'static foam.mlang.MLang.*'
   ],
 
   methods: [

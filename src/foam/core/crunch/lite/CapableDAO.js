@@ -194,5 +194,5 @@ foam.CLASS({
         return super.put_(x, obj);
       `
     }
-  ],
+  ]
 });

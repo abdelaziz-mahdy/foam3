@@ -28,7 +28,7 @@
       name: 'expiryPeriodTimeUnit',
       class: 'Enum',
       of: 'foam.time.TimeUnit',
-      value: 'YEAR',
+      value: 'YEAR'
     },
     {
       name: 'daoKey',

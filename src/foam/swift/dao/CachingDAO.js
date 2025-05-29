@@ -12,14 +12,14 @@ foam.CLASS({
   requires: [
     'foam.dao.PromisedDAO',
     'foam.dao.DAOSink',
-    'foam.dao.FnSink',
+    'foam.dao.FnSink'
   ],
 
   properties: [
     {
       name: 'of',
       swiftExpressionArgs: ['src$of'],
-      swiftExpression: 'return src$of as! ClassInfo',
+      swiftExpression: 'return src$of as! ClassInfo'
     },
     {
       /** The source DAO on which to add caching. Writes go straight
@@ -36,7 +36,7 @@ foam.CLASS({
         copy of src. */
       class: 'foam.dao.DAOProperty',
       required: true,
-      name: 'cache',
+      name: 'cache'
     },
     {
       /**
@@ -72,7 +72,7 @@ DispatchQueue.global(qos: .background).async {
   pDao.promise = cache
 }
 return pDao
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

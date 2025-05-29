@@ -21,28 +21,28 @@ foam.CLASS({
   requires: [
     {
       path: 'foam.json.Parser',
-      flags: ['js'],
+      flags: ['js']
     },
     {
       path: 'foam.net.web.HTTPRequest',
-      flags: ['js'],
+      flags: ['js']
     },
     {
       path: 'foam.json.Outputter',
-      flags: ['js'],
+      flags: ['js']
     },
     {
       path: 'foam.swift.parse.json.FObjectParser',
-      flags: ['swift'],
+      flags: ['swift']
     },
     {
       name: 'SwiftOutputter',
       path: 'foam.swift.parse.json.output.Outputter',
-      flags: ['swift'],
+      flags: ['swift']
     },
     'foam.box.HTTPReplyBox',
     'foam.box.HTTPException',
-    'foam.box.Message',
+    'foam.box.Message'
   ],
 
   javaImports: [
@@ -71,7 +71,7 @@ foam.CLASS({
   messages: [
     {
       name: 'FETCH_ERROR',
-      message: 'Error connecting to server. Please retry.',
+      message: 'Error connecting to server. Please retry.'
     }
   ],
 
@@ -127,7 +127,7 @@ foam.CLASS({
             this.creationContext
         });
       },
-      swiftFactory: 'return FObjectParser_create()',
+      swiftFactory: 'return FObjectParser_create()'
     },
     {
       class: 'FObjectProperty',
@@ -212,7 +212,7 @@ foam.CLASS({
 
         var headers = {
           'Content-Type': 'application/json; charset=utf-8',
-          'Origin': this.origin
+          Origin: this.origin
         };
 
         if ( this.authorizationType === foam.box.HTTPAuthorizationType.BEARER ) {

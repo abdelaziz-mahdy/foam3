@@ -112,15 +112,15 @@ return newValue as! Int
       args: [
         {
           name: 'frequency',
-          swiftType: 'Float',
+          swiftType: 'Float'
         },
         {
           name: 'a',
-          swiftType: 'Float?',
+          swiftType: 'Float?'
         },
         {
           name: 'b',
-          swiftType: 'Float?',
+          swiftType: 'Float?'
         }
       ],
       code: function(frequency, a, b) {
@@ -164,7 +164,7 @@ return a! + (1 + s) * (b!-a!)/2;
         startTime_ = Int(Date().timeIntervalSince1970 * Double(1000))
         isStarted = true
         tick()
-      `,
+      `
     },
     {
       name:  'step',

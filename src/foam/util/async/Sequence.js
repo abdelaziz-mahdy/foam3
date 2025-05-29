@@ -116,7 +116,7 @@ foam.CLASS({
           args: args
         }),
         ...secondHalf
-      ]
+      ];
 
       return this;
     },
@@ -140,7 +140,7 @@ foam.CLASS({
           args: args
         }),
         ...secondHalf
-      ]
+      ];
 
       return this;
     },
@@ -213,7 +213,7 @@ foam.CLASS({
             `open the object for helpful details.`,
             seqspec
           );
-        }, this.timeout)
+        }, this.timeout);
 
         // Call the context agent and pass its exports to the next one
         let newX;
@@ -221,7 +221,7 @@ foam.CLASS({
           this.insertPosition_ = i;
           newX = await contextAgent.execute(argumentX);
           if ( ! (newX || contextAgent.__subContext__).sequence ) {
-            console.error('sequence is missing from export context', contextAgent)
+            console.error('sequence is missing from export context', contextAgent);
           }
         } catch (e) {
           console.error(`sequence:`, seqspec, e);
@@ -243,7 +243,7 @@ foam.CLASS({
         clearTimeout(stepResolvedTimeout);
         return await nextStep(newX || contextAgent.__subContext__);
       };
-      return await nextStep(this.__subContext__)
+      return await nextStep(this.__subContext__);
     },
 
     // Sequence runtime commands
@@ -279,7 +279,7 @@ foam.CLASS({
           spec = cls.name;
         }
         return {name: v.name, class: spec, args: args};
-      })
+      });
       console.table(map);
     }
   ],
@@ -291,7 +291,7 @@ foam.CLASS({
         { name: 'name', class: 'String' },
         { name: 'spec', class: 'Class' },
         { name: 'args', class: 'Object' }
-      ],
+      ]
     }
   ]
 });

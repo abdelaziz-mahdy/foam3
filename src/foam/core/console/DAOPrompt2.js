@@ -265,7 +265,7 @@ foam.CLASS({
   listeners: [
     function describe() {
       this.eval_('describe ' + this.dao.of.id);
-    },
+    }
   ]
 });
 

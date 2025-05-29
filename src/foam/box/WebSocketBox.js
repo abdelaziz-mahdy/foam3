@@ -39,14 +39,14 @@ foam.CLASS({
 
   properties: [
     {
-      name: 'uri',
+      name: 'uri'
     },
     {
       name: 'delegate',
       factory: function() {
         /* ignoreWarning */
         var ws = this.WebSocket.create({
-          uri: this.prepareURL(this.uri),
+          uri: this.prepareURL(this.uri)
         });
 
         return ws.connect().then(function(ws) {

@@ -60,7 +60,7 @@
             col,
             next.index != 0
           ).then(maybeAddMore);
-        }
+        };
 
         return maybeAddMore;
       }

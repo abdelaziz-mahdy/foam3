@@ -75,4 +75,4 @@ foam.CLASS({
       value: false
     }
   ]
-})
+});

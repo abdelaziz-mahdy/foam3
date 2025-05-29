@@ -168,7 +168,7 @@ foam.CLASS({
               choices$: self.types$.map(types => types.map(t => [t, t.label])),
               data$: self.selected$
             })
-            .end()
+            .end();
           })
           .start()
             .style({flex: 1})

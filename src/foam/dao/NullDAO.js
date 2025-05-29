@@ -49,7 +49,7 @@ return obj
       javaCode: `
 onPut(obj);
 return obj;
-      `,
+      `
     },
 
     {
@@ -65,7 +65,7 @@ return obj
       javaCode: `
 onRemove(obj);
 return obj;
-      `,
+      `
     },
 
     {
@@ -74,7 +74,7 @@ return obj;
         return Promise.resolve(null);
       },
       swiftCode: 'return nil',
-      javaCode: 'return null;',
+      javaCode: 'return null;'
     },
 
     {
@@ -94,7 +94,7 @@ if ( sink == null ) {
 }
 sink.eof();
 return sink;
-      `,
+      `
     },
 
     {
@@ -103,7 +103,7 @@ return sink;
         return Promise.resolve();
       },
       swiftCode: 'return',
-      javaCode: '// NOOP',
-    },
+      javaCode: '// NOOP'
+    }
   ]
 });

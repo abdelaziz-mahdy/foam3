@@ -38,7 +38,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'subject',
-      label: 'Subject',
+      label: 'Subject'
     },
     {
       class: 'Date',

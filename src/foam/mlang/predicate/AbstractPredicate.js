@@ -23,24 +23,24 @@ foam.CLASS({
         }
       ],
       javaCode: 'return false;',
-      swiftCode: 'return false',
+      swiftCode: 'return false'
     },
     {
       name: 'toIndex',
       flags: ['js'],
-      code: function() { },
+      code: function() { }
     },
 
     {
       name: 'toDisjunctiveNormalForm',
       flags: ['js'],
-      code: function() { return this },
-      swiftCode: 'return self',
+      code: function() { return this; },
+      swiftCode: 'return self'
     },
 
     {
       name: 'partialEval',
-      code: function() { return this },
+      code: function() { return this; },
       swiftCode: 'return self',
       javaCode: 'return this;'
     },
@@ -62,7 +62,7 @@ foam.CLASS({
       name: 'createStatement',
       type: 'String',
       javaCode: 'return "";',
-      swiftCode: 'return "";',
+      swiftCode: 'return "";'
     },
     {
       name: 'prepareStatement',

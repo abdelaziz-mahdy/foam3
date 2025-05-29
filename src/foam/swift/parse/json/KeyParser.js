@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.swift.parse.parser.ProxyParser',
   requires: [
     'foam.swift.parse.parser.Alt',
-    'foam.swift.parse.parser.Literal',
+    'foam.swift.parse.parser.Literal'
   ],
   axioms: [
     foam.pattern.Multiton.create({ property: 'key' })
@@ -18,7 +18,7 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'key',
+      name: 'key'
     },
     {
       name: 'delegate',
@@ -28,7 +28,7 @@ return self.Alt_create(["parsers": [
   self.Literal_create(["string": "\"" + key + "\""]),
   self.Literal_create(["string": key]),
 ]])
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

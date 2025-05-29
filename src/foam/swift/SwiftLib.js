@@ -40,15 +40,15 @@ foam.LIB({
       return !! type.match(/[?!]$/);
     },
     function requiresCast(type) {
-      return type != 'Any?' && type != 'Any!'
+      return type != 'Any?' && type != 'Any!';
     },
     function toSwiftType(type, optional) {
-      return foam.lang.type.toType(type).toSwiftType(optional)
+      return foam.lang.type.toType(type).toSwiftType(optional);
     },
     function toSwiftName(id) {
-      return id.replace(/\./g, '_')
-    },
-  ],
+      return id.replace(/\./g, '_');
+    }
+  ]
 });
 
 foam.CLASS({

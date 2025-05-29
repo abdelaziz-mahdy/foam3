@@ -15,19 +15,19 @@ foam.CLASS({
       of: 'foam.swift.core.Slot',
       required: true,
       swiftWeak: true,
-      name: 'parentSlot',
+      name: 'parentSlot'
     },
     {
       class: 'String',
-      name: 'name',
+      name: 'name'
     },
     {
-      name: 'value',
+      name: 'value'
     },
     {
       swiftType: 'Subscription?',
-      name: 'prevSub',
-    },
+      name: 'prevSub'
+    }
   ],
 
   methods: [
@@ -36,7 +36,7 @@ foam.CLASS({
       swiftCode:  `
 onDetach(parentSlot.swiftSub(parentChange_listener))
 parentChange()
-      `,
+      `
     },
 
     {
@@ -44,22 +44,22 @@ parentChange()
       swiftCode: `
 if let o = parentSlot.swiftGet() as? foam_core_FObject { return o.get(key: name) }
 return nil
-      `,
+      `
     },
 
     {
       name: 'swiftSet',
       swiftCode: `
   if let o = parentSlot.swiftGet() as? foam_core_FObject { o.set(key: name, value: value) }
-     `,
+     `
     },
 
     {
       name: 'swiftSub',
       swiftCode: `
 return sub(topics: ["propertyChange", "value"], listener: listener)
-      `,
-    },
+      `
+    }
 
   ],
 
@@ -74,7 +74,7 @@ if let o = parentSlot.swiftGet() as? foam_core_FObject {
   onDetach(prevSub!)
 }
 valueChange()
-      `,
+      `
     },
 
     {
@@ -85,7 +85,7 @@ valueChange()
 } else {
   value = nil
 }
-      `,
-    },
+      `
+    }
   ]
 });

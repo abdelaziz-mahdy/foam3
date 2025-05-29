@@ -40,7 +40,7 @@ foam.CLASS({
       return {
         x: (evt.clientX - ctm.e) / ctm.a,
         y: (evt.clientY - ctm.f) / ctm.d
-      }
+      };
     }
   ],
 
@@ -54,7 +54,7 @@ foam.CLASS({
     async function onMouseMove (evt) {
       if ( ! this.dragState ) return;
       const current = await this.transformMouseEvent(evt);
-      console.log(this.dragState, current)
+      console.log(this.dragState, current);
       const diffX = current.x - this.dragState.dragOrigin.x;
       const diffY = current.y - this.dragState.dragOrigin.y;
       this.pos.x = this.dragState.selfOrigin.x + diffX;

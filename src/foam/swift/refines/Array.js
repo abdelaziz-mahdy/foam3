@@ -14,13 +14,13 @@ foam.CLASS({
       name: 'swiftType',
       expression: function(of) {
         return '[' + (of ? foam.lookup(of).model_.swiftName : 'Any?') + ']';
-      },
+      }
     },
     {
       name: 'swiftValue',
       expression: function(value) {
-        return '[]'
-      },
-    },
-  ],
+        return '[]';
+      }
+    }
+  ]
 });

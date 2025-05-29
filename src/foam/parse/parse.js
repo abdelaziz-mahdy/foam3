@@ -834,7 +834,7 @@ foam.CLASS({
   methods: [
     function parse(ps, obj) {
       ps = ps.apply(this.p, obj);
-      if ( !!! ps ) return undefined;
+      if ( ! ps ) return undefined;
       var ret = this.action(ps.value);
       return ret === foam.parse.ParserWithAction.NO_PARSE ?
         undefined :
@@ -1066,7 +1066,7 @@ foam.CLASS({
     },
 
     function any() {
-      return this.AnyChar.create();g
+      return this.AnyChar.create();g;
     }
   ]
 });

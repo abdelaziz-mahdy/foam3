@@ -25,7 +25,7 @@ foam.INTERFACE({
     },
     {
       name: 'partialEval',
-      type: 'foam.mlang.predicate.Predicate',
+      type: 'foam.mlang.predicate.Predicate'
     },
     {
       name: 'toIndex',
@@ -42,7 +42,7 @@ foam.INTERFACE({
       name: 'toDisjunctiveNormalForm',
       flags: ['js', 'java'],
       javaSupport: false,
-      type: 'foam.mlang.predicate.Predicate',
+      type: 'foam.mlang.predicate.Predicate'
     },
     {
       name: 'authorize',

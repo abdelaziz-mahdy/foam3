@@ -78,7 +78,7 @@ foam.CLASS({
       name: 'lazy',
       documentation: `When set to true, the view will always show it's icon regardless of availability of underlying actions.
       By default the visibility of the view is linked to the availability of it's underlying actions. If the view has a non Action or ActionReference as
-      in it's data, this property has no effect and the view will always show`,
+      in it's data, this property has no effect and the view will always show`
     },
     {
       name: 'dropdownIcon',
@@ -177,7 +177,7 @@ foam.CLASS({
   methods: [
     async function render() {
       this.SUPER();
-      this.enableClass(this.myClass('unavailable'), this.disabled_$)
+      this.enableClass(this.myClass('unavailable'), this.disabled_$);
     },
     function startOverlay() {
       this.__subSubContext__ = this.__subSubContext__.createSubContext({overlay: true});
@@ -235,7 +235,7 @@ foam.CLASS({
         this.obj = await this.dao.inX(this.__context__).find(this.obj.id);
       }
 
-      self.availabilities_$.follow(self.createAvailabilitySlotArray())
+      self.availabilities_$.follow(self.createAvailabilitySlotArray());
 
       this.onDetach(() => { this.overlay_ && this.overlay_.remove(); });
 
@@ -261,14 +261,14 @@ foam.CLASS({
               .start()
                 .addClass(self.myClass('button-container'))
                 .callIfElse(foam.u2.ActionReference.isInstance(action), function() {
-                  this.tag(action.action, { buttonStyle: 'UNSTYLED', data$: action.data$})
+                  this.tag(action.action, { buttonStyle: 'UNSTYLED', data$: action.data$});
                 }, function() {
-                  this.tag(action, { buttonStyle: 'UNSTYLED' })
+                  this.tag(action, { buttonStyle: 'UNSTYLED' });
                 })
                 .attrs({ tabindex: -1 })
                 .attrs({ disabled: self.isEnabled(action) })
               .end();
-          })
+          });
           spinner.remove();
         }
         el.endContext();
@@ -292,11 +292,11 @@ foam.CLASS({
        */
       let slot;
       if ( foam.u2.ActionReference.isInstance(action) ) {
-        slot = action.action.createIsEnabled$(this.__context__, action.data)
+        slot = action.action.createIsEnabled$(this.__context__, action.data);
       } else if ( foam.lang.Action.isInstance(action) ) {
         slot = action.createIsEnabled$(this.__context__, this.obj);
       } else {
-        slot = foam.lang.ConstantSlot.create({ value: true }, this)
+        slot = foam.lang.ConstantSlot.create({ value: true }, this);
       }
       return slot ;
     }
@@ -317,16 +317,16 @@ foam.CLASS({
       documentation: 'Returns an array slot that returns true when any of the actions in data are available',
       code: function() {
         let availSlots = this.data.map(action => {
-          if (  foam.u2.ActionReference.isInstance(action) && action.data ) return action.action.createIsAvailable$(this.__context__, action.data)
+          if (  foam.u2.ActionReference.isInstance(action) && action.data ) return action.action.createIsAvailable$(this.__context__, action.data);
           if ( ! foam.lang.Action.isInstance(action) ) return foam.lang.ConstantSlot.create({ value: true }, this);
-          return action.createIsAvailable$(this.__context__, this.obj)
+          return action.createIsAvailable$(this.__context__, this.obj);
         });
         return foam.lang.ArraySlot.create({
           slots: availSlots
         }, this).map(async arr => {
           arr = await Promise.all(arr);
           return arr.reduce((l, r) => l || r, false);
-        })
+        });
       }
     },
     function click(evt) {

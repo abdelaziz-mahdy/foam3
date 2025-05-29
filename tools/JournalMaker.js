@@ -24,7 +24,7 @@ exports.init = function() {
   this.emptyDir(X.journaldir);
 
   flags.loadFiles = true;
-}
+};
 
 exports.visitFile = function(pom, f, fn) {
   if ( f.name.endsWith('.jrl') ) {
@@ -56,14 +56,14 @@ exports.visitFile = function(pom, f, fn) {
       msg: `// The following lines were copied from "${path_.relative(process.cwd(), fn)}"\n`
     });
   }
-}
+};
 
 
 exports.visitDir = function(pom, f, fn) {
   if ( f.name === 'images' || f.name === 'favicon' ) {
     imageDirs.push(fn);
   }
-}
+};
 
 
 exports.end = function() {

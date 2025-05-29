@@ -26,12 +26,12 @@ foam.CLASS({
       name: 'views',
       factory: function() {
         return [
-          [ this.Pie, 'Pie', ],
-          [ this.Bar, 'Bar', ],
+          [ this.Pie, 'Pie' ],
+          [ this.Bar, 'Bar' ],
           [ this.Line, 'Line' ],
           [ this.Table, 'Table' ],
           [ this.DetailView, 'Configure' ]
-        ]
+        ];
       }
     },
     {

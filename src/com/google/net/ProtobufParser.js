@@ -501,13 +501,13 @@ foam.CLASS({
 
           charEscape: function(a) {
             var map = {
-              'a': '\a',
-              'b': '\b',
-              'f': '\f',
-              'n': '\n',
-              'r': '\r',
-              't': '\t',
-              'v': '\v',
+              a: '\a',
+              b: '\b',
+              f: '\f',
+              n: '\n',
+              r: '\r',
+              t: '\t',
+              v: '\v',
               '?': '\?'
             };
 

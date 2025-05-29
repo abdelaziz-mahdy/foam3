@@ -80,7 +80,7 @@ foam.CLASS({
       this.addClass();
 
       this.update();
-      this.data$proxy.on.sub(this.update)
+      this.data$proxy.on.sub(this.update);
     }
   ],
 

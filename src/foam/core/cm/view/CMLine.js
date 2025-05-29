@@ -14,7 +14,7 @@ foam.CLASS({
 
   requires: [
     'foam.graphics.Box',
-    'org.chartjs.Line2',
+    'org.chartjs.Line2'
   ],
 
   methods: [
@@ -28,11 +28,11 @@ foam.CLASS({
           data,
           options: {
             legend: {
-              display: false,
-            },
+              display: false
+            }
           }
         })
-      ]
+      ];
     }
   ]
-})
+});

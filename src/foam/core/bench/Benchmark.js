@@ -47,7 +47,7 @@ foam.CLASS({
       `,
       createVisibility: 'HIDDEN',
       updateVisibility: 'RO'
-    },
+    }
   ],
 
   methods: [

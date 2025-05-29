@@ -1,5 +1,5 @@
 foam.POM({
-  name: 'src',
+  name: 'src'
   // files: [
   // ]
 });

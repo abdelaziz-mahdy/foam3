@@ -14,7 +14,7 @@ foam.INTERFACE({
       async: true
     }
   ]
-})
+});
 
 
 foam.CLASS({

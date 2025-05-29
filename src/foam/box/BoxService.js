@@ -42,7 +42,7 @@ foam.CLASS({
         {
           name: 'box',
           type: 'foam.box.Box'
-        },
+        }
       ],
       type: 'foam.box.Box',
       code: function serverBox(box) {
@@ -52,7 +52,7 @@ foam.CLASS({
       swiftCode: `
 let box2: foam_box_Box = next?.serverBox(box) ?? box!
 return server.create(args: ["delegate": box2], x: __subContext__) as? foam_box_Box
-      `,
+      `
     },
     {
       name: 'clientBox',
@@ -60,7 +60,7 @@ return server.create(args: ["delegate": box2], x: __subContext__) as? foam_box_B
         {
           name: 'box',
           type: 'foam.box.Box'
-        },
+        }
       ],
       type: 'foam.box.Box',
       code: function(box) {
@@ -72,7 +72,7 @@ return server.create(args: ["delegate": box2], x: __subContext__) as? foam_box_B
       swiftCode: `
 let box2 = client.create(args: ["delegate": box], x: __subContext__) as! foam_box_Box
 return next?.clientBox(box2) ?? box2
-      `,
-    },
+      `
+    }
   ]
 });

@@ -15,5 +15,5 @@ foam.CLASS({
     'notificationType',
     'broadcasted',
     'createdBy.userName'
-  ],
+  ]
 });

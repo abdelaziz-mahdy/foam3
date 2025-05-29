@@ -155,7 +155,7 @@ foam.CLASS({
           .add(this.RequirementsPreviewAgent)
           .add(this.AutoSaveWizardletsAgent)
           .callIf(this.debugMode, function () {
-            this.add(self.DebugAgent)
+            this.add(self.DebugAgent);
           })
           .add(this.CreateControllerAgent)
           .addAs('ReadyAgent', this.PublishToWizardletsAgent, { event: 'onReady' })
@@ -303,7 +303,7 @@ foam.CLASS({
           waoSetting: this.WAOSettingAgent.WAOSetting.UCJ
         })
         .add(this.GraphWizardletsAgent)
-        .add(this.PublishToWizardletsAgent, { event: 'onReady' })
+        .add(this.PublishToWizardletsAgent, { event: 'onReady' });
     },
 
     function createInlineWizardSequence (x) {
@@ -315,7 +315,7 @@ foam.CLASS({
           waoSetting: this.WAOSettingAgent.WAOSetting.CAPABLE
         })
         .add(this.GraphWizardletsAgent)
-        .add(this.PublishToWizardletsAgent, { event: 'onReady' })
+        .add(this.PublishToWizardletsAgent, { event: 'onReady' });
     },
 
     function wizardSequenceToViewSequence_(sequence) {
@@ -331,7 +331,7 @@ foam.CLASS({
         // if input is UCJ sequence, these apply
         .remove('CheckRootIdAgent')
         .remove('CheckPendingAgent')
-        .remove('CheckNoDataAgent')
+        .remove('CheckNoDataAgent');
 
     },
 
@@ -408,7 +408,7 @@ foam.CLASS({
             ignoreCapas.push(payload.capability);
           }
         }
-        let remainingCapas = capable.capabilityIds.filter(el => ! ignoreCapas.includes(el))
+        let remainingCapas = capable.capabilityIds.filter(el => ! ignoreCapas.includes(el));
         for ( let i = 0; i < remainingCapas.length; i++ ) {
           // for capable intercepts with multiple capability ids
           // only do put on last wizardlet
@@ -470,7 +470,7 @@ foam.CLASS({
         options.onLastWizardletSaved = async x => {
           const targetDAO = x[opt_intercept.daoKey];
           let a = await targetDAO.put(capable);
-        }
+        };
       }
 
       // for multiple capabilityIds: pass in start index before any wizardlets are added
@@ -493,7 +493,7 @@ foam.CLASS({
           delegate: lastWizardlet.wao
         });
 
-        lastWizardlet.wao.saved.sub(async () => {options.onLastWizardletSaved(x)});
+        lastWizardlet.wao.saved.sub(async () => {options.onLastWizardletSaved(x);});
       }
 
       for ( let i = 0; i < x.wizardlets.length; i++ ) {
@@ -512,7 +512,7 @@ foam.CLASS({
 
       wizardController.onDetach(wizardController.wizardlets[startWi].wao.saving.sub(
         foam.events.oneTime(() => {
-          wizardController.wizardlets$splice(startWi + 1, x.wizardlets.length)
+          wizardController.wizardlets$splice(startWi + 1, x.wizardlets.length);
         })
       ));
       wizardController.wizardlets$splice(wi + 1, 0, ...x.wizardlets);

@@ -38,7 +38,7 @@ foam.CLASS({
       expression: function(cSpec) {
         return console.log.bind(console, cSpec ? cSpec.name : 'Unknown service');
       }
-    },
+    }
   ],
 
   methods: [

@@ -84,7 +84,7 @@ foam.CLASS({
     {
       name: 'checkbox',
       documentation: `A named reference to the checkbox in this view so that we
-        can subscribe to events that it publishes.`,
+        can subscribe to events that it publishes.`
     },
     {
       class: 'Boolean',
@@ -121,7 +121,7 @@ foam.CLASS({
         .start()
           .addClass('section')
           .tag(
-            { class: 'foam.u2.CheckBox', },
+            { class: 'foam.u2.CheckBox' },
             { label: this.property.label },
             this.checkbox$
           )

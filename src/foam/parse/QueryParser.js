@@ -455,7 +455,7 @@ foam.CLASS({
               var newValues = [];
               var e = prop.of;
               for ( var i = 0 ; i < values.length ; i++ ) {
-                var value = values[i]
+                var value = values[i];
                 for ( var j = 0 ; j < e.VALUES.length ; j++ ) {
                   var eValue = e.VALUES[j];
                   if ( foam.String.startsWithIC(eValue.name, value) || foam.String.startsWithIC(eValue.label, value) )

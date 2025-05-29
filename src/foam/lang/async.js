@@ -71,7 +71,7 @@ foam.LIB({
           p = p.then(s[i]);
         }
         return p;
-      }
+      };
     },
 
     function repeat(times, fn) {

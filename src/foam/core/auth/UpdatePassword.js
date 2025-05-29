@@ -33,7 +33,7 @@ foam.CLASS({
 
   sections: [
     {
-      name: 'resetPasswordSection',
+      name: 'resetPasswordSection'
     }
   ],
 
@@ -72,7 +72,7 @@ foam.CLASS({
           isAvailable$: X.data.passwordAvailable$,
           passwordIcon: true,
           autocomplete: 'new-password'
-        }
+        };
       },
       minLength: 10,
       validateObj: function(newPassword, passwordAvailable) {
@@ -111,7 +111,7 @@ foam.CLASS({
     function init() {
       if ( this.isHorizontal ) {
         this.makeHorizontal();
-      };
+      }
     },
     {
       name: 'makeHorizontal',

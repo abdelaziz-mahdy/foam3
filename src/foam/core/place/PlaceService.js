@@ -15,13 +15,13 @@ foam.INTERFACE({
       name: 'placeAutocomplete',
       async: true,
       args: 'Context x, String input, String preferCountry',
-      type: 'foam.core.place.PlaceAutocompleteResp',
+      type: 'foam.core.place.PlaceAutocompleteResp'
     },
     {
       name: 'placeDetail',
       async: true,
       args: 'Context x, String placeId',
-      type: 'foam.core.place.PlaceDetailResp',
+      type: 'foam.core.place.PlaceDetailResp'
     }
   ]
-})
+});

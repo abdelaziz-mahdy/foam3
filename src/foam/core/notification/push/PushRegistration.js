@@ -40,7 +40,7 @@ foam.CLASS({
     {
       name: 'sendTestPush',
       code: function(x) {
-        x.pushService.sendPushById(this.user, "test", "push")
+        x.pushService.sendPushById(this.user, "test", "push");
       }
     }
   ]
@@ -55,7 +55,7 @@ foam.RELATIONSHIP({
   inverseName: 'user',
   sourceProperty: {
     hidden: true
-  },
+  }
   /*
   targetProperty: {
     view: { class: 'foam.u2.view.ReferenceView', placeholder: '--' },

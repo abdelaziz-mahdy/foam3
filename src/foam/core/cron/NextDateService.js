@@ -26,6 +26,6 @@
       type: 'Date[]',
       async: true,
       args: 'Context x, SimpleIntervalSchedule schedule, int n'
-    },
+    }
   ]
 });

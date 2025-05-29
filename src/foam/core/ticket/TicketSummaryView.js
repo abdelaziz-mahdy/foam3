@@ -19,7 +19,7 @@ foam.CLASS({
     'foam.core.ticket.Ticket',
     'foam.core.ticket.TicketStatus',
     'foam.core.ticket.SummaryCard',
-    'foam.core.ticket.TicketView',
+    'foam.core.ticket.TicketView'
   ],
 
   imports: [
@@ -92,7 +92,7 @@ foam.CLASS({
           status: this.closedLabel
         })
       .end();
-    },
+    }
   ],
 
   listeners: [

@@ -22,7 +22,7 @@ foam.CLASS({
     'foam.util.concurrent.AssemblyLine',
     'foam.util.concurrent.AsyncAssemblyLine',
     'java.util.HashMap',
-    'java.util.Map',
+    'java.util.Map'
   ],
 
   properties: [

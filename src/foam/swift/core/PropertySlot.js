@@ -12,31 +12,31 @@ foam.CLASS({
     {
       class: 'FObjectProperty',
       name: 'object',
-      swiftWeak: true,
+      swiftWeak: true
     },
     {
       class: 'String',
-      name: 'propertyName',
-    },
+      name: 'propertyName'
+    }
   ],
   methods: [
     {
       name: 'swiftGet',
       swiftCode: `
 return object?.get(key: propertyName) ?? nil
-     `,
+     `
     },
     {
       name: 'swiftSet',
       swiftCode: `
 object?.set(key: propertyName, value: value)
-      `,
+      `
     },
     {
       name: 'swiftSub',
       swiftCode: `
 return object?.sub(topics: ["propertyChange", propertyName], listener: listener) ?? Subscription(detach: {})
-      `,
-    },
+      `
+    }
   ]
 });

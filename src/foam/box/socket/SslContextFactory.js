@@ -276,5 +276,5 @@ foam.CLASS({
         return sslContext;
       `
     }
-  ],
+  ]
 });

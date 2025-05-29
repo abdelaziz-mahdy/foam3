@@ -38,7 +38,7 @@ foam.CLASS({
         width: 600,
         height: 600
       });
-      const g = self.viewContainer = svg.start('g')
+      const g = self.viewContainer = svg.start('g');
       g.onDetach(g.state$.sub(() => {
         if ( g.state.cls_ != foam.u2.LoadedElementState ) return;
         this.initializeControls();
@@ -55,7 +55,7 @@ foam.CLASS({
               x, y,
               fill: '#CC' + getShade(x) + getShade(y)
             })
-          .end()
+          .end();
 
     },
     async function initializeControls() {
@@ -64,13 +64,13 @@ foam.CLASS({
       const viewContainer = await self.viewContainer.el();
       svg.on('pointerdown', function (evt) {
         self.drag = { x: evt.offsetX, y: evt.offsetY };
-      })
+      });
       svg.on('pointerup', function (evt) {
         self.drag = undefined;
-      })
+      });
       svg.on('mouseleave', function (evt) {
         self.drag = undefined;
-      })
+      });
       svg.on('pointermove', function (evt) {
         if ( ! self.drag ) return;
         let [dx, dy] = [

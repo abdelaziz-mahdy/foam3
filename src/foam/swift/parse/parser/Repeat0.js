@@ -13,18 +13,18 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.swift.parse.parser.Parser',
       required: false,
-      name: 'delim',
+      name: 'delim'
     },
     {
       class: 'Int',
       name: 'min',
-      value: -1,
+      value: -1
     },
     {
       class: 'Int',
       name: 'max',
-      value: -1,
-    },
+      value: -1
+    }
   ],
   methods: [
     {
@@ -52,7 +52,7 @@ while max == -1 || i < max {
 
 if min != -1 && i < min { return nil }
 return ps
-      `,
-    },
+      `
+    }
   ]
 });

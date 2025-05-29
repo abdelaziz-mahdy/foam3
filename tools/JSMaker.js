@@ -39,7 +39,7 @@ exports.init = function() {
   files    = {};
 
   flags.loadFiles = true;
-}
+};
 
 
 exports.visitPOM = function(pom) {
@@ -49,7 +49,7 @@ exports.visitPOM = function(pom) {
   } else if ( Array.isArray(pom.licenses) ) {
     pom.licenses.forEach(addLicense);
   }
-}
+};
 
 
 exports.end = function() {
@@ -203,4 +203,4 @@ if ( ! foam.flags.skipStage2 ) {
       this.error('[JS] Writing', filename, err);
     }
   });
-}
+};

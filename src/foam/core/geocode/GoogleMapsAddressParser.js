@@ -37,7 +37,7 @@ foam.CLASS({
 
   constants: {
     API_HOST_AUTOCOMPLETE: 'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=',
-    API_HOST_PLACES: 'https://maps.googleapis.com/maps/api/geocode/json?place_id=',
+    API_HOST_PLACES: 'https://maps.googleapis.com/maps/api/geocode/json?place_id='
   },
 
   methods: [

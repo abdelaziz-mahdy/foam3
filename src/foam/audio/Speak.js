@@ -151,6 +151,6 @@ foam.CLASS({
       }
 
       this.play();
-    },
+    }
   ]
 });

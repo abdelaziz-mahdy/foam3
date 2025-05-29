@@ -138,7 +138,7 @@ foam.CLASS({
                 .addClass(self.myClass('option-icon-container'))
                 .start('img')
                   .addClass(self.myClass('option-icon'))
-                  .attrs({ 'src': menu.icon, 'name': menu.id + 'Icon' })
+                  .attrs({ src: menu.icon, name: menu.id + 'Icon' })
                 .end()
               .end()
               .start()

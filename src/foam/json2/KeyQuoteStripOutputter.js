@@ -11,8 +11,8 @@ foam.CLASS({
   properties: [
     {
       name: 'stack',
-      factory: function() { return []; },
-    },
+      factory: function() { return []; }
+    }
   ],
   enums: [
     {
@@ -20,9 +20,9 @@ foam.CLASS({
       values: [
         'OBJECT',
         'ARRAY',
-        'KEY',
-      ],
-    },
+        'KEY'
+      ]
+    }
   ],
   methods: [
     {
@@ -33,14 +33,14 @@ foam.CLASS({
         }
         this.stack.push(this.State.OBJECT);
         this.delegate.startObj();
-      },
+      }
     },
     {
       name: 'endObj',
       code: function() {
         this.stack.pop();
         this.delegate.endObj();
-      },
+      }
     },
     {
       name: 'startArray',
@@ -50,14 +50,14 @@ foam.CLASS({
         }
         this.stack.push(this.State.ARRAY);
         this.delegate.startArray();
-      },
+      }
     },
     {
       name: 'endArray',
       code: function() {
         this.stack.pop();
         this.delegate.endArray();
-      },
+      }
     },
     {
       name: 'out',
@@ -65,13 +65,13 @@ foam.CLASS({
         var t = this.stack[this.stack.length - 1];
         if ( t == this.State.OBJECT ) {
           var match = s.match(/^"([a-z0-9]*)"$/i);
-          if ( match ) s = match[1]
+          if ( match ) s = match[1];
           this.stack.push(this.State.KEY);
         } else if ( t == this.State.KEY ) {
           this.stack.pop();
         }
         this.delegate.out(s);
-      },
-    },
-  ],
-})
+      }
+    }
+  ]
+});

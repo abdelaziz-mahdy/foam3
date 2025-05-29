@@ -66,7 +66,7 @@ foam.CLASS({
       value: 1000
     },
     {
-      name: 'f',
+      name: 'f'
     },
     {
       class: 'Array',

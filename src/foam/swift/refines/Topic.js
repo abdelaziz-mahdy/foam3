@@ -18,9 +18,9 @@ foam.CLASS({
         lazy: true,
         type: 'BasicTopic',
         name: this.name,
-        initializer: this.swiftInitializer(),
+        initializer: this.swiftInitializer()
       }));
-    },
+    }
   ],
   templates: [
     {
@@ -43,7 +43,7 @@ topic.parent_ = self
 topic.map_ = topicMap
 
 return topic
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

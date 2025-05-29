@@ -77,7 +77,7 @@ foam.CLASS({
           wizardlet.isAvailable$.follow(rootWizardlet.isAvailable$);
 
         return preventPush;
-      }
+      };
 
       for ( let capability of capabilityPrereqs ) {
         if ( Array.isArray(capability) ) {
@@ -118,6 +118,6 @@ foam.CLASS({
     },
     function isPrerequisiteAware(wizardlet) {
       return this.PrerequisiteAwareWizardlet.isInstance(wizardlet);
-    },
+    }
   ]
 });

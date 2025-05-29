@@ -82,13 +82,13 @@ foam.CLASS({
         }
         return new AUIDGenerator.Builder(getX()).setSalt(getSalt()).setMinLength(getMinLength()).build();
       `,
-      hidden: true,
+      hidden: true
     },
     {
       name: 'cSpec',
       class: 'FObjectProperty',
       type: 'foam.core.boot.CSpec',
-      hidden: true,
+      hidden: true
     },
     {
       name: 'minLength',

@@ -570,7 +570,7 @@ foam.CLASS({
         }));
       }
     },
-    'cleanup_', // detachable to cleanup old subs when obj changes
+    'cleanup_' // detachable to cleanup old subs when obj changes
   ],
 
   methods: [
@@ -933,7 +933,7 @@ foam.CLASS({
         args: this.args,
         code: this.code,
         obj:  this.obj
-      })
+      });
     }
   ]
 });

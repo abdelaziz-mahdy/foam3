@@ -15,7 +15,7 @@ foam.CLASS({
     'foam.box.RPCReturnBox',
     'foam.box.ReplyBox',
     'foam.lang.StubMethod',
-    'foam.lang.StubNotification',
+    'foam.lang.StubNotification'
   ],
 
   properties: [
@@ -23,7 +23,7 @@ foam.CLASS({
     {
       name: 'replyPolicyName',
       expression: function(name) {
-        return name + 'ReplyPolicy'
+        return name + 'ReplyPolicy';
       }
     },
     {
@@ -112,8 +112,8 @@ foam.CLASS({
     {
       name: 'javaInfoType',
       value: 'foam.lang.AbstractFObjectPropertyInfo',
-      flags: ['java'],
-    },
+      flags: ['java']
+    }
   ],
 
   methods: [
@@ -148,7 +148,7 @@ foam.CLASS({
       cls.installAxiom(foam.lang.Import.create({
         key: 'registry',
         name: 'registry',
-        type: 'foam.box.BoxRegistry',
+        type: 'foam.box.BoxRegistry'
       }));
     }
   ]
@@ -315,5 +315,5 @@ foam.CLASS({
   name: 'StubFactorySingleton',
   extends: 'foam.lang.StubFactory',
 
-  axioms: [ foam.pattern.Singleton.create() ],
+  axioms: [ foam.pattern.Singleton.create() ]
 });

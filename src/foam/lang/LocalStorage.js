@@ -16,7 +16,7 @@ foam.SCRIPT({
         globalThis.localStorage.removeItem(test);
       } catch (e) {
         var Storage = {
-          getItem:    function(k)    { return this[k] },
+          getItem:    function(k)    { return this[k]; },
           setItem:    function(k, v) { this[k] = v; },
           removeItem: function(k)    { delete this[k]; },
           clear:      function()     { for ( const k in this ) delete this[k]; }

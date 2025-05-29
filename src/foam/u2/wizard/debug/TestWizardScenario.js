@@ -23,7 +23,7 @@ foam.CLASS({
           ...o,
           name: o.name || foam.String.labelize(o.id)
         }));
-        return foam.json.parse(n, prop.of, this.__subContext__)
+        return foam.json.parse(n, prop.of, this.__subContext__);
       }
     },
     {
@@ -35,7 +35,7 @@ foam.CLASS({
           sourceId: spec[0],
           targetId: spec[1]
         } : spec);
-        return foam.json.parse(n, prop.of, this.__subContext__)
+        return foam.json.parse(n, prop.of, this.__subContext__);
       }
     }
   ],

@@ -290,7 +290,7 @@ foam.CLASS({
       includeInDigest: false,
       containsPII: true,
       trim: true,
-      tableWidth: 160,
+      tableWidth: 160
     },
     {
       class: 'String',
@@ -441,8 +441,8 @@ foam.CLASS({
       class: 'EMail',
       name: 'email',
       label: {
-        'en' :'Email Address',
-        'fr' :'Adresse Email'
+        en :'Email Address',
+        fr :'Adresse Email'
       },
       includeInDigest: true,
       containsPII: true,
@@ -1313,7 +1313,7 @@ foam.RELATIONSHIP({
   inverseName: 'theme',
   sourceProperty: {
     hidden: true,
-    visibility: 'HIDDEN',
+    visibility: 'HIDDEN'
   },
   targetProperty: {
     section: 'systemInformation',

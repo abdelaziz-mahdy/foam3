@@ -173,7 +173,6 @@ foam.CLASS({
 
 
 
-
 foam.CLASS({
   name: 'SampleBorder',
   extends: 'foam.u2.Element',
@@ -463,7 +462,7 @@ foam.CLASS({
     ^ .foam-u2-ActionView-toggle:hover {
       background: transparent;
     }
-  `,
+  `
 /*
   properties: [
     'title',
@@ -590,7 +589,7 @@ foam.CLASS({
 
   methods: [
     function init() {
-      this.addClass()
+      this.addClass();
     }
   ]
 });

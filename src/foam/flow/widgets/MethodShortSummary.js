@@ -40,7 +40,7 @@ foam.CLASS({
         args = foam.Function.argNames(m.code).map(name => ({
           type: 'Any',
           name: name
-        }))
+        }));
       }
       el
         .start('td').add(m.type).end()
@@ -52,7 +52,7 @@ foam.CLASS({
                 .start().add(arg.name).end()
                 .start().addClass(self.myClass('rowGap')).end()
                 .start().add(arg.type).end()
-              .end()
+              .end();
           })
         .end();
     },
@@ -76,5 +76,5 @@ foam.CLASS({
       }
       return propCls;
     }
-  ],
+  ]
 });

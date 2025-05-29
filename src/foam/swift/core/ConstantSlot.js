@@ -10,15 +10,15 @@ foam.CLASS({
   extends: 'foam.swift.core.Slot',
   properties: [
     {
-      name: 'value',
-    },
+      name: 'value'
+    }
   ],
   methods: [
     {
       name: 'swiftGet',
       swiftCode: `
 return value
-      `,
-    },
+      `
+    }
   ]
 });

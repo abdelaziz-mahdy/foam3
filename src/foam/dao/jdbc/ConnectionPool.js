@@ -22,7 +22,7 @@ foam.CLASS({
       class: 'Object',
       name: 'pool',
       javaType: 'BasicDataSource',
-      documentation: 'Connection pool',
+      documentation: 'Connection pool'
     },
     {
       class: 'Int',

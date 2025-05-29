@@ -23,7 +23,7 @@ foam.INTERFACE({
           name: 'docName',
           type: 'String'
         }
-      ],
-    },
+      ]
+    }
   ]
 });

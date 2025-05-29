@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.u2.View',
   requires: [
     'foam.dao.history.HistoryRecord',
-    'foam.u2.history.HistoryItemView',
+    'foam.u2.history.HistoryItemView'
   ],
 
   implements: [ 'foam.mlang.Expressions' ],
@@ -72,7 +72,7 @@ foam.CLASS({
             .addClass('timelineRecord')
             .start('div').addClass('timeline').end()
             .call(function() {
-              view.historyItemView.outputRecord(this, record)
+              view.historyItemView.outputRecord(this, record);
             })
           .end();
         });

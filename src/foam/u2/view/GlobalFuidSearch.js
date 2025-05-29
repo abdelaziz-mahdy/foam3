@@ -68,7 +68,7 @@ foam.CLASS({
     {
       name: 'onSelect',
       value: async function(obj, e) {
-        var menus = []
+        var menus = [];
         var menuDAOS = this.saltMap[obj.daoKey];
         for ( var i = 0; i < menuDAOS.length; i++ ) {
           var result = await menuDAOS[i].handler.config.dao.find(obj.data);
@@ -109,7 +109,7 @@ foam.CLASS({
       var self = this;
       if ( ! data ) return this.E();
       if ( ! filteredValues.length ) return this.E().addClass(this.myClass('suggestions')).add(this.emptyTitle);
-      var a = this.E().addClass(this.myClass('suggestions')).add(this.title)
+      var a = this.E().addClass(this.myClass('suggestions')).add(this.title);
       for ( var i = 0; i < self.filteredValues.length; i++) {
         let obj = self.filteredValues[i];
         a.start(this.rowView, { data: obj.data, of: obj.data.cls_.id })
@@ -117,7 +117,7 @@ foam.CLASS({
           .on('mousedown', function(e) {
             self.onRowSelect ? self.onRowSelect(obj,e) : self.onSelect.call(self,obj, e);
           })
-        .end()
+        .end();
       }
       return a;
     }

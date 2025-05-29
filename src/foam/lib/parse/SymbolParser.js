@@ -18,7 +18,7 @@
   properties: [
     {
       class: 'Map',
-      name: 'symbols',
+      name: 'symbols'
     },
     {
       class: 'String',
@@ -38,7 +38,7 @@
         {
           name: 'x',
           javaType: 'foam.lib.parse.ParserContext'
-        },
+        }
       ],
       javaCode: `
       Parser parser = (Parser) getSymbols().get(getSymbolName());

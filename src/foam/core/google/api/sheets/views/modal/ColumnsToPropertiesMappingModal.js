@@ -47,7 +47,7 @@
             .forEach(self.importConfig.columnHeaderPropertyMappings, function(c) {
               self
               .start()
-                .style({'padding': '0 16px'})
+                .style({padding: '0 16px'})
                 .startContext({ data: c })
                 .add(self.ColumnHeaderToPropertyMapping.COLUMN_HEADER.__)
                 .endContext()
@@ -91,5 +91,5 @@
         X.closeDialog();
       }
     }
-  ],
+  ]
 });

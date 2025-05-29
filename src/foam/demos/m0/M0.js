@@ -116,7 +116,7 @@ foam.CLASS({
       return value; // TODO: output in binary
     }
   ]
-})});
+});});
 
 foam.CLASS({
   package: 'foam.lang',
@@ -140,7 +140,7 @@ var INSTRS = [
   [ 'ADD',   16, [ 'dst', 'amt' ],    function() { this.dst.set(this.m0, this.dst.get(this.m0) + this.amt); } ],
   [ 'SUB',   16, [] ],
   [ 'SUBC',  16, [] ],
-  [ 'B',     0, [ 'addr' ], function() { this.m0.r15 = this.addr.addr; } ],
+  [ 'B',     0, [ 'addr' ], function() { this.m0.r15 = this.addr.addr; } ]
 ];
 
 var INSTRS2 =  [
@@ -150,7 +150,7 @@ var INSTRS2 =  [
   function() { this.d.set(this.m0, this.d.get(this.m0) + this.n.get(this.m0) + this.m.get(this.m0)); } ],
 
   [ 'ADD',  '', 'Immed3 i,L n,L d', '0001110,immed3,n,d', 16,
-    function() { this.d.set(this.m0, this.d.get(this.m0) + this.n.get(this.m0) + this.immed); } ],
+    function() { this.d.set(this.m0, this.d.get(this.m0) + this.n.get(this.m0) + this.immed); } ]
 
 /*
   [ 'ADD',  '', '00110', 'Ld', 'immed8',
@@ -389,7 +389,7 @@ LABEL('START');
     { class: 'HighRegister', name: 'r12', shortName: 'IP' }, // Intraprocedure call scratch register
     { class: 'HighRegister', name: 'r13', shortName: 'SP' }, // Stack Pointer
     { class: 'HighRegister', name: 'r14', shortName: 'LR' }, // Link Register
-    { class: 'HighRegister', name: 'r15', shortName: 'PC' }, // Program Counter
+    { class: 'HighRegister', name: 'r15', shortName: 'PC' } // Program Counter
     // CPSR
   ],
 
@@ -434,7 +434,7 @@ LABEL('START');
                 start('td').add(i).end().
                 start('td').add(m.toString()).end().
               end();
-            })})).
+            });})).
           end().
         end().
       end().
@@ -492,7 +492,7 @@ LABEL('START');
         ADD:   this.ADD.bind(this),
         B:     this.B.bind(this),
         LABEL: this.LABEL.bind(this),
-        MOV:   this.MOV.bind(this),
+        MOV:   this.MOV.bind(this)
       } ) {
         console.log('Compiling: ', this.code);
         eval(this.code);

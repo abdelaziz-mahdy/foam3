@@ -16,7 +16,7 @@ foam.CLASS({
           class: 'foam.u2.TextField',
           onKey: true,
           data: data
-        }
+        };
       }
     },
     {
@@ -28,4 +28,4 @@ foam.CLASS({
       name: 'maxLength'
     }
   ]
-})
+});

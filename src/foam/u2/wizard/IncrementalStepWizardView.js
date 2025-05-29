@@ -220,7 +220,7 @@ foam.CLASS({
             .add(
               this.slot(function (data, data$currentWizardlet) {
                 return this.StepWizardletStepsView.create({
-                  data: data,
+                  data: data
                 });
               })
             )
@@ -284,7 +284,7 @@ foam.CLASS({
         let a = action.clone();
         a.code = action.code.bind(this, this.__subSubContext__);
         return a;
-      }
+      };
       prompt = this.Popup.create({ closeable: false }).tag(this.SimpleActionDialog, {
         title: this.CONFIRM_MSG,
         body: this.DISMISS_MSG,

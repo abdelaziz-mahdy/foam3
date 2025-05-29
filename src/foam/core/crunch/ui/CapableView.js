@@ -85,7 +85,7 @@ foam.CLASS({
             code: (sections, data) => {
               return sections.map(section => section.createView({
                 showTitle: self.showTitle,
-                wizardlet: w,
+                wizardlet: w
               }));
             }
           }));
@@ -105,7 +105,7 @@ foam.CLASS({
           s.detach();
           if ( ! saving ) {
             saving = true;
-            wizardlet.save().then(() => { saving = false; console.log('y') });
+            wizardlet.save().then(() => { saving = false; console.log('y'); });
           }
           s = foam.lang.FObject.create();
           var props = wizardlet.data.cls_.getAxiomsByClass(foam.lang.Property);

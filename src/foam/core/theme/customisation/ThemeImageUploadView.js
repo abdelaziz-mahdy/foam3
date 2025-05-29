@@ -16,7 +16,7 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.core.fs.fileDropZone.FileDropZone',
+    'foam.core.fs.fileDropZone.FileDropZone'
   ],
   imports: [
     'controllerMode as CM',
@@ -103,7 +103,7 @@ foam.CLASS({
       factory: function() {
         return foam.u2.ControllerMode.EDIT;
       }
-    },
+    }
   ],
 
   methods: [

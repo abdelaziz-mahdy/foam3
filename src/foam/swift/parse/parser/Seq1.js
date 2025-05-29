@@ -12,12 +12,12 @@ foam.CLASS({
     {
       class: 'Array',
       of: 'foam.swift.parse.parser.Parser',
-      name: 'parsers',
+      name: 'parsers'
     },
     {
       class: 'Int',
-      name: 'index',
-    },
+      name: 'index'
+    }
   ],
   methods: [
     {
@@ -31,7 +31,7 @@ for (i, parser) in parsers.enumerated() {
   if i == index { value = ps!.value() }
 }
 return ps!.setValue(value)
-      `,
-    },
+      `
+    }
   ]
 });

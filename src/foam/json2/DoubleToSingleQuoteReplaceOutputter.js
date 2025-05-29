@@ -16,10 +16,10 @@ foam.CLASS({
         if ( match ) {
           s = "'" + match[1]
               .replace(/\\"/g, '"')
-              .replace(/'/g, "\\'") + "'"
+              .replace(/'/g, "\\'") + "'";
         }
         this.delegate.out(s);
-      },
-    },
-  ],
-})
+      }
+    }
+  ]
+});

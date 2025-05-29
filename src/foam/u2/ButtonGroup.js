@@ -75,7 +75,7 @@ foam.CLASS({
         .addClass()
         .enableClass(this.myClass('vertical'), this.direction$.map(v => v == 'VERTICAL'))
         .start('', {}, this.notContent$).style({ display:'contents'}).end()
-        .tag(this.OverlayActionListView, { data$: this.data$, ...this.overlaySpec }, this.overlay_$)
+        .tag(this.OverlayActionListView, { data$: this.data$, ...this.overlaySpec }, this.overlay_$);
       this.content = this.notContent;
     },
     function startOverlay() {
@@ -99,7 +99,7 @@ foam.CLASS({
       // Convienience method to add ActionReference
       let actRef = this.ActionReference.create({ action, ...( foam.lang.Slot.isInstance(data) ? {data$: data} : {data: data} ) });
       this.tag(actRef, opts);
-      return this
+      return this;
     }
-  ],
+  ]
 });

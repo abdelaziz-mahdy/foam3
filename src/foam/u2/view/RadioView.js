@@ -140,7 +140,7 @@ foam.CLASS({
           return self.E('div')
             .addClass('p-md', 'choice')
             .callIf(this.columns != -1, function () {
-              this.style({'flex-basis': (100 / self.columns) + '%'})
+              this.style({'flex-basis': (100 / self.columns) + '%'});
             })
             .start('input', {id: id})
               .attrs({

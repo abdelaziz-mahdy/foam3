@@ -28,7 +28,7 @@ foam.CLASS({
       name: 'cmd',
       class: 'Enum',
       of: 'foam.core.http.Command',
-      value: 'SELECT',
+      value: 'SELECT'
     },
     {
       class: 'String',
@@ -121,7 +121,7 @@ foam.CLASS({
       args: [
         {
           name: 'name',
-          type: 'String',
+          type: 'String'
         }
       ],
       code: function(name) {

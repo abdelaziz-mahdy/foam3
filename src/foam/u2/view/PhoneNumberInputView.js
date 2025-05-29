@@ -60,7 +60,7 @@ foam.CLASS({
               dao: X.countryDAO.orderBy(foam.core.auth.Country.NAME)
             }
           ]
-        }
+        };
       }
     },
     {

@@ -29,7 +29,7 @@ foam.CLASS({
       this
         .on('click', function() {
           self.openFilteredListView(self);
-        })
+        });
       this.addClass(this.myClass());
       this.startContext({ data: this.data, controllerMode: foam.u2.ControllerMode.VIEW })
       .start().addClass(this.myClass('wrapper'))
@@ -48,5 +48,5 @@ foam.CLASS({
       .endContext();
     }
   ]
-})
+});
 //        .startContext({data:this}).tag(this.REDIRECT, {buttonStyle: 'PRIMARY', label:this.buttonText}).endContext()

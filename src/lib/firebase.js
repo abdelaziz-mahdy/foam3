@@ -288,7 +288,7 @@ foam.CLASS({
       } else if ( path.lastIndexOf('/') === 0 ) {
         if ( data.data == null ) {
           var obj = this.of.create();
-          obj.id = path.substring(1)
+          obj.id = path.substring(1);
           this.on.remove.pub(obj);
           return;
         }

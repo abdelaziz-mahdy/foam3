@@ -48,7 +48,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'showLabel',
-      factory: function() { return this.label || this.labelFormatter },
+      factory: function() { return this.label || this.labelFormatter; }
     },
     {
       class: 'String',

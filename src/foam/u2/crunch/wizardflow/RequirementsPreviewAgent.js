@@ -64,7 +64,7 @@ foam.CLASS({
             this.sequence.endSequence();
             return Promise.resolve();
           }
-        })
+        });
       }
     },
 

@@ -35,7 +35,7 @@ foam.CLASS({
           return filteredWizard.save()
             .then((data) => {
               return Promise.resolve();
-            })
+            });
         }
       ));
     }

@@ -45,7 +45,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'onKey',
-      attribute: true,
+      attribute: true
       // documentation: 'When true, $$DOC{ref:".data"} is updated on every keystroke, rather than on blur.'
     },
     {
@@ -61,7 +61,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'maxLength',
-      attribute: true,
+      attribute: true
       // documentation: 'When set, will limit the length of the input to a certain number'
     },
     'type',

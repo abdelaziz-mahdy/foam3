@@ -18,7 +18,7 @@ foam.CLASS({
     },
     {
       name: 'head',
-      getter: function() { return this.delegate.head; },
+      getter: function() { return this.delegate.head; }
     },
     {
       name: 'tail',

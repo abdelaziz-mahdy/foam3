@@ -9,25 +9,25 @@ foam.CLASS({
   name: 'DAOCreateViewController',
   extends: 'foam.swift.ui.ScrollingViewController',
   requires: [
-    'foam.swift.ui.DetailView',
+    'foam.swift.ui.DetailView'
   ],
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   imports: [
-    'stack',
+    'stack'
   ],
   messages: [
     {
       name: 'CREATE_VC_TITLE',
       message: 'Create ${name}',
-      description: 'Title for the create view where ${name} is the name of the object.',
-    },
+      description: 'Title for the create view where ${name} is the name of the object.'
+    }
   ],
   properties: [
     {
       swiftType: '(foam_core_FObject & foam_dao_DAO)',
-      name: 'dao',
+      name: 'dao'
     },
     {
       name: 'title',
@@ -48,7 +48,7 @@ guard let of = dao$of as? ClassInfo else {
   fatalError("no dao of over here!")
 }
 return of.create(x: self.__context__) as! foam_core_FObject
-      `,
+      `
     },
     {
       name: 'view',
@@ -56,8 +56,8 @@ return of.create(x: self.__context__) as! foam_core_FObject
 let dv = DetailView_create(["data$": data$])
 dv.initAllViews()
 return dv
-      `,
-    },
+      `
+    }
   ],
   methods: [
     {
@@ -79,7 +79,7 @@ self.onDetach(self.vc$.swiftSub({ (_, _) in
   onVcChange()
 }))
 onVcChange()
-      `,
+      `
     },
     {
       name: 'onSaveButtonPressed',
@@ -88,7 +88,7 @@ onVcChange()
 (view?.get(key: "view") as? UIView)?.endEditing(true)
 _ = try! dao.put(data)
 (stack as? UINavigationController)?.popViewController(animated: true)
-     `,
-    },
-  ],
+     `
+    }
+  ]
 });

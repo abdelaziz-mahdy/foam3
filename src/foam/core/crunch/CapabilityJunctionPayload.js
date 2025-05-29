@@ -102,7 +102,7 @@ foam.CLASS({
         if ( dataObject instanceof Validatable ) {
           dataObject.validate(x);
         }
-      `,
+      `
     },
     {
       name: 'toSummary',

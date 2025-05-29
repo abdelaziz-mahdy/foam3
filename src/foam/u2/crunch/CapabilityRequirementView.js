@@ -14,7 +14,7 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.u2.crunch.Style',
+    'foam.u2.crunch.Style'
   ],
 
   css: `

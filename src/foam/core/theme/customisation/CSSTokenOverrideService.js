@@ -59,7 +59,7 @@ foam.CLASS({
       this.initLatch.then(() => {
         this.cached_ = true;
         this.cacheUpdated.pub();
-      })
+      });
       return this.tokenOverrideDAO
         .where(
           this.AND(

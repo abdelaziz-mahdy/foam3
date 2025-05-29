@@ -18,7 +18,7 @@ foam.CLASS({
   `,
   requires: [
     'foam.lang.ExpressionSlot',
-    'foam.u2.wizard.internal.PropertyUpdate',
+    'foam.u2.wizard.internal.PropertyUpdate'
   ],
 
   properties: [
@@ -65,7 +65,7 @@ foam.CLASS({
       class: 'StringArray',
       factory: () => []
     },
-    'cleanup_', // detachable to cleanup old subs when obj changes
+    'cleanup_' // detachable to cleanup old subs when obj changes
   ],
 
   methods: [

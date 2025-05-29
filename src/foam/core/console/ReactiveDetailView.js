@@ -183,7 +183,7 @@ foam.CLASS({
 
   properties: [
     [ 'showActions', true ],
-    [ 'expandPropertyViews', false ],
+    [ 'expandPropertyViews', false ]
   ],
 
   methods: [

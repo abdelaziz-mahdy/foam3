@@ -91,7 +91,7 @@ foam.CLASS({
           .add(prop.columnLabel + ': ')
           .call(function() {
             if ( ! prop.f(objReturned) ) {
-              this.start('i').add(self.EMPTY_MSG).end()
+              this.start('i').add(self.EMPTY_MSG).end();
             } else {
               prop.tableCellFormatter.format(
                 this,

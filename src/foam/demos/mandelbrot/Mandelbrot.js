@@ -162,7 +162,7 @@ foam.CLASS({
             if ( t < 1/2 ) return q;
             if ( t < 2/3 ) return p + (q - p) * (2/3 - t) * 6;
             return p;
-          }
+          };
 
           var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
           var p = 2 * l - q;

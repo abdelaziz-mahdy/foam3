@@ -137,7 +137,7 @@ foam.CLASS({
           .start().addClass('md-text-sm', 'main-container')
             .tag(this.detailView, { data: this.data })
             .add(this.DELETE)
-          .end()
+          .end();
     }
   ],
 
@@ -157,5 +157,5 @@ foam.CLASS({
       height: 90%;
       margin-top: 15px;
     }
-  `,
+  `
 });

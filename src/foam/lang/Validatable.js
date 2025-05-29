@@ -25,7 +25,7 @@ foam.INTERFACE({
           name: 'x', type: 'Context'
         }
       ],
-      javaThrows: ['IllegalStateException'],
+      javaThrows: ['IllegalStateException']
     }
   ]
 });

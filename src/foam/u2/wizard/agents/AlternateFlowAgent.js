@@ -75,7 +75,7 @@ foam.CLASS({
         const pos = this.WizardPosition.create({
           wizardletIndex: wi,
           sectionIndex: 0
-        })
+        });
         x.initialPosition = pos;
       }
     }

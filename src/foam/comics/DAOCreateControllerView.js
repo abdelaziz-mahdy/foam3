@@ -144,6 +144,6 @@ foam.CLASS({
         var self = this;
         self.notify(self.data.exception.message, '', self.LogLevel.ERROR, true);
       }
-    },
+    }
   ]
 });

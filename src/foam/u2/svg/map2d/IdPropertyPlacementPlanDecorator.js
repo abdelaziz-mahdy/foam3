@@ -36,5 +36,5 @@ foam.CLASS({
     function getPlacement(obj) {
       return this.delegate.getPlacement(obj[this.targetProperty]);
     }
-  ],
+  ]
 });

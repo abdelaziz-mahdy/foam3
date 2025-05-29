@@ -32,7 +32,7 @@ foam.CLASS({
     async function execute() {
       this.config = this.StepWizardConfig.create({
         allowSkipping: false,
-        allowBacktracking: false,
+        allowBacktracking: false
       });
     }
   ]

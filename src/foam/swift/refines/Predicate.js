@@ -10,6 +10,6 @@ foam.CLASS({
   refines: 'foam.mlang.predicate.AbstractPredicate',
   flags: ['swift'],
   methods: [
-    function f() { },
-  ],
+    function f() { }
+  ]
 });

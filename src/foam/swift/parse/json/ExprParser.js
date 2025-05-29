@@ -16,8 +16,8 @@ foam.CLASS({
     name: 'delegate',
     swiftFactory: `
 fatalError("TODO: Learn to parse exprs.")
-    `,
-  },
-  ],
+    `
+  }
+  ]
 });
 

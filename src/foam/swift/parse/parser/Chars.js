@@ -14,8 +14,8 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'chars',
-    },
+      name: 'chars'
+    }
   ],
   methods: [
     {
@@ -26,7 +26,7 @@ if ps.valid() && chars.index(of: ps.head()) != -1 {
   return ps.tail()!.setValue(ps.head())
 }
 return nil
-      `,
-    },
+      `
+    }
   ]
 });

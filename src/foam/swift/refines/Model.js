@@ -10,7 +10,7 @@ foam.CLASS({
   refines: 'foam.lang.Model',
   flags: ['swift'],
   requires: [
-    'foam.swift.SwiftClass',
+    'foam.swift.SwiftClass'
   ],
   properties: [
     {
@@ -19,16 +19,16 @@ foam.CLASS({
       expression: function(id) {
         // TODO: remove this property.
         return foam.swift.toSwiftName(id);
-      },
+      }
     },
     {
       class: 'Boolean',
       name: 'generateSwift',
-      value: true,
+      value: true
     },
     {
       class: 'StringArray',
-      name: 'swiftImports',
+      name: 'swiftImports'
     },
     {
       class: 'String',
@@ -37,17 +37,17 @@ foam.CLASS({
         // TODO: This should be an expression on extends but putting extends in
         // the args makes js unhappy.
         if ( this.extends == 'FObject' ) return 'AbstractFObject';
-        return foam.swift.toSwiftType(this.extends)
-      },
+        return foam.swift.toSwiftType(this.extends);
+      }
     },
     {
       class: 'StringArray',
-      name: 'swiftImplements',
+      name: 'swiftImplements'
     },
     {
       class: 'String',
-      name: 'swiftCode',
-    },
+      name: 'swiftCode'
+    }
   ],
   methods: [
     function swiftAllImplements() {
@@ -59,9 +59,9 @@ foam.CLASS({
         // Remove anything that's not actually an interface to avoid multiple inheritence.
         .filter(i => foam.lang.InterfaceModel.isInstance(foam.lookup(i.path).model_))
         .map(function(i) {
-          return foam.swift.toSwiftName(i.path)
+          return foam.swift.toSwiftName(i.path);
         })
       );
-    },
-  ],
+    }
+  ]
 });

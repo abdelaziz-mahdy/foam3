@@ -75,7 +75,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'fileId',
@@ -87,7 +87,7 @@ foam.CLASS({
         },
         {
           name: 'metadata',
-          type: 'foam.core.export.GoogleSheetsPropertyMetadata[]',
+          type: 'foam.core.export.GoogleSheetsPropertyMetadata[]'
         },
         {
           name: 'extraConfig',
@@ -116,7 +116,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'fileId',
@@ -128,7 +128,7 @@ foam.CLASS({
         },
         {
           name: 'metadata',
-          type: 'foam.core.export.GoogleSheetsPropertyMetadata[]',
+          type: 'foam.core.export.GoogleSheetsPropertyMetadata[]'
         },
         {
           name: 'extraConfig',
@@ -239,7 +239,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'metadataObj',
@@ -280,7 +280,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'sheetId',
@@ -305,7 +305,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'metadataObj',
@@ -345,7 +345,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'of',
@@ -358,7 +358,7 @@ foam.CLASS({
         },
         {
           name: 'metadata',
-          type: 'foam.core.export.GoogleSheetsPropertyMetadata[]',
+          type: 'foam.core.export.GoogleSheetsPropertyMetadata[]'
         }
       ],
       javaCode: `
@@ -406,7 +406,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'spreadsheetId',
@@ -440,7 +440,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'sheetId',
@@ -488,7 +488,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'obj',
@@ -541,7 +541,7 @@ foam.CLASS({
       args: [
         {
           name: 'x',
-          type: 'Context',
+          type: 'Context'
         },
         {
           name: 'obj',
@@ -583,6 +583,6 @@ foam.CLASS({
         return "";
       }
       `
-    },
+    }
   ]
 });

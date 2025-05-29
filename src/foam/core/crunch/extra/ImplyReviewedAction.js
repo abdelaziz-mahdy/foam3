@@ -64,7 +64,7 @@ foam.CLASS({
       name: 'grantReview',
       args: [
         { name: 'x', type: 'Context' },
-        { name: 'reviewWizard', type: 'ReviewWizard' },
+        { name: 'reviewWizard', type: 'ReviewWizard' }
       ],
       javaCode: `
         var capabilityDAO = (DAO) x.get("capabilityDAO");

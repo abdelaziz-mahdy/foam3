@@ -21,7 +21,7 @@ foam.CLASS({
         if ( Array.isArray(arg1) ) {
           return arg1.some(function(a) {
             return a.indexOf(arg2) !== -1;
-          })
+          });
         }
         return arg1 ? arg1.indexOf(arg2) !== -1 : false;
       },

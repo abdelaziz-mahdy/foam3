@@ -373,7 +373,7 @@ function getServiceMethods(service, pkg) {
       return fstr;
     };
     return f;
-  };
+  }
 
   var pkgPrefix = pkg ? pkg + '.' : '';
   for ( var i = 0; i < service.rpcs.length; i++ ) {

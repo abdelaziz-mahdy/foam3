@@ -17,7 +17,7 @@ foam.CLASS({
   ],
 
   javaImports: [
-    'foam.lang.FObject',
+    'foam.lang.FObject'
   ],
 
   methods: [

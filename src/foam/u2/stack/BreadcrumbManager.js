@@ -45,7 +45,7 @@ foam.CLASS({
   ],
   methods: [
     function init() {
-      this.stack.stackReset.sub(() => { this.crumbs = []; this.pos = -1; })
+      this.stack.stackReset.sub(() => { this.crumbs = []; this.pos = -1; });
     },
     function push(view) {
       foam.assert(foam.u2.Routable.isInstance(view), 'Can not add crumb for non-routable view');

@@ -56,7 +56,7 @@ foam.CLASS({
         for (let i = 0; i < childNodes.length && expanded; i++) {
           var childOutline = childNodes[i].outline.map(o => ({
             left: o.left + x,
-            right: o.right + x,
+            right: o.right + x
           }));
 
           for (var j = 0; j < childOutline.length; j++) {
@@ -74,7 +74,7 @@ foam.CLASS({
             left: x - width / 2 - padding / 2,
             right: x + width / 2 + padding / 2
           }
-        ]
+        ];
 
         return rootLevelOutline.concat(outlineBelowRoot);
       }
@@ -173,7 +173,7 @@ foam.CLASS({
 
       var expandFunction = () => {
         this.expanded = ! this.expanded;
-      }
+      };
 
       var onClick = expandFunction;
 
@@ -195,7 +195,7 @@ foam.CLASS({
           var point = this.globalToLocalCoordinates({
             w: 1,
             x: e.offsetX,
-            y: e.offsetY,
+            y: e.offsetY
           });
 
           /**
@@ -292,7 +292,7 @@ foam.CLASS({
          * to all children outlines via an expression since outline is an array
          */
         this.outline = [];
-        this.outline = undefined
+        this.outline = undefined;
       });
       return this;
     },
@@ -380,4 +380,4 @@ foam.CLASS({
       }
     }
   ]
-})
+});

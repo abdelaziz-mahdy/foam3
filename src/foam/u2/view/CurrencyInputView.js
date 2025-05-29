@@ -102,7 +102,7 @@ foam.CLASS({
         return this.data || 0;
       },
       preSet: function(_, n) {
-        var sanitized = this.sanitizeString(n)
+        var sanitized = this.sanitizeString(n);
         this.data = sanitized;
         return this.currency ? this.currency.format(sanitized, true) : sanitized;
       },
@@ -136,7 +136,7 @@ foam.CLASS({
       this.addClass()
         .add(this.slot(function(mode, currency) {
           if ( mode === foam.u2.DisplayMode.RW ) {
-            return this.E().style({ 'display': 'flex' }).start().addClass(self.myClass('container-selection'))
+            return this.E().style({ display: 'flex' }).start().addClass(self.myClass('container-selection'))
               .start('p').addClass(self.myClass('label-currency'))
                 .add(currency ? `${currency.id} ${currency.symbol}` : '--')
               .end()
@@ -183,4 +183,4 @@ foam.CLASS({
       }
     }
   ]
-})
+});

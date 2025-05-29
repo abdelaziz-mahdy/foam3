@@ -20,7 +20,7 @@ foam.CLASS({
 
   properties: [
     {
-      name: 'dateFormat',
+      name: 'dateFormat'
     },
     {
       class: 'Boolean',

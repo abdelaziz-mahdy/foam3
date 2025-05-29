@@ -40,7 +40,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'checked'
-    },
+    }
   ],
 
   methods: [

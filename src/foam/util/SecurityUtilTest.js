@@ -14,7 +14,7 @@ foam.CLASS({
     'java.security.AlgorithmParameters',
     'java.security.KeyFactory',
     'java.security.PublicKey',
-    'java.security.spec.*',
+    'java.security.spec.*'
   ],
 
   constants: [

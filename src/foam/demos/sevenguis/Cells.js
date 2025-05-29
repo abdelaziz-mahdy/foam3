@@ -83,7 +83,7 @@ foam.CLASS({
 
             string: str(repeat(anyChar()))
           };
-        }
+        };
       }
     }
   ],
@@ -353,7 +353,7 @@ foam.CLASS({
 
           var slot = self.parser.parseString(formula$.get());
           cancel && cancel.detach();
-          s = cell.data$.follow(slot)
+          s = cell.data$.follow(slot);
         });
       }
 

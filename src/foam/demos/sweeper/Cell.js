@@ -12,7 +12,7 @@ foam.CLASS({
   imports: [ 'board', 'youLose', 'unminedCount' ],
 
   constants: {
-    COLOURS: [ '', 'green', 'blue', 'orange', 'red', 'red', 'red', 'red' ],
+    COLOURS: [ '', 'green', 'blue', 'orange', 'red', 'red', 'red', 'red' ]
   },
 
   css: `

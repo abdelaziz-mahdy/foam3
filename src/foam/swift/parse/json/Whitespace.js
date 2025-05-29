@@ -25,7 +25,7 @@ while ps.valid() {
   }
 }
 return nil
-      `,
-    },
-  ],
+      `
+    }
+  ]
 });

@@ -65,7 +65,7 @@ foam.CLASS({
       var self = this;
       var dims = {
         width:  '' + this.size[0],
-        height: '' + this.size[1],
+        height: '' + this.size[1]
       };
       var capability = this.data;
       var ucj = null;
@@ -75,13 +75,13 @@ foam.CLASS({
       }
       this
         .attrs({
-          ...dims,
+          ...dims
         })
         .start('div', { namespace: 'http://www.w3.org/1999/xhtml' })
           .addClass(this.myClass('div'))
           .style({
             width: this.size[0],
-            height: this.size[1],
+            height: this.size[1]
           })
           .callIf(capability.icon, function () {
             this.style({
@@ -106,13 +106,13 @@ foam.CLASS({
                 .callIf(ucj.status.background, function () {
                   this.style({
                     'background-color': ucj.status.background,
-                    'width': 'inherit'
-                  })
+                    width: 'inherit'
+                  });
                 })
                 .callIf(ucj.status.color, function () {
                   this.style({
-                    'color': ucj.status.color,
-                  })
+                    color: ucj.status.color
+                  });
                 })
                 .add(ucj.status.label)
                 .on('click', function() {

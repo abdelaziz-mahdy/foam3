@@ -24,7 +24,7 @@ foam.CLASS({
     function write(X, dao, obj, existing) {
       if ( obj.errors_ ) {
         return Promise.reject(foam.dao.ValidationException.create({
-          errors: obj.errors_,
+          errors: obj.errors_
         }));
       }
       return Promise.resolve(obj);

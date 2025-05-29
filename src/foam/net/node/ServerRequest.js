@@ -65,7 +65,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'payloadEncoding_',
-      documentation: 'The encoding used for the request payload.',
+      documentation: 'The encoding used for the request payload.'
     },
     {
       name: 'urlLib_',

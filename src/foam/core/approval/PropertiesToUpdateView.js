@@ -155,7 +155,7 @@
     },
     {
       class: 'String',
-      name: 'title',
+      name: 'title'
     },
     {
       class: 'String',
@@ -223,7 +223,7 @@
             }
           }
         }
-      };
+      }
       this.containerHeight_ = `${sizeOfContainer}px`;
     },
 
@@ -248,7 +248,7 @@
         .start().addClass('boxBackground').add(this.slot((obj, defaultView) => {
           var index = -1;
           return defaultView ?
-          this.E().start().style({ 'height': this.containerHeight_ })
+          this.E().start().style({ height: this.containerHeight_ })
             .add(this.propList_.map((p) => {
               return this.E()
                 .start('h3').add(p.name).add(':').addClass('nameProperty').end()
@@ -257,7 +257,7 @@
             }))
           .end()
           :
-          this.E().start().style({ 'height': this.containerHeight_ })
+          this.E().start().style({ height: this.containerHeight_ })
               .add(this.elementArray.map((p) => {
                 index++;
                 return this.E()

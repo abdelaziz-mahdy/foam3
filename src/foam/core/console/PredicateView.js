@@ -68,6 +68,6 @@ foam.CLASS({
     function mqlHelp() {
       this.eval_('mqlhelp', true);
     }
-  ],
+  ]
 
 });

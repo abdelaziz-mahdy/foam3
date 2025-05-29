@@ -79,6 +79,6 @@ foam.ENUM({
       color: '$destructive500',
       glyph: 'exclamation',
       ordinal: 8
-    },
+    }
   ]
 });

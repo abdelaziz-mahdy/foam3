@@ -12,8 +12,8 @@ foam.CLASS({
   properties: [
     {
       class: 'Int',
-      name: 'delayMs',
-    },
+      name: 'delayMs'
+    }
   ],
   methods: [
     {
@@ -29,7 +29,7 @@ try {
 }
 
 return super.select_(x, sink, skip, limit, order, predicate);
-      `,
+      `
     },
     {
       name: 'put_',
@@ -44,7 +44,7 @@ try {
 }
 
 return super.put_(x, obj);
-      `,
+      `
     },
     {
       name: 'remove_',
@@ -59,7 +59,7 @@ try {
 }
 
 return super.remove_(x, obj);
-      `,
+      `
     },
     {
       name: 'removeAll_',
@@ -74,14 +74,14 @@ try {
 }
 
 super.removeAll_(x, skip, limit, order, predicate);
-      `,
+      `
     },
     {
       name: 'find_',
       swiftCode: `
 usleep(UInt32(delayMs * 1000))
 return try super.find_(x, id)
-      `,
-    },
+      `
+    }
   ]
 });

@@ -77,7 +77,7 @@ foam.CLASS({
       // If no item is selected, and data has not been provided, select the 0th
       // entry.
       this
-        .addClass(this.myClass())
+        .addClass(this.myClass());
 
       if ( ! this.data && ! this.index ) {
         this.index = 0;
@@ -112,7 +112,7 @@ foam.CLASS({
           start('label', { tooltip: c[2] }).
             addClass(self.myClass('label')).
             // this should be called selected
-            enableClass(self.myClass('disabled-icon'), self.slot(function(data) { return data === c[0] })).
+            enableClass(self.myClass('disabled-icon'), self.slot(function(data) { return data === c[0]; })).
             attrs({for: id}).
             tag({
               class: 'foam.u2.tag.Image',

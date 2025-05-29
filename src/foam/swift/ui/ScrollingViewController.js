@@ -8,13 +8,13 @@ foam.CLASS({
   package: 'foam.swift.ui',
   name: 'ScrollingViewController',
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   properties: [
     {
       class: 'FObjectProperty',
       required: false,
-      name: 'view',
+      name: 'view'
     },
     {
       class: 'String',
@@ -22,12 +22,12 @@ foam.CLASS({
       swiftExpressionArgs: ['view$title'],
       swiftExpression: `
 return view$title as? String ?? ""
-      `,
+      `
     },
     {
       swiftType: 'UIColor',
       name: 'backgroundColor',
-      swiftValue: 'UIColor.white',
+      swiftValue: 'UIColor.white'
     },
     {
       swiftType: 'UIViewController',
@@ -39,8 +39,8 @@ vc.innerView = view$view as? UIView
 vc.title = title
 vc.backgroundColor = backgroundColor
 return vc
-      `,
-    },
+      `
+    }
   ],
   swiftCode: `
 class VC_: UIViewController {
@@ -144,6 +144,6 @@ class VC_: UIViewController {
     }
   }
 }
-  `,
+  `
 });
 

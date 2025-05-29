@@ -33,7 +33,7 @@ exports.init = function() {
   this.ensureDir(X.libdir);
 
   X.javaFiles = [];
-}
+};
 
 exports.visitPOM = function(pom) {
   var self = this;
@@ -42,7 +42,7 @@ exports.visitPOM = function(pom) {
     self.verbose('[Javac] include', path);
     X.javaFiles.push(path);
   });
-}
+};
 
 exports.end = function() {
   this.log(`[Javac] END ${X.javaFiles.length} Java files`);
@@ -76,4 +76,4 @@ exports.end = function() {
   } else {
     this.log('[Javac] No Updates');
   }
-}
+};

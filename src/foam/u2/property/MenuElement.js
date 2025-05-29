@@ -81,7 +81,7 @@ foam.CLASS({
         this.index = index;
         this.popup.close();
       }
-    },
+    }
   ],
 
   css: `

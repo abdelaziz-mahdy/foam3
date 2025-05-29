@@ -53,7 +53,7 @@ foam.CLASS({
       'October',
       'November',
       'December'
-    ],
+    ]
   },
 
   properties: [

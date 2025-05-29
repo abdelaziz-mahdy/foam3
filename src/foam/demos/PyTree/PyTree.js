@@ -64,7 +64,7 @@ foam.CLASS({
       // https://bugzilla.mozilla.org/show_bug.cgi?id=943243
       return navigator.userAgent.indexOf('Firefox') == -1 ? 11 : 9;
     }},
-    'cssEl',
+    'cssEl'
   ],
 
   methods: [

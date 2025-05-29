@@ -19,5 +19,5 @@ foam.CLASS({
   package :'foam.net',
   name: 'NotConnectedException',
   implements: [ 'foam.lang.Exception' ],
-  extends: 'foam.lang.FOAMException',
+  extends: 'foam.lang.FOAMException'
 });

@@ -44,7 +44,7 @@ foam.CLASS({
       class: 'FObjectProperty',
       name: 'size',
       factory: function() {
-        return this.VisualizationSize.MEDIUM
+        return this.VisualizationSize.MEDIUM;
       }
     },
     'data',
@@ -59,7 +59,7 @@ foam.CLASS({
         .enableClass(this.myClass('titled-container'), this.title)
         .style({ 'aspect-ratio': this.aspectRatio })
         .callIf(!!this.title, function () {
-          this.start().addClass(this.myClass('title'), 'h500').translate(this.title, this.title).end()
+          this.start().addClass(this.myClass('title'), 'h500').translate(this.title, this.title).end();
         })
         .start(this.border, { data: this })
         .tag(this.slot(function(currentView) {
@@ -77,4 +77,4 @@ foam.CLASS({
       }
     }
   ]
-})
+});

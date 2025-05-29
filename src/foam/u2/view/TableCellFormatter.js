@@ -222,7 +222,7 @@ foam.CLASS({
           this.start()
             .add(obj.toSummary())
           .end();
-        })
+        });
       }
     }
   ]

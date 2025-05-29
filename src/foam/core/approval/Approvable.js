@@ -16,7 +16,7 @@ foam.CLASS({
     {
       name: 'admin',
       permissionRequired: true
-    },
+    }
   ],
 
   properties: [
@@ -70,16 +70,16 @@ foam.CLASS({
     },
     {
       class: 'Class',
-      name: 'of',
+      name: 'of'
     },
     {
       class: 'DateTime',
-      name: 'created',
+      name: 'created'
     },
     {
       class: 'Reference',
       of: 'foam.core.auth.User',
-      name: 'createdBy',
+      name: 'createdBy'
     },
     {
       class: 'Reference',
@@ -118,7 +118,7 @@ foam.CLASS({
         return this.__subContext__[this.daoKey].find(this.objId).then(obj => {
           return obj 
             ? `${modelString}: ${obj.toSummary()}`
-            :  `(${modelString}:${this.objId}) UPDATE`
+            :  `(${modelString}:${this.objId}) UPDATE`;
         });
       },
       javaCode: `

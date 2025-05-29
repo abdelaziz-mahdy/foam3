@@ -135,7 +135,7 @@ foam.CLASS({
 
   methods: [
     function init() {
-      this.param.dao_ = !! this.param.dao_ ? this.param.dao_ : this.loginVariables.dao_;
+      this.param.dao_ = this.param.dao_ ? this.param.dao_ : this.loginVariables.dao_;
       if ( this.mode_ === this.MODE1 ) {
         this.model = this.SignUp.create(this.param, this);
       } else {

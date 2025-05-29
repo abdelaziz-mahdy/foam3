@@ -48,7 +48,7 @@ foam.INTERFACE({
           name: 'box',
           type: 'foam.box.Box'
         }
-      ],
+      ]
     },
     {
       name: 'unregister',

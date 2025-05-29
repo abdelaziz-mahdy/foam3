@@ -20,7 +20,7 @@ foam.CLASS({
     [ 'width',  500 ],
     [ 'height', 500 ],
     [ 'color', 'black' ],
-    [ 'sides', 6 ],
+    [ 'sides', 6 ]
   ],
 
   methods: [

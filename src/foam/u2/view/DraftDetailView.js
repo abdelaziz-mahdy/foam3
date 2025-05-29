@@ -79,7 +79,7 @@ foam.CLASS({
   ],
 
   reactions: [
-    ['', 'propertyChange.data', 'updateWorkingData'],
+    ['', 'propertyChange.data', 'updateWorkingData']
   ],
 
   listeners: [

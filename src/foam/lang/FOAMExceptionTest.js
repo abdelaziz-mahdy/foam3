@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.core.test.Test',
 
   javaImports: [
-    'foam.i18n.TranslationService',
+    'foam.i18n.TranslationService'
   ],
 
   methods: [

@@ -45,7 +45,7 @@ foam.CLASS({
   properties: [
     {
       class: 'foam.core.fs.FileArray',
-      name: 'files',
+      name: 'files'
     },
     {
       class: 'Reference',

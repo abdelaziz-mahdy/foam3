@@ -13,5 +13,5 @@ foam.CLASS({
 
   properties: [
     [ 'nodeName', 'pre' ]
-  ],
+  ]
 });

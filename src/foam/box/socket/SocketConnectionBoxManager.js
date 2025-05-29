@@ -231,7 +231,7 @@ foam.CLASS({
         {
           name: 'key',
           type: 'String'
-        },
+        }
       ],
       javaCode: `
       Box box = (Box) getBoxes().get(key);

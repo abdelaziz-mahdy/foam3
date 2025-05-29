@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2017 The FOAM Authors. All Rights Reserved.
@@ -71,7 +70,7 @@ foam.CLASS({
         class: 'foam.u2.view.ReferenceArrayView',
         daoKey: 'menuDAO',
         allowDuplicates: false
-      },
+      }
     },
     {
       class: 'Reference',
@@ -424,7 +423,7 @@ foam.CLASS({
   messages: [
     {
       name: 'ERROR_MESSAGE',
-      message: 'You cannot change the parent of a group.',
+      message: 'You cannot change the parent of a group.'
     }
   ],
 

@@ -21,6 +21,6 @@ foam.CLASS({
       class: 'Password',
       name: 'password',
       documentation: 'Hashed password value.'
-    },
+    }
   ]
  });

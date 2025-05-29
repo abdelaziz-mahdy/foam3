@@ -50,8 +50,8 @@ while ( ps.valid() ) {
 if negate { n *= -1 }
 
 return ps.setValue(n)
-      `,
-    },
+      `
+    }
   ]
 });
 

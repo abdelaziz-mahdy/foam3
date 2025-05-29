@@ -26,7 +26,7 @@ foam.CLASS({
   properties: [
     {
       name: 'of',
-      factory: function() { return this.data.of }
+      factory: function() { return this.data.of; }
     },
     {
       name: 'views',
@@ -76,7 +76,7 @@ foam.CLASS({
       }
 
       this.addClass();
-      this.startContext({data: this})
+      this.startContext({data: this});
         this.start()
           .add(this.SELECTED_VIEW)
         .end()

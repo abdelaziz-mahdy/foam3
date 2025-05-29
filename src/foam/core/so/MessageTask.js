@@ -37,7 +37,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'replacementText',
+      name: 'replacementText'
     },
     {
       class: 'String',

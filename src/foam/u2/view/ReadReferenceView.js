@@ -143,7 +143,7 @@ foam.CLASS({
         this.data$.sub(() => {
           this.enableLink = true;
           this.configLink();
-        })
+        });
         this.add(this.slot(function(obj, enableLink) {
             if ( ! obj ) return '';
 
@@ -157,7 +157,7 @@ foam.CLASS({
                 .on('click', (evt) => {
                   evt.preventDefault();
                   if ( self.linkTo == 'permissioned' ) {
-                    this.routeToDAO(this.__subContext__[this.prop.targetDAOKey], this.obj?.id)
+                    this.routeToDAO(this.__subContext__[this.prop.targetDAOKey], this.obj?.id);
                   } else if ( self.linkTo.includes('/') ) {
                     this.routeTo('#' + this.linkTo);
                   } else {
@@ -190,7 +190,7 @@ foam.CLASS({
         this.obj = await dao.find(this.data);
       }
       if ( ! this.obj ) {
-        console.warn('***********No valid reference obj')
+        console.warn('***********No valid reference obj');
         this.enableLink = false;
         return;
       }

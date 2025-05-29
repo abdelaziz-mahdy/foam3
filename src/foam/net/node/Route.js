@@ -27,7 +27,7 @@ foam.INTERFACE({
       args: [
         {
           name: 'url',
-          documentation: `The URL to test against this route.`,
+          documentation: `The URL to test against this route.`
           // TODO type: 'URL'
         }
       ],

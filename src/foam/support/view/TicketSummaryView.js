@@ -18,7 +18,7 @@ foam.CLASS({
   requires: [
     'foam.support.model.Ticket',
     'foam.support.view.SummaryCard',
-    'foam.support.view.TicketView',
+    'foam.support.view.TicketView'
   ],
 
   imports: [
@@ -120,7 +120,7 @@ foam.CLASS({
           status: this.solvedLabel
         })
       .end();
-    },
+    }
   ],
 
   listeners: [

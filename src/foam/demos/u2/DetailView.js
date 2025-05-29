@@ -88,7 +88,7 @@ foam.CLASS({
       validateObj: function(lastName) {
         if ( ! lastName ) return 'Required';
         if ( lastName && lastName.length < 2 ) return 'Last Name must be at least 2 chars';
-      },
+      }
     },
     {
       class: 'EMail',
@@ -216,7 +216,7 @@ foam.CLASS({
                     return data.REGION.view;
                   }),
                   config: {
-                    label$: this.data.country$.map(c => { return { Canada: 'Province', 'United States': 'State' }[c] })
+                    label$: this.data.country$.map(c => { return { Canada: 'Province', 'United States': 'State' }[c]; })
                   }
                 }).
               end().

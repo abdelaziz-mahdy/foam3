@@ -9,31 +9,31 @@ foam.CLASS({
   package: 'foam.swift.ui',
   name: 'DAOUITableViewDelegate',
   imports: [
-    'stack',
+    'stack'
   ],
   requires: [
     'foam.swift.ui.DAOTableViewSource',
     'foam.swift.ui.DetailView',
-    'foam.swift.ui.ScrollingViewController',
+    'foam.swift.ui.ScrollingViewController'
   ],
   swiftImports: [
-    'UIKit',
+    'UIKit'
   ],
   swiftImplements: [
-    'UITableViewDelegate',
+    'UITableViewDelegate'
   ],
   messages: [
     {
       name: 'UPDATE_VC_TITLE',
       message: 'Update ${name}',
-      description: 'Title for the update view where ${name} is the name of the object.',
-    },
+      description: 'Title for the update view where ${name} is the name of the object.'
+    }
   ],
   properties: [
     {
       class: 'FObjectProperty',
       of: 'foam.swift.ui.DAOTableViewSource',
-      name: 'dataSource',
+      name: 'dataSource'
     },
     {
       swiftType: 'UITableViewRowAction',
@@ -43,7 +43,7 @@ return UITableViewRowAction(style: .destructive, title: "Delete") { (_, indexPat
   _ = try? self.dataSource?.dao?.remove(
       self.dataSource?.daoContents[indexPath.row] as! foam_core_FObject?)
 }
-      `,
+      `
     },
     {
       swiftType: '((foam_core_FObject) -> UIViewController)',
@@ -65,8 +65,8 @@ return { (o: foam_core_FObject) -> UIViewController in
 
   return svc.vc
 }
-      `,
-    },
+      `
+    }
   ],
   swiftCode: `
 public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -83,5 +83,5 @@ public func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: I
 public func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
   dataSource?.rowViewRemoved?(indexPath, cell)
 }
-  `,
+  `
 });

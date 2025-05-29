@@ -11,13 +11,13 @@ foam.CLASS({
   flags: ['swift'],
   requires: [
     'foam.swift.Method',
-    'foam.swift.Argument',
+    'foam.swift.Argument'
   ],
   properties: [
     {
       class: 'String',
       name: 'swiftClientClass',
-      expression: function(clientClass) { return clientClass },
+      expression: function(clientClass) { return clientClass; }
     }
   ],
   methods: [
@@ -31,15 +31,15 @@ foam.CLASS({
           this.Argument.create({
             localName: 'outputter',
             externalName: 'outputter',
-            type: foam.swift.parse.json.output.Outputter.model_.swiftName + '?',
+            type: foam.swift.parse.json.output.Outputter.model_.swiftName + '?'
           }),
           this.Argument.create({
             localName: 'out',
             externalName: 'out',
             type: foam.json2.Outputter.model_.swiftName + '?'
-          }),
+          })
         ],
-        body: this.swiftCode(),
+        body: this.swiftCode()
       }));
     }
   ],
@@ -59,7 +59,7 @@ let obj = __context__.create(<%=foam.swift.toSwiftName(this.clientClass)%>.self)
 obj.delegate = box;
 
 obj.toJSON(outputter: outputter, out: out)
-      `,
-    },
+      `
+    }
   ]
 });

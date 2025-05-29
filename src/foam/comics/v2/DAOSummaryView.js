@@ -140,7 +140,7 @@ foam.CLASS({
         var self = this;
         var maybePromise = data?.toSummary() ?? '';
         if ( maybePromise.then ) {
-          maybePromise.then( v => { self.viewTitle = v })
+          maybePromise.then( v => { self.viewTitle = v; });
           return '';
         }
         return maybePromise;
@@ -309,7 +309,7 @@ foam.CLASS({
                   .end()
                   .startContext({ data })
                   .add(this.slot(function(primary) {
-                    return this.E().tag(primary, { buttonStyle: 'PRIMARY' })
+                    return this.E().tag(primary, { buttonStyle: 'PRIMARY' });
                   }))
                   .endContext()
                 .end()

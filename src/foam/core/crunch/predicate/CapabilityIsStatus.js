@@ -13,7 +13,7 @@ foam.RULE_PREDICATE({
     'foam.core.crunch.Capability',
     'foam.core.crunch.CrunchService',
     'foam.core.crunch.UserCapabilityJunction',
-    'static foam.core.crunch.CapabilityJunctionStatus.*',
+    'static foam.core.crunch.CapabilityJunctionStatus.*'
   ],
 
   properties: [

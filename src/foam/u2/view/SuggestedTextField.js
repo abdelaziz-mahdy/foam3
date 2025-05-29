@@ -72,7 +72,7 @@
       name: 'autocompleter',
       factory: function() {
         if ( ! this.daoKey ) console.error('No daokey');
-        return this.Autocompleter.create({ dao: this.__subContext__[this.daoKey] })
+        return this.Autocompleter.create({ dao: this.__subContext__[this.daoKey] });
       }
     },
     {
@@ -126,7 +126,7 @@
     },
     {
       class: 'Boolean',
-      name: 'loading',
+      name: 'loading'
     },
     {
       class: 'String',
@@ -173,7 +173,7 @@
     function populate(filteredValues, data, inputFocused, suggestOnFocus, loading, error) {
       const self = this;
       if ( ( ! data && ! suggestOnFocus ) || ! inputFocused ) return this.E();
-      if ( loading ) return this.E().addClass(this.myClass('suggestions')).tag(self.LoadingSpinner, {size: '32px'})
+      if ( loading ) return this.E().addClass(this.myClass('suggestions')).tag(self.LoadingSpinner, {size: '32px'});
       if ( error ) return this.E().addClass(this.myClass('suggestions')).add(this.error);
       return this.E().addClass(this.myClass('suggestions'))
         .start().addClass('p-semiBold').add(this.title).end()

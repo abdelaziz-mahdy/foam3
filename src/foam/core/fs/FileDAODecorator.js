@@ -70,6 +70,6 @@ foam.CLASS({
           reader.onerror = error => reject(error);
       });
       return await toBase64(file);
-    },
+    }
   ]
 });

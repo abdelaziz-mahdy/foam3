@@ -15,7 +15,7 @@ foam.CLASS({
     'foam.core.auth.User',
     'foam.u2.PopupView',
     'foam.support.model.TicketMessage',
-    'foam.support.view.ReplyView',
+    'foam.support.view.ReplyView'
   ],
 
   implements: [
@@ -169,7 +169,7 @@ foam.CLASS({
           .end()
         .end()
         .start('div')
-          .start().show(this.status$.map(function (a) { return a !== 'Solved' }))
+          .start().show(this.status$.map(function (a) { return a !== 'Solved'; }))
             .tag({ class: 'foam.support.view.ReplyView' })
           .end()
           .start().add(this.slot(function (messages) {
@@ -262,7 +262,7 @@ foam.CLASS({
                   self.submitAsPopUp.close();
                 })
                 .end();
-            })
+            });
           }, this.data.status$));
 
         this.submitAsMenuBtn_.add(this.submitAsPopUp);

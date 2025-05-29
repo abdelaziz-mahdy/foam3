@@ -14,8 +14,8 @@ foam.INTERFACE({
   properties: [
     {
       name: 'data',
-      class: 'foam.dao.DAOProperty',
-    },
+      class: 'foam.dao.DAOProperty'
+    }
   ],
 
   methods: [

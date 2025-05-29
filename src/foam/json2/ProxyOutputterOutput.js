@@ -14,7 +14,7 @@ foam.CLASS({
     {
       class: 'Proxy',
       of: 'foam.json2.OutputterOutput',
-      name: 'delegate',
-    },
-  ],
-})
+      name: 'delegate'
+    }
+  ]
+});

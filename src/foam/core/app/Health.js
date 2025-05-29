@@ -42,46 +42,46 @@ foam.CLASS({
       name: 'hostname',
       class: 'String',
       shortName: 'h',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       documentation: 'Application name',
       name: 'appName',
       shortName: 'n',
       class: 'String',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'version',
       shortName: 'v',
       class: 'String',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'address',
       shortName: 'a',
       class: 'String',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'port',
       shortName: 'p',
       class: 'Int',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'status',
       shortName: 's',
       class: 'Enum',
       of: 'foam.core.app.HealthStatus',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'mode',
       shortName: 'm',
       class: 'Enum',
       of: 'foam.core.app.Mode',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       // NOTE: bootTime must be present in tableColumns for upTime to reported correctly in tableView
@@ -109,14 +109,14 @@ foam.CLASS({
       shortName: 'ht',
       class: 'Long',
       units: 'ms',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'heartbeatSchedule',
       shortName: 'hs',
       class: 'Long',
       units: 'ms',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'nextHearbeatIn',
@@ -148,21 +148,21 @@ foam.CLASS({
       shortName: 'mm',
       class: 'Long',
       units: 'bytes',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'memoryTotal',
       shortName: 'mt',
       class: 'Long',
       units: 'bytes',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'memoryFree',
       shortName: 'mf',
       class: 'Long',
       units: 'bytes',
-      visibility: 'RO',
+      visibility: 'RO'
     },
     {
       name: 'memoryUsed',
@@ -201,7 +201,7 @@ foam.CLASS({
       name: 'alarms',
       shortName: 'al',
       class: 'Int',
-      visibility: 'RO',
+      visibility: 'RO'
     }
   ],
 

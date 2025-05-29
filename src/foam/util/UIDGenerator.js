@@ -141,4 +141,4 @@ foam.CLASS({
       javaCode: 'return mod(getSalt());'
     }
   ]
-})
+});

@@ -9,11 +9,11 @@ foam.CLASS({
   name: 'MessageTemplateParser',
   requires: [
     'foam.parse.Parsers',
-    'foam.parse.ImperativeGrammar',
+    'foam.parse.ImperativeGrammar'
   ],
   properties: [
     {
-      name: 'value',
+      name: 'value'
       // Test Value
       // value: 'Hello ${toName} from ${fromName}',
     },
@@ -24,15 +24,15 @@ foam.CLASS({
         var parsedValue = this.grammar.parseString(value);
         return parsedValue;
       }
-    },
+    }
   ],
   methods: [
     function addLiteral(a) {
       let str = a.join('');
-      return () => { return str; } 
+      return () => { return str; }; 
     },
     function addParam(a) {
-      return map => { return map[a] } 
+      return map => { return map[a]; }; 
     }
   ],
   grammars: [
@@ -63,7 +63,7 @@ foam.CLASS({
         function string(a) {
           return a;
         }
-      ],
-    },
-  ],
+      ]
+    }
+  ]
 });

@@ -38,7 +38,7 @@ foam.INTERFACE({
           name: 'payload',
           type: 'CapabilityJunctionPayload'
         }
-      ],
+      ]
     }
   ]
 });

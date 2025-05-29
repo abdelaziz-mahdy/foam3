@@ -26,4 +26,4 @@ foam.CLASS({
       return this.parent;
     }
   ]
-})
+});

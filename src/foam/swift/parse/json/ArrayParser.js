@@ -13,7 +13,7 @@ foam.CLASS({
     'foam.swift.parse.parser.Literal',
     'foam.swift.parse.parser.Repeat',
     'foam.swift.parse.parser.Seq0',
-    'foam.swift.parse.parser.Seq1',
+    'foam.swift.parse.parser.Seq1'
   ],
   axioms: [
     foam.pattern.Singleton.create()
@@ -37,7 +37,7 @@ return Seq1_create(["index": 3, "parsers": [
   Whitespace_create(),
   Literal_create(["string": "]"]),
 ]])
-    `,
-  },
-  ],
+    `
+  }
+  ]
 });

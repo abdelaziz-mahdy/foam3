@@ -10,7 +10,7 @@ foam.RULE_PREDICATE({
 
   javaImports: [
     'foam.core.crunch.lite.Capable',
-    'static foam.core.crunch.CapabilityJunctionStatus.*',
+    'static foam.core.crunch.CapabilityJunctionStatus.*'
   ],
 
   properties: [

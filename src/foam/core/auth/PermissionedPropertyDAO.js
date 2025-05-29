@@ -37,7 +37,7 @@ foam.CLASS({
       javaCode: `
   FObject oldObj = getDelegate().find(obj.getProperty("id"));
   return super.put_(x, maybeResetProperties(x, obj, oldObj));
-      `,
+      `
     },
 
     {
@@ -50,7 +50,7 @@ foam.CLASS({
   }
 
   return null;
-      `,
+      `
     },
 
     {
@@ -73,7 +73,7 @@ foam.CLASS({
         return sink;
       }
       return super.select_(x, sink, skip, limit, order, predicate);
-      `,
+      `
     },
 
     {
@@ -125,7 +125,7 @@ foam.CLASS({
   }
 
   return obj;
-      `,
+      `
     },
 
     {
@@ -183,7 +183,7 @@ foam.CLASS({
       }
 
       return obj;
-      `,
+      `
     },
 
     {
@@ -229,7 +229,7 @@ foam.CLASS({
       axiom.clear(obj);
     }
   }
-      `,
+      `
     }
   ],
 
@@ -244,9 +244,9 @@ foam.CLASS({
     super(x, delegate);
   }
         `);
-      },
-    },
-  ],
+      }
+    }
+  ]
 });
 
 

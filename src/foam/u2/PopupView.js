@@ -76,7 +76,7 @@ foam.CLASS({
           padding: this.padding + 'px',
           left:    this.x + 'px',
           top:     this.y + 'px'
-        })
+        });
 
       parent.style({position: 'relative'});
     }

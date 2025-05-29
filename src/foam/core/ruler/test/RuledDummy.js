@@ -21,4 +21,4 @@ foam.CLASS({
       name: 'prop'
     }
   ]
-})
+});

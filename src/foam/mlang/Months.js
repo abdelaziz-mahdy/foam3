@@ -48,7 +48,7 @@ foam.CLASS({
         var monthDiff = now.getMonth() - from.getMonth();
         var yearDiff = now.getYear() - from.getYear();
 
-        var months = monthDiff + yearDiff * 12
+        var months = monthDiff + yearDiff * 12;
         return months;
       },
       javaCode: `

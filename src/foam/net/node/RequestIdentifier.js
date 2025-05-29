@@ -31,6 +31,6 @@ foam.CLASS({
       return req.payload.then(function(payload) {
         return `${req.method} ${req.urlString}\n${payload}`;
       });
-    },
-  ],
+    }
+  ]
 });

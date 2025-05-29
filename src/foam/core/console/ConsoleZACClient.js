@@ -30,7 +30,7 @@ foam.CLASS({
           this.ctrl.add(this.Console.create({}, this));
         }
       } catch (x) {}
-    },
+    }
 
     /*
     function render() {

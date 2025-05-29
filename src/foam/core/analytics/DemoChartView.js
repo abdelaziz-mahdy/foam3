@@ -66,7 +66,7 @@ foam.CLASS({
       factory: function() {
         return this.Box.create({
           width: this.width,
-          height: this.height,
+          height: this.height
           // color: this.color
         });
       }
@@ -77,7 +77,7 @@ foam.CLASS({
       postSet: function() {
         this.refresh();
       },
-      hidden: true,
+      hidden: true
     },
     {
       class: 'FObjectProperty',

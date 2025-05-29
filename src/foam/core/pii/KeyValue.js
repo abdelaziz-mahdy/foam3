@@ -18,4 +18,4 @@ foam.CLASS({
       class: 'String'
     }
   ]
-})
+});

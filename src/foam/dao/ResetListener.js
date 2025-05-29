@@ -23,6 +23,6 @@ foam.CLASS({
         this.reset(sub);
       },
       swiftCode: 'reset(sub)'
-    },
+    }
   ]
 });

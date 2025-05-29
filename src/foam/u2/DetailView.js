@@ -335,7 +335,7 @@ foam.CLASS({
         // This is probably a bug and should be fixed.
         this.start().start('table').
           enableClass(self.myClass('collapsePropertyViews'), self.expandPropertyViews$, true).
-          attrs({'cellpadding': 2}).
+          attrs({cellpadding: 2}).
           addClass(self.myClass()).
           call(self.renderTitle, [self]).
           forEach(properties, function(p) {

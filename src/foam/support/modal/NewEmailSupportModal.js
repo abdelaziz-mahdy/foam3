@@ -91,7 +91,7 @@ foam.CLASS({
         class: 'String',
         name: 'emailRegex',
         factory: function() {
-          return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+          return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         }
       }
     ],
@@ -105,7 +105,7 @@ foam.CLASS({
 
     methods:[
       function render(){
-        this.addClass()
+        this.addClass();
 
         this
         .tag(this.ModalHeader.create({

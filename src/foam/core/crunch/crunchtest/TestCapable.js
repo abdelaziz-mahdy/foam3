@@ -15,7 +15,7 @@ foam.CLASS({
   properties: [
     {
       name: 'id',
-      class: 'String',
+      class: 'String'
     },
     // Grab properties from CapableObjectData
     ...(

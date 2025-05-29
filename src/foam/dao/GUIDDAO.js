@@ -49,7 +49,7 @@ foam.CLASS({
       name: 'axiom',
       javaFactory: `
 return (foam.lang.PropertyInfo)(getOf().getAxiomByName(getProperty()));
-      `,
+      `
     }
   ],
 
@@ -74,8 +74,8 @@ if ( "".equals(val) ) {
 }
 
 return getDelegate().put_(x, obj);
-      `,
-    },
+      `
+    }
   ],
 
   axioms: [
@@ -90,7 +90,7 @@ public GUIDDAO(DAO delegate) {
   setDelegate(delegate);
 }
         `);
-      },
-    },
-  ],
+      }
+    }
+  ]
 });

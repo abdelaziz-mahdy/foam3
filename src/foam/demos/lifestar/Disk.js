@@ -68,7 +68,7 @@ foam.CLASS({
       this.time$.sub(function() {
         p.t -= 0.01;
         p.g += 0.01;
-        var on = Math.abs((this.time % this.n - i + this.n)%this.n) < 20
+        var on = Math.abs((this.time % this.n - i + this.n)%this.n) < 20;
         p.glowRadius = on ? 8 : 0;
         var s = on ? 100 : 70;
         var l = on ? 70 : 30;

@@ -25,7 +25,7 @@ foam.CLASS({
       name: 'clsDAO',
       factory: function() {
         let a = foam.dao.ArrayDAO.create({ of: this.ClassHolder }, this);
-        Object.keys(foam.USED).map(v => { a.put(this.ClassHolder.create({ id: v, cls: foam.USED[v] })); })
+        Object.keys(foam.USED).map(v => { a.put(this.ClassHolder.create({ id: v, cls: foam.USED[v] })); });
         return a;
       }
     },

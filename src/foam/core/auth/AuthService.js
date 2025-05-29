@@ -195,7 +195,7 @@ foam.INTERFACE({
         },
         {
           name: 'permission',
-          type: 'String',
+          type: 'String'
         }
       ]
     },

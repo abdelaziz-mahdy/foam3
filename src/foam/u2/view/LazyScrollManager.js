@@ -180,7 +180,7 @@ foam.CLASS({
       documentation: `Function that is run before each page is loaded on a limited DAO,
       should always return a promise, can be used to create projections`,
       factory: function() {
-        return function(dao) { return dao.select(); }
+        return function(dao) { return dao.select(); };
       }
     },
     {
@@ -213,7 +213,7 @@ foam.CLASS({
       class: 'Map',
       name: 'collapsedGroups',
       factory: function() { return {}; }
-    },
+    }
   ],
 
   methods: [
@@ -230,7 +230,7 @@ foam.CLASS({
     async function render() {
       var self = this;
       var resize = new ResizeObserver (this.checkPageSize_);
-      let root = await this.rootElement.el()
+      let root = await this.rootElement.el();
       let options = {
         root: root ?? null,
         rootMargin: `-${this.offsetTop}px 0px 0px`,
@@ -242,8 +242,8 @@ foam.CLASS({
       this.dataLatch.then(() => {
         this.rootElement?.el().then(el => {
           resize.observe(el);
-        })
-      })
+        });
+      });
       // Render empty view if dao is empty
       // Change to dynamic after U3
       this.appendTo.add(this.slot(function(daoCount, isInit, daoLoading) {
@@ -307,7 +307,7 @@ foam.CLASS({
       ! opt_skipObserver && this.renderedPages_[page].childNodes?.forEach((e) => {
         if ( e.el_() )
           this.rowObserver.unobserve(e.el_());
-      })
+      });
       this.renderedPages_[page].remove();
       delete this.renderedPages_[page];
     },
@@ -318,9 +318,9 @@ foam.CLASS({
       var sortParams = [];
 
       if ( this.groupBy )
-        sortParams.push(this.invertGroupingOrder ? this.DESC(this.groupBy) : this.groupBy)
+        sortParams.push(this.invertGroupingOrder ? this.DESC(this.groupBy) : this.groupBy);
 
-      if ( this.order ) sortParams.push(this.order)
+      if ( this.order ) sortParams.push(this.order);
 
       if ( sortParams.length ) proxy = proxy.orderBy(sortParams);
 
@@ -354,9 +354,9 @@ foam.CLASS({
           var rowEl = self.E().tag(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);
           e.start(rowEl).hide(self.collapsedGroups[self.currGroup_] ?? false);
           rowEl.el().then(a => {
-            self.rowObserver.observe(a)
+            self.rowObserver.observe(a);
           });
-        };
+        }
 
         if ( foam.mlang.sink.Projection.isInstance( values ) ) {
           for ( var i = 0 ; i < values.projection.length ; i++ ) {
@@ -373,7 +373,7 @@ foam.CLASS({
         var isSet = false;
         if ( self.renderedPages_[page] ) {
           console.warn('Trying to overwrite a loaded page without clearning....Clearing page');
-          this.clearPage(page)
+          this.clearPage(page);
         }
 
         Object.keys(self.renderedPages_).forEach(j => {
@@ -394,7 +394,7 @@ foam.CLASS({
           self.safeScroll();
 
         this.dataLatch.resolve();
-        if ( this.displayedRowCount_ < 0 ) this.bottomRow = this.daoCount
+        if ( this.displayedRowCount_ < 0 ) this.bottomRow = this.daoCount;
       });
     }
   ],
@@ -477,7 +477,7 @@ foam.CLASS({
         }
         Promise.all(promiseArr).then(()=>{
           this.daoLoading = false;
-        })
+        });
       }
     },
     {

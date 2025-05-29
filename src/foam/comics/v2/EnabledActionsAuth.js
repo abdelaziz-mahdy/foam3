@@ -15,14 +15,14 @@ foam.INTERFACE({
   methods: [
     {
       name: 'getModelName',
-      type: 'String',
+      type: 'String'
     },
     {
       name: 'setModelName',
       args: [
         {
           name: 'value',
-          type: 'String',
+          type: 'String'
         }
       ]
     },

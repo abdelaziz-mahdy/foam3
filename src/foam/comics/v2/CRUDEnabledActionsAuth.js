@@ -21,7 +21,7 @@ foam.CLASS({
     {
       class: 'FObjectProperty',
       of: 'foam.comics.v2.EnabledActionsAuth',
-      name: 'enabledActionsAuth',
+      name: 'enabledActionsAuth'
     }
   ]
 });

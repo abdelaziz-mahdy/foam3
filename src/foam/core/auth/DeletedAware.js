@@ -14,14 +14,14 @@ foam.INTERFACE({
   methods: [
     {
       name: 'getDeleted',
-      type: 'Boolean',
+      type: 'Boolean'
     },
     {
       name: 'setDeleted',
       args: [
         {
           name: 'value',
-          type: 'Boolean',
+          type: 'Boolean'
         }
       ]
     }
