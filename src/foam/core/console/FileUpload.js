@@ -73,12 +73,12 @@ foam.CLASS({
       background-color: $grey100;
     }
     ^step.active {
-      border-color: $primary3;
+      border-color: $primary300;
       background-color: $primary100;
     }
     ^step.completed {
-      border-color: $approval3;
-      background-color: $approval100;
+      border-color: $success300;
+      background-color: $success100;
     }
     ^step h3 {
       margin: 0 0 12px 0;
