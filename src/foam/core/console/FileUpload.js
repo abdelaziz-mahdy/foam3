@@ -84,23 +84,7 @@ foam.CLASS({
       margin: 0 0 12px 0;
       color: $black;
     }
-    ^file-upload-area {
-      border: 2px dashed $grey300;
-      border-radius: 8px;
-      padding: 40px;
-      text-align: center;
-      background-color: $grey50;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    ^file-upload-area:hover {
-      border-color: $primary400;
-      background-color: $primary50;
-    }
-    ^file-upload-area.dragover {
-      border-color: $primary400;
-      background-color: $primary100;
-    }
+
     
     ^mt-sm { margin-top: 8px; }
     ^mt-lg { margin-top: 24px; }
@@ -430,7 +414,7 @@ foam.CLASS({
             add('Upload multiple files with the same structure (same headers/fields). All files will be processed together.').
           end().
           start('div').addClass(this.myClass('mb-lg')).
-            start('div').addClass(this.myClass('file-upload-area')).
+            start('div').
               add(this.FileDropZone.create({
                 files$: this.uploadedFiles$,
                 isMultipleFiles: true,
