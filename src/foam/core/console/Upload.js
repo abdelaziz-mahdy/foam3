@@ -289,12 +289,12 @@ foam.CLASS({
           self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * i / self.rows)) : 0;
 
           if ( o.errors_ ) {
-//            self.output += '<span style="color:red">' + o.errors_ + ', row: ' + i + '<br>' + row + '</span>';
-            self.output += '<span style="color:red">' + o.errors_ + '</span>';
+            //            self.output += '<span style="color:red">' + o.errors_ + ', row: ' + i + '<br>' + row + '</span>';
+            self.output += '<span style="color:red">' + o.errors_.map(e => e[0].name + ' ' + e[1]).join(', ') + '</span><br>';
           }
 
           if ( ! real ) {
-            if ( foam.lang.Long.isInstance(o.ID) ) o.id = i;
+            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = i;
             self.data.put(o);
           } else {
             if ( ! agent ) agent = self.UploadAgent.create();

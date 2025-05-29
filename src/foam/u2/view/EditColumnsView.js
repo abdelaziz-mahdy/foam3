@@ -8,14 +8,17 @@ foam.CLASS({
   package: 'foam.u2.view',
   name: 'EditColumnsView',
   extends: 'foam.u2.View',
+
   requires: [
     'foam.u2.DetailView',
     'foam.u2.view.ColumnConfigPropView',
     'foam.u2.view.SubColumnSelectConfig'
   ],
+
   imports: [
     'window'
   ],
+
   css: `
     ^drop-down-bg {
       font-size:        12px;
@@ -60,6 +63,7 @@ foam.CLASS({
       top: 120px;
     }
   `,
+
   properties: [
     {
       name: 'selectColumnsExpanded',
@@ -69,6 +73,7 @@ foam.CLASS({
     'columnConfigPropView',
     'height'
   ],
+
   methods: [
     function closeDropDown(e) {
       e.stopPropagation();

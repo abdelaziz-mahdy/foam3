@@ -37,13 +37,13 @@ foam.CLASS({
           return;
         }
 
-        var view = self.TableView.create({ data: dao });
+        var config = { data: dao };
 
         if ( columns.length ) {
-          view.columns = columns.map(function(c) { return of.getAxiomByName(c) });
+          config.selectedColumnNames = columns;
         }
 
-        e.tag(view).style({width: '100%'});
+        this.start(self.TableView, config);
       }));
     }
   ]
