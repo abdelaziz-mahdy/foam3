@@ -53,7 +53,6 @@ foam.CLASS({
     'foam.u2.ActionView',
     'foam.u2.view.RichChoiceView',
     'foam.core.console.DAOSuggestion',
-    'foam.core.controller.Fonts',
   ],
 
   imports: [ 'cSpecDAO', 'currentBlock?', 'eval_?' ],
@@ -69,17 +68,17 @@ foam.CLASS({
     ^step {
       margin-bottom: 24px;
       padding: 16px;
-      border: 1px solid $grey3;
+      border: 1px solid $grey300;
       border-radius: 8px;
-      background-color: $grey1;
+      background-color: $grey100;
     }
     ^step.active {
       border-color: $primary3;
-      background-color: $primary1;
+      background-color: $primary100;
     }
     ^step.completed {
       border-color: $approval3;
-      background-color: $approval1;
+      background-color: $approval100;
     }
     ^step h3 {
       margin: 0 0 12px 0;
@@ -98,13 +97,13 @@ foam.CLASS({
     
     /* Use existing typography classes */
     ^text-muted {
-      color: $grey4;
+      color: $grey400;
     }
     ^text-success {
-      color: $approval3;
+      color: $success300;
     }
     ^text-primary {
-      color: $primary3;
+      color: $primary300;
       font-weight: bold;
     }
     ^text-mono {
@@ -114,7 +113,7 @@ foam.CLASS({
     
     /* Use theme colors for backgrounds */
     ^bg-light {
-      background-color: $grey1;
+      background-color: $grey100;
       border-radius: 4px;
     }
     ^bg-white {
