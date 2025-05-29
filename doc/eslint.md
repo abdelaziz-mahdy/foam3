@@ -37,6 +37,16 @@ npx eslint src/foam/core/ tools/
 npx eslint --format=stylish src/foam/core/Model.js
 ```
 
+### Build ESLint Support
+FOAM's build also supports running ESLing:
+```bash
+# Run check on default src/ directory:
+./build.sh -TESLint
+
+# see ussage with
+./build.sh -TESLint --usage
+```
+
 ## Configuration Overview
 
 The ESLint configuration (`.eslintrc.js`) is designed around the FOAM3 Style Guide requirements:
