@@ -12,7 +12,12 @@ foam.CLASS({
 
   documentation: 'Sink which behaves like the SQL group-by command.',
 
-  requires: [ 'foam.mlang.sink.GroupByView' ],
+  requires: [
+    'foam.mlang.sink.GroupByView',
+    'foam.mlang.sink.Sequence'
+  ],
+
+  static: [ (function() { let count = 0; return function NEXT() { return count++; }; })()  ],
 
   // TODO: it makes no sense to name the arguments arg1 and arg2
   // because this isn't an expression, so they should be more meaningful
@@ -58,7 +63,8 @@ foam.CLASS({
         // TODO: it would be good if it could also detect RelationshipJunction.sourceId/targetId
         return ! foam.lang.MultiPartID.isInstance(this.arg1);
       }
-    }
+    },
+    { name: 'selection' }
   ],
 
   methods: [
@@ -166,7 +172,65 @@ if ( getGroupLimit() == getGroups().size() && sub != null ) sub.detach();
     },
 
     function addToE(e) {
-      e.tag(this.GroupByView, {data: this});
+      e.tag(this.GroupByView, {data: this, selection$: this.selection$});
+    },
+
+    function merge(other, opt_reducer) {
+      return this.cls_.create({
+        arg1: this.arg1,
+        arg2: this.arg2,
+        groups: this.mergeMaps(this.groups, other.groups, opt_reducer)
+      });
+    },
+
+    function mergeMaps(m1, m2, opt_reducer) {
+      var map = {};
+      Object.keys(m1).forEach(k => map[k] = true);
+      Object.keys(m2).forEach(k => map[k] = true);
+      Object.keys(map).forEach(k => {
+        var v1 = m1[k];
+        var v2 = m2[k];
+        map[k] = opt_reducer ? opt_reducer(v1, v2) : this.reduce(v1, v2);
+      });
+      return map;
+    },
+
+    function reduce(v1, v2) {
+      // TODO: handle when one is undefined
+      return this.Sequence.create({horizontal: true, args: [ v1, v2 ]});
+    },
+
+    function asDAO() {
+      var model = {
+        package: 'foam.tmp',
+        name: 'Group' + this.NEXT() + 'DAO',
+        properties: [
+          { class: 'String', name: 'id' }
+        ]
+      };
+      model.plural = model.name;
+      var props = this.arg2.toProperties ? this.arg2.toProperties() : [ this.arg2.VALUE ];
+      model.properties.push.apply(model.properties, props);
+
+      foam.CLASS(model);
+      var cls = foam.lookup('foam.tmp.' + model.name);
+
+      props = props.map(p => cls.getAxiomByName(p.name));
+
+      var dao = foam.dao.MDAO.create({of: cls});
+
+      var groups = this.groups;
+      this.groupKeys.forEach(k => {
+        var o = cls.create({id: k, value: groups[k].value});
+        if ( this.arg2.setPropertyValues ) {
+          this.arg2.setPropertyValues(o, groups[k], props);
+        } else {
+          o.value = groups[k].value;
+        }
+        dao.put(o);
+      });
+
+      return dao;
     }
   ]
 });

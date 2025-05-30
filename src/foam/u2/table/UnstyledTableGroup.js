@@ -90,7 +90,7 @@ foam.CLASS({
           .style({ flex: '3 0 0' })
           .add(prop.columnLabel + ': ')
           .call(function() {
-            if ( ! prop.f(objReturned) ) {
+            if ( ! prop.f(objReturned) && prop.f(objReturned) !== 0) {
               this.start('i').add(self.EMPTY_MSG).end()
             } else {
               prop.tableCellFormatter.format(

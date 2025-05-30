@@ -14,6 +14,10 @@ foam.CLASS({
     ^ table { border-collapse: collapse; }
   `,
 
+  properties: [
+    { name: 'selection' }
+  ],
+
   methods: [
     function render(e) {
       var self = this;
@@ -25,6 +29,7 @@ foam.CLASS({
       this.start('table').start('tbody').
         forEach(data.sortedKeys(), function(g) {
           this.start('tr').
+            on('click', () => self.selection = g).
             start('td').add(g.toString()).end().
             start('td').add(groups[g]);
         });
