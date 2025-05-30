@@ -204,14 +204,16 @@ foam.CLASS({
     }
     ^ table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 10px;
     }
     ^ table td {
       display: flex;
       justify-content: space-between;
-      padding: 4px 8px;
+      padding: 10px 8px;
       align-items: center;
       cursor: pointer;
+      border: 1px solid $grey200;
     }
     ^ table td .close {
       font-size: 1.2rem;
@@ -246,6 +248,8 @@ foam.CLASS({
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+    ^element-row {
       padding: 10px;
     }
   `,
@@ -271,7 +275,7 @@ foam.CLASS({
     function renderOpened(e) {
         e.start().addClass(this.myClass('left-container'))
           .start().addClass(this.myClass('left-header'))
-            .start('span').add('Layers').end()
+            .start('span').add('Contents').end()
             .startContext({ data: this })
               .tag(this.MENU_CONTROL)
             .endContext()
@@ -283,6 +287,7 @@ foam.CLASS({
     },
     function render() {
       var self = this;
+      console.log('this.data ===>', this.data)
       this.addClass();
       this.add(this.dynamic(function(isMenuOpen) {
         if (isMenuOpen) {
@@ -294,20 +299,21 @@ foam.CLASS({
     },
 
     function branch(self, data, depth) {
-      this.add(data.dynamic(function (flowName) {
-        this.start('tr').
-          enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
-          on('click', () => self.selected = data).
-          on('dblclick', () => data.expanded = ! data.expanded).
-          start('td').
-            enableClass(self.myClass('error'), flowName.startsWith('error')).
-            style({'paddingLeft': (4 + depth * 12) + 'px'}).
-            add(flowName).
-            callIf(data.flowParent, function() {
-              this.start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end();
-            }).
-          end();
-      }));
+      if ( data.flowParent ) {
+        this.add(data.dynamic(function (flowName) {
+          this.start('tr').
+            enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
+            on('click', () => self.selected = data).
+            on('dblclick', () => data.expanded = ! data.expanded).
+            start('td').
+              addClass(self.myClass('element-row')).
+              enableClass(self.myClass('error'), flowName.startsWith('error')).
+              style({'paddingLeft': (4 + depth * 12) + 'px'}).
+              add(flowName).
+              start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end().
+            end();
+        }));
+      };
       this.add(data.dynamic(function (flowChildren) {
         this.forEach(flowChildren, d => {
           this.call(self.branch, [self, d, depth+1]);
@@ -474,11 +480,13 @@ foam.CLASS({
       padding: 4px;
       background-color: $white;
       width: 20%;
+      border-right: 1px solid $grey200;
     }
     ^middle-holder {
       padding: 10px;
       overflow-x: auto;
       width: 100%;
+      background-color: $grey100;
     }
     ^m {
        border: 2px dashed $grey200;
