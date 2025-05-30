@@ -120,19 +120,21 @@ foam.CLASS({
     },
 
     function populateDefaultThemeVariants(theme, ctx) {
-      if ( window.matchMedia ) {
-        var colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        let fn = () => {
-          if ( window.matchMedia('(prefers-color-scheme: dark)').matches ) {
-            theme.activeVariants$set('color', 'dark');
-          } else {
-            theme.activeVariants$remove('color');
-          }
-        }
-        colorSchemeQuery.addEventListener('change', fn);
-        fn();
-      }
-      theme.onDetach(theme.activeVariants$.sub(() => { foam.u2.CSS.reloadStyles(ctx); }));
+      // WARNING: IN DEVELOPMENT
+      // UNCOMMENT THE FOLLOWING FUNCTION TO ENABLE AUTOMATIC DARK MODE
+      // if ( window.matchMedia ) {
+      //   var colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      //   let fn = () => {
+      //     if ( window.matchMedia('(prefers-color-scheme: dark)').matches ) {
+      //       theme.activeVariants$set('color', 'dark');
+      //     } else {
+      //       theme.activeVariants$remove('color');
+      //     }
+      //   }
+      //   colorSchemeQuery.addEventListener('change', fn);
+      //   fn();
+      // }
+      // theme.onDetach(theme.activeVariants$.sub(() => { foam.u2.CSS.reloadStyles(ctx); }));
     },
 
     function getElementById(id) {
