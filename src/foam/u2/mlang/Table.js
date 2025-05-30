@@ -21,7 +21,7 @@ foam.CLASS({
       name: 'columns'
     },
     {
-      name: 'selection'
+      name: 'selection', hidden: true
     }
   ],
 
