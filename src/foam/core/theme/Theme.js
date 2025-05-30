@@ -824,6 +824,11 @@ foam.CLASS({
       factory: function() {
         return {};
       }
+    },
+    {
+      // Set to true when dark mode is cleared for prod
+      name: 'useVariants',
+      class: 'Boolean'
     }
   ],
 
