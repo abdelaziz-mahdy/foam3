@@ -194,6 +194,7 @@ foam.LIB({
         } else {
           components = str.split(' ').filter(v => v != '/')
         }
+        components = foam.Color.hslToRgb(components);
       }
 
       return {
@@ -244,7 +245,8 @@ foam.LIB({
       return  [Math.floor(h * 360), Math.floor(s * 100), Math.floor(l * 100)];
     },
 
-    function hslToRgb(h, s, l){
+    function hslToRgb(args){
+        let [h,s,l,a] = args
         var r, g, b;
         // Normalize arguments
         function percentageToDecimal(percentageString) {
@@ -281,7 +283,7 @@ foam.LIB({
             b = hueToRGB(p, q, h - 1/3);
         }
 
-        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), a];
     },
     
     function getBestForeground(str, black, white) {
