@@ -22,7 +22,7 @@ foam.CLASS({
     },
     {
       name: 'borderRadius',
-      value: '4px'
+      value: '$inputRadius'
     },
     {
       name: 'cellPadding',
