@@ -40,7 +40,8 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'name'
+      name: 'name',
+      onKey: true
     },
     {
       class: 'String',
@@ -133,6 +134,7 @@ foam.CLASS({
       code: function() {
         this.flowDAO.put(this);
       },
+      isEnabled: function(name) { return name && name !== 'Unnamed'; },
       isAvailable: function() {
         // Disable in Console
         return this.__context__.flow;
