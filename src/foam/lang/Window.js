@@ -121,7 +121,7 @@ foam.CLASS({
 
     function populateDefaultThemeVariants(theme, ctx) {
       // WARNING: IN DEVELOPMENT
-      // UNCOMMENT THE FOLLOWING FUNCTION TO ENABLE AUTOMATIC DARK MODE
+      // SET useVariants TO TRUE ON THEME TO ENABLE MODE SWITCHING
       if ( ! theme.useVariants ) return;
       if ( window.matchMedia ) {
         var colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
