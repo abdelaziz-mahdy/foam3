@@ -25,7 +25,9 @@ foam.CLASS({
   cssTokens: [
     {
       name: 'color',
-      value: 'red'
+      value: 'red',
+      variants: { 'dark': { value: '$green500' }},
+variantGroup:'color'
     },
     {
       name: 'fontSize',
@@ -68,17 +70,19 @@ foam.CLASS({
     },
     {
       name: 'color2',
-      value: 'blue'
+      value: 'blue',
+      variants: { 'dark': { value: '$green500' }}
     }
   ],
   properties: [
-    {class: 'Boolean', name: 'isRed'}
+    {class: 'Boolean', name: 'isRed'},
+    {class: 'Boolean', name: 'isDark'}
   ],
   methods: [
     function render() {
-      let colorSlot = this.isRed$.map(v => foam.CSS.returnTokenValue(v ? '$color1' : '$color2',this.cls_, this.__subContext__))
+      let colorSlot = this.isRed$.map(v => foam.CSS.returnTokenValue(v ? '$color1' : '$color2',this.cls_, this.__subContext__.createSubContext({ themeVariant: this.isDark$.map(v => v ? 'dark' : undefined) })))
       this
-        .startContext({ data: this }).tag(this.IS_RED.__).endContext()
+        .startContext({ data: this }).tag(this.IS_RED.__).tag(this.IS_DARK.__).endContext()
         .start()
           .style({ color: colorSlot })
           .add('My color is:', colorSlot)

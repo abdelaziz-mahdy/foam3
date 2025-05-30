@@ -176,8 +176,8 @@ foam.CLASS({
     }
 
     ^title {
-      background: #ddd;
-      border: 1px solid rgb(128, 128, 128);
+      background: $backgroundDefault;
+      border: 1px solid $borderDefault;
       color: gray;
       font-weight: 500;
       margin-bottom: 10px;

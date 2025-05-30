@@ -75,7 +75,7 @@ foam.CLASS({
   ^tc-link {
     background: none;
     border: 1px solid transparent;
-    color: $primary400;
+    color: $textBrand;
     text-decoration: none;
   }
   ^legal {

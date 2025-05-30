@@ -13,6 +13,14 @@ foam.CLASS({
   `,
   exports: ['as controlBorder'],
   requires: ['foam.u2.layout.Cols'],
+
+  cssTokens: [
+    {
+      name: 'stickyBG',
+      variantKey: 'color',
+      value: function(e) { return e.ADJUST_ALPHA(e.TOKEN('$backgroundDefault'), 0.9) }
+    }
+  ],
   css:`
     ^ {
       height: 100%;
@@ -59,8 +67,8 @@ foam.CLASS({
       padding-bottom: 0px;
     }
     ^stuck {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(3px) opacity(0.5);
+      background: $stickyBG;
+      backdrop-filter: blur(3px) opacity(0.8);
       transition: all 0.2s ease;
       gap: 0.4rem;
     }

@@ -261,6 +261,13 @@ foam.LIB({
       return `hsl(${h} ${s}% ${l}%)`;
     },
 
+    function adjustAlpha(str, desiredOpacity /*0-1*/) {
+      colorObj = foam.Color.parse(str);
+      var [r, g, b, a] = [colorObj.red, colorObj.green, colorObj.blue].map(v => Math.floor(v));
+      var [h, s, l] = foam.Color.rgbToHsl(r, g, b);
+      return `hsla(${h}, ${s}%, ${l}%, ${desiredOpacity})`;
+    },
+
     function rgbToGrey(rgb /*[0..255,0.255,0.255]*/) /* -> 0..1 */ {
       var [r, g, b] = rgb;
       return 0.299 * r/255 + 0.587 * g/255 + 0.114 * b/255;

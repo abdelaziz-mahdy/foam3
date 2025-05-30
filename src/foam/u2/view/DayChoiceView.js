@@ -10,8 +10,8 @@ foam.CLASS({
 
   css: `
   ^ {
-    background-color: $white;
-    border: 1px solid $grey400;
+    background-color: $backgroundDefault;
+    border: 1px solid $borderDefault;
     border-radius: 4px;
     padding: 8px 16px;
     transition: all 0.2s ease;
@@ -20,9 +20,9 @@ foam.CLASS({
     cursor: pointer;
   }
   ^selected {
-    background-color: $primary400;
-    border-color: $primary400;
-    color: $white;
+    background-color: $backgroundBrand;
+    border-color: $backgroundBrand;
+    color: $textOnBrand;
     line-height: 1.5;
   }
   `,

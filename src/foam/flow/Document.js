@@ -10,8 +10,8 @@ foam.CLASS({
 
   css: `
     .foam-flow-Document {
-      background-color: $white;
-      // color: $grey500;
+      background-color: $backgroundDefault;
+      // color: $textTertiary;
       max-width: 1000px;
       margin: auto;
       padding: 20px;
@@ -24,15 +24,15 @@ foam.CLASS({
     .foam-flow-Document h4,
     .foam-flow-Document h5 {
       margin: 12px 0 12px 0;
-      color: $grey600;
+      color: $textSecondary;
     }
     .foam-flow-Document p {
       margin-bottom: 10px;
       margin-top: 10px;
     }
     .foam-flow-Document .code {
-      background-color: $black;
-      color: $white;
+      background-color: $backgroundInverse;
+      color: $textOnInverse;
       padding: 20px;
     }
     .foam-flow-Document a {

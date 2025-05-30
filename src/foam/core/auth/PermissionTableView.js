@@ -40,7 +40,7 @@ foam.CLASS({
 
   css: `
     ^ thead th {
-      background:$white;
+      background:$backgroundDefault;
       padding: 0;
       text-align: center;
     }
@@ -55,7 +55,7 @@ foam.CLASS({
        height: 150px;
      }
 
-    ^ tbody tr { background:$white; }
+    ^ tbody tr { background:$backgroundDefault; }
 
     ^ .foam-u2-md-CheckBox {
       margin: 1px;
@@ -63,11 +63,11 @@ foam.CLASS({
     }
 
     ^ .foam-u2-md-CheckBox:hover {
-      background: $primary400;
+      background: $backgroundBrand;
     }
 
     ^hovered {
-      background: $grey200 !important;
+      background: $backgroundTertiary !important;
     }
 
     ^ table {
@@ -78,7 +78,7 @@ foam.CLASS({
 
     ^header {
       box-shadow: 0 6px 6px rgba(0,0,0,0.23);
-      background:$white;
+      background:$backgroundDefault;
       padding: 8px;
       margin: 8px 0;
       border-radius: 4px;
@@ -91,10 +91,10 @@ foam.CLASS({
       font-weight: bold;
     }
     ^ .permissionHeader {
-      background-color: $grey100;
-      border: 1px solid $grey200;
+      background-color: $backgroundTertiary;
+      border: 1px solid $borderLight;
       padding: 8px;
-      color: $black;
+      color: $textDefault;
       font-weight: 500;
       text-align: left;
     }
@@ -102,7 +102,7 @@ foam.CLASS({
       border-collapse: collapse;
     }
     ^table-wrapper tbody td {
-      border: 1px solid $grey400;
+      border: 1px solid $borderDefault;
     }
 
     ^table-wrapper {
@@ -111,6 +111,7 @@ foam.CLASS({
     }
 
     ^ thead th {
+      color: inherit;
       position: sticky;
       top: 0;
     }
@@ -122,18 +123,18 @@ foam.CLASS({
     }
 
     ^groupLabel {
-      background-color: $grey100;
-      border: 1px solid $grey400;
+      background-color: $backgroundTertiary;
+      border: 1px solid $borderLight;
       font-weight: normal;
       padding-top: 4px;
       padding-inline: 8px;
       writing-mode: vertical-lr;
       white-space: nowrap;
-      color: $black;
+      color: $textDefault;
       font-weight: 500;
     }
     ^x {
-      color: $destructive500;
+      color: $textDestructive;
       font-weight: bold;
     }
   `,
@@ -581,9 +582,9 @@ foam.CLASS({
       name: 'GroupPermissionView',
       extends: 'foam.u2.View',
       css: `
-        ^:hover { background: $primary400!important }
-        ^checked { color: $primary700!important; font-weight: bold; }
-        ^implied { color: $grey700!important; font-weight: bold; }
+        ^:hover { background: $backgroundBrand!important }
+        ^checked { color: $textBrandSecondary!important; font-weight: bold; }
+        ^implied { color: $textSecondary!important; font-weight: bold; }
       `,
       methods: [
         function init() {

@@ -22,16 +22,16 @@ foam.CLASS({
     }
     ^ th {
       font-weight: bold;
-      background-color: $grey400;
+      background-color: $backgroundInverseTertiary;
     }
     ^ tr:nth-child(even) td:nth-child(odd) {
-      background-color: $grey50;
+      background-color: $backgroundSecondary;
     }
     ^ tr:nth-child(even) td:nth-child(even) {
-      background-color: $grey300;
+      background-color: $backgroundInverseTertiary;
     }
     ^ tr:nth-child(odd) td:nth-child(even) {
-      background-color: $grey50;
+      background-color: $backgroundSecondary;
     }
   `,
 

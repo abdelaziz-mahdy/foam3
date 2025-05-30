@@ -188,7 +188,7 @@ foam.CLASS({
     }
     ^document th {
       font-weight: bold;
-      background-color: $grey400;
+      background-color: $backgroundInverseTertiary;
     }
   `,
   methods: [

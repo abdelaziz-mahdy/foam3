@@ -30,26 +30,39 @@ foam.CLASS({
     {
       class: 'foam.u2.ColorToken',
       name: 'buttonPrimaryColor',
-      value: '$primary400',
+      value: '$backgroundBrand',
       disabledModifier: 90,
+      // FIX THIS FOR LINK BUTTONS
       onLight: '$grey50'
     },
     {
       class: 'foam.u2.ColorToken',
       name: 'buttonSecondaryColor',
-      value: '$white',
-      onLight: '$grey600',
+      value: '$backgroundDefault',
+      onLight: '$textSecondary',
       disabledModifier: -10,
       hoverModifier: -5,
       activeModifier: -15
     },
     {
       name: 'buttonSecondaryBorderColor',
-      value: function(e) { return e.LIGHTEN(e.TOKEN('$buttonSecondaryColor'), -40) }
+      variantKey: 'color',
+      value: function(e) { return e.LIGHTEN(e.TOKEN('$buttonSecondaryColor'), -40) },
+      variants: {
+        dark: {
+          value: function(e) { return e.LIGHTEN(e.TOKEN('$buttonSecondaryColor'), 40) }
+        }
+      }
     },
     {
       name: 'buttonPrimaryLightColor',
-      value: function(e) { return e.FROM_HUE(e.TOKEN('$buttonPrimaryColor'), 41, 90) }
+      variantKey: 'color',
+      value: function(e) { return e.FROM_HUE(e.TOKEN('$buttonPrimaryColor'), 41, 90) },
+      variants: {
+        dark: {
+          value: function(e) { return e.FROM_HUE(e.TOKEN('$buttonPrimaryColor'), 41, 20) }
+        }
+      }
     }
   ],
 
@@ -70,7 +83,7 @@ foam.CLASS({
     }
 
     ^:focus-visible {
-      outline: 1px solid $primary700;
+      outline: 1px solid $borderBrandStrong;
     }
 
     ^iconAfter {
@@ -138,22 +151,22 @@ foam.CLASS({
     /* Primary destructive */
 
     ^primary-destructive,^primary-destructive svg {
-      background-color: $destructive400;
-      color: $white;
+      background-color: $backgroundDestructive;
+      color: $textOnDestructive;
     }
 
     ^primary-destructive:hover:not(:disabled) {
-      background-color: $destructive500;
+      background-color: $backgroundDestructiveSecondary;
     }
 
     ^primary-destructive:active:not(:disabled) {
-      background-color: $red500;
-      border: 1px solid $red700;
+      background-color: $backgroundDestructiveSecondary;
+      border: 1px solid $backgroundDestructiveSecondary;
       box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.06);
     }
 
     ^primary-destructive:disabled {
-      background-color: $destructive50;
+      background-color: $backgroundDestructiveTertiary;
     }
 
 
@@ -173,24 +186,24 @@ foam.CLASS({
     }
 
     ^secondary:active:not(:disabled) {
-      color: $buttonPrimaryColor;
+      color: $textBrandSecondary;
       background-color: $buttonSecondaryColor$hover;
-      border: 1px solid $buttonPrimaryColor;
+      border: 1px solid $borderDefault;
     }
 
     ^secondary:disabled{
       background-color: $buttonSecondaryColor$disabled;
       border-color: $buttonSecondaryColor$disabled;
-      color: $buttonSecondaryColor$active;
+      color: $textTertiary;
     }
 
 
     /* Secondary destructive */
 
     ^secondary-destructive{
-      background-color: $white;
-      border: 1px solid $destructive500;
-      color: $destructive400;
+      background-color: $backgroundDestructive;
+      border: 1px solid $backgroundDestructiveSecondary;
+      color: $textDestrucitve;
     }
 
     ^secondary-destructive svg { fill: currentColor; }
@@ -226,11 +239,11 @@ foam.CLASS({
 
     ^tertiary:active:not(:disabled) {
       background-color: $buttonSecondaryColor$hover;
-      color: $buttonPrimaryColor;
+      color: $textBrandSecondary;
     }
 
     ^tertiary:disabled {
-      color: $buttonSecondaryColor$active;
+      color: $textBrandTertiary;
     }
 
     /* Tertiary destructive */

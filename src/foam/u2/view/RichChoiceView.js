@@ -172,8 +172,8 @@ foam.CLASS({
     }
 
     ^container {
-      background: $white;
-      border: 1px solid $grey400;
+      background: $backgroundDefault;
+      border: 1px solid $borderDefault;
       max-height: min(400px, 40vh);
       overflow-y: auto;
       box-sizing: border-box;
@@ -185,7 +185,7 @@ foam.CLASS({
     }
 
     ^heading {
-      color: $grey700;
+      color: $textSecondary;
       padding: 8px 4px;
     }
 
@@ -196,9 +196,9 @@ foam.CLASS({
       width: 100%;
       position: relative;
       min-height: $inputHeight;
-      border: 1px solid $grey400;
-      color: $black;
-      background-color: $white;
+      border: 1px solid $borderDefault;
+      color: $textDefault;
+      background-color: $backgroundDefault;
       min-width: 120px;
 
       width: 100%;
@@ -218,8 +218,8 @@ foam.CLASS({
 
     ^selection-view:hover,
     ^selection-view:hover ^clear-btn {
-      border-color: $grey500;
-      background: $grey50;
+      border-color: $borderDefault;
+      background: $backgroundTertiary;
     }
 
     ^:focus {
@@ -228,7 +228,7 @@ foam.CLASS({
 
     ^:focus ^selection-view,
     ^:focus ^selection-view ^clear-btn {
-      border-color: $primary400;
+      border-color: $borderBrand;
     }
 
     ^custom-selection-view {
@@ -279,13 +279,13 @@ foam.CLASS({
       padding-right: $inputHorizontalPadding;
       height: $inputHeight;
       border-left: 1px solid;
-      border-color: $grey400;
+      border-color: $borderDefault;
       margin-left: 12px;
       padding-left: 16px;
     }
 
     ^clear-btn:hover {
-      color: $destructive400;
+      color: $textDetructive;
       cursor: pointer;
     }
 
@@ -847,10 +847,10 @@ foam.CLASS({
       css: `
         ^ {
           border: 0;
-          border-top: 1px solid $grey400;
+          border-top: 1px solid $borderDefault;
           justify-content: flex-start;
           width: 100%;
-          background: $white;
+          background: $backgroundDefault;
           position: sticky;
           bottom: 0;
         }

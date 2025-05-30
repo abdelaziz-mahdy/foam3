@@ -46,6 +46,11 @@ foam.CLASS({
       width: 65vw;
       flex-direction: column;
       overflow: hidden;
+      background: rgba(0, 0, 0, 0.4);;
+      border-radius: 16px;
+      // box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     }
 
     ^bodyWrapper {
@@ -72,7 +77,7 @@ foam.CLASS({
       padding: 0.6rem;
     }
     ^header.showBorder {
-      border-bottom: 1px solid $grey300;
+      border-bottom: 1px solid $borderDefault;
     }
 
     ^header-left {

@@ -55,7 +55,7 @@ foam.CLASS({
     }
 
     ^title-container > * {
-      color: $black;
+      color: $textDefault;
       margin: 0;
     }
 

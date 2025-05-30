@@ -91,8 +91,8 @@ foam.CLASS({
       font-weight: 500;
     }
     ^selected {
-      background: $primary50;
-      color: $primary400;
+      background: $backgroundBrandTertiary;
+      color: $textBrand;
       font-weight: 500;
     }
     ^error {
@@ -185,7 +185,7 @@ foam.CLASS({
       border: none;
       height: 20px;
     }
-    ^:hover { background: $grey50; }
+    ^:hover { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
       padding: 10px;
@@ -274,8 +274,8 @@ foam.CLASS({
     }
     ^m {
       overflow-x: auto;
-      border-left: 2px solid $grey200;
-      border-right: 2px solid $grey200;
+      border-left: 2px solid $borderLight;
+      border-right: 2px solid $borderLight;
     }
     ^r {
       overflow-y: auto;
@@ -365,7 +365,7 @@ foam.CLASS({
       padding: 0 8px;
     }
     ^input-field, ^input-field ^input {
-      background: $grey50;
+      background: $backgroundSecondary;
     }
     ^output {
       text-align: left;
