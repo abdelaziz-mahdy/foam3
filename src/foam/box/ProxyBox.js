@@ -26,5 +26,15 @@ foam.CLASS({
       of: 'foam.box.Box',
       name: 'delegate'
     }
+  ],
+
+  methods: [
+    {
+      name: 'send',
+      javaCode: `getDelegate().send(msg);`,
+      code: function send(a, b) {
+        return this.delegate.send(a, b);
+      }
+    }
   ]
 });

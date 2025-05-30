@@ -38,15 +38,8 @@ foam.CLASS({
           // serializable and the server will assign its own notion of
           // what context the request should be handled in.
           if ( isContextOriented ) args[0] = null;
-
-          var msg = this.Envelope.create({
-            replyBox: rpcReturnBox,
-            contents: this.RPCMessage.create({
-              name,
-              args
-            })
-          });
-          this[boxPropName].send(msg);
+          
+          this[boxPropName].send(this.RPCMessage.create({ name, args }), rpcReturnBox);
 
           return ret;
         };

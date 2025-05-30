@@ -198,15 +198,22 @@ foam.CLASS({
 
     {
       name: 'send',
-      code: function(envelope) {
-        var self = this;
-        var outgoing = foam.box.Envelope.create({
-          headers: envelope.headers,
-          replyBox: this.getReplyBox(),
-          contents: envelope.contents
-        });
-        envelope.headers[this.SESSION_KEY] = this.jsSessionID;
-        var payload = this.outputter.stringify(outgoing.toMessage());
+      code: function(message, replyBox) {
+        // Adapt to server expecting
+        var session = this.jsSessionID;
+        
+        if ( foam.box.SessionedMessage.isInstance(message) ) {
+          session = message.sessionId;
+          message = message.message;
+        }
+        
+        var payload = this.outputter.stringify(foam.box.Message.create({
+          attributes: {
+            [this.SESSION_KEY]: session,
+            replyBox: this.getReplyBox()
+          },
+          object: message
+        }));
         
         var headers = {
           'Content-Type': 'application/json; charset=utf-8',
@@ -228,7 +235,7 @@ foam.CLASS({
         }).then((p) => {
           return this.parser.aparse(p);
         }).then((response) => {
-          envelope.replyBox?.send(response.toEnvelope())
+          replyBox?.send(response.object, response.attributes.replyBox)
         }, function(r) {
           var msg;
           if ( r ) {
@@ -246,7 +253,7 @@ foam.CLASS({
               msg = self.FETCH_ERROR;
             } else msg = r.message;
           }
-          envelope.replyBox?.send(foam.box.Envelope.create({ contents: foam.box.HTTPException.create({ response: r, message: msg }) }));
+          replyBox?.send(foam.box.HTTPException.create({ response: r, message: msg }) );
         });
       },
       swiftCode: `

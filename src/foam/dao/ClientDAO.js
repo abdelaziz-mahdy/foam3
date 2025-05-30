@@ -183,6 +183,14 @@ return sink
     {
       name: 'listen_',
       code: function listen_(x, sink, predicate) {
+        if ( sink ) {
+          // RemoteSink handles registering a Skeleton callback instead of trying
+          // to send the Sink across the network.
+          this.SUPER(null, foam.dao.RemoteSink.create({delegate: sink}, x), predicate);
+        }
+        return foam.lang.FObject.create();
+
+        
         if ( ! sink ) {
           return foam.lang.FObject.create();
         }

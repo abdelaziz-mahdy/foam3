@@ -6,10 +6,28 @@
 
 foam.CLASS({
   package: 'foam.box',
+  name: 'SessionedMessage',
+  properties: [
+    {
+      class: 'String',
+      name: 'sessionId'
+    },
+    {
+      class: 'Object',
+      name: 'message'
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.box',
   name: 'SessionClientBox',
   extends: 'foam.box.ProxyBox',
 
-  requires: [ 'foam.box.SessionReplyBox' ],
+  requires: [
+    'foam.box.SessionReplyBox',
+    'foam.box.SessionedMessage'
+  ],
 
   imports: [
     'sessionID as jsSessionID'
@@ -34,16 +52,17 @@ foam.CLASS({
   methods: [
     {
       name: 'send',
-      code: function send(originalEnvelope) {
-        var envelope = originalEnvelope.shallowClone();
-        
-        envelope.headers[this.SESSION_KEY] = this.sessionID;
-        envelope.replyBox = this.SessionReplyBox.create({
-          delegate: envelope.replyBox,
-          originalEnvelope,
-        });
-
-        this.delegate.send(envelope);
+      code: function send(message, replyBox) {
+        this.delegate.send(
+          this.SessionedMessage.create({
+            sessionId: this.sessionID,
+            message
+          }), this.SessionReplyBox.create({
+            message,
+            clientBox: this,
+            delegate: replyBox,
+          })
+        );
       },
       swiftCode: `
 let msg = msg!

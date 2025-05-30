@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// TODO: this is not the real interface
+// fix this up once java boxes are updated
 foam.INTERFACE({
   package: 'foam.box',
   name: 'Box',
@@ -23,6 +25,7 @@ foam.INTERFACE({
     {
       name: 'send',
       type: 'Void',
+      async: true,
       args: [
         {
           name: 'msg',

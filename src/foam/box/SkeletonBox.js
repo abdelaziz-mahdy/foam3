@@ -44,12 +44,12 @@ foam.CLASS({
           type: 'foam.box.Message'
         },
       ],
-      code: function(envelope) {
+      code: function(message, replyBox) {
         var p;
 
         try {
-          var method = this.data.cls_.getAxiomByName(envelope.contents.name);
-          var args   = envelope.contents.args.slice();
+          var method = this.data.cls_.getAxiomByName(message.name);
+          var args   = message.args.slice();
 
           // TODO: This is pretty hackish.  Context-Oriented methods should just be modeled.
           // TODO: at least check that the javaType is foam.lang.X
@@ -59,34 +59,24 @@ foam.CLASS({
             });
             args[0] = x;
           }
-          p = this.data[envelope.contents.name].apply(this.data, args);
+          p = this.data[message.name].apply(this.data, args);
         } catch(e) {
-          envelope.replyBox && envelope.replyBox.send(foam.box.Envelope.create({
-            contents: this.RPCErrorMessage.create({ data: e.message })
-          }));
-
+          replyBox?.send(this.RPCErrorMessage.create({ data: e.message }))
           return;
         }
 
-        var replyBox = envelope.replyBox;
         var self     = this;
 
         if ( p instanceof Promise ) {
           p.then(
             function(data) {
-              replyBox.send(foam.box.Envelope.create({
-                contents: self.RPCReturnMessage.create({ data: data })
-              }));
+              replyBox?.send(self.RPCReturnMessage.create({ data: data }))
             },
             function(error) {
-              replyBox?.send(foam.box.Envelope.create({
-                contents: self.RPCErrorMessage.create({ data: error && error.toString() })
-              }));
+              replyBox?.send(self.RPCErrorMessage.create({ data: error && error.toString() }))
             });
         } else {
-          replyBox?.send(foam.box.Envelope.create({
-            contents: this.RPCReturnMessage.create({ data: p })
-          }));
+          replyBox?.send(this.RPCReturnMessage.create({ data: p }))
         }
       },
       swiftCode: `
@@ -122,9 +112,9 @@ do {
 
     {
       name: 'send',
-      code: function(envelope) {
-        if ( this.RPCMessage.isInstance(envelope.contents) ) {
-          this.call(envelope);
+      code: function(message, replyBox) {
+        if ( this.RPCMessage.isInstance(message) ) {
+          this.call(message, replyBox);
           return;
         }
 

@@ -26,9 +26,8 @@ foam.CLASS({
 
   properties: [
     {
-      class: 'FObjectProperty',
-      name: 'originalEnvelope',
-      type: 'foam.box.Message'
+      class: 'Object',
+      name: 'message',
     },
     {
       class: 'FObjectProperty',
@@ -40,27 +39,25 @@ foam.CLASS({
   methods: [
     {
       name: 'send',
-      code: function send(envelope) {
+      code: function send(message, replyBox) {
         var self = this;
         if (
-          this.RPCErrorMessage.isInstance(envelope.contents) &&
-          this.RemoteException.isInstance(envelope.contents.data) &&
-          this.CapabilityIntercept.isInstance(envelope.contents.data.exception)
+          this.RPCErrorMessage.isInstance(message) &&
+          this.RemoteException.isInstance(message.data) &&
+          this.CapabilityIntercept.isInstance(message.data.exception)
         ) {
-          var intercept = envelope.contents.data.exception;
-          intercept.message = envelope.contents.data.message;
+          var intercept = message.data.exception;
+          intercept.message = message.data.message;
 
           // Configure events CapabilityIntercept completion
           intercept.resolve = function (value) {
-            self.delegate.send(foam.box.Envelop.create({
-              contents: self.RPCReturnMessage.create({ data: value })
-            }));
+            self.delegate.send(self.RPCReturnMessage.create({ data: value }))
           };
           intercept.reject = function (value) {
-            self.delegate.send(foam.box.Envelope.create({ contents: new Error(value) }));
+            self.delegate.send(new Error(value));
           };
           intercept.resend = function () {
-            self.clientBox.send(self.originalEnvelope);
+            self.clientBox.send(self.message, self);
           };
 
           // Ask CrunchController to handle the intercept
@@ -68,12 +65,8 @@ foam.CLASS({
           return;
         }
 
-        this.delegate.send(envelope);
+        this.delegate.send(message, replyBox);
       }
-    },
-    function outputJSON(outputter) {
-      // this is a client only decorator, just send the delegate when serializing
-      return outputter.output(this.delegate);
     }
   ]
 });

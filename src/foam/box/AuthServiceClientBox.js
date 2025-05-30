@@ -11,6 +11,10 @@ foam.CLASS({
 
   documentation: 'ClientBox which does not wrap replyBox in SessionReplyBox',
 
+  requires: [
+    'foam.box.SessionedMessage'
+  ],
+
   imports: [ 'sessionID' ],
 
   constants: [
@@ -23,9 +27,11 @@ foam.CLASS({
   methods: [
     {
       name: 'send',
-      code: function send(envelope) {
-        envelope.headers[this.SESSION_KEY] = this.sessionID;
-        this.delegate.send(envelope);
+      code: function send(message, replyBox) {
+        this.delegate.send(this.SessionedMessage.create({
+          sessionId: this.sessionID,
+          message,
+        }), replyBox);
       }
     }
   ]

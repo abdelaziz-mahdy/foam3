@@ -223,15 +223,8 @@ foam.CLASS({
         var boxPropName = this.boxPropName;
         var name        = this.name;
 
-        return function() {
-          var msg = this.Envelope.create({
-            contents: this.RPCMessage.create({
-              name: name,
-              args: Array.from(arguments)
-            })
-          });
-
-          this[boxPropName].send(msg);
+        return function(...args) {
+          this[boxPropName].send(this.RPCMessage.create({ name, args }))
 
           return;
         };

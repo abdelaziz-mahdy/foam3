@@ -33,20 +33,22 @@ foam.CLASS({
 
   properties: [
     {
-      class: 'FObjectProperty',
-      name: 'originalEnvelope',
-      type: 'foam.box.Envelope'
+      name: 'message',
+      type: 'Object'
     },
+    {
+      name: 'clientBox',
+    }
   ],
 
   methods: [
     {
       name: 'send',
-      code: async function send(envelope) {
+      code: async function send(message, replyBox) {
         var self = this;
         if (
-          this.RPCErrorMessage.isInstance(envelope.contents) &&
-          envelope.contents.data.id === 'foam.core.auth.AuthenticationException'
+          this.RPCErrorMessage.isInstance(message) &&
+          message.data.id === 'foam.core.auth.AuthenticationException'
         ) {
           if (!this.auth$) {
             return;
@@ -62,13 +64,15 @@ foam.CLASS({
             if ( this.ctrl ) this.ctrl.remove();
             // Set loginSuccess to false so that if multiple requests are sent with no authentication, alert is called only once
             this.loginSuccess = false;
-            alert(this.REFRESH_MSG);
+            debugger;
+//            alert(this.REFRESH_MSG);
             (this.window || window).location.reload();
             return;
           }
 
           this.requestLogin().then(function() {
-            self.delegate.send(self.originalEnvelope);
+            debugger;
+            self.clientBox.send(self.message, self.delegate);
           });
         } else {
           // fetch the soft session limit from group, and then start the timer
@@ -76,7 +80,7 @@ foam.CLASS({
             this.sessionTimer.startTimer(this.group.softSessionLimit);
           }
 
-          this.delegate.send(envelope);
+          this.delegate.send(message, replyBox);
         }
       }
     }

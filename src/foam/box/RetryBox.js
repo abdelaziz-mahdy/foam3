@@ -39,38 +39,37 @@ foam.CLASS({
   ],
 
   methods: [
-    function send(originalEnvelope) {
+    function send(originalMessage, replyBox) {
+      this.delegate.send(originalMessage, replyBox);
+      return;
+      if ( ! replyBox ) {
+        this.delegate.send(originalMessage);
+        return;
+      }
+      
       var delay = 100;
       var maxDelay = this.maxDelay;
       var maxAttempts = this.maxAttempts;
       var attempt = 0;
-      var replyBox = originalEnvelope.replyBox;
-
-      if ( ! replyBox ) {
-        this.delegate.send(originalEnvelope);
-        return;
-      }
-      
       var delegate = this.delegate;
-      var envelope = originalEnvelope.shallowClone();
-      envelope.replyBox = {
-        send: function(replyEnvelope) {
-          if ( foam.lang.Exception.isInstance(replyEnvelope.contents) &&
+      var retryReplyBox = {
+        send: function(m2, r2) {
+          if ( foam.lang.Exception.isInstance(m2) &&
                ( maxAttempts == -1 || ++attempt < maxAttempts ) ) {
 
             // retry original message after exponential backoff delay
             setTimeout(function() {
-              delegate.send(envelope);
+              delegate.send(originalMessage, retryReplyBox);
             }, delay);
             delay = Math.min(delay * 2, maxDelay);
             return;
           }
           // not an error or we are out of retry attempts
-          replyBox.send(replyEnvelope);
+          replyBox.send(m2, r2);
         }
-      };
+      }
 
-      this.delegate.send(envelope);
+      this.delegate.send(originalMessage, retryReplyBox);
     }
   ]
 });

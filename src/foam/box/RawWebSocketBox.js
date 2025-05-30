@@ -129,9 +129,9 @@ foam.CLASS({
       var name = this.NEXT_ID[0]++;
       
       this.replies[name] = {
-        send: function(envelope) {
+        send: function(message, replyBox) {
           if ( once ) delete self.replies[name]
-          delegate.send(envelope);
+          delegate.send(message, replyBox);
         }
       };
 
@@ -142,19 +142,27 @@ foam.CLASS({
     },
     {
       name: 'send',
-      code: function send(envelope) {
+      code: function send(message, replyBox) {
         if ( this.socket.isConnected ) {
-          envelope.replyBox?.send(foam.box.Envelope.create({ contents: this.NotConnectedException.create() }));
+          replyBox?.send(this.NotConnectedException.create());
           return;
         }
-            
-        var outgoing = foam.box.Envelope.create({
-          headers: envelope.headers,
-          replyBox: this.subBox(envelope.replyBox, true),
-          contents: envelope.contents
+
+        var sessionId;
+        if ( foam.box.SessionedMessage.isInstance(message) ) {
+          sessionId = message.sessionId;
+          message = message.message;
+        }
+        
+        var outgoing = foam.box.Message.create({
+          attributes: {
+            replyBox: this.subBox(replyBox, true),
+            sessionId,
+          },
+          object: message
         });
 
-        var payload = this.outputter.stringify(outgoing.toMessage());
+        var payload = this.outputter.stringify(outgoing);
         this.socket.send(payload);
       },
       javaCode: `
@@ -196,13 +204,21 @@ try {
       code: function(s, _, msgStr) {
         try {
           var msg = this.parser.parseString(msgStr, this.__context__);
-          var envelope = msg.toEnvelope();
+          var message = msg.object;
+          var replyBox = msg.attributes.replyBox
 
-          // unpack a wrapped envelope by name
-          var name = envelope.headers.name;
+          if ( ! foam.box.SubBoxMessage.isInstance(message) ) {
+            console.warn("Got a non sub box message to our websocket, ignoring");
+            return
+          }
+
+          // unwrap sub box message
+          var name = message.name;
+          message = message.message;
+          
           var delegate = this.replies[name]
           if ( delegate ) {
-            delegate.send(envelope.contents.toEnvelope());
+            delegate.send(message, replyBox);
           } else {
             console.log("Failed to find reply box for message, payload was", msgStr);
           }
