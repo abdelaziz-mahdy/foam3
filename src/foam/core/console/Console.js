@@ -307,7 +307,7 @@ foam.CLASS({
 foam.ENUM({
   package: 'foam.core.console',
   name: 'FlowMode',
-  values: [ 'edit', 'view', 'readonly', 'console' ]
+  values: [ 'EDIT', 'VIEW', 'RO', 'CONSOLE' ]
 });
 
 foam.CLASS({
@@ -421,7 +421,7 @@ foam.CLASS({
       name: 'showPrompts',
       value: true,
       expression: function(flowMode) {
-        return flowMode == this.FlowMode.EDIT;
+        return flowMode === this.FlowMode.EDIT;
       },
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       memorable: true
@@ -431,7 +431,7 @@ foam.CLASS({
       value: true,
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       expression: function(flowMode) {
-          return flowMode != this.FlowMode.VIEW && flowMode != this.FlowMode.READONLY;
+          return flowMode !== this.FlowMode.VIEW && flowMode !== this.FlowMode.READONLY;
       },
       memorable: true
     },
@@ -770,10 +770,10 @@ foam.CLASS({
     {
       name: 'helpKey',
       isAvailable: function(input_) {
-          if ( this.flowMode == this.FlowMode.READONLY ) {
+          if ( this.flowMode === this.FlowMode.READONLY ) {
           return false;
         }
-        return input_.element_ == document.activeElement;
+        return input_.element_ === document.activeElement;
       },
       code: function() { this.help(); },
       keyboardShortcuts: [ 'f1' ]
@@ -788,7 +788,7 @@ foam.CLASS({
       // You can do this.showPrompts = true|false; from flow scripts
       // You can do this.showInput = true|false; from flow scripts
       code: function() { 
-        if ( this.flowMode != this.FlowMode.READONLY ) {
+        if ( this.flowMode !== this.FlowMode.READONLY ) {
         this.flowMode = { edit: this.FlowMode.VIEW, view: this.FlowMode.CONSOLE, console: this.FlowMode.EDIT }[this.flowMode]; 
       }
       },
