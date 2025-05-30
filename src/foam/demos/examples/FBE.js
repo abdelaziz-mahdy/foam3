@@ -309,7 +309,12 @@ foam.CLASS({
   ],
 
   css: `
-    ^ { background: $backgroundDefault; color: $textDefault; }
+    body:has(.foam-demos-examples-Controller) {
+      margin: 0;
+      padding: 8px;
+      background: $backgroundDefault;
+      color: $textDefault; 
+    }
     ^index {
       background: $backgroundSecondary;
       margin-right: 20px;

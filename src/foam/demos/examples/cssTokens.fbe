@@ -72,12 +72,11 @@ foam.CLASS({
     }
   ],
   properties: [
-    {class: 'Boolean', name: 'isRed'},
-    {class: 'Boolean', name: 'isDark'}
+    {class: 'Boolean', name: 'isRed'}
   ],
   methods: [
     function render() {
-      let colorSlot = this.isRed$.map(v => foam.CSS.returnTokenValue(v ? '$color1' : '$color2',this.cls_, this.__subContext__.createSubContext({ themeVariant: this.isDark$.map(v => v ? 'dark' : undefined) })))
+      let colorSlot = this.isRed$.map(v => foam.CSS.returnTokenValue(v ? '$color1' : '$color2',this.cls_, this.__subContext__))
       this
         .startContext({ data: this }).tag(this.IS_RED.__).tag(this.IS_DARK.__).endContext()
         .start()
