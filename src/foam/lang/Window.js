@@ -122,6 +122,7 @@ foam.CLASS({
     function populateDefaultThemeVariants(theme, ctx) {
       // WARNING: IN DEVELOPMENT
       // SET useVariants TO TRUE ON THEME TO ENABLE MODE SWITCHING
+      if ( this.getPrivate_('currentWindowThemeListener' ) ) this.getPrivate_('currentWindowThemeListener').detach();
       if ( ! theme.useVariants ) return;
       if ( window.matchMedia ) {
         var colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -134,8 +135,9 @@ foam.CLASS({
         }
         colorSchemeQuery.addEventListener('change', fn);
         fn();
+        let themeListener = theme.onDetach(theme.activeVariants$.sub(() => { foam.u2.CSS.reloadStyles(ctx); }))
+        this.setPrivate_('currentWindowThemeListener', themeListener);
       }
-      theme.onDetach(theme.activeVariants$.sub(() => { foam.u2.CSS.reloadStyles(ctx); }));
     },
 
     function getElementById(id) {
