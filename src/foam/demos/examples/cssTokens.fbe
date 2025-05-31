@@ -7,11 +7,11 @@ Unlike native css variables, cssTokens are scoped to the class they are used in 
 <br><br>
 TLDR:<br>
 Best practices for styling FOAM Views:<br>
-- Where possible, use tokens<br>
+- If you dont read anything, read the "When to Use Tokens" section
+- Where possible, use tokens (Specifically semantic tokens)<br>
 - Use color tokens to simplify setting various visible states of UI elements<br>
 <br><br>
 TODO: <br>
-- Add support for variants (Dark mode, high contrast etc)<br>
 - Remove theme variables<br>
 <p>
 --
@@ -483,11 +483,12 @@ To configure a cssToken to respond to an active variant, two properties need to 
 <br>
 2. variants: This stores a map of the token values for different values of the variantKey.
 <br><br>
-Eg:
 All FOAM apps that have useVariants set to true provide one activeVariant for color and one for size(TO BE IMPLEMENTED).
+<br><br>
+Eg:
 <br>
-The color token responds to the user's device's mode: in light mode it has no value and in dark mode activeVariants.color will return 'dark'.
-<br>
+The "color" token responds to the user's device's mode: in light mode it has no value and in dark mode activeVariants.color will return 'dark'.
+<br><br>
 Below is the code for how to configure a cssToken to respond to this activeVariant change using the same class as the very first example of CSSToken. Try changing your device's mode from light to dark to see the change
 --
 foam.CLASS({
@@ -505,16 +506,11 @@ foam.CLASS({
           value: 'green'
         }
       }
-    },
-    {
-      name: 'fontSize',
-      value: '2rem'
     }
   ],
   css:`
     ^test {
       color: $color;
-      font-size: $fontSize;
     }
   `,
   methods: [
@@ -610,4 +606,99 @@ foam.CLASS({
   ]
 });
 tag({class: 'BaseTokenOverrideExample'});
+--
+## When to use tokens (To token or not to token)
+<p>
+CSSTokens are, like all of FOAM, meant to keep your styles DRY and maintainable.
+<br><br>
+<strong>Whenever possible, use semantic tokens</strong> (such as <code>backgroundBrand</code>, <code>textDefault</code>, etc.) in your views and components.
+Semantic and base tokens are the foundation of your application's design system. They represent core concepts like primary colors, backgrounds, and text styles that 
+should remain consistent throughout your app. By using these tokens, you ensure that any global changes—such as enabling dark mode or updating your brand 
+palette can be made in a single place and will automatically propagate to all components. This not only saves time but also prevents visual inconsistencies a
+nd reduces maintenance overhead.
+<br><br>
+<strong>Only add new tokens to a view when that view needs to be themed separately from the base token theme.</strong> 
+In rare cases, a specific view may require a unique look that cannot be achieved with the existing base tokens due to a lack of dynamism in semantic tokens (Look at Button.js)
+ or the view you are developing is not supposed to comply with the app theme. In these situations, you can introduce a custom token scoped to that view. 
+ However, this should be done sparingly, as custom tokens increase the complexity of your theme management. Reserve this approach for truly exceptional cases where the 
+ view's styling must diverge from the global theme, such as for a one-off marketing component or a highly specialized widget. When using this approach try your best to 
+ set your token's value to a semantic token by deafult. You have a number of TokenUtils that can modify the result of a sematic token to your needs 
+ (lightening a color, changing it's opacity etc).
+<br><br>
+Using base tokens ensures that your application's look and feel can be updated or themed globally with minimal effort. 
+For example, if you want to enable dark mode or update your brand colors, you only need to update the base tokens, 
+and all views using those tokens will update automatically. This approach reduces duplication, prevents inconsistencies, and makes your codebase easier to maintain.
+<br><br>
+Custom tokens should only be introduced when a view has a unique styling requirement that cannot be addressed by the existing base tokens. 
+Overusing custom tokens can lead to fragmentation and make theming or global updates much harder, as you would need to track down and update each custom token individually.
+<br><br>
+In summary:  
+<ul>
+  <li><strong>Default to using base tokens for all styling needs.</strong> Base tokens provide consistency and make global theming easy.</li>
+  <li><strong>Add new tokens only for exceptional, view-specific cases.</strong> Use custom tokens sparingly and only when absolutely necessary.</li>
+  <li>This keeps your app easy to theme, maintain, and evolve as your design system grows.</li>
+</ul>
+</p>
+--
+## Porting your old code to use semantic tokens and adding variant support
+If your app uses older CSSTokens or hardcoded color values, migrating to the new CSSToken variant system will make your UI more maintainable, 
+themeable, and ready for features like dark mode. Here’s how to port your code:
+<br><br>
+
+<ul>
+  <li>
+    <b>Text colors:</b><br>
+    Replace any direct color values or old tokens used for text (e.g., <code>color: $primary400;</code> or <code>color: #000;</code>) with semantic tokens prefixed with <code>text</code>, such as:
+    <ul>
+      <li><code>textDefault</code> for standard text</li>
+      <li><code>textSecondary</code> for less prominent text</li>
+      <li><code>textBrand</code> for brand/primary colored text</li>
+      <li><code>textDestructive</code> for error or destructive text</li>
+    </ul>
+    <br>
+    <b>Example:</b>
+    <pre><code>/* Old */
+color: $primary400;
+color: black;
+color: #000;
+/* New */
+color: $textBrand;
+</code></pre>
+  </li>
+  <li>
+    <b>Background colors:</b><br>
+    For background or <code>background-color</code> properties, use semantic tokens prefixed with <code>background</code>, such as:
+    <ul>
+      <li><code>backgroundDefault</code> for main backgrounds</li>
+      <li><code>backgroundSecondary</code> for secondary backgrounds</li>
+      <li><code>backgroundBrand</code> for brand/primary backgrounds</li>
+      <li><code>backgroundDestructive</code> for error backgrounds</li>
+    </ul>
+    <br>
+    <b>Example:</b>
+    <pre><code>/* Old */
+background-color: $primary400;
+background-color: #406DEA;
+/* New */
+background-color: $backgroundBrand;
+</code></pre>
+  </li>
+  <li>
+    <b>Border colors:</b><br>
+    For border-related CSS properties, use tokens prefixed with <code>border</code>, such as:
+    <ul>
+      <li><code>borderDefault</code> for standard borders</li>
+      <li><code>borderBrand</code> for brand/primary borders</li>
+      <li><code>borderDestructive</code> for error borders</li>
+      <li>There also exist various tones for every border type like 'XLight', 'Light', 'Strong' etc.</li>
+    </ul>
+    <br>
+    <b>Example:</b>
+    <pre><code>/* Old */
+border: 1px solid $primary400;
+/* New */
+border: 1px solid $borderBrand;
+</code></pre>
+  </li>
+</ul>
 --
