@@ -65,8 +65,20 @@ foam.CLASS({
       }
     },
     { name: 'selection', hidden: true, expression: function(y) { return y; } },
-    { name: 'x', hidden: true },
+    { name: 'x', hidden: true, postSet: function(o,n) { console.log('xxxxxx:', n); } },
     { name: 'y', hidden: true },
+    {
+      name: 'query',
+      hidden: true,
+      expression: function(x, y) {
+        var query = '';
+        debugger;
+        if ( this.x !== null ) query += this.xFunc + '=' + x;
+        if ( this.y !== null ) query += ( query ? ' AND ' : '' ) + this.yFunc + '=' + x;
+        console.log('query: ', query);
+        return query;
+      }
+    }
   ],
 
   methods: [
@@ -83,6 +95,7 @@ foam.CLASS({
     },
 
     function addToE(e) {
+      this.query = undefined;
       e.tag(this.GridByView, {data: this, x$: this.x$, y$: this.y$});
     }
   ]
