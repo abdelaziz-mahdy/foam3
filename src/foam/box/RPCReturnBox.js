@@ -66,6 +66,8 @@ foam.CLASS({
           this.resolve_(message.data);
           return;
         }
+        // TODO: This is kind of odd, if message is an RPCErrorMessage
+        // we surface that as the error rather than the inner RemoteException
         if ( foam.lang.Exception.isInstance(message) ) {
           this.reject_(message);
           return;
