@@ -31,7 +31,10 @@ foam.CLASS({
         if ( t instanceof foam.lang.FOAMException ) {
           wrapper.setException((foam.lang.Exception) t);
         }
-        getReplyBox().send(new foam.box.Envelope(wrapper, null));
+        RPCErrorMessage reply = new RPCErrorMessage();
+        reply.setData(wrapper);
+
+        getReplyBox().send(new foam.box.Envelope(reply, null));
       `
     }
   ]
