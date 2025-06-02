@@ -52,7 +52,13 @@ foam.CLASS({
       }
 
       var latch = foam.lang.Latch.create();
-      var i = 1;
+      
+      // Get the current number of records in the DAO to determine the starting index
+      // This ensures that when uploading multiple files, each new record gets a unique ID
+      // by continuing from where the last record ended, rather than starting from 1 each time
+      // Example: If DAO has 100 records and we upload 50 new ones, they'll be indexed 101-150
+      var initialSize = await dao.select(foam.mlang.sink.Count.create()).then(count => count.value);
+      var i = initialSize + 1;
       var agent;
       var rows = 0;
 
@@ -92,7 +98,7 @@ foam.CLASS({
         eof: async function() {
           if ( agent ) await dao.cmd(agent);
           if ( onProgress ) onProgress(rows, rows, 100);
-          if ( onComplete ) onComplete(i - 1);
+          if ( onComplete ) onComplete(i - 1 - initialSize);
           latch.resolve('eof');
         }
       } : {
@@ -104,7 +110,7 @@ foam.CLASS({
         },
         eof: function() {
           if ( onProgress ) onProgress(rows, rows, 100);
-          if ( onComplete ) onComplete(i - 1);
+          if ( onComplete ) onComplete(i - 1 - initialSize);
           latch.resolve('eof');
         }
       };
