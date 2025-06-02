@@ -763,7 +763,7 @@ foam.CLASS({
       // this.selectedValue$.follow(this.selected$.dot('value'));
 
       // Add commands to localScope
-      var cmds = await this.commandDAO.select();
+      var cmds = await this.commandDAO.select(); 
       cmds.array.forEach(c => {
         this.localScope[c.id] = (...args) => {
           var cmd = c.clone(this.currentBlock);
