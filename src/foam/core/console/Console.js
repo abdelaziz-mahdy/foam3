@@ -214,9 +214,16 @@ foam.CLASS({
       align-items: center;
       cursor: pointer;
       border: 1px solid $grey200;
+      border-radius: 4px;
     }
     ^ table td .close {
       font-size: 1.2rem;
+    }
+    .foam-u2-ActionView-close {
+      color: $grey700!important;
+    }
+    .foam-u2-ActionView-text:hover:not(:disabled) {
+      background-color: $grey400!important;
     }
     ^ table td .close svg{
       font-size: 1rem;
@@ -224,8 +231,7 @@ foam.CLASS({
       font-weight: 500;
     }
     ^selected {
-      background: $primary50;
-      color: $primary400;
+      background: $grey100;
       font-weight: 500;
     }
     ^error {
@@ -251,6 +257,14 @@ foam.CLASS({
     }
     ^element-row {
       padding: 10px;
+    }
+    ^element-row-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    ^element-row-icon {
+      color: $primary500;
     }
   `,
 
@@ -287,7 +301,6 @@ foam.CLASS({
     },
     function render() {
       var self = this;
-      console.log('this.data ===>', this.data)
       this.addClass();
       this.add(this.dynamic(function(isMenuOpen) {
         if (isMenuOpen) {
@@ -300,7 +313,7 @@ foam.CLASS({
 
     function branch(self, data, depth) {
       if ( data.flowParent ) {
-        this.add(data.dynamic(function (flowName) {
+        this.add(data.dynamic(function (flowName, cmd) {
           this.start('tr').
             enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
             on('click', () => self.selected = data).
@@ -309,7 +322,21 @@ foam.CLASS({
               addClass(self.myClass('element-row')).
               enableClass(self.myClass('error'), flowName.startsWith('error')).
               style({'paddingLeft': (4 + depth * 12) + 'px'}).
-              add(flowName).
+              start().
+                addClass(self.myClass('element-row-content')).
+                callIfElse(cmd.includes('dao'), function() {
+                  this.start(foam.u2.tag.Image, {
+                    data: 'images/grid-icon.svg',
+                    embedSVG: true
+                  }).addClass(self.myClass('element-row-icon')).end()
+                }, function() {
+                  this.start(foam.u2.tag.Image, {
+                    data: 'images/rectangle.svg',
+                    embedSVG: true
+                  }).addClass(self.myClass('element-row-icon')).end()
+                }).
+                add(flowName).
+              end().
               start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end().
             end();
         }));
@@ -484,7 +511,6 @@ foam.CLASS({
     }
     ^middle-holder {
       padding: 10px;
-      overflow-x: auto;
       width: 100%;
       background-color: $grey100;
     }
@@ -496,7 +522,7 @@ foam.CLASS({
     ^r {
       overflow-y: auto;
       padding: 4px 4px 4px 8px;
-      width: 20%;
+      width: 30%;
       background-color: $white;
     }
     ^ .foam-u2-RangeView-skip { width: 266px; }
@@ -553,6 +579,8 @@ foam.CLASS({
     'foam.core.console.Layout',
     'foam.core.console.reflowHeader',
     'foam.core.console.ReactiveDetailView',
+    // 'foam.core.console.VerticalSectionedView',
+    'foam.u2.detail.SectionedDetailView',
     // 'foam.u2.DetailView as ReactiveDetailView',
     'foam.dao.ArrayDAO',
     'foam.flow.Document',
@@ -784,13 +812,12 @@ foam.CLASS({
       layout.showLeft$  = this.showPrompts$;
       layout.showRight$ = this.showPrompts$;
       layout.showHeader$ = this.showPrompts$;
-
       var flowableTree = this.FlowableTree.create({data: this, selected$: this.selected$});
       layout.isMenuOpen$ = flowableTree.isMenuOpen$;
       layout.left.tag(flowableTree);
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue) {
-        this.tag(self.ReactiveDetailView, {data: selectedValue, showActions: true});
+        this.tag(self.SectionedDetailView, {data: selectedValue, showActions: true});
       }));
       layout.header.tag(this.reflowHeader, {data: this});
 

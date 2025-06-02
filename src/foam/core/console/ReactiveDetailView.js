@@ -31,6 +31,7 @@ foam.CLASS({
       toJSON: function(v) {
         var m = {};
         for ( key in v ) { m[key] = v[key].toString(); }
+       
         return m;
       }
     }

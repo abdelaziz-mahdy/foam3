@@ -27,6 +27,7 @@ foam.POM({
     { name: 'PropertyListView',        flags: 'js' },
     { name: 'PropertyOrderChoiceView', flags: 'js' },
     { name: 'ReactiveDetailView',      flags: 'js' },
+    { name: 'VerticalSectionedView',   flags: 'js' },
     { name: 'Script',                  flags: 'js' },
     { name: 'Signature',               flags: 'js' },
     { name: 'SinkView',                flags: 'js' },

@@ -44,10 +44,7 @@ foam.CLASS({
             add(self.data.dynamic(async function(version, skip) {
               if ( ! version ) return;
               var startTime = Date.now();
-              // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
-              // TODO: fix JSON parsing should setup context corectly
-              var select    = self.data.select.clone(self.data.__subContext__);
-              await select.execute(this);
+              if ( self.data.run ) await self.data.run();
               self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
             })).
           end();
@@ -79,6 +76,25 @@ foam.CLASS({
   package: 'foam.core.console',
   name: 'DAOPrompt2',
 
+  sections: [
+    {
+      name: 'general',
+      title: 'General',
+    },
+    {
+      name: 'output',
+      title: 'Output',
+    },
+    {
+      name: 'scroll',
+      title: 'Scroll',
+    },
+    {
+      name: 'filter',
+      title: 'Filter'
+    }
+  ],
+
   implements: [
     'foam.mlang.Expressions'
   ],
@@ -103,11 +119,14 @@ foam.CLASS({
       name: 'block',
       factory: function() { return this.currentBlock; },
       hidden: true,
+      section: 'general',
       transient: true
     },
     {
       class: 'String',
       name: 'label',
+      section: 'general',
+      label: 'Name',
       onKey: true,
       factory: function() {
         return this.dao.of.model_.plural;
@@ -117,11 +136,14 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'visible',
+      section: 'general',
+      label: 'Visibility',
       value: true
     },
     {
       class: 'foam.dao.DAOProperty',
       name: 'dao',
+      section: 'general',
       hidden: true,
       transient: true,
       adapt: function(o, n, p) {
@@ -139,6 +161,7 @@ foam.CLASS({
     },
     {
       name: 'limitedDAO',
+      section: 'general',
       hidden: true,
       transient: true,
       expression: function(skip, limit, filteredDAO) {
@@ -149,6 +172,7 @@ foam.CLASS({
     },
     {
       name: 'filteredDAO',
+      section: 'general',
       hidden: true,
       transient: true,
       expression: function(dao, where, order) {
@@ -193,6 +217,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'skip',
+      section: 'scroll',
       displayWidth: 8,
       view: function(_, X) {
         return {
@@ -205,6 +230,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'limit',
+      section: 'scroll',
       value: 100,
       placeholder: '',
       displayWidth: 8
@@ -212,6 +238,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'where',
+      section: 'filter',
       displayWidth: 60,
       view: { class: 'foam.core.console.PredicateView' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
@@ -219,6 +246,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'order',
+      section: 'filter',
       displayWidth: 60,
       view: { class: 'foam.core.console.ComparatorView' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
@@ -226,6 +254,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'columns',
+      section: 'output',
       displayWidth: 60,
       view: function(_, X) {
         return {
@@ -236,12 +265,13 @@ foam.CLASS({
     },
     {
       name: 'select',
+      section: 'output',
       view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
     },
-    { class: 'Long',            name: 'rowCount', visibility: 'RO' },
-    { class: 'String',          name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
-    { class: 'Int',             name: 'version', hidden: true },
-    { class: 'FObjectProperty', name: 'value', transient: true, hidden: true, visibility: 'RO' }
+    { class: 'Long',    section: 'output',        name: 'rowCount', visibility: 'RO' },
+    { class: 'String',   section: 'output',       name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
+    { class: 'Int',    section: 'output',   name: 'version', hidden: true },
+    { class: 'FObjectProperty', section: 'output', name: 'value', transient: true, hidden: true, visibility: 'RO' }
   ],
 
   methods: [
