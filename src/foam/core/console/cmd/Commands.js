@@ -526,21 +526,15 @@ foam.CLASS({
 
   methods: [
     function execute(opt_flowName) {
-      // Check if flow is available here
-      if ( ! this.flow ) {
-        this.out.add('No flow available to save');
-        return;
-      }
                   
       if ( opt_flowName ) {
         this.flow.name = opt_flowName;
       }
-
-      if ( ! this.flow.name || this.flow.name === 'Unnamed' ) {
-          this.out.add('Please provide a name for the flow');
-          return;
-        
+      if (!this.flow.save()){
+        this.out.add('Please provide a name for the flow');
+        return;
       }
+     
 
       // Don't save the 'save' command
       this.currentBlock.del();
