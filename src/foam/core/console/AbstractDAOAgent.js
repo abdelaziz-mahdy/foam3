@@ -12,7 +12,11 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
+  requires: [ 'foam.dao.ArraySink' ],
+
   imports: [ 'block', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
+
+  exports: [ 'dao' ],
 
   properties: [
     {
@@ -23,7 +27,7 @@ foam.CLASS({
 
   methods: [
     function value(s) { return null; },
-    function createSink() { return foam.dao.ArraySink.create(); },
+    function createSink() { return this.ArraySink.create(); },
     async function execute(e) {
       var sink = this.createSink();
       return this.dao.select(sink).then(s => {
@@ -32,7 +36,9 @@ foam.CLASS({
         } else {
           this.block.value = this.value(s);
         }
-        this.addSinkToE(e, s);
+        e.startContext({dao: this.dao});
+          this.addSinkToE(e, s);
+        e.endContext();
       });
     },
     function addSinkToE(e, s) {
@@ -41,6 +47,7 @@ foam.CLASS({
     function addToE() {},
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.core.console',
@@ -489,7 +496,7 @@ foam.CLASS({
   requires: [ 'foam.core.console.ViewSink' ],
 
   methods: [
-    function createSink() { return this.ViewSink.create({arg1: this.prop}); },
+    function createSink() { return this.ViewSink.create(); },
   ]
 });
 
@@ -502,7 +509,7 @@ foam.CLASS({
   requires: [ 'foam.core.console.EditSink' ],
 
   methods: [
-    function createSink() { return this.EditSink.create({arg1: this.prop}); },
+    function createSink() { return this.EditSink.create(); }
   ]
 });
 

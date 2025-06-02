@@ -37,7 +37,7 @@ foam.CLASS({
         if ( typeof n === 'function' ) return n;
         // adapt a class method path
         var lastIndex = n.lastIndexOf('.');
-        var classObj = foam.lookup(n.substring(0, lastIndex));
+        var classObj  = foam.lookup(n.substring(0, lastIndex));
         return classObj[n.substring(lastIndex + 1)];
       }
     },

@@ -678,6 +678,12 @@ foam.CLASS({
       this.onDetach(() => observer.disconnect());
     },
 
+    function resizeObserver(fn, config = { box: 'content-box' }) {
+      var observer = new ResizeObserver(fn);
+      observer.observe(this.element_, config);
+      this.onDetach(() => observer.disconnect());
+    },
+
     function observeScrollHeight() {
       // TODO: This should be handled by an onsub event when someone subscribes to
       // scroll height changes.

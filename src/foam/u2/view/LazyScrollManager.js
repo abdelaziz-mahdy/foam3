@@ -339,10 +339,10 @@ foam.CLASS({
             if ( ! foam.util.equals(group, self.currGroup_) || index == 1 ) {
               let isGroupCollapsed$ = foam.lang.SimpleSlot.create({value: false});
               self.collapsedGroups[group] = isGroupCollapsed$;
-              e.tag(self.groupHeaderView, 
-                { ...args, 
-                  groupLabel: group, 
-                  groupBy: self.groupBy, 
+              e.tag(self.groupHeaderView,
+                { ...args,
+                  groupLabel: group,
+                  groupBy: self.groupBy,
                   collapsed$: self.collapsedGroups[group]
               }
               );

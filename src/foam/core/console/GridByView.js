@@ -12,9 +12,83 @@ foam.CLASS({
   documentation: 'Table View for GridBy mLang.',
 
   css: `
-    ^td { text-align: right; }
-    ^ table { border-collapse: collapse; }
+    /* Base table styling */
+    ^table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      border: 1px solid $grey300;
+      width: 100%;
+    }
+
+    /* Row styling */
+    ^tr {
+      border-bottom: 1px solid $grey300;
+      transition: background-color 0.2s ease;
+    }
+
+    ^tr:hover {
+      background-color: $primary50;
+    }
+
+    ^tr:last-child {
+      border-bottom: none;
+    }
+
+    /* Header row */
+    ^tr:first-child {
+      background-color: $grey200;
+    }
+
+    /* Cell styling - both TH and TD */
+    ^th, ^td {
+      padding: .8rem 1rem;
+      transition: background-color 0.15s ease;
+    }
+
+    /* Header cells */
+    ^th {
+      font-weight: bold;
+      background-color: $grey200;
+    }
+
+    /* Data cells */
+    ^td {
+      border: none;
+    }
+
+    /* First column-cells styling */
+    ^tr > ^th:first-child {
+      border-right: 1px solid $grey300;
+    }
+
+    /* First row cells */
+    ^tr:first-child > ^th {
+      border-right: 1px solid $grey300;
+    }
+
+    ^tr:first-child > ^th:last-child {
+      border-right: none;
+    }
+
+    /* Hover effects */
+    ^th:hover, ^td:hover {
+      background-color: $primary200;
+      z-index: 1;
+    }
+
+    ^td:hover {
+      font-weight: 600;
+    }
+
+    ^tr > ^th:first-child:hover {
+      background-color: $primary200;
+    }
   `,
+
+  properties: [
+    { name: 'x' },
+    { name: 'y' }
+  ],
 
   methods: [
     function render(e) {
@@ -25,19 +99,22 @@ foam.CLASS({
 
       var cols = data.cols.sortedKeys();
       this.start('table').
-        attrs({border: '1', cellspacing: 10, cellpadding: 4}).
-        start('tr').
-          tag('th').
+        addClass(this.myClass('table')).
+        start('tr').addClass(this.myClass('tr')).
+          start('th').addClass(this.myClass('th')).end().
           forEach(cols, function(c) {
-            this.start('th').add(c.toString());
+            this.start('th').addClass(this.myClass('th')).add(c.toString()).on('click', () => self.x = c);
           }).
         end().
         forEach(data.rows.sortedKeys(), function(r) {
           var row = data.rows.groups[r];
-          this.start('tr').
-            start('th').style({textAlign: 'left'}).add(r).end().
+          this.start('tr').addClass(self.myClass('tr')).on('click', () => self.y = r).
+            start('th').addClass(self.myClass('th')).add(r).end().
             forEach(cols, function(c) {
-              this.start('td').addClass(self.myClass('td')).add(row.groups[c] || '');
+              this.start('td').
+                on('click', () => self.x = c).
+                addClass(self.myClass('td')).
+                add(row.groups[c] || '');
             }).
             end();
         });

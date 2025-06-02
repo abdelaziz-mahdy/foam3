@@ -11,7 +11,7 @@ foam.CLASS({
 
   methods: [
     function addToE(e) {
-      var dao = e.__context__.dao; // hackish, better to export & import
+      var dao = e.__subSubContext__.dao; // hackish, better to export & import
       this.array.forEach(o => {
         var data = foam.comics.DAOUpdateController.create({data: o, dao: dao}, this);
 

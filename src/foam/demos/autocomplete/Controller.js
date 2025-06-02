@@ -13,6 +13,9 @@ foam.CLASS({
       name: 'maxPos'
     },
     {
+      name: 'previousSuggestions'
+    },
+    {
       name: 'suggestions',
       factory: function() { return {}; }
     },
@@ -21,25 +24,34 @@ foam.CLASS({
       factory: function() {
         var auto = this;
 
-        return function(p, obj) {
-          if ( this.pos >= auto.maxPos ) {
-            if ( this.pos > auto.maxPos ) {
-              auto.suggestions = {};
-              auto.maxPos = this.pos;
-            }
-
-            try {
-              if ( p.suggest ) {
-                var s = p.suggest();
-                if ( s ) {
-                  var label = s.label;
-                  console.log(this.pos, label);
-                  if ( ! auto.suggestions[label] ) {
-                    auto.suggestions[label] = s;
-                  }
+        function maybeAdd(p, ss) {
+          try {
+            if ( p.suggest ) {
+              var s = p.suggest();
+              if ( s ) {
+                var label = s.label;
+                if ( ! ss[label] ) {
+                  ss[label] = s;
                 }
               }
-            } catch(x) {}
+            }
+          } catch(x) {}
+        }
+
+        return function(p, obj) {
+          if ( p == foam.parse.EOF.create() ) return;
+          if ( this.pos > auto.query.length ) return;
+
+          if ( this.pos > auto.maxPos ) {
+            auto.previousSuggestions = auto.suggestions;
+            auto.suggestions = {};
+            auto.maxPos = this.pos;
+          }
+
+          if ( this.pos == auto.maxPos ) {
+            maybeAdd(p, auto.suggestions);
+          } else if ( this.pos == auto.maxPos-1 ) {
+            maybeAdd(p, auto.previousSuggestions);
           }
 
           return p.parse(this, obj);
@@ -50,8 +62,9 @@ foam.CLASS({
 
   methods: [
     function reset() {
-      this.maxPos      = 0;
-      this.suggestions = {};
+      this.maxPos              = 0;
+      this.previousSuggestions = {};
+      this.suggestions         = {};
     },
     function suggestForInput(str) {
       var error = str.substring(this.maxPos);
@@ -65,13 +78,31 @@ foam.CLASS({
         return str.toLowerCase().indexOf(sub.toLowerCase()) != -1;
       }
       var self = this;
-      e.add(this.dynamic(function(query, suggestions) {
-        var error = query.substring(self.maxPos);
-        var ss    = Object.keys(suggestions).sort().filter(k => containsIC(k, error));
-
-        this.start().style({width: '400px', maxHeight: '400px', border: '1px solid gray', overflowY: 'auto'}).forEach(ss, function(s) {
+      e.add(this.dynamic(function(query) {
+        var suggestions = self.suggestions;
+        var keys        = Object.keys(suggestions);
+        var error       = query.substring(self.maxPos);
+//        suggestions = {...suggestions, ...self.previousSuggestions};
+        var ss          = keys.sort().filter(k => k.toLowerCase().startsWith(error.toLowerCase()));
+                        if ( ! ss.length )        ss          = keys.sort().filter(k => containsIC(k, error));
+        if ( ss.length == 0 ) {
+          console.log('previous: ', self.previousSuggestions);
+          keys = Object.keys(self.previousSuggestions);
+          ss   = keys.sort().filter(k => query.toLowerCase().endsWith(k.toLowerCase()));
+          console.log('filtered: ', ss);
+          if ( ss.length == 1 ) {
+            self.query = query.substring(0, query.length-ss[0].length) + ss[0];
+            return;
+          }
+        }
+        if ( ! ss.length ) return;
+        if ( ss.length == 1 && self.maxPos + ss[0].length == query.length ) {
+          self.query = self.query.substring(0, self.maxPos) + ss[0];
+          return;
+        }
+        this.start().style({width: '400px', maxHeight: '500px', border: '1px solid gray', overflowY: 'auto'}).forEach(ss, function(s) {
           this.start('div').
-            style({margin: '5px'}).
+            style({margin: '6px'}).
             add(s).
             on('click', function() { self.query = self.query.substring(0, self.maxPos) + s; }).
           end();
@@ -113,7 +144,7 @@ foam.CLASS({
         this.autoCompleter.reset();
         var ps = this.parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
         console.log('autocomplete: ', this.autoCompleter.toString());
-        this.suggestion = this.autoCompleter.suggestForInput(this.query);
+//        this.suggestion = this.autoCompleter.suggestForInput(this.query);
         return ps || null;
       }
     },
@@ -121,7 +152,6 @@ foam.CLASS({
       class: 'String',
       name: 'result',
       expression: function(predicate) {
-        console.log('predicate:', predicate);
         return predicate ? predicate.toString() : '';
       }
     },
@@ -133,11 +163,10 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.add(this.QUERY.__).br();
-      this.add(this.RESULT.__).br();
-//      this.add(this.SUGGESTION.__);
-
+      this.add(this.QUERY.__);
       this.autoCompleter.addToE(this);
+      this.br().add(this.RESULT.__);
+//      this.add(this.SUGGESTION.__);
     }
   ]
 
