@@ -21,6 +21,11 @@ The primary tool for debugging JavaScript code is Chrome DevTools. Here are the 
 2. Find your JavaScript file in the file tree
 3. Click on the line number where you want to set a breakpoint
 4. Alternatively, add `debugger;` statement in your code
+5. If you want to know when an FObject property is being updated, you can add a debugger
+statement in a postSet. Ex. { name: 'field', postSet: function(o, n) { debugger; } }
+and the debugger will trip when the value is updated. You can also include an 'if' statement
+to only trip when certain values or value transitions occur. The variable 'o' contains
+the old value of the property and 'n' contains the new value.
 
 #### Console Commands
 ```javascript
