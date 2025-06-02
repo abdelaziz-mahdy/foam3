@@ -65,7 +65,7 @@ foam.CLASS({
       }
     },
     { name: 'selection', hidden: true, expression: function(y) { return y; } },
-    { name: 'x', hidden: true, postSet: function(o,n) { console.log('xxxxxx:', n); } },
+    { name: 'x', hidden: true },
     { name: 'y', hidden: true },
     {
       name: 'query',
