@@ -17,21 +17,12 @@ foam.CLASS({
       border-collapse: collapse;
       border-spacing: 0;
       border: 1px solid $grey300;
-      width: 100%;
     }
 
     /* Row styling */
     ^tr {
       border-bottom: 1px solid $grey300;
       transition: background-color 0.2s ease;
-    }
-
-    ^tr:hover {
-      background-color: $primary50;
-    }
-
-    ^tr:last-child {
-      border-bottom: none;
     }
 
     /* Header row */
@@ -43,6 +34,7 @@ foam.CLASS({
     ^th, ^td {
       padding: .8rem 1rem;
       transition: background-color 0.15s ease;
+      border: 1px solid $grey300;
     }
 
     /* Header cells */
@@ -52,44 +44,23 @@ foam.CLASS({
       text-align: left;
       text-wrap-mode: nowrap;
     }
-
-    /* Data cells */
-    ^td {
-      border: none;
+    
+    /* Cell highlighting */
+    ^highlighted-cell {
+      background-color: $primary100;
     }
 
-    /* First column-cells styling */
-    ^tr > ^th:first-child {
-      border-right: 1px solid $grey300;
-    }
-
-    /* First row cells */
-    ^tr:first-child > ^th {
-      border-right: 1px solid $grey300;
-    }
-
-    ^tr:first-child > ^th:last-child {
-      border-right: none;
-    }
-
-    /* Hover effects */
-    ^th:hover, ^td:hover {
-      background-color: $primary200;
-      z-index: 1;
-    }
-
-    ^td:hover {
-      font-weight: 600;
-    }
-
-    ^tr > ^th:first-child:hover {
-      background-color: $primary200;
+    /* Row highlighting */
+    ^highlighted-row, ^highlighted-row > th, ^highlighted-row > td {
+      background-color: $primary100;
     }
   `,
 
   properties: [
     { name: 'x' },
-    { name: 'y' }
+    { name: 'y' },
+    { name: 'currentCol' },
+    { name: 'currentRow' }
   ],
 
   methods: [
@@ -105,25 +76,38 @@ foam.CLASS({
         start('tr').addClass(this.myClass('tr')).
           start('th').addClass(this.myClass('th')).end().
           forEach(cols, function(c) {
-            this.start('th').
-              addClass(this.myClass('th')).
-              add(c.toString()).
-              on('click', () => { self.x = c; self.y = undefined; });
+            this.start('th')
+              .addClass(this.myClass('th'))
+              .add(c.toString())
+              .on('click', () => { self.x = c; self.y = undefined; })
+              .on('mouseover', () => self.currentCol = c)
+              .on('mouseleave', function() { self.currentCol = undefined; self.currentRow = undefined; })
+              .enableClass(self.myClass('highlighted-cell'), self.slot((currentCol) => currentCol === c));
           }).
         end().
         forEach(data.rows.sortedKeys(), function(r) {
           var row = data.rows.groups[r];
-          this.start('tr').addClass(self.myClass('tr')).on('click', () => self.y = r).
-            start('th').
-              on('click', () => { self.y = r; self.x = undefined; }).
-              addClass(self.myClass('th')).
-              add(r).
-            end().
+          this.start('tr')
+            .addClass(self.myClass('tr'))
+            .on('click', () => self.y = r)
+            .on('mouseover', () => self.currentRow = r)
+            .on('mouseleave', () => self.currentRow = undefined)
+            .enableClass(self.myClass('highlighted-row'), self.slot((currentRow) => currentRow === r))
+            .start('th')
+              .on('click', () => { self.y = r; self.x = undefined; })
+              .on('mouseover', () => self.currentRow = r)
+              .addClass(self.myClass('th'))
+              .enableClass(self.myClass('highlighted-cell'), self.slot((currentRow) => currentRow === r))
+              .add(r)
+            .end().
             forEach(cols, function(c) {
-              this.start('td').
-                on('click', (e) => { self.x = c; self.y = r; e.stopPropagation(); }).
-                addClass(self.myClass('td')).
-                add(row.groups[c] || '');
+              this.start('td')
+                .on('click', (e) => { self.x = c; self.y = r; e.stopPropagation(); })
+                .on('mouseover', function() { self.currentCol = c; self.currentRow = r; })
+                .on('mouseleave', function() { self.currentCol = undefined; self.currentRow = undefined; })
+                .addClass(self.myClass('td'))
+                .enableClass(self.myClass('highlighted-cell'), self.slot((currentCol, currentRow) => currentCol === c || currentRow === r))
+                .add(row.groups[c] || '');
             }).
             end();
         });
