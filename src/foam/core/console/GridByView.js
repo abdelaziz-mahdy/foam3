@@ -105,16 +105,23 @@ foam.CLASS({
         start('tr').addClass(this.myClass('tr')).
           start('th').addClass(this.myClass('th')).end().
           forEach(cols, function(c) {
-            this.start('th').addClass(this.myClass('th')).add(c.toString()).on('click', () => self.x = c);
+            this.start('th').
+              addClass(this.myClass('th')).
+              add(c.toString()).
+              on('click', () => { self.x = c; self.y = undefined; });
           }).
         end().
         forEach(data.rows.sortedKeys(), function(r) {
           var row = data.rows.groups[r];
           this.start('tr').addClass(self.myClass('tr')).on('click', () => self.y = r).
-            start('th').addClass(self.myClass('th')).add(r).end().
+            start('th').
+              on('click', () => { self.y = r; self.x = undefined; }).
+              addClass(self.myClass('th')).
+              add(r).
+            end().
             forEach(cols, function(c) {
               this.start('td').
-                on('click', () => self.x = c).
+                on('click', (e) => { self.x = c; self.y = r; e.stopPropagation(); }).
                 addClass(self.myClass('td')).
                 add(row.groups[c] || '');
             }).
