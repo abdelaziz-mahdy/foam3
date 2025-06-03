@@ -577,3 +577,24 @@ foam.CLASS({
     }
   ]
 });
+
+foam.CLASS({
+  package: 'foam.core.console.cmd',
+  name: 'Login',
+  extends: 'foam.core.console.cmd.Command',
+
+  requires: [ 'foam.core.auth.login.LoginView' ],
+
+  properties: [
+    [ 'description', 'Login from flow' ]
+  ],
+
+  methods: [
+    function execute() {
+      var p = this.LoginView.create({mode_: 0});
+
+      this.out.tag(p);
+      this.currentBlock.obj = p;
+    }
+  ]
+});
