@@ -64,7 +64,9 @@ foam.CLASS({
         return ! foam.lang.MultiPartID.isInstance(this.arg1);
       }
     },
-    { name: 'selection' }
+    {
+      name: 'selection', hidden: true
+    }
   ],
 
   methods: [
