@@ -270,13 +270,21 @@ foam.CLASS({
       section: 'output',
       view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
     },
-    { class: 'Long',    section: 'output',        name: 'rowCount', visibility: 'RO' },
-    { class: 'String',   section: 'output',       name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
-    { class: 'Int',    section: 'output',   name: 'version', hidden: true },
+    { class: 'Long',        section: 'output',    name: 'rowCount', visibility: 'RO' },
+    { class: 'String',      section: 'output',    name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
+    { class: 'Boolean',     section: 'output',    name: 'autoRun' },
+    { class: 'Int',         section: 'output',    name: 'version', hidden: true },
     { class: 'FObjectProperty', section: 'output', name: 'value', transient: true, hidden: true, visibility: 'RO' }
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+
+      this.where$.sub(this.maybeAutoRun);
+      this.order$.sub(this.maybeAutoRun);
+    },
+
     async function addToE(e) {
       this.rowCount = (await this.dao.select(this.COUNT())).value;
 
@@ -296,6 +304,15 @@ foam.CLASS({
   ],
 
   listeners: [
+    {
+      name: 'maybeAutoRun',
+      isMerged: true,
+      delay: 200,
+      code: function maybeAutoRun() {
+        if ( this.autoRun ) this.run();
+      }
+    },
+
     function describe() {
       this.eval_('describe ' + this.dao.of.id);
     },

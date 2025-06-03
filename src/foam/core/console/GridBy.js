@@ -65,15 +65,15 @@ foam.CLASS({
       }
     },
     { name: 'selection', hidden: true, expression: function(y) { return y; } },
-    { name: 'x', hidden: true, postSet: function(o,n) { console.log('xxxxxx:', n); } },
+    { name: 'x', hidden: true },
     { name: 'y', hidden: true },
     {
       name: 'query',
       hidden: true,
       expression: function(x, y) {
         var query = '';
-        if ( this.x !== null ) query += this.xFunc + '="' + x + '"';
-        if ( this.y !== null ) query += ( query ? ' AND ' : '' ) + this.yFunc + '="' + y + '"';
+        if ( this.x !== null && this.x !== undefined ) query += this.xFunc.name + '="' + x + '"';
+        if ( this.y !== null && this.y !== undefined ) query += ( query ? ' AND ' : '' ) + this.yFunc.name + '="' + y + '"';
         return query;
       }
     }

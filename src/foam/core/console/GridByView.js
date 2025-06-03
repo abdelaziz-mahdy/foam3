@@ -47,8 +47,10 @@ foam.CLASS({
 
     /* Header cells */
     ^th {
-      font-weight: bold;
       background-color: $grey200;
+      font-weight: bold;
+      text-align: left;
+      text-wrap-mode: nowrap;
     }
 
     /* Data cells */

@@ -396,6 +396,7 @@ foam.CLASS({
   ],
 
   methods: [
+    function value(s) { return s; },
     function createSink() { return this.GridBy.create({
       yFunc: this.prop1,
       xFunc: this.prop2,
