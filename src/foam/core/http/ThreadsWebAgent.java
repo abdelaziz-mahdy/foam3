@@ -78,7 +78,7 @@ public class ThreadsWebAgent
 
     Thread selected = null;
     for ( Thread thread : threadArray ) {
-      Boolean isSelected = String.valueOf(thread.threadId()).equals(id);
+      Boolean isSelected = String.valueOf(thread.getId()).equals(id);
       if ( isSelected ) selected = thread;
 
       StackTraceElement[] elements   = thread.getStackTrace();
