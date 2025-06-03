@@ -447,7 +447,8 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
-      name: 'cmd'
+      name: 'cmd',
+      displayWidth: 80
     },
     [ 'value', null ],
     {
@@ -652,6 +653,11 @@ foam.CLASS({
 
 });
 
+foam.ENUM({
+  package: 'foam.core.console',
+  name: 'FlowMode',
+  values: [ 'EDIT', 'VIEW', 'RO', 'CONSOLE' ]
+});
 
 foam.CLASS({
   package: 'foam.core.console',
@@ -663,6 +669,7 @@ foam.CLASS({
   requires: [
     'foam.core.console.Block',
     'foam.core.console.Flow',
+    'foam.core.console.FlowMode',
     'foam.core.console.FlowableTree',
     'foam.core.console.Layout',
     'foam.core.console.reflowHeader',
@@ -758,15 +765,17 @@ foam.CLASS({
       name: 'out'
     },
     {
+      class: 'Enum',
+      of: 'foam.core.console.FlowMode',
       name: 'flowMode',
-      value: 'edit',
+      factory: function() { return this.FlowMode.EDIT; },
       memorable: true
     },
     {
       name: 'showPrompts',
       value: true,
       expression: function(flowMode) {
-        return flowMode == 'edit';
+        return flowMode === this.FlowMode.EDIT;
       },
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       memorable: true
@@ -776,7 +785,7 @@ foam.CLASS({
       value: true,
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       expression: function(flowMode) {
-        return flowMode != 'view';
+        return flowMode != this.FlowMode.VIEW && flowMode != this.FlowMode.RO;
       },
       memorable: true
     },
@@ -866,7 +875,7 @@ foam.CLASS({
       var feedback_ = false;
 
       this.flowChildren$.sub(() => {
-        if (feedback_ ) return;
+        if ( feedback_ ) return;
         console.log('***** CONSOLE flowChildren');
         feedback_ = true;
         try {
@@ -1122,7 +1131,12 @@ foam.CLASS({
   actions: [
     {
       name: 'helpKey',
-      isAvailable: function(input_) { return input_.element_ == document.activeElement; },
+      isAvailable: function(input_) {
+          if ( this.flowMode === this.FlowMode.READONLY ) {
+          return false;
+        }
+        return input_.element_ === document.activeElement;
+      },
       code: function() { this.help(); },
       keyboardShortcuts: [ 'f1' ]
     },
@@ -1135,7 +1149,11 @@ foam.CLASS({
       name: 'toggleMode',
       // You can do this.showPrompts = true|false; from flow scripts
       // You can do this.showInput = true|false; from flow scripts
-      code: function() { console.log('***', this.flowMode); this.flowMode = { edit: 'view', view: 'console', console: 'edit' }[this.flowMode]; },
+      code: function() { 
+        if ( this.flowMode !== this.FlowMode.READONLY ) {
+        this.flowMode = { edit: this.FlowMode.VIEW, view: this.FlowMode.CONSOLE, console: this.FlowMode.EDIT }[this.flowMode]; 
+      }
+      },
       keyboardShortcuts: [ 'escape' ]
     },
     {

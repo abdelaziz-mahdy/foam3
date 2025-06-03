@@ -13,6 +13,7 @@ p({"class":"foam.core.console.cmd.MQLHelp", "id": "mqlhelp"})
 p({"class":"foam.core.console.cmd.Models", "id": "models"})
 p({"class":"foam.core.console.cmd.Quote", "id": "quote", linkable: false})
 p({"class":"foam.core.console.cmd.Save", "id": "save"})
+p({"class":"foam.core.console.cmd.Login", "id": "login"})
 p({"class":"foam.core.console.cmd.Services", "id": "services"})
 p({
   "class":"foam.core.console.cmd.Command",

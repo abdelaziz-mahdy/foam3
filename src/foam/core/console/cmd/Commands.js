@@ -526,9 +526,15 @@ foam.CLASS({
 
   methods: [
     function execute(opt_flowName) {
+                  
       if ( opt_flowName ) {
         this.flow.name = opt_flowName;
       }
+      if (!this.flow.save()){
+        this.out.add('Please provide a name for the flow');
+        return;
+      }
+     
 
       // Don't save the 'save' command
       this.currentBlock.del();
@@ -574,6 +580,27 @@ foam.CLASS({
             }).end().
             start('td').attr('align', 'left').add(n.description);
         });
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.console.cmd',
+  name: 'Login',
+  extends: 'foam.core.console.cmd.Command',
+
+  requires: [ 'foam.core.auth.login.LoginView' ],
+
+  properties: [
+    [ 'description', 'Login from flow' ]
+  ],
+
+  methods: [
+    function execute() {
+      var p = this.LoginView.create({mode_: 0});
+
+      this.out.tag(p);
+      this.currentBlock.obj = p;
     }
   ]
 });
