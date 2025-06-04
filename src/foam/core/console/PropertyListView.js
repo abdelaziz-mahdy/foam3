@@ -38,9 +38,12 @@ foam.CLASS({
 
   methods: [
     function render() {
+      var self = this;
       this.SUPER();
       this.addClass();
-      this.tag(this.DATA, {type: 'search'}).add(' ', this.CHOICE);
+      this.add(function(of) {
+        this.tag(self.DATA, {type: 'search'}).add(' ', self.CHOICE);
+      });
     }
   ]
 });
