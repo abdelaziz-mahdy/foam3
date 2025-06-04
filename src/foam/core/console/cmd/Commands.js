@@ -214,7 +214,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
 
-  imports: [ 'cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
 
   properties: [
     [ 'description', 'Display available DAO services' ]
@@ -526,7 +526,7 @@ foam.CLASS({
 
   methods: [
     function execute(opt_flowName) {
-                  
+
       if ( opt_flowName ) {
         this.flow.name = opt_flowName;
       }
@@ -534,7 +534,7 @@ foam.CLASS({
         this.out.add('Please provide a name for the flow');
         return;
       }
-     
+
 
       // Don't save the 'save' command
       this.currentBlock.del();
@@ -555,7 +555,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec' ],
 
-  imports: [ 'cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
 
   properties: [
     [ 'description', 'Display available services' ]
