@@ -292,7 +292,7 @@ foam.CLASS({
     ^moreChoices {
       padding: 8px 16px;
     }
-    
+
     ^section:not(:last-child) {
       border-bottom: 1px solid #f4f4f9;
     }
@@ -710,7 +710,7 @@ foam.CLASS({
               this.EQ(this.of.getAxiomByName(this.idProperty), this.data)
             ).select().then(result => {
               if ( result.array.length > 0 ) {
-                if ( section.disabled ) return this.clearSelection(); 
+                if ( section.disabled ) return this.clearSelection();
                 this.fullObject_ = result.array[0];
               }
             }).catch( e => console.warn(e));
@@ -839,7 +839,7 @@ foam.CLASS({
 
       properties: [
         {
-          name: 'buttonStyle', 
+          name: 'buttonStyle',
           value: foam.u2.ButtonStyle.TEXT
         }
       ],
