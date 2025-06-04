@@ -26,7 +26,7 @@ foam.CLASS({
       view: function(_, X) { return { class: 'foam.core.console.PropertyChoiceView', of: X.data.of, optionalChoice: '*' } },
       preSet: function(o, n) {
         if ( n == '*' ) {
-          this.data = '';
+          this.data = this.data || '';
         } else {
           if ( this.data ) this.data += ',';
           this.data += n.name;
