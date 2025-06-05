@@ -61,7 +61,9 @@ foam.CLASS({
   ],
 
   methods: [
-    function execute() {
+    function execute(q) {
+      if ( q ) q = q.toLowerCase();
+
       var self = this;
       var shortcuts = [
         [ 'F1',      'Help' ],
@@ -75,6 +77,8 @@ foam.CLASS({
       this.out.start('h3').add('Commands').end().
       start('table').style({width: 'max-content'}).
         select(this.commandDAO, function(c) {
+          if ( q && ( c.id + c.description ).toLowerCase().indexOf(q) == -1 ) return;
+
           this.start('tr').
             start('th').attr('width', '250').attr('align', 'left').call(function() {
               if ( c.linkable ) {
@@ -214,7 +218,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
 
-  imports: [ 'cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
 
   properties: [
     [ 'description', 'Display available DAO services' ]
@@ -363,14 +367,17 @@ foam.CLASS({
     [ 'description', 'Display saved flows' ]
   ],
 
-  // TODO: add search and description
   methods: [
-    function execute() {
-      this.flowDAO.select({
-        put: o => {
-          this.out.tag('br');
-          this.out.start(this.Link).add(o.name).on('click', () => this.eval_('load("' + o.name + '")'));
-        }
+    function execute(q) {
+      if ( q ) q = q.toLowerCase();
+      var self = this;
+      this.out.start('table').select(this.flowDAO, function(f) {
+        if ( q != undefined && (f.id + f.status + f.description).toLowerCase().indexOf(q) == -1 ) return;
+        this.start('tr').
+          start('td').start(self.Link).add(f.name).on('click', () => self.eval_('load("' + f.name + '")')).end().end().
+          start('td').add(f.status).end().
+          start('td').add(f.description).end().
+        end();
       });
     }
   ]
@@ -526,7 +533,7 @@ foam.CLASS({
 
   methods: [
     function execute(opt_flowName) {
-                  
+
       if ( opt_flowName ) {
         this.flow.name = opt_flowName;
       }
@@ -534,7 +541,7 @@ foam.CLASS({
         this.out.add('Please provide a name for the flow');
         return;
       }
-     
+
 
       // Don't save the 'save' command
       this.currentBlock.del();
@@ -555,7 +562,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec' ],
 
-  imports: [ 'cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
 
   properties: [
     [ 'description', 'Display available services' ]

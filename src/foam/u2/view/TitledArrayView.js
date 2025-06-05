@@ -11,7 +11,7 @@ foam.CLASS({
 
   documentation: 'View for FObjectArrays that includes a header row with a title and a delete button',
 
-  imports: ['theme'],
+  imports: [ 'theme' ],
 
   css: `
     ^ .foam-u2-DetailView {
@@ -50,7 +50,7 @@ foam.CLASS({
                     .addClass(self.myClass('value-view-container'))
                     .start(self.Cols)
                       .addClass(self.myClass('header-row'))
-                      .start().addClass('h500').add( (self.title || foam.String.labelize(e.cls_.name)) + ' #' + (i+1) ).end()
+                      .start().style({alignContent: 'center'}).addClass('h500').add( (self.title || foam.String.labelize(e.cls_.name)) + ' #' + (i+1) ).end()
                       .tag(self.Row.REMOVE, {
                         // icon: '/images/remove-circle.svg',
                         // encode data as an embedded data URL of the SVG

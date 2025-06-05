@@ -505,7 +505,7 @@ foam.CLASS({
             var el = this.document.createElement('a');
             // Is this secure? Limit it to current scope urls?
             el.href = this.link || '';
-            el.target = '_blank';
+            // el.target = '_blank'; // Why was this here?
             el.title = this.label || this.link || '';
             el.appendChild(this.document.createTextNode(this.label || this.link || ''));
             this.richTextView.insertElement(el, this.richTextView.currentSel_);

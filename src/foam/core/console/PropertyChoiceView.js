@@ -25,19 +25,26 @@ foam.CLASS({
   extends: 'foam.u2.view.ChoiceView',
 
   properties: [
-    'of',
+    {
+      name: 'of',
+      postSet: function(_, value) {
+        this.choices = undefined;
+      }
+    },
     'predicate',
     'optionalChoice',
     {
       name: 'choices',
-      factory: function(of) {
+      expression: function(of) {
         var choices = [ ];
         if ( this.optionalChoice ) choices.push(this.optionalChoice);
-        this.of.getAxiomsByClass(foam.lang.Property).forEach(p => {
-          if ( ! p.showInPropertyChoice ) return;
-          if ( this.predicate && ! this.predicate(p) ) return;
-          choices.push([p, p.name]);
-        });
+        if ( of ) {
+          this.of.getAxiomsByClass(foam.lang.Property).forEach(p => {
+            if ( ! p.showInPropertyChoice ) return;
+            if ( this.predicate && ! this.predicate(p) ) return;
+            choices.push([p, p.name]);
+          });
+        }
         if ( choices.length ) this.data = choices[0][0];
         return choices;
       }

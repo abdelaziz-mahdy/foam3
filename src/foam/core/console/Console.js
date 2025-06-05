@@ -486,6 +486,23 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+
+      // TODO: hackish method to make work when not running under ApplicationController, better to install memento support
+      if ( this.__context__.memento !== undefined ) return;
+
+      var self = this;
+      window.onpopstate = function(e) {
+        var i = window.location.href.indexOf('#');
+        if ( i != -1 ) {
+          var flowName = window.location.href.substring(i+1);
+          e.preventDefault();
+          self.eval_(`load("${flowName}")`);
+        }
+      }
+    },
+
     function clearFlow() {
       this.removeAllFlowChildren();
     },
@@ -788,10 +805,10 @@ foam.CLASS({
       name: 'toggleMode',
       // You can do this.showPrompts = true|false; from flow scripts
       // You can do this.showInput = true|false; from flow scripts
-      code: function() { 
+      code: function() {
         if ( this.flowMode !== this.FlowMode.READONLY ) {
-        this.flowMode = { edit: this.FlowMode.VIEW, view: this.FlowMode.CONSOLE, console: this.FlowMode.EDIT }[this.flowMode]; 
-      }
+          this.flowMode = { EDIT: this.FlowMode.VIEW, VIEW: this.FlowMode.CONSOLE, CONSOLE: this.FlowMode.EDIT }[this.flowMode.name];
+        }
       },
       keyboardShortcuts: [ 'escape' ]
     },

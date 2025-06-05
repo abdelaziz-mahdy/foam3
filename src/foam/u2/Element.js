@@ -2253,7 +2253,7 @@ foam.CLASS({
 
       var vis = this.combineControllerModeAndVisibility_(data$, controllerMode$)
 
-      if ( ! this.readPermissionRequired && ! this.writePermissionRequired && ! this.updatePermissionRequired ) return vis; 
+      if ( ! this.readPermissionRequired && ! this.writePermissionRequired && ! this.updatePermissionRequired ) return vis;
 
       const DisplayMode = foam.u2.DisplayMode;
 

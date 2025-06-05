@@ -26,7 +26,7 @@ foam.CLASS({
       view: function(_, X) { return { class: 'foam.core.console.PropertyChoiceView', of: X.data.of, optionalChoice: '*' } },
       preSet: function(o, n) {
         if ( n == '*' ) {
-          this.data = '';
+          this.data = this.data || '';
         } else {
           if ( this.data ) this.data += ',';
           this.data += n.name;
@@ -38,9 +38,12 @@ foam.CLASS({
 
   methods: [
     function render() {
+      var self = this;
       this.SUPER();
       this.addClass();
-      this.tag(this.DATA, {type: 'search'}).add(' ', this.CHOICE);
+      this.add(function(of) {
+        this.tag(self.DATA, {type: 'search'}).add(' ', self.CHOICE);
+      });
     }
   ]
 });

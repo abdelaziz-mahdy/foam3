@@ -1,6 +1,6 @@
 p({"class":"foam.core.console.cmd.Cells", "id": "cells"})
 p({"class":"foam.core.console.cmd.Clear", "id": "clear"})
-p({"class":"foam.core.console.cmd.DAO", "id": "dao1"})
+// p({"class":"foam.core.console.cmd.DAO", "id": "dao1"})
 p({"class":"foam.core.console.cmd.DAO2", "id": "dao"})
 p({"class":"foam.core.console.cmd.DAOCreate", "id": "add"})
 p({"class":"foam.core.console.cmd.DAOS", "id": "daos"})
@@ -11,7 +11,7 @@ p({"class":"foam.core.console.cmd.History", "id": "history"})
 p({"class":"foam.core.console.cmd.Load", "id": "load", linkable: false})
 p({"class":"foam.core.console.cmd.MQLHelp", "id": "mqlhelp"})
 p({"class":"foam.core.console.cmd.Models", "id": "models"})
-p({"class":"foam.core.console.cmd.Quote", "id": "quote", linkable: false})
+// p({"class":"foam.core.console.cmd.Quote", "id": "quote", linkable: false})
 p({"class":"foam.core.console.cmd.Save", "id": "save"})
 p({"class":"foam.core.console.cmd.Login", "id": "login"})
 p({"class":"foam.core.console.cmd.Services", "id": "services"})
@@ -69,18 +69,6 @@ p({
   "id": "h4",
   "description": "Header 4",
   "script": "addValue(foam.core.console.Header.create({type:'h4', text: args.join(' ')}, this));"
-})
-p({
-  "class":"foam.core.console.cmd.Command",
-  "id": "b",
-  "description": "Bold",
-  "script": "addValue(foam.core.console.Header.create({type:'b', text: args.join(' ')}, this));"
-})
-p({
-  "class":"foam.core.console.cmd.Command",
-  "id": "i",
-  "description": "Italic",
-  "script": "addValue(foam.core.console.Header.create({type:'i', text: args.join(' ')}, this));"
 })
 p({
   "class":"foam.core.console.cmd.Command",

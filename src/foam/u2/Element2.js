@@ -139,8 +139,13 @@ foam.CLASS({
   ],
 
   methods: [
+    function detach() {
+      this.SUPER();
+      this.element_ = null;
+    },
+
     function load() {
-      this.slot.sub(this.update);
+      this.onDetach(this.slot.sub(this.update));
       this.update();
     },
 
@@ -622,6 +627,18 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+      this.onDetach(this.visitChildren.bind(this, 'detach'));
+    },
+
+    function detach() {
+      this.SUPER();
+      this.childNodes = [];
+      this.children   = [];
+      this.private_ = this.parentNode = this.__subSubContext__ = this.instance_.subContext__ = undefined;
+    },
+
     // from state
 
     function replaceElement_(el) {
@@ -2307,10 +2324,17 @@ foam.CLASS({
   ],
 
   methods: [
+    function remove() {
+      // TODO: shouldn't be necessary but aren't being GC'ed properly, probably because of bug in
+      // FunctionNode. Remove this when fixed.
+      if ( this.element_ ) this.element_.innerHTML = '';
+      this.SUPER();
+    },
+
     function render() {
       this.addClass();
       this.update();
-      this.data$.framed().sub(this.update);
+      this.onDetach(this.data$.framed().sub(this.update));
     }
   ],
 
