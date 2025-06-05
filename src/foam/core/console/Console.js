@@ -807,8 +807,8 @@ foam.CLASS({
       // You can do this.showInput = true|false; from flow scripts
       code: function() {
         if ( this.flowMode !== this.FlowMode.READONLY ) {
-        this.flowMode = { edit: this.FlowMode.VIEW, view: this.FlowMode.CONSOLE, console: this.FlowMode.EDIT }[this.flowMode];
-      }
+          this.flowMode = { EDIT: this.FlowMode.VIEW, VIEW: this.FlowMode.CONSOLE, CONSOLE: this.FlowMode.EDIT }[this.flowMode.name];
+        }
       },
       keyboardShortcuts: [ 'escape' ]
     },
