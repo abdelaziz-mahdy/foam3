@@ -132,6 +132,13 @@ foam.CLASS({
     {
       name: 'save',
       code: function() {
+        // TODO: FIX
+        // This is a hackish solution to the bug that the memento is saved before
+        // the last block's name is set. Ideally the block would be named before
+        // being added to the flowChildren. Alternatively, the mementoStr could never
+        // be created until just before you save, but updating it for every update
+        // will make it easy to implement undo/redo in the future.
+        this.MEMENTO.postSet.call(this, this.menento, this.memento);
         this.flowDAO.put(this);
       },
       isEnabled: function(name) { return name && name !== 'Unnamed'; },
