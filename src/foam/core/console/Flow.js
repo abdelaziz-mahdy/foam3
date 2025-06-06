@@ -62,7 +62,7 @@ foam.CLASS({
       class: 'String',
       name: 'notes',
       width: 80,
-      view: { class: 'foam.u2.tag.TextArea', rows: 12, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 6, cols: 78 }
     },
     {
       class: 'Boolean',
@@ -124,7 +124,7 @@ foam.CLASS({
           this.feedback_ = false;
         }
       },
-      view: { class: 'foam.u2.tag.TextArea', rows: 20, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 6, cols: 78 }
     }
   ],
 
