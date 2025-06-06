@@ -511,8 +511,10 @@ foam.CLASS({
     },
 
     function updateGroup(p_, g_, data) {
+      // if coming in from getGroupPermission then permission string p_.id & g_.id
+      // if coming in from initMap then permission string p_ & g_
       var dao = this.groupPermissionJunctionDAO;
-      var obj = this.GroupPermissionJunction.create({sourceId: g_.id, targetId: p_.id});
+      var obj = this.GroupPermissionJunction.create({sourceId: g_?.id || g_, targetId: p_?.id || p_});
 
       if ( data.get() ) {
         // Add permission
