@@ -244,6 +244,7 @@ foam.POM({
     { name: "foam/u2/ColorToken",                                     flags: "web|java" },
     { name: "foam/u2/CSSTokens",                                      flags: "web" },
     { name: "foam/u2/view/SearchViewWrapper",                         flags: "web" },
+    { name: "foam/u2/view/ScrollTableView",                           flags: "web" },
     { name: "foam/u2/view/StringArrayRowView",                        flags: "web" },
     { name: "foam/u2/borders/BrowserSupportBorder",                   flags: "web" },
     { name: "foam/u2/borders/NullBorder",                             flags: "web" },
