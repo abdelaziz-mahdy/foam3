@@ -165,7 +165,7 @@ foam.CLASS({
             br().
             add(this.Example.CODE).
             start().
-              show(self.showOutput$).
+              show(self.showOutput$.or(this.data$.dot('error'))).
               br().
               start('span').style({'font-weight': 500}).add('Output:').end().
               start().
@@ -204,7 +204,7 @@ foam.CLASS({
                     args.push(arguments[i]);
                 }
 
-                self.dom.add.apply(self.dom, args);
+                self.dom.add(args);
                 self.dom.br();
               },
               print: function() {
@@ -309,15 +309,20 @@ foam.CLASS({
   ],
 
   css: `
-    ^ { background: white; }
+    body:has(.foam-demos-examples-Controller) {
+      margin: 0;
+      padding: 8px;
+      background: $backgroundDefault;
+      color: $textDefault; 
+    }
     ^index {
-      background: #f6f6f6;
+      background: $backgroundSecondary;
       margin-right: 20px;
       min-width: 400px;
       padding: 6px 0;
     }
     ^ .selected {
-      background: #ddf;
+      background: $backgroundBrandTertiary;
     }
     ^ .error {
       color: red;

@@ -30,7 +30,7 @@ foam.CLASS({
     }
 
     .subtitle {
-      color: $grey500;
+      color: $textTertiary;
       margin-bottom: 16px;
     }
 

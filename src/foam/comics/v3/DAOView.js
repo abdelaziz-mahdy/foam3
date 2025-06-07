@@ -22,7 +22,7 @@ foam.CLASS({
   cssTokens: [
     {
       name: 'borderSize',
-      value: '2px solid $grey200'
+      value: '2px solid'
     },
     {
       name: 'boxShadowSize',

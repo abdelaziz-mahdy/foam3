@@ -72,7 +72,7 @@ foam.CLASS({
       padding: 0.6rem;
     }
     ^header.showBorder {
-      border-bottom: 1px solid $grey300;
+      border-bottom: 1px solid $borderDefault;
     }
 
     ^header-left {

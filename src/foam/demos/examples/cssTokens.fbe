@@ -7,11 +7,11 @@ Unlike native css variables, cssTokens are scoped to the class they are used in 
 <br><br>
 TLDR:<br>
 Best practices for styling FOAM Views:<br>
-- Where possible, use tokens<br>
+- If you dont read anything, read the "When to Use Tokens" section
+- Where possible, use tokens (Specifically semantic tokens)<br>
 - Use color tokens to simplify setting various visible states of UI elements<br>
 <br><br>
 TODO: <br>
-- Add support for variants (Dark mode, high contrast etc)<br>
 - Remove theme variables<br>
 <p>
 --
@@ -283,8 +283,7 @@ foam.CLASS({
       // Only for the purposes of this demo, typically handled by applicationController/ZAC;
       this.tokenService.sub('cacheUpdated', () => {
         if ( this.ctrl ) return;
-        let a = foam.u2.CSS.create({ code: this.cls_.model_.css  }, this);
-        this.__subContext__.installCSS(a.expandCSS(this.cls_, a.code, this.__subContext__));
+        foam.u2.CSS.reloadStyles(this.__subContext__);
       });
     },
     function render() {
@@ -470,4 +469,236 @@ foam.CLASS({
   ]
 });
 tag({class: 'Example8'});
+--
+## Variants
+Tokens provide a great extensible way to theme FOAM apps but until now we have no way to set "modes" (Such as dark mode/High contrast mode/phone mode) within themes.
+<br><br>
+Variants allow for cssTokens to change their values based on the "mode" the app is in. The current modes for the app are stored in the theme's activeVariants map in the context.
+<br><br>
+<b>In order to use variants enable the useVariants boolean in your app's theme.</b> This value is set to true on non-CORE apps and false by default in CORE apps.
+<br><br>
+To configure a cssToken to respond to an active variant, two properties need to be configured:
+<br>
+1. variantKey: Decides what key in activeVariants this token will listen to in order to update. Only one key is allowed per token, this is to allow for easy configuration. More complex responsive behaviour can be achieved through JS in the view code.
+<br>
+2. variants: This stores a map of the token values for different values of the variantKey.
+<br><br>
+All FOAM apps that have useVariants set to true provide one activeVariant for color and one for size(TO BE IMPLEMENTED).
+<br><br>
+Eg:
+<br>
+The "color" token responds to the user's device's mode: in light mode it has no value and in dark mode activeVariants.color will return 'dark'.
+<br><br>
+Below is the code for how to configure a cssToken to respond to this activeVariant change using the same class as the very first example of CSSToken. Try changing your device's mode from light to dark to see the change
+--
+foam.CLASS({
+  name: 'Example9',
+  extends: 'foam.u2.Element',
+  cssTokens: [
+    {
+      name: 'color',
+      value: 'red',
+      // Denotes that this token should respond to the change in activeVariants.color
+      variantKey: 'color',
+      // Defines the value for this token for various values of activeVariants.color
+      variants: {
+        dark: {
+          value: 'green'
+        }
+      }
+    }
+  ],
+  css:`
+    ^test {
+      color: $color;
+    }
+  `,
+  methods: [
+    function render() {
+      this.add(`Current value of theme.activeVariants['color']: `, this.__subContext__.theme.activeVariants$.map(v => v['color'] ?? 'undefined'))
+      .br().br()
+      this.start().addClass(this.myClass('test')).add('Hello World!').end();
+    }
+  ]
+});
+
+tag({class: 'Example9'});
+--
+## Base Tokens w/ Variants
+Base tokens described earlier can be split into two types:
+<br>
+1. Atomic: These are the real building blocks, tokens like red50-700/blue50-700 etc..
+<br>
+2. Semantic: These tokens are what are consumed by all foam views. They are a number of background/text/border tokens whose values are set to the values of the atomic tokens. 
+<br><br>
+This allows us to enable modes like dark mode by only setting the variants on these handful of tokens. 
+<br><br>
+This makes app theming as simple as overriding the "primary" set of atomic tokens and tweaking the values of these semantic tokens. 
+<br><br>
+TODO: Soon there will be tokens for spacing and fonts as well which can be adjusted with screen size automatically.
+<br><br>
+Below is a small example of how this methodology is supposed to work.
+--
+foam.CLASS({
+  name: 'BaseTokenOverrideExample',
+  extends: 'foam.u2.Element',
+
+  imports: ['ctrl?'],
+  requires: ['foam.u2.ActionView'],
+
+  exports: [
+    'tokenDAO as cssTokenOverrideDAO',
+    'tokenService as cssTokenOverrideService'
+  ],
+
+  properties: [
+    'color',
+    // The properties below are only for this demo, typically these would be
+    // available in the context when using CORE.
+    {
+      name: 'tokenDAO',
+      factory: function() {
+        return foam.dao.EasyDAO.create({
+          of: foam.core.theme.customisation.CSSTokenOverride,
+          daoType: 'MDAO'
+        }, this);
+      }
+    },
+    {
+      name: 'tokenService',
+      factory: function() {
+        return foam.core.theme.customisation.CSSTokenOverrideService.create({}, this);
+      }
+    }
+  ],
+  methods: [
+    function init() {
+      // Only for the purposes of this demo, typically handled by applicationController/ZAC;
+      this.tokenService.sub('cacheUpdated', () => {
+        if ( this.ctrl ) return;
+        foam.u2.CSS.reloadStyles(this.__subContext__);
+      });
+    },
+    function render() {
+      this
+      .startContext({ data: this })
+      .tag(this.COLOR.__, { config: { label: 'Color for primary400 token' } })
+      .tag(this.SAVE)
+      .br().br()
+      .start().add('This button has it\'s background set to backgroundBrand which aliases to primary400').end()
+      .tag(this.TEST_BUTTON)
+      .endContext();
+    }
+  ],
+  actions: [
+    {
+      name: 'TestButton',
+      buttonStyle: 'PRIMARY'
+    },
+    {
+      name: 'save',
+      code: function(X) {
+        // Simulating jrl update to token value
+        X.cssTokenOverrideService.currentCache = '';
+        X.cssTokenOverrideDAO.put(foam.core.theme.customisation.CSSTokenOverride.create({ theme: X.theme.id, source: 'primary400', target: this.color }, this));
+      }
+    }
+  ]
+});
+tag({class: 'BaseTokenOverrideExample'});
+--
+## When to use tokens (To token or not to token)
+<p>
+CSSTokens are, like all of FOAM, meant to keep your styles DRY and maintainable.
+<br><br>
+<strong>Whenever possible, use semantic tokens</strong> (such as <code>backgroundBrand</code>, <code>textDefault</code>, etc.) in your views and components.
+Semantic and base tokens are the foundation of your application's design system. They represent core concepts like primary colors, backgrounds, and text styles that 
+should remain consistent throughout your app. By using these tokens, you ensure that any global changes—such as enabling dark mode or updating your brand 
+palette can be made in a single place and will automatically propagate to all components. This not only saves time but also prevents visual inconsistencies a
+nd reduces maintenance overhead.
+<br><br>
+<strong>Only add new tokens to a view when that view needs to be themed separately from the base token theme.</strong> 
+In rare cases, a specific view may require a unique look that cannot be achieved with the existing base tokens due to a lack of dynamism in semantic tokens (Look at Button.js)
+ or the view you are developing is not supposed to comply with the app theme. In these situations, you can introduce a custom token scoped to that view. 
+ However, this should be done sparingly, as custom tokens increase the complexity of your theme management. Reserve this approach for truly exceptional cases where the 
+ view's styling must diverge from the global theme, such as for a one-off marketing component or a highly specialized widget. When using this approach try your best to 
+ set your token's value to a semantic token by deafult. You have a number of TokenUtils that can modify the result of a sematic token to your needs 
+ (lightening a color, changing it's opacity etc).
+<br><br>
+Using base tokens ensures that your application's look and feel can be updated or themed globally with minimal effort. 
+For example, if you want to enable dark mode or update your brand colors, you only need to update the base tokens, 
+and all views using those tokens will update automatically. This approach reduces duplication, prevents inconsistencies, and makes your codebase easier to maintain.
+<br><br>
+Custom tokens should only be introduced when a view has a unique styling requirement that cannot be addressed by the existing base tokens. 
+Overusing custom tokens can lead to fragmentation and make theming or global updates much harder, as you would need to track down and update each custom token individually.
+<br><br>
+In summary:  
+<ul>
+  <li><strong>Default to using base tokens for all styling needs.</strong> Base tokens provide consistency and make global theming easy.</li>
+  <li><strong>Add new tokens only for exceptional, view-specific cases.</strong> Use custom tokens sparingly and only when absolutely necessary.</li>
+  <li>This keeps your app easy to theme, maintain, and evolve as your design system grows.</li>
+</ul>
+</p>
+--
+## Porting your old code to use semantic tokens and adding variant support
+If your app uses older CSSTokens or hardcoded color values, migrating to the new CSSToken variant system will make your UI more maintainable, 
+themeable, and ready for features like dark mode. Here’s how to port your code:
+<br><br>
+
+<ul>
+  <li>
+    <b>Text colors:</b><br>
+    Replace any direct color values or old tokens used for text (e.g., <code>color: $primary400;</code> or <code>color: #000;</code>) with semantic tokens prefixed with <code>text</code>, such as:
+    <ul>
+      <li><code>textDefault</code> for standard text</li>
+      <li><code>textSecondary</code> for less prominent text</li>
+      <li><code>textBrand</code> for brand/primary colored text</li>
+      <li><code>textDestructive</code> for error or destructive text</li>
+    </ul>
+    <br>
+    <b>Example:</b>
+    <pre><code>/* Old */
+color: $primary400;
+color: black;
+color: #000;
+/* New */
+color: $textBrand;
+</code></pre>
+  </li>
+  <li>
+    <b>Background colors:</b><br>
+    For background or <code>background-color</code> properties, use semantic tokens prefixed with <code>background</code>, such as:
+    <ul>
+      <li><code>backgroundDefault</code> for main backgrounds</li>
+      <li><code>backgroundSecondary</code> for secondary backgrounds</li>
+      <li><code>backgroundBrand</code> for brand/primary backgrounds</li>
+      <li><code>backgroundDestructive</code> for error backgrounds</li>
+    </ul>
+    <br>
+    <b>Example:</b>
+    <pre><code>/* Old */
+background-color: $primary400;
+background-color: #406DEA;
+/* New */
+background-color: $backgroundBrand;
+</code></pre>
+  </li>
+  <li>
+    <b>Border colors:</b><br>
+    For border-related CSS properties, use tokens prefixed with <code>border</code>, such as:
+    <ul>
+      <li><code>borderDefault</code> for standard borders</li>
+      <li><code>borderBrand</code> for brand/primary borders</li>
+      <li><code>borderDestructive</code> for error borders</li>
+      <li>There also exist various tones for every border type like 'XLight', 'Light', 'Strong' etc.</li>
+    </ul>
+    <br>
+    <b>Example:</b>
+    <pre><code>/* Old */
+border: 1px solid $primary400;
+/* New */
+border: 1px solid $borderBrand;
+</code></pre>
+  </li>
+</ul>
 --

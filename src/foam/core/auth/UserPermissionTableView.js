@@ -51,14 +51,14 @@ foam.CLASS({
 
   css: `
     ^groupLabel {
-      background-color: $grey100;
-      border: 1px solid $grey400;
+      background-color: $backgroundTertiary;
+      border: 1px solid $borderLight;
       font-weight: normal;
       padding-top: 4px;
       padding-inline: 8px;
       white-space: nowrap;
       writing-mode: unset;
-      color: $black;
+      color: $textDefault;
       // position: absolute;
 
       font-weight: 500;

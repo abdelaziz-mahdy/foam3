@@ -90,8 +90,8 @@ foam.CLASS({
         }
 
         ^helper-icon { display: inline; vertical-align: middle; margin-left: 4px; }
-
-        ^helper-icon div { display: inline; }
+        
+        ^helper-icon svg { fill: currentColor; }
 
         ^ .foam-u2-borders-ExpandableBorder-container { padding: 6px; margin-top: 4px; }
 
@@ -127,7 +127,9 @@ foam.CLASS({
                 this.start().addClass(self.myClass('helper-icon'))
                   .start('', { tooltip: prop.help.length < 60 ? prop.help : self.LEARN_MORE })
                     .start(self.CircleIndicator, {
-                      icon: self.theme ? self.theme.glyphs.helpIcon.getDataUrl({ fill: self.theme.black }) : '/images/question-icon.svg',
+                      // icon: self.theme ? self.theme.glyphs.helpIcon.getDataUrl({ fill: 'inherit' }) : '/images/question-icon.svg',
+                      glyph: 'helpIcon',
+                      icon: '/images/question-icon.svg',
                       size: 20
                     })
                       .on('click', () => { self.helpEnabled = ! self.helpEnabled; })
@@ -176,12 +178,15 @@ foam.CLASS({
     }
 
     ^title {
-      background: #ddd;
-      border: 1px solid rgb(128, 128, 128);
-      color: gray;
+      background: $backgroundDefault;
+      border: 1px solid $borderDefault;
+      color: $textSecondary;
       font-weight: 500;
       margin-bottom: 10px;
       padding: 6px;
+    }
+    ^ {
+      color: $textDefault;
     }
 
     ^toolbar { margin-top: 4px; }

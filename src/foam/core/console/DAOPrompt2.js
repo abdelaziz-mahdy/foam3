@@ -236,7 +236,7 @@ foam.CLASS({
     },
     {
       name: 'select',
-      view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false}, X.data); }
+      view: function(_, X) { return foam.core.console.SinkView.create({sinksOnly: false, choice: 'Table'}, X.data); },
     },
     { class: 'Long',            name: 'rowCount', visibility: 'RO' },
     { class: 'String',          name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },

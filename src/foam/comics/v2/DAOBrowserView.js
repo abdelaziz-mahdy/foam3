@@ -51,7 +51,7 @@ foam.CLASS({
     }
 
     ^top-bar {
-      border-bottom: solid 1px #e7eaec;
+      border-bottom: solid 1px $borderLight;
       align-items: center;
       padding-top: 16px;
     }

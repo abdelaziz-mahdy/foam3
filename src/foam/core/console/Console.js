@@ -91,8 +91,8 @@ foam.CLASS({
       font-weight: 500;
     }
     ^selected {
-      background: $primary50;
-      color: $primary400;
+      background: $backgroundBrandTertiary;
+      color: $textBrand;
       font-weight: 500;
     }
     ^error {
@@ -185,10 +185,10 @@ foam.CLASS({
       border: none;
       height: 20px;
     }
-    ^:hover { background: $grey50; }
+    ^:hover { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
-      padding: 10px;
+//      padding: 10px;
       overflow-x: auto;
       width: 100%;
     }
@@ -275,8 +275,8 @@ foam.CLASS({
     }
     ^m {
       overflow-x: auto;
-      border-left: 2px solid $grey200;
-      border-right: 2px solid $grey200;
+      border-left: 2px solid $borderLight;
+      border-right: 2px solid $borderLight;
     }
     ^r {
       overflow-y: auto;
@@ -305,11 +305,13 @@ foam.CLASS({
   ]
 });
 
+
 foam.ENUM({
   package: 'foam.core.console',
   name: 'FlowMode',
   values: [ 'EDIT', 'VIEW', 'RO', 'CONSOLE' ]
 });
+
 
 foam.CLASS({
   package: 'foam.core.console',
@@ -372,11 +374,11 @@ foam.CLASS({
       padding: 0 8px;
     }
     ^input-field, ^input-field ^input {
-      background: $grey50;
+      background: $backgroundSecondary;
     }
     ^output {
       text-align: left;
-      align-content: flex-end;
+//      align-content: flex-end;
       flex: 1;
       overflow: auto;
     }
@@ -394,9 +396,29 @@ foam.CLASS({
   properties: [
     {
       class: 'String',
+      name: 'route',
+      memorable: true,
+      postSet: async function(o, n) {
+        if ( ! this.out ) return;
+        if ( n !== this.flowName ) {
+          this.clearFlow();
+          if ( n ) {
+            await this.eval_(`load("${n}")`);
+            this.flowName = n;
+            this.selected = this.currentBlock;
+          }
+        }
+      }
+    },
+    {
+      class: 'String',
       name: 'flowName',
-      shortName: 'route',
-      memorable: true
+      preSet: function(o, n) {
+        return n || 'Unnamed';
+      },
+      postSet: function(o, n) {
+        this.route = n;
+      }
     },
     {
       class: 'String',
@@ -486,23 +508,6 @@ foam.CLASS({
   ],
 
   methods: [
-    function init() {
-      this.SUPER();
-
-      // TODO: hackish method to make work when not running under ApplicationController, better to install memento support
-      if ( this.__context__.memento !== undefined ) return;
-
-      var self = this;
-      window.onpopstate = function(e) {
-        var i = window.location.href.indexOf('#');
-        if ( i != -1 ) {
-          var flowName = window.location.href.substring(i+1);
-          e.preventDefault();
-          self.eval_(`load("${flowName}")`);
-        }
-      }
-    },
-
     function clearFlow() {
       this.removeAllFlowChildren();
     },
@@ -545,7 +550,7 @@ foam.CLASS({
         } finally {
           feedback_ = false;
         }
-      });
+        });
       this.value.memento$.sub(() => {
         if ( feedback_ ) return;
         console.log('***** CONSOLE memento');
@@ -581,15 +586,10 @@ foam.CLASS({
         this.tag(self.ReactiveDetailView, {data: selectedValue, showActions: true});
       }));
 
-      if ( this.params.flow && this.params.flow !== 'Unnamed') {
-        await this.eval_(`load("${decodeURIComponent(this.params.flow)}")`);
-        this.selected = this.currentBlock;
-      } else if ( this.flowName !== 'Unnamed' ) {
-        await this.eval_(`load("${decodeURIComponent(this.flowName)}")`);
-        this.selected = this.currentBlock;
-      }
-
       this.flowName$ = this.value.name$;
+
+
+      if ( this.route ) this.ROUTE.postSet.call(this, '', this.route);
     },
 
     function renderSelf(self) {

@@ -62,7 +62,7 @@ foam.CLASS({
       class: 'String',
       name: 'notes',
       width: 80,
-      view: { class: 'foam.u2.tag.TextArea', rows: 12, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 6, cols: 78 }
     },
     {
       class: 'Boolean',
@@ -124,7 +124,7 @@ foam.CLASS({
           this.feedback_ = false;
         }
       },
-      view: { class: 'foam.u2.tag.TextArea', rows: 20, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 6, cols: 78 }
     }
   ],
 
@@ -132,6 +132,13 @@ foam.CLASS({
     {
       name: 'save',
       code: function() {
+        // TODO: FIX
+        // This is a hackish solution to the bug that the memento is saved before
+        // the last block's name is set. Ideally the block would be named before
+        // being added to the flowChildren. Alternatively, the mementoStr could never
+        // be created until just before you save, but updating it for every update
+        // will make it easy to implement undo/redo in the future.
+        this.MEMENTO.postSet.call(this, this.menento, this.memento);
         this.flowDAO.put(this);
       },
       isEnabled: function(name) { return name && name !== 'Unnamed'; },

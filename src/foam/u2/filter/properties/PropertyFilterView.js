@@ -35,7 +35,7 @@ foam.CLASS({
       padding: 6px 8px;
       padding-right: 4px;
       border-radius: 3px;
-      background: $grey50;
+      background: $backgroundSecondary;
     }
 
     ^container-property:hover {
@@ -43,7 +43,7 @@ foam.CLASS({
     }
 
     ^container-property-active, ^container-property-filtering {
-      background-color: $primary50;
+      background-color: $backgroundBrandTertiary;
     }
 
     ^label-property {
@@ -75,7 +75,7 @@ foam.CLASS({
       border-radius: 3px;
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.16);
       border: solid 1px #cbcfd4;
-      background-color: $white;
+      background-color: $backgroundDefault;
     }
   `,
 

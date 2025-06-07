@@ -185,6 +185,7 @@ foam.CLASS({
       this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
       this.currentBlock.obj      = p;
       this.currentBlock.value    = p;
+      p.run();
     }
   ]
 });
@@ -251,9 +252,12 @@ foam.CLASS({
           var uplFn = () => self.eval_('upload("' + n.name + '")');
           var desFn = () => self.eval_('describe(' + of.id + ')');
 
+          var shortName = n.name;
+          if ( shortName.endsWith('DAO') ) shortName = shortName.substring(0, shortName.length-3);
+
           this.start('tr').
             start('th').attr('align', 'left').
-              start(self.Link).add(n.name).on('click', daoFn).end().
+              start(self.Link).add(shortName).on('click', daoFn).end().
             end().
             start('td').attr('align', 'left').
               start(self.Link).add(of.id).on('click', desFn).end().

@@ -36,8 +36,8 @@ foam.ENUM({
     {
       name: 'DISABLED',
       label: 'Disabled',
-      color: '$grey600',
-      background: '$grey50',
+      color: '$textSecondary',
+      background: '$backgroundSecondary',
     }
   ]
 });

@@ -71,7 +71,8 @@ foam.CLASS({
 
   imports: [
     'installCSS',
-    'window'
+    'window',
+    'populateDefaultThemeVariants'
   ],
 
   exports: [
@@ -116,7 +117,6 @@ foam.CLASS({
     'toolbar',
     'theme',
     'user',
-    'wrapCSS as installCSS',
     'breadcrumbs'
   ],
 
@@ -349,6 +349,7 @@ foam.CLASS({
       name: 'theme',
       postSet: function(o, n) {
         if ( o && n && o.equals(n)) return;
+        this.populateDefaultThemeVariants(n, this.__subContext__);
         this.__subContext__.cssTokenOverrideService.maybeReload();
         this.pub('themeChange');
       }
@@ -388,10 +389,6 @@ foam.CLASS({
     {
       name: 'languageDefaults_',
       factory: function() { return []; }
-    },
-    {
-      name: 'styles',
-      factory: function() { return {}; }
     },
     {
       class: 'foam.lang.FObjectProperty',
@@ -440,7 +437,7 @@ foam.CLASS({
       this.__subContext__.register(foam.u2.detail.SectionedDetailView, 'foam.u2.DetailView');
 
       // Reload styling on theme change
-      this.onDetach(this.sub('themeChange', this.reloadStyles));
+      this.onDetach(this.sub('themeChange', () => { foam.u2.CSS.reloadStyles(this.__subContext__) }));
     },
 
     async function initMenu() {
@@ -480,7 +477,7 @@ foam.CLASS({
           self.installLanguage();
         });
 
-        self.onDetach(self.__subContext__.cssTokenOverrideService?.cacheUpdated.sub(self.reloadStyles));
+        self.onDetach(self.__subContext__.cssTokenOverrideService?.cacheUpdated.sub(() => { foam.u2.CSS.reloadStyles(self.__subContext__) }));
 
         // group required for loginVariables before initMenu
         await self.fetchGroup();
@@ -536,7 +533,7 @@ foam.CLASS({
       this.subToNotifications();
       this.fetchGroup();
       this.fetchTheme();
-      this.onDetach(this.__subContext__.cssTokenOverrideService?.cacheUpdated.sub(this.reloadStyles));
+      this.onDetach(this.__subContext__.cssTokenOverrideService?.cacheUpdated.sub(() => { foam.u2.CSS.reloadStyles(this.__subContext__) }));
       this.subject = this.client.initSubject;
     },
 
@@ -650,18 +647,6 @@ foam.CLASS({
       return val ? css.replace(
         new RegExp('/\\*%' + M + '%\\*/[^);!]*', 'g'),
         '/*%' + M + '%*/ ' + val) : css;
-    },
-
-    function wrapCSS(text, id) {
-      /** CSS preprocessor, works on classes instantiated in subContext. */
-      if ( ! text ) return;
-      var eid = 'style' + foam.next$UID();
-      this.styles[eid] = { text: text, cls: id };
-      for ( var i = 0 ; i < this.MACROS.length ; i++ ) {
-        const m = this.MACROS[i];
-        text = this.expandShortFormMacro(this.expandLongFormMacro(text, m), m);
-      }
-      this.installCSS(text, id, eid);
     },
 
     function returnExpandedCSS(text) {
@@ -1003,26 +988,6 @@ foam.CLASS({
           .concat()
           .sort((a, b) => b.minWidth - a.minWidth)
           .find(o => o.minWidth <= Math.min(this.window.innerWidth, this.window.screen.width) );
-      }
-    },
-    function replaceStyleTag(text, eid) {
-      if ( ! text ) return;
-      text = this.returnExpandedCSS(text);
-      this.styles[eid].text = text;
-      const el = this.getElementById(eid);
-      if ( text !== el?.textContent )
-        el.textContent = text;
-    },
-    {
-      name: 'reloadStyles',
-      isMerged: true,
-      mergeDelay: 500,
-      code: function() {
-        for ( const eid in this.styles ) {
-          const style = this.styles[eid];
-          text = foam.CSS.replaceTokens(style.text, style.cls, this.__subContext__, this.THEME_OVERRIDE_REGEXP);
-          this.replaceStyleTag(text, eid);
-        }
       }
     },
     {

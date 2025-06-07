@@ -85,7 +85,7 @@ p({
         name: 'objectToSchedule',
         border: {
           class: 'foam.u2.borders.TopBorderCard',
-          color: '$primary400'
+          color: '$backgroundBrand'
         },
         view: {
           class: 'foam.u2.detail.SectionedDetailView',
@@ -133,7 +133,7 @@ p({
         name: 'schedule',
         border: {
           class: 'foam.u2.borders.BackgroundCard',
-          backgroundColor: '#DADDE2'
+          backgroundColor: '$backgroundSecondary'
         },
         view: {
           class: 'foam.u2.detail.VerticalDetailView'

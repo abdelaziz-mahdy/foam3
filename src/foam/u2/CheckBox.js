@@ -26,7 +26,7 @@ foam.CLASS({
     {
       class: 'foam.u2.ColorToken',
       name: 'checkboxColor',
-      value: '$primary400'
+      value: '$backgroundBrand'
     }
   ],
 
@@ -35,7 +35,7 @@ foam.CLASS({
       -webkit-appearance: none;
       appearance: none;
       border-radius: 2px;
-      border: solid 1px $grey600;
+      border: solid 1px $borderStrong;
       height: 1.275em;
       margin: 7px 0;
       padding: 0px;
@@ -43,8 +43,8 @@ foam.CLASS({
       width: 1.275em;
     }
     ^:disabled {
-      border-color: $grey100;
-      background-color: $grey50;
+      border-color: $borderLight;
+      background-color: $backgroundSecondary;
     }
     ^:checked {
       background-color: $checkboxColor;
@@ -72,7 +72,7 @@ foam.CLASS({
       vertical-align: middle;
     }
     ^desc {
-      color: $grey700;
+      color: $textSecondary;
     }
     `,
 
