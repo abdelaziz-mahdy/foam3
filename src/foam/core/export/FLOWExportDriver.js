@@ -118,7 +118,7 @@ foam.CLASS({
       "columns": "${propNames.join(',')}",
       "version": 2,${where}
       "select": {
-        "class": "foam.core.console.ScrollTableDAOAgent",
+        "class": "foam.core.console.TableDAOAgent",
         "of": {"class":"__Class__","forClass_":"${this.of.id}"}
       }
     }

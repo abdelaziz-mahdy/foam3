@@ -417,7 +417,8 @@ foam.CLASS({
         return n || 'Unnamed';
       },
       postSet: function(o, n) {
-        this.route = n;
+        if ( n !== 'Unnamed' )
+          this.route = n;
       }
     },
     {

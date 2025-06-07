@@ -254,6 +254,19 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.console',
   name: 'TableDAOAgent',
+  extends: 'foam.core.console.AbstractDAOAgent',
+
+  methods: [
+    function execute(e) {
+      e.start({class: 'foam.u2.table.TableView', data: this.unlimitedDAO}).style({height: '700px'});
+    }
+  ]
+});
+
+/*
+foam.CLASS({
+  package: 'foam.core.console',
+  name: 'TableDAOAgent',
   extends: 'foam.core.console.AbstractColumnAwareDAOAgent',
 
   methods: [
@@ -266,6 +279,7 @@ foam.CLASS({
     function value(s) { return s; }
   ]
 });
+*/
 
 
 foam.CLASS({
