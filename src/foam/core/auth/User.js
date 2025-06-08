@@ -200,7 +200,7 @@ foam.CLASS({
           errorMessage: 'USERNAME_REQUIRED'
         }
       ],
-      required: true,
+      // required: true,
       order: 20,
       gridColumns: 6,
       columnPermissionRequired: true,
