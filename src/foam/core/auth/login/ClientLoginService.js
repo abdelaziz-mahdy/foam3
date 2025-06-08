@@ -240,7 +240,7 @@ foam.CLASS({
     {
       name: 'resetPassword',
       code: async function(X) {
-        const wizardunner = foam.u2.crunch.WizardRunner.create({
+        const wizardRunner = foam.u2.crunch.WizardRunner.create({
           wizardType: foam.u2.wizard.WizardType.TRANSIENT,
           source: 'foam.core.auth.email.ResetPassword',
           options: {inline: false, returnCompletionPromise: true}
