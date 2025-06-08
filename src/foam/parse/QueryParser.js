@@ -94,10 +94,12 @@ foam.CLASS({
       value: function(alt, anyChar, eof, join, literal, literalIC, not, notChars, optional, range,
         repeat, repeat0, seq, seq1, str, sug, sym, until) {
 
-        var key = (str) => sug(literalIC(str), { text: str });
+        var key = (str) => sug(seq1(1, repeat0(' '), literalIC(str), repeat0(' ')), { text: str });
 
         return {
           START: seq1(0, sym('query') /*, repeat0(' '), eof()*/),
+
+          ws: repeat0(' '),
 
           query: sym('or'),
 
