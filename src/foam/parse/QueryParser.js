@@ -63,6 +63,7 @@ foam.CLASS({
     'foam.parse.Alternate',
     'foam.parse.ImperativeGrammar',
     'foam.parse.LiteralIC',
+    'foam.parse.Suggest',
     'foam.parse.Parsers',
     'foam.parse.StringPStream'
   ],
@@ -91,17 +92,22 @@ foam.CLASS({
       // properly.
       name: 'baseGrammar_',
       value: function(alt, anyChar, eof, join, literal, literalIC, not, notChars, optional, range,
-        repeat, repeat0, seq, seq1, str, sym, until) {
+        repeat, repeat0, seq, seq1, str, sug, sym, until) {
+
+        var key = (str) => sug(literalIC(str), { text: str });
+
         return {
-          START: seq1(0, sym('query'), repeat0(' '), eof()),
+          START: seq1(0, sym('query') /*, repeat0(' '), eof()*/),
 
           query: sym('or'),
 
-          or: repeat(sym('and'), alt(literalIC(' OR '), literal(' | ')), 1),
+          or: repeat(
+            sym('and'),
+            sug(alt(literalIC(' OR '), literal(' | ')), {text: ' OR '}), 1),
 
           and: repeat(
             sym('expr'),
-            alt(literalIC(' AND '), literal(' ')), 1),
+            sug(alt(literalIC(' AND '), literal(' ')), {text: ' AND '}), 1),
 
           expr: alt(
             sym('paren'),
@@ -119,14 +125,14 @@ foam.CLASS({
 
           negate: alt(
             seq(literal('-'), sym('expr')),
-            seq(literalIC('NOT '), sym('expr'))
+            seq(key('NOT '), sym('expr'))
           ),
 
           id: sym('number'),
 
-          has: seq(literalIC('has:'), sym('fieldname')),
+          has: seq(key('HAS:'), sym('fieldname')),
 
-          is: seq(literalIC('is:'), sym('fieldname')),
+          is: seq(key('IS:'), sym('fieldname')),
 
           dot: seq(sym('fieldname'), sym('subQuery')),
 
@@ -145,12 +151,12 @@ foam.CLASS({
 
           simpleSubQuery: seq1(1, '.', repeat(not(alt(' ', eof()), anyChar()))),
 
-          equals: seq(sym('fieldname'), alt(':', '='), sym('valueList')),
+          equals: seq(sym('fieldname'), alt(key(':'), key('=')), sym('valueList')),
 
           // TODO(kgr): Merge with 'equals'.
-          before: seq(sym('fieldname'), alt('<=', '<', literalIC('-before:')),
+          before: seq(sym('fieldname'), alt(key('<='), key('<'), literalIC('-before:')),
             sym('value')),
-          after: seq(sym('fieldname'), alt('>=', '>', literalIC('-after:')),
+          after: seq(sym('fieldname'), alt(key('>='), key('>'), literalIC('-after:')),
             sym('value')),
 
           value: alt(
@@ -187,7 +193,7 @@ foam.CLASS({
 
           valueList: alt(sym('compoundValue'), repeat(sym('value'), ',', 1)),
 
-          me: seq(literalIC('me'), not(sym('char'))),
+          me: seq(key('me'), not(sym('char'))),
 
           date: alt(
             sym('range date'),
@@ -215,7 +221,7 @@ foam.CLASS({
             seq(sym('number'), '/', sym('number'), '/', sym('number'))
           ),
 
-          'relative date': seq(literalIC('today'), optional(seq('-', sym('number')))),
+          'relative date': seq(key('today'), optional(seq('-', sym('number')))),
 
           string: alt(sym('word'), sym('quoted string')),
 
@@ -235,41 +241,48 @@ foam.CLASS({
     {
       name: 'grammar_',
       factory: function() {
-        var cls = this.of;
+        var cls    = this.of;
         var fields = [];
         var properties = cls.getAxiomsByClass(foam.lang.Property);
+        var dedup  = {};
+
+        var addWithoutDup = (str, prop) => {
+          str = str.toLowerCase();
+          if ( dedup[str] ) return;
+          dedup[str] = true;
+
+          fields.push(this.LiteralIC.create({
+            s: str,
+            value: prop
+          }));
+        }
+
         for ( var i = 0 ; i < properties.length ; i++ ) {
           var prop = properties[i];
 
           if ( ! prop.searchable ) continue;
 
-          fields.push(this.LiteralIC.create({
+          fields.push(this.Suggest.create({p: this.LiteralIC.create({
             s: prop.name,
             value: prop
-          }));
+          }), suggestion: { text: prop.name }}));
+
+          dedup[prop.name] = true;
+
           if ( this.allowShortNames && prop.shortName ) {
-            fields.push(this.LiteralIC.create({
-              s: prop.shortName,
-              value: prop
-            }));
+            addWithoutDup(prop.shortName, prop);
           }
           if ( prop.aliases ) {
             for ( var j = 0 ; j < prop.aliases.length ; j++ ) {
-              fields.push(this.LiteralIC.create({
-                s: prop.aliases[j],
-                value: prop
-              }));
+              addWithoutDup(prop.aliases[j], prop);
             }
           }
         }
 
-        // Remove duplicate names causes by aliases which are the same but with
-        // a different case
-        var dedup = {};
-        fields.forEach(f => dedup[f.lower] = f);
-        fields = Object.values(dedup);
-
         fields.sort(function(a, b) {
+          if ( ! b.lower ) b = b.p;
+          if ( ! a.lower ) a = a.p;
+
           var d = b.lower.length - a.lower.length;
           if ( d !== 0 ) return d;
           if ( a.lower === b.lower ) return 0;
@@ -582,8 +595,8 @@ foam.CLASS({
   ],
 
   methods: [
-    function parseString(str, opt_name) {
-      var query = this.grammar_.parseString(str, opt_name);
+    function parseString(str, opt_name, opt_apply) {
+      var query = this.grammar_.parseString(str, opt_name, opt_apply);
       query = query && query.partialEval ? query.partialEval() : query;
       return query;
     }
