@@ -118,9 +118,9 @@ foam.CLASS({
         var cls = foam.lookup(this.choiceToClass(choice));
         return cls ? cls.create({}, this) : undefined;
       },
-      postSet: function(o, n) {
+      postSet: async function(o, n) {
         if ( ! n ) return;
-        this.agentDAO.select().then(agents => {
+        await this.agentDAO.select().then(agents => {
           const results = agents.array;
           for ( var i = 0 ; i < results.length ; i++ ) {
             if ( this.choiceToClass(results[i].value) == n.cls_.id ) {

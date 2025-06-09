@@ -339,35 +339,35 @@ foam.CLASS({
     },
 
     function branch(self, data, depth) {
-      if ( data.flowParent ) {
-        this.add(data.dynamic(function (flowName, cmd) {
-          this.start('tr').
+      this.add(data.dynamic(function (flowName) {
+        this.start('tr').
+          on('click', () => self.selected = data).
+          on('dblclick', () => data.expanded = ! data.expanded).
+          start('td').
+            addClass(self.myClass('element-row')).
+            enableClass(self.myClass('error'), flowName.startsWith('error')).
+            style({'marginLeft': (depth * 12) + 'px'}).
             enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
-            on('click', () => self.selected = data).
-            on('dblclick', () => data.expanded = ! data.expanded).
-            start('td').
-              addClass(self.myClass('element-row')).
-              enableClass(self.myClass('error'), flowName.startsWith('error')).
-              style({'paddingLeft': (4 + depth * 12) + 'px'}).
-              start().
-                addClass(self.myClass('element-row-content')).
-                callIfElse(cmd.includes('dao'), function() {
-                  this.start(foam.u2.tag.Image, {
-                    glyph: 'grid',
-                    embedSVG: true
-                  }).addClass(self.myClass('element-row-icon')).end()
-                }, function() {
-                  this.start(foam.u2.tag.Image, {
-                    glyph: 'rectangle',
-                    embedSVG: true
-                  }).addClass(self.myClass('element-row-icon')).end()
-                }).
-                add(flowName).
-              end().
-              start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end().
-            end();
-        }));
-      };
+            start().
+              addClass(self.myClass('element-row-content')).
+              callIfElse(data.cmd && data?.cmd?.includes('dao'), function() {
+                this.start(foam.u2.tag.Image, {
+                  glyph: 'grid',
+                  embedSVG: true
+                }).addClass(self.myClass('element-row-icon')).end()
+              }, function() {
+                this.start(foam.u2.tag.Image, {
+                  glyph: 'rectangle',
+                  embedSVG: true
+                }).addClass(self.myClass('element-row-icon')).end()
+              }).
+              add(flowName).
+            end().
+            callIf(data.flowParent, function() {
+              this.start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end();
+            }).
+          end();
+      }));  
       this.add(data.dynamic(function (flowChildren) {
         this.forEach(flowChildren, d => {
           this.call(self.branch, [self, d, depth+1]);

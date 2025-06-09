@@ -391,7 +391,7 @@ foam.CLASS({
 
   methods: [
     function value(s) { return s; },
-    function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
+    function createSink() { console.log('this.sink ==>', this.sink); return this.GROUP_BY(this.prop, this.sink.createSink()); },
     function addToE(e) {
       e.startContext({data: this}).
         start().

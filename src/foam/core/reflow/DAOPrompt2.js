@@ -46,7 +46,8 @@ foam.CLASS({
               // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
               // TODO: fix JSON parsing should setup context corectly
               var select    = self.data.select.clone(self.data.__subContext__);
-      
+              console.log('select ==>', select)
+              console.log('this ==>', this)
               await select.execute(this);
               self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
             })).
@@ -281,7 +282,7 @@ foam.CLASS({
       name: 'select',
       view: function(_, X) { return foam.core.reflow.SinkView.create({sinksOnly: false, choice: 'Table'}, X.data); },
       section: 'output',
-      label: 'Structure',
+      label: '',
       factory: function() { return this.TableDAOAgent.create(); }
     },
     { class: 'Long',       hidden: true,    name: 'rowCount', visibility: 'RO' },
