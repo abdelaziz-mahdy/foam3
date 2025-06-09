@@ -280,6 +280,8 @@ foam.CLASS({
     {
       name: 'select',
       view: function(_, X) { return foam.core.reflow.SinkView.create({sinksOnly: false, choice: 'Table'}, X.data); },
+      section: 'output',
+      label: 'Structure',
       factory: function() { return this.TableDAOAgent.create(); }
     },
     { class: 'Long',       hidden: true,    name: 'rowCount', visibility: 'RO' },
@@ -310,6 +312,8 @@ foam.CLASS({
     {
       name: 'run',
       section: 'actions',
+      size: 'SMALL',
+      buttonStyle: foam.u2.ButtonStyle.PRIMARY,
       code: function() {
         this.version++;
       }

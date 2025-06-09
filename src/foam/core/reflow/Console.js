@@ -561,25 +561,25 @@ foam.CLASS({
       height: 100%;
       z-index: 10;
     }
-    ^r .foam-core-console-ReactiveSectionedDetailView-card-container {
+    ^r .foam-core-reflow-ReactiveSectionedDetailView-card-container {
       padding: 20px;
       border-top: 1px solid $grey200;
     }
-    ^r .foam-core-console-PropertyBorder {
+    ^r .foam-core-reflow-PropertyBorder {
       flex-direction: row;
       align-items: center;
       width: 100%;
     }
-    ^r .foam-core-console-PropertyBorder .foam-core-console-PropertyBorder-label {
+    ^r .foam-core-reflow-PropertyBorder .foam-core-reflow-PropertyBorder-label {
       width: 50%;
     }
-    ^r .foam-core-console-PropertyBorder-view {
+    ^r .foam-core-reflow-PropertyBorder-view {
       min-height: 0px;
     }
-    ^r .foam-core-console-PropertyListView {
+    ^r .foam-core-reflow-PropertyListView {
       gap: 5px;
     }
-    ^r .foam-core-console-PropertyBorder-view > div > span {
+    ^r .foam-core-reflow-PropertyBorder-view > div > span {
       align-items: center;
       gap: 5px;
     }
@@ -590,7 +590,7 @@ foam.CLASS({
     ^r .h600 {
       font-size: 18px;
     }
-    ^r .foam-core-console-PropertyBorder-select {
+    ^r .foam-core-reflow-PropertyBorder-select {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
@@ -605,7 +605,7 @@ foam.CLASS({
       gap: 10px;
       width: 100%;
     }
-    ^r .foam-core-console-SinkView {
+    ^r .foam-core-reflow-SinkView {
       width: 100%;
     }
     ^r .property-choice,
@@ -628,6 +628,9 @@ foam.CLASS({
     ^menuClosed {
      width: 4% !important;
    }
+    ^r .foam-core-reflow-ReactiveSectionView-actionDiv {
+      gap: 10px;
+    }
     .foam-u2-ActionView-run {
       width: 100%;
     }
