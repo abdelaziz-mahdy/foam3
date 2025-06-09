@@ -34,9 +34,11 @@ foam.CLASS({
   ]
 });
 
+
+
 foam.CLASS({
-  package: 'foam.core.reflow.cmd',
-  name: 'FileUpload',
+  package: 'foam.core.reflow',
+  name: 'FileUploadView',
   extends: 'foam.u2.Controller',
 
   requires: [

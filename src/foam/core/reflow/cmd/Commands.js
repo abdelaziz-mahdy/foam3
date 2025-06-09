@@ -650,3 +650,21 @@ foam.CLASS({
     }
   ]
 });
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'FileUpload',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  properties: [
+    { name: 'id', value: 'fileUpload' },
+    [ 'description', 'Upload multiple files with advanced mapping' ]
+  ],
+
+  methods: [
+    function execute(daoKey) {
+      this.out.tag(foam.core.reflow.FileUploadView.create({daoKey: daoKey}));
+    }
+  ]
+});
