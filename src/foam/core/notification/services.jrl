@@ -264,3 +264,13 @@ p({
     class:"foam.core.notification.push.APNSPushService"
   }
 })
+p({
+  class: "foam.core.boot.CSpec",
+  name: "googleChatNotificationThrottler",
+  description: "Throttle Google Chat Notifications",
+  serviceScript: """
+    return new foam.core.pool.Throttle.Builder(x)
+      .setRate(1.0F) // 1 tps
+      .build();
+  """
+})

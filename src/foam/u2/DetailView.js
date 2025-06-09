@@ -90,7 +90,7 @@ foam.CLASS({
         }
 
         ^helper-icon { display: inline; vertical-align: middle; margin-left: 4px; }
-        
+
         ^helper-icon svg { fill: currentColor; }
 
         ^ .foam-u2-borders-ExpandableBorder-container { padding: 6px; margin-top: 4px; }
@@ -296,7 +296,7 @@ foam.CLASS({
       this.dynamic(function(route) {
         self.removeAllChildren(); // TODO: not needed in U3
 
-        if ( route ) {
+        if ( route && self.of ) {
           self.currentData = self.data;
           var axiom = self.of.getAxiomByName(route);
           if ( axiom ) {

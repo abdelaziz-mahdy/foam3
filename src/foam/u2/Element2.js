@@ -140,6 +140,7 @@ foam.CLASS({
 
   methods: [
     function detach() {
+      if ( this.slot ) this.slot.detach();
       this.SUPER();
       this.element_ = null;
     },

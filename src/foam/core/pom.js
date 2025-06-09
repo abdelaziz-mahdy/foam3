@@ -20,7 +20,7 @@ foam.POM({
   projects: [
     { name: "app/pom" },
     { name: "auth/pom" },
-    { name: "console/pom" },
+    { name: "reflow/pom" },
     { name: "er/pom" },
     { name: "jetty/pom" },
     { name: "medusa/pom" },

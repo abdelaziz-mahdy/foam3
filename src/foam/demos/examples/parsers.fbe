@@ -68,10 +68,8 @@ The simplest parser is a literal parser, which only parses the supplied string.
 // Create a Singleton for accessing the built-in Parser library
 var P = foam.parse.Parsers.create();
 
-// Create an input PStream for String and assign a value to parse
-var ps = foam.parse.StringPStream.create();
-// And assign a value to parse
-ps.setString('abcdef');
+// Create an input PStream to parse our String
+var ps = foam.parse.StringPStream.create({str: 'abcdef'});
 
 // Let's look at our PStream
 log(ps.toString());
@@ -157,13 +155,10 @@ globalThis.testP = testP;
 
 ## StringPStreams
 There's also a convenience method for creating StringPStreams in foam.parse.Parsers.
-It lets you create and populate a StringPStream at once rather than having to create
-the StringPStream and then call setString().
 Notice that the two StringPStreams appear identical, even though they are created in
 different ways.
 --
-var ps = foam.parse.StringPStream.create();
-ps.setString('abc');
+var ps = foam.parse.StringPStream.create({str: 'abc'});
 log(ps.toString());
 
 // Using the 'P' Singleton we created above.

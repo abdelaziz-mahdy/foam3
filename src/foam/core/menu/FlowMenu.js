@@ -12,13 +12,13 @@ foam.CLASS({
   documentation: 'A menu item which contains a flow.',
 
   requires: [
-    'foam.core.console.FlowMode'
+    'foam.core.reflow.FlowMode'
   ],
 
   properties: [
     {
       class: 'Reference',
-      of: 'foam.core.console.Flow',
+      of: 'foam.core.reflow.Flow',
       name: 'flow',
     }
   ],
@@ -26,7 +26,7 @@ foam.CLASS({
   methods: [
     function createView(X) { 
       var view = {
-        class: 'foam.core.console.Console',
+        class: 'foam.core.reflow.Console',
         flowName: this.flow,
         flowMode: this.FlowMode.RO
       };

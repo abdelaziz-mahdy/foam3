@@ -320,12 +320,12 @@ p({
 
 p({
   "class":"foam.core.menu.Menu",
-  "id":"reflow",
+  "id":"flow",
   "label":"REFLOW",
   "keyboardShortcut": "meta-k",
   "handler":{
     "class":"foam.core.menu.ViewMenu",
-    "view":{"class":"foam.core.console.Console"}
+    "view":{"class":"foam.core.reflow.Console"}
   },
   "parent":"admin"
 })

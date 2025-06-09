@@ -5,7 +5,7 @@
  */
 
 foam.CLASS({
-  package: 'foam.core.console',
+  package: 'foam.core.reflow',
   name: 'PropertyRefinement',
   refines: 'Property',
 
