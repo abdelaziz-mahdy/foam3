@@ -4,6 +4,5 @@ p({
   template: "foam-core-er-EventRecordNotificationTemplate",
   emailName:"foam-core-er-EventRecordEmailTemplate",
   groupId: "noc",
-  notificationType: "NOC",
-  googleChatWebhook: "https://chat.googleapis.com/v1/spaces/AAAAHsc28YE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=7_S-gzsQkVge0F6HvmB6Pm6EgchgluwsPxNL523RBPE"
+  notificationType: "NOC"
 })
