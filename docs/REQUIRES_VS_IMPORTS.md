@@ -45,6 +45,10 @@ foam.CLASS({
 - Factory methods create new instances: `this.DetailView.create()`
 - Supports aliasing with the `as` keyword
 - **These are classes/constructors, not instances**
+- When you call `this.Abc.create(args)`, it automatically calls `this.Abc.create(args, this)` - the current context (`this`) is added as the second argument
+- The second argument to `create()` is either a context or an object whose `.subContext` is used
+- If you created `com.acme.Abc` directly you would need to manually pass `this` as the second argument, but `this.Abc.create()` adds it automatically
+- This automatic context passing is needed to support dependency injection and the import/export system
 
 ### Examples from Codebase
 
