@@ -404,6 +404,28 @@ foam.CLASS({
         this.dataLatch.resolve();
         if ( this.displayedRowCount_ < 0 ) this.bottomRow = this.daoCount
       });
+    },
+
+    function processPageSequentially_(pageIndex) {
+      if ( pageIndex >= Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ) {
+        this.daoLoading = false;
+        return;
+      }
+      
+      var page = this.currentTopPage_ + pageIndex;
+      if ( this.renderedPages_[page] || this.loadingPages_[page] ) {
+        // Skip this page and move to next
+        this.processPageSequentially_(pageIndex + 1);
+        return;
+      }
+      
+      var skip = page * this.pageSize_;
+      var dao  = this.data.limit(this.pageSize_).skip(skip);
+      
+      this.getPage(dao, page).then(() => {
+        // Process next page after this one completes
+        this.processPageSequentially_(pageIndex + 1);
+      });
     }
   ],
 
@@ -474,18 +496,24 @@ foam.CLASS({
           if ( (i >= this.currentTopPage_ ) && i < this.currentTopPage_ + this.NUM_PAGES_TO_RENDER ) return;
           this.clearPage(i);
         });
-        let promiseArr = [];
-        // Add any pages that are not already rendered.
-        for ( var i = 0; i < Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ; i++ ) {
-          var page = this.currentTopPage_ + i;
-          if ( this.renderedPages_[page] || this.loadingPages_[page] ) continue;
-          var skip = page * this.pageSize_;
-          var dao  = this.data.limit(this.pageSize_).skip(skip);
-          promiseArr.push(this.getPage(dao, page));
+        // If grouping is enabled, process pages sequentially to maintain group order
+        // Otherwise, process in parallel for better performance
+        if ( this.groupBy ) {
+          this.processPageSequentially_(0);
+        } else {
+          let promiseArr = [];
+          // Add any pages that are not already rendered.
+          for ( var i = 0; i < Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ; i++ ) {
+            var page = this.currentTopPage_ + i;
+            if ( this.renderedPages_[page] || this.loadingPages_[page] ) continue;
+            var skip = page * this.pageSize_;
+            var dao  = this.data.limit(this.pageSize_).skip(skip);
+            promiseArr.push(this.getPage(dao, page));
+          }
+          Promise.all(promiseArr).then(()=>{
+            this.daoLoading = false;
+          })
         }
-        Promise.all(promiseArr).then(()=>{
-          this.daoLoading = false;
-        })
       }
     },
     {
