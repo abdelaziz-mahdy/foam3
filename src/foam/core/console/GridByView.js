@@ -58,7 +58,9 @@ foam.CLASS({
 
   properties: [
     { name: 'x' },
-    { name: 'y' }
+    { name: 'y' },
+    { name: 'currentHoverCol' },
+    { name: 'currentHoverRow' }
   ],
 
   methods: [
@@ -78,9 +80,9 @@ foam.CLASS({
               .addClass(this.myClass('th'))
               .add(c.toString())
               .on('click', () => { self.x = c; self.y = undefined; })
-              .on('mouseover', () => self.y = c)
-              .on('mouseleave', function() { self.y = undefined; self.x = undefined; })
-              .enableClass(self.myClass('highlighted-cell'), self.slot((y) => y === c));
+              .on('mouseover', () => self.currentHoverCol = c)
+              .on('mouseleave', function() { self.currentHoverCol = undefined; self.currentHoverRow = undefined; })
+              .enableClass(self.myClass('highlighted-cell'), self.slot((currentHoverCol) => currentHoverCol === c));
           }).
         end().
         forEach(data.rows.sortedKeys(), function(r) {
@@ -88,23 +90,22 @@ foam.CLASS({
           this.start('tr')
             .addClass(self.myClass('tr'))
             .on('click', () => self.y = r)
-            .on('mouseover', () => self.x = r)
-            .on('mouseleave', () => self.x = undefined)
-            .enableClass(self.myClass('highlighted-row'), self.slot((x) => x === r))
+            .on('mouseover', () => self.currentHoverRow = r)
+            .on('mouseleave', () => self.currentHoverRow = undefined)
+            .enableClass(self.myClass('highlighted-row'), self.slot((currentHoverRow) => currentHoverRow === r))
             .start('th')
               .on('click', () => { self.y = r; self.x = undefined; })
-              .on('mouseover', () => self.x = r)
+              .on('mouseover', () => self.currentHoverRow = r)
               .addClass(self.myClass('th'))
-              .enableClass(self.myClass('highlighted-cell'), self.slot((x) => x === r))
+              .enableClass(self.myClass('highlighted-cell'), self.slot((currentHoverRow) => currentHoverRow === r))
               .add(r)
             .end().
             forEach(cols, function(c) {
               this.start('td')
                 .on('click', (e) => { self.x = c; self.y = r; e.stopPropagation(); })
-                .on('mouseover', function() { self.y = c; self.x = r; })
-                .on('mouseleave', function() { self.y = undefined; self.x = undefined; })
-                .addClass(self.myClass('td'))
-                .enableClass(self.myClass('highlighted-cell'), self.slot((y, x) => y === c || x === r))
+                .on('mouseover', function() { self.currentHoverCol = c; self.currentHoverRow = r; })
+                .on('mouseleave', function() { self.currentHoverCol = undefined; self.currentHoverRow = undefined; })
+                .enableClass(self.myClass('highlighted-cell'), self.slot((currentHoverCol, currentHoverRow) => currentHoverCol === c || currentHoverRow === r))
                 .add(row.groups[c] || '');
             }).
             end();
