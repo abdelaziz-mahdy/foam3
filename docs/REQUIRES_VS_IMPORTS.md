@@ -449,7 +449,6 @@ foam.CLASS({
   extends: 'foam.u2.View',
   
   imports: [
-    'data',          // Data from parent context
     'theme',         // Theming service
     'userService'    // Business logic service
   ],
