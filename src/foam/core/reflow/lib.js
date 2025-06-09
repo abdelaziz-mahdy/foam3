@@ -10,7 +10,10 @@ foam.LIB({
   methods: [
     {
       name: 'round',
-      code: Math.round
+      code: function (n) {
+        /* Round a number to the nearest integer. */
+        return Math.round(n);
+      }
     },
     {
       name: 'abs',
