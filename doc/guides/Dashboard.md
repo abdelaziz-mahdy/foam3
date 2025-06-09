@@ -85,33 +85,6 @@ p({
 })
 ```
 
-## Step 3: Create Package File
-
-Create `pom.js`:
-
-```javascript
-foam.POM({
-  name: 'my.dashboard',
-  files: [
-    { name: "MyDashboard", flags: "js" }
-  ]
-});
-```
-
-## Step 4: Register Your Package
-
-Add to your main `pom.js`:
-
-```javascript
-foam.POM({
-  // ... other config
-  projects: [
-    // ... other projects
-    { name: "my/dashboard/pom" }
-  ]
-});
-```
-
 ## That's It!
 
 Your dashboard is now ready. It will show:
@@ -152,7 +125,7 @@ widgets: {
   },
   'my.dashboard.users.table': { 
     column: '1fr',   // Takes 1 fraction of available space
-    SMColumn: 12,    // Full width on small screens
+    SMColumn: 6,    // Full width on small screens
     XSColumn: 12     // Full width on extra small screens
   }
 }
