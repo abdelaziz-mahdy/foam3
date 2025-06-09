@@ -219,15 +219,16 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
 
-  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'auth' ],
 
   properties: [
-    [ 'description', 'Display available DAO services' ]
+    [ 'description', 'Display available DAO services', 'uploadAvailable' ]
   ],
 
   methods: [
     function execute(opt_nameQuery) {
       var self = this;
+      this.auth.check(this, 'command.read.upload').then(r => this.uploadAvailable = r );
       var dao  = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
       var count = foam.lang.SimpleSlot.create({value: 0});
       if ( opt_nameQuery ) dao = dao.where(
@@ -276,6 +277,7 @@ foam.CLASS({
               start(self.Link).add('add').on('click', addFn).end().
             end().
             start('td').attr('align', 'left').
+              show(self.uploadAvailable$).
               start(self.Link).add('upload').on('click', uplFn).end().
             end()
             ;
