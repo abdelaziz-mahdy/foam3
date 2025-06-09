@@ -6,7 +6,6 @@ p({"class":"foam.core.reflow.cmd.DAOCreate", "id": "add"})
 p({"class":"foam.core.reflow.cmd.DAOS", "id": "daos"})
 p({"class":"foam.core.reflow.cmd.Describe", "id": "describe"})
 p({"class":"foam.core.reflow.cmd.Flows", "id": "flows"})
-p({"class":"foam.core.reflow.cmd.FileUpload", "id": "fileupload"})
 p({"class":"foam.core.reflow.cmd.Help", "id": "help"})
 p({"class":"foam.core.reflow.cmd.HelpFunctions", "id": "helpFn"})
 p({"class":"foam.core.reflow.cmd.History", "id": "history"})
@@ -103,3 +102,6 @@ p({
     addValue(foam.core.reflow.XHR.create({url: args[0]}, this));
   """
 })
+
+
+p({"class":"foam.core.reflow.cmd.FileUpload", "id": "fileUpload"})

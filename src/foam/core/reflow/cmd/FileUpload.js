@@ -35,7 +35,7 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.cmd',
   name: 'FileUpload',
   extends: 'foam.u2.Controller',
 
