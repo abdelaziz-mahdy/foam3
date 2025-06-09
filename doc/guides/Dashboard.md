@@ -6,58 +6,41 @@ This guide shows you how to create a simple dashboard in FOAM3 in just a few ste
 
 A FOAM3 dashboard requires these components:
 
-1. **Dashboard Class** - extends `foam.dashboard.view.DashboardView`
+1. **Dashboard Menu Entry** - defines your dashboard layout and widgets in `menu.jrl`
 2. **Widget Menus** - hidden menu entries that define your widgets
 3. **Citation Views** - for displaying individual records (optional)
 
-## Step 1: Create a Simple Dashboard
+## Step 1: Create Your Dashboard in menu.jrl
 
-Create `MyDashboard.js`:
+Add this to your `menu.jrl`:
 
 ```javascript
-foam.CLASS({
-  package: 'my.dashboard',
-  name: 'MyDashboard',
-  extends: 'foam.dashboard.view.DashboardView',
-
-  properties: [
-    {
-      name: 'dashboardTitle',
-      value: 'My Dashboard'
-    },
-    {
-      name: 'main',
-      value: true
-    },
-    {
-      name: 'widgets',
-      factory: function() {
-        return {
-          'my.dashboard.users.table': { column: 6 },
-          'my.dashboard.users.count': { column: 6 }
-        };
+p({
+  class: "foam.core.menu.Menu",
+  id: "my.dashboard",
+  keywords: ["dashboard"],
+  label: "My Dashboard",
+  themeIcon: "dashboard",
+  handler: {
+    class: "foam.core.menu.ViewMenu",
+    view: {
+      class: "foam.dashboard.view.DashboardView",
+      main: true,
+      widgets: {
+        'my.dashboard.users.table': { column: 6 },
+        'my.dashboard.users.count': { column: 6 }
       }
     }
-  ]
-});
+  },
+  order: 1
+})
 ```
 
 ## Step 2: Create Widget Menus
 
-Create `menus.jrl`:
+Add these to your `menu.jrl`:
 
 ```javascript
-// Main dashboard menu
-p({
-  class: "foam.core.menu.Menu",
-  id: "my.dashboard",
-  label: "My Dashboard",
-  handler: {
-    class: "foam.core.menu.ViewMenu",
-    view: { class: "my.dashboard.MyDashboard" }
-  }
-})
-
 // Data table widget
 p({
   class: "foam.core.menu.Menu",
@@ -124,25 +107,9 @@ foam.POM({
   // ... other config
   projects: [
     // ... other projects
-    { name: "my.dashboard" }
+    { name: "my/dashboard/pom" }
   ]
 });
-```
-
-## Step 5: Add Menu Entry
-
-Add to your main `menus.jrl`:
-
-```javascript
-p({
-  class: "foam.core.menu.Menu",
-  id: "my.dashboard",
-  label: "My Dashboard",
-  handler: {
-    class: "foam.core.menu.ViewMenu",
-    view: { class: "my.dashboard.MyDashboard" }
-  },
-})
 ```
 
 ## That's It!
@@ -153,11 +120,54 @@ Your dashboard is now ready. It will show:
 
 ## Grid Layout
 
-The `column` property controls widget width (12-column grid):
+The `column` property controls widget width and supports two approaches for layouts:
+
+### Fixed Columns (12-column grid)
+Use this approach when you want precise control over widget widths:
 - `{ column: 12 }` - Full width
 - `{ column: 6 }` - Half width  
 - `{ column: 4 }` - Third width
 - `{ column: 3 }` - Quarter width
+
+Example with responsive breakpoints:
+```javascript
+widgets: {
+  'my.dashboard.users.table': { 
+    column: 6,      // Default: half width
+    SMColumn: 12,   // Full width on small screens
+    XSColumn: 12    // Full width on extra small screens
+  },
+  'my.dashboard.users.count': { 
+    column: 6,      // Default: half width
+    SMColumn: 12    // Full width on small screens
+  }
+}
+```
+
+### Fractional Units
+Use this approach when you want flexible, proportional layouts:
+```javascript
+widgets: {
+  'my.dashboard.users.count': { 
+    column: '1fr',    // Takes 1 fraction of available space
+    SMColumn: '1fr'   // Maintains proportion on small screens
+  },
+  'my.dashboard.users.table': { 
+    column: '2fr',    // Takes 2 fractions of available space
+    SMColumn: '1fr'   // Equal width on small screens
+  }
+}
+```
+
+### Responsive Breakpoints
+You can specify different layouts for different screen sizes:
+- `XSColumn`: Extra small screens (< 600px)
+- `SMColumn`: Small screens (600px - 960px)
+- `MDColumn`: Medium screens (960px - 1264px)
+- `LGColumn`: Large screens (1264px - 1904px)
+- `XLColumn`: Extra large screens (> 1904px)
+
+Choose either fixed columns or fractional units for your layout and stick with that approach consistently. This will make your dashboard layout more predictable and easier to maintain.
 
 ## Common Widget Types
 
@@ -194,22 +204,6 @@ The `column` property controls widget width (12-column grid):
 }
 ```
 
-## Adding More Widgets
-
-Just add more entries to your `widgets` factory:
-
-```javascript
-widgets: {
-  factory: function() {
-    return {
-      'widget1': { column: 4 },
-      'widget2': { column: 4 }, 
-      'widget3': { column: 4 },
-      'widget4': { column: 12 }
-    };
-  }
-}
-```
 
 And create corresponding hidden menu entries for each widget ID.
 
