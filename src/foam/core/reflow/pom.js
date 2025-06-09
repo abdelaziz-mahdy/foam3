@@ -1,5 +1,9 @@
 foam.POM({
-  name: 'console',
+  name: 'reflow',
+  projects: [
+  { name: 'cmd/pom' },
+  ],
+
   files: [
     { name: '../../u2/mlang/Table',    flags: 'js|java' },
     { name: 'AbstractDAOAgent',        flags: 'js' },
@@ -37,8 +41,6 @@ foam.POM({
     { name: 'ViewSink',                flags: 'js|java' },
     { name: 'XHR',                     flags: 'js' },
     { name: 'XMLSink',                 flags: 'js|java' },
-    { name: 'cmd/Commands',            flags: 'js|java' },
-    { name: 'cmd/FileUpload',            flags: 'js' },
     { name: 'ColumnParser',            flags: 'js' },
     { name: 'lib',                     flags: 'js' }
   ]
