@@ -129,35 +129,36 @@ Use this approach when you want precise control over widget widths:
 - `{ column: 4 }` - Third width
 - `{ column: 3 }` - Quarter width
 
-Example with responsive breakpoints:
-```javascript
-widgets: {
-  'my.dashboard.users.table': { 
-    column: 6,      // Default: half width
-    SMColumn: 12,   // Full width on small screens
-    XSColumn: 12    // Full width on extra small screens
-  },
-  'my.dashboard.users.count': { 
-    column: 6,      // Default: half width
-    SMColumn: 12    // Full width on small screens
-  }
-}
-```
-
 ### Fractional Units
 Use this approach when you want flexible, proportional layouts:
 ```javascript
 widgets: {
   'my.dashboard.users.count': { 
-    column: '1fr',    // Takes 1 fraction of available space
-    SMColumn: '1fr'   // Maintains proportion on small screens
+    column: '1fr'    // Takes 1 fraction of available space
   },
   'my.dashboard.users.table': { 
-    column: '2fr',    // Takes 2 fractions of available space
-    SMColumn: '1fr'   // Equal width on small screens
+    column: '2fr'    // Takes 2 fractions of available space
   }
 }
 ```
+
+### Mixed Layouts
+You can mix fixed columns and fractional units, and combine them with responsive breakpoints:
+
+```javascript
+widgets: {
+  'my.dashboard.users.count': { 
+    column: 12,      // Full width by default
+  },
+  'my.dashboard.users.table': { 
+    column: '1fr',   // Takes 1 fraction of available space
+    SMColumn: 12,    // Full width on small screens
+    XSColumn: 12     // Full width on extra small screens
+  }
+}
+```
+
+Note: When using fixed columns (like 12), the maximum effective width is 6 columns. So both `column: 6` and `column: 12` will give the same result. However, when using fractional units, the full width is available.
 
 ### Responsive Breakpoints
 You can specify different layouts for different screen sizes:
