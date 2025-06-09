@@ -86,6 +86,20 @@ foam.CLASS({
       margin: 0 0 12px 0;
       color: $textDefault;
     }
+    
+    /* Ensure all headings and text use semantic colors */
+    ^step .h500,
+    ^step .h600 {
+      color: $textDefault;
+    }
+    
+    ^step .p {
+      color: $textDefault;
+    }
+    
+    ^step .p-semiBold {
+      color: $textDefault;
+    }
 
     
     ^mt-sm { margin-top: 8px; }
@@ -135,9 +149,20 @@ foam.CLASS({
     }
     ^action-buttons button {
       padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
+      border: 1px solid $borderDefault;
+      border-radius: $inputBorderRadius;
       cursor: pointer;
+      background-color: $backgroundDefault;
+      color: $textDefault;
+      font-family: $fontFamily;
+    }
+    ^action-buttons button:hover {
+      background-color: $backgroundSecondary;
+      border-color: $borderStrong;
+    }
+    ^action-buttons button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
   `,
