@@ -82,6 +82,7 @@ foam.CLASS({
                   alarm.getIsActive() ) {
         alarm = (Alarm) alarm.fclone();
         alarm.setIsActive(false);
+        alarm.setNote(er.getMessage());
         alarm = (Alarm) alarmDAO.put(alarm);
       }
       `
