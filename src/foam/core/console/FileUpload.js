@@ -68,21 +68,21 @@ foam.CLASS({
     ^step {
       margin-bottom: 24px;
       padding: 16px;
-      border: 1px solid $grey300;
+      border: 1px solid $borderDefault;
       border-radius: 8px;
-      background-color: $grey100;
+      background-color: $backgroundSecondary;
     }
     ^step.active {
-      border-color: $primary300;
-      background-color: $primary100;
+      border-color: $borderBrand;
+      background-color: $backgroundBrand;
     }
     ^step.completed {
-      border-color: $success300;
-      background-color: $success100;
+      border-color: $borderSuccess;
+      background-color: $backgroundSuccess;
     }
     ^step h3 {
       margin: 0 0 12px 0;
-      color: $black;
+      color: $textDefault;
     }
 
     
@@ -95,15 +95,15 @@ foam.CLASS({
     ^p-sm { padding: 8px; }
     ^p-lg { padding: 16px; }
     
-    /* Use existing typography classes */
+    /* Use semantic typography classes */
     ^text-muted {
-      color: $grey400;
+      color: $textSecondary;
     }
     ^text-success {
-      color: $success300;
+      color: $textSuccess;
     }
     ^text-primary {
-      color: $primary300;
+      color: $textBrand;
       font-weight: bold;
     }
     ^text-mono {
@@ -111,13 +111,13 @@ foam.CLASS({
       white-space: pre-wrap;
     }
     
-    /* Use theme colors for backgrounds */
+    /* Use semantic background colors */
     ^bg-light {
-      background-color: $grey100;
+      background-color: $backgroundSecondary;
       border-radius: 4px;
     }
     ^bg-white {
-      background-color: $white;
+      background-color: $backgroundDefault;
       border-radius: 4px;
     }
     ^progress-section {
