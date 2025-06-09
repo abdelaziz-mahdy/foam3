@@ -48,12 +48,6 @@ p({
 })
 p({
   "class":"foam.core.reflow.cmd.Command",
-  "id": "h1",
-  "description": "Header 1",
-  "script": "addValue(foam.core.reflow.Header.create({type:'h1', text: args.join(' ')}, this));"
-})
-p({
-  "class":"foam.core.reflow.cmd.Command",
   "id": "h2",
   "description": "Header 2",
   "script": "addValue(foam.core.reflow.Header.create({type:'h2', text: args.join(' ')}, this));"
