@@ -29,7 +29,7 @@ foam.CLASS({
             if ( p.suggest ) {
               var s = p.suggest();
               if ( s ) {
-                var label = s.label;
+                var label = s.text;
                 if ( ! ss[label] ) {
                   ss[label] = s;
                 }

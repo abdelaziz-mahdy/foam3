@@ -30,9 +30,9 @@ foam.CLASS({
     {
       name: 'selectedColor',
       expression: function(isSelected, isDisabled) {
-        if ( isDisabled ) return '$grey100';
-        if ( isSelected ) return '$primary400';
-        return '$grey500';
+        if ( isDisabled ) return '$backgroundSecondary';
+        if ( isSelected ) return '$backgroundBrand';
+        return '$backgroundInverseSecondary';
       }
     },
     {

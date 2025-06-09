@@ -223,7 +223,7 @@ foam.CLASS({
         var ctx = this.__subContext__.createSubContext({ email: email, username: username })
         const wizardRunner = foam.u2.crunch.WizardRunner.create({
           wizardType: foam.u2.wizard.WizardType.TRANSIENT,
-          source: 'net.nanopay.auth.VerifyEmailByCode',
+          source: 'foam.core.auth.VerifyEmailByCode',
           options: { inline: false }
         }, ctx);
         wizardRunner.sequence.remove('ReturnToLaunchPointAgent');

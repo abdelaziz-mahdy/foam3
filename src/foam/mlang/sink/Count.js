@@ -39,6 +39,13 @@ foam.CLASS({
     },
     function toString() { return 'COUNT()'; },
     function toSummary() { return this.value; },
-    function addToE(e) { e.add(this.value); }
+    function addToE(e) { e.add(this.value); },
+
+    function toProperties() {
+      return [ { class: 'Long', name: 'count' } ]
+    },
+    function setPropertyValues(o, sink, ps) {
+      ps[0].set(o, sink.value);
+    }
   ]
 });

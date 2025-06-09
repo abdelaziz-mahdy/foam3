@@ -75,14 +75,14 @@ foam.CLASS({
     }
     ^ .uploadDescription {
       margin-top: 9px;
-      color: $primary400;
+      color: $textBrand;
     }
     ^ .uploadRestriction {
       margin-top: 9px;
-      color: $black;
+      color: $textDefault;
     }
     ^ .box-for-drag-drop {
-      border: dashed 4px $grey50;
+      border: dashed 4px $borderXLight;
       background:white;
       height: 100px;
       padding: 10px 10px;

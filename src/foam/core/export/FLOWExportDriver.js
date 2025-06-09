@@ -13,7 +13,7 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
-  requires: [ 'foam.core.console.Flow' ],
+  requires: [ 'foam.core.reflow.Flow' ],
 
   imports: [ 'currentMenu', 'flowDAO' ],
 
@@ -66,7 +66,7 @@ foam.CLASS({
     },
 
     function exportFObject(X, obj) {
-      return '/reflow.html';
+      return '/flow.html';
     },
 
     function findComparator(dao) {
@@ -113,12 +113,12 @@ foam.CLASS({
     "flowName": "${this.plural}1",
     "cmd": "dao ${this.daoKey}",
     "value": {
-      "class": "foam.core.console.DAOPrompt2",
+      "class": "foam.core.reflow.DAOPrompt2",
       "label": "${this.plural}",
       "columns": "${propNames.join(',')}",
       "version": 2,${where}
       "select": {
-        "class": "foam.core.console.ScrollTableDAOAgent",
+        "class": "foam.core.reflow.TableDAOAgent",
         "of": {"class":"__Class__","forClass_":"${this.of.id}"}
       }
     }
@@ -126,9 +126,10 @@ foam.CLASS({
 ]
         `
       });
-      this.flowDAO.put(flow);
-      if ( this.openOnCreate )
-        this.__context__.routeTo('reflow/' + this.name + '?flowMode=view');
+      this.flowDAO.put(flow).then(() => {
+        if ( this.openOnCreate )
+          this.__context__.routeTo('flow/' + this.name + '?flowMode=view');
+      });
       return ''; // prevents redirect
     }
   ]

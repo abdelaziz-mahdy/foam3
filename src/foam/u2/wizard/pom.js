@@ -43,7 +43,6 @@ foam.POM({
     { name: "debug/DebugWAO",                          flags: "web" },
     { name: "debug/DebugContextIntercept",             flags: "web" },
     { name: "debug/DebugWizardletView",                flags: "web" },
-    { name: "debug/TestWizardMenu",                    flags: "java|web&debug" },
     { name: "debug/TestWizardScenarioMenu",            flags: "java|web&debug" },
     { name: "debug/TestWizardScenario",                flags: "web&debug" },
     { name: "debug/scenarios",                         flags: "web&debug" },
