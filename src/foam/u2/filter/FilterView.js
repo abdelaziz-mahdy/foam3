@@ -89,7 +89,7 @@ foam.CLASS({
     }
 
     ^general-field input {
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
       height: 34px;
       width: 100%;
     }
@@ -119,16 +119,16 @@ foam.CLASS({
     }
 
     ^filter-button-active{
-      color: $primary400;
-      background: $grey100;
+      color: $textBrand;
+      background: $backgroundTertiary;
     }
 
     ^filter-search-active {
-      border: 1px solid $primary400;
+      border: 1px solid $borderBrand;
     }
 
     ^filter-button-active svg {
-      fill: $primary400;
+      fill: currentColor;
       transform: rotate(180deg);
     }
 

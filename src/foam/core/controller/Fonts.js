@@ -24,8 +24,8 @@ foam.CLASS({
     }
 
     body {
-      background: $background;
-      color: $black;
+      background: $backgroundDefault;
+      color: $textDefault;
       font-family: $fontFamily;
       font-size: 1.4rem;
       line-height: 1.5;

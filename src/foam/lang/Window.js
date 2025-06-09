@@ -61,6 +61,7 @@ foam.CLASS({
     'installCSS',
     'log',
     'merged',
+    'populateDefaultThemeVariants',
     'requestAnimationFrame',
     'returnExpandedCSS',
     'setInterval',
@@ -113,6 +114,30 @@ foam.CLASS({
           display: none !important;
         }
       `, 'global', 'Window');
+      this.document?.addEventListener('DOMContentLoaded', () => {
+        this.populateDefaultThemeVariants(this.theme, foam.__context__);
+      });
+    },
+
+    function populateDefaultThemeVariants(theme, ctx) {
+      // WARNING: IN DEVELOPMENT
+      // SET useVariants TO TRUE ON THEME TO ENABLE MODE SWITCHING
+      if ( this.getPrivate_('currentWindowThemeListener' ) ) this.getPrivate_('currentWindowThemeListener').detach();
+      if ( ! theme.useVariants ) return;
+      if ( window.matchMedia ) {
+        var colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        let fn = () => {
+          if ( window.matchMedia('(prefers-color-scheme: dark)').matches ) {
+            theme.activeVariants$set('color', 'dark');
+          } else {
+            theme.activeVariants$remove('color');
+          }
+        }
+        colorSchemeQuery.addEventListener('change', fn);
+        fn();
+        let themeListener = theme.onDetach(theme.activeVariants$.sub(() => { foam.u2.CSS.reloadStyles(ctx); }))
+        this.setPrivate_('currentWindowThemeListener', themeListener);
+      }
     },
 
     function getElementById(id) {

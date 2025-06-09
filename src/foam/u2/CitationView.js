@@ -23,12 +23,12 @@ foam.CLASS({
   css: `
     ^rw {
       padding: $padding;
-      color: $black;
+      color: $textDefault;
       transition: all 0.2s ease;
     }
 
     ^rw:hover:not([disabled]) {
-      background: $primary50;
+      background: $backgroundBrandTertiary;
       cursor: pointer;
     }
   `,

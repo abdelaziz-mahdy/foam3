@@ -83,6 +83,7 @@ foam.CLASS({
       border-radius: 3px;
       box-shadow: 0 24px 24px 0 rgba(0, 0, 0, 0.12), 0 0 24px 0 rgba(0, 0, 0, 0.15);
       overflow: auto;
+      background: $backgroundDefault;
       /* The following line fixes a stacking problem in certain browsers. */
       will-change: opacity;
     }
@@ -95,7 +96,9 @@ foam.CLASS({
  `,
 
   properties: [
-    [ 'backgroundColor', '#fff' ],
+    { 
+      name: 'backgroundColor'
+    },
     {
       class: 'Boolean',
       name: 'closeable',
@@ -139,7 +142,9 @@ foam.CLASS({
         .start()
           .call(function() { content = this; })
           .enableClass(this.myClass('inner'), this.isStyled$)
-          .style({ 'background-color': this.isStyled ? this.backgroundColor : ''})
+          .callIf(this.backgroundColor && this.isStyled, function() {
+            this.style({ 'background-color': this.backgroundColor })
+          })
           .startContext({ data: this })
             .start(this.CLOSE_MODAL, { buttonStyle: 'TERTIARY' })
               .show(this.closeable$.and(this.showActions$))

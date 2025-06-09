@@ -73,38 +73,40 @@ foam.CLASS({
     },
 
     function render() {
+      var self = this;
       this
         .addClass(this.myClass())
-        .add(this.slot(function(data, glyph, displayWidth, displayHeight, alpha) {
+        .add(this.dynamic(function(data, glyph, displayWidth, displayHeight, alpha) {
           if ( glyph ) {
-            var indicator = glyph.clone(this).expandSVG();
-            return this.E().start(this.HTMLView, { data: indicator })
-              .attrs({ role: this.role })
-              .end();
+            var indicator = glyph.clone(self).expandSVG();
+            this.start(self.HTMLView, { data: indicator })
+              .attrs({ role: self.role })
+            .end();
+            return;
           }
 
-          if ( this.embedSVG && data?.endsWith('svg') ) {
-            var e = this.E();
-            this.requestWithCache(data).then(data => {
-              if ( !this.U3 && this.state == this.OUTPUT ) return;
+          if ( self.embedSVG && data?.endsWith('svg') ) {
+            self.requestWithCache(data).then(data => {
+              if ( ! self.U3 && self.state == self.OUTPUT ) return;
 
-              e.start(this.HTMLView, { data: data })
-                .attrs({ role: this.role })
+              this.start(self.HTMLView, { data: data })
+                .attrs({ role: self.role })
               .end();
             });
 
-            return e;
+            return;
           }
-          if ( ! data) return null;
-          return this.E()
-            .start('img')
-              .attrs({ src: data, role: this.role })
-              .style({
-                height:  displayHeight,
-                width:   displayWidth,
-                opacity: alpha
-              })
-            .end();
+
+          if ( ! data ) return null;
+
+          this.start('img')
+            .attrs({ src: data, role: self.role })
+            .style({
+              height:  displayHeight,
+              width:   displayWidth,
+              opacity: alpha
+            })
+          .end();
         }));
     }
   ]

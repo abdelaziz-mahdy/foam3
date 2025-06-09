@@ -64,6 +64,14 @@ foam.CLASS({
       } else {
         this.args.forEach(a => e.start('div').add(a));
       }
+    },
+
+    function toProperties() {
+      return this.args.map(a => a.toProperties ? a.toProperties() : a.VALUE ).flat();
+    },
+    function setPropertyValues(o, sink, ps) {
+      for ( var i = 0 ; i < this.args.length ; i++ )
+        ps[i].set(o, sink.args[i].value);
     }
   ]
 });

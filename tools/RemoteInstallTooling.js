@@ -55,7 +55,9 @@ foam.POM({
 
       try {
         this.log(`[RemoteInstall] uploading ${TARBALL_PATH} to ${REMOTE_URL}:${REMOTE_OUTPUT}/${TARBALL}`);
-        this.execSync(`scp ${SSH_OPT} ${TARBALL_PATH} ${REMOTE_URL}:${REMOTE_OUTPUT}/${TARBALL}`);
+        if ( ! DRY_RUN ) {
+          this.execSync(`scp ${SSH_OPT} ${TARBALL_PATH} ${REMOTE_URL}:${REMOTE_OUTPUT}/${TARBALL}`);
+        }
         this.log(`[RemoteInstall] upload to ${REMOTE_HOSTNAME} complete.`);
       } catch (e) {
         this.error(`[RemoteInstall] upload to ${REMOTE_HOSTNAME} failed.\n`, e);
@@ -69,7 +71,9 @@ foam.POM({
       if ( REMOTE_INSTALL_SCRIPT ) {
         try {
           this.log(`[RemoteInstall] installing to ${REMOTE_HOSTNAME} with ${INSTALL_OPTS}.`);
-          this.execSync(`ssh ${SSH_OPT} ${REMOTE_URL} 'sudo bash -s -- -T${REMOTE_OUTPUT}/${TARBALL} ${INSTALL_OPTS}' < ${REMOTE_INSTALL_SCRIPT}`);
+          if ( ! DRY_RUN ) {
+            this.execSync(`ssh ${SSH_OPT} ${REMOTE_URL} 'sudo bash -s -- -T${REMOTE_OUTPUT}/${TARBALL} ${INSTALL_OPTS}' < ${REMOTE_INSTALL_SCRIPT}`);
+          }
           this.log(`[RemoteInstall] installation to ${REMOTE_HOSTNAME} complete.`);
         } catch (e) {
           this.warning(`[RemoteInstall] installation to ${REMOTE_HOSTNAME} failed.\n`, e);

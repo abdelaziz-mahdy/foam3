@@ -33,7 +33,7 @@ foam.CLASS({
   cssTokens: [
     {
       name: 'menuBackground',
-      value: '$white'
+      value: '$backgroundDefault'
     },
     {
       name: 'borderSize',
@@ -53,9 +53,9 @@ foam.CLASS({
   ^ {
     background: $menuBackground;
     border-right: $borderSize;
-    border-right-color: $grey200;
+    border-right-color: $borderLight;
     box-shadow: $boxShadowSize;
-    color: $grey500;
+    color: $textTertiary;
     display: flex;
     flex-direction: column;
     height: 100%;

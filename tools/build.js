@@ -396,7 +396,7 @@ function moreUsage(arg) {
 var ENVS = {
   EXPORTS:           ['Build environment variables which will be exported to pom tasks.', {}],
   OPTIONS:           ['Build options determined during tooling which can be configured to by CLI and POM arguments to control the build', {}],
-  POM_ENVS:          ['Supports translating top level POM parameters to build parameters, such as pom.name -> APP_NAME, pom.version -> VERSION.  Also provides legacy support to POMs still using top level POM parametes for Java Manifest and Javac Parameters. Java Manifest property \'vendor\' should be set in POM task \'javaManifest\' and \'java\' should be set in POM task \'javacParameters\'.', 'APP_NAME=name,VERSION=version,JAVA_RELEASE=java,JAVA_MANIFEST_VENDOR=vendor'],
+  POM_ENVS:          ['Supports translating top level POM parameters to build parameters, such as pom.version -> VERSION.  Also provides legacy support to POMs still using top level POM parametes for Java Manifest and Javac Parameters. Java Manifest property \'vendor\' should be set in POM task \'javaManifest\' and \'java\' should be set in POM task \'javacParameters\'.', 'VERSION=version,JAVA_RELEASE=java,JAVA_MANIFEST_VENDOR=vendor'],
   POM_TASKS:         ['Map of named tasks captured from build POMs. Will be executed when same named build task is executed.', {}],
   PROJECT:           ['Top-Level Loaded POM Object, not be be confused with variable \'POMS\', which is the name of the POM(s) to be processed by the build'],
   TOOLING_OPTIONS:   ['Options which control the tooling phase of the build', {}],
@@ -602,12 +602,8 @@ function pom() {
       poms.push(fn);
   };
 
-  if ( ! POMS ) {
-    POMS = 'pom';
-  }
-
   var root = false;
-  POMS.split(',').forEach(c => {
+  POMS && POMS.split(',').forEach(c => {
     addPom(c && `${PROJECT_HOME}/${c}`);
     root = root || c == 'pom';
   });
@@ -617,8 +613,11 @@ function pom() {
   // pom will most likely be set to a deployment pom via -J. The build
   // will fail if the foam pom is not specified.
   if ( ! root ) {
-    poms.unshift('pom');
-    POMS = comma('pom', POMS);
+    if ( poms.length > 0 ) {
+      poms.splice(1, 0, 'pom');
+    } else {
+      poms.push('pom');
+    }
     warning('Added /pom');
   }
 

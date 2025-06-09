@@ -19,8 +19,8 @@ foam.CLASS({
     ^ {
       padding: 7px;
       borderRadius: 4px;
-      border: 1px solid $grey500;
-      color: $black;
+      border: 1px solid $borderDefault;
+      color: $textDefault;
       height: 100%;
     }
     ^filter-selection {

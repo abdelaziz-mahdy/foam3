@@ -240,7 +240,7 @@ foam.CLASS({
       section: 'scheduling',
       view: function(_, X) {
         return X.E()
-          .start(foam.u2.borders.BackgroundCard, { backgroundColor: '#DADDE2', padding: false })
+          .start(foam.u2.borders.BackgroundCard, { backgroundColor: '$backgroundSecondary', padding: false })
           .start(foam.u2.borders.SpacingBorder, { padding: '0.8rem 1rem' })
             .start(foam.u2.HTMLView, { data: X.data.schedulableNote }).end()
           .end().end();

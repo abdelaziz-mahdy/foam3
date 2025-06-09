@@ -193,13 +193,13 @@ foam.CLASS({
       line-height: 1;
       min-height: 1em;
       width: 100%;
-      color: $grey700;
+      color: $textSecondary;
     }
     ^supportingLabel {
       line-height: 1;
       min-height: 1em;
       width: 100%;
-      color: $grey500;
+      color: $textTertiary;
     }
     ^u2 ^supportingLabel,^u2 ^label {
       display: contents;

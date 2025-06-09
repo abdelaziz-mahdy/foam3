@@ -7,10 +7,7 @@
 foam.POM({
   name: 'foam-full',
   version: 3,
-  envs: {
-    APP_NAME: 'foam',
-  },
-  excludes: [ 'build', 'deployment', 'foam3', 'node_modules' ],
+  excludes: [ 'build', 'deployment', 'foam3', 'node_modules', 'doc/templates' ],
   projects: [
     { name: 'src/pom' },
     { name: 'src/foam/core/pom' },

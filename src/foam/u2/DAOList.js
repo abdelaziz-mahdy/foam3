@@ -63,9 +63,9 @@ foam.CLASS({
   }
   ^nav{
     align-items: center;
-    background: $white;
+    background: $backgroundDefault;
     border-radius: 0 0 4px 4px;
-    border-top: 1px solid $grey300;
+    border-top: 1px solid $borderDefault;
     box-sizing: border-box;
     gap: 8px;
     justify-content: flex-end;
@@ -82,7 +82,7 @@ foam.CLASS({
     border-radius: 0px;
     padding: 0px;
     height: auto;
-    border-bottom: 2px solid $primary400;
+    border-bottom: 2px solid $borderBrand;
   }
   `,
 
@@ -129,7 +129,7 @@ foam.CLASS({
           min-height: 20px;
           padding: 8px;
           border-radius: $inputBorderRadius;
-          background: $grey50;
+          background: $backgroundSecondary;
         }
         ^expand-icon.foam-u2-ActionView-expand {
           transition: 0.1s ease;
@@ -247,7 +247,7 @@ foam.CLASS({
         gap: 8px;
         min-height: 20px;
         border-radius: $inputBorderRadius;
-        border: 1.5px solid $grey50;
+        border: 1.5px solid $borderXLight;
         transition: all 0.2s ease;
       }
       ^ > div {
@@ -257,8 +257,8 @@ foam.CLASS({
         flex: 1;
       }
       ^clickable:hover {
-        background: $primary50;
-        border-color: $primary50;
+        background: $backgroundBrandTertiary;
+        border-color: $borderBrandXLight;
         cursor: pointer;
       }
       ^svg-wrapper{
@@ -271,7 +271,7 @@ foam.CLASS({
         fill: black;
       }
       ^clickable:hover ^svg-wrapper svg {
-        fill: $primary700;
+        fill: $textBrandSecondary;
       }
     `,
 

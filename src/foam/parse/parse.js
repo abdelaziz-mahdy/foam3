@@ -49,13 +49,43 @@
 
 foam.CLASS({
   package: 'foam.parse',
+  name: 'Suggestion',
+
+  properties: [
+    { name: 'text' }
+  ]
+});
+
+
+/*
+foam.CLASS({
+  package: 'foam.parse',
+  name: 'AltSuggestion',
+  extends: 'foam.parse.Suggestion',
+
+  properties: [
+    { name: 'parsers' },
+    {
+      name: 'suggestions',
+      factory: function() { this.parsers.map(p => p.suggest()).filter(s => s); }
+    },
+    {
+      name: 'label',
+      factory: function() { return '< ' + this.suggestions.map(s => s.label).join(' | ') + ' >'; }
+    }
+  ]
+});
+*/
+
+
+foam.CLASS({
+  package: 'foam.parse',
   name: 'AbstractParser',
   abstract: true,
 
   methods: [
     function parseString(str) {
-      const ps = this.StringPStream.create();
-      ps.setString(str);
+      const ps = this.StringPStream.create({str: str});
 
       var result = this.ps.apply(start, this);
       return result && result.value;
@@ -323,6 +353,31 @@ foam.CLASS({
         strs[i] = args[i].toString();
       }
       return 'seq(' + strs.join(', ') + ')';
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.parse',
+  name: 'Suggest',
+  extends: 'foam.parse.ParserDecorator',
+  properties: [
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.Suggestion',
+      name: 'suggestion'
+    }
+  ],
+  methods: [
+    function parse(ps, obj) {
+      return ps.apply(this.p, obj);
+    },
+    function suggest() {
+      return this.suggestion;
+    },
+    function toString() {
+      return 'suggest(' + this.SUPER() + ')';
     }
   ]
 });
@@ -600,8 +655,8 @@ foam.CLASS({
 
   methods: [
     function parse(ps, obj) {
-      var ret = [];
-      var p = this.p;
+      var ret   = [];
+      var p     = this.p;
       var delim = this.delimiter;
 
       while ( ps.valid ) {
@@ -626,7 +681,7 @@ foam.CLASS({
     function toString() {
       var str = 'repeat(' + this.SUPER();
       if ( this.delimiter ) str += ', ' + this.delimiter;
-      if ( this.minimum ) str += ', ' + this.minimum;
+      if ( this.minimum   ) str += ', ' + this.minimum;
       str += ')';
       return str;
     }
@@ -848,7 +903,7 @@ foam.CLASS({
   package: 'foam.parse',
   name: 'Symbol',
 
-  documentation: `Parses based on the parser property named.`,
+  documentation: 'Parses based on the parser property named.',
 
   properties: [
     {
@@ -896,6 +951,7 @@ foam.CLASS({
     'foam.parse.String',
     'foam.parse.StringPStream',
     'foam.parse.Substring',
+    'foam.parse.Suggest',
     'foam.parse.Symbol',
     'foam.parse.Until',
     'foam.parse.Until0',
@@ -906,6 +962,7 @@ foam.CLASS({
 
   methods: [
     function stringPStream(s) {
+      // return this.StringPStream.create({str: s}); // Why doesn't this work?
       var ps = this.StringPStream.create();
       ps.setString(s);
       return ps;
@@ -964,6 +1021,13 @@ foam.CLASS({
     function seq0() {
       return this.Sequence0.create({
         args: Array.from(arguments)
+      });
+    },
+
+    function sug(p, s) {
+      return this.Suggest.create({
+        p: p,
+        suggestion: s
       });
     },
 
@@ -1167,9 +1231,10 @@ foam.CLASS({
       };
     },
 
-    function parseString(str, opt_name) {
+    function parseString(str, opt_name, opt_apply) {
       opt_name = opt_name || 'START';
 
+      this.ps.apply = opt_apply;
       this.ps.setString(str);
       var start = this.getSymbol(opt_name);
       foam.assert(start, 'No symbol found for', opt_name);
@@ -1327,7 +1392,7 @@ foam.CLASS({
 
   methods: [
     function installInProto(proto) {
-      var name = this.name;
+      var name  = this.name;
       var axiom = this;
       Object.defineProperty(proto, name, {
         get: function() {

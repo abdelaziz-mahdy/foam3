@@ -33,7 +33,7 @@ foam.CLASS({
     {
       class: 'foam.u2.ColorToken',
       name: 'overlayButtonHighlight',
-      value: '$primary50'
+      value: '$backgroundBrandTertiary'
     }
   ],
 
@@ -98,7 +98,7 @@ foam.CLASS({
 
     ^button-container button {
       border: 1px solid transparent;
-      background-color: $white;
+      background-color: $backgroundDefault;
       justify-content: space-between;
       text-align: left;
       white-space: nowrap;
@@ -115,7 +115,7 @@ foam.CLASS({
     }
 
     ^disabled {
-      color: $grey600;
+      color: $textTertiary;
     }
 
     ^button-container button:hover:not(:disabled) {

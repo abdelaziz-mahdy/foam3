@@ -20,8 +20,8 @@ foam.CLASS({
       gap: 2.4rem;
     }
     ^copy-box{
-      background: $primary50;
-      border: 1px dashed $primary400;
+      background: $backgroundBrandTertiary;
+      border: 1px dashed $borderBrand;
       padding: 1.5rem;
       text-align: center;
       width: 100%;
@@ -38,14 +38,14 @@ foam.CLASS({
     }
     ^header > .h300{
       font-weight: 900;
-      color: $primary400;
+      color: $textBrand;
     }
     ^item .h400 {
       line-height: 32px;
-      color: $primary400;
+      color: $textBrand;
     }
     ^header > .p,^item .p {
-      color: $grey500;
+      color: $textTertiary;
     }
     ^item-header {
       padding-bottom: 1.6rem;
@@ -118,7 +118,7 @@ foam.CLASS({
 
       let iconConfig = {
         size: 32,
-        backgroundColor: this.color = foam.CSS.returnTokenValue('$primary50', this.cls_, this.__subContext__)
+        backgroundColor: this.color = foam.CSS.returnTokenValue('$backgroundBrandTertiary', this.cls_, this.__subContext__)
       }
       let fill = foam.CSS.returnTokenValue('$primary700', this.cls_, this.__subContext__)
 

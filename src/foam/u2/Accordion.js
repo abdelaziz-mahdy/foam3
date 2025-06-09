@@ -30,7 +30,7 @@ foam.CLASS({
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
-      color: $grey700;
+      color: $textSecondary;
       cursor: pointer;
       width: 100%;
     }
@@ -51,7 +51,7 @@ foam.CLASS({
     ^control svg {
       max-height: 1em;
       max-width: 1em;
-      fill: $black;
+      fill: $textDefault;
     }
   `,
 
