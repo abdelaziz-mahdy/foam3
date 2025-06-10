@@ -19,7 +19,7 @@ foam.CLASS({
       [ 'CSV', 'CSV', true ],
       [ 'JSON', 'JSON', true ],
       [ 'XML', 'XML', true ],
-      [ 'Table', 'Table', true ],
+      [ 'Table', 'Table', false ],
       [ 'GridBy', 'GridBy', true ],
       [ 'GroupBy', 'GroupBy', true ],
       [ 'Cells', 'Cells', true ],

@@ -164,20 +164,22 @@ public class UserCreatedNotificationRuleAction extends DAONotificationRuleAction
 }
 ```
 
-2. Register the rule in `deployment/your-environment/daoConfig.jrl`:
+2. Register the rule in `deployment/your-environment/rules.jrl`:
 
 ```javascript
 p({
-  class: 'foam.dao.DAOConfig',
-  id: 'userDAO',
-  rules: [
-    {
-      class: 'foam.core.notification.DAONotificationRule',
-      action: {
-        class: 'your.package.notification.UserCreatedNotificationRuleAction'
-      }
-    }
-  ]
+  "class":"foam.core.ruler.Rule",
+  "id":"your-package-notification-UserCreatedNotificationRule",
+  "name":"UserCreatedNotificationRule",
+  "documentation":"Generate notification to new user on user creation",
+  "enabled":true,
+  "ruleGroup": "auth",
+  "daoKey": "localUserDAO",
+  "operation": 0,
+  "lifecycleState": 1,
+  action: {
+    "class": "your.package.notification.UserCreatedNotificationRuleAction"
+  }
 })
 ```
 

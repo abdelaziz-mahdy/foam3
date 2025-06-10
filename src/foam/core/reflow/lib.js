@@ -10,23 +10,36 @@ foam.LIB({
   methods: [
     {
       name: 'round',
-      code: Math.round
+      code: function (n) {
+        /* Round a number to the nearest integer. */
+        return Math.round(n);
+      }
     },
     {
       name: 'abs',
-      code: Math.abs
+      code: function (n) {
+        /* Return the absolute value of a number. */
+        return Math.abs(n);
+      }
     },
     {
       name: 'diff',
-      code: function(a, b) { return Math.abs(a-b); }
+      code: function(a, b) {
+        /* Return the positive difference between two numbers. */
+        return Math.abs(a-b);
+      }
     },
     {
       name: 'fix',
-      code: function(num, precision) { return num.valueOf().toFixed(precision); }
+      code: function(num, precision) {
+        /* Convert a number to a fixed precision. */
+        return num.valueOf().toFixed(precision);
+      }
     },
     {
       name: 'currency',
       code: function(amt, opt_precision) {
+        /* Format a number as a currency with the specified number of decimal places. */
         return amt.toLocaleString(
           foam.locale,
           foam.Undefined.isInstance(opt_precision) ?
@@ -36,31 +49,45 @@ foam.LIB({
     },
     {
       name: 'lPad',
-      code: function(str, len, char) { return str.padStart(len, char || '0'); }
+      code: function(str, len, char) {
+        /* Left pad the supplied string to the specified length using the supplied character, or '0' is not specified. */
+        return str.padStart(len, char || '0');
+      }
     },
     {
       name: 'rPad',
-      code: function(str, len, char) { return str.padEnd(len, char || '0'); }
+      code: function(str, len, char) {
+        /* Right pad the supplied string to the specified length using the supplied character, or '0' is not specified. */
+        return str.padEnd(len, char || '0');
+      }
     },
     {
       name: 'lMask',
       code: function(str, len, char) {
+        /* Left mask the specified number of characters. */
         return this.lPad(str.substring(len), str.length, char || '*');
       }
     },
     {
       name: 'rMask',
       code: function(str, len, char) {
+        /* Right mask the specified number of characters. */
         return this.rPad(str.substring(0, str.length-len), str.length, char || '*');
       }
     },
     {
       name: 'toLowerCase',
-      code: function(s) { return s ? s.toString().toLowerCase() : ''; }
+      code: function(s) {
+        /* Convert a string to lower case. */
+        return s ? s.toString().toLowerCase() : '';
+      }
     },
     {
       name: 'toUpperCase',
-      code: function(s) { return s ? s.toString().toUpperCase() : ''; }
+      code: function(s) {
+        /* Convert a string to upper case. */
+        return s ? s.toString().toUpperCase() : '';
+      }
     }
   ]
 });
