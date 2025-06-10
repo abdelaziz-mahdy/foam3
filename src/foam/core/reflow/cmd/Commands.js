@@ -9,9 +9,9 @@
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Command',
-  
+
   implements: [ 'foam.core.auth.Authorizable' ],
-  
+
   requires: [ 'foam.u2.Link' ],
 
   javaImports: [
@@ -58,7 +58,7 @@ foam.CLASS({
       javaCode: `
         if ( getPermissionRequired() ) {
           AuthService auth = (AuthService) x.get("auth");
-          if ( ! auth.check(x, "command.read."+getId()) ) {
+          if ( ! auth.check(x, "command.read." + getId()) ) {
             throw new AuthorizationException();
           }
         }
@@ -70,9 +70,7 @@ foam.CLASS({
       javaThrows: ['AuthorizationException'],
       javaCode: `
         AuthService auth = (AuthService) x.get("auth");
-        if (
-          ! auth.check(x, "command.update." + getId())
-        ) {
+        if ( ! auth.check(x, "command.update." + getId()) ) {
           throw new AuthorizationException();
         }
       `
@@ -83,9 +81,7 @@ foam.CLASS({
       javaThrows: ['AuthorizationException'],
       javaCode: `
         AuthService auth = (AuthService) x.get("auth");
-        if (
-          ! auth.check(x, "command.remove." + getId())
-        ) {
+        if ( ! auth.check(x, "command.remove." + getId()) ) {
           throw new AuthorizationException();
         }
       `
