@@ -14,11 +14,11 @@ foam.CLASS({
   cssTokens: [
     {
       name: 'sidebarBoxShadow',
-      value: '1px 1px 7px 0px rgba(209, 217, 230, 0.60)',
+      value: 'none',
     },
     {
       name: 'borderColor',
-      value: '$grey300'
+      value: '$borderDefault'
     }
   ],
 

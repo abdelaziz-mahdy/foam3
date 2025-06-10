@@ -251,7 +251,7 @@ foam.CLASS({
         out.print(theme.getAppName());
         out.println("\\" bootservices=\\"" + getBootservices() + "\\">");
 
-        out.print("<div style=\\" text-align:center;height:100%;display: flex;vertical-align:middle;width: 100%;flex-direction: column;justify-content: center;align-items: center; \\">");
+        out.print("<div style=\\" background: black; color:white;text-align:center;height:100%;display: flex;vertical-align:middle;width: 100%;flex-direction: column;justify-content: center;align-items: center; \\">");
         out.print("<img style=\\" max-width: 400px; \\" src=\\"");
         out.print(theme.getLargeLogo());
         out.println("\\"></img>");

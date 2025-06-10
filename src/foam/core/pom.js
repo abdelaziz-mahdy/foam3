@@ -20,7 +20,7 @@ foam.POM({
   projects: [
     { name: "app/pom" },
     { name: "auth/pom" },
-    { name: "console/pom" },
+    { name: "reflow/pom" },
     { name: "er/pom" },
     { name: "jetty/pom" },
     { name: "medusa/pom" },
@@ -162,6 +162,7 @@ foam.POM({
     { name: "menu/DAOMenu",                                                               flags: "js" },
     { name: "menu/DAOMenu2",                                                              flags: "web" },
     { name: "menu/DocumentMenu",                                                          flags: "js" },
+    { name: "menu/FlowMenu",                                                              flags: "js" },
     { name: "menu/SeparatorMenu",                                                         flags: "js" },
     { name: "menu/DocumentFileMenu",                                                      flags: "js|java" },
     { name: "menu/LinkMenu",                                                              flags: "js" },

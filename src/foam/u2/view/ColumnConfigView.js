@@ -36,17 +36,13 @@ foam.CLASS({
     ^resetButton {
       float: right;
       background: none;
-      color: $primary400;
+      color: $textBrand;
     }
     ^resetButton:hover:not(:disabled) {
       text-decoration: underline;
-      color: $primary400;
-    }
-    ^resetButton:focus {
-      color: $primary400;
     }
     ^resetButton:disabled {
-      color: $grey500;
+      color: $textTertiary;
     }
     ^colContainer {
       overflow-x: hidden;
@@ -546,7 +542,7 @@ foam.CLASS({
     justify-content: space-between;
   }
   ^some-padding:hover {
-    background-color: $primary50;
+    background-color: $backgroundBrandTertiary;
     border-radius: 4px;
   }
   ^label {

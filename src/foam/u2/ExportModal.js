@@ -31,7 +31,7 @@ foam.CLASS({
       gap: 12px;
     }
     ^ .foam-u2-TextInputCSS {
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
 
     }
     ^ .foam-u2-TextInputCSS option {
@@ -43,14 +43,14 @@ foam.CLASS({
       gap: 5px;
     }
     ^dimmed-text {
-      color: $grey600;
+      color: $textSecondary;
     }
     ^datatype-text {
       font-weight: bold;
-      color: $grey700;
+      color: $textSecondary;
     }
     ^divided-sec {
-      border-top: 1px solid $grey500;
+      border-top: 1px solid $borderDefault;
       padding-top: 10px;
     }
     ^ .foam-u2-borders-ExpandableBorder-container {

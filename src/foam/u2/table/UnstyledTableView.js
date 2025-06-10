@@ -49,7 +49,6 @@ foam.CLASS({
     'auth?',
     'config? as importedConfig',
     'filteredTableColumns?',
-    'memento',
     'stack?',
     'selection? as importSelection'
   ],

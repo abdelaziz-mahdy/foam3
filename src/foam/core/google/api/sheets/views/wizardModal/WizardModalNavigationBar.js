@@ -22,7 +22,7 @@ foam.CLASS({
       width: 100%;
       padding: 24px;
       box-sizing: border-box;
-      background-color: #fafafa;
+      background-color: $backgroundDefault;
     }
     ^ .foam-u2-ActionView-back,
     ^ .foam-u2-ActionView-option,
@@ -30,32 +30,6 @@ foam.CLASS({
       display: table-cell;
       vertical-align: middle;
       height: 40px;
-    }
-    ^ .foam-u2-ActionView-option {
-      background-color: $white;
-      color: $primary400;
-      border: 1px solid $primary400 !important;
-      margin-right: 10px;
-    }
-    ^ .foam-u2-ActionView-option:hover {
-      background-color: $white;
-    }
-    ^ .foam-u2-ActionView-back {
-      position: relative;
-      top: 0;
-      border: none;
-      width: auto;
-      color: #525455;
-      margin-right: 24px;
-      background-color: transparent;
-      box-shadow: none;
-    }
-    ^ .foam-u2-ActionView-back:hover {
-      background-color: transparent;
-    }
-    ^ .foam-u2-ActionView-next {
-      padding: 8px 24px;
-      background-color: $primary400;
     }
   `,
 
@@ -86,11 +60,11 @@ foam.CLASS({
       this.start('div').addClass(this.myClass('container'))
         .callIf(this.back, function() {
           // If NEXT exists, render that action
-          this.tag(self.back, { buttonStyle: 'TERTIARY' });
+          this.tag(self.back, { buttonStyle: 'LINK' });
         })
         .callIf(this.option, function() {
           // If option exists, render that action
-          this.tag(self.option, { buttonStyle: 'SECONDARY' });
+          this.tag(self.option, { buttonStyle: 'TEXT' });
         })
         .callIf(this.next, function() {
           // If BACK exists, render that action

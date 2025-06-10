@@ -49,8 +49,8 @@ foam.CLASS({
       background: rgb(238, 238, 238);
       overflow: none;
     }
-    button { padding: 6px; background: $white!important; }
-    button span { background:$white; }
+    button { padding: 6px; background: $backgroundDefault!important; }
+    button span { background:$backgroundDefault; }
     .foam-u2-ActionView-medium { height: 34px !important; background: pink; }
     .foam-u2-table-TableView { height: auto !important; }
   `,

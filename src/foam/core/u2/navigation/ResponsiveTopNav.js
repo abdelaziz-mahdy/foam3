@@ -28,7 +28,12 @@ foam.CLASS({
     },
     {
       name: 'borderSize',
-      value: '2px solid rgba(0, 0, 0, 0.06)'
+      value: '2px solid'
+    },
+    {
+      name: 'borderColor',
+      variantKey: 'color',
+      value: function(e) { return e.ADJUST_ALPHA(e.TOKEN('$textDefault'), 0.06) }
     }
   ],
 
@@ -37,6 +42,7 @@ foam.CLASS({
       align-items: center;
       background-color: $topNavBackground;
       border-bottom: $borderSize;
+      border-color: $borderColor;
       display: flex;
       min-height: 64px;
       justify-content: space-between;

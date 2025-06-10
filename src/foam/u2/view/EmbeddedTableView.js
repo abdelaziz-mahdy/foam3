@@ -33,7 +33,7 @@ foam.CLASS({
       max-height: 56px;
       width: 100%;
     }
-    ^wrapper{
+    ^wrapper.foam-u2-borders-CardBorder{
       box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1);
       padding: 0px;
     }

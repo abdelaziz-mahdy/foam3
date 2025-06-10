@@ -148,7 +148,7 @@ foam.CLASS({
       max-width: 100%;
     }
     ^addButton.foam-u2-ActionView {
-      border: 1.5px dashed $grey300;
+      border: 1.5px dashed $borderDefault;
       justify-content: flex-start;
       text-align: left;
       width: 100%;
