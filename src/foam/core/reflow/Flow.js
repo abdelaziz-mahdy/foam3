@@ -67,12 +67,13 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'isPublic',
-      value: true
-      
+      value: true,
+      view: { class: 'foam.u2.Switch' }
     },
     {
       class: 'Boolean',
-      name: 'readOnly'
+      name: 'readOnly',
+      view: { class: 'foam.u2.Switch' }
     },
     {
       name: 'lastModifiedByAgent',

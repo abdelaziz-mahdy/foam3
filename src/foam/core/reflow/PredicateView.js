@@ -20,6 +20,9 @@ foam.CLASS({
   ],
 
   css: `
+    ^ {
+      cursor: pointer;
+    }
     ^helper-icon svg { fill: currentColor; }
     ^helper-icon { vertical-align: sub; padding: 6px; }
   `,
@@ -57,7 +60,7 @@ foam.CLASS({
           style({display: 'flex'}).
           tag(this.TextField, {data$: this.data$, size: 40, type: 'search'}).
           startContext({data: this}).add(this.CHOICES).endContext().
-          start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).
+          start(this.CircleIndicator, {glyph: 'helpIcon', size: 60}).
             addClass(this.myClass('helper-icon')).
             on('click', this.mqlHelp).
           end();
@@ -66,7 +69,7 @@ foam.CLASS({
 
   listeners: [
     function mqlHelp() {
-      this.eval_('mqlhelp', true);
+      this.eval_('helpMQL', true);
     }
   ],
 
