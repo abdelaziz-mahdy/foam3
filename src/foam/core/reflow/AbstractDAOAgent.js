@@ -256,9 +256,51 @@ foam.CLASS({
   name: 'TableDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
+  requires: [
+    'foam.comics.v2.DAOControllerConfig',
+    'foam.u2.table.TableView'
+  ],
+
+  properties: [
+    {
+      class: 'StringArray',
+      name: 'columns'
+    },
+    {
+      name: 'selection', hidden: true
+    }
+  ],
+
   methods: [
     function execute(e) {
-      e.start({class: 'foam.u2.table.TableView', data: this.unlimitedDAO}).style({height: '700px'});
+      var self = this;
+
+      this.columns$ = this.block.value.columns$;
+      this.block.value.value = this;
+
+      e.add(this.dynamic(function(columns) {
+        var config = {
+          data: self.unlimitedDAO,
+          config: self.DAOControllerConfig.create({
+            dao: self.unlimitedDAO,
+            disableSelection: false
+          })
+        };
+
+        if ( columns.length ) {
+          config.selectedColumnNames = columns;
+        }
+
+        this.startContext({click: self.click}).
+          start(self.TableView, config).
+            style({height: '700px'});
+      }));
+    }
+  ],
+
+  listeners: [
+    function click(_, id) {
+      this.selection = id;
     }
   ]
 });

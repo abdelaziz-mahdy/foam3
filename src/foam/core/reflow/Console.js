@@ -110,8 +110,8 @@ foam.CLASS({
       this.
         addClass().
         start('table').
-        attr('cellpadding', '4').
-        call(this.branch, [this, this.data, 0]);
+          attr('cellpadding', '4').
+          call(this.branch, [this, this.data, 0]);
     },
 
     function branch(self, data, depth) {
@@ -136,6 +136,7 @@ foam.CLASS({
       }));
     }
   ],
+
   actions: [
     {
       name: 'close',
@@ -496,7 +497,9 @@ foam.CLASS({
     },
     'currentBlock',
     {
-      name: 'selected', postSet: function(o, n) { this.selectedValue = n ? n.value : null; console.log('*** selected=>', n && n.flowName); }
+      name: 'selected',
+      postSet: function(o, n) { this.selectedValue = n ? n.value : null; console.log('*** selected=>', n && n.flowName); },
+      factory: function() { return this; }
     },
     {
       name: 'selectedValue', postSet: function(o, n) { console.log('*** selectedValue=>', n); }

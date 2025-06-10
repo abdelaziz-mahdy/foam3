@@ -92,8 +92,9 @@ foam.CLASS({
     {
       class: 'Long',
       name: 'id',
-      createVisibility: 'HIDDEN',
-      updateVisibility: 'RO'
+      createVisibility: 'RW',
+      updateVisibility: 'RO',
+      updatePermissionRequired: true
     },
     {
       class: 'String',

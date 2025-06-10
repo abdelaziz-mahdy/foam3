@@ -10,7 +10,14 @@ foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Command',
 
+  implements: [ 'foam.core.auth.Authorizable' ],
+
   requires: [ 'foam.u2.Link' ],
+
+  javaImports: [
+    'foam.core.auth.AuthService',
+    'foam.core.auth.AuthorizationException'
+  ],
 
   imports: [ 'currentBlock', 'log', 'out', 'eval_' ],
 
@@ -20,7 +27,8 @@ foam.CLASS({
     { class: 'String',  name: 'id' },
     { class: 'String',  name: 'description' },
     { class: 'Code',    name: 'script' },
-    { class: 'Boolean', name: 'linkable', value: true }
+    { class: 'Boolean', name: 'linkable', value: true },
+    { class: 'Boolean', name: 'permissionRequired' }
   ],
 
   methods: [
@@ -34,6 +42,49 @@ foam.CLASS({
           }
         }
       }
+    },
+    {
+      name: 'authorizeOnCreate',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        // nop - open to write
+      `
+    },
+    {
+      name: 'authorizeOnRead',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        if ( getPermissionRequired() ) {
+          AuthService auth = (AuthService) x.get("auth");
+          if ( ! auth.check(x, "command.read." + getId()) ) {
+            throw new AuthorizationException();
+          }
+        }
+      `
+    },
+    {
+      name: 'authorizeOnUpdate',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        AuthService auth = (AuthService) x.get("auth");
+        if ( ! auth.check(x, "command.update." + getId()) ) {
+          throw new AuthorizationException();
+        }
+      `
+    },
+    {
+      name: 'authorizeOnDelete',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        AuthService auth = (AuthService) x.get("auth");
+        if ( ! auth.check(x, "command.remove." + getId()) ) {
+          throw new AuthorizationException();
+        }
+      `
     }
   ],
 
@@ -98,6 +149,42 @@ foam.CLASS({
               start('th').attr('width', '250').attr('align', 'left').add(c[0]).end().
               start('td').add(c[1]);
           }).
+        end();
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'HelpFunctions',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  properties: [
+    { name: 'id', value: 'helpFunctions' },
+    [ 'description', 'Display help for built-in functions.' ]
+  ],
+
+  methods: [
+    function execute(q) {
+      if ( q ) q = q.toLowerCase();
+
+      var self = this;
+      var fns  = Object.keys(foam.core.reflow.lib).sort();
+
+      this.out.start('h3').add('Functionss').end().
+      start('table').style({width: 'max-content'}).
+        forEach(fns, function(f) {
+          if ( q && f.toLowerCase().indexOf(q) == -1 ) return;
+
+          var comment = foam.Function.functionComment(foam.core.reflow.lib[f]);
+
+          this.start('tr').
+            start('th').attr('width', '250').attr('align', 'left').call(function() {
+              this.add(f);
+            }).end().
+            start('td').attr('align', 'left').add(comment);
+        }).
         end();
     }
   ]
@@ -218,15 +305,16 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
 
-  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO' ],
 
   properties: [
-    [ 'description', 'Display available DAO services' ]
+    [ 'description', 'Display available DAO services', 'uploadAvailable' ]
   ],
 
   methods: [
     function execute(opt_nameQuery) {
       var self = this;
+      this.commandDAO.find('upload').then( r => this.uploadAvailable = !! r );
       var dao  = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
       var count = foam.lang.SimpleSlot.create({value: 0});
       if ( opt_nameQuery ) dao = dao.where(
@@ -275,6 +363,7 @@ foam.CLASS({
               start(self.Link).add('add').on('click', addFn).end().
             end().
             start('td').attr('align', 'left').
+              show(self.uploadAvailable).
               start(self.Link).add('upload').on('click', uplFn).end().
             end()
             ;
