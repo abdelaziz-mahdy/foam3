@@ -68,6 +68,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'isPublic',
       value: true
+      
     },
     {
       class: 'Boolean',
@@ -176,7 +177,7 @@ foam.CLASS({
       isEnabled: function(name, revision) { return name && name !== 'Unnamed' && revision; },
       isAvailable: function() {
         // Enable in Reflow, but disable in DAOController (because DAOController already has save feature)
-        return this.__context__.flow;
+        return false;
       }
     },
     {

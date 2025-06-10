@@ -87,7 +87,8 @@ foam.CLASS({
     ^chevron {
        color: $grey700;
     }
-    ^title {
+    ^title input {
+      border: none;
       color: $black;
     }
     ^header-actions {
@@ -115,23 +116,24 @@ foam.CLASS({
           .start().addClass(this.myClass('navigator'))
             .tag(this.HOME)
             .start(foam.u2.tag.Image, {
-              data: 'images/right-chevron.svg',
+              glyph: 'rightChevron',
               embedSVG: true
             }).addClass(this.myClass('chevron')).end()
             .startContext({data: this})
               .tag(this.REFLOWS)
             .endContext()
             .start(foam.u2.tag.Image, {
-              data: 'images/right-chevron.svg',
+              glyph: 'rightChevron',
               embedSVG: true
             }).addClass(this.myClass('chevron')).end()
-            .start('span').addClass(this.myClass('title')).add(this.data.flowName$).end()
+            .start('span').addClass(this.myClass('title')).add(this.data.FLOW_NAME).end()
           .end()
 
           .start().addClass(this.myClass('header-actions'))
-            .start().addClass(self.myClass('save-text'))
-              .add('The Flow is saved automatically')
-            .end()
+            .startContext({ data: this.data.value.mementoMgr })
+              .tag(this.data.value.mementoMgr.BACK)
+              .tag(this.data.value.mementoMgr.FORTH)
+            .endContext()
             .startContext({data: this})
               .tag(this.CANCEL)
               .tag(this.SAVE)
@@ -170,7 +172,7 @@ foam.CLASS({
     },
     {
       name: 'edit',
-      label: 'Edit',
+      label: 'Edit View',
       buttonStyle: foam.u2.ButtonStyle.SECONDARY,
       size: 'SMALL',
       isAvailable: function(showPrompts) {
@@ -207,7 +209,7 @@ foam.CLASS({
     },
     {
       name: 'reset',
-      label: 'Reset',
+      label: 'New',
       buttonStyle: foam.u2.ButtonStyle.TEXT,
       size: 'SMALL',
       isAvailable: function(showPrompts) {
