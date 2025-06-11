@@ -142,7 +142,6 @@ foam.CLASS({
       class: 'Int',
       name: 'revision',
       transient: true,
-      value: 1,
       xxxview: {
         class: 'foam.u2.view.DualView',
         viewa: { class: 'foam.u2.IntView' },
