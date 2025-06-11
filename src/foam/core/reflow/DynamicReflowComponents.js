@@ -82,30 +82,26 @@ foam.CLASS({
               .forEach(filtered, function(command) {
                 this.start().addClass(self.myClass('command-item'))
                   .add(command.description)
-                  .start(foam.u2.tag.Button, {
-                    name: 'add',
-                    label: 'Add',
-                    buttonStyle: foam.u2.ButtonStyle.SECONDARY,
-                    size: 'SMALL',
-                    themeIcon: 'plus'
-                  })
-                    .addClass(self.myClass('command-item-button'))
-                    .on('click', function() {
-                      self.addComponent(command);
-                    })
+                  .startContext({ data: self, command: command })
+                    .tag(self.ADD_COMPONENT)
+                  .endContext()
                 .end();
               })
           }))
         .end();
     }
   ],
-
-  listeners: [
+  actions: [
     {
       name: 'addComponent',
-      code: function(command) {
-        this.data.eval_(command.id);
+      label: 'Add',
+      buttonStyle: foam.u2.ButtonStyle.SECONDARY,
+      size: 'SMALL',
+      themeIcon: 'plus',
+      code: function() {
+        console.log('this.data ===>', this.data)
+        console.log('this.command ==>', this.command)
       }
-    },
+    }
   ]
 });

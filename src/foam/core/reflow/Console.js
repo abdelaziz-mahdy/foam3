@@ -64,7 +64,7 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow',
-  name: 'reflowHeader',
+  name: 'ReflowHeader',
   extends: 'foam.u2.View',
 
   requires: [
@@ -102,9 +102,6 @@ foam.CLASS({
     }
     ^save-text {
       color: $grey700;
-    }
-    ^ .foam-u2-ActionView-reset {
-      color: $black;
     }
   `,
 
@@ -162,7 +159,7 @@ foam.CLASS({
       themeIcon: 'home',
       size: 'SMALL',
       code: function() {
-
+        window.location.hash = '#';
       }
     },
     {
@@ -226,7 +223,7 @@ foam.CLASS({
     {
       name: 'reset',
       label: 'New',
-      buttonStyle: foam.u2.ButtonStyle.TEXT,
+      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
       size: 'SMALL',
       isAvailable: function(showPrompts) {
         return showPrompts;
@@ -271,10 +268,7 @@ foam.CLASS({
     }
     ^ table td .close {
       font-size: 1.2rem;
-    }
-    .foam-u2-ActionView-close {
-      color: $grey700!important;
-    }
+    } 
     .foam-u2-ActionView-text:hover:not(:disabled) {
       background-color: $grey400!important;
     }
@@ -300,9 +294,7 @@ foam.CLASS({
       font-weight: bold;
       font-size: 16px;
     }
-    ^ .foam-u2-ActionView-menuControl {
-      color: $black;
-    }
+
     ^icon-holder {
       display: flex;
       justify-content: center;
@@ -751,7 +743,7 @@ foam.CLASS({
   mixins: [ 'foam.core.reflow.Flowable', 'foam.u2.memento.Memorable' ],
 
   requires: [
-    'foam.core.reflow.reflowHeader',
+    'foam.core.reflow.ReflowHeader',
     'foam.core.reflow.ReactiveSectionedDetailView',
     'foam.core.reflow.RightSidebarOutputView',
     'foam.core.reflow.ReflowToolBar',
@@ -1028,7 +1020,7 @@ foam.CLASS({
       }));
       
       layout.header.add(this.dynamic(function(showPrompts) {
-        this.tag(self.reflowHeader, {data: self, showPrompts: showPrompts, resetFlow: self.clearFlow});
+        this.tag(self.ReflowHeader, {data: self, showPrompts: showPrompts, resetFlow: self.clearFlow});
       }));
 
       this.flowName$ = this.value.name$;

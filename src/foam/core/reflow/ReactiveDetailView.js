@@ -221,6 +221,13 @@ foam.CLASS({
     'foam.core.reflow.ReactiveSectionView'
   ],
 
+  css: `
+    ^card-container {
+      padding: 20px;
+      border-top: 1px solid $grey200;
+    }
+  `,
+
   properties: [
     [ 'showActions', true ],
     [ 'expandPropertyViews', false ]
