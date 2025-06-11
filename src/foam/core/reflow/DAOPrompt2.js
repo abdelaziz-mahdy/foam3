@@ -46,8 +46,6 @@ foam.CLASS({
               // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
               // TODO: fix JSON parsing should setup context corectly
               var select    = self.data.select.clone(self.data.__subContext__);
-              console.log('select ==>', select)
-              console.log('this ==>', this)
               await select.execute(this);
               self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
             })).
@@ -232,7 +230,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'skip',
-      label: 'Offset',
+      label: 'Skip',
       section: 'scroll',
       view: function(_, X) {
         return {

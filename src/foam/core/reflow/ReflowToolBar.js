@@ -42,15 +42,7 @@ foam.CLASS({
       gap: 10px;      
       align-items: center;
     }
-    ^ .foam-u2-ActionView {
-      border: none;
-      box-shadow: none;
-    }
     ^ .foam-u2-ActionView.selected {
-      background-color: $primary500;
-      color: $white!important;
-    }
-    ^ .foam-u2-ActionView.selected:hover {
       background-color: $primary500;
       color: $white!important;
     }
@@ -100,7 +92,7 @@ foam.CLASS({
     {
       name: 'collections',
       label: 'Data',
-      buttonStyle: foam.u2.ButtonStyle.SECONDARY,
+      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
       size: 'SMALL',
       themeIcon: 'file',
       code: function() {
@@ -114,7 +106,7 @@ foam.CLASS({
     {
       name: 'components',
       label: 'Components',
-      buttonStyle: foam.u2.ButtonStyle.SECONDARY,
+      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
       size: 'SMALL',
       themeIcon: 'plus',
       code: function() {
@@ -126,23 +118,9 @@ foam.CLASS({
       }
     },
     {
-      name: 'utilities',
-      label: 'Utilities',
-      buttonStyle: foam.u2.ButtonStyle.SECONDARY,
-      size: 'SMALL',
-      themeIcon: 'star',
-      code: function() {
-        if ( this.selected === 'utilities' ) {
-          this.selected = null;
-        } else {
-          this.selected = 'utilities';
-        }
-      }
-    },
-    {
       name: 'help',
       label: 'Help',
-      buttonStyle: foam.u2.ButtonStyle.SECONDARY,
+      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
       themeIcon: 'helpIcon',
       size: 'SMALL',
       code: function() {

@@ -130,8 +130,8 @@ foam.CLASS({
       this.start().
         addClass(self.myClass('switch')).
         enableClass('reactive', self.reactive$).
-        on('click', self.toggleMode)
-        .add(self.dynamic(function(reactive) {
+        on('click', self.toggleMode).
+        add(self.dynamic(function(reactive) {
           if ( reactive ) {
             this.start(foam.u2.tag.Image, {
               glyph: 'functionSign',
@@ -143,19 +143,19 @@ foam.CLASS({
               embedSVG: true
             }).addClass(self.myClass('element-icon')).end()
           }
-        }))
-      .end();
+        })).
+      end();
 
       this.add(
         self.dynamic(function(reactive) {
           if ( reactive ) {
-            this.start()
-              .start(self.FORMULA, {data$: self.formula$}).
+            this.start().
+              start(self.FORMULA, {data$: self.formula$}).
                 addClass(self.myClass('formulaInput')).
                 on('blur', function() { self.reactive = !! self.formula; }).
                 focus().
-              end().add(self.data.slot(self.prop.name))
-            .end();
+              end().add(self.data.slot(self.prop.name)).
+            end();
           } else {
             this.add(viewSlot);
           }

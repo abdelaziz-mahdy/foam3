@@ -10,6 +10,10 @@ foam.CLASS({
   name: 'DynamicReflowComponents',
   extends: 'foam.u2.View',
 
+  requires: [
+    'foam.core.reflow.CommandItemView'
+  ],
+
   imports: [
     'commandDAO'
   ],
@@ -27,25 +31,6 @@ foam.CLASS({
       max-height: 200px;
       overflow-y: auto;
       padding-top: 10px;
-    }
-    ^command-item {
-      padding: 5px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    ^command-item:hover {
-      background-color: $grey50;
-    }
-    ^command-item-button {
-      border-color: $grey300!important;
-      color: $black!important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: none !important;
-    }
-    ^command-item:hover ^command-item-button {
-      display: inline-flex !important;
     }
   `,
 
@@ -80,12 +65,7 @@ foam.CLASS({
             );
             this.start().addClass(self.myClass('command-list'))
               .forEach(filtered, function(command) {
-                this.start().addClass(self.myClass('command-item'))
-                  .add(command.description)
-                  .startContext({ data: self, command: command })
-                    .tag(self.ADD_COMPONENT)
-                  .endContext()
-                .end();
+                this.start(self.CommandItemView, { data: self.data, command: command.id, description: command.description });
               })
           }))
         .end();
@@ -99,8 +79,7 @@ foam.CLASS({
       size: 'SMALL',
       themeIcon: 'plus',
       code: function() {
-        console.log('this.data ===>', this.data)
-        console.log('this.command ==>', this.command)
+        this.data.eval_('Test')
       }
     }
   ]

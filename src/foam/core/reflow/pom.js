@@ -21,6 +21,7 @@ foam.POM({
     { name: 'Header',                  flags: 'js' },
     { name: 'JSONSink',                flags: 'js|java' },
     { name: 'SinkAgent',               flags: 'js|java' },
+    { name: 'CommandItemView',         flags: 'js' },
     { name: 'ReflowToolBar',           flags: 'js' },
     { name: 'ModelDAO',                flags: 'js' },
     { name: 'PropertyChoiceView',      flags: 'js' },

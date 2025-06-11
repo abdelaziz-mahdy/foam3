@@ -11,9 +11,10 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.u2.Tabs',
+    'foam.u2.UnderlinedTabs',
     'foam.u2.Tab',
-    'foam.core.boot.CSpec'
+    'foam.core.boot.CSpec',
+    'foam.core.reflow.CommandItemView'
   ],
 
   imports: [
@@ -27,24 +28,6 @@ foam.CLASS({
       flex-direction: column;
       gap: 10px;
     }
-    ^ .foam-u2-Tabs-tabRow {
-      padding: 0px;
-    }
-    ^ .foam-u2-Tabs-tab {
-      color: $black;
-      border-radius: 0;
-      padding: 15px;
-      margin-left: 10px;
-    }
-    ^ .foam-u2-Tabs-tab:hover {
-      color: $primary500;
-      background-color: $white;
-    }
-    ^ .foam-u2-Tabs-tab.selected {
-      background-color: $white;
-      color: $primary500;
-      border-bottom: 2px solid $primary700;
-    }
     ^collection-list {
       display: flex;
       flex-direction: column;
@@ -53,24 +36,9 @@ foam.CLASS({
       overflow-y: auto;
       padding-top: 10px;
     }
-    ^collection-item {
-      padding: 5px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    ^collection-item:hover {
-      background-color: $grey50;
-    }
-    ^collection-item-button {
-      border-color: $grey300!important;
-      color: $black!important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: none !important;
-    }
-    ^collection-item:hover ^collection-item-button {
-      display: inline-flex !important;
+    ^ .foam-u2-UnderlinedTabs-tab.selected {
+      color: $primary500;
+      border-bottom-width: 1px;
     }
   `,
 
@@ -111,13 +79,11 @@ foam.CLASS({
       this.collections = collectionsSink.array;
       this.flows = flowsSink.array;
 
-
-
       this.addClass()
         .start().addClass(this.myClass('container'))
           .tag(this.FILTER_SEARCH, { data$: this.filterSearch$ })
           .add(this.dynamic(function(selectedTab, filterSearch, collections, flows) {
-            this.start(self.Tabs).addClass(self.myClass('tabs'))
+            this.start(self.UnderlinedTabs).addClass(self.myClass('tabs'))
               .forEach(self.tabs, function(tab) {
                 this.start(self.Tab, {
                   label: tab.label,
@@ -132,20 +98,7 @@ foam.CLASS({
                     console.log('filtered', filtered);
                       this.start().addClass(self.myClass('collection-list'))
                         .forEach(filtered, function(collection) {
-                          this.start().addClass(self.myClass('collection-item'))
-                            .add(collection.name)
-                            .start(foam.u2.tag.Button, {
-                              name: 'add',
-                              label: 'Add',
-                              buttonStyle: foam.u2.ButtonStyle.SECONDARY,
-                              size: 'SMALL',
-                              themeIcon: 'plus'
-                            })
-                              .addClass(self.myClass('collection-item-button'))
-                              .on('click', function() {
-                                self.addCollection(collection);
-                              })
-                          .end();
+                          this.start(self.CommandItemView, { data: self.data, command: 'dao '+collection.name, description: collection.name });
                         })
                       .end();
                     })
@@ -156,45 +109,16 @@ foam.CLASS({
                       );
                       this.start().addClass(self.myClass('collection-list'))
                         .forEach(filtered, function(flow) {
-                          this.start().addClass(self.myClass('collection-item'))
-                            .add(flow.name)
-                            .start(foam.u2.tag.Button, {
-                              name: 'add',
-                              label: 'Add',
-                              buttonStyle: foam.u2.ButtonStyle.SECONDARY,
-                              size: 'SMALL',
-                              themeIcon: 'plus'
-                            })
-                              .addClass(self.myClass('collection-item-button'))
-                              .on('click', function() {
-                                self.addFlow(flow);
-                              })
-                          .end();
+                          this.start(self.CommandItemView, { data: self.data, command: 'load '+flow.name, description: flow.name });
                         })
                       .end();
                     })
                   .end()
               })
               .end()
-
-              
           }))
         .end();
     }
   ],
 
-  listeners: [
-    {
-      name: 'addCollection',
-      code: function(collection) {
-        this.data.eval_('dao '+collection.name);
-      }
-    },
-    {
-      name: 'addFlow',
-      code: function(flow) {
-        this.data.eval_('load '+flow.name);
-      }
-    }
-  ],
 });

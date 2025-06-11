@@ -385,12 +385,12 @@ foam.CLASS({
               this.start().addClass('close').startContext({ data: data }).tag(self.CLOSE).endContext().end();
             }).
           end();
-      }));  
+      }));
       this.add(data.dynamic(function (flowChildren) {
         this.forEach(flowChildren, d => {
           this.call(self.branch, [self, d, depth+1]);
         });
-      }));
+      }))
     }
   ],
 
