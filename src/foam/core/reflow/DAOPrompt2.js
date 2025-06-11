@@ -29,7 +29,8 @@ foam.CLASS({
           if ( ! visible ) return;
           this.start('h3').
             add(self.data.label$).
-          end().
+            end().
+            /*
           start('span').
             style({display: 'flex', gap: '10px', flexDirection: 'column'}).
             start().
@@ -37,7 +38,8 @@ foam.CLASS({
               add('Query').
             end().
             tag({class: 'foam.u2.TextField'}, {data$: self.data.where$, placeholder: 'Type your query'}).
-          end().
+            end().
+            */
           br().
             //          add(self.data.dao.of.id). // TODO: link to describe
           start().

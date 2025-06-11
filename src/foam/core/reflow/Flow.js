@@ -92,7 +92,6 @@ foam.CLASS({
       postSet: function(o, n) {
         if ( this.feedback_ ) return;
         this.feedback_ = true;
-        console.log('*********** FLOW memento change: ', n);
         try {
           // TODO: should still not output empty reactions_: or children:
           var json = foam.json.Outputter.create({
@@ -113,7 +112,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'mementoStr',
-      label: 'JSON',
+      label: 'Script',
       postSet: function(o, n) {
         if ( this.feedback_ ) return;
         this.feedback_ = true;
@@ -174,10 +173,10 @@ foam.CLASS({
         this.mementoMgr.clear();
         this.flowDAO.put(this);
       },
-      isEnabled: function(name, revision) { return name && name !== 'Unnamed' && revision; },
+      isEnabled: function(name, revision) { return name && revision; },
       isAvailable: function() {
         // Enable in Reflow, but disable in DAOController (because DAOController already has save feature)
-        return false;
+        return this.__context__.flow;
       }
     },
     {
