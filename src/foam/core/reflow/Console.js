@@ -584,22 +584,7 @@ foam.CLASS({
       padding: 20px;
       border-top: 1px solid $grey200;
     }
-    ^r .foam-core-reflow-PropertyBorder {
-      flex-direction: row;
-      align-items: center;
-      width: 100%;
-    }
-    ^r .foam-core-reflow-PropertyBorder .foam-core-reflow-PropertyBorder-label {
-      width: 50%;
-    }
-    ^r .foam-core-reflow-PropertyBorder-view {
-      min-height: 0px;
-    }
     ^r .foam-core-reflow-PropertyListView {
-      gap: 5px;
-    }
-    ^r .foam-core-reflow-PropertyBorder-view > div > span {
-      align-items: center;
       gap: 5px;
     }
     ^r .foam-u2-borders-CardBorder {
@@ -608,15 +593,6 @@ foam.CLASS({
     }
     ^r .h600 {
       font-size: 18px;
-    }
-    ^r .foam-core-reflow-PropertyBorder-select {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px;
-      background-color: $grey100;
-      border-radius: 5px;
-      border: 1px solid $grey200;
     }
     ^r .property-select , ^r .property-format {
       flex-direction: column;

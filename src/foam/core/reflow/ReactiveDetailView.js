@@ -80,6 +80,30 @@ foam.CLASS({
   imports: [ 'scope' ],
 
   css: `
+    ^{
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+    }
+    ^ ^label {
+      width: 50%;
+    }
+    ^view: {
+      min-height: 0px;
+    }
+    ^view > div > span {
+      align-items: center;
+      gap: 5px;
+    }
+    ^select {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px;
+      background-color: $grey100;
+      border-radius: 5px;
+      border: 1px solid $grey200;
+    }
     ^switch { color: #ccc; width: 12px !important; }
     ^switch.reactive {
       font-weight: 600;
@@ -88,7 +112,6 @@ foam.CLASS({
     ^formulaInput input:focus {
       outline: 1px solid $primary500 !important;
     }
-    ^label { width: 10%; }
     ^element-icon {
       width: 14px;
       height: 14px;
