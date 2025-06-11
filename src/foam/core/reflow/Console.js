@@ -919,6 +919,11 @@ foam.CLASS({
 
       var self = this;
 
+      // Add listener to restore navigation when leaving reflow
+      this.onDetach(() => {
+        this.showNav = true;
+      });
+
       this.flowName$.sub(() => this.refreshFlowScope());
       this.value$.sub(() => this.refreshFlowScope());
 
