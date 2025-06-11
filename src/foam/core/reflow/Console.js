@@ -378,6 +378,7 @@ foam.CLASS({
       }));
     }
   ],
+
   actions: [
     {
       name: 'close',
