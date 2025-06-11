@@ -32,7 +32,7 @@ p({
       .setOf(foam.core.reflow.Flow.getOwnClassInfo())
       .build();
   """,
-  "client":"""{"of":"foam.core.console.Flow"}"""
+  "client":"""{"of":"foam.core.reflow.Flow"}"""
 })
 
 p({
