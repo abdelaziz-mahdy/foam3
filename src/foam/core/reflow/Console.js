@@ -580,10 +580,6 @@ foam.CLASS({
       height: 100%;
       z-index: 10;
     }
-    ^r .foam-core-reflow-ReactiveSectionedDetailView-card-container {
-      padding: 20px;
-      border-top: 1px solid $grey200;
-    }
     ^r .foam-core-reflow-PropertyListView {
       gap: 5px;
     }
