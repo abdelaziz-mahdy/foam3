@@ -31,7 +31,7 @@ for any language or platform, including Android Java and iOS Swift.
 # Development
 ## Dependencies
 
-FOAM has no runtime dependencies, but does have some build dependencies:
+FOAM has no runtime dependencies, but does have build dependencies:
 
 * git
 * npm
@@ -43,28 +43,35 @@ Once dependencies are installed, update FOAM's javascript dependencies:
 From the root of the FOAM repository, execute:
 `./build.sh --install`
 
+    sudo chown -R $USER /opt
+
 See [INSTALL.md](INSTALL.md) for more detailed installation notes.
 
-## Building Java
-
-**NOTE: default configuration is setup for Java 21** 
-
-If using a version less than 21, change the `java: 21` property in the root pom.js.
-
+## Building
 ### Build and run Java webserver
 
 `./build.sh [options]`
 
-* visit: http://localhost:8080/
+* visit: http://localhost:8080/foam3/src/foam/demos/index.html
 
-#### common options:
+#### common build options:
 
-* **-h** - help - show all options
+* **-h** - help, show all options
 * **-c** - clean
 * **-d** - debug mode allowing connection by a remote debugger
 * **-j** - delete runtime journals (use with caution)
 * **-Jpom1,pom2,...,pomN** - where pomN,... are found relative to the deployment folder. 
 * **-a** - build and deploy from a single Java jar file. 
+
+## Creating and running an example Application
+
+**NOTE: this will create a parent directory above foam3/**
+
+    ./build.sh -Tsetup/Project --createAdmin --appName:Example --package:com.foamdev --adminPassword:badpassword
+    cd ..
+    ./build.sh
+
+* visit: http:/localhost:8080 and login with admin / badpassword
 
 <!--
 ## Running Application Controller

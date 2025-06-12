@@ -59,11 +59,12 @@ foam.CLASS({
         start('span').
           style({display: 'flex'}).
           tag(this.TextField, {data$: this.data$, size: 40, type: 'search'}).
-          startContext({data: this}).add(this.CHOICES).endContext().
-          start(this.CircleIndicator, {glyph: 'helpIcon', size: 60}).
-            addClass(this.myClass('helper-icon')).
-            on('click', this.mqlHelp).
-          end();
+          startContext({data: this}).add(this.CHOICES).endContext()
+          // Commented for now until we find better way 
+          // start(this.CircleIndicator, {glyph: 'helpIcon', size: 60}).
+          //   addClass(this.myClass('helper-icon')).
+          //   on('click', this.mqlHelp).
+          // end();
     }
   ],
 

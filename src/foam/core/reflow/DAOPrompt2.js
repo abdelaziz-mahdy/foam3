@@ -287,7 +287,7 @@ foam.CLASS({
     },
     { class: 'Long',       hidden: true,    name: 'rowCount', visibility: 'RO' },
     { class: 'String',     hidden: true,   name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
-    { class: 'Boolean',    hidden: true,    name: 'autoRun', view: { class: 'foam.u2.Switch' } },
+    { class: 'Boolean',    section: 'general',   name: 'autoRun', view: { class: 'foam.u2.Switch' } },
     { class: 'Int',        hidden: true,  name: 'version', hidden: true },
     { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' }
   ],

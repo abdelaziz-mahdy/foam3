@@ -9,10 +9,19 @@ foam.CLASS({
   name: 'Flow',
 
   implements: [
+    'foam.core.auth.Authorizable',
     'foam.core.auth.CreatedAware',
     'foam.core.auth.CreatedByAware',
     'foam.core.auth.LastModifiedAware',
-    'foam.core.auth.LastModifiedByAware'
+    'foam.core.auth.LastModifiedByAware',
+    'foam.core.auth.ServiceProviderAware'
+  ],
+
+  javaImports: [
+    'foam.core.auth.AuthorizationException',
+    'foam.core.auth.Subject',
+    'foam.core.auth.User',
+    'java.util.Arrays'
   ],
 
   imports: [ 'flowDAO' ],
@@ -65,15 +74,19 @@ foam.CLASS({
       view: { class: 'foam.u2.tag.TextArea', rows: 4, cols: 78 }
     },
     {
-      class: 'Boolean',
-      name: 'isPublic',
-      value: true,
-      view: { class: 'foam.u2.Switch' }
+      class: 'Enum',
+      of: 'foam.core.reflow.FlowAccess',
+      name: 'accessLevel',
+      value: foam.core.reflow.FlowAccess.PRIVATE
     },
     {
-      class: 'Boolean',
-      name: 'readOnly',
-      view: { class: 'foam.u2.Switch' }
+      class: 'FObjectArray',
+      of: 'foam.core.reflow.UserFlowAccess',
+      name: 'specifiedUserAccess',
+      label: 'Specified Access',
+      visibility: function(accessLevel) {
+        return accessLevel != foam.core.reflow.FlowAccess.SHARED ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
+      }
     },
     {
       name: 'lastModifiedByAgent',
@@ -149,6 +162,12 @@ foam.CLASS({
         viewb: { class: 'foam.u2.RangeView', onKey: true }
       }
     },
+    {
+      class: 'Reference',
+      of: 'foam.core.auth.ServiceProvider',
+      name: 'spid',
+      hidden: true
+    },
     // Schedule Properties
     {
       name: 'schedule',
@@ -180,30 +199,68 @@ foam.CLASS({
     function init() {
       this.SUPER();
       this.mementoMgr;
+    },
+    {
+      name: 'authorizeOnCreate',
+      javaCode: `
+        // noop
+      `
+    },
+    {
+      name: 'authorizeOnRead',
+      javaCode: `
+        User user = ((Subject) x.get("subject")).getUser();
+        if ( getCreatedBy() == user.getId() ) return;
+
+        if ( getAccessLevel() == FlowAccess.PRIVATE ) throw new AuthorizationException();
+ 
+        if ( getAccessLevel() == FlowAccess.SHARED ) {
+          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+            ((UserFlowAccess) o).getUserId() == user.getId() &&
+            (
+              ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RO ||
+              ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RW
+            )
+          );
+          if ( ! hasAccess ) throw new AuthorizationException();
+        }
+      `
+    },
+    {
+      name: 'authorizeOnUpdate',
+      javaCode: `
+        User user = ((Subject) x.get("subject")).getUser();
+        if ( getCreatedBy() == user.getId() ) return;
+
+        if ( getAccessLevel() == FlowAccess.PRIVATE || getAccessLevel() == FlowAccess.PUBLIC_RO ) throw new AuthorizationException();
+ 
+        if ( getAccessLevel() == FlowAccess.SHARED ) {
+          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+            ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RW
+          );
+          if ( ! hasAccess ) throw new AuthorizationException();
+        }
+      `
+    },
+    {
+      name: 'authorizeOnDelete',
+      javaCode: `
+        User user = ((Subject) x.get("subject")).getUser();
+        if ( getCreatedBy() == user.getId() ) return;
+
+        if ( getAccessLevel() == FlowAccess.PRIVATE || getAccessLevel() == FlowAccess.PUBLIC_RO ) throw new AuthorizationException();
+ 
+        if ( getAccessLevel() == FlowAccess.SHARED ) {
+          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+            ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RW
+          );
+          if ( ! hasAccess ) throw new AuthorizationException();
+        }
+      `
     }
   ],
 
   actions: [
-    {
-      name: 'save',
-      code: function() {
-        // TODO: FIX
-        // This is a hackish solution to the bug that the memento is saved before
-        // the last block's name is set. Ideally the block would be named before
-        // being added to the flowChildren. Alternatively, the mementoStr could never
-        // be created until just before you save, but updating it for every update
-        // will make it easy to implement undo/redo in the future.
-        this.MEMENTO.postSet.call(this, this.menento, this.memento);
-        this.version++;
-        this.mementoMgr.clear();
-        this.flowDAO.put(this);
-      },
-      isEnabled: function(name, revision) { return name && revision; },
-      isAvailable: function() {
-        // Enable in Reflow, but disable in DAOController (because DAOController already has save feature)
-        return this.__context__.flow;
-      }
-    },
     {
       name: 'reflow',
       code: function(X) {

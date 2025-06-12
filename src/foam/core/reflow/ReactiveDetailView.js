@@ -95,7 +95,7 @@ foam.CLASS({
       align-items: center;
       gap: 5px;
     }
-    ^select {
+    ^select, ^select1, ^select2 {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
@@ -115,6 +115,15 @@ foam.CLASS({
     ^element-icon {
       width: 14px;
       height: 14px;
+    }
+    ^ .foam-core-reflow-SinkView {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 5px;
+    }
+    ^ .foam-core-reflow-SinkView > div > div {
+      width: 100%;
     }
   `,
 

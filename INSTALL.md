@@ -14,7 +14,7 @@ Install git, java, maven, npm, nvm, and nodejs, if required. On Linux, you can d
     nvm install --lts
 
 ## MacOS
-Install java, nodejs, brew, nvm and maven, if required.
+Install brew, git, java, maven, nvm, and nodejs, if required.
 
 Install Brew (with directions from [https://brew.sh/](https://brew.sh/)):
 
@@ -59,7 +59,7 @@ Git Clone
 # Application
 Create an example application
 
-    ./build.sh -T+setup/Project --type:demo --appName:Example --package:com.foamdev --adminPassword:badpassword
+    ./build.sh -Tsetup/Project --type:demo --appName:Example --package:com.foamdev --adminPassword:badpassword
 
 Build and Start Server
 
