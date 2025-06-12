@@ -160,26 +160,6 @@ foam.CLASS({
 
   actions: [
     {
-      name: 'save',
-      code: function() {
-        // TODO: FIX
-        // This is a hackish solution to the bug that the memento is saved before
-        // the last block's name is set. Ideally the block would be named before
-        // being added to the flowChildren. Alternatively, the mementoStr could never
-        // be created until just before you save, but updating it for every update
-        // will make it easy to implement undo/redo in the future.
-        this.MEMENTO.postSet.call(this, this.menento, this.memento);
-        this.version++;
-        this.mementoMgr.clear();
-        this.flowDAO.put(this);
-      },
-      isEnabled: function(name, revision) { return name && revision; },
-      isAvailable: function() {
-        // Enable in Reflow, but disable in DAOController (because DAOController already has save feature)
-        return this.__context__.flow;
-      }
-    },
-    {
       name: 'reflow',
       code: function(X) {
         X.routeTo('flow/' + this.name + '?flowMode=view');

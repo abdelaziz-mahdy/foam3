@@ -36,10 +36,6 @@ foam.CLASS({
       overflow-y: auto;
       padding-top: 10px;
     }
-    ^ .foam-u2-UnderlinedTabs-tab.selected {
-      color: $primary500;
-      border-bottom-width: 1px;
-    }
   `,
 
   properties: [

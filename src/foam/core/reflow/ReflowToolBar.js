@@ -13,22 +13,17 @@ foam.CLASS({
   requires: [
     'foam.core.reflow.DynamicReflowData',
     'foam.core.reflow.DynamicReflowComponents',
-    'foam.core.reflow.DynamicReflowHelp'
+    'foam.core.reflow.DynamicReflowHelp',
+    'foam.u2.ToggleActionView'
   ],
 
   css: `
-    ^ {
-      position: absolute;
-      left: 35%;
-      bottom: 50;
-      z-index: 100;
-    }
     ^island-holder {
       display: flex;
       flex-direction: column;
       align-items: left;
       gap: 10px;
-      z-index: 100;
+      align-items: center;
     }
     ^holder {
       padding: 10px;
@@ -44,10 +39,6 @@ foam.CLASS({
       display: flex;
       gap: 10px;      
       align-items: center;
-    }
-    ^ .foam-u2-ActionView.selected {
-      background-color: $primary500;
-      color: $white!important;
     }
   `,
 
@@ -100,15 +91,19 @@ foam.CLASS({
           
         }))
         .start().addClass(this.myClass('holder'))
-            .add(this.dynamic(function(selected) {
-              this.start().addClass(self.myClass('button-group'))
-                .startContext({ data: self })
-                  .forEach(actions, function(action) {
-                    this.start(action).enableClass('selected', selected === action.name).end();
+          .start().addClass(self.myClass('button-group'))
+            .startContext({ data: self })
+              .forEach(actions, function(action) {
+                this.tag(self.ToggleActionView, {
+                  action: action,
+                  data: self,
+                  actionState$: self.selected$.map(function(selected) {
+                    return selected === action.name;
                   })
-                .endContext()
-              .end();
-            }))
+                }).end();
+              })
+            .endContext()
+          .end()
         .end()
       .end();
     }

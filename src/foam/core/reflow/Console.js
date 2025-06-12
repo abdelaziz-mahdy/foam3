@@ -168,8 +168,8 @@ foam.CLASS({
       buttonStyle: foam.u2.ButtonStyle.TERTIARY,
       themeIcon: 'home',
       size: 'SMALL',
-      code: function() {
-        window.location.hash = '#';
+      code: function(X) {
+        X.pushDefaultMenu()
       }
     },
     {
@@ -177,8 +177,8 @@ foam.CLASS({
       label: 'Reflows',
       buttonStyle: foam.u2.ButtonStyle.LINK,
       size: 'SMALL',
-      code: function() {
-        window.location.hash = '#flows';
+      code: function(X) {
+        X.routeTo('flows');
       }
     },
     {
@@ -278,7 +278,7 @@ foam.CLASS({
     }
     ^ table td .close {
       font-size: 1.2rem;
-    } 
+    }
     .foam-u2-ActionView-text:hover:not(:disabled) {
       background-color: $grey400!important;
     }
@@ -622,9 +622,9 @@ foam.CLASS({
       align-items: flex-start;
       gap: 10px;
     }
-    ^ .foam-u2-RangeView-skip { 
-      width: 100%; 
-      accent-color: $primary500;     
+    ^ .foam-u2-RangeView-skip {
+      width: 100%;
+      accent-color: $primary500;
     }
 
     ^menuClosed {
@@ -699,18 +699,18 @@ foam.CLASS({
       var self = this;
       var startX = e.clientX;
       var startWidth = this.rightWidth;
-  
+
       function onMouseMove(e) {
         var newWidth = startWidth - (e.clientX - startX);
         newWidth = Math.max(200, Math.min(newWidth, 1000));
         self.rightWidth = newWidth;
       }
-  
+
       function onMouseUp() {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
       }
-  
+
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
     }
@@ -767,6 +767,7 @@ foam.CLASS({
     'history_',
     'log',
     'out',
+    'save',
     'scrollToBottom',
     'selected',
     'showPrompts',
@@ -805,9 +806,16 @@ foam.CLASS({
     ^ .foam-u2-view-ValueView {
       min-width: 220px;
     }
-    .foam.core.reflow-Layout-l { overflow-y: auto; }
-    .foam.core.reflow-Layout-r .foam.core.reflow-PropertyBorder-richText .foam.core.reflow-PropertyBorder-propHolder { margin-left: -85px; }
+    .foam-core-reflow-Layout-l { overflow-y: auto; }
+    .foam-core-reflow-Layout-r .foam-core-reflow-PropertyBorder-richText .foam-core-reflow-PropertyBorder-propHolder { margin-left: -85px; }
     ^ .foam-u2-ProgressView { width: 600px; }
+    ^ .foam-core-reflow-ReflowToolBar {
+      position: absolute;
+      left: 0;
+      bottom: 50;
+      width: 100%;
+      z-index: 100;
+    }
   `,
 
   properties: [
@@ -910,11 +918,11 @@ foam.CLASS({
     'currentBlock',
     {
       name: 'selected',
-      postSet: function(o, n) { this.selectedValue = n ? n.value : null; console.log('*** selected=>', n && n.flowName); },
+      postSet: function(o, n) { this.selectedValue = n ? n.value : null; },
       factory: function() { return this; }
     },
     {
-      name: 'selectedValue', postSet: function(o, n) { console.log('*** selectedValue=>', n); }
+      name: 'selectedValue'
     },
     {
       name: 'value',
@@ -933,7 +941,9 @@ foam.CLASS({
     },
 
     async function render() {
+      let oldShowNav = this.showNav;
       this.showNav = false;
+      this.onDetach(() => { this.showNav = oldShowNav;})
       this.SUPER();
 
       var self = this;
@@ -954,7 +964,7 @@ foam.CLASS({
       // this.selectedValue$.follow(this.selected$.dot('value'));
 
       // Add commands to localScope
-      var cmds = await this.commandDAO.select(); 
+      var cmds = await this.commandDAO.select();
 
       cmds.array.forEach(c => {
         this.localScope[c.id] = (...args) => {
@@ -1011,7 +1021,7 @@ foam.CLASS({
       layout.right.add(this.dynamic(function(selectedValue) {
         this.tag(self.ReactiveSectionedDetailView, {data: selectedValue, showActions: true, showHeader: true});
       }));
-      
+
       layout.header.add(this.dynamic(function(showPrompts) {
         this.tag(self.ReflowHeader, {data: self, showPrompts: showPrompts, resetFlow: self.clearFlow});
       }));
@@ -1028,19 +1038,18 @@ foam.CLASS({
         start('div', null, self.out$)
           .addClass(self.myClass('output')).end().
           start('span').
+            show(self.showInput$).
             addClass(self.myClass('input-field')).
             start('b').style({ display: 'flex', 'white-space': 'pre'}).
-              show(self.showInput$).
               start(self.Link).add('help').on('click',    () => self.eval_('help'),    this).end()./*add(', ').
               start(self.Link).add('history').on('click', () => self.eval_('history'), this).end().*/add(' >').
             end().
-          start(self.INPUT, null, self.input_$).
-            show(self.showInput$).
-            addClass(self.myClass('input')).
-            on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
-          end().
-          start(self.ON_INPUT).show(self.showInput$).end().
-          tag(self.ReflowToolBar, { data: self }).show(self.showPrompts$).
+            start(self.INPUT, null, self.input_$).
+              addClass(self.myClass('input')).
+              on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
+            end().
+            tag(self.ON_INPUT).
+            start(self.ReflowToolBar, { data: self }).end().
         end();
 
         // These observers might cause scroll issues later when queries in the console can be edited
@@ -1216,6 +1225,25 @@ foam.CLASS({
   ],
 
   actions: [
+    {
+      name: 'save',
+      code: function() {
+        // TODO: FIX
+        // This is a hackish solution to the bug that the memento is saved before
+        // the last block's name is set. Ideally the block would be named before
+        // being added to the flowChildren. Alternatively, the mementoStr could never
+        // be created until just before you save, but updating it for every update
+        // will make it easy to implement undo/redo in the future.
+        this.flow.MEMENTO.postSet.call(this, this.menento, this.memento);
+        this.flow.version++;
+        this.flow.mementoMgr.clear();
+        this.flow.flowDAO.put(this);
+      },
+      // TODO:
+//      isEnabled: function(flowName) { return flowName; },
+//      isEnabled: function(flowName, flow$revision) { return flowName && flow$revision; },
+//      isEnabled: function(name, revision) { return name && revision; },
+    },
     {
       name: 'helpKey',
       isAvailable: function(input_) {

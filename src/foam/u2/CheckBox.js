@@ -65,7 +65,7 @@ foam.CLASS({
       content: ''
       box-shadow: 0 0 0 3px $checkboxColor$active;
     }
-    ^:hover {
+    ^:hover:not(:disabled) {
       cursor: pointer
     }
     ^label, input[type="checkbox"]{

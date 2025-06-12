@@ -67,10 +67,10 @@ foam.CLASS({
         self.removeAllChildren(); // Remove in U3
         self.actionArray = [];
         let endPos = pos
-        if ( self.stack.pos != self.breadcrumbs.current?.view.__subContext__.stackPos ) {
+        if ( self.stack?.pos != self.breadcrumbs?.current?.view.__subContext__.stackPos ) {
           endPos = pos + 1
         }
-        let navStack  = self.breadcrumbs.crumbs?.slice(0, endPos);
+        let navStack  = self.breadcrumbs?.crumbs?.slice(0, endPos);
         if ( ! navStack?.length ) {
           self.hide();
           return;
