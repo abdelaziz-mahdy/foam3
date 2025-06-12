@@ -51,8 +51,20 @@ foam.CLASS({
       this.addFlowChild_ && this.addFlowChild_(f);
     },
     function removeFlowChild(f) {
+      console.log('Parent ==<', this.flowParent)  
+      var index = this.flowChildren.indexOf(f);
       this.flowChildren = this.flowChildren.filter(c => c != f);
+      console.log('this.flowChildren ==>', this.flowChildren)
       this.removeFlowChild_ && this.removeFlowChild_(f);
+      
+      if (this.selected === f) {
+        if (this.flowChildren.length > 0) {
+          var newIndex = Math.max(0, index - 1);
+          this.selected = this.flowChildren[newIndex];
+        } else {
+          this.selected = null;
+        }
+      }
     },
     function removeAllFlowChildren() {
       this.removeFlowChild_ && this.flowChildren.forEach(c => this.removeFlowChild_(c));
