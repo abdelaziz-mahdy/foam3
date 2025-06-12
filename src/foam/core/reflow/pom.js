@@ -45,5 +45,8 @@ foam.POM({
     { name: 'cmd/Commands',            flags: 'js|java' },
     { name: 'ColumnParser',            flags: 'js' },
     { name: 'lib',                     flags: 'js' }
+  ],
+  javaFiles: [
+    { name: 'cmd/FlowScheduler',       flags: 'java' }
   ]
 });
