@@ -115,6 +115,7 @@ foam.CLASS({
       if ( this.ariaLabel     ) this.setAttribute('aria-label',  this.ariaLabel);
       if ( this.maxLength > 0 ) this.setAttribute('maxlength',   this.maxLength);
       if ( this.inputMode     ) this.setAttribute('inputmode',   this.inputMode);
+
       this.setAttribute('autocomplete', this.autocomplete ?
         (foam.String.isInstance(this.autocomplete) ? this.autocomplete : 'on') :
         'off'
@@ -145,6 +146,12 @@ foam.CLASS({
 
       this.initCls();
       this.link();
+
+      if ( this.autofocus ) {
+        window.setTimeout(() => {
+          this.focus();
+        }, 0);
+      }
     },
 
     function initCls() {

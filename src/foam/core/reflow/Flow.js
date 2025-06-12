@@ -105,7 +105,6 @@ foam.CLASS({
       postSet: function(o, n) {
         if ( this.feedback_ ) return;
         this.feedback_ = true;
-        console.log('*********** FLOW memento change: ', n);
         try {
           // TODO: should still not output empty reactions_: or children:
           var json = foam.json.Outputter.create({
@@ -126,15 +125,14 @@ foam.CLASS({
     {
       class: 'String',
       name: 'mementoStr',
-      label: 'JSON',
+      label: 'Script',
       postSet: function(o, n) {
         if ( this.feedback_ ) return;
         this.feedback_ = true;
         try {
           // console.log('*********** FLOW mementoStr change:', n);
           var json    = JSON.parse(n);
-          var memento = this.memento = foam.json.parse(json, null, this.__context__);
-          console.log('mementos:', memento.length);
+          this.memento = foam.json.parse(json, null, this.__context__);
         } finally {
           this.feedback_ = false;
         }
@@ -239,29 +237,9 @@ foam.CLASS({
 
   actions: [
     {
-      name: 'save',
-      code: function() {
-        // TODO: FIX
-        // This is a hackish solution to the bug that the memento is saved before
-        // the last block's name is set. Ideally the block would be named before
-        // being added to the flowChildren. Alternatively, the mementoStr could never
-        // be created until just before you save, but updating it for every update
-        // will make it easy to implement undo/redo in the future.
-        this.MEMENTO.postSet.call(this, this.menento, this.memento);
-        this.version++;
-        this.mementoMgr.clear();
-        this.flowDAO.put(this);
-      },
-      isEnabled: function(name, revision) { return name && name !== 'Unnamed' && revision; },
-      isAvailable: function() {
-        // Enable in Reflow, but disable in DAOController (because DAOController already has save feature)
-        return this.__context__.flow;
-      }
-    },
-    {
       name: 'reflow',
       code: function(X) {
-        X.routeTo('reflow/' + this.name + '?flowMode=view');
+        X.routeTo('flow/' + this.name + '?flowMode=view');
       },
       isAvailable: function() {
         // Disable in Reflow, but enable in DAOController (because already in reflow)

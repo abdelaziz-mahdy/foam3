@@ -9,9 +9,13 @@ foam.CLASS({
   name: 'SinkView',
   extends: 'foam.u2.View',
 
+  requires: [
+    'foam.core.reflow.SinkAgent'
+  ],
+
   exports: [ 'AGENTS' ],
 
-  imports: [ 'dao' ],
+  imports: [ 'dao', 'agentDAO' ],
 
   constants: {
     AGENTS: [
@@ -54,35 +58,79 @@ foam.CLASS({
 
   properties: [
     {
+      name: 'agentType',
+      value: undefined
+    },
+    {
       class: 'Boolean',
       name: 'sinksOnly',
       value: true
     },
     {
       name: 'choice',
-      factory: function() { return this.AGENTS[0][0]; },
-      postSet: function(o, n) { if ( ! this.feedback_ ) this.data = undefined; },
+      factory: function() { 
+        return this.agentDAO.select().then((agents) => {
+          const entities = agents.array;
+          return entities[0]?.value;
+        });
+      },
+      postSet: function(o, n) { 
+        if ( ! this.feedback_ ) this.data = undefined; 
+      },
       view: function(_, X) {
-        var choices = X.data.sinksOnly ? X.AGENTS.filter(s => s[2]) : X.AGENTS;
-        return { class: 'foam.u2.view.ChoiceView', choices: choices };
+        var E = foam.mlang.Expressions.create();
+        return {
+          class: 'foam.u2.view.RichChoiceView',
+          search: true,
+          idProperty: 'value',
+          sections: [
+            {
+              heading: 'Format',
+              dao: X.agentDAO.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'format'))
+            },
+            {
+              heading: 'Structure',
+              dao: X.agentDAO.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'structure'))
+            },
+            {
+              heading: 'Calculations',
+              dao: X.agentDAO.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'calculation'))
+            },
+          ]
+        }
+        // var agents = X.AGENTS;
+        // if ( X.data.sinksOnly ) agents = agents.filter(s => s[2]);
+        // if ( X.data.agentType ) agents = agents.filter(s => s[3] === X.data.agentType);
+        // return { class: 'foam.u2.view.ChoiceView', choices: agents };
       }
     },
     {
       name: 'data',
       expression: function(choice) {
-        var cls = foam.lookup(this.choiceToClass(choice));
-        return cls.create({}, this);
-      },
-      postSet: function(o, n) {
-        if ( ! n ) return;
-        for ( var i = 0 ; i < this.AGENTS.length ; i++ ) {
-          if ( this.choiceToClass(this.AGENTS[i][0]) == n.cls_.id ) {
-            this.feedback_ = true;
-            this.choice = this.AGENTS[i][0];
-            this.feedback_ = false;
-            return;
-          }
+        if ( ! choice ) return undefined;
+        if ( choice instanceof Promise ) {
+          return choice.then(value => {
+            if ( ! value ) return undefined;
+            var cls = foam.lookup(this.choiceToClass(value));
+            return cls ? cls.create({}, this) : undefined;
+          });
         }
+        var cls = foam.lookup(this.choiceToClass(choice));
+        return cls ? cls.create({}, this) : undefined;
+      },
+      postSet: async function(o, n) {
+        if ( ! n ) return;
+        await this.agentDAO.select().then(agents => {
+          const results = agents.array;
+          for ( var i = 0 ; i < results.length ; i++ ) {
+            if ( this.choiceToClass(results[i].value) == n.cls_.id ) {
+              this.feedback_ = true;
+              this.choice = results[i].value;
+              this.feedback_ = false;
+              return;
+            }
+          }
+        });
       }
     }
   ],
@@ -103,7 +151,11 @@ foam.CLASS({
         endContext().
         add(' ', self.dynamic(function (data) {
           if ( ! self.dao ) return;
-          data.addToE(this);
+          if ( data instanceof Promise ) {
+            data.then(d => d.addToE(this));
+          } else {
+            data.addToE(this);
+          }
         }));
     }
   ]
