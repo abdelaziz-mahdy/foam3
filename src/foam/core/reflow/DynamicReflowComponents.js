@@ -27,7 +27,7 @@ foam.CLASS({
     ^command-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 5px;
       max-height: 200px;
       overflow-y: auto;
       padding-top: 10px;

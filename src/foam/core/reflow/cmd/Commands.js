@@ -617,7 +617,7 @@ foam.CLASS({
   name: 'Save',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [  'currentBlock', 'flow', 'flowDAO' ],
+  imports: [  'currentBlock', 'flow', 'flowDAO', 'save' ],
 
   properties: [
     [ 'description', 'Save the current flow to a specified name' ]
@@ -632,7 +632,7 @@ foam.CLASS({
       // Don't save the 'save' command
       this.currentBlock.del();
 
-      if ( ! this.flow.save() ) {
+      if ( ! this.save() ) {
         this.out.add('Please provide a name for the flow');
         return;
       }

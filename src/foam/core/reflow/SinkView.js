@@ -56,6 +56,12 @@ foam.CLASS({
         */
   },
 
+  css: `
+    ^ {
+      display: inline-flex;
+    }
+  `,
+
   properties: [
     {
       name: 'agentType',
@@ -145,7 +151,6 @@ foam.CLASS({
 
       this.
         addClass().
-        style({'display': 'inline-flex'}).
         startContext({data: this}).
           add(this.CHOICE).
         endContext().

@@ -37,7 +37,7 @@ foam.CLASS({
     },
     {
       name: 'choosePlaceholder',
-      value: 'Choose DAO...'
+      value: 'Choose Collection...'
     }
   ],
 

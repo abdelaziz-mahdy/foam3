@@ -125,11 +125,13 @@ foam.CLASS({
           setAttribute('list', this.id + '-choices').
           start('datalist').
             setID(self.id + '-choices').
-            forEach(this.choices, function(c) {
-              var key   = c[0];
-              var label = c[1];
-              this.start('option').attrs({value: key}).add(label).end();
-            }).
+            add(this.dynamic(function (choices) {
+              this.forEach(choices, function(c) {
+                var key   = c[0];
+                var label = c[1];
+                this.start('option').attrs({value: key}).add(label).end();
+              });
+            })).
           end();
       } /* Was for compatibility with foam.u2.view.TextField, which no longer exists.
       else if ( this.autocompleter ) {
