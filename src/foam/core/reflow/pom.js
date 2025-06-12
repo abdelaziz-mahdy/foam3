@@ -15,6 +15,8 @@ foam.POM({
     { name: 'DocumentReadWriteView',   flags: 'js' },
     { name: 'DuplicateSink',           flags: 'js|java' },
     { name: 'EditSink',                flags: 'js|java' },
+    { name: 'FlowAccess',              flags: 'js|java' },
+    { name: 'UserFlowAccess',          flags: 'js|java' },
     { name: 'Flow',                    flags: 'js|java' },
     { name: 'GridBy',                  flags: 'js|java' },
     { name: 'GridByView',              flags: 'js' },
