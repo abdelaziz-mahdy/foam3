@@ -22,8 +22,10 @@ p({
     import foam.core.session.Session;
     import java.util.Date;
     import java.io.IOException;
+    import foam.lang.X;
 
     // Configuration
+    boolean autoExit = false; // set to true to auto exit on certain conditions (Disabled since its not working)
     boolean headless = true; // Set to true to run Chrome in headless mode, false for visual debugging
     int timeoutSeconds = 30; // Timeout for flow execution in seconds (configurable)
 
@@ -105,20 +107,13 @@ p({
         }
         
         // Create a session for the flow creator  
-        session = x.create(foam.core.session.Session.class);
-        user = flowCreator;
-        
-        // Set session properties
-        userId = user.getId();
-        session.setUserId(userId);
-        session.setCreated(now);
-        session.setLastUsed(now);
-        session.setContext(x);
+        X userX = foam.util.Auth.sudo(x, flowCreator);
+        session = userX.get(foam.core.session.Session.class);
         
         // Put session in DAO and get the session ID
         sessionDAO.put(session);
         sessionID = session.getId();
-        print("Created session " + sessionID + " for flow creator: " + userId);
+        print("Created session " + sessionID + " for flow creator: " + flowCreator.getId());
         
         // Build the chrome command for visual execution (no headless for debugging)
         String flowURL = "http://localhost:8080/" + "?sessionId=" + sessionID + "#flow/" + flow.getName();
@@ -136,8 +131,9 @@ p({
         
         String[] chromeCmd;
         if ( headless ) {
+          if (autoExit) {
           // Create a data URL that loads the flow and monitors for completion
-          String autoExitScript = 
+          String flowURL = 
             "data:text/html,<html><head><title>Flow Monitor</title></head><body>" +
             "<iframe id='flowFrame' src='" + flowURL + "' style='width:100%;height:90vh;border:none;'></iframe>" +
             "<script>" +
@@ -158,7 +154,7 @@ p({
               "setTimeout(function(){window.close()}," + (timeoutSeconds * 1000) + ");" + // Configurable safety timeout
             "</script>" +
             "</body></html>";
-            
+          }
           chromeCmd = new String[] {
             chromeExe,
             "--headless",
@@ -169,7 +165,8 @@ p({
             "--disable-features=VizDisplayCompositor",
             "--run-all-compositor-stages-before-draw",
             "--enable-automation",
-            autoExitScript
+            "--remote-debugging-port=9222",
+            flowURL
           };
         } else {
           chromeCmd = new String[] {
