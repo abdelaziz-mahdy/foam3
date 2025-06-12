@@ -22,14 +22,6 @@ foam.CLASS({
 
   documentation: 'Switch View.',
 
-  cssTokens: [
-    {
-      class: 'foam.u2.ColorToken',
-      name: 'checkboxColor',
-      value: '$primary400'
-    }
-  ],
-
   inheritCSS: false,
   css: `
    ^ {
