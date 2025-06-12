@@ -24,6 +24,10 @@ foam.CLASS({
     'java.util.Arrays'
   ],
 
+  requires: [
+    'foam.core.cron.CronSchedule',
+  ],
+
   imports: [ 'flowDAO' ],
 
   ids: [ 'name' ],
@@ -42,7 +46,7 @@ foam.CLASS({
   ],
     */
 
-  tableColumns: [ 'name', 'source', 'description', 'status', 'schedule', 'lastRun', 'nextRun', /* 'isPublic', 'readOnly', */ 'reflow' ],
+  tableColumns: [ 'name', 'source', 'description', 'status', 'schedule', 'lastRun', /* 'isPublic', 'readOnly', */ 'reflow' ],
 
   searchColumns: [ 'name', 'status', 'source', 'schedule' ],
 
@@ -168,30 +172,18 @@ foam.CLASS({
       name: 'spid',
       hidden: true
     },
-    // Schedule Properties
     {
       name: 'schedule',
       class: 'FObjectProperty',
-      of: 'foam.core.cron.Schedule',
-      view: {
-        class: 'foam.u2.view.FObjectView',
-        of: 'foam.core.cron.Schedule'
-      },
-      section: 'scheduling',
-      javaFactory: `return new foam.core.cron.CronSchedule.Builder(getX()).build();`
+      of: 'foam.core.cron.CronSchedule',
+      documentation: 'Schedule to run this flow.'
     },
     {
       class: 'DateTime',
       name: 'lastRun',
       label: 'Last Run',
-      documentation: 'Timestamp of the last execution of this flow'
-    },
-    {
-      class: 'DateTime',
-      name: 'nextRun',
-      label: 'Next Run',
-      documentation: 'Calculated timestamp for the next execution of this flow (computed server-side)',
-      transient: true
+      hidden: true,
+      documentation: 'Timestamp of the last execution of this flow. Works with this.schedule.'
     }
   ],
 
