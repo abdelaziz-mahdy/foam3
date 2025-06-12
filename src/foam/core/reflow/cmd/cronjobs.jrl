@@ -23,11 +23,11 @@ p({
     import java.util.Date;
     import java.io.IOException;
     import foam.lang.X;
+    import com.microsoft.playwright.*;
 
     // Configuration
-    boolean autoExit = false; // set to true to auto exit on certain conditions (Disabled since its not working)
-    boolean headless = true; // Set to true to run Chrome in headless mode, false for visual debugging
-    int timeoutSeconds = 30; // Timeout for flow execution in seconds (configurable)
+    boolean headless = true; // Set to true to run browser in headless mode, false for visual debugging
+    int timeoutSeconds = 300; // Timeout for flow execution in seconds (5 minutes)
 
     DAO flowDAO = (DAO) x.get("flowDAO");
     
@@ -50,164 +50,200 @@ p({
 
     print("Found " + sink.getArray().size() + " scheduled flows to check");
 
-    int executedCount = 0;
-    for ( Object flowObj : sink.getArray() ) {
-      Flow flow = (Flow) flowObj;
+    // Initialize Playwright once for all flows
+    Playwright playwright = null;
+    
+    try {
+      playwright = Playwright.create();
       
-      try {
-        // Check if flow should run based on its schedule and last run time
-        if ( flow.getSchedule() == null ) {
-          print("Flow '" + flow.getName() + "' has no schedule - skipping");
-          continue;
-        }
+      int executedCount = 0;
+      for ( Object flowObj : sink.getArray() ) {
+        Flow flow = (Flow) flowObj;
+        Browser browser = null;
+        BrowserContext context = null;
+        Page page = null;
         
-        Date lastRun = flow.getLastRun();
-        if ( lastRun == null ) {
-          lastRun = new Date(0); // Use epoch if never run
-        }
-        
-        Date nextScheduledTime = flow.getSchedule().getNextScheduledTime(x, lastRun);
-        if ( nextScheduledTime == null || nextScheduledTime.getTime() > now.getTime() ) {
-          print("Flow '" + flow.getName() + "' not ready to run - next run: " + nextScheduledTime + " - skipping");
-          continue;
-        }
-        
-        executedCount++;
-        print("Executing scheduled flow: " + flow.getName());
-        
-        // Clone the flow before making changes (object is frozen)
-        Flow clonedFlow = (Flow) flow.fclone();
-        
-        // Update last run timestamp
-        clonedFlow.setLastRun(now);
-        flowDAO.put(clonedFlow);
+        try {
+          // Check if flow should run based on its schedule and last run time
+          if ( flow.getSchedule() == null ) {
+            print("Flow '" + flow.getName() + "' has no schedule - skipping");
+            continue;
+          }
+          
+          Date lastRun = flow.getLastRun();
+          if ( lastRun == null ) {
+            lastRun = new Date(0); // Use epoch if never run
+          }
+          
+          Date nextScheduledTime = flow.getSchedule().getNextScheduledTime(x, lastRun);
+          if ( nextScheduledTime == null || nextScheduledTime.getTime() > now.getTime() ) {
+            print("Flow '" + flow.getName() + "' not ready to run - next run: " + nextScheduledTime + " - skipping");
+            continue;
+          }
+          
+          executedCount++;
+          print("Executing scheduled flow: " + flow.getName());
+          
+          // Clone the flow before making changes (object is frozen)
+          Flow clonedFlow = (Flow) flow.fclone();
+          
+          // Update last run timestamp
+          clonedFlow.setLastRun(now);
+          flowDAO.put(clonedFlow);
 
-        // Get or create a real session for authentication using the flow's creator
-        String sessionID = null;
-        foam.dao.DAO sessionDAO = (foam.dao.DAO) x.get("sessionDAO");
-        foam.dao.DAO userDAO = (foam.dao.DAO) x.get("userDAO");
-        
-        if ( sessionDAO == null || userDAO == null ) {
-          print("Required DAOs not available - skipping flow: " + flow.getName());
-          continue;
-        }
-        
-        // Get the user who created this flow
-        Object flowCreator = null;
-        Long createdBy = flow.getCreatedBy();
-        
-        if ( createdBy != null && createdBy > 0 ) {
-          flowCreator = userDAO.find(createdBy);
-          print("Found flow creator with ID: " + createdBy);
-        }
-        
-        if ( flowCreator == null ) {
-          print("Flow creator not found for flow: " + flow.getName() + " - skipping");
-          continue;
-        }
-        
-        // Create a session for the flow creator  
-        X userX = foam.util.Auth.sudo(x, flowCreator);
-        session = userX.get(foam.core.session.Session.class);
-        
-        // Put session in DAO and get the session ID
-        sessionDAO.put(session);
-        sessionID = session.getId();
-        print("Created session " + sessionID + " for flow creator: " + flowCreator.getId());
-        
-        // Build the chrome command for visual execution (no headless for debugging)
-        String flowURL = "http://localhost:8080/" + "?sessionId=" + sessionID + "#flow/" + flow.getName();
-        // Try different Chrome executable paths for macOS
-        String chromeExe = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-        java.io.File chromeFile = new java.io.File(chromeExe);
-        if ( !chromeFile.exists() ) {
-          // Try alternative paths
-          chromeExe = "/usr/bin/google-chrome";
-          chromeFile = new java.io.File(chromeExe);
-          if ( !chromeFile.exists() ) {
-            chromeExe = "google-chrome";  // Last resort - try PATH
+          // Get or create a real session for authentication using the flow's creator
+          String sessionID = null;
+          foam.dao.DAO sessionDAO = (foam.dao.DAO) x.get("sessionDAO");
+          foam.dao.DAO userDAO = (foam.dao.DAO) x.get("userDAO");
+          
+          if ( sessionDAO == null || userDAO == null ) {
+            print("Required DAOs not available - skipping flow: " + flow.getName());
+            continue;
+          }
+          
+          // Get the user who created this flow
+          Object flowCreator = null;
+          Long createdBy = flow.getCreatedBy();
+          
+          if ( createdBy != null && createdBy > 0 ) {
+            flowCreator = userDAO.find(createdBy);
+            print("Found flow creator with ID: " + createdBy);
+          }
+          
+          if ( flowCreator == null ) {
+            print("Flow creator not found for flow: " + flow.getName() + " - skipping");
+            continue;
+          }
+          
+          // Create a session for the flow creator  
+          X userX = foam.util.Auth.sudo(x, flowCreator);
+          Session session = userX.get(foam.core.session.Session.class);
+          
+          // Put session in DAO and get the session ID
+          sessionDAO.put(session);
+          sessionID = session.getId();
+          print("Created session " + sessionID + " for flow creator: " + flowCreator.getId());
+          
+          // Build the flow URL
+          String flowURL = "http://localhost:8080/" + "?sessionId=" + sessionID + "#flow/" + flow.getName();
+          
+          // Create a new browser instance for each flow
+          BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
+            .setHeadless(headless);
+          
+          browser = playwright.chromium().launch(launchOptions);
+          
+          // Use Playwright to run the flow
+          print("Opening flow URL: " + flowURL);
+          
+          // Create a new browser context for this flow
+          context = browser.newContext();
+          page = context.newPage();
+          
+          // Set timeout for navigation
+          page.setDefaultTimeout(timeoutSeconds * 1000);
+          
+          // Navigate to the flow URL
+          page.navigate(flowURL);
+          
+          // Wait for the page to load and check for completion
+          print("Waiting for flow to complete...");
+          
+          // Wait for the page to be fully loaded
+          page.waitForLoadState();
+          
+          // Check for completion by looking for specific UI elements
+          boolean isComplete = false;
+          long startTime = System.currentTimeMillis();
+          long timeout = timeoutSeconds * 1000;
+          
+          while (!isComplete && (System.currentTimeMillis() - startTime) < timeout) {
+            try {
+              // Check for various completion indicators
+              String pageContent = (String) page.evaluate("() => document.body.innerText");
+              
+              // Check if the flow is in a completed state
+              if (pageContent.contains("GRANTED") || 
+                  pageContent.contains("COMPLETED") || 
+                  pageContent.contains("Success") ||
+                  pageContent.contains("Done")) {
+                isComplete = true;
+                print("Flow completed successfully!");
+                break;
+              }
+              
+              // Check for error states
+              if (pageContent.contains("Error") || 
+                  pageContent.contains("Failed") || 
+                  pageContent.contains("Exception")) {
+                print("Flow encountered an error state");
+                break;
+              }
+              
+              // Wait a bit before checking again
+              Thread.sleep(2000);
+              
+            } catch (Exception e) {
+              print("Error checking flow status: " + e.getMessage());
+              break;
+            }
+          }
+          
+          if (!isComplete) {
+            print("Flow did not complete within the timeout period");
+            if (!headless) {
+              page.screenshot(new Page.ScreenshotOptions().setPath("flow-timeout-" + flow.getName() + ".png"));
+            }
+          }
+          
+          // Get final page content for logging
+          Object result = page.evaluate("() => { return document.body.innerText; }");
+          print("Page content at end of execution: " + result);
+          
+          print("Successfully executed scheduled flow: " + flow.getName());
+        } catch (Exception e) {
+          print("Failed to execute scheduled flow: " + flow.getName() + ", error: " + e.getMessage());
+          e.printStackTrace();
+        } finally {
+          // Clean up resources for this flow
+          if (page != null) {
+            try {
+              page.close();
+            } catch (Exception e) {
+              print("Error closing page: " + e.getMessage());
+            }
+          }
+          if (context != null) {
+            try {
+              context.close();
+            } catch (Exception e) {
+              print("Error closing context: " + e.getMessage());
+            }
+          }
+          if (browser != null) {
+            try {
+              browser.close();
+            } catch (Exception e) {
+              print("Error closing browser: " + e.getMessage());
+            }
           }
         }
-        
-        String[] chromeCmd;
-        if ( headless ) {
-          if (autoExit) {
-          // Create a data URL that loads the flow and monitors for completion
-          String flowURL = 
-            "data:text/html,<html><head><title>Flow Monitor</title></head><body>" +
-            "<iframe id='flowFrame' src='" + flowURL + "' style='width:100%;height:90vh;border:none;'></iframe>" +
-            "<script>" +
-              "function checkForCompletion(){" +
-                "try{" +
-                  "var frame=document.getElementById('flowFrame');" +
-                  "var doc=frame.contentDocument||frame.contentWindow.document;" +
-                  "var text=doc.body.innerText||doc.body.textContent||'';" +
-                  "if(text.toLowerCase().indexOf('completed')>=0){" +
-                    "console.log('Found completion text - closing');" +
-                    "window.close();" +
-                  "}" +
-                "}catch(e){" +
-                  "console.log('Cross-origin check failed, using timeout');" +
-                "}" +
-              "}" +
-              "setInterval(checkForCompletion,2000);" +
-              "setTimeout(function(){window.close()}," + (timeoutSeconds * 1000) + ");" + // Configurable safety timeout
-            "</script>" +
-            "</body></html>";
-          }
-          chromeCmd = new String[] {
-            chromeExe,
-            "--headless",
-            "--disable-gpu", 
-            "--no-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-web-security", // Allow iframe access
-            "--disable-features=VizDisplayCompositor",
-            "--run-all-compositor-stages-before-draw",
-            "--enable-automation",
-            "--remote-debugging-port=9222",
-            flowURL
-          };
-        } else {
-          chromeCmd = new String[] {
-            chromeExe,
-            "--incognito",
-            "--new-window", 
-            "--disable-gpu",
-            "--no-sandbox",
-            flowURL
-          };
+      }
+      
+      print("Flow scheduler completed - executed " + executedCount + " flows");
+    } catch (Exception e) {
+      print("Error initializing Playwright: " + e.getMessage());
+      e.printStackTrace();
+    } finally {
+      // Clean up Playwright resources
+      if (playwright != null) {
+        try {
+          playwright.close();
+        } catch (Exception e) {
+          print("Error closing playwright: " + e.getMessage());
         }
-        
-        print("Executing: chrome " + flowURL);
-        
-        // Execute the chrome command
-        ProcessBuilder pb = new ProcessBuilder(chromeCmd);
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-        
-        // Wait for process to complete with configurable timeout
-        print("Running with " + timeoutSeconds + " second timeout...");
-        boolean finished = process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
-        
-        if ( finished ) {
-          int exitCode = process.exitValue();
-          if ( exitCode == 0 ) {
-            print("Successfully executed scheduled flow: " + flow.getName());
-          } else {
-            print("Scheduled flow execution failed with exit code " + exitCode + ": " + flow.getName());
-          }
-        } else {
-          print("Scheduled flow execution timed out: " + flow.getName());
-          process.destroyForcibly();
-        }
-      } catch (Exception e) {
-        print("Failed to execute scheduled flow: " + flow.getName() + ", error: " + e.getMessage());
-        e.printStackTrace();
       }
     }
-    
-    print("Flow scheduler completed - executed " + executedCount + " flows");
   """,
   "enabled": true
 })

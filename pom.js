@@ -79,6 +79,7 @@ foam.POM({
     'org.junit.jupiter:junit-jupiter-params:5.6.0',
     'org.junit.platform:junit-platform-launcher:1.6.0',
     'org.slf4j:slf4j-api:2.0.16',
-    'org.slf4j:slf4j-simple:2.0.16'
+    'org.slf4j:slf4j-simple:2.0.16',
+    'com.microsoft.playwright:playwright:1.41.0'
   ]
 });
