@@ -8,8 +8,6 @@ foam.CLASS({
   package: 'foam.u2',
   name: 'DAOChoicesListView',
 
-  implements: [ 'foam.mlang.Expressions' ],
-
   extends: 'foam.u2.TextField',
   documentation: `An Input view that provides a dropdown list of all served DAOs and flowChildren if any available. 
   The dropdown list gets filtered as user inputs their query.
@@ -27,7 +25,9 @@ foam.CLASS({
     'of',
     {
       name: 'choices',
-      value: []
+      factory: function() { 
+        return []; 
+      }
     },
   ],
 
@@ -46,12 +46,7 @@ foam.CLASS({
       // If I filter flowChoices at Line:39 right before pushing, then first match command nothing renders
       this.choices = [ ...flowChoices ]
       
-      var allDAOs = this.cSpecDAO.where(
-        this.AND(
-          this.ENDS_WITH(foam.core.boot.CSpec.ID, 'DAO'),
-          this.EQ(foam.core.boot.CSpec.SERVE, true)
-        )
-      );
+      var allDAOs = this.CSpecDAO.where(foam.core.boot.CSpec.SERVED_DAOS)
       
       allDAOs.select().then( sink => {
         sink.array.forEach( d => {
