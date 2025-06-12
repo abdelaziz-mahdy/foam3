@@ -10,6 +10,7 @@ import foam.core.logger.Logger;
 import foam.lang.X;
 import foam.lang.ContextAwareAgent;
 import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.LoadState;
 import java.util.Date;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -146,13 +147,27 @@ public class FlowScheduler extends ContextAwareAgent {
           page.setDefaultTimeout(timeoutSeconds * 1000);
 
           // Navigate to the flow URL
-          page.navigate(flowURL);
+          logger.info("Navigating to flow URL: " + flowURL);
+          try {
+            page.navigate(flowURL, new Page.NavigateOptions().setTimeout(timeoutSeconds * 1000));
+            logger.info("Page navigation completed");
+          } catch (Exception e) {
+            logger.error("Failed to load page within " + timeoutSeconds + " seconds: " + e.getMessage());
+            throw e;
+          }
 
           // Wait for the page to load and check for completion
           logger.info("Waiting for flow to complete...");
 
           // Wait for the page to be fully loaded
-          page.waitForLoadState();
+          try {
+            page.waitForLoadState(LoadState.NETWORKIDLE,
+                new Page.WaitForLoadStateOptions().setTimeout(timeoutSeconds * 1000));
+            logger.info("Page load state reached: NETWORKIDLE");
+          } catch (Exception e) {
+            logger.error("Failed to reach NETWORKIDLE state within " + timeoutSeconds + " seconds: " + e.getMessage());
+            throw e;
+          }
 
           // Check for completion by looking for specific UI elements
           boolean isComplete = false;
@@ -171,10 +186,16 @@ public class FlowScheduler extends ContextAwareAgent {
               }
 
               // Get the current page content
-              String pageContent = (String) page.evaluate("() => document.body.innerText");
-              logger.info(String.format("Check #%d (%.1f seconds elapsed) - Flow: %s",
-                  checkCount, elapsedSeconds, flow.getName()));
-              logger.debug("Current page content: " + pageContent);
+              String pageContent = "";
+              try {
+                pageContent = (String) page.evaluate("() => document.body.innerText");
+                logger.info(String.format("Check #%d (%.1f seconds elapsed) - Flow: %s",
+                    checkCount, elapsedSeconds, flow.getName()));
+                logger.info("Current page content: " + pageContent);
+              } catch (Exception e) {
+                logger.error("Failed to get page content: " + e.getMessage());
+                pageContent = "Error getting page content: " + e.getMessage();
+              }
 
               // Check for various completion indicators
               if (pageContent.contains("GRANTED") ||
@@ -250,7 +271,9 @@ public class FlowScheduler extends ContextAwareAgent {
           // Clean up resources for this flow
           if (page != null) {
             try {
-              page.close();
+              if (!page.isClosed()) {
+                page.close();
+              }
             } catch (Exception e) {
               logger.warning("Error closing page: " + e.getMessage());
             }
@@ -264,7 +287,9 @@ public class FlowScheduler extends ContextAwareAgent {
           }
           if (browser != null) {
             try {
-              browser.close();
+              if (!browser.isConnected()) {
+                browser.close();
+              }
             } catch (Exception e) {
               logger.warning("Error closing browser: " + e.getMessage());
             }
