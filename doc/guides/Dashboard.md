@@ -134,12 +134,16 @@ widgets: {
 Note: When using fixed columns (like 12), the maximum effective width is 6 columns. So both `column: 6` and `column: 12` will give the same result. However, when using fractional units, the full width is available.
 
 ### Responsive Breakpoints
-You can specify different layouts for different screen sizes:
-- `XSColumn`: Extra small screens (< 600px)
-- `SMColumn`: Small screens (600px - 960px)
-- `MDColumn`: Medium screens (960px - 1264px)
-- `LGColumn`: Large screens (1264px - 1904px)
-- `XLColumn`: Extra large screens (> 1904px)
+You can specify different layouts for different screen sizes. The available column grid varies by screen size:
+
+- `XXSColumn`: Extra extra small screens (0px - 320px) - 4 column grid
+- `XSColumn`: Extra small screens (320px - 576px) - 6 column grid  
+- `SMColumn`: Small screens (576px - 768px) - 12 column grid
+- `MDColumn`: Medium screens (768px - 960px) - 12 column grid
+- `LGColumn`: Large screens (960px - 1280px) - 12 column grid
+- `XLColumn`: Extra large screens (1280px+) - 12 column grid
+
+For complete responsive display width specifications, see `foam3/src/foam/u2/layout/DisplayWidth.js`
 
 Choose either fixed columns or fractional units for your layout and stick with that approach consistently. This will make your dashboard layout more predictable and easier to maintain.
 
