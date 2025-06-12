@@ -115,6 +115,8 @@ foam.CLASS({
       if ( this.ariaLabel     ) this.setAttribute('aria-label',  this.ariaLabel);
       if ( this.maxLength > 0 ) this.setAttribute('maxlength',   this.maxLength);
       if ( this.inputMode     ) this.setAttribute('inputmode',   this.inputMode);
+      if ( this.autofocus     ) this.focus();
+
       this.setAttribute('autocomplete', this.autocomplete ?
         (foam.String.isInstance(this.autocomplete) ? this.autocomplete : 'on') :
         'off'
