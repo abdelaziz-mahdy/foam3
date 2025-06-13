@@ -178,6 +178,7 @@ foam.CLASS({
       factory: function() {
         return foam.memento.MementoMgr.create({memento$: this.mementoStr$, position$: this.revision$});
       }
+    },
     {
       name: 'schedule',
       class: 'FObjectProperty',
