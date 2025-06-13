@@ -228,6 +228,11 @@ foam.CLASS({
       },
       code: function() {
         this.data.eval_('clear');
+        var flow = this.data.value;
+
+        flow.name     = '';
+        flow.version  = undefined;
+        flow.revision = undefined;
       }
     },
     {
@@ -245,13 +250,13 @@ foam.CLASS({
           showCancel: true,
           modalStyle: 'DESTRUCTIVE',
           data: this
-        })
+        });
         this.add(confirmationModal);
       }
     }
   ]
-
 });
+
 
 foam.CLASS({
   package: 'foam.core.reflow',
@@ -935,6 +940,9 @@ foam.CLASS({
   methods: [
     function clearFlow() {
       this.removeAllFlowChildren();
+
+      // Select the top-level FLOW object after clearing
+      this.selected = this.value;
     },
 
     function historyKey() {
