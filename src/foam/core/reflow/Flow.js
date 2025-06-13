@@ -77,7 +77,7 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.core.reflow.FlowAccess',
       name: 'accessLevel',
-      value: foam.core.reflow.FlowAccess.PRIVATE
+      value: foam.core.reflow.FlowAccess.PUBLIC_RW
     },
     {
       class: 'FObjectArray',
