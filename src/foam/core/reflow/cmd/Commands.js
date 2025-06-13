@@ -276,6 +276,19 @@ foam.CLASS({
   ]
 });
 
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'DAOCreateSave',
+
+  properties: [
+    { name: 'daoCreate', hidden: true }
+  ],
+
+  actions: [
+    function save() { this.daoCreate.save(); }
+  ]
+});
+
 
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
@@ -290,7 +303,9 @@ foam.CLASS({
 
   methods: [
     function execute(daoKey) {
-      this.out.tag(this.DAOCreate.create({daoKey: daoKey}));
+      var value = this.DAOCreate.create({daoKey: daoKey});
+      this.currentBlock.value = foam.core.reflow.cmd.DAOCreateSave.create({daoCreate: value});
+      this.out.tag(value);
     }
   ]
 });

@@ -83,7 +83,7 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.core.reflow.FlowAccess',
       name: 'accessLevel',
-      value: foam.core.reflow.FlowAccess.PRIVATE
+      value: foam.core.reflow.FlowAccess.PUBLIC_RW
     },
     {
       class: 'FObjectArray',
@@ -137,8 +137,13 @@ foam.CLASS({
         this.feedback_ = true;
         try {
           // console.log('*********** FLOW mementoStr change:', n);
-          var json    = JSON.parse(n);
-          this.memento = foam.json.parse(json, null, this.__context__);
+          n = n.trim();
+          if ( n ) {
+            var json = JSON.parse(n);
+            this.memento = foam.json.parse(json, null, this.__context__);
+          } else {
+            this.memento = [];
+          }
         } finally {
           this.feedback_ = false;
         }
@@ -216,9 +221,9 @@ foam.CLASS({
         if ( checkBypassAuthorization(x) ) return;
 
         if ( getAccessLevel() == FlowAccess.PRIVATE ) throw new AuthorizationException();
- 
+
         if ( getAccessLevel() == FlowAccess.SHARED ) {
-          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o ->
             ((UserFlowAccess) o).getUserId() == user.getId() &&
             (
               ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RO ||
@@ -237,7 +242,7 @@ foam.CLASS({
         if ( checkBypassAuthorization(x) ) return;
 
         if ( getAccessLevel() == FlowAccess.PRIVATE || getAccessLevel() == FlowAccess.PUBLIC_RO ) throw new AuthorizationException();
- 
+
         if ( getAccessLevel() == FlowAccess.SHARED ) {
           var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
             ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RW
@@ -254,7 +259,7 @@ foam.CLASS({
         if ( checkBypassAuthorization(x) ) return;
         
         if ( getAccessLevel() == FlowAccess.PRIVATE || getAccessLevel() == FlowAccess.PUBLIC_RO ) throw new AuthorizationException();
- 
+
         if ( getAccessLevel() == FlowAccess.SHARED ) {
           var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
             ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RW

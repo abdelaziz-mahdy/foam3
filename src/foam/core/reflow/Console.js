@@ -54,7 +54,7 @@ foam.CLASS({
       var index = this.flowChildren.indexOf(f);
       this.flowChildren = this.flowChildren.filter(c => c != f);
       this.removeFlowChild_ && this.removeFlowChild_(f);
-      
+
       if ( this.selected === f ) {
         if ( this.flowChildren.length > 0 ) {
           var newIndex = Math.max(0, index - 1);
@@ -467,7 +467,7 @@ foam.CLASS({
     ^:hover { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
-//      padding: 10px;
+      padding-right: 40px; // large so that you can still access the scrollbar
       overflow-x: auto;
       width: 100%;
     }
@@ -597,8 +597,8 @@ foam.CLASS({
       padding: 0px;
       border: none;
     }
-    
-    ^r .property-select, 
+
+    ^r .property-select,
     ^r .property-format,
     ^r .property-select1,
     ^r .property-select2 {
@@ -659,7 +659,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'rightWidth',
-      value: 400 
+      value: 400
     }
   ],
 
@@ -837,6 +837,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'flowName',
+      onKey: true,
       postSet: function(o, n) {
         this.route = n;
       }
