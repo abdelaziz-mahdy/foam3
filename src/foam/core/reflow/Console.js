@@ -1233,7 +1233,7 @@ foam.CLASS({
         this.flow.MEMENTO.postSet.call(this, this.menento, this.memento);
         this.flow.version++;
         this.flow.mementoMgr.clear();
-        this.flow.flowDAO.put(this);
+        this.flow.flowDAO.put(this.flow);
       },
       // TODO:
 //      isEnabled: function(flowName) { return flowName; },
