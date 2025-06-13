@@ -13,48 +13,7 @@ foam.CLASS({
     'foam.core.reflow.SinkAgent'
   ],
 
-  exports: [ 'AGENTS' ],
-
   imports: [ 'dao', 'agentDAO' ],
-
-  constants: {
-    AGENTS: [
-      // Value  Label
-      [ 'CSV', 'CSV', true ],
-      [ 'JSON', 'JSON', true ],
-      [ 'XML', 'XML', true ],
-      [ 'Table', 'Table', false ],
-      [ 'GridBy', 'GridBy', true ],
-      [ 'GroupBy', 'GroupBy', true ],
-      [ 'Cells', 'Cells', true ],
-      [ 'Citation', 'Citation', true ],
-      [ 'Controller', 'Controller', false ],
-      [ 'Avg', 'AVG', true ],
-      [ 'Count', 'COUNT', true ],
-      [ 'Duplicate', 'Duplicate', true ],
-      [ 'Max', 'MAX', true ],
-      [ 'Min', 'MIN', true ],
-      [ 'Sum', 'SUM', true ],
-      [ 'Pie',   'Pie', true ],
-      [ 'Row', 'Row', true ],
-      [ 'Column', 'Column', true ],
-      [ 'Script', 'Script', true ],
-      [ 'View', 'View', true ],
-      [ 'Edit', 'Edit', true ],
-      [ 'All', 'All', false ]
-    ]
-        /*
-        'SEQUENCE',
-        'TEMPLATE',
-        'FUNCTION',
-        'JS',
-        'TREE'
-        'Cost'
-        // A..Z Grid
-        // PROJECTION ? Same as Sequence?
-        // Array (store in variable?
-        */
-  },
 
   css: `
     ^ {
@@ -74,17 +33,21 @@ foam.CLASS({
     },
     {
       name: 'choice',
-      factory: function() { 
+      factory: function() {
         return this.agentDAO.select().then((agents) => {
           const entities = agents.array;
           return entities[0]?.value;
         });
       },
-      postSet: function(o, n) { 
-        if ( ! this.feedback_ ) this.data = undefined; 
+      postSet: function(o, n) {
+        if ( ! this.feedback_ ) this.data = undefined;
       },
       view: function(_, X) {
         var E = foam.mlang.Expressions.create();
+        var dao = X.agentDAO;
+
+        if ( X.data.sinksOnly ) dao = dao.where(E.EQ(foam.core.reflow.SinkAgent.SINK, true));
+
         return {
           class: 'foam.u2.view.RichChoiceView',
           search: true,
@@ -92,22 +55,18 @@ foam.CLASS({
           sections: [
             {
               heading: 'Format',
-              dao: X.agentDAO.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'format'))
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'format'))
             },
             {
               heading: 'Structure',
-              dao: X.agentDAO.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'structure'))
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'structure'))
             },
             {
               heading: 'Calculations',
-              dao: X.agentDAO.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'calculation'))
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'calculation'))
             },
           ]
         }
-        // var agents = X.AGENTS;
-        // if ( X.data.sinksOnly ) agents = agents.filter(s => s[2]);
-        // if ( X.data.agentType ) agents = agents.filter(s => s[3] === X.data.agentType);
-        // return { class: 'foam.u2.view.ChoiceView', choices: agents };
       }
     },
     {
