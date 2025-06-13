@@ -60,7 +60,7 @@ p({
   "serve":true,
   "authenticate": false,
   "boxClass":"foam.core.reflow.headless.HeadlessRunnerServiceSkeleton",
-  "serviceScript":"return new foam.core.reflow.headless.HeadlessRunnerServiceImpl(x);",
+  "serviceScript":"return new foam.core.reflow.headless.ServerHeadlessRunnerService(x);",
   "client": """
     {
       "class": "foam.core.reflow.headless.ClientHeadlessRunnerService",

@@ -51,6 +51,6 @@ foam.POM({
     { name: 'headless/HeadlessRunnerService', flags: 'js|java' }
   ],
   javaFiles: [
-    { name: 'headless/HeadlessRunnerServiceImpl' }
+    { name: 'headless/ServerHeadlessRunnerService' }
   ]
 });

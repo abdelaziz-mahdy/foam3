@@ -14,12 +14,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-public class HeadlessRunnerServiceImpl extends ContextAwareSupport implements HeadlessRunnerService {
+public class ServerHeadlessRunnerService extends ContextAwareSupport implements HeadlessRunnerService {
 
   private Logger logger = null;
   private final Map<String, HeadlessRunner> runningInstances = new ConcurrentHashMap<>();
 
-  public HeadlessRunnerServiceImpl(X x) {
+  public ServerHeadlessRunnerService(X x) {
     setX(x);
     logger = (Logger) x.get("logger");
   }
