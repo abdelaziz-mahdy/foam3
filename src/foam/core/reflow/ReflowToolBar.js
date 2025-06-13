@@ -34,10 +34,10 @@ foam.CLASS({
       z-index: 100;
       max-width: 320px;
     }
-    
+
     ^button-group {
       display: flex;
-      gap: 10px;      
+      gap: 10px;
       align-items: center;
     }
   `,
@@ -58,7 +58,6 @@ foam.CLASS({
 
     function destroy() {
       window.removeEventListener('click', this.boundHandleClickOutside);
-      this.SUPER();
     },
 
     function handleClickOutside(e) {
@@ -82,13 +81,13 @@ foam.CLASS({
             this.start().addClass(self.myClass('expanded-island'), self.myClass('holder'))
               .start(self.DynamicReflowComponents, { data: self.data })
             .end();
-          } 
+          }
           if ( selected == 'help' ) {
             this.start().addClass(self.myClass('expanded-island'), self.myClass('holder'))
               .start(self.DynamicReflowHelp, { data: self.data })
             .end();
           }
-          
+
         }))
         .start().addClass(this.myClass('holder'))
           .start().addClass(self.myClass('button-group'))
