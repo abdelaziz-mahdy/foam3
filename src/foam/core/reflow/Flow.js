@@ -182,8 +182,13 @@ foam.CLASS({
     {
       name: 'schedule',
       class: 'FObjectProperty',
-      of: 'foam.core.cron.CronSchedule',
-      documentation: 'Schedule to run this flow.'
+      of: 'foam.core.cron.Schedule',
+      view: {
+        class: 'foam.u2.view.FObjectView',
+        of: 'foam.core.cron.Schedule'
+      },
+      section: 'scheduling',
+      javaFactory: `return new foam.core.cron.CronSchedule.Builder(getX()).build();`
     },
     {
       class: 'DateTime',
