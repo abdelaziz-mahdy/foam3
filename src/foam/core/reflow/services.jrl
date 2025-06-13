@@ -26,7 +26,6 @@ p({
   """
     return new foam.dao.EasyDAO.Builder(x)
       .setPm(true)
-      .setAuthorize(false)
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setJournalName("flows")
       .setOf(foam.core.reflow.Flow.getOwnClassInfo())

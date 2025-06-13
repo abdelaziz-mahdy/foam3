@@ -25,7 +25,7 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
-      name: 'sinkOnly'
+      name: 'sink'
     },
     {
       class: 'String',
@@ -39,7 +39,7 @@ foam.CLASS({
       type: 'String',
       code: function() {
         return this.label;
-      },
+      }
     }
   ]
 });

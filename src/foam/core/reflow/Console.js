@@ -51,8 +51,18 @@ foam.CLASS({
       this.addFlowChild_ && this.addFlowChild_(f);
     },
     function removeFlowChild(f) {
+      var index = this.flowChildren.indexOf(f);
       this.flowChildren = this.flowChildren.filter(c => c != f);
       this.removeFlowChild_ && this.removeFlowChild_(f);
+
+      if ( this.selected === f ) {
+        if ( this.flowChildren.length > 0 ) {
+          var newIndex = Math.max(0, index - 1);
+          this.selected = this.flowChildren[newIndex];
+        } else {
+          this.selected = null;
+        }
+      }
     },
     function removeAllFlowChildren() {
       this.removeFlowChild_ && this.flowChildren.forEach(c => this.removeFlowChild_(c));
@@ -218,6 +228,12 @@ foam.CLASS({
       },
       code: function() {
         this.data.eval_('clear');
+        var flow = this.data.value;
+
+        flow.name     = '';
+        flow.mementoMgr.clear();
+        flow.version  = undefined;
+        flow.revision = undefined;
       }
     },
     {
@@ -235,13 +251,13 @@ foam.CLASS({
           showCancel: true,
           modalStyle: 'DESTRUCTIVE',
           data: this
-        })
+        });
         this.add(confirmationModal);
       }
     }
   ]
-
 });
+
 
 foam.CLASS({
   package: 'foam.core.reflow',
@@ -425,9 +441,9 @@ foam.CLASS({
 
   mixins: [ 'foam.core.reflow.Flowable' ],
 
-  imports: [ 'showPrompts' ],
+  imports: [ 'data', 'showPrompts' ],
 
-  exports: [ 'log', 'out', 'addValue' ],
+  exports: [ 'addValue', 'log', 'out' ],
 
   css: `
     ^ {
@@ -457,7 +473,7 @@ foam.CLASS({
     ^:hover { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
-//      padding: 10px;
+      padding-right: 40px; // large so that you can still access the scrollbar
       overflow-x: auto;
       width: 100%;
     }
@@ -482,6 +498,7 @@ foam.CLASS({
 
   methods: [
     function render() {
+      this.on('click', this.onClick);
       this.enableClass(this.myClass('hidePrompts'), this.showPrompts$.not());
       this.title.
         on('click', (e) => { e.stopPropagation();  e.preventDefault(); }).
@@ -524,6 +541,15 @@ foam.CLASS({
         this.flowParent && this.flowParent.removeFlowChild(this);
       }
     }
+  ],
+
+  listeners: [
+    {
+      name: 'onClick',
+      code: function() {
+        this.data.selected = this;
+      }
+    }
   ]
 });
 
@@ -538,7 +564,7 @@ foam.CLASS({
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-height: 90vh;
+      min-height: 100vh;
     }
     ^flex-container {
       display: flex;
@@ -553,7 +579,7 @@ foam.CLASS({
     ^l {
       padding: 4px;
       background-color: $white;
-      width: 20%;
+      width: 15%;
       border-right: 1px solid $grey200;
     }
     ^middle-holder {
@@ -587,10 +613,11 @@ foam.CLASS({
       padding: 0px;
       border: none;
     }
-    ^r .h600 {
-      font-size: 18px;
-    }
-    ^r .property-select , ^r .property-format {
+
+    ^r .property-select,
+    ^r .property-format,
+    ^r .property-select1,
+    ^r .property-select2 {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
@@ -605,7 +632,7 @@ foam.CLASS({
     ^r .foam-u2-view-IntView {
       width: 100%;
     }
-    ^r .property-select > div {
+    ^r .foam-core-reflow-SinkView > div {
       width: 100%;
       flex-direction: column;
       align-items: flex-start;
@@ -618,14 +645,22 @@ foam.CLASS({
 
     ^menuClosed {
      width: 4% !important;
-   }
+    }
     ^r .foam-core-reflow-ReactiveSectionView-actionDiv {
       gap: 10px;
     }
     .foam-u2-ActionView-run {
       width: 100%;
     }
+    ^r .foam-u2-detail-SectionView-actionDiv {
+      gap: 10px;
+    }
 
+    ^r .foam-u2-view-TitledArrayView-value-view-container {
+      border: 1px solid $grey200;
+      padding: 10px;
+      border-radius: 4px;
+    }
   `,
 
   properties: [
@@ -640,7 +675,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'rightWidth',
-      value: 300
+      value: 400
     }
   ],
 
@@ -676,7 +711,6 @@ foam.CLASS({
   ],
   listeners: [
     function onResizeStart(e) {
-      console.log('onResizeStart', e);
       var self = this;
       var startX = e.clientX;
       var startWidth = this.rightWidth;
@@ -819,6 +853,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'flowName',
+      onKey: true,
       postSet: function(o, n) {
         this.route = n;
       }
@@ -915,6 +950,9 @@ foam.CLASS({
   methods: [
     function clearFlow() {
       this.removeAllFlowChildren();
+
+      // Select the top-level FLOW object after clearing
+      this.selected = this.value;
     },
 
     function historyKey() {
@@ -958,7 +996,6 @@ foam.CLASS({
 
       this.flowChildren$.sub(() => {
         if ( feedback_ ) return;
-        console.log('***** CONSOLE flowChildren');
         feedback_ = true;
         try {
           this.value.memento = this.flowChildren;
@@ -968,14 +1005,12 @@ foam.CLASS({
         });
       this.value.memento$.sub(() => {
         if ( feedback_ ) return;
-        console.log('***** CONSOLE memento');
         feedback_ = true;
         try {
           var cs = this.value.memento;
           var currentBlockName = this.selected ? this.selected.flowName : this.flowName;
           this.clearFlow();
           cs.forEach(c => {
-            console.log('***child:', c.flowName, c.cmd, c.value);
             this.eval_(c.cmd);
             // TODO: await
             this.currentBlock.flowName = c.flowName;
@@ -1202,29 +1237,24 @@ foam.CLASS({
 
     function removeFlowChild_(c) {
       c.remove();
+    },
+
+    function save() {
+      // This is a hackish solution to the bug that the memento is saved before
+      // the last block's name is set. Ideally the block would be named before
+      // being added to the flowChildren. Alternatively, the mementoStr could never
+      // be created until just before you save, but updating it for every update
+      // will make it easy to implement undo/redo in the future.
+      var flow = this.value;
+
+      flow.MEMENTO.postSet.call(this, this.menento, this.memento);
+      flow.version++;
+      flow.mementoMgr.clear();
+      flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
     }
   ],
 
   actions: [
-    {
-      name: 'save',
-      code: function() {
-        // TODO: FIX
-        // This is a hackish solution to the bug that the memento is saved before
-        // the last block's name is set. Ideally the block would be named before
-        // being added to the flowChildren. Alternatively, the mementoStr could never
-        // be created until just before you save, but updating it for every update
-        // will make it easy to implement undo/redo in the future.
-        this.flow.MEMENTO.postSet.call(this, this.menento, this.memento);
-        this.flow.version++;
-        this.flow.mementoMgr.clear();
-        this.flow.flowDAO.put(this);
-      },
-      // TODO:
-//      isEnabled: function(flowName) { return flowName; },
-//      isEnabled: function(flowName, flow$revision) { return flowName && flow$revision; },
-//      isEnabled: function(name, revision) { return name && revision; },
-    },
     {
       name: 'helpKey',
       isAvailable: function(input_) {
