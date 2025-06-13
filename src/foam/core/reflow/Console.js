@@ -441,9 +441,9 @@ foam.CLASS({
 
   mixins: [ 'foam.core.reflow.Flowable' ],
 
-  imports: [ 'showPrompts' ],
+  imports: [ 'data', 'showPrompts' ],
 
-  exports: [ 'log', 'out', 'addValue' ],
+  exports: [ 'addValue', 'log', 'out' ],
 
   css: `
     ^ {
@@ -498,6 +498,7 @@ foam.CLASS({
 
   methods: [
     function render() {
+      this.on('click', this.onClick);
       this.enableClass(this.myClass('hidePrompts'), this.showPrompts$.not());
       this.title.
         on('click', (e) => { e.stopPropagation();  e.preventDefault(); }).
@@ -538,6 +539,15 @@ foam.CLASS({
       destructive: true,
       code: function() {
         this.flowParent && this.flowParent.removeFlowChild(this);
+      }
+    }
+  ],
+
+  listeners: [
+    {
+      name: 'onClick',
+      code: function() {
+        this.data.selected = this;
       }
     }
   ]
