@@ -74,13 +74,6 @@ p({
         
         executedCount++;
         print("Executing scheduled flow: " + flow.getName());
-        
-        // Clone the flow before making changes (object is frozen)
-        Flow clonedFlow = (Flow) flow.fclone();
-        
-        // Update last run timestamp
-        clonedFlow.setLastRun(now);
-        flowDAO.put(clonedFlow);
 
         // Get or create a real session for authentication using the flow's creator
         String sessionID = null;
@@ -109,6 +102,14 @@ p({
         // Create a session for the flow creator  
         X userX = foam.util.Auth.sudo(x, flowCreator);
         session = userX.get(foam.core.session.Session.class);
+        
+        // Clone the flow before making changes (object is frozen) - now with proper user context
+        Flow clonedFlow = (Flow) flow.fclone();
+        
+        // Update last run timestamp using the user context DAO
+        clonedFlow.setLastRun(now);
+        DAO userFlowDAO = (DAO) userX.get("flowDAO");
+        userFlowDAO.put(clonedFlow);
         
         // Put session in DAO and get the session ID
         sessionDAO.put(session);
