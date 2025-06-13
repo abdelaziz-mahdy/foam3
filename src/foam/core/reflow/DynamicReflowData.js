@@ -31,14 +31,10 @@ foam.CLASS({
     ^collection-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 5px;
       max-height: 200px;
       overflow-y: auto;
       padding-top: 10px;
-    }
-    ^ .foam-u2-UnderlinedTabs-tab.selected {
-      color: $primary500;
-      border-bottom-width: 1px;
     }
   `,
 

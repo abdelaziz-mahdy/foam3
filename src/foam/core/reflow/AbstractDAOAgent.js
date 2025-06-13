@@ -34,7 +34,7 @@ foam.CLASS({
         if ( this.block.value && this.block.value.VALUE ) {
           this.block.value.value = this.value(s);
         } else {
-          this.block.value = this.value(s); 
+          this.block.value = this.value(s);
         }
         e.startContext({dao: this.dao});
           this.addSinkToE(e, s);
@@ -396,7 +396,7 @@ foam.CLASS({
       e.startContext({data: this}).
         start().
           style({display: 'flex'}).
-          add(this.PROP, ', ', this.SINK);
+          add(this.PROP, this.SINK);
     }
   ]
 });
@@ -422,7 +422,7 @@ foam.CLASS({
   methods: [
     function createSink() { return this.DuplicateSink.create({expr: this.prop, sink: this.sink.createSink()}); },
     function addToE(e) {
-      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP, ', ', this.SINK);
+      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP, this.SINK);
     }
   ]
 });
@@ -459,7 +459,7 @@ foam.CLASS({
       acc:   this.sink.createSink()
     }); },
     function addToE(e) {
-      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP1, ', ', this.PROP2, ', ', this.SINK);
+      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP1, this.PROP2, this.SINK);
     }
   ]
 });

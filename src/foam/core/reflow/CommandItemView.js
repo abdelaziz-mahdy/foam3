@@ -12,11 +12,12 @@ foam.CLASS({
 
   css: `
     ^command-item {
-      padding: 5px;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding-inline: 5px;
+      height: 40px;
     }
     ^command-item:hover {
       background-color: $grey50;

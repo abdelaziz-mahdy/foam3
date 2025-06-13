@@ -31,7 +31,7 @@ foam.CLASS({
       toJSON: function(v) {
         var m = {};
         for ( key in v ) { m[key] = v[key].toString(); }
-       
+
         return m;
       }
     }
@@ -95,7 +95,7 @@ foam.CLASS({
       align-items: center;
       gap: 5px;
     }
-    ^select {
+    ^select, ^select1, ^select2 {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
@@ -115,6 +115,15 @@ foam.CLASS({
     ^element-icon {
       width: 14px;
       height: 14px;
+    }
+    ^ .foam-core-reflow-SinkView {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 5px;
+    }
+    ^ .foam-core-reflow-SinkView > div > div {
+      width: 100%;
     }
   `,
 
@@ -257,6 +266,10 @@ foam.CLASS({
   ],
 
   methods: [
+    function render() {
+      this.sections.forEach(s => s.view = 'foam.core.reflow.ReactiveSectionView');
+      this.SUPER();
+    },
     function renderTitle(self) {
       // NOP
     }

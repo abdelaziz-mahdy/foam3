@@ -279,6 +279,20 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
+  name: 'DAOCreateSave',
+
+  properties: [
+    { name: 'daoCreate', hidden: true }
+  ],
+
+  actions: [
+    function save() { this.daoCreate.save(); }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
   name: 'DAOCreate',
   extends: 'foam.core.reflow.cmd.Command',
 
@@ -290,7 +304,9 @@ foam.CLASS({
 
   methods: [
     function execute(daoKey) {
-      this.out.tag(this.DAOCreate.create({daoKey: daoKey}));
+      var value = this.DAOCreate.create({daoKey: daoKey});
+      this.currentBlock.value = foam.core.reflow.cmd.DAOCreateSave.create({daoCreate: value});
+      this.out.tag(value);
     }
   ]
 });
@@ -617,7 +633,7 @@ foam.CLASS({
   name: 'Save',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [  'currentBlock', 'flow', 'flowDAO' ],
+  imports: [  'currentBlock', 'flow', 'flowDAO', 'save' ],
 
   properties: [
     [ 'description', 'Save the current flow to a specified name' ]
@@ -625,21 +641,17 @@ foam.CLASS({
 
   methods: [
     function execute(opt_flowName) {
-
       if ( opt_flowName ) {
         this.flow.name = opt_flowName;
       }
-      if (!this.flow.save()){
-        this.out.add('Please provide a name for the flow');
-        return;
-      }
-
 
       // Don't save the 'save' command
       this.currentBlock.del();
 
-      var ret = this.flowDAO.put(this.flow);
-      this.flow.copyFrom(ret);
+      if ( ! this.save() ) {
+        this.out.add('Please provide a name for the flow');
+        return;
+      }
     }
   ]
 });

@@ -12,21 +12,18 @@ foam.CLASS({
 
   requires: [
     'foam.core.reflow.DynamicReflowData',
-    'foam.core.reflow.DynamicReflowComponents'
+    'foam.core.reflow.DynamicReflowComponents',
+    'foam.core.reflow.DynamicReflowHelp',
+    'foam.u2.ToggleActionView'
   ],
 
   css: `
-    ^ {
-      position: absolute;
-      left: 35%;
-      bottom: 50;
-      z-index: 100;
-    }
     ^island-holder {
       display: flex;
       flex-direction: column;
+      align-items: left;
       gap: 10px;
-      z-index: 100;
+      align-items: center;
     }
     ^holder {
       padding: 10px;
@@ -35,16 +32,13 @@ foam.CLASS({
       border: 1px solid $grey200;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       z-index: 100;
+      max-width: 320px;
     }
-    
+
     ^button-group {
       display: flex;
-      gap: 10px;      
+      gap: 10px;
       align-items: center;
-    }
-    ^ .foam-u2-ActionView.selected {
-      background-color: $primary500;
-      color: $white!important;
     }
   `,
 
@@ -56,6 +50,22 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+      this.boundHandleClickOutside = this.handleClickOutside.bind(this);
+      window.addEventListener('click', this.boundHandleClickOutside);
+    },
+
+    function destroy() {
+      window.removeEventListener('click', this.boundHandleClickOutside);
+    },
+
+    function handleClickOutside(e) {
+      const islandHolder = document?.querySelector(`.${this.myClass('island-holder')}`);      if (islandHolder && !islandHolder.contains(e.target)) {
+        this.selected = null;
+      }
+    },
+
     function render() {
       var self = this;
       const actions = this.cls_.getAxiomsByClass(foam.lang.Action);
@@ -72,17 +82,27 @@ foam.CLASS({
               .start(self.DynamicReflowComponents, { data: self.data })
             .end();
           }
+          if ( selected == 'help' ) {
+            this.start().addClass(self.myClass('expanded-island'), self.myClass('holder'))
+              .start(self.DynamicReflowHelp, { data: self.data })
+            .end();
+          }
+
         }))
         .start().addClass(this.myClass('holder'))
-            .add(this.dynamic(function(selected) {
-              this.start().addClass(self.myClass('button-group'))
-                .startContext({ data: self })
-                  .forEach(actions, function(action) {
-                    this.start(action).enableClass('selected', selected === action.name).end();
+          .start().addClass(self.myClass('button-group'))
+            .startContext({ data: self })
+              .forEach(actions, function(action) {
+                this.tag(self.ToggleActionView, {
+                  action: action,
+                  data: self,
+                  actionState$: self.selected$.map(function(selected) {
+                    return selected === action.name;
                   })
-                .endContext()
-              .end();
-            }))
+                }).end();
+              })
+            .endContext()
+          .end()
         .end()
       .end();
     }
