@@ -183,7 +183,10 @@ foam.CLASS({
       name: 'schedule',
       class: 'FObjectProperty',
       of: 'foam.core.cron.CronSchedule',
-      documentation: 'Schedule to run this flow.'
+      documentation: 'Schedule to run this flow.',
+      factory: function() {
+        return this.CronSchedule.create();
+      }
     },
     {
       class: 'DateTime',
