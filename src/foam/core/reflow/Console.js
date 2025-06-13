@@ -467,7 +467,7 @@ foam.CLASS({
     ^:hover { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
-//      padding: 10px;
+      padding-right: 40px; // large so that you can still access the scrollbar
       overflow-x: auto;
       width: 100%;
     }
