@@ -652,9 +652,6 @@ foam.CLASS({
         this.out.add('Please provide a name for the flow');
         return;
       }
-
-      var ret = this.flowDAO.put(this.flow);
-      this.flow.copyFrom(ret);
     }
   ]
 });

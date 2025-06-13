@@ -71,7 +71,7 @@ foam.CLASS({
       class: 'String',
       name: 'notes',
       width: 80,
-      view: { class: 'foam.u2.tag.TextArea', rows: 4, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 3, cols: 78 }
     },
     {
       class: 'Enum',
@@ -123,6 +123,26 @@ foam.CLASS({
       }
     },
     {
+      class: 'Int',
+      name: 'version'
+    },
+    {
+      class: 'Int',
+      name: 'revision',
+      transient: true,
+      xxxview: {
+        class: 'foam.u2.view.DualView',
+        viewa: { class: 'foam.u2.IntView' },
+        viewb: { class: 'foam.u2.RangeView', onKey: true }
+      }
+    },
+    {
+      class: 'Reference',
+      of: 'foam.core.auth.ServiceProvider',
+      name: 'spid',
+      hidden: true
+    },
+    {
       class: 'String',
       name: 'mementoStr',
       label: 'Script',
@@ -142,7 +162,7 @@ foam.CLASS({
           this.feedback_ = false;
         }
       },
-      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 78 }
+      view: { class: 'foam.u2.tag.TextArea', rows: 8, cols: 78 }
     },
     {
       class: 'FObjectProperty',
@@ -152,33 +172,13 @@ foam.CLASS({
       factory: function() {
         return foam.memento.MementoMgr.create({memento$: this.mementoStr$, position$: this.revision$});
       }
-    },
-    {
-      class: 'Int',
-      name: 'version'
-    },
-    {
-      class: 'Int',
-      name: 'revision',
-      transient: true,
-      xxxview: {
-        class: 'foam.u2.view.DualView',
-        viewa: { class: 'foam.u2.IntView' },
-        viewb: { class: 'foam.u2.RangeView', onKey: true }
-      }
-    },
-    {
-      class: 'Reference',
-      of: 'foam.core.auth.ServiceProvider',
-      name: 'spid',
-      hidden: true
     }
   ],
 
   methods: [
     function init() {
       this.SUPER();
-      this.mementoMgr;
+      this.mementoMgr; // force creation
     },
     {
       name: 'authorizeOnCreate',

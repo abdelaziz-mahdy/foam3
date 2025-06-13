@@ -231,6 +231,7 @@ foam.CLASS({
         var flow = this.data.value;
 
         flow.name     = '';
+        flow.mementoMgr.clear();
         flow.version  = undefined;
         flow.revision = undefined;
       }
@@ -1230,29 +1231,24 @@ foam.CLASS({
 
     function removeFlowChild_(c) {
       c.remove();
+    },
+
+    function save() {
+      // This is a hackish solution to the bug that the memento is saved before
+      // the last block's name is set. Ideally the block would be named before
+      // being added to the flowChildren. Alternatively, the mementoStr could never
+      // be created until just before you save, but updating it for every update
+      // will make it easy to implement undo/redo in the future.
+      var flow = this.value;
+
+      flow.MEMENTO.postSet.call(this, this.menento, this.memento);
+      flow.version++;
+      flow.mementoMgr.clear();
+      flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
     }
   ],
 
   actions: [
-    {
-      name: 'save',
-      code: function() {
-        // TODO: FIX
-        // This is a hackish solution to the bug that the memento is saved before
-        // the last block's name is set. Ideally the block would be named before
-        // being added to the flowChildren. Alternatively, the mementoStr could never
-        // be created until just before you save, but updating it for every update
-        // will make it easy to implement undo/redo in the future.
-        this.flow.MEMENTO.postSet.call(this, this.menento, this.memento);
-        this.flow.version++;
-        this.flow.mementoMgr.clear();
-        this.flow.flowDAO.put(this);
-      },
-      // TODO:
-//      isEnabled: function(flowName) { return flowName; },
-//      isEnabled: function(flowName, flow$revision) { return flowName && flow$revision; },
-//      isEnabled: function(name, revision) { return name && revision; },
-    },
     {
       name: 'helpKey',
       isAvailable: function(input_) {
