@@ -19,6 +19,7 @@ foam.CLASS({
 
   javaImports: [
     'foam.core.auth.AuthorizationException',
+    'foam.core.auth.AuthService',
     'foam.core.auth.Subject',
     'foam.core.auth.User',
     'foam.lang.X',
@@ -51,6 +52,8 @@ foam.CLASS({
   tableColumns: [ 'name', 'source', 'description', 'status', 'schedule', 'lastRun', /* 'isPublic', 'readOnly', */ 'reflow' ],
 
   searchColumns: [ 'name', 'status', 'source', 'schedule' ],
+
+  constants: { ROLE_PERMISSION_PREFIX: '@' },
 
   properties: [
     {
@@ -89,7 +92,14 @@ foam.CLASS({
       class: 'FObjectArray',
       of: 'foam.core.reflow.UserFlowAccess',
       name: 'specifiedUserAccess',
-      label: 'Specified Access',
+      visibility: function(accessLevel) {
+        return accessLevel != foam.core.reflow.FlowAccess.SHARED ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
+      }
+    },
+    {
+      class: 'FObjectArray',
+      of: 'foam.core.reflow.RoleFlowAccess',
+      name: 'specifiedRoleAccess',
       visibility: function(accessLevel) {
         return accessLevel != foam.core.reflow.FlowAccess.SHARED ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
       }
@@ -194,7 +204,7 @@ foam.CLASS({
       class: 'DateTime',
       name: 'lastRun',
       label: 'Last Run',
-      hidden: true,
+      readPermissionRequired: true,
       documentation: 'Timestamp of the last execution of this flow. Works with this.schedule.'
     }
   ],
@@ -229,14 +239,32 @@ foam.CLASS({
         if ( getAccessLevel() == FlowAccess.PRIVATE ) throw new AuthorizationException();
 
         if ( getAccessLevel() == FlowAccess.SHARED ) {
-          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o ->
-            ((UserFlowAccess) o).getUserId() == user.getId() &&
-            (
-              ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RO ||
-              ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RW
-            )
-          );
-          if ( ! hasAccess ) throw new AuthorizationException();
+          // check user accesss
+          if ( getSpecifiedUserAccess() != null ) {
+            var hasUserAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+              ((UserFlowAccess) o).getUserId() == user.getId() &&
+              (
+                ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RO ||
+                ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RW
+              )
+            );
+            if ( hasUserAccess ) return;
+          }
+
+          // check role access
+          if ( getSpecifiedRoleAccess() != null ) {
+            for ( int i = 0; i < getSpecifiedRoleAccess().length; i++ ) {
+              var roleAccess = getSpecifiedRoleAccess()[i];
+              // if its not rw/ro don't bother checking
+              if ( roleAccess.getAccessLevel() != foam.core.reflow.FlowAccess.PUBLIC_RW &&
+                   roleAccess.getAccessLevel() != foam.core.reflow.FlowAccess.PUBLIC_RO ) continue;
+              try {
+                var hasRolePermission = ((AuthService) x.get("auth")).check(x, this.ROLE_PERMISSION_PREFIX + roleAccess.getRoleId());
+                if ( hasRolePermission ) return;
+              } catch (AuthorizationException e) { }
+            }
+          }
+          throw new AuthorizationException();
         }
       `
     },
@@ -250,10 +278,27 @@ foam.CLASS({
         if ( getAccessLevel() == FlowAccess.PRIVATE || getAccessLevel() == FlowAccess.PUBLIC_RO ) throw new AuthorizationException();
 
         if ( getAccessLevel() == FlowAccess.SHARED ) {
-          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o ->
-            ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RW
-          );
-          if ( ! hasAccess ) throw new AuthorizationException();
+          // check user accesss
+          if ( getSpecifiedUserAccess() != null ) {
+            var hasUserAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+              ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RW
+            );
+            if ( hasUserAccess ) return;
+          }
+
+          // check role access
+          if ( getSpecifiedRoleAccess() != null ) {
+            for ( int i = 0; i < getSpecifiedRoleAccess().length; i++ ) {
+              var roleAccess = getSpecifiedRoleAccess()[i];
+              // if its not rw don't bother checking
+              if ( roleAccess.getAccessLevel() != foam.core.reflow.FlowAccess.PUBLIC_RW ) continue;
+              try {
+                var hasRolePermission = ((AuthService) x.get("auth")).check(x, this.ROLE_PERMISSION_PREFIX + roleAccess.getRoleId());
+                if ( hasRolePermission ) return;
+              } catch (AuthorizationException e) { }
+            }
+          }
+          throw new AuthorizationException();
         }
       `
     },
@@ -267,10 +312,27 @@ foam.CLASS({
         if ( getAccessLevel() == FlowAccess.PRIVATE || getAccessLevel() == FlowAccess.PUBLIC_RO ) throw new AuthorizationException();
 
         if ( getAccessLevel() == FlowAccess.SHARED ) {
-          var hasAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o ->
-            ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == FlowAccess.PUBLIC_RW
-          );
-          if ( ! hasAccess ) throw new AuthorizationException();
+          // check user accesss
+          if ( getSpecifiedUserAccess() != null ) {
+            var hasUserAccess = Arrays.stream(getSpecifiedUserAccess()).anyMatch(o -> 
+              ((UserFlowAccess) o).getUserId() == user.getId() && ((UserFlowAccess) o).getAccessLevel() == foam.core.reflow.FlowAccess.PUBLIC_RW
+            );
+            if ( hasUserAccess ) return;
+          }
+
+          // check role access
+          if ( getSpecifiedRoleAccess() != null ) {
+            for ( int i = 0; i < getSpecifiedRoleAccess().length; i++ ) {
+              var roleAccess = getSpecifiedRoleAccess()[i];
+              // if its not rw don't bother checking
+              if ( roleAccess.getAccessLevel() != foam.core.reflow.FlowAccess.PUBLIC_RW ) continue;
+              try {
+                var hasRolePermission = ((AuthService) x.get("auth")).check(x, this.ROLE_PERMISSION_PREFIX + roleAccess.getRoleId());
+                if ( hasRolePermission ) return;
+              } catch (AuthorizationException e) { }
+            }
+          }
+          throw new AuthorizationException();
         }
       `
     }
