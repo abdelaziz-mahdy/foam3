@@ -52,3 +52,25 @@ p({
     `,
   "client":"{\"of\":\"foam.core.reflow.SinkAgent\"}"
 })
+
+p({
+  "class":"foam.core.boot.CSpec",
+  "name":"headlessRunnerService",
+  "lazy":true,
+  "serve":true,
+  "authenticate": false,
+  "boxClass":"foam.core.reflow.headless.HeadlessRunnerServiceSkeleton",
+  "serviceScript":"return new foam.core.reflow.headless.HeadlessRunnerServiceImpl(x);",
+  "client": """
+    {
+      "class": "foam.core.reflow.headless.ClientHeadlessRunnerService",
+      "delegate": {
+        "class":"foam.box.SessionClientBox",
+        "delegate": {
+          "class":"foam.box.HTTPBox",
+          "url": "service/headlessRunnerService"
+        }
+      }
+    }
+  """
+})

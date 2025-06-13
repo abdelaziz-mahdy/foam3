@@ -47,6 +47,10 @@ foam.POM({
     { name: 'XMLSink',                 flags: 'js|java' },
     { name: 'cmd/Commands',            flags: 'js|java' },
     { name: 'ColumnParser',            flags: 'js' },
-    { name: 'lib',                     flags: 'js' }
+    { name: 'lib',                     flags: 'js' },
+    { name: 'headless/HeadlessRunnerService', flags: 'js|java' }
+  ],
+  javaFiles: [
+    { name: 'headless/HeadlessRunnerServiceImpl' }
   ]
 });

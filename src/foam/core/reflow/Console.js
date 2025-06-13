@@ -769,7 +769,8 @@ foam.CLASS({
     'scope?',
     'setTimeout',
     'window',
-    'showNav'
+    'showNav',
+    'headlessRunnerService?'
   ],
 
   exports: [
@@ -967,6 +968,13 @@ foam.CLASS({
 
       var self = this;
 
+      // Store headless mode flag and runner ID for later use
+      var isHeadlessMode = this.params && this.params.headless === 'true';
+      var runnerId = this.params && this.params.runnerId;
+      if ( isHeadlessMode ) {
+        console.log('Setting up headless mode with runner ID:', runnerId);
+      }
+
       // Add listener to restore navigation when leaving reflow
       this.onDetach(() => {
         this.showNav = true;
@@ -1018,6 +1026,25 @@ foam.CLASS({
               this.currentBlock.value.copyFrom(c.value);
             }
           });
+          
+          // Remove runner from service for headless mode after all commands execute
+          if ( isHeadlessMode && cs.length > 0 && runnerId ) {
+            console.log('Flow execution completed - removing runner from service');
+            try {
+              if ( this.headlessRunnerService ) {
+                this.headlessRunnerService.removeRunner(runnerId).then(() => {
+                  console.log('Headless runner removed successfully:', runnerId);
+                }).catch(e => {
+                  console.log('Error removing headless runner:', e);
+                });
+              } else {
+                console.log('headlessRunnerService not found in context');
+              }
+            } catch (e) {
+              console.log('Error accessing headlessRunnerService:', e);
+            }
+          }
+          
           this.selected = currentBlockName == this.flowName ? this : this.findFlowChildByName(currentBlockName);
         } finally {
           feedback_ = false;
@@ -1133,6 +1160,7 @@ foam.CLASS({
         if ( c.value ) s[c.flowName] = c.value;
       });
     },
+
 
     async function eval_(cmd, opt_ignoreSelect) {
       /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected  block **/
