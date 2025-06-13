@@ -119,12 +119,12 @@ foam.CLASS({
             formatDatesAsNumbers: false,
             outputDefaultValues: false,
             useShortNames: false,
-            propertyPredicate: function(_, p) { return ! p.externalTransient && ! p.networkTransient; }
+            propertyPredicate: function(_, p) { return p.name === 'reactions_' || ( ! p.externalTransient && ! p.networkTransient ); }
           });
           //          this.mementoStr = foam.json.Short.stringify(n);
           // HACK: Console doesn't set name until after the block is added, so if we store the mementoStr
           // now it will lack the name. Just delay a bit to allow name to be set.
-   
+
         } finally {
           setTimeout(()=> {
             this.mementoStr = json.stringify(n)
