@@ -695,7 +695,6 @@ foam.CLASS({
   ],
   listeners: [
     function onResizeStart(e) {
-      console.log('onResizeStart', e);
       var self = this;
       var startX = e.clientX;
       var startWidth = this.rightWidth;
@@ -977,7 +976,6 @@ foam.CLASS({
 
       this.flowChildren$.sub(() => {
         if ( feedback_ ) return;
-        console.log('***** CONSOLE flowChildren');
         feedback_ = true;
         try {
           this.value.memento = this.flowChildren;
@@ -987,14 +985,12 @@ foam.CLASS({
         });
       this.value.memento$.sub(() => {
         if ( feedback_ ) return;
-        console.log('***** CONSOLE memento');
         feedback_ = true;
         try {
           var cs = this.value.memento;
           var currentBlockName = this.selected ? this.selected.flowName : this.flowName;
           this.clearFlow();
           cs.forEach(c => {
-            console.log('***child:', c.flowName, c.cmd, c.value);
             this.eval_(c.cmd);
             // TODO: await
             this.currentBlock.flowName = c.flowName;
