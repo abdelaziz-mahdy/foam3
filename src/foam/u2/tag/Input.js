@@ -120,11 +120,14 @@ foam.CLASS({
         (foam.String.isInstance(this.autocomplete) ? this.autocomplete : 'on') :
         'off'
       );
+
       if ( this.choices && this.choices.length ) {
+        var cid = self.$UID + '-choices';
+
         this.
-          setAttribute('list', this.id + '-choices').
+          setAttribute('list', cid).
           start('datalist').
-            setID(self.id + '-choices').
+            setID(cid).
             add(this.dynamic(function (choices) {
               this.forEach(choices, function(c) {
                 var key   = c[0];

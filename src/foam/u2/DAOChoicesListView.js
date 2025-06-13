@@ -26,16 +26,19 @@ foam.CLASS({
     {
       name: 'choices',
       factory: function() {
-        return [];
+        return [ ];
       }
     },
     [ 'size', 45 ]
   ],
 
   methods: [
-    function init() {
+    function render() {
+      this.choices = [ 'placeholder' ]; // So that Input will render the data-list, the contents of which we'll update later
+      this.SUPER();
+
       var flowChoices = [];
-      var daoChoices = [];
+      var daoChoices  = [];
 
       this.flowChildren.forEach( child => {
           child.value?.cls_ && child.value.cls_.getAxiomsByClass(foam.dao.DAOProperty).forEach( prop => flowChoices.push(child.flowName + '.' + prop.name) )
@@ -45,11 +48,11 @@ foam.CLASS({
       // Why is setting of this.choices here(LN:47) important? Because if
       // - I remove Line::(`this.choices = [...flowChoices]`) then things stop working on first match command
       // If I filter flowChoices at Line:39 right before pushing, then first match command nothing renders
-      this.choices = [ ...flowChoices ]
+      this.choices = [ ...flowChoices ];
 
       var allDAOs = this.cSpecDAO.where(foam.core.boot.CSpec.SERVED_DAOS)
 
-      allDAOs.select().then( sink => {
+      allDAOs.select().then(sink => {
         sink.array.forEach( d => {
           daoChoices.push( d.name );
         });
@@ -61,9 +64,10 @@ foam.CLASS({
             return e.substring(0, dotIndex) !== this.selected.flowName; // e.g. extracts 'match1' from 'match1.data1' to check with current selected flowName
           })
           this.choices = [ ...currentSelectedRemovedArray, ...daoChoices ];
+        } else {
+          this.choices = daoChoices;
         }
       });
-
     }
   ]
 });
