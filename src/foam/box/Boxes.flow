@@ -19,7 +19,7 @@ class Envelope {
 }
 </code>
 
-<p>There are low level trasport boxes like HTTPBox, WebSocketBox, SocketBox, that are responsible for delivering an envelope over their given transport, in some cases these are also responsible for handling any replies.  There are also higher level decorators that can be applied to boxes to achieve desired behaviours.  For example, if you need your message send to time out after a set time, you can apply a TimeoutBox.  Or if you want exponential backoff retry attempts for your send you can apply a Retry Bot</p>
+<p>There are low level transport boxes like HTTPBox, WebSocketBox, SocketBox, that are responsible for delivering an envelope over their given transport, in some cases these are also responsible for handling any replies.  There are also higher level decorators that can be applied to boxes to achieve desired behaviours.  For example, if you need your message send to time out after a set time, you can apply a TimeoutBox.  Or if you want exponential backoff retry attempts for your send you can apply a Retry Box.</p>
 
 <h1>Example</h1>
 
