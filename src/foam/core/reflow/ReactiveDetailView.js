@@ -254,15 +254,21 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ReactiveSectionedDetailView',
-  extends: 'foam.u2.detail.SectionedDetailView',
+  extends: 'foam.u2.detail.VerticalDetailView',
 
   requires: [
     'foam.core.reflow.PropertyBorder'
   ],
 
   css: `
-    ^card-container {
-      padding: 0 20px;
+    ^ {
+      padding: 20px;
+    }
+    ^ > div > .foam-u2-layout-Rows {
+      gap: 10px;
+    }
+    ^ .foam-u2-detail-SectionView-actionDiv {
+      flex-direction: column;
     }
   `,
 

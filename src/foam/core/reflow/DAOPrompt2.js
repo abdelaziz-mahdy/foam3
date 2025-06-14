@@ -99,7 +99,7 @@ foam.CLASS({
     },
     {
       name: 'actions',
-      title: 'Actions'
+      title: ''
     }
   ],
 
