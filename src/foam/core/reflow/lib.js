@@ -17,7 +17,7 @@ foam.LIB({
     lMask(string, len, option masking character which defaults to '*'), ex. lMask(this.arn, 5) or lMast(this.arn, 5, '#')
     toLowerCase(string), ex. toLowerCase(this.name)
   */
-    methods: [
+  methods: [
     {
       name: 'round',
       code: function (n) {
