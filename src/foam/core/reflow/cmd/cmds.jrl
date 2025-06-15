@@ -88,8 +88,7 @@ p({
   "description": "Create a Script",
   "script": """
     addValue(foam.core.reflow.Script.create({}, this));
-  """,
-  permissionRequired: true
+  """
 })
 p({
   "class":"foam.core.reflow.cmd.Command",
