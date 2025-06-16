@@ -794,6 +794,8 @@ foam.CLASS({
 
   methods: [
     function execute(label, script) {
+      console.log('Button command execute called with label:', label, 'script:', script);
+      console.log('About to create foam.lang.Action');
       var action = foam.lang.Action.create({
         name: 'flowButton',
         label: label || 'Button',
@@ -803,12 +805,14 @@ foam.CLASS({
           }
         }
       }, this);
+      console.log('Created action:', action);
 
       var actionView = foam.u2.ActionView.create({
         action: action
       });
 
       this.currentBlock.value = action;
+      console.log('Button command - setting currentBlock.value to:', action, 'cls_:', action.cls_?.id);
       this.out.add(actionView);
     }
   ]
@@ -826,13 +830,20 @@ foam.CLASS({
 
   methods: [
     function execute() {
-      var actions = foam.Array.create();
+      // Create an empty FObjectArray for the actions
+      var actions = [];
       
       var buttonGroup = foam.u2.ButtonGroup.create({
         data: actions
       });
 
-      this.currentBlock.value = actions;
+      // For the right panel, create a simple holder object that can be displayed
+      var holder = {
+        actions: actions,
+        toString: function() { return 'Button Group (' + this.actions.length + ' buttons)'; }
+      };
+
+      this.currentBlock.value = holder;
       this.out.add(buttonGroup);
     }
   ]

@@ -15,23 +15,29 @@ foam.CLASS({
     {
       name: 'propertyWhitelist',
       factory: function() {
-        return [
-          'label',
-          'code',
-          'buttonStyle', 
-          'size',
-          'icon',
-          'themeIcon',
-          'isEnabled',
-          'isAvailable'
-        ];
-      }
-    },
-    {
-      name: 'useSections',
-      factory: function() {
-        return ['general'];
+        return {
+          'label': {},
+          'code': {},
+          'buttonStyle': {},
+          'size': {},
+          'icon': {},
+          'themeIcon': {},
+          'isEnabled': {},
+          'isAvailable': {}
+        };
       }
     }
-  ]
+  ],
+
+  css: `
+    ^ {
+      background: #f0f8ff;
+      padding: 10px;
+      border-left: 4px solid #007bff;
+    }
+    ^ .foam-u2-detail-SectionedDetailView-title {
+      color: #007bff;
+      font-weight: bold;
+    }
+  `
 });
