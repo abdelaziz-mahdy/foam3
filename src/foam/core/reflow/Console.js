@@ -78,11 +78,17 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.u2.dialog.ConfirmationModal'
+    'foam.u2.dialog.ConfirmationModal',
+    'foam.log.LogLevel'
   ],
 
   imports: [
-    'stack'
+    'stack',
+    'notify'
+  ],
+
+  messages: [
+    { name: 'PROVIDE_NAME', message: 'Please provide a name to save your Flow' },
   ],
 
   css: `
@@ -214,8 +220,13 @@ foam.CLASS({
         return showPrompts;
       },
       code: function() {
-        this.data.eval_(`save ${this.data.flowName}`);
-        this.data.showPrompts = false;
+        if (this.data.flowName && this.data.flowName !== '') {
+          this.data.eval_(`save ${this.data.flowName}`);
+          this.data.showPrompts = false;
+        } else {
+          console.log('this.ctrl ==>',  this.ctrl)
+          this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
+        }
       }
     },
     {
