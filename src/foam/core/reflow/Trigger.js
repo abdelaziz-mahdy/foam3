@@ -9,7 +9,8 @@ foam.CLASS({
   name: 'Trigger',
 
   imports: [
-    'eval_'
+    'eval_',
+    'currentBlock'
   ],
 
   properties: [
@@ -24,13 +25,16 @@ foam.CLASS({
   ],
 
   actions: [
-    function run() {
+    async function run() {
       if ( this.condition && this.script ) {
         try {
-          var conditionResult = this.eval_(this.condition);
+          var conditionBlock = await this.eval_(this.condition);
+          var conditionResult = conditionBlock.value ? conditionBlock.value.value : false;
+          // Delete the condition block since we don't need it
+          conditionBlock.del();
+          
           if ( conditionResult ) {
-            this.eval_(this.script);
-            this.executed = true;
+            await this.eval_(this.script);
           }
         } catch (ex) {
           console.error('Error executing trigger script:', ex);
