@@ -9,7 +9,8 @@ foam.CLASS({
   name: 'If',
 
   imports: [
-    'eval_'
+    'eval_',
+    'currentBlock'
   ],
 
   properties: [
@@ -27,13 +28,22 @@ foam.CLASS({
     }
   ],
 
-  methods: [
-    function addToE() {
-      var conditionResult = this.eval_(this.condition);
-      var scriptToExecute = conditionResult ? this.ifBlock : this.elseBlock;
-      
-      if (scriptToExecute) {
-        this.eval_(scriptToExecute);
+  actions: [
+    async function run() {
+      if (this.condition) {
+        try {
+          var conditionBlock = await this.eval_(this.condition, true);
+          var conditionResult = conditionBlock.value ? conditionBlock.value.value : false;
+          conditionBlock.del();
+          
+          var scriptToExecute = conditionResult ? this.ifBlock : this.elseBlock;
+          
+          if (scriptToExecute) {
+            await this.eval_(scriptToExecute);
+          }
+        } catch (ex) {
+          console.error('Error evaluating if condition:', ex);
+        }
       }
     }
   ]
