@@ -78,11 +78,17 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.u2.dialog.ConfirmationModal'
+    'foam.u2.dialog.ConfirmationModal',
+    'foam.log.LogLevel'
   ],
 
   imports: [
-    'stack'
+    'stack',
+    'notify'
+  ],
+
+  messages: [
+    { name: 'PROVIDE_NAME', message: 'Please provide a name to save your Flow' },
   ],
 
   css: `
@@ -125,11 +131,11 @@ foam.CLASS({
       this.addClass()
         .start().addClass(this.myClass('header-container'))
           .start().addClass(this.myClass('navigator'))
-            .tag(this.HOME)
-            .start(foam.u2.tag.Image, {
-              glyph: 'rightChevron',
-              embedSVG: true
-            }).addClass(this.myClass('chevron')).end()
+            // .tag(this.HOME)
+            // .start(foam.u2.tag.Image, {
+            //   glyph: 'rightChevron',
+            //   embedSVG: true
+            // }).addClass(this.myClass('chevron')).end()
             .startContext({data: this})
               .tag(this.REFLOWS)
             .endContext()
@@ -162,16 +168,16 @@ foam.CLASS({
   ],
 
   actions: [
-    {
-      name: 'home',
-      label: '',
-      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
-      themeIcon: 'home',
-      size: 'SMALL',
-      code: function(X) {
-        X.pushDefaultMenu()
-      }
-    },
+    // {
+    //   name: 'home',
+    //   label: '',
+    //   buttonStyle: foam.u2.ButtonStyle.TERTIARY,
+    //   themeIcon: 'home',
+    //   size: 'SMALL',
+    //   code: function(X) {
+    //     X.pushDefaultMenu()
+    //   }
+    // },
     {
       name: 'reflows',
       label: 'Reflows',
@@ -214,8 +220,13 @@ foam.CLASS({
         return showPrompts;
       },
       code: function() {
-        this.data.eval_(`save ${this.data.flowName}`);
-        this.data.showPrompts = false;
+        if ( this.data.flowName && this.data.flowName !== '' ) {
+          this.data.eval_(`save ${this.data.flowName}`);
+          this.data.showPrompts = false;
+        } else {
+          // Using error message instead of disabling the save button to provide users feedback on why it’s not working.
+          this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
+        }
       }
     },
     {
@@ -1069,8 +1080,10 @@ foam.CLASS({
               on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
             end().
             tag(self.ON_INPUT).
-            start(self.ReflowToolBar, { data: self }).end().
+          end().
+          start(self.ReflowToolBar, { data: self }).show(self.showPrompts$).end().
         end();
+        
 
         // These observers might cause scroll issues later when queries in the console can be edited
         // In that case there should be an explicit flag to only do the scroll when the query is submitted
