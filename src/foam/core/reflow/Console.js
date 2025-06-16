@@ -220,10 +220,11 @@ foam.CLASS({
         return showPrompts;
       },
       code: function() {
-        if (this.data.flowName && this.data.flowName !== '') {
+        if ( this.data.flowName && this.data.flowName !== '' ) {
           this.data.eval_(`save ${this.data.flowName}`);
           this.data.showPrompts = false;
         } else {
+          // Using error message instead of disabling the save button to provide users feedback on why it’s not working.
           this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
         }
       }
