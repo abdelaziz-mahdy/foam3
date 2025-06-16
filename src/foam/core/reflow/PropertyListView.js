@@ -28,16 +28,13 @@ foam.CLASS({
         // Unsure what error is best to throw. Gotta look into it.
 
         let arr = X.data.of.getAxiomsByClass(foam.lang.Property)
-          .filter(p => p.showInPropertyChoice)
-          .map(p => foam.core.boot.CSpec.create({
-            id: p,
-            name: p.name
-          }, X));
+          .filter(p => p.showInPropertyChoice);
 
         return {
           class: 'foam.u2.view.RichChoiceView',
           search: true,
-          of: X.data.of,
+          idProperty: 'name',
+          of: foam.lang.Property,
           sections: [
             {
               heading: 'Properties',
