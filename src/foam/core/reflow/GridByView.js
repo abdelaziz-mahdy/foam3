@@ -11,6 +11,19 @@ foam.CLASS({
 
   documentation: 'Table View for GridBy mLang.',
 
+  cssTokens: [
+    {
+      class: 'foam.u2.ColorToken',
+      name: 'highlightRowCol',
+      value: '$backgroundBrandTertiary'
+    },
+    {
+      class: 'foam.u2.ColorToken',
+      name: 'highlightCell',
+      value: '$backgroundBrand'
+    }
+  ],
+
   css: `
     /* Base table styling */
     ^table {
@@ -46,17 +59,19 @@ foam.CLASS({
       
     ^ td:hover {
       font-weight: 600;
-      background-color: $backgroundBrand;
+      background: $highlightCell;
+      color: $highlightCell$foreground;
     }
     
-    /* Cell highlighting */
     ^highlighted-col {
-      background-color: $backgroundBrandTertiary;
+      background: $highlightRowCol;
+      color: $highlightRowCol$foreground;
     }
 
     /* Row highlighting */
     ^highlighted-row, ^highlighted-row > th, ^highlighted-row > td {
-      background-color: $backgroundBrandTertiary;
+      background: $highlightRowCol;
+      color: $highlightRowCol$foreground;
     }
   `,
 
