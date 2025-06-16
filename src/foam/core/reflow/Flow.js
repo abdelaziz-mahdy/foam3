@@ -144,6 +144,11 @@ foam.CLASS({
       }
     },
     {
+      class: 'Reference',
+      of: 'foam.core.auth.ServiceProvider',
+      name: 'spid'
+    },
+    {
       class: 'Int',
       name: 'version'
     },
@@ -156,12 +161,6 @@ foam.CLASS({
         viewa: { class: 'foam.u2.IntView' },
         viewb: { class: 'foam.u2.RangeView', onKey: true }
       }
-    },
-    {
-      class: 'Reference',
-      of: 'foam.core.auth.ServiceProvider',
-      name: 'spid',
-      hidden: true
     },
     {
       class: 'String',
