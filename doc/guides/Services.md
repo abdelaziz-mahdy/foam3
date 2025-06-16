@@ -54,15 +54,6 @@ this.auth.login("marc4@marc.com", "marc123").then(function(response) {
 }
 ```
 
-## Complete Service Examples
+## Service Example
 
-For comprehensive service examples including advanced patterns like decorators, error handling, and lifecycle management, see:
-
-- **Interactive Examples**: [foam3/src/foam/demos/examples/services.fbe](../../src/foam/demos/examples/services.fbe)
-
-The services.fbe example demonstrates:
-- Basic service interface and implementation
-- Service registration patterns
-- Client usage with context injection
-- Advanced patterns (decorators, error handling, lifecycle management)
-- Real-world HeadlessRunner service architecture
+- **Example**: [foam3/src/foam/demos/examples/services.fbe](../../src/foam/demos/examples/services.fbe)
