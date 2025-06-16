@@ -28,7 +28,7 @@ foam.CLASS({
   ],
 
   methods: [
-    function addToE(e) {
+    function addToE() {
       var conditionResult = this.eval_(this.condition);
       var scriptToExecute = conditionResult ? this.ifBlock : this.elseBlock;
       
