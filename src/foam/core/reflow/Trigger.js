@@ -28,7 +28,7 @@ foam.CLASS({
     async function run() {
       if ( this.condition && this.script ) {
         try {
-          var conditionBlock = await this.eval_(this.condition);
+          var conditionBlock = await this.eval_(this.condition, true);
           var conditionResult = conditionBlock.value ? conditionBlock.value.value : false;
           // Delete the condition block since we don't need it
           conditionBlock.del();
@@ -40,15 +40,6 @@ foam.CLASS({
           console.error('Error executing trigger script:', ex);
         }
       }
-    }
-  ],
-
-  methods: [
-    function addToE() {
-      this.run();
-      
-      // Set up a listener to check condition whenever it might change
-      this.condition$.sub(() => this.run());
     }
   ]
 });
