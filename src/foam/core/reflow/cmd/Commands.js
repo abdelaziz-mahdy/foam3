@@ -778,3 +778,46 @@ foam.CLASS({
     }
   ]
 });
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Button',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  properties: [
+    [ 'description', 'Create a button with custom logic' ]
+  ],
+
+  methods: [
+    function execute(label, script) {
+      var buttonComponent = foam.core.reflow.Button.create({
+        label: label,
+        script: script
+      }, this);
+
+      this.currentBlock.value = buttonComponent;
+      this.out.add(buttonComponent);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Buttons',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  properties: [
+    [ 'description', 'Create multiple buttons with custom logic' ]
+  ],
+
+  methods: [
+    function execute() {
+      var buttonsComponent = foam.core.reflow.Buttons.create({}, this);
+
+      this.currentBlock.value = buttonsComponent;
+      this.out.add(buttonsComponent);
+    }
+  ]
+});

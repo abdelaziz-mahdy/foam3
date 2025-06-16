@@ -104,3 +104,13 @@ p({
   "id": "input",
   "description": "Take Input from user or from URL parameter."
 })
+p({
+  "class":"foam.core.reflow.cmd.Button",
+  "id": "button",
+  "description": "Create a button with custom logic"
+})
+p({
+  "class":"foam.core.reflow.cmd.Buttons",
+  "id": "buttons",
+  "description": "Create multiple buttons with custom logic"
+})

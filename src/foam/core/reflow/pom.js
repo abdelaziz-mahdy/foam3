@@ -3,6 +3,8 @@ foam.POM({
   files: [
     { name: '../../u2/mlang/Table',    flags: 'js|java' },
     { name: 'AbstractDAOAgent',        flags: 'js' },
+    { name: 'Button',                  flags: 'js' },
+    { name: 'Buttons',                 flags: 'js' },
     { name: 'CellsSink',               flags: 'js|java' },
     { name: 'Check',                   flags: 'js' },
     { name: 'CitationSink',            flags: 'js|java' },
