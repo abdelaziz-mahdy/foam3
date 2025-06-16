@@ -746,6 +746,14 @@ foam.CLASS({
       if ( this.params && this.params[this.urlParameter] != undefined ) {
         this.value = this.params[this.urlParameter];
       }
+    },
+
+    function toString() {
+      return this.value.toString();
+    },
+
+    function valueOf() {
+      return this.value.valueOf();
     }
   ]
 });
