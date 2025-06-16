@@ -14,7 +14,7 @@ foam.CLASS({
     'foam.core.reflow.DynamicReflowData',
     'foam.core.reflow.DynamicReflowComponents',
     'foam.core.reflow.DynamicReflowHelp',
-    'foam.u2.ToggleActionView',
+    'foam.u2.ToggleActionView'
   ],
 
   css: `
