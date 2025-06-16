@@ -245,7 +245,7 @@ foam.CLASS({
       var p = this.DAOPrompt.create({dao: dao, daoLabel: opt_label});
 
       this.out.tag(p);
-      this.currentBlock.obj = p;
+      this.currentBlock.obj = p; // ???: Why .obj?
     }
   ]
 });
@@ -695,6 +695,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Login',
@@ -712,6 +713,60 @@ foam.CLASS({
 
       this.out.tag(p);
       this.currentBlock.obj = p;
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Prompt',
+
+  imports: [ 'params' ],
+
+  properties: [
+    {
+      class: 'String',
+      name: 'prompt'
+    },
+    {
+      class: 'String',
+      name: 'urlParameter'
+    },
+    {
+      name: 'value',
+      transient: true
+    }
+  ],
+
+  methods: [
+    function init() {
+      this.SUPER();
+
+      if ( this.params && this.params[this.urlParameter] != undefined ) {
+        this.value = this.params[this.urlParameter];
+      }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Input',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  requires: [ 'foam.core.reflow.cmd.Prompt' ],
+
+  methods: [
+    function execute(prompt) {
+      var p = this.Prompt.create();
+
+      if ( prompt ) p.prompt = prompt;
+
+      this.currentBlock.value = p;
+
+      this.out.startContext({data: p}).start('span').add(p.prompt$, ' ', p.VALUE);
     }
   ]
 });
