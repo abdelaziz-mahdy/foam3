@@ -751,6 +751,7 @@ foam.CLASS({
   requires: [
     'foam.core.reflow.ReflowHeader',
     'foam.core.reflow.ReactiveSectionedDetailView',
+    'foam.core.reflow.ActionDetailView',
     'foam.core.reflow.RightSidebarOutputView',
     'foam.core.reflow.ReflowToolBar',
     'foam.core.reflow.Block',
@@ -1039,7 +1040,14 @@ foam.CLASS({
       layout.left.tag(flowableTree);
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue) {
-        this.tag(self.ReactiveSectionedDetailView, {data: selectedValue, showActions: true, showHeader: true});
+        var detailViewClass = self.ReactiveSectionedDetailView;
+        var viewConfig = {data: selectedValue, showActions: true, showHeader: true};
+        
+        if (selectedValue && selectedValue.cls_ && selectedValue.cls_.id === 'foam.lang.Action') {
+          detailViewClass = self.ActionDetailView;
+        }
+        
+        this.tag(detailViewClass, viewConfig);
       }));
 
       layout.header.add(this.dynamic(function(showPrompts) {

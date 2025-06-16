@@ -791,13 +791,22 @@ foam.CLASS({
 
   methods: [
     function execute(label, script) {
-      var buttonComponent = foam.core.reflow.Button.create({
-        label: label,
-        script: script
+      var action = foam.lang.Action.create({
+        name: 'flowButton',
+        label: label || 'Button',
+        code: function() {
+          if (script) {
+            this.eval_(script);
+          }
+        }
       }, this);
 
-      this.currentBlock.value = buttonComponent;
-      this.out.add(buttonComponent);
+      var actionView = foam.u2.ActionView.create({
+        action: action
+      });
+
+      this.currentBlock.value = action;
+      this.out.add(actionView);
     }
   ]
 });
@@ -814,10 +823,14 @@ foam.CLASS({
 
   methods: [
     function execute() {
-      var buttonsComponent = foam.core.reflow.Buttons.create({}, this);
+      var actions = foam.Array.create();
+      
+      var buttonGroup = foam.u2.ButtonGroup.create({
+        data: actions
+      });
 
-      this.currentBlock.value = buttonsComponent;
-      this.out.add(buttonsComponent);
+      this.currentBlock.value = actions;
+      this.out.add(buttonGroup);
     }
   ]
 });
