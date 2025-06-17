@@ -193,11 +193,17 @@ foam.CLASS({
         return foam.memento.MementoMgr.create({memento$: this.mementoStr$, position$: this.revision$});
       }
     },
-    {
+   {
       name: 'schedule',
       class: 'FObjectProperty',
-      of: 'foam.core.cron.CronSchedule',
-      documentation: 'Schedule to run this flow.'
+      of: 'foam.core.cron.Schedule',
+      view: {
+        class: 'foam.u2.view.FObjectView',
+        of: 'foam.core.cron.Schedule'
+      },
+      section: 'scheduling',
+      documentation: 'Schedule to run this flow.',
+      javaFactory: `return new CronSchedule.Builder(getX()).build();`
     },
     {
       class: 'DateTime',
