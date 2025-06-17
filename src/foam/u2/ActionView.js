@@ -25,12 +25,14 @@ foam.CLASS({
       class:'Enum',
       of: 'foam.u2.ButtonStyle',
       name: 'buttonStyle',
+      generateJava: false,
       value: 'SECONDARY'
     },
     {
       class:'Enum',
       of: 'foam.u2.ButtonSize',
       name: 'size',
+      generateJava: false,
       value: 'MEDIUM'
     }
   ]
