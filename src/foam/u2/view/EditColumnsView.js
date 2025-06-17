@@ -59,6 +59,11 @@ foam.CLASS({
     },
     'columnConfigPropView',
     {
+      class: 'Boolean',
+      name: 'hasBeenOpenedYet_',
+      documentation: 'Used internally to keep track of whether the dropdown has been opened yet or not.'
+    },
+    {
       class: 'FObjectProperty',
       of: 'foam.u2.Element',
       name: 'dropdown_',
@@ -82,11 +87,11 @@ foam.CLASS({
     },
     function openDropDown(parentEl, x, y) {
       this.dropdown_.parentEl = parentEl;
+      if ( ! this.hasBeenOpenedYet_ ) this.hasBeenOpenedYet_ = true;
       this.dropdown_.open(x, y);
     },
-    function render() {
-      // Don't call SUPER() to avoid rendering any DOM element
-      var self = this;
+    function init() {
+      this.SUPER();
       this.initDropdown();
     },
     function initDropdown() {
@@ -97,13 +102,14 @@ foam.CLASS({
         this.selectColumnsExpanded = opened;
       });
       
-      // Add the dropdown content
-      this.dropdown_.add(
-        this.dropdown_.E()
-          .addClass(this.myClass('container'))
-          .start({ class: 'foam.u2.view.ColumnConfigPropView', data: self.data }, {}, this.columnConfigPropView$)
-          .end()
-      );
+      // Use lazy loading pattern like RichChoiceView
+      self.dropdown_.add(self.slot(function(hasBeenOpenedYet_) {
+        if ( ! hasBeenOpenedYet_ ) return this.E();
+        return this.E()
+          .addClass(self.myClass('container'))
+          .start({ class: 'foam.u2.view.ColumnConfigPropView', data: self.data }, {}, self.columnConfigPropView$)
+          .end();
+      }));
       
       // Add dropdown to document
       if ( this.ctrl ) {
