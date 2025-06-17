@@ -43,13 +43,17 @@ foam.CLASS({
         if ( ! this.findFlowChildByName(name) ) return name;
       }
     },
+
     function findFlowChildByName(n) {
       return this.flowChildren.find(c => c.flowName === n);
     },
+
     function addFlowChild(f) {
+      if ( f.deleted_ ) return;
       this.flowChildren = this.flowChildren.concat([f]);
       this.addFlowChild_ && this.addFlowChild_(f);
     },
+
     function removeFlowChild(f) {
       var index = this.flowChildren.indexOf(f);
       this.flowChildren = this.flowChildren.filter(c => c != f);
@@ -64,6 +68,7 @@ foam.CLASS({
         }
       }
     },
+
     function removeAllFlowChildren() {
       this.removeFlowChild_ && this.flowChildren.forEach(c => this.removeFlowChild_(c));
       this.flowChildren = [];
@@ -78,11 +83,17 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.u2.dialog.ConfirmationModal'
+    'foam.u2.dialog.ConfirmationModal',
+    'foam.log.LogLevel'
   ],
 
   imports: [
-    'stack'
+    'stack',
+    'notify'
+  ],
+
+  messages: [
+    { name: 'PROVIDE_NAME', message: 'Please provide a name to save your Flow' },
   ],
 
   css: `
@@ -125,11 +136,11 @@ foam.CLASS({
       this.addClass()
         .start().addClass(this.myClass('header-container'))
           .start().addClass(this.myClass('navigator'))
-            .tag(this.HOME)
-            .start(foam.u2.tag.Image, {
-              glyph: 'rightChevron',
-              embedSVG: true
-            }).addClass(this.myClass('chevron')).end()
+            // .tag(this.HOME)
+            // .start(foam.u2.tag.Image, {
+            //   glyph: 'rightChevron',
+            //   embedSVG: true
+            // }).addClass(this.myClass('chevron')).end()
             .startContext({data: this})
               .tag(this.REFLOWS)
             .endContext()
@@ -162,16 +173,16 @@ foam.CLASS({
   ],
 
   actions: [
-    {
-      name: 'home',
-      label: '',
-      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
-      themeIcon: 'home',
-      size: 'SMALL',
-      code: function(X) {
-        X.pushDefaultMenu()
-      }
-    },
+    // {
+    //   name: 'home',
+    //   label: '',
+    //   buttonStyle: foam.u2.ButtonStyle.TERTIARY,
+    //   themeIcon: 'home',
+    //   size: 'SMALL',
+    //   code: function(X) {
+    //     X.pushDefaultMenu()
+    //   }
+    // },
     {
       name: 'reflows',
       label: 'Reflows',
@@ -214,13 +225,18 @@ foam.CLASS({
         return showPrompts;
       },
       code: function() {
-        this.data.eval_(`save ${this.data.flowName}`);
-        this.data.showPrompts = false;
+        if ( this.data.flowName && this.data.flowName !== '' ) {
+          this.data.eval_(`save ${this.data.flowName}`);
+          this.data.showPrompts = false;
+        } else {
+          // Using error message instead of disabling the save button to provide users feedback on why it’s not working.
+          this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
+        }
       }
     },
     {
       name: 'confirmReset',
-      label: 'Confirm',
+      label: 'Yes, Confirm',
       buttonStyle: foam.u2.ButtonStyle.PRIMARY,
       size: 'SMALL',
       isAvailable: function(showPrompts) {
@@ -246,7 +262,7 @@ foam.CLASS({
       },
       code: function() {
         let confirmationModal = this.ConfirmationModal.create({
-          title: `Are you sure you want to reset the view ?`,
+          title: `Unsaved changes will be lost, are you sure you want a New Reflow page?`,
           primaryAction: this.CONFIRM_RESET,
           showCancel: true,
           modalStyle: 'DESTRUCTIVE',
@@ -543,6 +559,7 @@ foam.CLASS({
       size: 'SMALL',
       destructive: true,
       code: function() {
+        this.deleted_ = true;
         this.flowParent && this.flowParent.removeFlowChild(this);
       }
     }
@@ -803,6 +820,7 @@ foam.CLASS({
       margin-bottom: 4px;
     }
     ^input-field {
+      position: relative;
       margin-block-end: 0;
       display: inline-flex;
       width: 100%;
@@ -831,10 +849,8 @@ foam.CLASS({
     ^ .foam-u2-ProgressView { width: 600px; }
     ^ .foam-core-reflow-ReflowToolBar {
       position: absolute;
-      left: 0;
+      left: 30%;
       bottom: 50;
-      width: 100%;
-      z-index: 100;
     }
   `,
 
@@ -939,7 +955,12 @@ foam.CLASS({
     'currentBlock',
     {
       name: 'selected',
-      postSet: function(o, n) { this.selectedValue = n ? n.value : null; },
+      postSet: function(o, n) {
+        this.selectedValue = n ? n.value : null;
+        if (n && n.element_) {
+          n.element_.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      },
       factory: function() { return this; }
     },
     {
@@ -965,6 +986,9 @@ foam.CLASS({
     },
 
     async function render() {
+      foam.u2.table.UnstyledTableView.SELECTED_COLUMN_NAMES.memorable = false;
+      foam.u2.table.TableView.SELECTED_COLUMN_NAMES.memorable = false;
+
       let oldShowNav = this.showNav;
       this.showNav = false;
       this.onDetach(() => { this.showNav = oldShowNav;})
@@ -1076,8 +1100,10 @@ foam.CLASS({
               on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
             end().
             tag(self.ON_INPUT).
-            start(self.ReflowToolBar, { data: self }).end().
+          end().
+          start(self.ReflowToolBar, { data: self }).show(self.showPrompts$).end().
         end();
+
 
         // These observers might cause scroll issues later when queries in the console can be edited
         // In that case there should be an explicit flag to only do the scroll when the query is submitted
@@ -1157,7 +1183,6 @@ foam.CLASS({
 
 //      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
       var block = this.currentBlock = this.Block.create({cmd: cmd, flowParent: this});
-      this.addFlowChild(block);
 
       var innerScope = {
         // shell: this,
@@ -1209,6 +1234,8 @@ foam.CLASS({
         }
       }}}}
 
+      this.addFlowChild(block);
+
       if ( ! opt_ignoreSelect ) this.selected = block;
 
       if ( r ) {
@@ -1231,10 +1258,12 @@ foam.CLASS({
 
       this.input_.focus();
 
+      /*
       this.setTimeout(() => this.scrollToBottom(), 16);
       this.setTimeout(() => this.scrollToBottom(), 32);
       this.setTimeout(() => this.scrollToBottom(), 64);
-      this.setTimeout(() => this.scrollToBottom(), 96);
+      */
+      this.setTimeout(() => this.scrollToBottom(), 100);
 
       return block;
     },

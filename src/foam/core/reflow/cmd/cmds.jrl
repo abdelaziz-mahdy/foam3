@@ -88,8 +88,7 @@ p({
   "description": "Create a Script",
   "script": """
     addValue(foam.core.reflow.Script.create({}, this));
-  """,
-  permissionRequired: true
+  """
 })
 p({
   "class":"foam.core.reflow.cmd.Command",
@@ -109,4 +108,9 @@ p({
   "class":"foam.core.reflow.cmd.Buttons",
   "id": "buttons",
   "description": "Create multiple buttons with custom logic"
+})
+p({
+  "class":"foam.core.reflow.cmd.Input",
+  "id": "input",
+  "description": "Take Input from user or from URL parameter."
 })
