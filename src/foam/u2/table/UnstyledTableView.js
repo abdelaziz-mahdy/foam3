@@ -455,12 +455,15 @@ foam.CLASS({
                       'text-align': 'unset!important;'
                     }).
                     callIf(view.editColumnsEnabled, function() {
+                      var headerEl = this;
                       this.addClass(view.myClass('th-editColumns'))
                       .on('click', function(e) {
-                        editColumnView.parentId = this.id;
-                        editColumnView.updatePosition(); // Update position on click
-                        if ( ! editColumnView.selectColumnsExpanded )
-                          editColumnView.selectColumnsExpanded = ! editColumnView.selectColumnsExpanded;
+                        var clickEl = headerEl.el_();
+                        if ( ! editColumnView.selectColumnsExpanded ) {
+                          editColumnView.openDropDown(clickEl, e.clientX, e.clientY);
+                        } else {
+                          editColumnView.closeDropDown();
+                        }
                       }).
                       tag(view.Image, { data: '/images/Icon_More_Resting.svg' }).
                       addClass(view.myClass('vertDots')).
@@ -471,7 +474,14 @@ foam.CLASS({
                 });
               })).
           end().
-          callIf(view.editColumnsEnabled, function() {this.add(editColumnView);})
+          callIf(view.editColumnsEnabled, function() {
+            // Add the dropdown to the document body for proper overlay behavior
+            if ( view.ctrl ) {
+              view.ctrl.add(editColumnView.dropdown_);
+            } else {
+              editColumnView.dropdown_.write();
+            }
+          })
           .start().addClass(view.myClass('tbody'))
             .tag(view.LazyScrollManager, {
                 data$: view.data$,

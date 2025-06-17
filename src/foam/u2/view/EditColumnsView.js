@@ -12,24 +12,17 @@ foam.CLASS({
   requires: [
     'foam.u2.DetailView',
     'foam.u2.view.ColumnConfigPropView',
-    'foam.u2.view.SubColumnSelectConfig'
+    'foam.u2.view.SubColumnSelectConfig',
+    'foam.u2.md.OverlayDropdown'
   ],
 
   imports: [
     'window',
-    'table?'
+    'table?',
+    'ctrl?'
   ],
 
   css: `
-    ^drop-down-bg {
-      font-size:        12px;
-      position:         fixed;
-      width:            100%;
-      height:           100%;
-      top:              0;
-      left:             0;
-      z-index:          100;
-    }
     ^ .foam-u2-ActionView-closeButton {
       width: 24px;
       height: 35px;
@@ -51,17 +44,11 @@ foam.CLASS({
     }
     ^container {
       align-items: flex-start;
-      background-color: $backgroundDefault;
-      border-radius: 5px;
-      border: 1px solid $borderDefault;
-      box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1), 0px 4px 6px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       max-width: clamp(300px, 20vw, 600px);
       padding: 16px 8px;
-      position: fixed;
-      right: 60px;
-      top: 120px;
+      max-height: 60vh;
     }
   `,
 
@@ -71,64 +58,70 @@ foam.CLASS({
       class: 'Boolean'
     },
     'columnConfigPropView',
-    'height',
-    'rightOffset',
-    'topOffset'
+    {
+      class: 'FObjectProperty',
+      of: 'foam.u2.Element',
+      name: 'dropdown_',
+      factory: function() {
+        return this.OverlayDropdown.create({
+          closeOnLeave: false,
+          styled: true,
+          parentEdgePadding: 8
+        });
+      }
+    }
   ],
 
   methods: [
     function closeDropDown(e) {
-      e.stopPropagation();
-      this.columnConfigPropView.onClose();
-      this.selectColumnsExpanded = ! this.selectColumnsExpanded;
+      if ( e ) e.stopPropagation();
+      if ( this.columnConfigPropView ) {
+        this.columnConfigPropView.onClose();
+      }
+      this.dropdown_.close();
+    },
+    function openDropDown(parentEl, x, y) {
+      this.dropdown_.parentEl = parentEl;
+      this.dropdown_.open(x, y);
     },
     function render() {
-      this.SUPER();
+      // Don't call SUPER() to avoid rendering any DOM element
       var self = this;
-      this.window.addEventListener('resize', this.updatePosition);
-      this.onDetach(() => self.window.removeEventListener('resize', self.updatePosition));
+      this.initDropdown();
+    },
+    function initDropdown() {
+      var self = this;
       
-      this.start()
-      .addClass(this.myClass())
-        .show(this.selectColumnsExpanded$)
-        .addClass(this.myClass('drop-down-bg'))
-          .start({ class: 'foam.u2.view.ColumnConfigPropView', data: self.data }, { } ,this.columnConfigPropView$ )
-            .addClass(this.myClass('container'))
-            .style({
-              'max-height': this.height$,
-              'right': this.rightOffset$,
-              'top': this.topOffset$
-            })
+      // Sync selectColumnsExpanded with dropdown opened state
+      this.dropdown_.opened$.sub((_, __, ___, opened) => {
+        this.selectColumnsExpanded = opened;
+      });
+      
+      // Add the dropdown content
+      this.dropdown_.add(
+        this.dropdown_.E()
+          .addClass(this.myClass('container'))
+          .start({ class: 'foam.u2.view.ColumnConfigPropView', data: self.data }, {}, this.columnConfigPropView$)
           .end()
-      .on('click', this.closeDropDown.bind(this))
-      .end();
+      );
+      
+      // Add dropdown to document
+      if ( this.ctrl ) {
+        this.ctrl.add(this.dropdown_);
+      } else {
+        this.dropdown_.write();
+      }
     }
   ],
   listeners: [
-    function updatePosition() {
-      this.height = this.window.innerHeight - 200 > 0 ? this.window.innerHeight - 200 + 'px' : this.window.innerHeight + 'px';
-
-      if ( this.table && this.table.tableEl_ ) {
-        var tableRect = this.table.tableEl_.getBoundingClientRect();
-        
-        // Position relative to table's right edge, offset by dropdown width
-        var dropdownWidth = 300; // Approximate width from CSS max-width
-        this.rightOffset = Math.max(10, this.window.innerWidth - tableRect.right - dropdownWidth) + 'px';
-        this.topOffset = (tableRect.top) + 'px';
-      } else {
-        this.rightOffset = '60px';
-        this.topOffset = '120px';
-      }
-    }
   ],
   actions: [
     {
       name: 'closeButton',
       label: '',
       icon: 'images/ic-cancelwhite.svg',
-      code: function(X) {
-        this.columnConfigPropView.onClose();
-        this.selectColumnsExpanded = ! this.selectColumnsExpanded;
+      code: function() {
+        this.closeDropDown();
       }
     }
   ]
