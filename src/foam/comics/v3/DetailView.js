@@ -82,6 +82,9 @@ foam.CLASS({
   ],
 
   css: `
+    ^buttonGroup {
+      justify-content: flex-end;
+    }
   `,
 
   properties: [
@@ -223,7 +226,7 @@ foam.CLASS({
               // overrides: { size: 'SMALL' },
               overlaySpec: { obj: self, icon: '/images/Icon_More_Resting.svg', showDropdownIcon: false  }
             }, this.buttonGroup_$)
-            .addClass(this.myClass('buttonGroup'))
+            .addClass(self.myClass('buttonGroup'))
             .add(self.slot(function(primary) {
               if ( ! primary ) return;
               return this.E()

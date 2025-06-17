@@ -711,7 +711,152 @@ foam.CLASS({
       var p = this.LoginView.create({mode_: 0});
 
       this.out.tag(p);
-      this.currentBlock.obj = p;
+      this.currentBlock.value = p;
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Button',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  classes: [
+    {
+      name: 'FlowAction',
+      extends: 'foam.lang.Action',
+      documentation: 'Small inner class to set up some basic view and configuration settings to make actions easier to use in console, might want to move this out if we ever want to use them outside these commands',
+      sections: [
+        {
+          name: 'config',
+          title: '',
+          properties: [
+            { name: 'label', onKey: true },
+            { name: 'script' },
+            { name: 'buttonStyle' },
+            { name: 'size' },
+            { name: 'icon' },
+            { name: 'themeIcon' },
+            // These need more work to be integrated here, they need proper data setting, we would probably want to switch to ActionReferneces for this
+            // { name: 'isEnabled' },
+            // { name: 'isAvailable' }
+          ]
+        }
+      ],
+      properties: [
+        {
+          class: 'String',
+          name: 'script',
+          supportingLabel: 'By default this button will insert the text "Hello World" as the next command when clicked. Change this script to modify this behaviour',
+          value: `'Hello World'`,
+          view: {
+            class: 'foam.u2.tag.TextArea',
+            rows: 5
+          }
+        },
+        {
+          name: 'code',
+          expression: function(script) {
+            if ( ! script ) return () => {};
+            return function(X) {
+              X.eval_(script);
+            }
+          }
+        },
+        {
+          name: 'name',
+          factory: function() { return 'flowButton_' + foam.next$UID(); }
+        },
+        ['label', 'Button']
+      ],
+      methods: [
+        function toE(args, X) {
+          var view = foam.u2.ViewSpec.createView(this.view, {
+            ...(args || {}),
+            action: this,
+            label$: this.label$,
+            buttonStyle$: this.buttonStyle$,
+            size$: this.size$,
+            icon$: this.icon$,
+            themeIcon$: this.themeIcon$
+          }, this, X);
+
+          if ( X.data$ && ! ( args && ( args.data || args.data$ ) ) ) {
+            view.data$ = X.data$;
+          }
+
+          return view;
+        }
+      ]
+    }
+  ],
+
+  properties: [
+    [ 'description', 'Create a button with custom logic' ]
+  ],
+
+  methods: [
+    function execute(label, script) {
+      var action = this.FlowAction.create({
+        label: label,
+        script: script
+      });
+      this.currentBlock.value = action;
+      this.currentBlock.configViewSpec = {
+        useSections: ['config']
+      }
+      this.out.tag(action);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Buttons',
+  extends: 'foam.core.reflow.cmd.Command',
+
+    classes: [
+    {
+      name: 'FlowActionArrayHolder',
+      properties: [
+        {
+          class: 'FObjectArray',
+          of: 'foam.core.reflow.cmd.Button.FlowAction',
+          name: 'actions',
+          factory: function() {
+            return [{class: 'foam.core.reflow.cmd.Button.FlowAction'}]
+          },
+          view: {
+            class: 'foam.u2.view.TitledArrayView',
+            valueView: {
+              class: 'foam.u2.detail.VerticalDetailView',
+              useSections: ['config']
+            }
+          }
+        }
+      ]
+    }
+  ],
+
+  properties: [
+    [ 'description', 'Create multiple buttons with custom logic' ],
+    'holder_'
+  ],
+
+  methods: [
+    function execute() {
+      this.holder_ = this.FlowActionArrayHolder.create();
+      this.currentBlock.value = this.holder_;
+      // This is not the most efficient way to do this, if this is slow or causing too many refreshes, this should be adjusted to
+      // do a diff and only add new actions and remove old ones rather than re-rendering the group every time
+      this.out.add(this.dynamic(function(holder_$actions) {
+        this.start(foam.u2.ButtonGroup)
+          .forEach(holder_$actions, function(v) {
+            this.tag(v)
+          })
+        .end();
+      }))
     }
   ]
 });

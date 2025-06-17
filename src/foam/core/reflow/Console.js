@@ -493,7 +493,12 @@ foam.CLASS({
       }
     },
     [ 'togglerPosition', 'left' ],
-    [ 'expanded', true ]
+    [ 'expanded', true ],
+    {
+      class: 'foam.u2.ViewSpec',
+      name: 'configViewSpec',
+      documentation: `Passed on to the ReactiveSectionedDetailView as config, see AbstractSectionedDetailView to learn more about configuring detail views`
+    }
   ],
 
   methods: [
@@ -1034,8 +1039,14 @@ foam.CLASS({
       layout.isMenuOpen$ = flowableTree.isMenuOpen$;
       layout.left.tag(flowableTree);
       layout.middle.call(this.renderSelf, [this]);
-      layout.right.add(this.dynamic(function(selectedValue) {
-        this.tag(self.ReactiveSectionedDetailView, {data: selectedValue, showActions: true, showHeader: true});
+      layout.right.add(this.dynamic(function(selectedValue, selected$configViewSpec) {
+        this.tag(self.ReactiveSectionedDetailView, {
+          of: selectedValue?.cls_.id ?? '', 
+          ...(selected$configViewSpec || {}),  
+          data: selectedValue, 
+          showActions: true, 
+          showHeader: true
+        });
       }));
 
       layout.header.add(this.dynamic(function(showPrompts) {
