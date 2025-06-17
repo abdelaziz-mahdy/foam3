@@ -981,6 +981,9 @@ foam.CLASS({
     },
 
     async function render() {
+      foam.u2.table.UnstyledTableView.SELECTED_COLUMN_NAMES.memorable = false;
+      foam.u2.table.TableView.SELECTED_COLUMN_NAMES.memorable = false;
+
       let oldShowNav = this.showNav;
       this.showNav = false;
       this.onDetach(() => { this.showNav = oldShowNav;})
