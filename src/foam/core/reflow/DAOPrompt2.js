@@ -83,28 +83,23 @@ foam.CLASS({
   sections: [
     {
       name: 'general',
-      title: 'General',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'General'
     },
     {
       name: 'output',
-      title: 'Output',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'Output'
     },
     {
       name: 'scroll',
-      title: 'Scroll',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'Scroll'
     },
     {
       name: 'filter',
-      title: 'Filter',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'Filter'
     },
     {
       name: 'actions',
-      title: 'Actions',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: ''
     }
   ],
 
@@ -143,7 +138,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'visible',
       section: 'general',
-      label: 'Visibility',
+      label: 'Visible',
       value: true,
       view: { class: 'foam.u2.Switch' }
     },
