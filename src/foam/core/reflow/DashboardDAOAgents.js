@@ -242,62 +242,6 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow',
-  name: 'DashboardTableDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
-  mixins: ['foam.core.reflow.DashboardCardMixin'],
-
-  requires: [
-    'foam.dashboard.model.Table',
-    'foam.dashboard.model.VisualizationSize'
-  ],
-
-  properties: [
-    {
-      class: 'Int',
-      name: 'maxRows',
-      value: 10
-    },
-    {
-      class: 'String',
-      name: 'size',
-      value: 'LARGE'
-    }
-  ],
-
-  methods: [
-    function execute(e) {
-      var self = this;
-      
-      // Create context and setup DAO
-      var context = this.createDashboardContext(e);
-      var limitedDAO = this.dao.limit(this.maxRows);
-      
-      // Create visualization
-      var visualization = this.Table.create({
-        dao: limitedDAO,
-        size: this.VisualizationSize[this.size] || this.VisualizationSize.LARGE,
-        label: 'Table: ' + this.of.model_.plural,
-        configView: null  // Hide the configuration dropdown
-      }, context);
-      
-      // Render the card with the Table view
-      this.renderVisualizationCard(e, visualization, visualization.views[0][0], self.block);
-    },
-    
-    function addToE(e) {
-      e.startContext({data: this}).
-        start().
-          style({display: 'flex', gap: '10px'}).
-          add('Max Rows: ', this.MAX_ROWS).
-          add('Size: ', this.SIZE).
-        end().
-      endContext();
-    }
-  ]
-});
-
-foam.CLASS({
-  package: 'foam.core.reflow',
   name: 'DashboardGridDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
