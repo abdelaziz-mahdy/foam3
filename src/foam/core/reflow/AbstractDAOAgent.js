@@ -397,8 +397,8 @@ foam.CLASS({
     function addToE(e) {
       e.startContext({data: this}).
         start().
-          style({display: 'flex'}).
-          add(this.PROP, this.SINK).
+          style({paddingLeft: '12px', display: 'flex'}).
+          add(this.PROP).add(this.SINK).
           start(this.BROWSE).style({alignSelf: 'self-end'});
     }
   ],
@@ -482,7 +482,7 @@ foam.CLASS({
       acc:   this.sink.createSink()
     }); },
     function addToE(e) {
-      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP1, this.PROP2, this.SINK);
+      e.startContext({data: this}).start().style({paddingLeft: '12px', display: 'flex'}).add(this.PROP1, this.PROP2, this.SINK);
     }
   ]
 });
