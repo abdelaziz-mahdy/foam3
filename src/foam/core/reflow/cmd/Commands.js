@@ -725,47 +725,6 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
-  name: 'Prompt',
-
-  imports: [ 'params' ],
-
-  properties: [
-    {
-      class: 'String',
-      name: 'prompt'
-    },
-    {
-      class: 'String',
-      name: 'urlParameter'
-    },
-    {
-      name: 'value',
-      transient: true
-    }
-  ],
-
-  methods: [
-    function init() {
-      this.SUPER();
-
-      if ( this.params && this.params[this.urlParameter] != undefined ) {
-        this.value = this.params[this.urlParameter];
-      }
-    },
-
-    function toString() {
-      return this.value.toString();
-    },
-
-    function valueOf() {
-      return this.value.valueOf();
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.reflow.cmd',
   name: 'Input',
   extends: 'foam.core.reflow.cmd.Command',
 
@@ -775,11 +734,13 @@ foam.CLASS({
     function execute(prompt) {
       var p = this.Prompt.create();
 
-      if ( prompt ) p.prompt = prompt;
+      if ( prompt ) p.label = prompt;
 
       this.currentBlock.value = p;
-
-      this.out.startContext({data: p}).start('span').add(p.prompt$, ' ', p.VALUE);
+      this.currentBlock.configViewSpec = {
+        useSections: ['config']
+      }
+      this.out.add(p);
     }
   ]
 });
