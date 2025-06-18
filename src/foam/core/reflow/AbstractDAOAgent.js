@@ -379,7 +379,7 @@ foam.CLASS({
   name: 'GroupByDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
-  imports: [ 'selected as block', 'eval_' ],
+  imports: [ 'block', 'eval_' ],
 
   properties: [
     {

@@ -459,7 +459,7 @@ foam.CLASS({
 
   imports: [ 'data', 'showPrompts' ],
 
-  exports: [ 'addValue', 'log', 'out' ],
+  exports: [ 'addValue', 'log', 'out', 'as block' ],
 
   css: `
     ^ {

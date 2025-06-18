@@ -118,10 +118,9 @@ foam.CLASS({
     'foam.parse.QueryParser'
   ],
 
-  imports: [ 'currentBlock', 'eval_' ],
+  imports: [ 'eval_' ],
 
   exports: [
-    'block',
     'dao',
     'limitedDAO as sinkDAO',
     'filteredDAO as sinkUnlimitedDAO',
@@ -129,13 +128,6 @@ foam.CLASS({
   ],
 
   properties: [
-    {
-      name: 'block',
-      factory: function() { return this.currentBlock; },
-      hidden: true,
-      section: 'general',
-      transient: true
-    },
     {
       class: 'String',
       name: 'label',
@@ -280,7 +272,12 @@ foam.CLASS({
     },
     {
       name: 'select',
-      view: function(_, X) { return foam.core.reflow.SinkView.create({sinksOnly: false, choice: 'Table', dao: X.data.dao}, X); },
+      view: function(_, X) {
+        return foam.core.reflow.SinkView.create({
+          sinksOnly: false,
+          choice: 'Table',
+          dao: X.data.dao}, X.data);
+      },
       section: 'output',
       label: '',
       factory: function() { return this.TableDAOAgent.create(); }
