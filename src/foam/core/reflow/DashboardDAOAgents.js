@@ -14,13 +14,68 @@
 
 foam.CLASS({
   package: 'foam.core.reflow',
+  name: 'DashboardCardMixin',
+  
+  documentation: 'Mixin providing common dashboard card functionality for DAO agents',
+  
+  methods: [
+    function createDashboardContext(e) {
+      // Create a minimal dashboard controller for context
+      var dashboardController = {
+        sub: function() { return { detach: function() {} }; }
+      };
+      
+      // Create context with dashboardController
+      return e.__subContext__.createSubContext({
+        dashboardController: dashboardController
+      });
+    },
+    
+    function createVisualizationCard(visualization, context) {
+      // Create a card to display the visualization
+      return visualization.toE(null, context);
+    },
+    
+    function addViewToCard(card, viewClass, visualization) {
+      // Add the actual view to the card's content (in card's context for imports)
+      card.add(foam.u2.ViewSpec.createView(viewClass, {
+        data: visualization
+      }, card, card.__subContext__));
+    },
+    
+    function findViewInVisualization(visualization, viewName) {
+      // Find a specific view by name in the visualization's views array
+      var view = visualization.views.find(function(v) { return v[1] === viewName; });
+      return view ? view[0] : visualization.views[0][0];
+    },
+    
+    function renderVisualizationCard(e, visualization, viewClass, block) {
+      var context = this.createDashboardContext(e);
+      var card = this.createVisualizationCard(visualization, context);
+      this.addViewToCard(card, viewClass, visualization);
+      e.add(card);
+      
+      // Set block value
+      if (block) {
+        if (block.value) {
+          block.value.value = visualization;
+        } else {
+          block.value = visualization;
+        }
+      }
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow',
   name: 'DashboardCountDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
+  mixins: ['foam.core.reflow.DashboardCardMixin'],
 
   requires: [
-    'foam.dashboard.view.Count',
-    'foam.u2.borders.CardBorder',
-    'foam.mlang.sink.Count as CountSink'
+    'foam.dashboard.model.Count',
+    'foam.dashboard.model.VisualizationSize'
   ],
 
   properties: [
@@ -31,53 +86,34 @@ foam.CLASS({
     }
   ],
 
-
   methods: [
-    function createSink() { 
-      return this.CountSink.create();
-    },
-    
     function execute(e) {
       var self = this;
       
-      return this.dao.select(this.createSink()).then(countSink => {
-        var card = e.start(self.CardBorder);
-        
-        card.start('div')
-          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
-          .add('Count')
-        .end();
-        
-        card.startContext({
-          data: { data: countSink },
-          visualizationWidth: 200,
-          visualizationHeight: 80
-        });
-        
-        card.add(self.Count.create());
-        card.endContext();
-        
-        card.end();
-        
-        if (self.block.value) {
-          self.block.value.value = countSink.value;
-        } else {
-          self.block.value = countSink.value;
-        }
-      });
+      // Create context and visualization
+      var context = this.createDashboardContext(e);
+      var visualization = this.Count.create({
+        dao: this.dao,
+        size: this.VisualizationSize[this.size] || this.VisualizationSize.SMALL,
+        label: 'Count',
+        configView: null  // Hide the configuration dropdown
+      }, context);
+      
+      // Render the card with the Count view
+      this.renderVisualizationCard(e, visualization, visualization.views[0][0], self.block);
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DashboardBarChartDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
+  mixins: ['foam.core.reflow.DashboardCardMixin'],
 
   requires: [
-    'foam.dashboard.view.Bar',
-    'foam.u2.borders.CardBorder'
+    'foam.dashboard.model.GroupBy',
+    'foam.dashboard.model.VisualizationSize'
   ],
 
   properties: [
@@ -94,40 +130,32 @@ foam.CLASS({
     }
   ],
 
-
   methods: [
-    function createSink() {
-      return this.prop ? this.GROUP_BY(this.prop, this.COUNT()) : this.COUNT();
-    },
-    
     function execute(e) {
       var self = this;
       
-      return this.dao.select(this.createSink()).then(sink => {
-        var card = e.start(self.CardBorder);
-        
-        card.start('div')
-          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
-          .add('Bar Chart' + (self.prop ? ': ' + self.prop.label : ''))
-        .end();
-        
-        card.startContext({
-          data: { data: sink },
-          visualizationWidth: 360,
-          visualizationHeight: 220
-        });
-        
-        card.add(self.Bar.create());
-        card.endContext();
-        
-        card.end();
-        
-        if (self.block.value) {
-          self.block.value.value = sink;
-        } else {
-          self.block.value = sink;
-        }
-      });
+      // Don't create visualization if no property is selected
+      if ( ! this.prop ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: '#666'}).
+          add('Please select a property to group by').
+        end();
+        return;
+      }
+      
+      // Create context and visualization
+      var context = this.createDashboardContext(e);
+      var visualization = this.GroupBy.create({
+        dao: this.dao,
+        arg1: this.prop.name,
+        size: this.VisualizationSize[this.size] || this.VisualizationSize.MEDIUM,
+        label: 'Bar Chart: ' + this.prop.label,
+        configView: null  // Hide the configuration dropdown
+      }, context);
+      
+      // Find and render the Bar view
+      var barView = this.findViewInVisualization(visualization, 'Bar');
+      this.renderVisualizationCard(e, visualization, barView, self.block);
     },
     
     function addToE(e) {
@@ -135,107 +163,92 @@ foam.CLASS({
         start().
           style({display: 'flex', gap: '10px'}).
           add('Property: ', this.PROP).
-          add('Size: ', this.SIZE);
+          add('Size: ', this.SIZE).
+        end().
+      endContext();
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DashboardPieChartDAOAgent',
   extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
 
-  requires: [
-    'foam.dashboard.view.Pie',
-    'foam.u2.borders.CardBorder'
-  ],
-
   methods: [
     function execute(e) {
       var self = this;
       
-      return this.dao.select(this.createSink()).then(sink => {
-        var card = e.start(self.CardBorder);
-        
-        card.start('div')
-          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
-          .add('Pie Chart' + (self.prop ? ': ' + self.prop.label : ''))
-        .end();
-        
-        card.startContext({
-          data: { data: sink },
-          visualizationWidth: 360,
-          visualizationHeight: 220
-        });
-        
-        card.add(self.Pie.create());
-        card.endContext();
-        
-        card.end();
-        
-        if (self.block.value) {
-          self.block.value.value = sink;
-        } else {
-          self.block.value = sink;
-        }
-      });
+      // Don't create visualization if no property is selected
+      if ( ! this.prop ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: '#666'}).
+          add('Please select a property to group by').
+        end();
+        return;
+      }
+      
+      // Create context and visualization
+      var context = this.createDashboardContext(e);
+      var visualization = this.GroupBy.create({
+        dao: this.dao,
+        arg1: this.prop.name,
+        size: this.VisualizationSize[this.size] || this.VisualizationSize.MEDIUM,
+        label: 'Pie Chart: ' + this.prop.label,
+        configView: null  // Hide the configuration dropdown
+      }, context);
+      
+      // Find and render the Pie view
+      var pieView = this.findViewInVisualization(visualization, 'Pie');
+      this.renderVisualizationCard(e, visualization, pieView, self.block);
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DashboardLineChartDAOAgent',
   extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
 
-  requires: [
-    'foam.dashboard.view.Line',
-    'foam.u2.borders.CardBorder'
-  ],
-
   methods: [
     function execute(e) {
       var self = this;
       
-      return this.dao.select(this.createSink()).then(sink => {
-        var card = e.start(self.CardBorder);
-        
-        card.start('div')
-          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
-          .add('Line Chart' + (self.prop ? ': ' + self.prop.label : ''))
-        .end();
-        
-        card.startContext({
-          data: { data: sink },
-          visualizationWidth: 360,
-          visualizationHeight: 220
-        });
-        
-        card.add(self.Line.create());
-        card.endContext();
-        
-        card.end();
-        
-        if (self.block.value) {
-          self.block.value.value = sink;
-        } else {
-          self.block.value = sink;
-        }
-      });
+      // Don't create visualization if no property is selected
+      if ( ! this.prop ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: '#666'}).
+          add('Please select a property to group by').
+        end();
+        return;
+      }
+      
+      // Create context and visualization
+      var context = this.createDashboardContext(e);
+      var visualization = this.GroupBy.create({
+        dao: this.dao,
+        arg1: this.prop.name,
+        size: this.VisualizationSize[this.size] || this.VisualizationSize.MEDIUM,
+        label: 'Line Chart: ' + this.prop.label,
+        configView: null  // Hide the configuration dropdown
+      }, context);
+      
+      // Find and render the Line view
+      var lineView = this.findViewInVisualization(visualization, 'Line');
+      this.renderVisualizationCard(e, visualization, lineView, self.block);
     }
   ]
 });
 
-
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DashboardTableDAOAgent',
-  extends: 'foam.core.reflow.TableDAOAgent',
+  extends: 'foam.core.reflow.AbstractDAOAgent',
+  mixins: ['foam.core.reflow.DashboardCardMixin'],
 
   requires: [
-    'foam.u2.borders.CardBorder'
+    'foam.dashboard.model.Table',
+    'foam.dashboard.model.VisualizationSize'
   ],
 
   properties: [
@@ -251,22 +264,24 @@ foam.CLASS({
     }
   ],
 
-
   methods: [
     function execute(e) {
       var self = this;
       
-      var card = e.start(self.CardBorder);
+      // Create context and setup DAO
+      var context = this.createDashboardContext(e);
+      var limitedDAO = this.dao.limit(this.maxRows);
       
-      card.start('div')
-        .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
-        .add('Table: ' + this.of.model_.plural)
-      .end();
+      // Create visualization
+      var visualization = this.Table.create({
+        dao: limitedDAO,
+        size: this.VisualizationSize[this.size] || this.VisualizationSize.LARGE,
+        label: 'Table: ' + this.of.model_.plural,
+        configView: null  // Hide the configuration dropdown
+      }, context);
       
-      // Use the parent TableDAOAgent execution but wrap in card
-      this.SUPER(card);
-      
-      card.end();
+      // Render the card with the Table view
+      this.renderVisualizationCard(e, visualization, visualization.views[0][0], self.block);
     },
     
     function addToE(e) {
@@ -274,11 +289,12 @@ foam.CLASS({
         start().
           style({display: 'flex', gap: '10px'}).
           add('Max Rows: ', this.MAX_ROWS).
-          add('Size: ', this.SIZE);
+          add('Size: ', this.SIZE).
+        end().
+      endContext();
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.core.reflow',
@@ -286,7 +302,7 @@ foam.CLASS({
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
   requires: [
-    'foam.dashboard.view.DashboardView',
+    'foam.dashboard.view.Dashboard',
     'foam.dashboard.view.Card'
   ],
 
@@ -309,23 +325,20 @@ foam.CLASS({
       var self = this;
       
       // Create a container for the dashboard widgets
-      var dashboardContainer = e.start('div').
+      e.start('div').
         style({
           display: 'grid',
           gridTemplateColumns: `repeat(${self.columns}, 1fr)`,
           gap: '16px',
           padding: '16px'
-        });
-      
-      // Execute each widget and add to dashboard
-      self.widgets.forEach(widget => {
-        var widgetContainer = dashboardContainer.start('div');
-        widget.dao = self.dao;
-        widget.execute(widgetContainer);
-        widgetContainer.end();
-      });
-      
-      dashboardContainer.end();
+        }).
+        forEach(self.widgets, function(widget) {
+          this.start('div');
+          widget.dao = self.dao;
+          widget.execute(this);
+          this.end();
+        }).
+      end();
       
       if (self.block.value) {
         self.block.value.value = self.widgets;
@@ -344,20 +357,22 @@ foam.CLASS({
           end().
           start().
             add('Widgets: ', this.WIDGETS).
-          end();
+          end().
+        end().
+      endContext();
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DashboardUserGreetingDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
+  mixins: ['foam.core.reflow.DashboardCardMixin'],
 
   requires: [
     'foam.dashboard.view.UserGreetingView',
-    'foam.u2.borders.CardBorder'
+    'foam.dashboard.view.Card'
   ],
 
   imports: [ 'user' ],
@@ -370,21 +385,30 @@ foam.CLASS({
     }
   ],
 
-
   methods: [
     function execute(e) {
       var self = this;
       
-      var card = e.start(self.CardBorder);
-      
-      card.startContext({
+      // Create context with user
+      var context = this.createDashboardContext(e);
+      context = context.createSubContext({
         user: this.user || { firstName: 'User' }
       });
       
-      card.add(self.UserGreetingView.create());
-      card.endContext();
+      // Create a simple card with greeting
+      var card = this.Card.create({ 
+        data: {
+          label: 'Welcome',
+          size: { name: this.size.toUpperCase() },
+          configView: null  // Hide the configuration dropdown
+        }
+      }, context);
       
-      card.end();
+      // Add the greeting view to the card's content
+      this.addViewToCard(card, this.UserGreetingView, {});
+      
+      // Add the card to the element
+      e.add(card);
       
       if (self.block.value) {
         self.block.value.value = 'greeting';
