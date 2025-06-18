@@ -18,7 +18,9 @@ foam.CLASS({
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
   requires: [
-    'foam.dashboard.view.Count'
+    'foam.dashboard.view.Count',
+    'foam.u2.borders.CardBorder',
+    'foam.mlang.sink.Count as CountSink'
   ],
 
   properties: [
@@ -29,35 +31,22 @@ foam.CLASS({
     }
   ],
 
-  css: `
-    .dashboard-card {
-      border-radius: 10px;
-      background: white;
-      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin: 10px;
-      min-width: 200px;
-      min-height: 100px;
-    }
-    .dashboard-header {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #333;
-    }
-  `,
 
   methods: [
     function createSink() { 
-      return this.COUNT(); 
+      return this.CountSink.create();
     },
     
     function execute(e) {
       var self = this;
       
       return this.dao.select(this.createSink()).then(countSink => {
-        var card = e.start('div').addClass('dashboard-card');
+        var card = e.start(self.CardBorder);
         
-        card.start('div').addClass('dashboard-header').add('Count').end();
+        card.start('div')
+          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
+          .add('Count')
+        .end();
         
         card.startContext({
           data: { data: countSink },
@@ -87,7 +76,8 @@ foam.CLASS({
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
   requires: [
-    'foam.dashboard.view.Bar'
+    'foam.dashboard.view.Bar',
+    'foam.u2.borders.CardBorder'
   ],
 
   properties: [
@@ -104,22 +94,6 @@ foam.CLASS({
     }
   ],
 
-  css: `
-    .dashboard-chart-card {
-      border-radius: 10px;
-      background: white;
-      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin: 10px;
-      min-width: 400px;
-      min-height: 300px;
-    }
-    .dashboard-chart-header {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #333;
-    }
-  `,
 
   methods: [
     function createSink() {
@@ -130,10 +104,12 @@ foam.CLASS({
       var self = this;
       
       return this.dao.select(this.createSink()).then(sink => {
-        var card = e.start('div').addClass('dashboard-chart-card');
+        var card = e.start(self.CardBorder);
         
-        card.start('div').addClass('dashboard-chart-header')
-          .add('Bar Chart' + (self.prop ? ': ' + self.prop.label : '')).end();
+        card.start('div')
+          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
+          .add('Bar Chart' + (self.prop ? ': ' + self.prop.label : ''))
+        .end();
         
         card.startContext({
           data: { data: sink },
@@ -171,7 +147,8 @@ foam.CLASS({
   extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
 
   requires: [
-    'foam.dashboard.view.Pie'
+    'foam.dashboard.view.Pie',
+    'foam.u2.borders.CardBorder'
   ],
 
   methods: [
@@ -179,10 +156,12 @@ foam.CLASS({
       var self = this;
       
       return this.dao.select(this.createSink()).then(sink => {
-        var card = e.start('div').addClass('dashboard-chart-card');
+        var card = e.start(self.CardBorder);
         
-        card.start('div').addClass('dashboard-chart-header')
-          .add('Pie Chart' + (self.prop ? ': ' + self.prop.label : '')).end();
+        card.start('div')
+          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
+          .add('Pie Chart' + (self.prop ? ': ' + self.prop.label : ''))
+        .end();
         
         card.startContext({
           data: { data: sink },
@@ -212,7 +191,8 @@ foam.CLASS({
   extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
 
   requires: [
-    'foam.dashboard.view.Line'
+    'foam.dashboard.view.Line',
+    'foam.u2.borders.CardBorder'
   ],
 
   methods: [
@@ -220,10 +200,12 @@ foam.CLASS({
       var self = this;
       
       return this.dao.select(this.createSink()).then(sink => {
-        var card = e.start('div').addClass('dashboard-chart-card');
+        var card = e.start(self.CardBorder);
         
-        card.start('div').addClass('dashboard-chart-header')
-          .add('Line Chart' + (self.prop ? ': ' + self.prop.label : '')).end();
+        card.start('div')
+          .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
+          .add('Line Chart' + (self.prop ? ': ' + self.prop.label : ''))
+        .end();
         
         card.startContext({
           data: { data: sink },
@@ -252,6 +234,10 @@ foam.CLASS({
   name: 'DashboardTableDAOAgent',
   extends: 'foam.core.reflow.TableDAOAgent',
 
+  requires: [
+    'foam.u2.borders.CardBorder'
+  ],
+
   properties: [
     {
       class: 'Int',
@@ -265,31 +251,17 @@ foam.CLASS({
     }
   ],
 
-  css: `
-    .dashboard-table-card {
-      border-radius: 10px;
-      background: white;
-      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin: 10px;
-      min-width: 600px;
-      min-height: 400px;
-    }
-    .dashboard-table-header {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #333;
-    }
-  `,
 
   methods: [
     function execute(e) {
       var self = this;
       
-      var card = e.start('div').addClass('dashboard-table-card');
+      var card = e.start(self.CardBorder);
       
-      card.start('div').addClass('dashboard-table-header')
-        .add('Table: ' + this.of.model_.plural).end();
+      card.start('div')
+        .style({'font-weight': 'bold', 'margin-bottom': '10px', 'color': '#333'})
+        .add('Table: ' + this.of.model_.plural)
+      .end();
       
       // Use the parent TableDAOAgent execution but wrap in card
       this.SUPER(card);
@@ -384,7 +356,8 @@ foam.CLASS({
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
   requires: [
-    'foam.dashboard.view.UserGreetingView'
+    'foam.dashboard.view.UserGreetingView',
+    'foam.u2.borders.CardBorder'
   ],
 
   imports: [ 'user' ],
@@ -397,23 +370,12 @@ foam.CLASS({
     }
   ],
 
-  css: `
-    .dashboard-greeting-card {
-      border-radius: 10px;
-      background: white;
-      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin: 10px;
-      min-width: 300px;
-      min-height: 100px;
-    }
-  `,
 
   methods: [
     function execute(e) {
       var self = this;
       
-      var card = e.start('div').addClass('dashboard-greeting-card');
+      var card = e.start(self.CardBorder);
       
       card.startContext({
         user: this.user || { firstName: 'User' }
