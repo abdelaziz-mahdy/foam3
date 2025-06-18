@@ -80,9 +80,22 @@ foam.CLASS({
 
   properties: [
     {
-      class: 'String',
+      class: 'Enum',
+      of: 'foam.dashboard.model.VisualizationSize',
       name: 'size',
-      value: 'SMALL'
+      value: 'SMALL',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          ['TINY', 'Tiny (176px × 358px) - Minimal display'],
+          ['SMALL', 'Small (312px × ~) - Compact view'],
+          ['SMEDIUM', 'Small-Medium (312px × 358px) - Balanced compact'],
+          ['MEDIUM', 'Medium (424px × 356px) - Standard size'],
+          ['LMEDIUM', 'Large-Medium (570px × 450px) - Expanded view'],
+          ['LARGE', 'Large (936px × 528px) - Full display'],
+          ['XLARGE', 'Extra Large (1580px × 698px) - Maximum display']
+        ]
+      }
     }
   ],
 
@@ -94,7 +107,7 @@ foam.CLASS({
       var context = this.createDashboardContext(e);
       var visualization = this.Count.create({
         dao: this.dao,
-        size: this.VisualizationSize[this.size] || this.VisualizationSize.SMALL,
+        size: this.size,
         label: 'Count',
         configView: null  // Hide the configuration dropdown
       }, context);
@@ -124,9 +137,22 @@ foam.CLASS({
       }
     },
     {
-      class: 'String',
+      class: 'Enum',
+      of: 'foam.dashboard.model.VisualizationSize',
       name: 'size',
-      value: 'MEDIUM'
+      value: 'MEDIUM',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          ['TINY', 'Tiny (176px × 358px) - Minimal display'],
+          ['SMALL', 'Small (312px × ~) - Compact view'],
+          ['SMEDIUM', 'Small-Medium (312px × 358px) - Balanced compact'],
+          ['MEDIUM', 'Medium (424px × 356px) - Standard size'],
+          ['LMEDIUM', 'Large-Medium (570px × 450px) - Expanded view'],
+          ['LARGE', 'Large (936px × 528px) - Full display'],
+          ['XLARGE', 'Extra Large (1580px × 698px) - Maximum display']
+        ]
+      }
     }
   ],
 
@@ -148,7 +174,7 @@ foam.CLASS({
       var visualization = this.GroupBy.create({
         dao: this.dao,
         arg1: this.prop.name,
-        size: this.VisualizationSize[this.size] || this.VisualizationSize.MEDIUM,
+        size: this.size,
         label: 'Bar Chart: ' + this.prop.label,
         configView: null  // Hide the configuration dropdown
       }, context);
@@ -193,7 +219,7 @@ foam.CLASS({
       var visualization = this.GroupBy.create({
         dao: this.dao,
         arg1: this.prop.name,
-        size: this.VisualizationSize[this.size] || this.VisualizationSize.MEDIUM,
+        size: this.size,
         label: 'Pie Chart: ' + this.prop.label,
         configView: null  // Hide the configuration dropdown
       }, context);
@@ -228,7 +254,7 @@ foam.CLASS({
       var visualization = this.GroupBy.create({
         dao: this.dao,
         arg1: this.prop.name,
-        size: this.VisualizationSize[this.size] || this.VisualizationSize.MEDIUM,
+        size: this.size,
         label: 'Line Chart: ' + this.prop.label,
         configView: null  // Hide the configuration dropdown
       }, context);
@@ -323,9 +349,22 @@ foam.CLASS({
 
   properties: [
     {
-      class: 'String',
+      class: 'Enum',
+      of: 'foam.dashboard.model.VisualizationSize',
       name: 'size',
-      value: 'SMALL'
+      value: 'SMALL',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          ['TINY', 'Tiny (176px × 358px) - Minimal display'],
+          ['SMALL', 'Small (312px × ~) - Compact view'],
+          ['SMEDIUM', 'Small-Medium (312px × 358px) - Balanced compact'],
+          ['MEDIUM', 'Medium (424px × 356px) - Standard size'],
+          ['LMEDIUM', 'Large-Medium (570px × 450px) - Expanded view'],
+          ['LARGE', 'Large (936px × 528px) - Full display'],
+          ['XLARGE', 'Extra Large (1580px × 698px) - Maximum display']
+        ]
+      }
     }
   ],
 
@@ -343,7 +382,7 @@ foam.CLASS({
       var card = this.Card.create({ 
         data: {
           label: 'Welcome',
-          size: { name: this.size.toUpperCase() },
+          size: this.size,
           configView: null  // Hide the configuration dropdown
         }
       }, context);
