@@ -293,7 +293,7 @@ foam.CLASS({
 
         this.startContext({click: self.click}).
           start(self.TableView, config).
-            style({height: '700px'});
+            style({height: '600px'});
       }));
     }
   ],
@@ -398,8 +398,7 @@ foam.CLASS({
       e.startContext({data: this}).
         start().
           style({paddingLeft: '12px', display: 'flex'}).
-          add(this.PROP).add(this.SINK).
-          start(this.BROWSE).style({alignSelf: 'self-end'});
+          add(this.PROP, this.SINK, this.BROWSE);
     }
   ],
 
