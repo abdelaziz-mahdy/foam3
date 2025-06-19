@@ -196,13 +196,14 @@ foam.CLASS({
     {
       name: 'schedule',
       class: 'FObjectProperty',
-      of: 'foam.core.cron.IntervalSchedule',
+      of: 'foam.core.cron.Schedule',
+      view: {
+        class: 'foam.u2.view.FObjectView',
+        of: 'foam.core.cron.Schedule'
+      },
       documentation: 'Schedule to run this flow.',
       readPermissionRequired: true,
       writePermissionRequired: true,
-      factory: function() {
-        return this.IntervalSchedule.create();
-      }
     },
     {
       class: 'DateTime',
