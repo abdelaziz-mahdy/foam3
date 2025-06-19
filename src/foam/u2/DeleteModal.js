@@ -16,7 +16,8 @@ foam.CLASS({
   ],
 
   imports: [
-    'notify'
+    'notify?',
+    'ctrl?'
   ],
 
   css: `
@@ -90,6 +91,29 @@ foam.CLASS({
             .tag(this.DELETE, { isDestructive: true })
           .endContext()
         .end();
+    },
+
+    function isAuthorizationException(err) {
+      return err && (
+        err.name === 'AuthorizationException' ||
+        (err.exception && err.exception.cls_ && err.exception.cls_.name === 'AuthorizationException') ||
+        (err.data && err.data.cls_ && err.data.cls_.name === 'AuthorizationException') ||
+        (err.instance_ && err.instance_.data && err.instance_.data.id === 'foam.core.auth.AuthorizationException')
+      );
+    },
+
+    function safeNotify(message, submessage, severity, transient) {
+      // Try multiple ways to show notification
+      if ( this.notify ) {
+        this.notify(message, submessage, severity, transient);
+      } else if ( this.ctrl && this.ctrl.notify ) {
+        this.ctrl.notify(message, submessage, severity, transient);
+      } else if ( this.__context__ && this.__context__.notify ) {
+        this.__context__.notify(message, submessage, severity, transient);
+      } else {
+        // Fallback to console
+        console.error('Notification:', message, submessage);
+      }
     }
   ],
 
@@ -102,25 +126,24 @@ foam.CLASS({
           if ( foam.comics.v2.userfeedback.UserFeedbackAware.isInstance(o) && o.userFeedback ){
             var currentFeedback = o.userFeedback;
             while ( currentFeedback ){
-
-              this.notify(currentFeedback.message, '', this.LogLevel.INFO, true);
-
+              this.safeNotify(currentFeedback.message, '', this.LogLevel.INFO, true);
               currentFeedback = currentFeedback.next;
             }
           } else {
-            this.notify(this.data.model_.label + this.SUCCESS_MSG, '', this.LogLevel.INFO, true);
+            this.safeNotify(this.data.model_.label + this.SUCCESS_MSG, '', this.LogLevel.INFO, true);
           }
           this.onDelete();
         }).catch((err) => {
           if ( err.exception && err.exception.userFeedback  ) {
             var currentFeedback = err.exception.userFeedback;
             while ( currentFeedback ) {
-              this.notify(currentFeedback.message, '', this.LogLevel.INFO, true);
-
+              this.safeNotify(currentFeedback.message, '', this.LogLevel.INFO, true);
               currentFeedback = currentFeedback.next;
             }
+          } else if ( this.isAuthorizationException(err) ) {
+            this.safeNotify('Access Denied: You are not authorized to delete this item', '', this.LogLevel.ERROR, true);
           } else {
-            this.notify(err.message || this.FAIL_MSG, '', this.LogLevel.ERROR, true);
+            this.safeNotify(err.message || this.FAIL_MSG, '', this.LogLevel.ERROR, true);
           }
         });
         X.closeDialog();
