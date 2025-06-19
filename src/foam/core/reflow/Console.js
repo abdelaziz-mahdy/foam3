@@ -1332,6 +1332,7 @@ foam.CLASS({
     {
       name: 'selectionUp',
       keyboardShortcuts: [ 'shift-arrowup' ],
+      isAvailable: function(input_) { return input_.element_ == document.activeElement; },
       code: function() {
         var i = this.flowChildren.findIndex(o => o === this.selected);
         this.setSelectedIndex(i == -1 ? this.flowChildren.length-1 : i-1);
@@ -1340,6 +1341,7 @@ foam.CLASS({
     {
       name: 'selectionDown',
       keyboardShortcuts: [ 'shift-arrowdown' ],
+      isAvailable: function(input_) { return input_.element_ == document.activeElement; },
       code: function() {
         var i = this.flowChildren.findIndex(o => o === this.selected);
         this.setSelectedIndex(i+1);
