@@ -28,7 +28,7 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.core.cron.CronSchedule',
+    'foam.core.cron.IntervalSchedule',
   ],
 
   imports: [ 'flowDAO' ],
@@ -196,10 +196,12 @@ foam.CLASS({
     {
       name: 'schedule',
       class: 'FObjectProperty',
-      of: 'foam.core.cron.CronSchedule',
+      of: 'foam.core.cron.IntervalSchedule',
       documentation: 'Schedule to run this flow.',
+      readPermissionRequired: true,
+      writePermissionRequired: true,
       factory: function() {
-        return this.CronSchedule.create();
+        return this.IntervalSchedule.create();
       }
     },
     {

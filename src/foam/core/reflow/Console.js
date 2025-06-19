@@ -975,9 +975,6 @@ foam.CLASS({
       // Store headless mode flag and runner ID for later use
       var isHeadlessMode = this.params && this.params.headless === 'true';
       var runnerId = this.params && this.params.runnerId;
-      if ( isHeadlessMode ) {
-        console.log('Setting up headless mode with runner ID:', runnerId);
-      }
 
       // Add listener to restore navigation when leaving reflow
       this.onDetach(() => {
@@ -1033,17 +1030,8 @@ foam.CLASS({
           
           // Remove runner from service for headless mode after all commands execute
           if ( isHeadlessMode && cs.length > 0 && runnerId ) {
-            console.log('Flow execution completed - removing runner from service');
             try {
-              if ( this.headlessRunnerService ) {
-                this.headlessRunnerService.removeRunner(runnerId).then(() => {
-                  console.log('Headless runner removed successfully:', runnerId);
-                }).catch(e => {
-                  console.log('Error removing headless runner:', e);
-                });
-              } else {
-                console.log('headlessRunnerService not found in context');
-              }
+              this.headlessRunnerService?.removeRunner(runnerId);
             } catch (e) {
               console.log('Error accessing headlessRunnerService:', e);
             }
