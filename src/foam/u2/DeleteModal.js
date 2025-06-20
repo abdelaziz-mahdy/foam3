@@ -122,8 +122,9 @@ foam.CLASS({
           } else {
             this.notify(err.message || this.FAIL_MSG, '', this.LogLevel.ERROR, true);
           }
+        }).finally(() => {
+          X.closeDialog();
         });
-        X.closeDialog();
       }
     },
     {

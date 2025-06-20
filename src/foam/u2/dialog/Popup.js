@@ -178,8 +178,7 @@ foam.CLASS({
         // Delay removal by 32ms (two animation frames) so the action.closeModal
         // topic has a chance to be published
         this.hide();
-        /// 32 is not enough to wait for the animation to finish for all browsers/pcs...
-        this.setTimeout(() => {this.remove()}, 100);
+        this.setTimeout(() => {this.remove()}, 32);
       }
     }
   ]
