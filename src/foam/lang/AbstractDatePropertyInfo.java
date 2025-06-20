@@ -8,6 +8,7 @@ package foam.lang;
 
 import foam.lib.parse.ParserContextImpl;
 import foam.lib.parse.StringPStream;
+
 import javax.xml.stream.XMLStreamReader;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -33,8 +34,7 @@ public abstract class AbstractDatePropertyInfo
   };
 
   public int compareValues(java.lang.Object o1, java.lang.Object o2) {
-    // Remove time component of Date
-    return foam.util.SafetyUtil.compare(((Date) o1).getTime() / 100000, ((Date) o2).getTime() / 100000);
+    return ((Date)o1).compareTo(((Date)o2));
   }
 
   public Object fromString(String value) {
