@@ -92,15 +92,6 @@ foam.CLASS({
         .end();
     },
 
-    function isAuthorizationException(err) {
-      return err && (
-        err.name === 'AuthorizationException' ||
-        (err.exception && err.exception.cls_ && err.exception.cls_.name === 'AuthorizationException') ||
-        (err.data && err.data.cls_ && err.data.cls_.name === 'AuthorizationException') ||
-        (err.instance_ && err.instance_.data && err.instance_.data.id === 'foam.core.auth.AuthorizationException')
-      );
-    },
-
   ],
 
   actions: [
@@ -126,8 +117,6 @@ foam.CLASS({
               this.notify(currentFeedback.message, '', this.LogLevel.INFO, true);
               currentFeedback = currentFeedback.next;
             }
-          } else if ( this.isAuthorizationException(err) ) {
-            this.notify('Access Denied: You are not authorized to do this action', '', this.LogLevel.ERROR, true);
           } else {
             this.notify(err.message || this.FAIL_MSG, '', this.LogLevel.ERROR, true);
           }
