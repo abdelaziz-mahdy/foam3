@@ -49,6 +49,7 @@ foam.CLASS({
               // TODO: fix JSON parsing should setup context corectly
               var select    = self.data.select.clone(self.data.__subContext__);
               await select.execute(this);
+              self.data.ready.resolve();
               self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
             })).
           end();
@@ -83,28 +84,23 @@ foam.CLASS({
   sections: [
     {
       name: 'general',
-      title: 'General',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'General'
     },
     {
       name: 'output',
-      title: 'Output',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'Output'
     },
     {
       name: 'scroll',
-      title: 'Scroll',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'Scroll'
     },
     {
       name: 'filter',
-      title: 'Filter',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: 'Filter'
     },
     {
       name: 'actions',
-      title: 'Actions',
-      view: { class: 'foam.core.reflow.ReactiveSectionView' }
+      title: ''
     }
   ],
 
@@ -118,10 +114,9 @@ foam.CLASS({
     'foam.parse.QueryParser'
   ],
 
-  imports: [ 'currentBlock', 'eval_' ],
+  imports: [ 'block', 'eval_' ],
 
   exports: [
-    'block',
     'dao',
     'limitedDAO as sinkDAO',
     'filteredDAO as sinkUnlimitedDAO',
@@ -129,13 +124,6 @@ foam.CLASS({
   ],
 
   properties: [
-    {
-      name: 'block',
-      factory: function() { return this.currentBlock; },
-      hidden: true,
-      section: 'general',
-      transient: true
-    },
     {
       class: 'String',
       name: 'label',
@@ -151,7 +139,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'visible',
       section: 'general',
-      label: 'Visibility',
+      label: 'Visible',
       value: true,
       view: { class: 'foam.u2.Switch' }
     },
@@ -280,7 +268,12 @@ foam.CLASS({
     },
     {
       name: 'select',
-      view: function(_, X) { return foam.core.reflow.SinkView.create({sinksOnly: false, choice: 'Table'}, X.data); },
+      view: function(_, X) {
+        return foam.core.reflow.SinkView.create({
+          sinksOnly: false,
+          choice: 'Table',
+          dao: X.data.dao}, X.data);
+      },
       section: 'output',
       label: '',
       factory: function() { return this.TableDAOAgent.create(); }
@@ -289,7 +282,15 @@ foam.CLASS({
     { class: 'String',     hidden: true,   name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Boolean',    section: 'general',   name: 'autoRun', view: { class: 'foam.u2.Switch' } },
     { class: 'Int',        hidden: true,  name: 'version', hidden: true },
-    { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' }
+    { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' },
+    {
+      name: 'ready',
+      transient: true,
+      hidden: true,
+      factory: function() {
+        return foam.lang.Latch.create();
+      }
+    }
   ],
 
   methods: [
@@ -333,7 +334,7 @@ foam.CLASS({
 
     function describe() {
       this.eval_('describe ' + this.dao.of.id);
-    },
+    }
   ]
 });
 

@@ -19,7 +19,7 @@ foam.CLASS({
     'foam.core.auth.AuthorizationException'
   ],
 
-  imports: [ 'currentBlock', 'log', 'out', 'eval_' ],
+  imports: [ 'addValue', 'block', 'currentBlock', 'log', 'out', 'eval_' ],
 
   tableColumns: [ 'id', 'description' /*, 'execute_' */ ],
 
@@ -29,12 +29,18 @@ foam.CLASS({
     { class: 'Code',    name: 'script' },
     { class: 'Boolean', name: 'linkable', value: true },
     { class: 'Boolean', name: 'permissionRequired' }
+    /*
+    {
+      name: 'ready',
+      documentation: 'Promise if command needs to delay loading of following commands until it is ready',
+      value: Promise.resolve()
+    }*/
   ],
 
   methods: [
     function execute(...args) {
       with ( this ) {
-        with ( { args: args, addValue: this.currentBlock.addValue.bind(this.currentBlock) } ) {
+        with ( { args: args, addValue: this.addValue.bind(this) } ) {
           try {
             eval(this.script);
           } catch (x) {
@@ -121,6 +127,8 @@ foam.CLASS({
         [ 'ESC',     'Toggle prompt display' ],
         [ 'Up',      'Previous from history' ],
         [ 'Down',    'Next from history' ],
+        [ 'Shift-Up',  'Select next command' ],
+        [ 'Shift-Down', 'Select previous command' ],
         [ 'CMD + k / CTRL + k',  'Clear console' ],
         [ 'CTRL + `', 'Focus input' ]
       ];
@@ -172,7 +180,7 @@ foam.CLASS({
       var self = this;
       var fns  = Object.keys(foam.core.reflow.lib).sort();
 
-      this.out.start('h3').add('Functionss').end().
+      this.out.start('h3').add('Functions').end().
       start('table').style({width: 'max-content'}).
         forEach(fns, function(f) {
           if ( q && f.toLowerCase().indexOf(q) == -1 ) return;
@@ -245,7 +253,7 @@ foam.CLASS({
       var p = this.DAOPrompt.create({dao: dao, daoLabel: opt_label});
 
       this.out.tag(p);
-      this.currentBlock.obj = p;
+      this.currentBlock.obj = p; // ???: Why .obj?
     }
   ]
 });
@@ -270,8 +278,8 @@ foam.CLASS({
 
       p.addToE(this.out);
       this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
-      this.currentBlock.obj      = p;
-      this.currentBlock.value    = p;
+      this.currentBlock.obj    = p; // ???: Needed
+      this.currentBlock.value  = p;
     }
   ]
 });
@@ -619,6 +627,9 @@ foam.CLASS({
       var loaded = await this.flowDAO.find(flowName);
 
       if ( loaded ) {
+        // Don't save the 'load' command
+        this.currentBlock.del();
+
         this.selected = this.flow;
         this.flow.copyFrom(loaded);
       } else {
@@ -695,6 +706,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Login',
@@ -712,6 +724,68 @@ foam.CLASS({
 
       this.out.tag(p);
       this.currentBlock.obj = p;
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Prompt',
+
+  imports: [ 'params' ],
+
+  properties: [
+    {
+      class: 'String',
+      name: 'prompt'
+    },
+    {
+      class: 'String',
+      name: 'urlParameter'
+    },
+    {
+      name: 'value',
+      transient: true
+    }
+  ],
+
+  methods: [
+    function init() {
+      this.SUPER();
+
+      if ( this.params && this.params[this.urlParameter] != undefined ) {
+        this.value = this.params[this.urlParameter];
+      }
+    },
+
+    function toString() {
+      return this.value.toString();
+    },
+
+    function valueOf() {
+      return this.value.valueOf();
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Input',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  requires: [ 'foam.core.reflow.cmd.Prompt' ],
+
+  methods: [
+    function execute(prompt) {
+      var p = this.Prompt.create();
+
+      if ( prompt ) p.prompt = prompt;
+
+      this.currentBlock.value = p;
+
+      this.out.startContext({data: p}).start('span').add(p.prompt$, ' ', p.VALUE);
     }
   ]
 });
