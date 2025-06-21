@@ -22,7 +22,9 @@ foam.CLASS({
 
   requires: [
     'foam.net.HTTPRequest',
-    'foam.u2.HTMLView'
+    'foam.u2.HTMLView',
+    'foam.blob.Blob',
+    'foam.blob.BlobBlob'
   ],
 
   css: `
@@ -73,6 +75,7 @@ foam.CLASS({
     },
 
     function render() {
+      var self = this;
       this
         .addClass(this.myClass())
         .add(this.slot(function(data, glyph, displayWidth, displayHeight, alpha) {
@@ -83,8 +86,23 @@ foam.CLASS({
               .end();
           }
 
+          if ( ! data) return null;
+
+          var e = this.E()
+          var src = data;
+
+          /// TODO: A better polymorphic way of doing this
+          if ( self.BlobBlob.isInstance(src) ) {
+            var url = URL.createObjectURL(src.blob);
+            e.onDetach(() => {
+              URL.revokeObjectURL(url)
+            })
+            src = url;
+          } else if ( self.Blob.isInstance(data) ) {
+            src = self.__context__.blobService.urlFor(data);
+          }
+
           if ( this.embedSVG && data?.endsWith('svg') ) {
-            var e = this.E();
             this.requestWithCache(data).then(data => {
               if ( !this.U3 && this.state == this.OUTPUT ) return;
 
@@ -95,10 +113,10 @@ foam.CLASS({
 
             return e;
           }
-          if ( ! data) return null;
-          return this.E()
+          
+          return e
             .start('img')
-              .attrs({ src: data, role: this.role })
+              .attrs({ src: src, role: this.role })
               .style({
                 height:  displayHeight,
                 width:   displayWidth,
