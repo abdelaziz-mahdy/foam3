@@ -240,7 +240,7 @@ foam.CLASS({
   name: 'DAO',
   extends: 'foam.core.reflow.cmd.Command',
 
-  requires: [ 'foam.core.reflow.DAOPrompt2' ],
+  requires: [ 'foam.core.reflow.DAOPrompt' ],
 
   imports: [ 'createFlowChildName' ],
 
@@ -250,7 +250,7 @@ foam.CLASS({
 
   methods: [
     function execute(dao, opt_label) {
-      var p = this.DAOPrompt2.create({dao: dao, label: opt_label});
+      var p = this.DAOPrompt.create({dao: dao, label: opt_label});
 
       p.addToE(this.out);
       this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
