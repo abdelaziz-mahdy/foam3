@@ -1006,9 +1006,7 @@ foam.CLASS({
       layout.showLeft$  = this.showPrompts$;
       layout.showRight$ = this.showPrompts$;
       layout.showHeader = true;
-      var flowableTree = this.FlowableTree.create({data: this, selected$: this.selected$});
-      layout.isMenuOpen$ = flowableTree.isMenuOpen$;
-      layout.left.tag(flowableTree);
+      layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue) {
         this.tag(self.ReactiveSectionedDetailView, {data: selectedValue, showActions: true, showHeader: true});
