@@ -72,10 +72,14 @@ foam.CLASS({
       name: 'predicate',
       expression: function(data, parser) {
         if ( ! data || ! parser ) return null;
+        console.log(`****** parsing: "${data}"`);
         this.autoCompleter.reset();
         try {
-          return parser.parseString(data + ' ', undefined, this.autoCompleter.apply);
+          var ps = parser.parseString(data + ' ', undefined, this.autoCompleter.apply);
+          console.log('autocomplete: ', this.autoCompleter.toString());
+          return ps;
         } catch(e) {
+          console.log('parse error: ', e);
           return null;
         }
       }

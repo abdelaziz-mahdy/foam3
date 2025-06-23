@@ -74,6 +74,10 @@ foam.CLASS({
       this.previousSuggestions = {};
       this.suggestions         = {};
     },
+    function suggestForInput(str) {
+      var error = str.substring(this.maxPos);
+      return Object.keys(this.suggestions).filter(k => k.startsWith(error)).join(' | ');
+    },
     function toString() {
       return Object.keys(this.suggestions).join(' | ');
     },
@@ -88,9 +92,11 @@ foam.CLASS({
         var error       = query.substring(self.maxPos);
         var ss          = keys.sort().filter(k => k.toLowerCase().startsWith(error.toLowerCase()));
                         if ( ! ss.length )        ss          = keys.sort().filter(k => containsIC(k, error));
-        if ( ss.length == 0 && self.previousSuggestions ) {
+        if ( ss.length == 0 ) {
+          console.log('previous: ', self.previousSuggestions);
           keys = Object.keys(self.previousSuggestions);
           ss   = keys.sort().filter(k => query.toLowerCase().endsWith(k.toLowerCase()));
+          console.log('filtered: ', ss);
           if ( ss.length == 1 ) {
             self.query = query.substring(0, query.length-ss[0].length) + ss[0];
             return;
