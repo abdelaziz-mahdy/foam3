@@ -96,14 +96,17 @@ foam.CLASS({
     },
     {
       name: 'clientId',
+      documentation: 'Microsoft Graph API client ID',
       class: 'String'
     },
     {
       name: 'tenantId',
+      documentation: 'Microsoft Graph API tenant ID',
       class: 'String'
     },
     {
       name: 'clientSecret',
+      documentation: 'Microsoft Graph API client secret',
       class: 'Password'
     },
     {
