@@ -19,7 +19,7 @@ foam.CLASS({
     'foam.core.auth.AuthorizationException'
   ],
 
-  imports: [ 'addValue', 'block', 'currentBlock', 'log', 'out', 'eval_' ],
+  imports: [ 'addValue?', 'block?', 'currentBlock?', 'log?', 'out?', 'eval_?' ],
 
   tableColumns: [ 'id', 'description' /*, 'execute_' */ ],
 
