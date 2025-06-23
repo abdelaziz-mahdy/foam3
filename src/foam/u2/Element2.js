@@ -1597,7 +1597,7 @@ foam.CLASS({
     },
 
     function createElFromSpec_(spec, args, X) {
-      let el = foam.u2.ViewSpec.createView(spec, args, this, X);
+      let el = foam.u2.ViewSpec.createView(spec, args, this, X, true);
 
       if ( X.data$ && ! ( args && ( args.data || args.data$ ) ) ) {
         el.data$ = X.data$.dot(this.name);
