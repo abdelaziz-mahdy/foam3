@@ -1,6 +1,93 @@
 
 foam.CLASS({
   package: 'foam.demos.autocomplete',
+  name: 'SearchField',
+  extends: 'foam.u2.TextField',
+
+  mixins: [
+    'foam.u2.TextInputCSS'
+  ],
+
+  properties: [
+    {
+      name: 'type',
+      value: 'search'
+    },
+    {
+      name: 'placeholder',
+      value: 'Search...'
+    },
+    {
+      name: 'ariaLabel',
+      value: 'Search'
+    },
+    {
+      name: 'autocomplete',
+      value: 'on'
+    },
+    {
+      name: 'name',
+      value: 'filterSearch'
+    }
+  ],
+
+  methods: [
+    function render() {
+      this.SUPER();
+      this.addClass('foam-u2-SearchField', 'foam-u2-SearchField-icon');
+      this.setAttribute('autocomplete', this.autocomplete);
+      this.setAttribute('aria-label', this.ariaLabel);
+      if ( this.name ) this.setAttribute('name', this.name);
+      return this;
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.demos.autocomplete',
+  name: 'AutoCompleteSearchField',
+  extends: 'foam.demos.autocomplete.SearchField',
+
+  documentation: 'A reusable search field with autocomplete functionality for table views',
+
+  requires: [
+    'foam.parse.QueryParser',
+    'foam.demos.autocomplete.AutoCompleter'
+  ],
+
+  properties: [
+    {
+      class: 'Class',
+      name: 'of',
+      documentation: 'The model class to provide autocomplete for'
+    },
+    {
+      name: 'autoCompleter',
+      factory: function() { 
+        return this.AutoCompleter.create({query$: this.data$}); 
+      }
+    },
+    {
+      name: 'parser',
+      expression: function(of) {
+        return of ? this.QueryParser.create({of: of}) : null;
+      }
+    }
+  ],
+
+  methods: [
+    function render() {
+      this.SUPER();
+      if ( this.autoCompleter && this.parser ) {
+        this.autoCompleter.addToE(this);
+      }
+      return this;
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.demos.autocomplete',
   name: 'AutoCompleter',
 
   properties: [
@@ -13,7 +100,8 @@ foam.CLASS({
       name: 'maxPos'
     },
     {
-      name: 'previousSuggestions'
+      name: 'previousSuggestions',
+      factory: function() { return {}; }
     },
     {
       name: 'suggestions',
@@ -82,10 +170,9 @@ foam.CLASS({
         var suggestions = self.suggestions;
         var keys        = Object.keys(suggestions);
         var error       = query.substring(self.maxPos);
-//        suggestions = {...suggestions, ...self.previousSuggestions};
         var ss          = keys.sort().filter(k => k.toLowerCase().startsWith(error.toLowerCase()));
                         if ( ! ss.length )        ss          = keys.sort().filter(k => containsIC(k, error));
-        if ( ss.length == 0 ) {
+        if ( ss.length == 0 && self.previousSuggestions ) {
           console.log('previous: ', self.previousSuggestions);
           keys = Object.keys(self.previousSuggestions);
           ss   = keys.sort().filter(k => query.toLowerCase().endsWith(k.toLowerCase()));
@@ -118,9 +205,86 @@ foam.CLASS({
   name: 'Controller',
   extends: 'foam.u2.Controller',
 
-  requires: [ 'foam.parse.QueryParser', 'foam.demos.autocomplete.AutoCompleter' ],
+  requires: [ 
+    'foam.parse.QueryParser', 
+    'foam.demos.autocomplete.AutoCompleter',
+    'foam.demos.autocomplete.SearchField',
+    'foam.dao.EasyDAO'
+  ],
+
+  css: `
+    ^ {
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    ^ .dao-selector {
+      margin-bottom: 20px;
+    }
+    ^ .search-container {
+      margin-bottom: 20px;
+    }
+    ^ .results-container {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    ^ .suggestions-container {
+      margin-top: 10px;
+    }
+    ^ label {
+      display: inline-block;
+      width: 120px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+  `,
 
   properties: [
+    {
+      class: 'String',
+      name: 'selectedDAOType',
+      value: 'foam.core.auth.User',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          [ 'foam.core.auth.User', 'User (foam.core.auth.User)' ],
+          [ 'foam.demos.sevenguis.Person', 'Person (foam.demos.sevenguis.Person)' ],
+          [ 'foam.demos.heroes.Hero', 'Hero (foam.demos.heroes.Hero)' ],
+          [ 'foam.demos.olympics.Medal', 'Medal (foam.demos.olympics.Medal)' ]
+        ]
+      }
+    },
+    {
+      name: 'sampleDAO',
+      expression: function(selectedDAOType) {
+        var daoClass = selectedDAOType;
+        var modelClass = this.__context__.lookup(daoClass);
+        
+        var dao = this.EasyDAO.create({
+          of: modelClass,
+          daoType: 'MDAO'
+        });
+
+        if ( daoClass === 'foam.demos.sevenguis.Person' ) {
+          dao.put(modelClass.create({name: 'John', surname: 'Doe'}));
+          dao.put(modelClass.create({name: 'Jane', surname: 'Smith'}));
+          dao.put(modelClass.create({name: 'Bob', surname: 'Johnson'}));
+          dao.put(modelClass.create({name: 'Alice', surname: 'Brown'}));
+        } else if ( daoClass === 'foam.demos.heroes.Hero' ) {
+          dao.put(modelClass.create({name: 'Superman'}));
+          dao.put(modelClass.create({name: 'Batman'}));
+          dao.put(modelClass.create({name: 'Wonder Woman'}));
+          dao.put(modelClass.create({name: 'Spider-Man'}));
+        } else if ( daoClass === 'foam.demos.olympics.Medal' ) {
+          dao.put(modelClass.create({color: 'Gold', sport: 'Swimming', country: 'USA'}));
+          dao.put(modelClass.create({color: 'Silver', sport: 'Running', country: 'Kenya'}));
+          dao.put(modelClass.create({color: 'Bronze', sport: 'Cycling', country: 'France'}));
+        }
+        
+        return dao;
+      }
+    },
     {
       name: 'autoCompleter',
       factory: function() { return this.AutoCompleter.create({query$: this.query$}); }
@@ -128,23 +292,28 @@ foam.CLASS({
     {
       class: 'String',
       name: 'query',
-      onKey: true
+      onKey: true,
+      view: {
+        class: 'foam.demos.autocomplete.SearchField',
+        placeholder: 'Type to search...'
+      }
     },
     {
       name: 'parser',
-      factory: function() {
-        return this.QueryParser.create({of: foam.core.auth.User});
-//        return this.QueryParser.create({of: foam.util.Timer});
+      expression: function(selectedDAOType) {
+        var daoClass = selectedDAOType;
+        var modelClass = this.__context__.lookup(daoClass);
+        return this.QueryParser.create({of: modelClass});
       }
     },
     {
       name: 'predicate',
-      expression: function(query) {
-        console.log(`****** parsing: "${query}"`);
+      expression: function(query, parser) {
+        if ( ! query ) return null;
+        console.log(`****** parsing: "${query}" for ${this.selectedDAOType.label}`);
         this.autoCompleter.reset();
-        var ps = this.parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
+        var ps = parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
         console.log('autocomplete: ', this.autoCompleter.toString());
-//        this.suggestion = this.autoCompleter.suggestForInput(this.query);
         return ps || null;
       }
     },
@@ -157,16 +326,38 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'suggestion'
+      name: 'suggestion',
+      expression: function(query) {
+        return this.autoCompleter.suggestForInput(query || '');
+      }
     }
   ],
 
   methods: [
     function render() {
-      this.add(this.QUERY.__);
+      this.addClass(this.myClass()).
+        start('div').addClass('dao-selector').
+          start('label').add('Select DAO Type:').end().
+          add(this.SELECTED_D_A_O_TYPE).
+        end().
+        start('div').addClass('search-container').
+          start('label').add('Search Query:').end().
+          add(this.QUERY).
+        end().
+        start('div').addClass('suggestions-container').
+        end().
+        start('div').addClass('results-container').
+          start('div').
+            start('strong').add('Query Result: ').end().
+            add(this.RESULT).
+          end().
+          start('div').
+            start('strong').add('Suggestions: ').end().
+            add(this.SUGGESTION).
+          end().
+        end();
+      
       this.autoCompleter.addToE(this);
-      this.br().add(this.RESULT.__);
-//      this.add(this.SUGGESTION.__);
     }
   ]
 
