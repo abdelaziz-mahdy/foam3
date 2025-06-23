@@ -1539,6 +1539,7 @@ foam.CLASS({
               return new java.util.Date(((Number) o).longValue());
             }
             if ( o instanceof String ) {
+              // TODO: build from Calendar directly without creating Date
               o = (java.util.Date) fromString((String) o);
             }
             // convert the Date to be Noon time in GMT
