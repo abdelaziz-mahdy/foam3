@@ -12,6 +12,11 @@ foam.CLASS({
 
   documentation: 'Implementation of Email Service using Microsoft Graph API.',
 
+  implements: [
+    'foam.lang.ContextAgent',
+    'foam.core.COREService'
+  ],
+
   javaImports: [
     'foam.core.logger.Loggers',
     'foam.core.logger.Logger',
@@ -21,10 +26,12 @@ foam.CLASS({
     'foam.dao.DAO',
     'foam.core.er.EventRecord',
 
+    'java.util.Collections',
+    'foam.lang.ContextAgentTimerTask',
+    'java.util.concurrent.CompletableFuture',
     'java.util.Map',
     'java.util.Properties',
-    'java.util.Collections',
-    'java.util.concurrent.CompletableFuture',
+    'java.util.Timer',
     'java.net.URISyntaxException',
     'java.net.URI',
     'java.io.ByteArrayOutputStream',
@@ -99,8 +106,15 @@ foam.CLASS({
     {
       name: 'service',
       class: 'Object',
-      javaType: 'microsoft.exchange.webservices.data.core.ExchangeService',
-      javaFactory: `
+      javaType: 'microsoft.exchange.webservices.data.core.ExchangeService'
+    }
+  ],
+
+  methods: [
+    {
+      name: 'buildExchangeService',
+      type: 'microsoft.exchange.webservices.data.core.ExchangeService',
+      javaCode: `
         Logger logger = Loggers.logger(getX(), this);
         logger.debug("Initializing Service");
         EmailServiceConfig config = findId(getX());
@@ -138,10 +152,7 @@ foam.CLASS({
 
         return service;
       `
-    }
-  ],
-
-  methods: [
+    },
     {
       name: 'refreshTokenIfNeeded',
       type: 'Void',
@@ -150,7 +161,7 @@ foam.CLASS({
         logger.debug("Checking if token needs to be refreshed");
         if (getAccessToken() == null || getAccessToken().getExpiresAt().isBefore(OffsetDateTime.now().plusMinutes(5))) {
           TokenRequestContext ctx = new TokenRequestContext();
-          ctx.addScopes("https://outlook.office365.com/.default");
+          ctx.addScopes(SCOPE);
           AccessToken accessToken = getCredential().getTokenSync(ctx);
           setAccessToken(accessToken);
           logger.debug("Token refreshed successfully");
@@ -166,6 +177,41 @@ foam.CLASS({
         if (getService() == null) {
           throw new IllegalStateException("Ews.initialize must be called first");
         }
+      `
+    },
+    {
+      name: 'start',
+      javaCode: `
+      EmailServiceConfig config = findId(getX());
+      if ( config == null ) {
+        config = new EmailServiceConfig(); // use default timer values
+      }
+      ((DAO) getX().get("eventRecordDAO")).put(
+        new EventRecord(getX(), this, "start", getId(), null, null, LogLevel.INFO, null)
+      );
+      setService(buildExchangeService());
+      Timer timer = new Timer(this.getClass().getSimpleName(), true);
+      setTimer(timer);
+      timer.schedule(new ContextAgentTimerTask(getX(), this),
+        config.getInitialDelay(),
+        config.getPollInterval()
+      );
+      `,
+    },
+    {
+      name: 'stop',
+      javaCode: `
+      Timer timer = (Timer) getTimer();
+      if ( timer != null ) {
+        Loggers.logger(getX(), this).info("stop");
+        if ( getService() != null ) {
+          getService().close();
+          setService(null);
+        }
+        timer.cancel();
+        clearTimer();
+        ((DAO) getX().get("eventRecordDAO")).put(new EventRecord(getX(), this, "stop", getId(), null, null, LogLevel.INFO, null));
+      }
       `
     },
     {
