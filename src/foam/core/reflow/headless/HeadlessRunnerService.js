@@ -87,6 +87,13 @@ foam.INTERFACE({
     {
       name: 'cleanup',
       documentation: 'Clean up completed processes'
+    },
+    {
+      name: 'waitForRunnerRemoval',
+      documentation: 'Wait for a runner to be removed with timeout',
+      async: true,
+      type: 'boolean',
+      args: 'String runnerId, long timeout, java.util.concurrent.TimeUnit unit'
     }
   ]
 });

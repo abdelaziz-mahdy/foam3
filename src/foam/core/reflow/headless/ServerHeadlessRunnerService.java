@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class ServerHeadlessRunnerService extends ContextAwareSupport implements HeadlessRunnerService {
 
@@ -40,12 +41,15 @@ public class ServerHeadlessRunnerService extends ContextAwareSupport implements 
 
   @Override
   public boolean removeRunner(String runnerId) {
-    HeadlessRunner runner = runningInstances.remove(runnerId);
-    if (runner != null) {
-      logger.info("Removed headless runner: " + runnerId);
-      return true;
+    synchronized (runningInstances) {
+      HeadlessRunner runner = runningInstances.remove(runnerId);
+      if (runner != null) {
+        logger.info("Removed headless runner: " + runnerId);
+        runningInstances.notifyAll();
+        return true;
+      }
+      return false;
     }
-    return false;
   }
 
   @Override
@@ -69,18 +73,48 @@ public class ServerHeadlessRunnerService extends ContextAwareSupport implements 
 
   @Override
   public void cleanup() {
-    // Remove completed processes
-    runningInstances.entrySet().removeIf(entry -> {
-      Process process = entry.getValue().getProcess();
-      if (process != null && !process.isAlive()) {
-        logger.info("Cleaning up completed runner: " + entry.getKey());
-        return true;
+    synchronized (runningInstances) {
+      // Remove completed processes
+      boolean removed = runningInstances.entrySet().removeIf(entry -> {
+        Process process = entry.getValue().getProcess();
+        if (process != null && !process.isAlive()) {
+          logger.info("Cleaning up completed runner: " + entry.getKey());
+          return true;
+        }
+        return false;
+      });
+      
+      if (removed) {
+        runningInstances.notifyAll();
       }
-      return false;
-    });
+    }
   }
 
   public HeadlessRunner getRunner(String runnerId) {
     return runningInstances.get(runnerId);
+  }
+
+  public boolean waitForRunnerRemoval(String runnerId, long timeout, TimeUnit unit) {
+    synchronized (runningInstances) {
+      if (!hasRunner(runnerId)) {
+        logger.info("Runner " + runnerId + " already removed");
+        return true;
+      }
+      
+      try {
+        runningInstances.wait(unit.toMillis(timeout));
+        boolean removed = !hasRunner(runnerId);
+        if (removed) {
+          logger.info("Runner " + runnerId + " has been removed");
+        } else {
+          logger.warning("Timeout waiting for runner removal: " + runnerId);
+        }
+        return removed;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.warning("Wait for runner removal interrupted: " + runnerId);
+        return false;
+      }
+    }
   }
 }
