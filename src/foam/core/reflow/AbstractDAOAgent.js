@@ -293,7 +293,7 @@ foam.CLASS({
 
         this.startContext({click: self.click}).
           start(self.TableView, config).
-            style({height: '700px'});
+            style({height: '600px'});
       }));
     }
   ],
@@ -379,7 +379,7 @@ foam.CLASS({
   name: 'GroupByDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
-  imports: [ 'block', 'eval_' ],
+  imports: [ 'eval_' ],
 
   properties: [
     {
@@ -388,18 +388,19 @@ foam.CLASS({
        return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
       }
     },
-    { name: 'sink', view: 'foam.core.reflow.SinkView', choice: 'COUNT' } // TODO: why doesn't choice work?
+    { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'Count' } }
   ],
 
   methods: [
     function value(s) { return s; },
     function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
     function addToE(e) {
+      var self = this;
+      // TODO: figure out why BROWSE doesn't work after reloading
       e.startContext({data: this}).
         start().
           style({paddingLeft: '12px', display: 'flex'}).
-          add(this.PROP).add(this.SINK).
-          start(this.BROWSE).style({alignSelf: 'self-end'});
+          add(this.PROP, this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
 
@@ -407,13 +408,14 @@ foam.CLASS({
     {
       name: 'browse',
       // isEnabled: function(available) { return available; },
-      code: async function() {
-        var cls = this.block?.value?.value?.cls_;
+      code: function() {
+        var block = this.block || this.__context__.currentBlock; // ??? Why needed?
+        var cls   = block?.value?.value?.cls_;
 
-        var browse = () => this.eval_(`dao(${this.block.flowName}.value.asDAO(), '${this.block.flowName}GroupBy')`);
+        var browse = () => this.eval_(`dao(${block.flowName}.value.asDAO(), '${block.flowName}GroupBy')`);
 
-        if ( foam.mlang.sink.GroupBy != cls ) {
-          await this.block.value.run();
+        if ( block && foam.mlang.sink.GroupBy != cls ) {
+            block.value.run();
           // TODO: something better
           setTimeout(browse, 200);
         } else {

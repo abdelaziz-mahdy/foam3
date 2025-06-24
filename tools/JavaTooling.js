@@ -314,17 +314,17 @@ foam.POM({
       // }
     }],
 
-    startCORETest: ['start-core-test', 'Start CORE server (Test, Benchmarks).', ['deployJournals', 'deployDocuments', 'deployLib', 'buildJavaTestOpts'], function(mode) { //, ...tests) {
+    startCORETest: ['start-core-test', 'Start CORE server (Test, Benchmarks).', ['deployJournals', 'deployDocuments', 'deployLib', 'buildJavaTestOpts'], function(mode) {
       MESSAGE = 'Running tests...';
 
       JAVA_OPTS += ` -Duser.timezone=${TIMEZONE}`;
 
       if ( mode === 'benchmark' ) {
         MESSAGE = 'Running benchmarks...';
-        if ( String(BENCHMARKS) != '' )
+        if ( BENCHMARKS )
           JAVA_OPTS += ` -Dfoam.benchmarks=${BENCHMARKS}`;
       } else {
-        if ( String(TESTS) != '' )
+        if ( TESTS )
           JAVA_OPTS += ` -Dfoam.tests=${TESTS}`;
       }
 

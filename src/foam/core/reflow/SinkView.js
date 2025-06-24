@@ -42,12 +42,6 @@ foam.CLASS({
     },
     {
       name: 'choice',
-      factory: function() {
-        return this.agentDAO.select().then((agents) => {
-          const entities = agents.array;
-          return entities[0]?.value;
-        });
-      },
       postSet: function(o, n) {
         if ( ! this.feedback_ ) this.data = undefined;
       },
@@ -93,6 +87,7 @@ foam.CLASS({
         return cls ? cls.create({}, this) : undefined;
       },
       postSet: async function(o, n) {
+        /* ignoreWarning */
         if ( ! n ) return;
         await this.agentDAO.select().then(agents => {
           const results = agents.array;
@@ -116,6 +111,11 @@ foam.CLASS({
 
     function render() {
       var self = this;
+
+      this.agentDAO.select().then(agents => {
+        const entities = agents.array;
+        if ( ! this.choice ) this.choice = entities[0]?.value;
+      });
 
       if ( ! this.data ) { this.data = undefined; }
 
