@@ -388,7 +388,7 @@ foam.CLASS({
        return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
       }
     },
-    { name: 'sink', view: 'foam.core.reflow.SinkView', choice: 'COUNT' } // TODO: why doesn't choice work?
+    { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'Count' } }
   ],
 
   methods: [
