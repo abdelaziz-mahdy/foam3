@@ -214,6 +214,13 @@ foam.CLASS({
       },
       code: function() {
         this.data.showPrompts = false;
+        this.data.eval_('clear');
+        var flow = this.data.value;
+
+        flow.name     = '';
+        this.mementoMgr.clear();
+        flow.version  = undefined;
+        flow.revision = undefined;
       }
     },
     {
@@ -511,7 +518,12 @@ foam.CLASS({
       }
     },
     [ 'togglerPosition', 'left' ],
-    [ 'expanded', true ]
+    [ 'expanded', true ],
+    {
+      class: 'foam.u2.ViewSpec',
+      name: 'configViewSpec',
+      documentation: `Passed on to the ReactiveSectionedDetailView as config, see AbstractSectionedDetailView to learn more about configuring detail views`
+    }
   ],
 
   methods: [
@@ -1008,8 +1020,14 @@ foam.CLASS({
       layout.showHeader = true;
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
       layout.middle.call(this.renderSelf, [this]);
-      layout.right.add(this.dynamic(function(selectedValue) {
-        this.tag(self.ReactiveSectionedDetailView, {data: selectedValue, showActions: true, showHeader: true});
+      layout.right.add(this.dynamic(function(selectedValue, selected$configViewSpec) {
+        this.tag(self.ReactiveSectionedDetailView, {
+          of: selectedValue?.cls_.id ?? '', 
+          ...(selected$configViewSpec || {}),  
+          data: selectedValue, 
+          showActions: true, 
+          showHeader: true
+        });
       }));
 
       layout.header.add(this.dynamic(function(showPrompts) {
