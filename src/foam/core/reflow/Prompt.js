@@ -35,7 +35,7 @@ foam.CLASS({
         [ 'Double', '##.##' ],
         [ 'Boolean', 'Y/N' ],
         [ 'Date', 'YYYY/MM/DD' ],
-        [ 'DateTime', 'YYY/MM/DD HH:SS:MM' ],
+        [ 'DateTime', 'YYY/MM/DD HH:MM:SS' ],
         [ 'EMail', 'username@email.com' ],
         'Color'
       ] }
