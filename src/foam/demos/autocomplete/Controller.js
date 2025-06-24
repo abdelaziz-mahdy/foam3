@@ -115,20 +115,14 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'AutoSuggestTextField',
-  extends: 'foam.u2.View',
+  extends: 'foam.u2.TextField',
 
   requires: [
-    'foam.u2.TextField',
     'foam.parse.QueryParser',
     'foam.demos.autocomplete.AutoCompleter'
   ],
 
   properties: [
-    {
-      class: 'String',
-      name: 'placeholder',
-      value: 'Type to search...'
-    },
     {
       name: 'autoCompleter',
       factory: function() { 
@@ -142,81 +136,23 @@ foam.CLASS({
       }
     },
     {
-      name: 'suggestions',
-      expression: function(data) {
-        if (!data) return [];
-        
-        console.log(`****** parsing: "${data}"`);
-        this.autoCompleter.reset();
-        var ps = this.parser.parseString(data + ' ', undefined, this.autoCompleter.apply);
-        
-        var suggestions = Object.keys(this.autoCompleter.suggestions);
-        var error = data.substring(this.autoCompleter.maxPos);
-        
-        return suggestions.filter(function(s) {
-          return s.toLowerCase().startsWith(error.toLowerCase());
-        }).slice(0, 10);
-      }
-    },
-    {
-      name: 'textField',
-      factory: function() {
-        return this.TextField.create({
-          placeholder$: this.placeholder$,
-          data$: this.data$,
-          onKey: true
-        });
-      }
-    },
-    {
-      class: 'Boolean',
-      name: 'showSuggestions',
-      value: false
+      name: 'choices',
+      factory: function() { return ["placeholder"]; }
     }
   ],
 
   methods: [
     function render() {
-      var self = this;
+      this.SUPER();
       
-      this.addClass('auto-suggest-text-field').
-        add(this.textField).
-        add(this.dynamic(function(suggestions, showSuggestions) {
-          if (!showSuggestions || !suggestions.length) return;
-          
-          this.start().forEach(suggestions, function(suggestion) {
-            this.start().
-              add(suggestion).
-              on('click', function() { 
-                self.selectSuggestion(suggestion); 
-              }).
-            end();
-          }).end();
-        }));
-
-      this.textField.on('focus', function() {
-        if (self.data) {
-          self.showSuggestions = true;
-        }
+      // Set up the parser choices directly
+      this.autoCompleter.reset();
+      this.parser.parseString('', undefined, this.autoCompleter.apply);
+      
+      var suggestions = Object.keys(this.autoCompleter.suggestions);
+      this.choices = suggestions.map(function(suggestion) {
+        return [suggestion, suggestion];
       });
-
-      this.textField.on('blur', function() {
-        setTimeout(function() {
-          self.showSuggestions = false;
-        }, 150);
-      });
-
-      this.textField.on('input', function() {
-        self.showSuggestions = true;
-      });
-    },
-
-    function selectSuggestion(suggestion) {
-      var currentQuery = this.data || '';
-      var newQuery = currentQuery.substring(0, this.autoCompleter.maxPos) + suggestion;
-      this.data = newQuery;
-      this.showSuggestions = false;
-      this.textField.el().focus();
     }
   ]
 });
@@ -275,7 +211,11 @@ foam.CLASS({
     {
       class: 'String',
       name: 'searchQuery',
-      onKey: true
+      onKey: true,
+      view: {
+        class: 'foam.demos.autocomplete.AutoSuggestTextField',
+        placeholder: 'Type a user query (e.g., email:, firstName:, lastName:)...'
+      }
     }
   ],
 
@@ -284,10 +224,7 @@ foam.CLASS({
       this.
         add('User Query Parser Demo').
         br().
-        add(this.AutoSuggestTextField.create({
-          data$: this.searchQuery$,
-          placeholder: 'Type a user query (e.g., email:, firstName:, lastName:)...'
-        })).
+        add(this.SEARCH_QUERY.__).
         br().
         add('Current Query: ').add(this.searchQuery$).
         br().br().
