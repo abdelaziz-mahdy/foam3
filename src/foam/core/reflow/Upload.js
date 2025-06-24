@@ -78,7 +78,6 @@ foam.CLASS({
       end().
       add(function(data) {
         this.forEach(data, function(d) {
-          console.log('data-d,',d)
           this.
             startContext({data: d}).
             start('tr').
