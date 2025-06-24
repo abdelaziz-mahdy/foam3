@@ -168,10 +168,6 @@ foam.CLASS({
       }
     },
     {
-      class: 'Array',
-      name: 'filteredSuggestions'
-    },
-    {
       class: 'String',
       name: 'placeholder'
     },
@@ -183,6 +179,49 @@ foam.CLASS({
       class: 'Int',
       name: 'suggestionsLimit',
       value: 10
+    },
+    {
+      name: 'suggestions',
+      expression: function(data) {
+        var query = data || '';
+        
+        this.autoCompleter.reset();
+        
+        this.parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
+        
+        // Follow EXACT original implementation logic from addToE method
+        function containsIC(str, sub) {
+          return str.toLowerCase().indexOf(sub.toLowerCase()) != -1;
+        }
+        
+        var suggestions = this.autoCompleter.suggestions;
+        var keys = Object.keys(suggestions);
+        var error = query.substring(this.autoCompleter.maxPos);
+        
+        // EXACT logic from original addToE method lines 86-110
+        var ss = keys.sort().filter(k => k.toLowerCase().startsWith(error.toLowerCase()));
+        if (!ss.length) ss = keys.sort().filter(k => containsIC(k, error));
+        
+        if (ss.length == 0) {
+          var prevKeys = Object.keys(this.autoCompleter.previousSuggestions);
+          ss = prevKeys.sort().filter(k => query.toLowerCase().endsWith(k.toLowerCase()));
+          if (ss.length == 1) {
+            this.data = query.substring(0, query.length - ss[0].length) + ss[0];
+            return [];
+          }
+        }
+        
+        if (!ss.length) {
+          return [];
+        }
+        
+        if (ss.length == 1 && this.autoCompleter.maxPos + ss[0].length == query.length) {
+          this.data = query.substring(0, this.autoCompleter.maxPos) + ss[0];
+          return [];
+        }
+        
+        return ss.slice(0, this.suggestionsLimit);
+      }
     }
   ],
 
@@ -192,8 +231,6 @@ foam.CLASS({
       this.SUPER();
 
       // AutoCompleter query is now bound during creation via factory
-      
-      this.onDetach(this.data$.sub(this.updateSuggestions));
 
       this
         .addClass()
@@ -207,19 +244,22 @@ foam.CLASS({
             self.inputFocused = true;
           })
           .on('blur', function() {
-            self.inputFocused = false;
+            // Delay blur to allow click events on suggestions
+            setTimeout(function() {
+              self.inputFocused = false;
+            }, 200);
           })
         .end()
         .add(this.slot(this.populate));
     },
 
-    function populate(filteredSuggestions, data, inputFocused) {
+    function populate(suggestions, data, inputFocused) {
       var self = this;
       if (!data || !inputFocused) return this.E();
       
       return this.E().addClass(this.myClass('suggestions'))
         .start().add('Suggestions').end()
-        .forEach(filteredSuggestions, function(suggestion) {
+        .forEach(suggestions, function(suggestion) {
           this
             .start('div')
               .addClass(self.myClass('row'))
@@ -233,94 +273,12 @@ foam.CLASS({
     },
 
     function selectSuggestion(suggestion) {
-      // Follow original logic: line 107
-      var currentQuery = this.data || '';
-      var newQuery = currentQuery.substring(0, this.autoCompleter.maxPos) + suggestion;
-      console.log('selecting suggestion:', suggestion);
-      console.log('current query:', currentQuery);
-      console.log('maxPos:', this.autoCompleter.maxPos);
-      console.log('new query:', newQuery);
-      
-      this.data = newQuery;
-      
-      // Keep input focused and trigger suggestions update
-      var self = this;
-      setTimeout(function() {
-        self.inputFocused = true;
-        self.updateSuggestions();
-      }, 50);
+      // Follow original logic exactly: line 107
+      this.data = this.data.substring(0, this.autoCompleter.maxPos) + suggestion;
     }
   ],
 
   listeners: [
-    {
-      name: 'updateSuggestions',
-      isFramed: true,
-      code: function() {
-        var query = this.data || '';
-        
-        console.log(`****** parsing in AutoSuggest: "${query}"`);
-        console.log('Before reset - maxPos:', this.autoCompleter.maxPos);
-        
-        this.autoCompleter.reset();
-        console.log('After reset - maxPos:', this.autoCompleter.maxPos);
-        
-        // Check if apply function is bound correctly
-        console.log('autoCompleter.apply function:', this.autoCompleter.apply);
-        console.log('typeof apply:', typeof this.autoCompleter.apply);
-        
-        var ps = this.parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
-        console.log('After parsing - maxPos:', this.autoCompleter.maxPos);
-        console.log('Parse result (ps):', ps);
-        console.log('autocomplete: ', this.autoCompleter.toString());
-        
-        // Let's also manually check what the apply function should be doing
-        console.log('Manual check - query length:', query.length);
-        console.log('Manual check - query + space length:', (query + ' ').length);
-        
-        // Follow EXACT original implementation logic from addToE method
-        function containsIC(str, sub) {
-          return str.toLowerCase().indexOf(sub.toLowerCase()) != -1;
-        }
-        
-        var suggestions = this.autoCompleter.suggestions;
-        var keys = Object.keys(suggestions);
-        var error = query.substring(this.autoCompleter.maxPos);
-        
-        console.log('AutoSuggest suggestions keys:', keys);
-        console.log('AutoSuggest maxPos:', this.autoCompleter.maxPos);
-        console.log('AutoSuggest error part:', error);
-        console.log('AutoSuggest suggestions object:', suggestions);
-        
-        // EXACT logic from original addToE method lines 86-110
-        var ss = keys.sort().filter(k => k.toLowerCase().startsWith(error.toLowerCase()));
-        if (!ss.length) ss = keys.sort().filter(k => containsIC(k, error));
-        
-        if (ss.length == 0) {
-          console.log('previous: ', this.autoCompleter.previousSuggestions);
-          var prevKeys = Object.keys(this.autoCompleter.previousSuggestions);
-          ss = prevKeys.sort().filter(k => query.toLowerCase().endsWith(k.toLowerCase()));
-          console.log('filtered: ', ss);
-          if (ss.length == 1) {
-            this.data = query.substring(0, query.length - ss[0].length) + ss[0];
-            return;
-          }
-        }
-        
-        if (!ss.length) {
-          this.filteredSuggestions = [];
-          return;
-        }
-        
-        if (ss.length == 1 && this.autoCompleter.maxPos + ss[0].length == query.length) {
-          this.data = query.substring(0, this.autoCompleter.maxPos) + ss[0];
-          return;
-        }
-        
-        console.log('AutoSuggest showing suggestions:', ss);
-        this.filteredSuggestions = ss.slice(0, this.suggestionsLimit);
-      }
-    }
   ]
 });
 
