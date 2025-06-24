@@ -115,12 +115,44 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'AutoSuggestTextField',
-  extends: 'foam.u2.TextField',
+  extends: 'foam.u2.View',
 
   requires: [
     'foam.parse.QueryParser',
-    'foam.demos.autocomplete.AutoCompleter'
+    'foam.demos.autocomplete.AutoCompleter',
+    'foam.u2.TextField'
   ],
+
+  css: `
+    ^ {
+      position: relative;
+    }
+    ^suggestions {
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.06), 0px 4px 6px rgba(0, 0, 0, 0.1);
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      margin-top: 2px;
+      overflow: auto;
+      padding: 12px;
+      gap: 8px;
+      position: absolute;
+      width: 100%;
+      z-index: 100;
+    }
+    ^row {
+      color: black;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    ^row:hover {
+      background-color: #f0f0f0;
+    }
+  `,
 
   properties: [
     {
@@ -136,23 +168,158 @@ foam.CLASS({
       }
     },
     {
-      name: 'choices',
-      factory: function() { return ["placeholder"]; }
+      class: 'Array',
+      name: 'filteredSuggestions'
+    },
+    {
+      class: 'String',
+      name: 'placeholder'
+    },
+    {
+      class: 'Boolean',
+      name: 'inputFocused'
+    },
+    {
+      class: 'Int',
+      name: 'suggestionsLimit',
+      value: 10
     }
   ],
 
   methods: [
     function render() {
+      var self = this;
       this.SUPER();
+
+      // AutoCompleter query is now bound during creation via factory
       
-      // Set up the parser choices directly
-      this.autoCompleter.reset();
-      this.parser.parseString('', undefined, this.autoCompleter.apply);
+      this.onDetach(this.data$.sub(this.updateSuggestions));
+
+      this
+        .addClass()
+        .start(this.TextField, {
+          data$: this.data$,
+          onKey: true,
+          placeholder$: this.placeholder$,
+          autocomplete: false
+        })
+          .on('focus', function() {
+            self.inputFocused = true;
+          })
+          .on('blur', function() {
+            self.inputFocused = false;
+          })
+        .end()
+        .add(this.slot(this.populate));
+    },
+
+    function populate(filteredSuggestions, data, inputFocused) {
+      var self = this;
+      if (!data || !inputFocused) return this.E();
       
-      var suggestions = Object.keys(this.autoCompleter.suggestions);
-      this.choices = suggestions.map(function(suggestion) {
-        return [suggestion, suggestion];
-      });
+      return this.E().addClass(this.myClass('suggestions'))
+        .start().add('Suggestions').end()
+        .forEach(filteredSuggestions, function(suggestion) {
+          this
+            .start('div')
+              .addClass(self.myClass('row'))
+              .add(suggestion)
+              .on('mousedown', function(e) {
+                self.selectSuggestion(suggestion);
+                e.preventDefault();
+              })
+            .end();
+        });
+    },
+
+    function selectSuggestion(suggestion) {
+      // Follow original logic: line 107
+      var currentQuery = this.data || '';
+      var newQuery = currentQuery.substring(0, this.autoCompleter.maxPos) + suggestion;
+      console.log('selecting suggestion:', suggestion);
+      console.log('current query:', currentQuery);
+      console.log('maxPos:', this.autoCompleter.maxPos);
+      console.log('new query:', newQuery);
+      
+      this.data = newQuery;
+      
+      // Keep input focused and trigger suggestions update
+      var self = this;
+      setTimeout(function() {
+        self.inputFocused = true;
+        self.updateSuggestions();
+      }, 50);
+    }
+  ],
+
+  listeners: [
+    {
+      name: 'updateSuggestions',
+      isFramed: true,
+      code: function() {
+        var query = this.data || '';
+        
+        console.log(`****** parsing in AutoSuggest: "${query}"`);
+        console.log('Before reset - maxPos:', this.autoCompleter.maxPos);
+        
+        this.autoCompleter.reset();
+        console.log('After reset - maxPos:', this.autoCompleter.maxPos);
+        
+        // Check if apply function is bound correctly
+        console.log('autoCompleter.apply function:', this.autoCompleter.apply);
+        console.log('typeof apply:', typeof this.autoCompleter.apply);
+        
+        var ps = this.parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
+        console.log('After parsing - maxPos:', this.autoCompleter.maxPos);
+        console.log('Parse result (ps):', ps);
+        console.log('autocomplete: ', this.autoCompleter.toString());
+        
+        // Let's also manually check what the apply function should be doing
+        console.log('Manual check - query length:', query.length);
+        console.log('Manual check - query + space length:', (query + ' ').length);
+        
+        // Follow EXACT original implementation logic from addToE method
+        function containsIC(str, sub) {
+          return str.toLowerCase().indexOf(sub.toLowerCase()) != -1;
+        }
+        
+        var suggestions = this.autoCompleter.suggestions;
+        var keys = Object.keys(suggestions);
+        var error = query.substring(this.autoCompleter.maxPos);
+        
+        console.log('AutoSuggest suggestions keys:', keys);
+        console.log('AutoSuggest maxPos:', this.autoCompleter.maxPos);
+        console.log('AutoSuggest error part:', error);
+        console.log('AutoSuggest suggestions object:', suggestions);
+        
+        // EXACT logic from original addToE method lines 86-110
+        var ss = keys.sort().filter(k => k.toLowerCase().startsWith(error.toLowerCase()));
+        if (!ss.length) ss = keys.sort().filter(k => containsIC(k, error));
+        
+        if (ss.length == 0) {
+          console.log('previous: ', this.autoCompleter.previousSuggestions);
+          var prevKeys = Object.keys(this.autoCompleter.previousSuggestions);
+          ss = prevKeys.sort().filter(k => query.toLowerCase().endsWith(k.toLowerCase()));
+          console.log('filtered: ', ss);
+          if (ss.length == 1) {
+            this.data = query.substring(0, query.length - ss[0].length) + ss[0];
+            return;
+          }
+        }
+        
+        if (!ss.length) {
+          this.filteredSuggestions = [];
+          return;
+        }
+        
+        if (ss.length == 1 && this.autoCompleter.maxPos + ss[0].length == query.length) {
+          this.data = query.substring(0, this.autoCompleter.maxPos) + ss[0];
+          return;
+        }
+        
+        console.log('AutoSuggest showing suggestions:', ss);
+        this.filteredSuggestions = ss.slice(0, this.suggestionsLimit);
+      }
     }
   ]
 });
@@ -216,19 +383,23 @@ foam.CLASS({
         class: 'foam.demos.autocomplete.AutoSuggestTextField',
         placeholder: 'Type a user query (e.g., email:, firstName:, lastName:)...'
       }
-    }
+    },
   ],
 
   methods: [
     function render() {
       this.
-        add('User Query Parser Demo').
+        add('AutoComplete Demo Comparison').
+        br().br().
+        
+        add('1. Custom AutoSuggestTextField (with Query Parser):').
         br().
         add(this.SEARCH_QUERY.__).
         br().
-        add('Current Query: ').add(this.searchQuery$).
+        add('Query: ').add(this.searchQuery$).
         br().br().
-        add('Original Implementation:').
+        
+        add('2. Original Implementation:').
         br().
         add(this.QUERY.__).
         call(function() { this.autoCompleter.addToE(this); }).
