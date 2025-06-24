@@ -1,4 +1,3 @@
-
 foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'AutoCompleter',
@@ -164,28 +163,40 @@ foam.CLASS({
       name: 'suggestion'
     },
     {
+      name: 'searchFieldView',
+      factory: function() {
+        return this.AutoSuggestTextField.create({
+          data$: this.searchQuery$,
+          placeholder: 'Type a user query (e.g., email:, firstName:, lastName:)...',
+          model: foam.core.auth.User
+        }, this);
+      }
+    },
+    {
       class: 'String',
       name: 'searchQuery',
-      onKey: true,
-      view: {
-        class: 'foam.u2.view.AutoSuggestTextField',
-        placeholder: 'Type a user query (e.g., email:, firstName:, lastName:)...',
-        model: foam.core.auth.User
-      }
+      onKey: true
     },
   ],
 
   methods: [
     function render() {
+      var self = this;
+      
       this.
         add('AutoComplete Demo Comparison').
         br().br().
         
         add('1. Custom AutoSuggestTextField (with Query Parser):').
         br().
-        add(this.SEARCH_QUERY.__).
+        add(this.searchFieldView).
         br().
         add('Query: ').add(this.searchQuery$).
+        br().
+        add('Result: ').
+        add(this.searchFieldView.predicate$.map(function(predicate) {
+          return predicate ? predicate.toString() : '';
+        })).
         br().br().
         
         add('2. Original Implementation:').

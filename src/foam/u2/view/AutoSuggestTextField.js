@@ -72,6 +72,18 @@ foam.CLASS({
       documentation: 'The model class to use for query parsing and suggestions'
     },
     {
+      name: 'predicate',
+      expression: function(data) {
+        var query = data || '';
+        
+        this.autoCompleter.reset();
+        
+        var ps = this.parser.parseString(query + ' ', undefined, this.autoCompleter.apply);
+        
+        return ps || null;
+      }
+    },
+    {
       name: 'suggestions',
       expression: function(data) {
         var query = data || '';
