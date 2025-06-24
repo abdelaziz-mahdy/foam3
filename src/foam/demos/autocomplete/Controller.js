@@ -112,13 +112,126 @@ foam.CLASS({
   ]
 });
 
+foam.CLASS({
+  package: 'foam.demos.autocomplete',
+  name: 'AutoSuggestTextField',
+  extends: 'foam.u2.View',
+
+  requires: [
+    'foam.u2.TextField',
+    'foam.parse.QueryParser',
+    'foam.demos.autocomplete.AutoCompleter'
+  ],
+
+  properties: [
+    {
+      class: 'String',
+      name: 'placeholder',
+      value: 'Type to search...'
+    },
+    {
+      name: 'autoCompleter',
+      factory: function() { 
+        return this.AutoCompleter.create({query$: this.data$}); 
+      }
+    },
+    {
+      name: 'parser',
+      factory: function() {
+        return this.QueryParser.create({of: foam.core.auth.User});
+      }
+    },
+    {
+      name: 'suggestions',
+      expression: function(data) {
+        if (!data) return [];
+        
+        console.log(`****** parsing: "${data}"`);
+        this.autoCompleter.reset();
+        var ps = this.parser.parseString(data + ' ', undefined, this.autoCompleter.apply);
+        
+        var suggestions = Object.keys(this.autoCompleter.suggestions);
+        var error = data.substring(this.autoCompleter.maxPos);
+        
+        return suggestions.filter(function(s) {
+          return s.toLowerCase().startsWith(error.toLowerCase());
+        }).slice(0, 10);
+      }
+    },
+    {
+      name: 'textField',
+      factory: function() {
+        return this.TextField.create({
+          placeholder$: this.placeholder$,
+          data$: this.data$,
+          onKey: true
+        });
+      }
+    },
+    {
+      class: 'Boolean',
+      name: 'showSuggestions',
+      value: false
+    }
+  ],
+
+  methods: [
+    function render() {
+      var self = this;
+      
+      this.addClass('auto-suggest-text-field').
+        add(this.textField).
+        add(this.dynamic(function(suggestions, showSuggestions) {
+          if (!showSuggestions || !suggestions.length) return;
+          
+          this.start().forEach(suggestions, function(suggestion) {
+            this.start().
+              add(suggestion).
+              on('click', function() { 
+                self.selectSuggestion(suggestion); 
+              }).
+            end();
+          }).end();
+        }));
+
+      this.textField.on('focus', function() {
+        if (self.data) {
+          self.showSuggestions = true;
+        }
+      });
+
+      this.textField.on('blur', function() {
+        setTimeout(function() {
+          self.showSuggestions = false;
+        }, 150);
+      });
+
+      this.textField.on('input', function() {
+        self.showSuggestions = true;
+      });
+    },
+
+    function selectSuggestion(suggestion) {
+      var currentQuery = this.data || '';
+      var newQuery = currentQuery.substring(0, this.autoCompleter.maxPos) + suggestion;
+      this.data = newQuery;
+      this.showSuggestions = false;
+      this.textField.el().focus();
+    }
+  ]
+});
+
 
 foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'Controller',
   extends: 'foam.u2.Controller',
 
-  requires: [ 'foam.parse.QueryParser', 'foam.demos.autocomplete.AutoCompleter' ],
+  requires: [ 
+    'foam.parse.QueryParser', 
+    'foam.demos.autocomplete.AutoCompleter',
+    'foam.demos.autocomplete.AutoSuggestTextField'
+  ],
 
   properties: [
     {
@@ -158,15 +271,32 @@ foam.CLASS({
     {
       class: 'String',
       name: 'suggestion'
+    },
+    {
+      class: 'String',
+      name: 'searchQuery',
+      onKey: true
     }
   ],
 
   methods: [
     function render() {
-      this.add(this.QUERY.__);
-      this.autoCompleter.addToE(this);
-      this.br().add(this.RESULT.__);
-//      this.add(this.SUGGESTION.__);
+      this.
+        add('User Query Parser Demo').
+        br().
+        add(this.AutoSuggestTextField.create({
+          data$: this.searchQuery$,
+          placeholder: 'Type a user query (e.g., email:, firstName:, lastName:)...'
+        })).
+        br().
+        add('Current Query: ').add(this.searchQuery$).
+        br().br().
+        add('Original Implementation:').
+        br().
+        add(this.QUERY.__).
+        call(function() { this.autoCompleter.addToE(this); }).
+        br().
+        add('Result: ').add(this.RESULT.__);
     }
   ]
 

@@ -7,8 +7,8 @@
 foam.POM({
   name: "autocomplete",
   projects: [
-    { name: '../../../../foam3/src/pom' },
-    { name: '../../../../foam3/src/foam/core/pom' }
+    { name: '../../../../src/pom' },
+    { name: '../../../../src/foam/core/pom' }
   ],
   files: [
     { name: 'Controller' }
