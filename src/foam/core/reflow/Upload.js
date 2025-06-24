@@ -33,7 +33,7 @@ foam.CLASS({
     {
       name: 'handler',
       view: function(_, X) {
-        return { class: 'foam.core.reflow.PropertyChoiceView', optionalChoice: [ this.UNKNOWN, '--' ], of: X.data.of };
+        return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
       }
     },
     {
@@ -78,6 +78,7 @@ foam.CLASS({
       end().
       add(function(data) {
         this.forEach(data, function(d) {
+          console.log('data-d,',d)
           this.
             startContext({data: d}).
             start('tr').

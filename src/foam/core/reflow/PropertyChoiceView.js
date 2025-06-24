@@ -70,7 +70,6 @@ foam.CLASS({
       }
     },
     'predicate',
-    'optionalChoice',
     {
       name: 'search',
       value: true
@@ -78,6 +77,10 @@ foam.CLASS({
     {
       name: 'idProperty',
       value: 'name'
+    },
+    {
+      name: 'choosePlaceholder',
+      value: 'Choose Property'
     },
     {
       name: 'rowView',
@@ -98,13 +101,6 @@ foam.CLASS({
         let arr = this.of.getAxiomsByClass(foam.lang.Property)
           .filter(p => p.showInPropertyChoice)
           .filter(p => ! this.predicate || this.predicate(p));
-
-        // MISSING - currently not dealing with this.optionalChoice at all
-        // BUGGY: currently two files(Upload.js and PropertyListView.js) are passing optionalChoice, both differently. Couldn't get this to render correctly - gui won't show the text (e.g. '--, *' was not being rendered)
-        // TRIED: changing the initialization of optionalChoice in both to be same as Upload.js. Still didn't work.
-        // if ( this.optionalChoice ) {
-        //   arr.unshift(this.optionalChoice);
-        // }
 
         return [
           {
