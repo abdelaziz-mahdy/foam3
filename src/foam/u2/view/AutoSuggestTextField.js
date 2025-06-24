@@ -15,8 +15,8 @@ foam.CLASS({
     }
     ^suggestions {
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.06), 0px 4px 6px rgba(0, 0, 0, 0.1);
-      background-color: white;
-      border: 1px solid #ccc;
+      background-color: $backgroundDefault;
+      border: 1px solid $borderDefault;
       border-radius: 4px;
       display: flex;
       flex-direction: column;
@@ -30,13 +30,13 @@ foam.CLASS({
       z-index: 100;
     }
     ^row {
-      color: black;
+      color: $textDefault;
       cursor: pointer;
       padding: 8px;
       border-radius: 4px;
     }
     ^row:hover {
-      background-color: #f0f0f0;
+      background-color: $backgroundHover;
     }
   `,
 
