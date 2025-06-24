@@ -1117,6 +1117,7 @@ foam.POM({
     { name: "foam/i18n/LocaleTranslationService",                     flags: "js|java" },
     { name: "foam/u2/view/ComparisonView",                            flags: "web" },
     { name: "foam/u2/view/SuggestedTextField",                        flags: "web" },
+    { name: "foam/u2/view/AutoSuggestTextField",                      flags: "web" },
     { name: "foam/u2/view/CopyTextField",                             flags: "web" },
     { name: "foam/demos/csv/CsvUploadDemo",                           flags: "demo&web" },
     { name: "foam/dashboard/view/CenteredDashboardCitationView",      flags: "web" },
