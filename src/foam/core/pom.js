@@ -377,6 +377,8 @@ foam.POM({
     { name: "notification/sms/TwilioSMSService",                                          flags: "js|java" },
     { name: "notification/test/DAONotificationTest",                                      flags: "js&test|java&test" },
     { name: "notification/test/EmailNotificationTest",                                    flags: "js&test|java&test" },
+    { name: "notification/test/UserNotificationDAOTest",                                  flags: "js&test|java&test" },
+    { name: "notification/test/UserNotificationDAOTestRuleAction",                        flags: "js&test|java&test" },
     { name: "demo/DemoObject",                                                            flags: "js|java" },
     { name: "demo/Demo",                                                                  flags: "js" },
     { name: "demo/relationship/test/RelationshipTest",                                    flags: "js&test|java&test" },
