@@ -5,7 +5,8 @@ p({
 // Microsoft Graph API
 p({
   class: 'foam.core.notification.email.EmailServiceConfig',
-  id: 'msGraph'
+  id: 'msGraph',
+  rateLimit: 4
 })
 p({
   class: 'foam.core.notification.email.EmailServiceConfig',
