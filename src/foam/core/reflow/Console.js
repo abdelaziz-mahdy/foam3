@@ -791,6 +791,9 @@ foam.CLASS({
       flex-direction: column;
       width: 100%;
       height: 100%;
+      position: relative;
+      align-items: center;
+      justify-content: center;
     }
     ^input-field {
       position: relative;
@@ -822,8 +825,10 @@ foam.CLASS({
     ^ .foam-u2-ProgressView { width: 600px; }
     ^ .foam-core-reflow-ReflowToolBar {
       position: absolute;
-      left: 30%;
-      bottom: 50;
+      left: 50%;
+      transform: translateX(-50%);
+      /* bottom: 50; // keep this if you want it from the bottom, but add 'px' */
+      bottom: 50px;
     }
   `,
 
