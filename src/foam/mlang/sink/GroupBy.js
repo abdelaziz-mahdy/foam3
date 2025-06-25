@@ -203,19 +203,23 @@ if ( getGroupLimit() == getGroups().size() && sub != null ) sub.detach();
     },
 
     function asDAO() {
-      var model = {
+      const model = {
         package: 'foam.tmp',
         name: 'Group' + this.NEXT() + 'DAO',
         properties: [
-          { class: 'String', name: 'id' }
+          { class: 'String', name: 'id', label: this.arg1.label }
         ]
       };
+
       model.plural = model.name;
       var props = this.arg2.toProperties ? this.arg2.toProperties() : [ this.arg2.VALUE ];
       model.properties.push.apply(model.properties, props);
 
       foam.CLASS(model);
       var cls = foam.lookup('foam.tmp.' + model.name);
+
+      // So that tableColumns aren't remembered from a previous run
+      delete localStorage[cls.id];
 
       props = props.map(p => cls.getAxiomByName(p.name));
 
