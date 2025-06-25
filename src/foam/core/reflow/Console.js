@@ -821,6 +821,7 @@ foam.CLASS({
       background: $backgroundSecondary;
     }
     ^output {
+      width: 100%;
       text-align: left;
 //      align-content: flex-end;
       flex: 1;
