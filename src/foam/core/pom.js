@@ -60,6 +60,7 @@ foam.POM({
     { name: "logger/benchmark/LoggerBenchmark",                                           flags: "js&test|java&test" },
     { name: "logger/LoggerUserInfo",                                                      flags: "js|java" },
     { name: "fs/AgreementView",                                                           flags: "js" },
+    { name: "fs/FileCitationView",                                                        flags: "js" },
     { name: "fs/File",                                                                    flags: "js|java" },
     { name: "fs/FileLabel",                                                               flags: "js|java" },
     { name: "fs/FileType",                                                                flags: "js|java" },
