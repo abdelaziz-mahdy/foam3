@@ -17,8 +17,6 @@ foam.CLASS({
     'foam.mlang.sink.Sequence'
   ],
 
-  static: [ (function() { let count = 0; return function NEXT() { return count++; }; })()  ],
-
   // TODO: it makes no sense to name the arguments arg1 and arg2
   // because this isn't an expression, so they should be more meaningful
   properties: [
@@ -205,7 +203,7 @@ if ( getGroupLimit() == getGroups().size() && sub != null ) sub.detach();
     function asDAO() {
       const model = {
         package: 'foam.tmp',
-        name: 'Group' + this.NEXT() + 'DAO',
+        name: 'GroupBy' + foam.next$UID(),
         properties: [
           { class: 'String', name: 'id', label: this.arg1.label }
         ]
