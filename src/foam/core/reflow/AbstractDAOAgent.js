@@ -399,7 +399,7 @@ foam.CLASS({
       // TODO: figure out why BROWSE doesn't work after reloading
       e.startContext({data: this}).
         start().
-          style({paddingLeft: '12px', display: 'flex'}).
+          style({paddingLeft: '12px'}).
           add(this.PROP, this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
@@ -526,7 +526,7 @@ foam.CLASS({
     function addToE(e) {
       e.startContext({data: this}).
         start().
-          style({display: 'flex'}).
+          style({display: 'flex', paddingLeft: '8px'}).
           add(this.ORIENTATION, this.SINKS);
     }
   ]

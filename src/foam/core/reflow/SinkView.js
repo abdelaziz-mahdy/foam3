@@ -19,7 +19,7 @@ foam.CLASS({
 
   css: `
     ^ {
-      display: inline-flex;
+      display: block;
     }
     ^ > div {
       width: 100%;
@@ -129,6 +129,7 @@ foam.CLASS({
           this.startContext({data: self}).
             add(self.CHOICE).
           endContext();
+
 
           if ( data instanceof Promise ) {
             data.then(d => d.addToE(this));

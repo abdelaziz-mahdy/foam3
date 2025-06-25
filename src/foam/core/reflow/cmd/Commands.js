@@ -704,6 +704,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Input',
@@ -740,7 +741,7 @@ foam.CLASS({
           title: '',
           properties: [
             { name: 'label', onKey: true },
-            { name: 'script' },
+            { name: 'script', reactive: false  },
             { name: 'buttonStyle' },
             { name: 'size' },
             { name: 'icon' },

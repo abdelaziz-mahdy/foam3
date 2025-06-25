@@ -28,6 +28,7 @@ foam.CLASS({
       class: 'String',
       name: 'type',
       value: 'String',
+      reactive: false,
       postSet: function() { this.value = undefined; this.value; },
       view: { class: 'foam.u2.view.RadioView', choices: [
         [ 'String', 'Abc' ],
