@@ -55,11 +55,11 @@ foam.CLASS({
     function init() {
       this.SUPER();
       this.boundHandleClickOutside = this.handleClickOutside.bind(this);
-      window.addEventListener('click', this.boundHandleClickOutside);
+      window.addEventListener('mousedown', this.boundHandleClickOutside);
     },
 
     function destroy() {
-      window.removeEventListener('click', this.boundHandleClickOutside);
+      window.addEventListener('mousedown', this.boundHandleClickOutside);
     },
 
     function handleClickOutside(e) {
