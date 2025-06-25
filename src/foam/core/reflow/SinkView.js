@@ -19,13 +19,15 @@ foam.CLASS({
 
   css: `
     ^ {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
     ^ > div {
+      display: flex;
       width: 100%;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
+      gap: 5px;
     }
   `,
 

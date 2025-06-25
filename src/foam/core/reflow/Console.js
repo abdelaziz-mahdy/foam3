@@ -658,6 +658,18 @@ foam.CLASS({
       padding: 10px;
       border-radius: 4px;
     }
+    ^r .foam-u2-PropertyBorder-select {
+      padding: 5px;
+      background-color: $grey200;
+      border-radius: 4px;
+      gap: 10px;
+    }
+    ^r .foam-core-reflow-PropertyListView {
+      justify-content: space-between;
+    }
+    ^r .foam-u2-detail-SectionView-actionDiv {
+      gap: 10px;
+    }
   `,
 
   properties: [
