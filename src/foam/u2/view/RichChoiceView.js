@@ -285,7 +285,7 @@ foam.CLASS({
     }
 
     ^clear-btn:hover {
-      color: $textDetructive;
+      color: $textDestructive;
       cursor: pointer;
     }
 
@@ -379,7 +379,7 @@ foam.CLASS({
     {
       class: 'Class',
       name: 'of',
-      documentation: 'The model stored in the DAO. Used intenrally.',
+      documentation: 'The model stored in the DAO. Used internally.',
       expression: function(sections) {
         return sections[0].dao.of;
       }
@@ -535,7 +535,7 @@ foam.CLASS({
                   .tag(self.FILTER_.clone().copyFrom({ view: {
                     class: 'foam.u2.TextField',
                     placeholder: this.searchPlaceholder || 'Search... ',
-                    focused: true,
+                    autofocus: true,
                     onKey: true
                   } }), {}, self.inputField$)
                 .endContext()

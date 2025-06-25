@@ -97,9 +97,10 @@ foam.CLASS({
   actions: [
     {
       name:  'back',
-      label: ' <-- ',
+      label: 'Undo',
       help:  'Go to previous view',
-
+      buttonStyle: 'TERTIARY',
+      themeIcon: 'undo',
       isEnabled: function(stackSize_) { return !! stackSize_; },
       code: function() {
         this.dumpState('preBack');
@@ -111,9 +112,10 @@ foam.CLASS({
     },
     {
       name:  'forth',
-      label: ' --> ',
+      label: 'Redo',
       help:  'Undo the previous back.',
-
+      buttonStyle: 'TERTIARY',
+      themeIcon: 'redo',
       isEnabled: function(redoSize_) { return !! redoSize_; },
       code: function() {
         this.dumpState('preForth');
@@ -129,7 +131,7 @@ foam.CLASS({
     function onMementoChange(_,__,___,memento$) {
       if ( this.ignore_ ) return;
 
-      // console.log('MementoMgr.onChange', oldValue, newValue);
+//      console.log('MementoMgr.onChange old: ', memento$.oldValue, 'new:',memento$.get());
       this.remember(memento$.oldValue);
       this.redo = [];
       this.updateSizes();

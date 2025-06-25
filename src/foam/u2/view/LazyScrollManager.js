@@ -334,25 +334,27 @@ foam.CLASS({
           if ( args.data === undefined ) return;
 
           var index = (page*self.pageSize_) + i + 1;
+          var group = null;
           if ( self.groupBy ) {
-            let group = self.groupBy.f(args.data);
-            if ( ! foam.util.equals(group, self.currGroup_) || index == 1 ) {
-              let isGroupCollapsed$ = foam.lang.SimpleSlot.create({value: false});
-              self.collapsedGroups[group] = isGroupCollapsed$;
+            group = self.groupBy.f(args.data);
+            
+            // Show header if this is a new group (different from last rendered group)
+            if ( ! foam.util.equals(group, self.currGroup_) ) {
+      
+              
               e.tag(self.groupHeaderView,
                 { ...args,
                   groupLabel: group,
                   groupBy: self.groupBy,
-                  collapsed$: self.collapsedGroups[group]
               }
               );
+              
+              self.currGroup_ = group;
             }
-            self.currGroup_ = group;
           }
 
           var isEven = (index + 1) % 2 !== 0 ;
-          var rowEl = self.E().tag(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);
-          e.start(rowEl).hide(self.collapsedGroups[self.currGroup_] ?? false);
+          var rowEl = e.start(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);
           rowEl.el().then(a => {
             self.rowObserver.observe(a)
           });
@@ -395,6 +397,28 @@ foam.CLASS({
 
         this.dataLatch.resolve();
         if ( this.displayedRowCount_ < 0 ) this.bottomRow = this.daoCount
+      });
+    },
+
+    function processPageSequentially_(pageIndex) {
+      if ( pageIndex >= Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ) {
+        this.daoLoading = false;
+        return;
+      }
+      
+      var page = this.currentTopPage_ + pageIndex;
+      if ( this.renderedPages_[page] || this.loadingPages_[page] ) {
+        // Skip this page and move to next
+        this.processPageSequentially_(pageIndex + 1);
+        return;
+      }
+      
+      var skip = page * this.pageSize_;
+      var dao  = this.data.limit(this.pageSize_).skip(skip);
+      
+      this.getPage(dao, page).then(() => {
+        // Process next page after this one completes
+        this.processPageSequentially_(pageIndex + 1);
       });
     }
   ],
@@ -466,18 +490,24 @@ foam.CLASS({
           if ( (i >= this.currentTopPage_ ) && i < this.currentTopPage_ + this.NUM_PAGES_TO_RENDER ) return;
           this.clearPage(i);
         });
-        let promiseArr = [];
-        // Add any pages that are not already rendered.
-        for ( var i = 0; i < Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ; i++ ) {
-          var page = this.currentTopPage_ + i;
-          if ( this.renderedPages_[page] || this.loadingPages_[page] ) continue;
-          var skip = page * this.pageSize_;
-          var dao  = this.data.limit(this.pageSize_).skip(skip);
-          promiseArr.push(this.getPage(dao, page));
+        // If grouping is enabled, process pages sequentially to maintain group order
+        // Otherwise, process in parallel for better performance
+        if ( this.groupBy ) {
+          this.processPageSequentially_(0);
+        } else {
+          let promiseArr = [];
+          // Add any pages that are not already rendered.
+          for ( var i = 0; i < Math.min(this.numPages_, this.NUM_PAGES_TO_RENDER) ; i++ ) {
+            var page = this.currentTopPage_ + i;
+            if ( this.renderedPages_[page] || this.loadingPages_[page] ) continue;
+            var skip = page * this.pageSize_;
+            var dao  = this.data.limit(this.pageSize_).skip(skip);
+            promiseArr.push(this.getPage(dao, page));
+          }
+          Promise.all(promiseArr).then(()=>{
+            this.daoLoading = false;
+          })
         }
-        Promise.all(promiseArr).then(()=>{
-          this.daoLoading = false;
-        })
       }
     },
     {

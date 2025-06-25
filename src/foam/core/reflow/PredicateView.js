@@ -20,6 +20,9 @@ foam.CLASS({
   ],
 
   css: `
+    ^ {
+      cursor: pointer;
+    }
     ^helper-icon svg { fill: currentColor; }
     ^helper-icon { vertical-align: sub; padding: 6px; }
   `,
@@ -33,10 +36,14 @@ foam.CLASS({
         of.getAxiomsByClass(foam.lang.Property).forEach(p => {
           if ( ! p.searchable && ( p.hidden || p.networkTransient ) ) return;
           if ( foam.lang.Boolean.isInstance(p) ) {
-            choices.push('is:'  + p.name);
-            choices.push('-is:' + p.name);
+            // insted of pushing 
+            // choices.push([p, 'is:'  + p.name]); 
+            // we're pushing `[ 'is:' + p.name, 'is:' + p.label]`
+            // reason provided in ComparatorView ~ same logic
+            choices.push([ 'is:' + p.name, 'is:' + p.label]);
+            choices.push([ '-is:' + p.name, '-is:' + p.label]);
           } else {
-            choices.push(p.name);
+            choices.push([p.name, p.label]);
           }
         });
         return { class: 'foam.u2.view.ChoiceView', choices: choices, type: 'search' };
@@ -56,17 +63,18 @@ foam.CLASS({
         start('span').
           style({display: 'flex'}).
           tag(this.TextField, {data$: this.data$, size: 40, type: 'search'}).
-          startContext({data: this}).add(this.CHOICES).endContext().
-          start(this.CircleIndicator, {glyph: 'helpIcon', icon: '/images/question-icon.svg', size:20}).
-            addClass(this.myClass('helper-icon')).
-            on('click', this.mqlHelp).
-          end();
+          startContext({data: this}).add(this.CHOICES).endContext()
+          // Commented for now until we find better way 
+          // start(this.CircleIndicator, {glyph: 'helpIcon', size: 60}).
+          //   addClass(this.myClass('helper-icon')).
+          //   on('click', this.mqlHelp).
+          // end();
     }
   ],
 
   listeners: [
     function mqlHelp() {
-      this.eval_('mqlhelp', true);
+      this.eval_('helpMQL', true);
     }
   ],
 

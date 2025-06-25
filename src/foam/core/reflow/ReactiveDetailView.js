@@ -31,6 +31,7 @@ foam.CLASS({
       toJSON: function(v) {
         var m = {};
         for ( key in v ) { m[key] = v[key].toString(); }
+
         return m;
       }
     }
@@ -74,20 +75,54 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'PropertyBorder',
-  extends: 'foam.u2.DetailView.PropertyBorder',
+  extends: 'foam.u2.PropertyBorder',
 
   imports: [ 'scope' ],
 
   css: `
+    ^{
+      width: 100%;
+    }
+    ^ ^label {
+      width: 50%;
+    }
+    ^view: {
+      min-height: 0px;
+    }
+    ^view > div > span {
+      align-items: center;
+      gap: 5px;
+    }
+    ^select, ^select1, ^select2 {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px;
+      background-color: $grey100;
+      border-radius: 5px;
+      border: 1px solid $grey200;
+    }
     ^switch { color: #ccc; width: 12px !important; }
     ^switch.reactive {
       font-weight: 600;
-      color: red !important;
+      color: $primary500!important;
     }
     ^formulaInput input:focus {
-      outline: 1px solid red !important;
+      outline: 1px solid $primary500 !important;
     }
-    ^label { width: 10%; }
+    ^element-icon {
+      width: 14px;
+      height: 14px;
+    }
+    ^ .foam-core-reflow-SinkView {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 5px;
+    }
+    ^ .foam-core-reflow-SinkView > div > div {
+      width: 100%;
+    }
   `,
 
   properties: [
@@ -114,6 +149,14 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      // Reset context property border to the default border
+      // This is done to prevent setting reactions on nested FObject props
+      const x = this.__context__.createSubContext();
+      x.register(foam.u2.PropertyBorder, 'foam.u2.PropertyBorder');
+      this.__context__ = x;
+    },
+
     function render() {
       this.data$.sub(this.onDataChange);
       this.onDataChange();
@@ -126,17 +169,30 @@ foam.CLASS({
         addClass(self.myClass('switch')).
         enableClass('reactive', self.reactive$).
         on('click', self.toggleMode).
-        add(' = ').
-      end();
-
-      this.add(
+        add(self.dynamic(function(reactive) {
+          if ( reactive ) {
+            this.start(foam.u2.tag.Image, {
+              glyph: 'functionSign',
+              embedSVG: true
+            }).addClass(self.myClass('element-icon')).end()
+          } else {
+            this.start(foam.u2.tag.Image, {
+              glyph: 'equalSign',
+              embedSVG: true
+            }).addClass(self.myClass('element-icon')).end()
+          }
+        })).
+      end().
+      add(
         self.dynamic(function(reactive) {
           if ( reactive ) {
-            this.start(self.FORMULA, {data$: self.formula$}).
-              addClass(self.myClass('formulaInput')).
-              on('blur', function() { self.reactive = !! self.formula; }).
-              focus().
-            end().add(self.data.slot(self.prop.name));
+            this.start().
+              start(self.FORMULA, {data$: self.formula$}).
+                addClass(self.myClass('formulaInput')).
+                on('blur', function() { self.reactive = !! self.formula; }).
+                focus().
+              end().add(self.data.slot(self.prop.name)).
+            end();
           } else {
             this.add(viewSlot);
           }
@@ -189,6 +245,85 @@ foam.CLASS({
   methods: [
     function renderTitle(self) {
       // NOP
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'PropertyRefinement',
+  refines: 'Property',
+
+  properties: [
+    {
+      class: 'Boolean',
+      name: 'reactive',
+      value: true
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'FObjectPropertyRefinement',
+  refines: 'FObjectProperty',
+  properties: [ [ 'reactive', false ] ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'FObjectArrayRefinement',
+  refines: 'FObjectArray',
+  properties: [ [ 'reactive', false ] ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'ReactiveSectionedDetailView',
+  extends: 'foam.u2.detail.VerticalDetailView',
+
+  requires: [
+    'foam.u2.PropertyBorder',
+    'foam.core.reflow.PropertyBorder as ReactivePropertyBorder',
+  ],
+
+
+  css: `
+    ^ {
+      padding: 20px;
+    }
+    ^ > div > .foam-u2-layout-Rows {
+      gap: 10px;
+    }
+    ^ .foam-u2-detail-SectionView-actionDiv {
+      flex-direction: column;
+    }
+  `,
+
+  properties: [
+    [ 'showActions', true ]
+  ],
+
+  methods: [
+    function init() {
+      const self = this;
+      const x    = this.__context__.createSubContext();
+      const PropertyBorder = this.PropertyBorder;
+      const ReactivePropertyBorder = this.ReactivePropertyBorder;
+
+      // If a property has reactive: false then use the regular PropertyBorder, otherwise use a ReactivePropertyBorder
+      var cls = {
+        package: 'foam.u2',
+        id: 'foam.u2.PropertyBorder',
+        create: function(args, x) {
+          return (args.prop.reactive && args.prop.visibility != foam.u2.DisplayMode.RO ? ReactivePropertyBorder : PropertyBorder).create(args, x);
+        }
+      };
+      x.register(cls, 'foam.u2.PropertyBorder');
+      this.__context__ = x;
+      this.SUPER();
     }
   ]
 });

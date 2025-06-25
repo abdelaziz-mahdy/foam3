@@ -18,14 +18,16 @@ foam.CLASS({
     {
       class: 'String',
       name: 'code',
-      view: { class: 'foam.u2.tag.TextArea', rows: 16 },
+      reactive: false,
+      view: { class: 'foam.u2.tag.TextArea', rows: 12 },
       displayWidth: 60
     },
     {
       class: 'String',
       name: 'output',
       transient: true,
-      view: { class: 'foam.u2.tag.TextArea', rows: 16 },
+      reactive: false,
+      view: { class: 'foam.u2.tag.TextArea', rows: 8 },
       displayWidth: 60
     }
   ],

@@ -432,7 +432,7 @@ foam.CLASS({
     {
       name: 'output',
       expression: function (a, b) {
-        return a && b;
+        return !! ( a && b );
       }
     }
   ]
@@ -638,6 +638,7 @@ foam.CLASS({
     {
       name: 'value',
       factory: function() {
+        /* ignoreWarning */
         var self = this.self || this.obj || this;
         this.pre.call(self);
         var ret = this.code.apply(self, this.args.map(a => a && a.get()));

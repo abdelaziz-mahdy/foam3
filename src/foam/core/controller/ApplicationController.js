@@ -28,7 +28,6 @@ foam.CLASS({
   documentation: 'FOAM Application Controller.',
 
   implements: [
-    'foam.box.Context',
     'foam.mlang.Expressions'
   ],
 
@@ -470,6 +469,7 @@ foam.CLASS({
 
         // Rebuild Stack in correct context
         self.stack = self.Stack.create({}, self.__subContext__).copyFrom({ ...self.stack, __subSubContext__: undefined });
+        self.breadcrumbs = self.BreadcrumbManager.create({}, self.__subContext__).copyFrom({ ...self.breadcrumbs, __subSubContext__: undefined });
         self.fetchTheme();
         foam.locale = localStorage.getItem('localeLanguage') || self.theme?.defaultLocaleLanguage || foam.locale;
 

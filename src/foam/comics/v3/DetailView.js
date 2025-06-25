@@ -18,13 +18,16 @@ foam.CLASS({
 
   requires: [
     'foam.log.LogLevel',
+    'foam.box.RPCErrorMessage',
+    'foam.comics.v2.userfeedback.UserFeedbackException',
+    'foam.u2.ActionReference',
+    'foam.u2.ControllerMode',
     'foam.u2.layout.Cols',
     'foam.u2.layout.Rows',
-    'foam.u2.ControllerMode',
+    'foam.u2.dialog.ConfirmationModal',
     'foam.u2.dialog.Popup',
     'foam.u2.stack.BreadcrumbView',
-    'foam.u2.stack.StackBlock',
-    'foam.u2.ActionReference',
+    'foam.u2.stack.StackBlock'
   ],
 
   imports: [
@@ -51,7 +54,8 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'UPDATED',   message: 'Updated' }
+    { name: 'UPDATED',   message: 'Updated' },
+    { name: 'ERROR_MSG', message: 'Something went wrong' }
   ],
 
   classes: [
@@ -78,6 +82,9 @@ foam.CLASS({
   ],
 
   css: `
+    ^buttonGroup {
+      justify-content: flex-end;
+    }
   `,
 
   properties: [
@@ -150,7 +157,7 @@ foam.CLASS({
         return id;
       }
     },
-    { 
+    {
       name: 'actionArray',
       class: 'FObjectArray',
       of: 'foam.lang.Action'
@@ -219,7 +226,7 @@ foam.CLASS({
               // overrides: { size: 'SMALL' },
               overlaySpec: { obj: self, icon: '/images/Icon_More_Resting.svg', showDropdownIcon: false  }
             }, this.buttonGroup_$)
-            .addClass(this.myClass('buttonGroup'))
+            .addClass(self.myClass('buttonGroup'))
             .add(self.slot(function(primary) {
               if ( ! primary ) return;
               return this.E()
@@ -347,7 +354,7 @@ foam.CLASS({
         let id   = this.data?.id ?? this.idOfRecord;
         self.config.unfilteredDAO.inX(self.__subContext__).find(id).then(d => {
           if ( ! d ) {
-            this.daoController.route = '';
+            this.daoController.routeToMe();
             return;
           }
           self.data = d;
@@ -453,7 +460,7 @@ foam.CLASS({
               }
             } else {
               var menuId = this.currentMenu ? this.currentMenu.id : this.of.id;
-              var title = this.translationService.getTranslation(foam.locale, menuId + '.browseTitle', this.config.browseTitle);
+              var title  = this.translationService.getTranslation(foam.locale, menuId + '.browseTitle', this.config.browseTitle);
 
               this.notify(title + " " + this.UPDATED, '', this.LogLevel.INFO, true);
             }
@@ -461,15 +468,31 @@ foam.CLASS({
           this.cancelEdit();
         }, e => {
           this.throwError.pub(e);
-
-          if ( e.exception && e.exception.userFeedback  ) {
-            var currentFeedback = e.exception.userFeedback;
+          if ( foam.box.RPCErrorMessage.isInstance(e) ) {
+            e = e.data
+          }
+          if ( this.UserFeedbackException.isInstance(e.exception)  ) {
+            e = e.exception;
+            var currentFeedback = e.userFeedback;
+            let fn = this.notify.bind(this);
+            if ( e.alertType.ordinal == 1 ) {
+              fn = () => {
+                this.ConfirmationModal.create({
+                  title: this.ERROR_MSG,
+                  modalStyle: 'DESTRUCTIVE',
+                  primaryAction: { name: 'okay', buttonStyle: 'TEXT', code: function(X) { X.closeDialog(); }},
+                  showCancel: false,
+                  closeable: false
+                })
+                  .add(e.userFeedback.message)
+                  .open();
+              }
+            }
             while ( currentFeedback ) {
-              this.notify(currentFeedback.message, '', this.LogLevel.INFO, true);
+              fn(currentFeedback.message, '', this.LogLevel.ERROR, true);
 
               currentFeedback = currentFeedback.next;
             }
-            this.cancelEdit();
           } else {
             this.notify(e.message, '', this.LogLevel.ERROR, true);
           }
@@ -484,6 +507,8 @@ foam.CLASS({
         return controllerMode == 'EDIT';
       },
       code: function() {
+        // Reset working data to original data
+        this.workingData = this.data.clone(this);
         this.controllerMode = 'VIEW';
       }
     },
@@ -517,7 +542,7 @@ foam.CLASS({
           dao: this.config.dao,
           onDelete: () => {
             this.finished.pub();
-            this.daoController.route = '';
+            this.daoController.routeToMe();
           },
           data: this.data
         }));

@@ -10,9 +10,16 @@ foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Command',
 
+  implements: [ 'foam.core.auth.Authorizable' ],
+
   requires: [ 'foam.u2.Link' ],
 
-  imports: [ 'currentBlock', 'log', 'out', 'eval_' ],
+  javaImports: [
+    'foam.core.auth.AuthService',
+    'foam.core.auth.AuthorizationException'
+  ],
+
+  imports: [ 'addValue?', 'block?', 'currentBlock?', 'log?', 'out?', 'eval_?' ],
 
   tableColumns: [ 'id', 'description' /*, 'execute_' */ ],
 
@@ -20,13 +27,18 @@ foam.CLASS({
     { class: 'String',  name: 'id' },
     { class: 'String',  name: 'description' },
     { class: 'Code',    name: 'script' },
-    { class: 'Boolean', name: 'linkable', value: true }
+    { class: 'Boolean', name: 'linkable', value: true },
+    { class: 'Boolean', name: 'permissionRequired' }
   ],
 
   methods: [
+    function onLoad() {
+      return Promise.resolve();
+    },
+
     function execute(...args) {
       with ( this ) {
-        with ( { args: args, addValue: this.currentBlock.addValue.bind(this.currentBlock) } ) {
+        with ( { args: args, addValue: this.addValue.bind(this) } ) {
           try {
             eval(this.script);
           } catch (x) {
@@ -34,6 +46,49 @@ foam.CLASS({
           }
         }
       }
+    },
+    {
+      name: 'authorizeOnCreate',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        // nop - open to write
+      `
+    },
+    {
+      name: 'authorizeOnRead',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        if ( getPermissionRequired() ) {
+          AuthService auth = (AuthService) x.get("auth");
+          if ( ! auth.check(x, "command.read." + getId()) ) {
+            throw new AuthorizationException();
+          }
+        }
+      `
+    },
+    {
+      name: 'authorizeOnUpdate',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        AuthService auth = (AuthService) x.get("auth");
+        if ( ! auth.check(x, "command.update." + getId()) ) {
+          throw new AuthorizationException();
+        }
+      `
+    },
+    {
+      name: 'authorizeOnDelete',
+      args: 'Context x',
+      javaThrows: ['AuthorizationException'],
+      javaCode: `
+        AuthService auth = (AuthService) x.get("auth");
+        if ( ! auth.check(x, "command.remove." + getId()) ) {
+          throw new AuthorizationException();
+        }
+      `
     }
   ],
 
@@ -70,6 +125,8 @@ foam.CLASS({
         [ 'ESC',     'Toggle prompt display' ],
         [ 'Up',      'Previous from history' ],
         [ 'Down',    'Next from history' ],
+        [ 'Shift-Up',  'Select next command' ],
+        [ 'Shift-Down', 'Select previous command' ],
         [ 'CMD + k / CTRL + k',  'Clear console' ],
         [ 'CTRL + `', 'Focus input' ]
       ];
@@ -121,7 +178,7 @@ foam.CLASS({
       var self = this;
       var fns  = Object.keys(foam.core.reflow.lib).sort();
 
-      this.out.start('h3').add('Functionss').end().
+      this.out.start('h3').add('Functions').end().
       start('table').style({width: 'max-content'}).
         forEach(fns, function(f) {
           if ( q && f.toLowerCase().indexOf(q) == -1 ) return;
@@ -185,28 +242,6 @@ foam.CLASS({
 
   requires: [ 'foam.core.reflow.DAOPrompt' ],
 
-  properties: [
-    [ 'description', 'Perform DAO operation' ]
-  ],
-
-  methods: [
-    function execute(dao, opt_label) {
-      var p = this.DAOPrompt.create({dao: dao, daoLabel: opt_label});
-
-      this.out.tag(p);
-      this.currentBlock.obj = p;
-    }
-  ]
-});
-
-
-foam.CLASS({
-  package: 'foam.core.reflow.cmd',
-  name: 'DAO2',
-  extends: 'foam.core.reflow.cmd.Command',
-
-  requires: [ 'foam.core.reflow.DAOPrompt2' ],
-
   imports: [ 'createFlowChildName' ],
 
   properties: [
@@ -215,13 +250,27 @@ foam.CLASS({
 
   methods: [
     function execute(dao, opt_label) {
-      var p = this.DAOPrompt2.create({dao: dao, label: opt_label});
+      var p = this.DAOPrompt.create({dao: dao, label: opt_label});
 
       p.addToE(this.out);
       this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
-      this.currentBlock.obj      = p;
-      this.currentBlock.value    = p;
+      this.currentBlock.obj    = p; // ???: Needed
+      this.currentBlock.value  = p;
     }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'DAOCreateSave',
+
+  properties: [
+    { name: 'daoCreate', hidden: true }
+  ],
+
+  actions: [
+    function save() { this.daoCreate.save(); }
   ]
 });
 
@@ -239,7 +288,9 @@ foam.CLASS({
 
   methods: [
     function execute(daoKey) {
-      this.out.tag(this.DAOCreate.create({daoKey: daoKey}));
+      var value = this.DAOCreate.create({daoKey: daoKey});
+      // this.currentBlock.value = foam.core.reflow.cmd.DAOCreateSave.create({daoCreate: value});
+      this.out.tag(value);
     }
   ]
 });
@@ -254,15 +305,16 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
 
-  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO' ],
 
   properties: [
-    [ 'description', 'Display available DAO services' ]
+    [ 'description', 'Display available DAO services', 'uploadAvailable' ]
   ],
 
   methods: [
     function execute(opt_nameQuery) {
       var self = this;
+      this.commandDAO.find('upload').then( r => this.uploadAvailable = !! r );
       var dao  = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
       var count = foam.lang.SimpleSlot.create({value: 0});
       if ( opt_nameQuery ) dao = dao.where(
@@ -282,13 +334,13 @@ foam.CLASS({
           }
 
           count.value++;
-          var daoFn = () => self.eval_('dao("' + n.name + '")');
-          var addFn = () => self.eval_('add("' + n.name + '")');
-          var uplFn = () => self.eval_('upload("' + n.name + '")');
-          var desFn = () => self.eval_('describe(' + of.id + ')');
-
           var shortName = n.name;
           if ( shortName.endsWith('DAO') ) shortName = shortName.substring(0, shortName.length-3);
+
+          var daoFn = () => self.eval_('dao ' + shortName);
+          var addFn = () => self.eval_('add ' + shortName);
+          var uplFn = () => self.eval_('upload ' + shortName);
+          var desFn = () => self.eval_('describe(' + of.id + ')');
 
           this.start('tr').
             start('th').attr('align', 'left').
@@ -311,6 +363,7 @@ foam.CLASS({
               start(self.Link).add('add').on('click', addFn).end().
             end().
             start('td').attr('align', 'left').
+              show(self.uploadAvailable).
               start(self.Link).add('upload').on('click', uplFn).end().
             end()
             ;
@@ -550,6 +603,9 @@ foam.CLASS({
       var loaded = await this.flowDAO.find(flowName);
 
       if ( loaded ) {
+        // Don't save the 'load' command
+        this.currentBlock.del();
+
         this.selected = this.flow;
         this.flow.copyFrom(loaded);
       } else {
@@ -564,7 +620,7 @@ foam.CLASS({
   name: 'Save',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [  'currentBlock', 'flow', 'flowDAO' ],
+  imports: [  'currentBlock', 'flow', 'flowDAO', 'save' ],
 
   properties: [
     [ 'description', 'Save the current flow to a specified name' ]
@@ -572,21 +628,17 @@ foam.CLASS({
 
   methods: [
     function execute(opt_flowName) {
-
       if ( opt_flowName ) {
         this.flow.name = opt_flowName;
       }
-      if (!this.flow.save()){
-        this.out.add('Please provide a name for the flow');
-        return;
-      }
-
 
       // Don't save the 'save' command
       this.currentBlock.del();
 
-      var ret = this.flowDAO.put(this.flow);
-      this.flow.copyFrom(ret);
+      if ( ! this.save() ) {
+        this.out.add('Please provide a name for the flow');
+        return;
+      }
     }
   ]
 });
@@ -630,6 +682,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Login',
@@ -646,7 +699,173 @@ foam.CLASS({
       var p = this.LoginView.create({mode_: 0});
 
       this.out.tag(p);
-      this.currentBlock.obj = p;
+      this.currentBlock.value = p;
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Input',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  requires: [ 'foam.core.reflow.Prompt' ],
+
+  methods: [
+    function execute(prompt) {
+      var p = this.Prompt.create();
+
+      if ( prompt ) p.label = prompt;
+
+      this.currentBlock.value = p;
+      this.out.add(p);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Button',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  classes: [
+    {
+      name: 'FlowAction',
+      extends: 'foam.lang.Action',
+      documentation: 'Small inner class to set up some basic view and configuration settings to make actions easier to use in console, might want to move this out if we ever want to use them outside these commands',
+      sections: [
+        {
+          name: 'config',
+          title: '',
+          properties: [
+            { name: 'label', onKey: true },
+            { name: 'script', reactive: false  },
+            { name: 'buttonStyle' },
+            { name: 'size' },
+            { name: 'icon' },
+            { name: 'themeIcon' },
+            // These need more work to be integrated here, they need proper data setting, we would probably want to switch to ActionReferneces for this
+            // { name: 'isEnabled' },
+            // { name: 'isAvailable' }
+          ]
+        }
+      ],
+      properties: [
+        {
+          class: 'String',
+          name: 'script',
+          supportingLabel: 'By default this button will insert the text "Hello World" as the next command when clicked. Change this script to modify this behaviour',
+          value: `'Hello World'`,
+          view: {
+            class: 'foam.u2.tag.TextArea',
+            rows: 5
+          }
+        },
+        {
+          name: 'code',
+          expression: function(script) {
+            if ( ! script ) return () => {};
+            return function(X) {
+              X.eval_(script);
+            }
+          }
+        },
+        {
+          name: 'name',
+          factory: function() { return 'flowButton_' + foam.next$UID(); }
+        },
+        ['label', 'Button']
+      ],
+      methods: [
+        function toE(args, X) {
+          var view = foam.u2.ViewSpec.createView(this.view, {
+            ...(args || {}),
+            action: this,
+            label$: this.label$,
+            buttonStyle$: this.buttonStyle$,
+            size$: this.size$,
+            icon$: this.icon$,
+            themeIcon$: this.themeIcon$
+          }, this, X);
+
+          if ( X.data$ && ! ( args && ( args.data || args.data$ ) ) ) {
+            view.data$ = X.data$;
+          }
+
+          return view;
+        }
+      ]
+    }
+  ],
+
+  properties: [
+    [ 'description', 'Create a button with custom logic' ]
+  ],
+
+  methods: [
+    function execute(label, script) {
+      var action = this.FlowAction.create({
+        label: label,
+        script: script
+      });
+      this.currentBlock.value = action;
+      this.currentBlock.configViewSpec = {
+        useSections: ['config']
+      }
+      this.out.tag(action);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Buttons',
+  extends: 'foam.core.reflow.cmd.Command',
+
+    classes: [
+    {
+      name: 'FlowActionArrayHolder',
+      properties: [
+        {
+          class: 'FObjectArray',
+          of: 'foam.core.reflow.cmd.Button.FlowAction',
+          name: 'actions',
+          factory: function() {
+            return [{class: 'foam.core.reflow.cmd.Button.FlowAction'}]
+          },
+          view: {
+            class: 'foam.u2.view.TitledArrayView',
+            valueView: {
+              class: 'foam.u2.detail.VerticalDetailView',
+              useSections: ['config']
+            }
+          }
+        }
+      ]
+    }
+  ],
+
+  properties: [
+    [ 'description', 'Create multiple buttons with custom logic' ],
+    'holder_'
+  ],
+
+  methods: [
+    function execute() {
+      this.holder_ = this.FlowActionArrayHolder.create();
+      this.currentBlock.value = this.holder_;
+      // This is not the most efficient way to do this, if this is slow or causing too many refreshes, this should be adjusted to
+      // do a diff and only add new actions and remove old ones rather than re-rendering the group every time
+      this.out.add(this.dynamic(function(holder_$actions) {
+        this.start(foam.u2.ButtonGroup)
+          .forEach(holder_$actions, function(v) {
+            this.tag(v)
+          })
+        .end();
+      }))
     }
   ]
 });

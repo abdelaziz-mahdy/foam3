@@ -34,7 +34,6 @@ foam.CLASS({
   `,
 
   requires: [
-    'foam.box.Context',
     'foam.box.HTTPBox',
     'foam.box.RetryBox',
     'foam.box.SessionClientBox',
@@ -206,9 +205,7 @@ foam.CLASS({
           );
         }
 
-        if ( getCluster() && getMdao() != null ) {
-          delegate = getClusterDelegate(delegate);
-        }
+        delegate = getClusterDelegate(delegate);
 
         if ( getSubdomainAware() ) {
           delegate = new foam.core.theme.SubdomainAwareDAO.Builder(getX())
@@ -714,7 +711,7 @@ foam.CLASS({
         if ( this.crunchBoxEnabled ) {
           box = this.CrunchClientBox.create({delegate: box});
         }
-
+        
         if ( this.retryBoxMaxAttempts != 0 ) {
           box = this.RetryBox.create({
             maxAttempts: this.retryBoxMaxAttempts,
@@ -726,13 +723,10 @@ foam.CLASS({
       }
     },
     {
-      // TODO: move refine in foam-medusa
+      // refined in foam-medusa
       documentation: 'Cluster this DAO',
       name: 'cluster',
-      class: 'Boolean',
-      javaFactory: `
-      return foam.util.SafetyUtil.equals("true", System.getProperty("CLUSTER", "false"));
-      `
+      class: 'Boolean'
     },
     {
       documentation: 'Store and forward this DAO',
@@ -1309,6 +1303,8 @@ foam.CLASS({
       args: 'Context x, Object obj',
       type: 'Object',
       code: function cmd_(x, obj) {
+        if ( obj === 'serviceName?' ) return this.serviceName;
+
         return this.delegate.cmd_(x, obj);
       },
       javaCode: `

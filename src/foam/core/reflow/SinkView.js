@@ -9,50 +9,34 @@ foam.CLASS({
   name: 'SinkView',
   extends: 'foam.u2.View',
 
-  exports: [ 'AGENTS' ],
+  requires: [
+    'foam.core.reflow.SinkAgent'
+  ],
 
-  imports: [ 'dao' ],
+  imports: [ 'agentDAO' ],
 
-  constants: {
-    AGENTS: [
-      // Value  Label
-      [ 'CSV', 'CSV', true ],
-      [ 'JSON', 'JSON', true ],
-      [ 'XML', 'XML', true ],
-      [ 'Table', 'Table', false ],
-      [ 'GridBy', 'GridBy', true ],
-      [ 'GroupBy', 'GroupBy', true ],
-      [ 'Cells', 'Cells', true ],
-      [ 'Citation', 'Citation', true ],
-      [ 'Controller', 'Controller', false ],
-      [ 'Avg', 'AVG', true ],
-      [ 'Count', 'COUNT', true ],
-      [ 'Duplicate', 'Duplicate', true ],
-      [ 'Max', 'MAX', true ],
-      [ 'Min', 'MIN', true ],
-      [ 'Sum', 'SUM', true ],
-      [ 'Pie',   'Pie', true ],
-      [ 'Row', 'Row', true ],
-      [ 'Column', 'Column', true ],
-      [ 'Script', 'Script', true ],
-      [ 'View', 'View', true ],
-      [ 'Edit', 'Edit', true ],
-      [ 'All', 'All', false ]
-    ]
-        /*
-        'SEQUENCE',
-        'TEMPLATE',
-        'FUNCTION',
-        'JS',
-        'TREE'
-        'Cost'
-        // A..Z Grid
-        // PROJECTION ? Same as Sequence?
-        // Array (store in variable?
-        */
-  },
+  exports: [ 'dao' ],
+
+  css: `
+    ^ {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    ^ > div {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      gap: 5px;
+    }
+  `,
 
   properties: [
+    { name: 'dao', factory: function() { return this.__context__.dao; } },
+    {
+      name: 'agentType',
+      value: undefined
+    },
     {
       class: 'Boolean',
       name: 'sinksOnly',
@@ -60,29 +44,64 @@ foam.CLASS({
     },
     {
       name: 'choice',
-      factory: function() { return this.AGENTS[0][0]; },
-      postSet: function(o, n) { if ( ! this.feedback_ ) this.data = undefined; },
+      postSet: function(o, n) {
+        if ( ! this.feedback_ ) this.data = undefined;
+      },
       view: function(_, X) {
-        var choices = X.data.sinksOnly ? X.AGENTS.filter(s => s[2]) : X.AGENTS;
-        return { class: 'foam.u2.view.ChoiceView', choices: choices };
+        var E = foam.mlang.Expressions.create();
+        var dao = X.agentDAO;
+
+        if ( X.data.sinksOnly ) dao = dao.where(E.EQ(foam.core.reflow.SinkAgent.SINK, true));
+
+        return {
+          class: 'foam.u2.view.RichChoiceView',
+          search: true,
+          idProperty: 'value',
+          sections: [
+            {
+              heading: 'Format',
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'format'))
+            },
+            {
+              heading: 'Structure',
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'structure'))
+            },
+            {
+              heading: 'Calculations',
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'calculation'))
+            },
+          ]
+        }
       }
     },
     {
       name: 'data',
       expression: function(choice) {
-        var cls = foam.lookup(this.choiceToClass(choice));
-        return cls.create({}, this);
-      },
-      postSet: function(o, n) {
-        if ( ! n ) return;
-        for ( var i = 0 ; i < this.AGENTS.length ; i++ ) {
-          if ( this.choiceToClass(this.AGENTS[i][0]) == n.cls_.id ) {
-            this.feedback_ = true;
-            this.choice = this.AGENTS[i][0];
-            this.feedback_ = false;
-            return;
-          }
+        if ( ! choice ) return undefined;
+        if ( choice instanceof Promise ) {
+          return choice.then(value => {
+            if ( ! value ) return undefined;
+            var cls = foam.lookup(this.choiceToClass(value));
+            return cls ? cls.create({}, this) : undefined;
+          });
         }
+        var cls = foam.lookup(this.choiceToClass(choice));
+        return cls ? cls.create({}, this) : undefined;
+      },
+      postSet: async function(o, n) {
+        /* ignoreWarning */
+        if ( ! n ) return;
+        await this.agentDAO.select().then(agents => {
+          const results = agents.array;
+          for ( var i = 0 ; i < results.length ; i++ ) {
+            if ( this.choiceToClass(results[i].value) == n.cls_.id ) {
+              this.feedback_ = true;
+              this.choice = results[i].value;
+              this.feedback_ = false;
+              return;
+            }
+          }
+        });
       }
     }
   ],
@@ -91,19 +110,34 @@ foam.CLASS({
     function choiceToClass(choice) {
       return this.cls_.package + '.' + choice + 'DAOAgent';
     },
+
     function render() {
       var self = this;
+
+      this.agentDAO.select().then(agents => {
+        const entities = agents.array;
+        if ( ! this.choice ) this.choice = entities[0]?.value;
+      });
+
       if ( ! this.data ) { this.data = undefined; }
 
       this.
-        addClass().
-        style({'display': 'inline-flex'}).
-        startContext({data: this}).
-          add(this.CHOICE).
-        endContext().
-        add(' ', self.dynamic(function (data) {
-          if ( ! self.dao ) return;
-          data.addToE(this);
+        addClass().add(' ').
+        add(self.dynamic(function (data, dao) {
+          if ( ! dao ) {
+            this.start('i').add('select data source');
+            return;
+          }
+          this.startContext({data: self}).
+            add(self.CHOICE).
+          endContext();
+
+
+          if ( data instanceof Promise ) {
+            data.then(d => d.addToE(this));
+          } else {
+            data.addToE(this);
+          }
         }));
     }
   ]
