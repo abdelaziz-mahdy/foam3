@@ -19,13 +19,15 @@ foam.CLASS({
 
   css: `
     ^ {
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
     ^ > div {
+      display: flex;
       width: 100%;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
+      gap: 5px;
     }
   `,
 
@@ -129,6 +131,7 @@ foam.CLASS({
           this.startContext({data: self}).
             add(self.CHOICE).
           endContext();
+
 
           if ( data instanceof Promise ) {
             data.then(d => d.addToE(this));

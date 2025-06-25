@@ -704,6 +704,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Input',
@@ -718,9 +719,6 @@ foam.CLASS({
       if ( prompt ) p.label = prompt;
 
       this.currentBlock.value = p;
-      this.currentBlock.configViewSpec = {
-        useSections: ['config']
-      }
       this.out.add(p);
     }
   ]
@@ -743,7 +741,7 @@ foam.CLASS({
           title: '',
           properties: [
             { name: 'label', onKey: true },
-            { name: 'script' },
+            { name: 'script', reactive: false  },
             { name: 'buttonStyle' },
             { name: 'size' },
             { name: 'icon' },

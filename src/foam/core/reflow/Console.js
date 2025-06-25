@@ -658,6 +658,18 @@ foam.CLASS({
       padding: 10px;
       border-radius: 4px;
     }
+    ^r .foam-u2-PropertyBorder-select {
+      padding: 5px;
+      background-color: $grey200;
+      border-radius: 4px;
+      gap: 10px;
+    }
+    ^r .foam-core-reflow-PropertyListView {
+      justify-content: space-between;
+    }
+    ^r .foam-u2-detail-SectionView-actionDiv {
+      gap: 10px;
+    }
   `,
 
   properties: [
@@ -791,6 +803,9 @@ foam.CLASS({
       flex-direction: column;
       width: 100%;
       height: 100%;
+      position: relative;
+      align-items: center;
+      justify-content: center;
     }
     ^input-field {
       position: relative;
@@ -822,8 +837,9 @@ foam.CLASS({
     ^ .foam-u2-ProgressView { width: 600px; }
     ^ .foam-core-reflow-ReflowToolBar {
       position: absolute;
-      left: 30%;
-      bottom: 50;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 50px;
     }
   `,
 

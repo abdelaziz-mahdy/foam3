@@ -4,35 +4,12 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Prompt',
 
-  requires: ['foam.layout.Section'],
-
   imports: [ 'params' ],
-
-  sections: [
-    {
-      name: 'config',
-      title: 'Configuration',
-      properties: [
-        { name: 'urlParameter' },
-        { name: 'propType' },
-        {
-          name: 'prop',
-          view: {
-            class: 'foam.u2.detail.VerticalDetailView',
-            propertyWhitelist: [ 
-              {  name: 'label', onKey: true },
-              {  name: 'supportingLabel', onKey: true }
-            ]
-          }
-        },
-        { name: 'value' }
-      ]
-    }
-  ],
 
   properties: [
     {
@@ -41,80 +18,60 @@ foam.CLASS({
     },
     {
       class: 'String',
+      name: 'supportingLabel'
+    },
+    {
+      class: 'String',
       name: 'urlParameter'
     },
     {
-      class: 'Class',
-      name: 'propType',
-      label: 'Input Type',
-      onKey: false,
-      factory: function() { return 'String'; },
+      class: 'String',
+      name: 'type',
+      value: 'String',
+      reactive: false,
+      postSet: function() { this.value = undefined; this.value; },
+      view: { class: 'foam.u2.view.RadioView', choices: [
+        [ 'String', 'Abc' ],
+        [ 'Long',   '##' ],
+        [ 'Double', '##.##' ],
+        [ 'Boolean', 'Y/N' ],
+        [ 'Date', 'YYYY/MM/DD' ],
+        [ 'DateTime', 'YYY/MM/DD HH:MM:SS' ],
+        [ 'EMail', 'username@email.com' ],
+        'Color'
+      ] }
     },
     {
-      class: 'FObjectProperty',
-      of: 'foam.lang.Property',
-      generateJava: false,
-      name: 'prop',
-      label: 'Input Customization',
+      name: 'defaultValue',
+      postSet: function(o, n) { if ( ! this.value ) this.value = n; }
     },
     {
       name: 'value',
-      view: { class: 'foam.u2.view.AnyView', enableChoice: false },
-      transient: true
+      transient: true,
+      factory: function() {
+        if ( this.params && this.params[this.urlParameter] != undefined ) {
+          return this.params[this.urlParameter];
+        }
+        return this.defaultValue;
+      }
     }
   ],
 
   methods: [
-    function init() {
-      this.SUPER();
-      this.onPropTypeChange();
-      if ( this.params && this.params[this.urlParameter] != undefined ) {
-        this.value = this.params[this.urlParameter];
-      }
-    },
-
-    function addToE(e) {
-      let self = this;
-
-      // Small map trickery to hook up all configurable properties of property to the propertyView
-      // Means that the configuration params only need to be configured once.
-      let configSection = this.Section.create().fromSectionAxiom(this.cls_.getAxiomByName('config'), this.cls_);
-      let props = configSection?.properties.find(v => v.name == 'prop')?.view.propertyWhitelist;
-      
-      e.add(this.dynamic(function(prop) {
-        if ( ! prop ) return;
-        let propConfig = props.reduce((c, v) => {
-          let name = foam.String.toSlotName(v.name);
-          c[name] = prop[name]
-          return c;
-        }, {})
-        this.tag(prop.__, { 
-          config: propConfig, 
-          viewArgs: { data$: self.value$ } 
-        })
-      }))
-    },
-
     function toString() {
       return this.value.toString();
     },
 
     function valueOf() {
       return this.value.valueOf();
-    }
-  ],
-  listeners: [
-    {
-      name: 'onPropTypeChange',
-      on: ['this.propertyChange.propType'],
-      code: function() {
-        if ( ! this.propType ) return this.clearProperty('prop');
-        if ( foam.lang.Property.isSubClass(this.propType) ) {
-          this.prop = this.propType.create({ ...this.prop, label$: this.label$, onKey: true, name: ('Input' + foam.next$UID()) });
-        } else {
-          throw new Error('Invalid propType: ' + this.propType);
-        }
-      }
+    },
+
+    function addToE(e) {
+      var self = this;
+      e.add(this.dynamic(function(type, label, supportingLabel, value) {
+        var prop = foam.lang[type].create({name: 'value', label: label, supportingLabel: supportingLabel});
+        this.startContext({data: self}).add(prop.__).endContext();
+      }));
     }
   ]
 });
