@@ -839,7 +839,6 @@ foam.CLASS({
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      /* bottom: 50; // keep this if you want it from the bottom, but add 'px' */
       bottom: 50px;
     }
   `,
