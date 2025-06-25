@@ -22,38 +22,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'PropertyCitationView',
-  extends: 'foam.u2.Element',
-
-  cssTokens: [
-    {
-      class: 'foam.u2.ColorToken',
-      name: 'groupByBackground',
-      value: '$backgroundBrandTertiary'
-    }
-  ],
-
-  css: `
-    ^ {
-      padding: 5px 12px;
-      cursor: pointer;
-    }
-    ^:hover {
-      background: $groupByBackground;
-      color: $groupByBackground$foreground;
-    }
-  `,
-
-  properties: [
-    'data'
-  ],
-
-  methods: [
-    function render() {
-      this.
-        addClass(this.myClass()).
-        start('div').addClass(this.myClass('label')).add(this.data.label).end();
-    }
-  ]
+  extends: 'foam.u2.CitationView'
 });
 
 
