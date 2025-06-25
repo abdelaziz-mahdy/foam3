@@ -22,7 +22,12 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'PropertyCitationView',
-  extends: 'foam.u2.CitationView'
+  extends: 'foam.u2.CitationView',
+  methods: [
+    function render() {   // to be used later for complex views
+      this.add(this.data.label);
+    }
+  ]
 });
 
 
