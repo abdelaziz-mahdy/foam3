@@ -834,12 +834,7 @@ foam.CLASS({
     }
     .foam-core-reflow-Layout-l { overflow-y: auto; }
     ^ .foam-u2-ProgressView { width: 600px; }
-    ^ .foam-core-reflow-ReflowToolBar {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 50px;
-    }
+
   `,
 
   properties: [
