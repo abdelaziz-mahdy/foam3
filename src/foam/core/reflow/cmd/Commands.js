@@ -883,7 +883,7 @@ foam.CLASS({
 
   methods: [
     function execute(daoKey) {
-      this.out.tag(foam.core.reflow.FileUploadView.create({daoKey: daoKey}));
+      this.out.tag(foam.core.reflow.FileUploadView, {daoKey: daoKey});
     }
   ]
 });
