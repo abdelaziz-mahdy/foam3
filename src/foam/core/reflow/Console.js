@@ -213,14 +213,16 @@ foam.CLASS({
         return showPrompts;
       },
       code: function() {
-        this.data.showPrompts = false;
-        this.data.eval_('clear');
         var flow = this.data.value;
 
-        flow.name     = '';
-        this.mementoMgr.clear();
-        flow.version  = undefined;
-        flow.revision = undefined;
+        flow.revision = flow.savedRevision;
+
+        this.data.showPrompts = false;
+        
+        // flow.name     = '';
+        // this.mementoMgr.clear();
+        // flow.version  = undefined;
+        // flow.revision = undefined;
       }
     },
     {
@@ -233,6 +235,8 @@ foam.CLASS({
       },
       code: function() {
         if ( this.data.flowName && this.data.flowName !== '' ) {
+          var flow = this.data.value;
+          flow.savedRevision = flow.revision;
           this.data.eval_(`save ${this.data.flowName}`);
           this.data.showPrompts = false;
         } else {

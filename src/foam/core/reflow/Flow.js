@@ -135,6 +135,12 @@ foam.CLASS({
       }
     },
     {
+      class: 'Int',
+      name: 'savedRevision',
+      hidden: true,
+      value: 0
+    },
+    {
       class: 'String',
       name: 'script',
       reactive: false,
