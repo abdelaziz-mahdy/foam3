@@ -10,7 +10,9 @@ foam.CLASS({
 
   requires: [
     'foam.lib.csv.CSVParser',
-    'foam.core.reflow.UploadAgent'
+    'foam.core.reflow.UploadAgent',
+    'foam.core.reflow.ColumnParser',
+    'foam.core.reflow.Mapping'
   ],
 
   imports: [ 'setTimeout' ],
@@ -134,6 +136,89 @@ foam.CLASS({
       }
 
       return latch;
+    },
+
+    /**
+     * Generate mappings from headers for a given DAO
+     * @param {Array} headers - Array of header strings
+     * @param {Object} dao - Target DAO with .of property
+     * @returns {Array} Array of Mapping objects
+     */
+    function generateMappings(headers, dao) {
+      if ( ! dao || ! dao.of || ! headers ) {
+        return [];
+      }
+      
+      var columnParser = this.ColumnParser.create({of: dao.of});
+      var mappings = [];
+      
+      headers.forEach(header => {
+        var headerStr = typeof header === 'string' ? header : 
+                       (header && header.toString ? header.toString() : String(header));
+        
+        var prop = columnParser.parseString(headerStr);
+        
+        var mapping = this.Mapping.create({
+          id: headerStr,
+          handler: prop || this.Mapping.UNKNOWN,
+          of: dao.of
+        });
+        
+        mappings.push(mapping);
+      });
+      
+      return mappings;
+    },
+
+    /**
+     * Extract headers from input data based on format
+     * @param {string} input - Input data string
+     * @param {string} format - Data format (CSV, JSON, XML)
+     * @param {string} delimiter - CSV delimiter (optional)
+     * @param {string} tagName - XML tag name (optional)
+     * @returns {Array} Array of header strings
+     */
+    function extractHeaders(input, format, delimiter = ',', tagName = 'xml_content') {
+      if ( ! input ) return [];
+
+      var headers = [];
+      
+      try {
+        if ( format === 'CSV' ) {
+          var lines = input.trim().split('\n');
+          if ( lines.length > 0 ) {
+            headers = lines[0].split(delimiter).map(h => h.trim());
+          }
+        } else if ( format === 'JSON' ) {
+          var jsonData = JSON.parse(input.trim());
+          if ( Array.isArray(jsonData) && jsonData.length > 0 ) {
+            headers = Object.keys(jsonData[0]);
+          } else if ( typeof jsonData === 'object' ) {
+            headers = Object.keys(jsonData);
+          }
+        } else if ( format === 'XML' ) {
+          headers = [tagName];
+        }
+      } catch (e) {
+        console.error('Error extracting headers:', e);
+        console.trace('Header extraction error stack trace');
+      }
+      
+      return headers;
+    },
+
+    /**
+     * Generate mappings from input data
+     * @param {string} input - Input data string
+     * @param {string} format - Data format (CSV, JSON, XML)
+     * @param {Object} dao - Target DAO with .of property
+     * @param {string} delimiter - CSV delimiter (optional)
+     * @param {string} tagName - XML tag name (optional)
+     * @returns {Array} Array of Mapping objects
+     */
+    function generateMappingsFromInput(input, format, dao, delimiter, tagName) {
+      var headers = this.extractHeaders(input, format, delimiter, tagName);
+      return this.generateMappings(headers, dao);
     },
 
     async function processCSV(input, mappings, delimiter, sink) {
