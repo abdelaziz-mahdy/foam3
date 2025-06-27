@@ -65,6 +65,7 @@ foam.CLASS({
             );
             this.start().addClass(self.myClass('command-list'))
               .forEach(filtered, function(command) {
+                if ( ! command.linkable ) return;
                 this.start(self.CommandItemView, { data: self.data, command: command.id, description: command.description });
               })
           }))
