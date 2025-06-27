@@ -77,6 +77,10 @@ foam.CLASS({
       width: 30
     },
     {
+      class: 'StringArray',
+      name: 'keywords'
+    },
+    {
       class: 'String',
       name: 'notes',
       width: 80,
