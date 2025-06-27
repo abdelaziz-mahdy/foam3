@@ -76,21 +76,12 @@ p({
   "id": "upload",
   "description": "Upload Data",
   "script": """
-    var config = {};
-    if ( args.length >= 1 ) {
-      if ( foam.String.isInstance(args[0]) ) {
-        config.daoKey = args[0];
-      } else if ( foam.dao.DAO.isInstance(args[0]) ) {
-        config.dao = args[0];
-        config.daoKey = '<linked>';
-      }
-    } else {
-      // If no DAO specified, show an error or provide a default
+    if ( args.length < 1 ) {
       this.out.add('Error: Please specify a DAO for upload. Usage: upload <daoName>');
       return;
     }
 
-    this.out.add(foam.core.reflow.Upload.create(config, this));
+    this.out.add(foam.core.reflow.Upload.create({daoKey: args[0]}, this));
   """,
   permissionRequired: true
 })
