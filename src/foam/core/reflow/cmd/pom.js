@@ -3,6 +3,5 @@ foam.POM({
 
   files: [
     { name: 'Commands',    flags: 'js|java' },
-    { name: 'FileUpload',        flags: 'js' },
   ]
 });

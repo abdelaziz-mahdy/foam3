@@ -95,14 +95,15 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Upload',
-  extends: 'foam.u2.Controller',
+  // extends: 'foam.u2.Controller',
 
   requires: [
     'foam.dao.MDAO',
+    'foam.lib.csv.CSVParser',
     'foam.core.reflow.ColumnParser',
     'foam.core.reflow.DAOHolder',
     'foam.core.reflow.Mapping',
-    'foam.core.reflow.UploadService',
+    'foam.core.reflow.UploadAgent',
     'foam.core.fs.fileDropZone.FileDropZone',
     'foam.core.fs.File'
   ],
@@ -144,6 +145,40 @@ foam.CLASS({
           this.input = '';
           this.processUploadedFiles();
         }
+      },
+      view: function(_, X) {
+        return {
+          class: 'foam.core.fs.fileDropZone.FileDropZone',
+          files$: X.data.uploadedFiles$,
+          supportedFormats: {
+            'text/csv': 'CSV',
+            'application/json': 'JSON',
+            'text/xml': 'XML',
+            'text/plain': 'TXT'
+          },
+          title: 'Drag and drop a file here or click to browse',
+          onFilesChanged: X.data.onFilesChanged.bind(X.data)
+        };
+      },
+      visibility: function(input) {
+        return (!input || input.trim() === '') ? 
+          foam.u2.DisplayMode.RW : 
+          foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      class: 'String',
+      name: 'input',
+      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
+      postSet: function(_, n) {
+        if (n && n.trim() !== '') {
+          this.uploadedFiles = [];
+        }
+      },
+      visibility: function(uploadedFiles) {
+        return (!uploadedFiles || uploadedFiles.length === 0) ? 
+          foam.u2.DisplayMode.RW : 
+          foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -226,16 +261,7 @@ foam.CLASS({
       name: 'rows',
       visibility: 'RO'
     },
-    {
-      class: 'String',
-      name: 'input',
-      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
-      postSet: function(_, n) {
-        if (n && n.trim() !== '') {
-          this.uploadedFiles = [];
-        }
-      }
-    },
+
     {
       class: 'FObjectArray',
       of: 'foam.core.reflow.Mapping',
@@ -277,73 +303,13 @@ foam.CLASS({
       }
     },
     {
-      name: 'uploadService',
-      transient: true,
-      hidden: true,
-      factory: function() {
-        return this.UploadService.create();
-      }
-    },
-    {
       class: 'Boolean',
       name: 'bulkUpload',
-      getter: function() {
-        return this.uploadService.bulkUpload;
-      },
-      setter: function(value) {
-        this.uploadService.bulkUpload = value;
-      }
+      value: true
     }
   ],
 
   methods: [
-    function render() {
-      this.SUPER();
-      
-      this.addClass();
-      
-      // File upload section
-      this.start('div').addClass(this.myClass('file-upload-section')).
-        show(this.input$.map(input => !input || input.trim() === '')).
-        start('div').addClass(this.myClass('section-title')).add('Upload File').end().
-        add(this.FileDropZone.create({
-          files$: this.uploadedFiles$,
-          supportedFormats: {
-            'text/csv': 'CSV',
-            'application/json': 'JSON',
-            'text/xml': 'XML',
-            'text/plain': 'TXT'
-          },
-          title: 'Drag and drop a file here or click to browse',
-          onFilesChanged: this.onFilesChanged.bind(this)
-        })).
-      end().
-      
-      // Manual input section
-      start('div').addClass(this.myClass('manual-input-section')).
-        show(this.uploadedFiles$.map(files => !files || files.length === 0)).
-        start('div').addClass(this.myClass('section-title')).add('Or Enter Content Manually').end().
-        add(this.INPUT).
-      end().
-      
-      // Default property views for the rest
-      tag(this.DAO_KEY.__).
-      tag(this.FORMAT.__).
-      tag(this.DELIMITER.__).
-      tag(this.TAG_NAME.__).
-      tag(this.MAPPINGS.__).
-      tag(this.PROGRESS.__).
-      tag(this.OUTPUT.__).
-
-      // Actions at the end
-      start('div').addClass(this.myClass('actions')).
-        add(this.PREVIEW).
-        add(this.UPLOAD).
-        add(this.CLEAR).
-        add(this.RESET_MAPPINGS).
-      end();
-    },
-
     function onFilesChanged(files) {
       var foamFiles = [];
       for (var i = 0; i < files.length; i++) {
@@ -395,118 +361,6 @@ foam.CLASS({
       return this.mappings;
     },
 
-    function generateMappingsFromInput() {
-      if ( ! this.input || ! this.dao ) return;
-
-      try {
-        var mappings = this.uploadService.generateMappingsFromInput(
-          this.input, 
-          this.format, 
-          this.dao, 
-          this.delimiter, 
-          this.tagName
-        );
-        
-        if ( mappings && mappings.length > 0 ) {
-          this.mappings = mappings;
-          this.output += '<span style="color:blue">Auto-generated mappings from input data</span><br>';
-        }
-      } catch (e) {
-        console.error('Error generating mappings from input:', e);
-        console.trace('Mapping generation error stack trace');
-        this.output += '<span style="color:red">Error auto-generating mappings: ' + e.message + '</span><br>';
-      }
-    },
-
-    async function process(real) {
-      var self = this;
-      await this.data.removeAll();
-      this.processing = 0;
-      this.clear();
-
-      if ( this.format === 'AUTO' ) {
-        this.input = this.input.trim();
-        if ( this.input.startsWith('<?xml') ) {
-          this.format = 'XML';
-        } else if ( this.input.startsWith('{') || this.input.startsWith('[') ) {
-          this.format = 'JSON';
-        } else {
-          this.format = 'CSV';
-        }
-      }
-
-      if ( this.format === 'DAO' ) {
-        return this.processDAO();
-      }
-
-      // Auto-generate mappings if they don't exist
-      if ( ! this.mappings || this.mappings.length === 0 ) {
-        this.generateMappingsFromInput();
-      }
-
-      // Use UploadService for all other formats
-      return this.uploadService.processUpload({
-        input: this.input,
-        format: this.format,
-        dao: real ? this.dao : this.data,
-        mappings: this.mappings,
-        delimiter: this.delimiter,
-        tagName: this.tagName,
-        real: real,
-        onProgress: function(current, total, percentage) {
-          self.processing = current;
-          self.progress = percentage;
-          self.rows = total;
-        },
-        onError: function(error) {
-          console.error('Upload error:', error);
-          console.trace('Upload error stack trace');
-          if ( Array.isArray(error) ) {
-            self.output += '<span style="color:red">' + error.map(e => e[0].name + ' ' + e[1]).join(', ') + '</span><br>';
-          } else {
-            self.output += '<span style="color:red">' + error + '</span><br>';
-          }
-        },
-        onComplete: function(recordCount) {
-          self.progress = 100;
-          
-          if ( ! real && self.block && self.eval_ ) {
-            var block = self.block;
-            self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
-            var block2 = self.currentBlock;
-            block2.flowName = block.flowName + 'data';
-            block2.obj.limit = 10;
-            setTimeout(() => {
-              block2.obj.run();
-            }, 100);
-          }
-        }
-      });
-    },
-
-    async function processDAO() {
-      var latch = foam.lang.Latch.create();
-      
-      try {
-        var a = (await this.sourceDAO.select()).array;
-        this.rows = a.length;
-        
-        for ( var i = 0; i < a.length; i++ ) {
-          await this.data.put(a[i]);
-          this.processing = i + 1;
-          this.progress = Math.floor(100 * (i + 1) / a.length);
-        }
-        
-        this.progress = 100;
-        latch.resolve('eof');
-      } catch (e) {
-        this.output += '<span style="color:red">DAO ERROR: ' + e + '</span>';
-        latch.reject(e);
-      }
-      
-      return latch;
-    },
-
     async function processUploadedFiles() {
       if (!this.uploadedFiles || this.uploadedFiles.length === 0) {
         return;
@@ -522,7 +376,6 @@ foam.CLASS({
                      firstFile.mimeType === 'text/xml' ? 'XML' : 'AUTO';
       } catch (e) {
         console.error('Error processing uploaded files:', e);
-        console.trace('Upload file processing error stack trace');
         this.output += '<span style="color:red">Error reading uploaded file: ' + e.message + '</span><br>';
       }
     },
@@ -550,10 +403,227 @@ foam.CLASS({
           reader.readAsText(actualFile);
         } catch (e) {
           console.error('Error accessing file:', e);
-          console.trace('File access error stack trace');
           reject('Error accessing file: ' + e.message);
         }
       });
+    },
+
+    async function process(real) {
+      var self  = this;
+      var latch = foam.lang.Latch.create();
+      await this.data.removeAll();
+      this.processing = 0;
+      this.clear();
+      console.time('upload');
+      var i = 1;
+      var agent;
+
+      var sink = this.bulkUpload ? {
+        put: async function(o) {
+          self.processing = Math.max(self.processing, i);
+          self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * i / self.rows)) : 0;
+
+          if ( o.errors_ ) {
+            //            self.output += '<span style="color:red">' + o.errors_ + ', row: ' + i + '<br>' + row + '</span>';
+            self.output += '<span style="color:red">' + o.errors_.map(e => e[0].name + ' ' + e[1]).join(', ') + '</span><br>';
+          }
+
+          if ( ! real ) {
+            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = i;
+            self.data.put(o);
+          } else {
+            if ( ! agent ) agent = self.UploadAgent.create();
+            agent.data.push(o);
+            if ( i && i % 1000 === 0 ) {
+              var oldAgent = agent;
+              agent = undefined;
+              if ( i && i % 10000 === 0 ) {
+                await self.dao.cmd(oldAgent);
+              } else {
+                self.dao.cmd(oldAgent);
+              }
+              // Wait 0ms so that the GUI (including the upload progress) can update
+              await new Promise(r => self.setTimeout(r, 0));
+            }
+          }
+          i++;
+        },
+        eof: async function() {
+          if ( agent ) await self.dao.cmd(agent);
+          self.progress = 100;
+          console.timeEnd('upload');
+          latch.resolve('eof');
+
+          if ( ! real ) {
+            var block = self.block;
+            self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+            var block2 = self.currentBlock;
+            block2.flowName = block.flowName + 'data';
+            block2.obj.limit = 10;
+            setTimeout(() => {
+              // Needed because it is the SinkView which creates the 'select' object
+              block2.obj.run();
+            }, 100);
+          }
+        }
+      } : {
+        put: self.dao.put.bind(self.dao),
+        eof: function() {
+          console.timeEnd('upload');
+          latch.resolve('eof');
+        }
+      };
+
+      this.input = this.input.trim();
+
+      if ( this.format === 'AUTO' ) {
+        this.input = this.input
+        if ( this.input.startsWith('<?xml') ) {
+          this.format = 'XML';
+        } else if ( this.input.startsWith('{') ) {
+          this.format = 'JSON';
+        } else {
+          this.format = 'CSV';
+        }
+      }
+
+      if ( this.format === 'DAO' ) {
+        this.processDAO(sink);
+      } else if ( this.format === 'CSV' ) {
+        this.processCSV(sink);
+      } else if ( this.format === 'XML' ) {
+        this.processXML(sink);
+      } else if ( this.format === 'JSON' ) {
+        // TODO:
+        // this.processJSON(sink);
+      }
+
+      return latch;
+    },
+
+    function getXMLMapping(tag, attr) {
+      var key = attr ? tag + '.' + attr : tag;
+
+      if ( ! this.mappings_[key] ) {
+        if ( attr ) {
+          var prop = this.columnParser.parseString(tag + attr);
+          this.mappings_[key] = this.Mapping.create({
+            id: key,
+            handler: prop || this.Mapping.UNKNOWN,
+            of: this.of
+          });
+        } else {
+          var prop = this.columnParser.parseString(tag);
+          this.mappings_[key] = this.Mapping.create({
+            id: key,
+            handler: prop || this.Mapping.UNKNOWN,
+            of: this.of
+          });
+        }
+      }
+
+      return this.mappings_[key];
+    },
+
+    function objectifyXML(doc) {
+      var obj      = this.of.create();
+      var children = doc.children;
+      var nodes    = {};
+
+      for ( var i = 0 ; i < children.length ; i++ ) {
+        // fetch property based on xml tag name since they may not be in order
+        var node  = children[i];
+        var attrs = node.getAttributeNames();
+
+        if ( node.firstChild ) {
+          var value = node.firstChild.nodeValue;
+          this.getXMLMapping(node.tagName).process(obj, value);
+        }
+        for ( var j = 0 ; j < attrs.length ; j++ ) {
+          var attrName = attrs[j];
+          var value    = node.getAttribute(attrName);
+          this.getXMLMapping(node.tagName, attrName).process(obj, value);
+        }
+      }
+
+      return obj;
+    },
+
+    async function processDAO(sink) {
+      var a = (await this.sourceDAO.select()).array;
+      for ( var i = 0 ; i < a.length ; i++ ) {
+        await sink.put(a[i]);
+      }
+      sink.eof();
+    },
+
+    async function processXML(sink) {
+      this.mappings_ = {};
+      this.mappings.forEach(m => this.mappings_[m.id] = m);
+
+      var parser   = new DOMParser();
+      var doc      = parser.parseFromString(this.input, 'text/xml');
+      var root     = doc.firstChild;
+      var children = root.children;
+      var cls      = this.of;
+
+      this.rows = 0;
+
+      // Just count matched rows so that this.rows is set
+      for ( var i = 0 ; i < children.length ; i++ ) {
+        var node = children[i];
+        if ( this.tagName && node.tagName !== this.tagName ) continue;
+        this.rows++;
+      }
+
+      // Process matched rows
+      for ( var i = 0 ; i < children.length ; i++ ) {
+        var node = children[i];
+        if ( this.tagName && node.tagName !== this.tagName ) continue;
+        await sink.put(this.objectifyXML(node));
+      }
+
+      sink.eof();
+      this.mappings = Object.values(this.mappings_);
+    },
+
+    async function processCSV(sink) {
+      var ids = {};
+      var a   = this.input.split('\n');
+
+      if ( ! a ) { this.rows = 0; return; }
+
+      this.rows = a.length-1;
+
+      try {
+        var props  = this.parseColumns(a[0]);
+        var parser = this.CSVParser.create({});
+        var agent;
+
+        this.rows = a.length-1;
+
+        for ( var i = 1 ; i < a.length ; i++ ) {
+          if ( ! agent ) agent = this.UploadAgent.create();
+          var row = a[i];
+          if ( ! row ) continue;
+          var obj = this.of.create();
+          var csv = parser.parseString(row, this.delimiter);
+          for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
+            props[j].process(obj, csv[j].value);
+          }
+          await sink.put(obj);
+          /*
+          if ( ids[obj.id] ) {
+            this.output += '<span style="color:red">Duplicate Records for id "' + obj.id + '":<br>' + ids[obj.id] + '<br>' + row + '</span>';
+          }
+          ids[obj.id] = row;
+          */
+        }
+
+        sink.eof();
+      } catch (x) {
+        this.output += '<span style="color:red">ERROR: ' + x + '</span>';
+      }
     }
   ],
 

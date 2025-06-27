@@ -45,7 +45,6 @@ foam.POM({
     { name: 'CopyFromBorder',          flags: 'js' },
     { name: 'Upload',                  flags: 'js' },
     { name: 'UploadAgent',             flags: 'js|java' },
-    { name: 'UploadService',            flags: 'js' },
     { name: 'ViewSink',                flags: 'js|java' },
     { name: 'XHR',                     flags: 'js' },
     { name: 'XMLSink',                 flags: 'js|java' },
