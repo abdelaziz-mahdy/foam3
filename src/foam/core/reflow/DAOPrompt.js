@@ -274,6 +274,14 @@ foam.CLASS({
           choice: 'Table',
           dao: X.data.dao}, X.data);
       },
+      preSet: function(o, n) {
+        // Temporary fix to recontextualize the object after load.
+        // TODO: remove once JSON parsing/loading is fixed
+        if ( n && n.__context__ != this.__subContext__ ) {
+          return n.clone(this.__subContext__);
+        }
+        return n;
+      },
       reactive: false,
       section: 'output',
       label: '',
@@ -324,6 +332,12 @@ foam.CLASS({
       code: function() {
         this.version++;
       }
+    },
+    {
+      name: 'describeModel',
+      code: function describeModel() {
+        this.eval_('describe ' + this.dao.of.id);
+      }
     }
   ],
 
@@ -335,10 +349,6 @@ foam.CLASS({
       code: function maybeAutoRun() {
         if ( this.autoRun ) this.run();
       }
-    },
-
-    function describeModel() {
-      this.eval_('describe ' + this.dao.of.id);
     }
   ]
 });
