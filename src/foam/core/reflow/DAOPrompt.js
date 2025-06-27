@@ -324,6 +324,12 @@ foam.CLASS({
       code: function() {
         this.version++;
       }
+    },
+    {
+      name: 'describeModel',
+      code: function describeModel() {
+        this.eval_('describe ' + this.dao.of.id);
+      }
     }
   ],
 
@@ -335,10 +341,6 @@ foam.CLASS({
       code: function maybeAutoRun() {
         if ( this.autoRun ) this.run();
       }
-    },
-
-    function describeModel() {
-      this.eval_('describe ' + this.dao.of.id);
     }
   ]
 });
