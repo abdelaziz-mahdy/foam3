@@ -323,7 +323,7 @@ foam.CLASS({
           this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
         ));
       this.out.tag('br');
-      this.out.start('table').attr('width', '100%').
+      this.out.start('table').attr('width', '100%').attr('cellpadding', '4').
         select(dao, function(n) {
           var sdao  = self.__context__[n.name];
           var of    = sdao.of;
@@ -343,6 +343,13 @@ foam.CLASS({
           var desFn = () => self.eval_('describe(' + of.id + ')');
 
           this.start('tr').
+            start('td').attr('align', 'left').
+              start(self.Link).add('add').on('click', addFn).end().
+            end().
+            start('td').attr('align', 'left').
+              show(self.uploadAvailable).
+              start(self.Link).add('upload').on('click', uplFn).end().  
+            end().        
             start('th').attr('align', 'left').
               start(self.Link).add(shortName).on('click', daoFn).end().
             end().
@@ -358,16 +365,10 @@ foam.CLASS({
                 textOverflow: 'ellipsis'
               }).
               add(n.description).
-            end().
-            start('td').attr('align', 'left').
-              start(self.Link).add('add').on('click', addFn).end().
-            end().
-            start('td').attr('align', 'left').
-              show(self.uploadAvailable).
-              start(self.Link).add('upload').on('click', uplFn).end().
             end()
             ;
         }).
+        end().
         start('b').add(count, ' selected').end();
     }
   ]
