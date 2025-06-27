@@ -76,11 +76,6 @@ p({
   "id": "upload",
   "description": "Upload Data",
   "script": """
-    if ( args.length < 1 ) {
-      this.out.add('Error: Please specify a DAO for upload. Usage: upload <daoName>');
-      return;
-    }
-
     this.out.add(foam.core.reflow.Upload.create({daoKey: args[0]}, this));
   """,
   permissionRequired: true
