@@ -413,6 +413,7 @@ foam.CLASS({
 
   methods: [
     function init() {
+     
       this.SUPER();
 
       if ( this.currentBlock ) {
