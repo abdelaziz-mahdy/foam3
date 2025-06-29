@@ -54,9 +54,7 @@ foam.CLASS({
       class: 'Int',
       name: 'total',
       reactive: false,
-      visibility: 'RO',
-      transient: true,
-      expression: function(passed, failed) { return passed + failed; }
+      visibility: 'RO'
     },
     {
       name: 'dao',
@@ -64,6 +62,19 @@ foam.CLASS({
       transient: true,
       factory: function() {
         return this.EasyDAO.create({daoType: 'MDAO', of: foam.core.reflow.float.Test});
+      }
+    },
+    {
+      name: 'status',
+      transient: true,
+      reactive: false,
+      visibility: 'RO',
+      expression: function(passed, failed, total) {
+        var missing = total - passed - failed;
+        var msg = this.failed || missing ? 'FAILED' : 'PASSED';
+        msg = msg + ` (Passed=${passed}, Failed=${failed}`;
+        if ( missing ) msg = msg + `, Missing=${missing}`;
+        return msg + ')';
       }
     }
   ],
@@ -87,14 +98,22 @@ foam.CLASS({
 
       this.updateStatus();
     },
+
     function updateStatus() {
+      this.total = Math.max(this.total, this.passed + this.failed);
+
       if ( this.flow ) {
-        this.flow.status = (this.failed ? 'FAILED' : 'PASSED') + ` (Passed=${this.passed}, Failed=${this.failed})`;
+        this.flow.status = this.message;
       }
     }
   ],
 
   actions: [
+    {
+      name: 'resetTotal',
+      isEnabled: function(failed, passed, total) { return total != passed + failed; },
+      code: function() { this.total = this.failed + this.passed; }
+    },
     {
       name: 'browse',
       code: function() {
@@ -136,14 +155,15 @@ foam.CLASS({
     function render() {
       this.SUPER();
 
-      this.start('h2').
-        add('Test Results').
+      this.
+        start('h2').
+          add('Test Results').
+        end().
         start().
           style({marginLeft: '20px'}).
           start('div').style({color: 'green'}).add('Passed: ', this.data.passed$).end().
           start('div').style({color: 'red'}).add('Failed: ', this.data.failed$).end().
           start('b').add('Total: ',  this.data.total$);
-
     }
   ]
 });
