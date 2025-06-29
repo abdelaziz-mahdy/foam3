@@ -9,9 +9,12 @@ foam.CLASS({
   name: 'PassFailView',
   extends: 'foam.u2.View',
 
+  properties: [ 'nodeName', 'span' ],
+
   methods: [
     function render() {
       this.SUPER();
+      this.style({display: 'inline'});
       this.add(this.dynamic(function(data) {
         if ( data ) {
           this.start('span').style({color: 'green'}).add('PASSED');
@@ -36,14 +39,24 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'passed',
+      reactive: false,
       visibility: 'RO',
       transient: true
     },
     {
       class: 'Int',
       name: 'failed',
+      reactive: false,
       visibility: 'RO',
       transient: true
+    },
+    {
+      class: 'Int',
+      name: 'total',
+      reactive: false,
+      visibility: 'RO',
+      transient: true,
+      expression: function(passed, failed) { return passed + failed; }
     },
     {
       name: 'dao',
@@ -79,6 +92,50 @@ foam.CLASS({
       code: function() {
         this.eval_('dao(testResults.dao, "Test Results")');
       }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.float',
+  name: 'TestView',
+  extends: 'foam.u2.View',
+
+  methods: [
+    function render() {
+      this.SUPER();
+      this.start('h3').
+        add(function(status) {
+          if ( status ) {
+            this.start('span').style({color: 'green'}).add('TEST PASSED: ');
+          } else {
+            this.start('span').style({color: 'red'}).add('TEST FAILED: ');
+          }
+        }).
+        add(this.data.description$);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.float',
+  name: 'TestResultsView',
+  extends: 'foam.u2.View',
+
+  methods: [
+    function render() {
+      this.SUPER();
+
+      this.start('h2').
+        add('Test Results').
+        start().
+          style({marginLeft: '20px'}).
+          start('div').style({color: 'green'}).add('Passed: ', this.data.passed$).end().
+          start('div').style({color: 'red'}).add('Failed: ', this.data.failed$).end().
+          start('b').add('Total: ',  this.data.total$);
+
     }
   ]
 });
