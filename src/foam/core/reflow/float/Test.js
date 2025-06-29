@@ -33,7 +33,7 @@ foam.CLASS({
 
   requires: [ 'foam.dao.EasyDAO' ],
 
-  imports: [ 'eval_' ],
+  imports: [ 'eval_', 'flow?' ],
 
   properties: [
     {
@@ -82,7 +82,15 @@ foam.CLASS({
         }
 
         this.dao.put(test);
+        this.updateStatus();
       });
+
+      this.updateStatus();
+    },
+    function updateStatus() {
+      if ( this.flow ) {
+        this.flow.status = (this.failed ? 'FAILED' : 'PASSED') + ` (Passed=${this.passed}, Failed=${this.failed})`;
+      }
     }
   ],
 
