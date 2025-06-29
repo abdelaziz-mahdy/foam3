@@ -52,6 +52,16 @@ foam.CLASS({
     },
     {
       class: 'Int',
+      name: 'missing',
+      reactive: false,
+      visibility: 'RO',
+      transient: true,
+      expression: function(passed, failed, total) {
+        return total - passed - failed;
+      }
+    },
+    {
+      class: 'Int',
       name: 'total',
       reactive: false,
       visibility: 'RO'
@@ -65,13 +75,21 @@ foam.CLASS({
       }
     },
     {
+      class: 'Boolean',
+      name: 'success',
+      hidden: true,
+      transient: true,
+      expression: function(passed, failed, total) {
+        return passed == total;
+      }
+    },
+    {
       name: 'status',
       transient: true,
       reactive: false,
       visibility: 'RO',
-      expression: function(passed, failed, total) {
-        var missing = total - passed - failed;
-        var msg = this.failed || missing ? 'FAILED' : 'PASSED';
+      expression: function(success, passed, failed, total, missing) {
+        var msg = success ? 'PASSED' : 'FAILED';
         msg = msg + ` (Passed=${passed}, Failed=${failed}`;
         if ( missing ) msg = msg + `, Missing=${missing}`;
         return msg + ')';
@@ -162,8 +180,9 @@ foam.CLASS({
         start().
           style({marginLeft: '20px', fontSize: 'larger'}).
           start('div').style({color: 'green'}).add('Passed: ', this.data.passed$).end().
-          start('div').style({color: 'red'}).add('Failed: ', this.data.failed$).end().
-          start('b').add('Total: ',  this.data.total$);
+          start('div').style({color: 'red'}).add('Failed: ',   this.data.failed$).end().
+          start('div').style({color: 'red'}).add('Missing: ',  this.data.missing$).end().
+          start('b').add('Total: ', this.data.total$);
     }
   ]
 });
