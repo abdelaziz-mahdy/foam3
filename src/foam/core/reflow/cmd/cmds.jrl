@@ -43,7 +43,7 @@ p({
 
 p({
   "class":"foam.core.reflow.cmd.Command",
-  "id": "expect",
+  "id": "test",
   "description": "Insert an Expectation Test",
   "script": """
 //    if ( ! this.__context__.scope.testResults ) {

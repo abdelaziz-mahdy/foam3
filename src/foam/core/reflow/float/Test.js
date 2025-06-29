@@ -103,7 +103,7 @@ foam.CLASS({
       this.total = Math.max(this.total, this.passed + this.failed);
 
       if ( this.flow ) {
-        this.flow.status = this.message;
+        this.flow.status = this.status;
       }
     }
   ],
@@ -160,7 +160,7 @@ foam.CLASS({
           add('Test Results').
         end().
         start().
-          style({marginLeft: '20px'}).
+          style({marginLeft: '20px', fontSize: 'larger'}).
           start('div').style({color: 'green'}).add('Passed: ', this.data.passed$).end().
           start('div').style({color: 'red'}).add('Failed: ', this.data.failed$).end().
           start('b').add('Total: ',  this.data.total$);
