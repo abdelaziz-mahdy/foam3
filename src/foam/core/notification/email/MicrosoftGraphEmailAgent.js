@@ -211,10 +211,9 @@ foam.CLASS({
     },
     {
       name: 'maybeReload',
-      type: 'Boolean',
+      type: 'Void',
       javaCode: `
-      // do not reload
-      return false;
+      // Do nothing
       `
     },
     {

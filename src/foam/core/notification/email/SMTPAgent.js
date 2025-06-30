@@ -223,9 +223,9 @@ foam.CLASS({
     },
     {
       name: 'maybeReload',
-      type: 'Boolean',
+      type: 'Void',
       javaCode: `
-      return true;
+      reload();
       `
     },
     {
@@ -247,9 +247,7 @@ foam.CLASS({
           if ( emailMessages.size() == 0 ) break;
 
           // Reload only if there are email messages to send.
-          if ( maybeReload() ) {
-            reload();
-          }
+          maybeReload();
 
           long second = 1000L;
           long limit = config.getRateLimit();
