@@ -178,7 +178,7 @@ foam.CLASS({
           add('Test Results').
         end().
         start().
-          style({marginLeft: '20px', fontSize: 'larger'}).
+          style({marginLeft: '20px', marginBottom: '20px', fontSize: 'larger'}).
           start('div').
             show(this.data.passed$).
             style({color: 'green'}).
