@@ -337,13 +337,20 @@ foam.CLASS({
     },
     {
       name: 'describeModel',
-      code: function describeModel() {
+      code: function() {
         this.eval_('describe ' + this.dao.of.id);
       }
     },
     {
       name: 'testOutput',
-      code: function describeModel() {
+      // TODO:
+//      isEnabled: function(value) { return this.value; },
+      code: async function() {
+        // Run run() before testing to ensure output is correct.
+        this.readyLatch_ = undefined;
+        this.run();
+        await this.readyLatch_;
+
         var name = this.block.flowName;
         this.eval_(`test(${name}.value,'Test output of ${name}')`);
       }
