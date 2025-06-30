@@ -15,6 +15,21 @@
  * limitations under the License.
  */
 
+Blob.prototype.ref = function() {
+  this.count_ = (this.count_ || 0) + 1;
+  if ( this.count_ == 1 ) {
+    this.url_ = URL.createObjectURL(this);
+  }
+  return this.url_
+}
+
+Blob.prototype.unref = function() {
+  this.count_ = this.count_ - 1;
+  if ( this.count_ == 0 ) {
+    URL.revokeObjectURL(this.url_);
+  }
+}
+
 foam.CLASS({
   package: 'foam.u2.tag',
   name: 'Image',
@@ -22,7 +37,9 @@ foam.CLASS({
 
   requires: [
     'foam.net.HTTPRequest',
-    'foam.u2.HTMLView'
+    'foam.u2.HTMLView',
+    'foam.blob.Blob',
+    'foam.blob.BlobBlob'
   ],
 
   css: `
@@ -56,6 +73,10 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'embedSVG'
+    },
+    {
+      class: 'Boolean',
+      name: 'sync'
     }
   ],
 
@@ -99,8 +120,21 @@ foam.CLASS({
 
           if ( ! data ) return null;
 
+          var src = data;
+
+          /// TODO: A better polymorphic way of doing this
+          if ( self.BlobBlob.isInstance(src) ) {
+            var url = src.blob.ref();
+            this.onDetach(() => {
+              src.blob.unref();
+            })
+            src = url;
+          } else if ( self.Blob.isInstance(data) ) {
+            src = self.__context__.blobService.urlFor(data);
+          }
+          
           this.start('img')
-            .attrs({ src: data, role: self.role })
+            .attrs({ src: src, role: self.role })
             .style({
               height:  displayHeight,
               width:   displayWidth,
