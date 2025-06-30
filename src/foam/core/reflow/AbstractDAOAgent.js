@@ -351,6 +351,7 @@ foam.CLASS({
   requires: [ 'foam.core.reflow.XMLSink', 'foam.core.reflow.CopyFromBorder' ],
 
   methods: [
+    function value(s) { return foam.lang.StringHolder.create({value: s.xml}); },
     function getSink() { return this.XMLSink.create({of: this.of}); },
     function addSinkToE(e, s) {
       s = this.useProjection ? this.getSinkWithProjectionData(s) : s;
@@ -368,6 +369,7 @@ foam.CLASS({
   requires: [ 'foam.core.reflow.JSONSink', 'foam.core.reflow.CopyFromBorder' ],
 
   methods: [
+    function value(s) { return foam.lang.StringHolder.create({value: s.json}); },
     function getSink() { return this.JSONSink.create({of: this.of}); },
     function addSinkToE(e, s) {
       s = this.useProjection ? this.getSinkWithProjectionData(s) : s;

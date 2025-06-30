@@ -340,6 +340,13 @@ foam.CLASS({
       code: function describeModel() {
         this.eval_('describe ' + this.dao.of.id);
       }
+    },
+    {
+      name: 'testOutput',
+      code: function describeModel() {
+        var name = this.block.flowName;
+        this.eval_(`test(${name}.value,'Test output of ${name}')`);
+      }
     }
   ],
 

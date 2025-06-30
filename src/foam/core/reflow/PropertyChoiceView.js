@@ -114,7 +114,7 @@ foam.CLASS({
       this.data$.relateTo(
         this.propName$,
         function propToName(p) { return p ? p.name : ''; },
-        function nameToProp(n) { return n ? self.of.getAxiomByName(n) : ''; }
+        function nameToProp(n) { return n ? self.forCls.getAxiomByName(n) : ''; }
       );
 
       this.start(this.PropertyChoiceView_, {forCls: this.forCls, data$: this.propName$});
