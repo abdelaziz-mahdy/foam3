@@ -3,7 +3,7 @@ p({
   name:"microsoftGraphEmailAgent",
   lazy: false,
   service:{
-    class:"foam.core.notification.email.MicrosoftGraphEmailAgent",
+    class:"foam.core.notification.email.ms.MicrosoftGraphEmailAgent",
     id: 'msGraph'
   }
 })
