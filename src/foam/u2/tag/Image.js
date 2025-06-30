@@ -32,7 +32,8 @@ foam.LIB({
       }
     }
   ]
-}
+});
+
 
 foam.CLASS({
   package: 'foam.u2.tag',
