@@ -348,8 +348,8 @@ foam.CLASS({
             end().
             start('td').attr('align', 'left').
               show(self.uploadAvailable).
-              start(self.Link).add('upload').on('click', uplFn).end().  
-            end().        
+              start(self.Link).add('upload').on('click', uplFn).end().
+            end().
             start('th').attr('align', 'left').
               start(self.Link).add(shortName).on('click', daoFn).end().
             end().
@@ -468,7 +468,7 @@ foam.CLASS({
         if ( q != undefined && (f.id + f.status + f.description).toLowerCase().indexOf(q) == -1 ) return;
         this.start('tr').
           start('td').start(self.Link).add(f.name).on('click', () => self.eval_('load("' + f.name + '")')).end().end().
-          start('td').add(f.status).end().
+          start('td').call(function() { f.STATUS.tableCellFormatter.f.call(this, f.status); }).end().
           start('td').add(f.description).end().
         end();
       });
