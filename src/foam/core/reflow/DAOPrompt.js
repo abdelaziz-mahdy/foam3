@@ -168,6 +168,7 @@ foam.CLASS({
       hidden: true,
       transient: true,
       expression: function(skip, limit, filteredDAO) {
+        if ( ! filteredDAO ) return null;
         if ( limit ) filteredDAO = filteredDAO.limit(limit);
         if ( skip  ) filteredDAO = filteredDAO.skip(skip);
         return filteredDAO;
@@ -179,6 +180,7 @@ foam.CLASS({
       hidden: true,
       transient: true,
       expression: function(dao, where, order) {
+        if ( ! dao ) return null;
         // Compiled on the Server
         // if ( this.where ) dao = dao.where(this.MQL(this.where));
 
@@ -262,7 +264,7 @@ foam.CLASS({
       view: function(_, X) {
         return {
           class: 'foam.core.reflow.PropertyListView',
-          of: X.data.dao.of
+          forCls: X.data.dao.of
         };
       }
     },
@@ -273,6 +275,14 @@ foam.CLASS({
           sinksOnly: false,
           choice: 'Table',
           dao: X.data.dao}, X.data);
+      },
+      preSet: function(o, n) {
+        // Temporary fix to recontextualize the object after load.
+        // TODO: remove once JSON parsing/loading is fixed
+        if ( n && n.__context__ != this.__subContext__ ) {
+          return n.clone(this.__subContext__);
+        }
+        return n;
       },
       reactive: false,
       section: 'output',
@@ -324,6 +334,12 @@ foam.CLASS({
       code: function() {
         this.version++;
       }
+    },
+    {
+      name: 'describeModel',
+      code: function describeModel() {
+        this.eval_('describe ' + this.dao.of.id);
+      }
     }
   ],
 
@@ -335,10 +351,6 @@ foam.CLASS({
       code: function maybeAutoRun() {
         if ( this.autoRun ) this.run();
       }
-    },
-
-    function describeModel() {
-      this.eval_('describe ' + this.dao.of.id);
     }
   ]
 });

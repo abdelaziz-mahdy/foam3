@@ -21,33 +21,104 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow',
-  name: 'PropertyChoiceView',
-  extends: 'foam.u2.view.ChoiceView',
+  name: 'PropertyCitationView',
+  extends: 'foam.u2.CitationView',
+  methods: [
+    function render() {   // to be used later for complex views
+      this.add(this.data.name/*, this.data.label*/);
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'PropertyChoiceView_',
+  extends: 'foam.u2.view.RichChoiceView',
 
   properties: [
     {
-      name: 'of',
+      name: 'forCls',
       postSet: function(_, value) {
-        this.choices = undefined;
+        this.rebuildSections();
       }
     },
     'predicate',
-    'optionalChoice',
     {
-      name: 'choices',
-      expression: function(of) {
-        var choices = [ ];
-        if ( this.optionalChoice ) choices.push(this.optionalChoice);
-        if ( of ) {
-          this.of.getAxiomsByClass(foam.lang.Property).forEach(p => {
-            if ( ! p.showInPropertyChoice ) return;
-            if ( this.predicate && ! this.predicate(p) ) return;
-            choices.push([p, p.label]);
-          });
-        }
-        if ( choices.length ) this.data = choices[0][0];
-        return choices;
+      name: 'search',
+      value: true
+    },
+    {
+      name: 'idProperty',
+      value: 'name'
+    },
+    {
+      name: 'choosePlaceholder',
+      value: 'Choose Property'
+    },
+    {
+      name: 'rowView',
+      factory: function() {
+        return { class: 'foam.core.reflow.PropertyCitationView' };
+      }
+    },
+    {
+      name: 'sections',
+      factory: function() {
+        if ( ! this.forCls ) return [
+          {
+            heading: 'Properties',
+            dao: foam.dao.ArrayDAO.create({ of: foam.lang.Property, array: [] })
+          }
+        ];
+        let arr = this.forCls.getAxiomsByClass(foam.lang.Property)
+          .filter(p => p.showInPropertyChoice)
+          .filter(p => ! this.predicate || this.predicate(p));
+
+        return [
+          {
+            heading: 'Properties',
+            dao: foam.dao.ArrayDAO.create({ of: foam.lang.Property, array: arr })
+          }
+        ];
       }
     }
+  ],
+
+  methods: [
+    function rebuildSections() {
+      this.clearProperty('sections');
+    }
   ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'PropertyChoiceView',
+  extends: 'foam.u2.View',
+
+  requires: [ 'foam.core.reflow.PropertyChoiceView_' ],
+
+  properties: [
+    'forCls',
+    'propName'
+  ],
+
+  methods: [
+    function render() {
+      this.SUPER();
+
+      var self = this;
+
+      this.data$.relateTo(
+        this.propName$,
+        function propToName(p) { return p ? p.name : ''; },
+        function nameToProp(n) { return n ? self.of.getAxiomByName(n) : ''; }
+      );
+
+      this.start(this.PropertyChoiceView_, {forCls: this.forCls, data$: this.propName$});
+    }
+  ]
+
 });

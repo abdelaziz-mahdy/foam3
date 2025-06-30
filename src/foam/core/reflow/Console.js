@@ -821,10 +821,10 @@ foam.CLASS({
       background: $backgroundSecondary;
     }
     ^output {
-      text-align: left;
-//      align-content: flex-end;
       flex: 1;
       overflow: auto;
+      text-align: left;
+      width: 100%
     }
     ^ .property-input {
       border: none !important;
@@ -833,14 +833,8 @@ foam.CLASS({
       min-width: 220px;
     }
     .foam-core-reflow-Layout-l { overflow-y: auto; }
-    .foam-core-reflow-Layout-r .foam-core-reflow-PropertyBorder-richText .foam-core-reflow-PropertyBorder-propHolder { margin-left: -85px; }
     ^ .foam-u2-ProgressView { width: 600px; }
-    ^ .foam-core-reflow-ReflowToolBar {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 50px;
-    }
+
   `,
 
   properties: [
@@ -1038,10 +1032,10 @@ foam.CLASS({
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue, selected$configViewSpec) {
         this.tag(self.ReactiveSectionedDetailView, {
-          of: selectedValue?.cls_.id ?? '', 
-          ...(selected$configViewSpec || {}),  
-          data: selectedValue, 
-          showActions: true, 
+          of: selectedValue?.cls_.id ?? '',
+          ...(selected$configViewSpec || {}),
+          data: selectedValue,
+          showActions: true,
           showHeader: true
         });
       }));
@@ -1412,6 +1406,7 @@ foam.CLASS({
             this.currentBlock.flowName = c.flowName;
 
             if ( this.currentBlock.value && c.value ) {
+              if ( c.value.clone ) c.value = c.value.clone(this.__subContext__);
               this.currentBlock.value.copyFrom(c.value);
             }
 

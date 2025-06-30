@@ -18,6 +18,13 @@ foam.CLASS({
   ],
 
   css: `
+    ^ {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 50px;
+      z-index: 20;
+    }
     ^island-holder {
       display: flex;
       flex-direction: column;
@@ -34,7 +41,6 @@ foam.CLASS({
       border: 1px solid $grey200;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       width: 100%;
-      z-index: 11;
     }
 
     ^button-group {
@@ -55,11 +61,11 @@ foam.CLASS({
     function init() {
       this.SUPER();
       this.boundHandleClickOutside = this.handleClickOutside.bind(this);
-      window.addEventListener('click', this.boundHandleClickOutside);
+      window.addEventListener('mousedown', this.boundHandleClickOutside);
     },
 
     function destroy() {
-      window.removeEventListener('click', this.boundHandleClickOutside);
+      window.addEventListener('mousedown', this.boundHandleClickOutside);
     },
 
     function handleClickOutside(e) {

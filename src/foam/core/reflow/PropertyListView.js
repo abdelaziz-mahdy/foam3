@@ -10,15 +10,15 @@ foam.CLASS({
   extends: 'foam.u2.Controller',
 
   css: `
-    ^ { 
-      display: inline-flex; 
-      width: 100%; 
-      gap: 5px; 
+    ^ {
+      display: inline-flex;
+      width: 100%;
+      gap: 5px;
     }
   `,
 
   properties: [
-    'of',
+    'forCls',
     {
       class: 'String',
       name: 'data',
@@ -27,26 +27,7 @@ foam.CLASS({
     },
     {
       name: 'choice',
-      view: function(_, X) {
-        if ( ! X.data.of ) return; // Maybe throw an error here? 
-        // Unsure what error is best to throw. Gotta look into it.
-
-        let arr = X.data.of.getAxiomsByClass(foam.lang.Property)
-          .filter(p => p.showInPropertyChoice);
-
-        return {
-          class: 'foam.u2.view.RichChoiceView',
-          search: true,
-          idProperty: 'name',
-          of: foam.lang.Property,
-          sections: [
-            {
-              heading: 'Properties',
-              dao: foam.dao.ArrayDAO.create({ array: arr }, X)
-            }
-          ]
-        }
-      },
+      view: function(_, X) { return { class: 'foam.core.reflow.PropertyChoiceView_', forCls: X.data.of } },
       preSet: function(o, n) {
         if ( n == '*' ) {
           this.data = this.data || '';
@@ -64,7 +45,7 @@ foam.CLASS({
       var self = this;
       this.SUPER();
       this.addClass();
-      this.add(function(of) {
+      this.add(function(forCls) {
         this.tag(self.DATA, { type: 'search' }).add(' ', self.CHOICE);
       });
     }
