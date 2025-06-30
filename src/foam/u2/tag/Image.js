@@ -15,19 +15,23 @@
  * limitations under the License.
  */
 
-Blob.prototype.ref = function() {
-  this.count_ = (this.count_ || 0) + 1;
-  if ( this.count_ == 1 ) {
-    this.url_ = URL.createObjectURL(this);
-  }
-  return this.url_
-}
-
-Blob.prototype.unref = function() {
-  this.count_ = this.count_ - 1;
-  if ( this.count_ == 0 ) {
-    URL.revokeObjectURL(this.url_);
-  }
+foam.LIB({
+  name: 'foam.Blob',
+  methods: [
+    function acquireUrl(blob) {
+      blob.count_ = (blob.count_ || 0) + 1;
+      if ( blob.count_ == 1 ) {
+        blob.url_ = URL.createObjectURL(blob);
+      }
+      return blob.url_
+    },
+    function releaseUrl(blob) {
+      blob.count_ = blob.count_ - 1;
+      if ( blob.count_ == 0 ) {
+        URL.revokeObjectURL(blob.url_);
+      }
+    }
+  ]
 }
 
 foam.CLASS({
@@ -124,9 +128,9 @@ foam.CLASS({
 
           /// TODO: A better polymorphic way of doing this
           if ( self.BlobBlob.isInstance(src) ) {
-            var url = src.blob.ref();
+            var url = foam.Blob.acquireUrl(src.blob);
             this.onDetach(() => {
-              src.blob.unref();
+              foam.Blob.releaseUrl(src.blob);
             })
             src = url;
           } else if ( self.Blob.isInstance(data) ) {
