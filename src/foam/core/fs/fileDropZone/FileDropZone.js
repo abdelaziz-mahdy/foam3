@@ -274,9 +274,21 @@ foam.CLASS({
       var constructedString = '';
 
       if ( readable ) {
-        supportedTypes.forEach((type, index) => {
-          constructedString += this.supportedFormats[type];
-          if ( index < supportedTypes.length - 1 ) {
+        // Deduplicate format labels for readable display
+        var uniqueLabels = [];
+        var seenLabels = {};
+        
+        supportedTypes.forEach(type => {
+          var label = this.supportedFormats[type];
+          if ( !seenLabels[label] ) {
+            seenLabels[label] = true;
+            uniqueLabels.push(label);
+          }
+        });
+        
+        uniqueLabels.forEach((label, index) => {
+          constructedString += label;
+          if ( index < uniqueLabels.length - 1 ) {
             constructedString += ', ';
           }
         });
