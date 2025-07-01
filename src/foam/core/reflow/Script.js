@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'Script',
 
   imports: [
-    'data as block'
+    'data as block',
     'scope'
   ],
 
