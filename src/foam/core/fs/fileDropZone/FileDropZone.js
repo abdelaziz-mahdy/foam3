@@ -280,7 +280,7 @@ foam.CLASS({
         
         supportedTypes.forEach(type => {
           var label = this.supportedFormats[type];
-          if ( !seenLabels[label] ) {
+          if (  ! seenLabels[label] ) {
             seenLabels[label] = true;
             uniqueLabels.push(label);
           }
