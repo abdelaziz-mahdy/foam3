@@ -15,8 +15,6 @@ foam.CLASS({
   ]
 });
 
-
-
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Mapping',
@@ -91,7 +89,6 @@ foam.CLASS({
   ]
 });
 
-
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Upload',
@@ -110,7 +107,6 @@ foam.CLASS({
 
   imports: [ 'currentBlock?', 'eval_?', 'setTimeout' ],
 
-
   properties: [
     {
       class: 'FObjectArray',
@@ -118,7 +114,7 @@ foam.CLASS({
       name: 'uploadedFiles',
       factory: function() { return []; },
       postSet: function(_, n) {
-        if (n && n.length > 0) {
+        if ( n && n.length > 0 ) {
           this.input = '';
           this.processUploadedFiles();
         }
@@ -139,7 +135,7 @@ foam.CLASS({
         };
       },
       visibility: function(input) {
-        return (!input || input.trim() === '') ? 
+        return ( ! input || input.trim() === '' ) ? 
           foam.u2.DisplayMode.RW : 
           foam.u2.DisplayMode.HIDDEN;
       }
@@ -149,12 +145,12 @@ foam.CLASS({
       name: 'input',
       view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
       postSet: function(_, n) {
-        if (n && n.trim() !== '') {
+        if ( n && n.trim() !== '' ) {
           this.uploadedFiles = [];
         }
       },
       visibility: function(uploadedFiles) {
-        return (!uploadedFiles || uploadedFiles.length === 0) ? 
+        return ( ! uploadedFiles || uploadedFiles.length === 0 ) ? 
           foam.u2.DisplayMode.RW : 
           foam.u2.DisplayMode.HIDDEN;
       }
@@ -290,9 +286,9 @@ foam.CLASS({
   methods: [
     function onFilesChanged(files) {
       var foamFiles = [];
-      for (var i = 0; i < files.length; i++) {
+      for ( var i = 0 ; i < files.length ; i++ ) {
         var file = files[i];
-        if (file.cls_ && file.cls_.id === 'foam.core.fs.File') {
+        if ( file.cls_ && file.cls_.id === 'foam.core.fs.File' ) {
           foamFiles.push(file);
         } else {
           var foamFile = this.File.create({
@@ -340,7 +336,7 @@ foam.CLASS({
     },
 
     async function processUploadedFiles() {
-      if (!this.uploadedFiles || this.uploadedFiles.length === 0) {
+      if ( ! this.uploadedFiles || this.uploadedFiles.length === 0 ) {
         return;
       }
 
@@ -363,7 +359,7 @@ foam.CLASS({
         try {
           var actualFile = file.data ? file.data.blob : file;
           
-          if (!actualFile) {
+          if ( ! actualFile ) {
             reject('No file data available');
             return;
           }
