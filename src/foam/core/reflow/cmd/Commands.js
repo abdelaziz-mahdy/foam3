@@ -4,8 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-// TODO: replace uses of outputLink with Link
-
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
   name: 'Command',
@@ -19,6 +17,7 @@ foam.CLASS({
     'foam.core.auth.AuthorizationException'
   ],
 
+  // TODO: I think currentBlock is no longer needed. Test and remove if it isn't.
   imports: [ 'addValue?', 'block?', 'currentBlock?', 'log?', 'out?', 'eval_?' ],
 
   tableColumns: [ 'id', 'description' /*, 'execute_' */ ],
@@ -603,7 +602,7 @@ foam.CLASS({
   name: 'Save',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [  'currentBlock', 'flow', 'flowDAO', 'save' ],
+  imports: [  'flow', 'flowDAO', 'save' ],
 
   properties: [
     [ 'description', 'Save the current flow to a specified name' ]

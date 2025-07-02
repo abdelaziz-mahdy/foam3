@@ -1141,7 +1141,9 @@ foam.CLASS({
 
       // Add bindings for children
       this.flowChildren.forEach(c => {
-        if ( c.value ) s[c.flowName] = c.value;
+        if ( c.value ) {
+          s[c.flowName] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value;
+        }
       });
     },
 

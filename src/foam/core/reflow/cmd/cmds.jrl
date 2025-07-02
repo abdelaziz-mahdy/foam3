@@ -119,7 +119,7 @@ p({
   "id": "script",
   "description": "Create a Script",
   "script": """
-    addValue(foam.core.reflow.Script.create({}, this));
+    addValue(foam.core.reflow.Script.create({}, this), true);
   """
 })
 p({
