@@ -276,7 +276,6 @@ foam.CLASS({
       if ( readable ) {
         // Deduplicate format labels for readable display
         let uniqueLabels = new Set(Object.values(this.supportedFormats));
-        console.log('Unique labels:', uniqueLabels);
         let index = 0;
         uniqueLabels.forEach((label) => {
           constructedString += label;
