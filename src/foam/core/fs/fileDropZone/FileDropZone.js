@@ -275,22 +275,15 @@ foam.CLASS({
 
       if ( readable ) {
         // Deduplicate format labels for readable display
-        var uniqueLabels = [];
-        var seenLabels = {};
-        
-        supportedTypes.forEach(type => {
-          var label = this.supportedFormats[type];
-          if ( !seenLabels[label] ) {
-            seenLabels[label] = true;
-            uniqueLabels.push(label);
-          }
-        });
-        
-        uniqueLabels.forEach((label, index) => {
+        let uniqueLabels = new Set(Object.values(this.supportedFormats));
+        console.log('Unique labels:', uniqueLabels);
+        let index = 0;
+        uniqueLabels.forEach((label) => {
           constructedString += label;
-          if ( index < uniqueLabels.length - 1 ) {
+          if ( index < uniqueLabels.size - 1 ) {
             constructedString += ', ';
           }
+          index++;
         });
       } else {
         supportedTypes.forEach((type, index) => {
