@@ -4,7 +4,7 @@
 
 <h2>Building for deployment</h2>
 <p>Deployment builds generate a tar ball.</p>
-<code>node foam3/tools/build.js -ckJyour_deployment_directories,../foam/deployment/https</code>
+<code>node foam3/tools/build.js -ckJyour_deployment_directories,../foam3/deployment/https</code>
 
 <h2>Uploading / Installing</h2>
 <p>Once a tar ball is prepared, it can be uploaded and the application installed</p>
