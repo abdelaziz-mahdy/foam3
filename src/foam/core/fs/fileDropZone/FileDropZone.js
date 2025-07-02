@@ -285,7 +285,6 @@ foam.CLASS({
           }
           index++;
         });
-        
       } else {
         supportedTypes.forEach((type, index) => {
           constructedString += type;
