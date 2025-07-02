@@ -191,7 +191,7 @@ foam.CLASS({
           style({marginLeft: '20px', marginBottom: '20px', fontSize: 'larger'}).
 
           select(this.data.dao, function(t) {
-            this.add(t.id, ' ', t.STATUS, ' ', t.description).br();
+            this.startContext({data: t}).add(t.id, ' ').start(t.STATUS).style({display: 'inline-block', width: '70px'}).end().add(' ', t.description).br();
           }).
 
           br().
