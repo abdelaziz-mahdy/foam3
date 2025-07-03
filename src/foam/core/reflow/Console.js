@@ -671,6 +671,10 @@ foam.CLASS({
     ^r .foam-u2-detail-SectionView-actionDiv {
       gap: 10px;
     }
+
+    ^r .foam-u2-detail-SectionView-actions {
+      padding: 24px;
+    }
   `,
 
   properties: [
