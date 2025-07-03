@@ -837,6 +837,14 @@ foam.CLASS({
     .foam-core-reflow-Layout-l { overflow-y: auto; }
     ^ .foam-u2-ProgressView { width: 600px; }
 
+    ^rightBar-title {
+      padding-inline: 24px;
+      padding-block: 16px;
+      border-bottom: 1px solid $grey200;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
   `,
 
   properties: [
@@ -1063,7 +1071,10 @@ foam.CLASS({
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
       layout.middle.call(this.renderSelf, [this]);
       layout.right.add(this.dynamic(function(selectedValue, selected$configViewSpec) {
-        this.tag(self.ReactiveSectionedDetailView, {
+        this.start().addClass(self.myClass('rightBar-title'))
+          .add('Flow Properties')
+        .end()
+        .tag(self.ReactiveSectionedDetailView, {
           of: selectedValue?.cls_.id ?? '',
           ...(selected$configViewSpec || {}),
           data: selectedValue,
