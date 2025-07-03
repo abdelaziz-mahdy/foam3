@@ -7,7 +7,7 @@
 
 foam.CLASS({
     package: 'foam.core.reflow.cmd',
-    name: 'DaoRowView',
+    name: 'DAORowView',
     extends: 'foam.u2.View',
   
     requires: [

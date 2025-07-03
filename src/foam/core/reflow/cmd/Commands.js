@@ -302,7 +302,7 @@ foam.CLASS({
 
   mixins: [ 'foam.mlang.Expressions' ],
 
-  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch', 'foam.core.reflow.cmd.DaoRowView' ],
+  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch', 'foam.core.reflow.cmd.DAORowView' ],
 
   imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO' ],
 
@@ -341,7 +341,7 @@ foam.CLASS({
           var uplFn = () => self.eval_('upload ' + shortName);
           var desFn = () => self.eval_('describe(' + of.id + ')');
 
-            this.tag(self.DaoRowView, {
+            this.tag(self.DAORowView, {
               shortName: shortName,
               description: n.description,
               ofId: of.id,
