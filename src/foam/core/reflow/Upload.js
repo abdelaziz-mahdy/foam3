@@ -116,6 +116,15 @@ foam.CLASS({
 
   imports: [ 'currentBlock?', 'eval_?', 'setTimeout' ],
 
+  constants: {
+    SUPPORTED_FORMATS: {
+      'text/csv': 'CSV',
+      'application/json': 'JSON', 
+      'text/xml': 'XML',
+      'text/plain': 'TXT'
+    }
+  },
+
   properties: [
     {
       class: 'FObjectArray',
@@ -134,12 +143,7 @@ foam.CLASS({
         return {
           class: 'foam.core.fs.fileDropZone.FileDropZone',
           files$: X.data.uploadedFiles$,
-          supportedFormats: {
-            'text/csv': 'CSV',
-            'application/json': 'JSON',
-            'text/xml': 'XML',
-            'text/plain': 'TXT'
-          },
+          supportedFormats: X.data.SUPPORTED_FORMATS,
           isMultipleFiles: false,
           title: 'Drag and drop a file here or click to browse',
           onFilesChanged: X.data.onFilesChanged.bind(X.data)
@@ -358,9 +362,7 @@ foam.CLASS({
         var content = await this.readFileContent(firstFile);
         this.input = content;
         
-        this.format = firstFile.mimeType === 'text/csv' ? 'CSV' :
-                     firstFile.mimeType === 'application/json' ? 'JSON' :
-                     firstFile.mimeType === 'text/xml' ? 'XML' : 'AUTO';
+        this.format = this.SUPPORTED_FORMATS[firstFile.mimeType] || 'AUTO';
       } catch (e) {
         console.error('Error processing uploaded files:', e);
         this.output += '<span style="color:red">Error reading uploaded file: ' + e.message + '</span><br>';
