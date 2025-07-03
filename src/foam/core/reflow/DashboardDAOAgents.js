@@ -140,7 +140,7 @@ foam.CLASS({
       view: function(_, X) {
         return { 
           class: 'foam.core.reflow.PropertyChoiceView', 
-          of: X.data.dao ? X.data.dao.of : null 
+          foCls: X.data.dao.of
         };
       }
     },
@@ -164,7 +164,7 @@ foam.CLASS({
       view: function(_, X) {
         return { 
           class: 'foam.core.reflow.PropertyChoiceView', 
-          of: X.data.dao ? X.data.dao.of : null,
+          forCls: X.data.dao.of,
           predicate: function(p) {
             // Only show numeric properties for aggregation
             return foam.lang.Int.isInstance(p) || 
