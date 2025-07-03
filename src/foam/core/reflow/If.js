@@ -20,11 +20,13 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'ifBlock'
+      name: 'ifBlock',
+      reactive : false
     },
     {
       class: 'String',
-      name: 'elseBlock'
+      name: 'elseBlock',
+      reactive : false
     }
   ],
 
