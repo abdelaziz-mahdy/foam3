@@ -29,12 +29,16 @@ foam.CLASS({
       code: function put(obj, sub) { this.value += this.arg1.f(obj); },
       javaCode: 'setValue(getValue() + ((Number) this.arg1_.f(obj)).doubleValue());'
     },
+
     function toSummary() { return this.value; },
+
     function addToE(e) { e.add(this.value); },
 
     function toProperties() {
-      return [ { class: 'Double', name: 'sum', label: `SUM(${this.arg1.name})` } ];
+      var name = 'sum_' + this.arg1.name;
+      return [ { class: 'Double', name: name , label: name /* `SUM(${this.arg1.name})`*/ } ];
     },
+
     function setPropertyValues(o, sink, ps) {
       ps[0].set(o, sink.value);
     }

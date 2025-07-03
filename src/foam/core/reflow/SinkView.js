@@ -13,15 +13,26 @@ foam.CLASS({
     'foam.core.reflow.SinkAgent'
   ],
 
-  imports: [ 'dao', 'agentDAO' ],
+  imports: [ 'agentDAO' ],
+
+  exports: [ 'dao' ],
 
   css: `
     ^ {
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    ^ > div {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      gap: 5px;
     }
   `,
 
   properties: [
+    { name: 'dao', factory: function() { return this.__context__.dao; } },
     {
       name: 'agentType',
       value: undefined
@@ -33,12 +44,6 @@ foam.CLASS({
     },
     {
       name: 'choice',
-      factory: function() {
-        return this.agentDAO.select().then((agents) => {
-          const entities = agents.array;
-          return entities[0]?.value;
-        });
-      },
       postSet: function(o, n) {
         if ( ! this.feedback_ ) this.data = undefined;
       },
@@ -84,6 +89,7 @@ foam.CLASS({
         return cls ? cls.create({}, this) : undefined;
       },
       postSet: async function(o, n) {
+        /* ignoreWarning */
         if ( ! n ) return;
         await this.agentDAO.select().then(agents => {
           const results = agents.array;
@@ -104,17 +110,29 @@ foam.CLASS({
     function choiceToClass(choice) {
       return this.cls_.package + '.' + choice + 'DAOAgent';
     },
+
     function render() {
       var self = this;
+
+      this.agentDAO.select().then(agents => {
+        const entities = agents.array;
+        if ( ! this.choice ) this.choice = entities[0]?.value;
+      });
+
       if ( ! this.data ) { this.data = undefined; }
 
       this.
-        addClass().
-        startContext({data: this}).
-          add(this.CHOICE).
-        endContext().
-        add(' ', self.dynamic(function (data) {
-          if ( ! self.dao ) return;
+        addClass().add(' ').
+        add(self.dynamic(function (data, dao) {
+          if ( ! dao ) {
+            this.start('i').add('select data source');
+            return;
+          }
+          this.startContext({data: self}).
+            add(self.CHOICE).
+          endContext();
+
+
           if ( data instanceof Promise ) {
             data.then(d => d.addToE(this));
           } else {

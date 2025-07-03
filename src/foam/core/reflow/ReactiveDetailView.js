@@ -28,6 +28,9 @@ foam.CLASS({
         }
         return rs;
       },
+      isDefaultValue: function(v) {
+        return Object.keys(v).length == 0;
+      },
       toJSON: function(v) {
         var m = {};
         for ( key in v ) { m[key] = v[key].toString(); }
@@ -81,12 +84,15 @@ foam.CLASS({
 
   css: `
     ^{
-      flex-direction: row;
-      align-items: center;
       width: 100%;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 8px;
     }
     ^ ^label {
-      width: 50%;
+      color: $black;
+      width: 90%;
     }
     ^view: {
       min-height: 0px;
@@ -151,6 +157,14 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      // Reset context property border to the default border
+      // This is done to prevent setting reactions on nested FObject props
+      const x = this.__context__.createSubContext();
+      x.register(foam.u2.PropertyBorder, 'foam.u2.PropertyBorder');
+      this.__context__ = x;
+    },
+
     function render() {
       this.data$.sub(this.onDataChange);
       this.onDataChange();
@@ -176,9 +190,8 @@ foam.CLASS({
             }).addClass(self.myClass('element-icon')).end()
           }
         })).
-      end();
-
-      this.add(
+      end().
+      add(
         self.dynamic(function(reactive) {
           if ( reactive ) {
             this.start().
@@ -244,34 +257,89 @@ foam.CLASS({
   ]
 });
 
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'PropertyRefinement',
+  refines: 'Property',
+
+  properties: [
+    {
+      class: 'Boolean',
+      name: 'reactive',
+      value: true
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'FObjectPropertyRefinement',
+  refines: 'FObjectProperty',
+  properties: [ [ 'reactive', false ] ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'FObjectArrayRefinement',
+  refines: 'FObjectArray',
+  properties: [ [ 'reactive', false ] ]
+});
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ReactiveSectionedDetailView',
-  extends: 'foam.u2.detail.SectionedDetailView',
+  extends: 'foam.u2.detail.VerticalDetailView',
 
   requires: [
-    'foam.core.reflow.ReactiveSectionView'
+    'foam.u2.PropertyBorder',
+    'foam.core.reflow.PropertyBorder as ReactivePropertyBorder',
   ],
 
+
   css: `
-    ^card-container {
-      padding: 20px;
-      border-top: 1px solid $grey200;
+    ^ > div > .foam-u2-layout-Rows {
+      gap: 10px;
+    }
+    ^ .foam-u2-detail-SectionView-actionDiv {
+      flex-direction: column;
+    }
+    ^ .foam-u2-detail-SectionView-section-title {
+      padding-inline: 24px;
+      padding-block: 16px;
+      font-size: 16px;
+    }
+    ^ .foam-u2-detail-SectionView-general {
+      border-bottom: 1px solid $grey200;
+    }
+    ^ .foam-u2-detail-SectionView-grid {
+      padding-inline: 24px;
     }
   `,
 
   properties: [
-    [ 'showActions', true ],
-    [ 'expandPropertyViews', false ]
+    [ 'showActions', true ]
   ],
 
   methods: [
-    function render() {
-      this.sections.forEach(s => s.view = 'foam.core.reflow.ReactiveSectionView');
+    function init() {
+      const self = this;
+      const x    = this.__context__.createSubContext();
+      const PropertyBorder = this.PropertyBorder;
+      const ReactivePropertyBorder = this.ReactivePropertyBorder;
+
+      // If a property has reactive: false then use the regular PropertyBorder, otherwise use a ReactivePropertyBorder
+      var cls = {
+        package: 'foam.u2',
+        id: 'foam.u2.PropertyBorder',
+        create: function(args, x) {
+          return (args.prop.reactive && args.prop.visibility != foam.u2.DisplayMode.RO ? ReactivePropertyBorder : PropertyBorder).create(args, x);
+        }
+      };
+      x.register(cls, 'foam.u2.PropertyBorder');
+      this.__context__ = x;
       this.SUPER();
-    },
-    function renderTitle(self) {
-      // NOP
     }
   ]
 });

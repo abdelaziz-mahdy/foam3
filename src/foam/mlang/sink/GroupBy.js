@@ -17,8 +17,6 @@ foam.CLASS({
     'foam.mlang.sink.Sequence'
   ],
 
-  static: [ (function() { let count = 0; return function NEXT() { return count++; }; })()  ],
-
   // TODO: it makes no sense to name the arguments arg1 and arg2
   // because this isn't an expression, so they should be more meaningful
   properties: [
@@ -202,37 +200,68 @@ if ( getGroupLimit() == getGroups().size() && sub != null ) sub.detach();
       return this.Sequence.create({horizontal: true, args: [ v1, v2 ]});
     },
 
-    function asDAO() {
-      var model = {
+    function genModel() {
+      const model = {
         package: 'foam.tmp',
-        name: 'Group' + this.NEXT() + 'DAO',
+        name: 'GroupBy' + foam.next$UID(),
+        ids: [ this.arg1.name ],
         properties: [
-          { class: 'String', name: 'id' }
+          { class: 'String', name: this.arg1.name, label: this.arg1.label }
         ]
       };
+
       model.plural = model.name;
-      var props = this.arg2.toProperties ? this.arg2.toProperties() : [ this.arg2.VALUE ];
+      var props = this.arg2.toProperties ? this.arg2.toProperties() : this.arg2.VALUE ? [ this.arg2.VALUE ] : [];
       model.properties.push.apply(model.properties, props);
 
+      return model;
+    },
+
+    function asDAO() {
+      const model = this.genModel();
       foam.CLASS(model);
       var cls = foam.lookup('foam.tmp.' + model.name);
 
-      props = props.map(p => cls.getAxiomByName(p.name));
+      // So that tableColumns aren't remembered from a previous run
+      delete localStorage[cls.id];
 
-      var dao = foam.dao.MDAO.create({of: cls});
+      var props  = model.properties.map(p => cls.getAxiomByName(p.name));
+      var dao    = foam.dao.MDAO.create({of: cls});
 
-      var groups = this.groups;
-      this.groupKeys.forEach(k => {
-        var o = cls.create({id: k, value: groups[k].value});
-        if ( this.arg2.setPropertyValues ) {
-          this.arg2.setPropertyValues(o, groups[k], props);
-        } else {
-          o.value = groups[k].value;
-        }
-        dao.put(o);
-      });
+      var o = cls.create({});
+
+      this.processGroupValue(dao, o, props);
 
       return dao;
+    },
+
+    function toProperties() {
+      return this.genModel().properties;
+    },
+
+    function processGroupValue(dao, proto, props) {
+      var groups = this.groups;
+
+      var ID = props[0];
+
+      props = props.slice(1);
+
+      this.groupKeys.forEach(k => {
+        var group = groups[k];
+
+        var o = proto.clone();
+        ID.set(o, k);
+
+        if ( group.processGroupValue ) {
+          group.processGroupValue(dao, o, props);
+        } else if ( this.arg2.setPropertyValues ) {
+          this.arg2.setPropertyValues(o, groups[k], props);
+          dao.put(o);
+        } else {
+          o.value = groups[k].value;
+          dao.put(o);
+        }
+      });
     }
   ]
 });

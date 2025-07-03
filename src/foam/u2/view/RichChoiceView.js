@@ -285,7 +285,7 @@ foam.CLASS({
     }
 
     ^clear-btn:hover {
-      color: $textDetructive;
+      color: $textDestructive;
       cursor: pointer;
     }
 
@@ -379,7 +379,7 @@ foam.CLASS({
     {
       class: 'Class',
       name: 'of',
-      documentation: 'The model stored in the DAO. Used intenrally.',
+      documentation: 'The model stored in the DAO. Used internally.',
       expression: function(sections) {
         return sections[0].dao.of;
       }
@@ -713,14 +713,18 @@ foam.CLASS({
                 if ( section.disabled ) return this.clearSelection();
                 this.fullObject_ = result.array[0];
               }
-            }).catch( e => console.warn(e));
+            }).catch(e =>
+              console.warn(e)
+            );
             return;
           }
           // majority of cases will fall into above code,
           // but incase a section is defined without a proper dao
-          section.dao.find(this.data).then(result => {
-            if ( result ) this.fullObject_ = result;
-          }).catch( e => console.warn(e));
+          if ( this.data ) {
+            section.dao.find(this.data).then(result => {
+              if ( result ) this.fullObject_ = result;
+            }).catch( e => console.warn(e));
+          }
         });
       }
     },
@@ -854,7 +858,6 @@ foam.CLASS({
           position: sticky;
           bottom: 0;
         }
-
 
       `
     }

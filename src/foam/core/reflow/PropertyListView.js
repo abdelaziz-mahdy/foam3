@@ -10,11 +10,19 @@ foam.CLASS({
   extends: 'foam.u2.Controller',
 
   css: `
-    ^ { display: inline-flex; width: 100% }
+    ^ {
+      display: inline-flex;
+      width: 100%;
+      gap: 5px;
+    }
+    ^ .property-choice {
+      width: 100%;
+      overflow-x: hidden;
+    }
   `,
 
   properties: [
-    'of',
+    'forCls',
     {
       class: 'String',
       name: 'data',
@@ -23,13 +31,16 @@ foam.CLASS({
     },
     {
       name: 'choice',
-      view: function(_, X) { return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of, optionalChoice: '*' } },
+      view: function(_, X) {
+        // X.data is actually 'this' because PropertyListView is a Controller, not a View
+        return { class: 'foam.core.reflow.PropertyChoiceView_', forCls: X.data.forCls };
+      },
       preSet: function(o, n) {
         if ( n == '*' ) {
           this.data = this.data || '';
         } else {
           if ( this.data ) this.data += ',';
-          this.data += n.name;
+          this.data += n;
         }
         return n;
       }
@@ -41,8 +52,8 @@ foam.CLASS({
       var self = this;
       this.SUPER();
       this.addClass();
-      this.add(function(of) {
-        this.tag(self.DATA, {type: 'search'}).add(' ', self.CHOICE);
+      this.add(function(forCls) {
+        this.tag(self.DATA, { type: 'search' }).add(' ', self.CHOICE);
       });
     }
   ]
