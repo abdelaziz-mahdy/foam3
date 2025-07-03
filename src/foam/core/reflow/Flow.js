@@ -51,7 +51,7 @@ foam.CLASS({
 
   tableColumns: [ 'name', 'source', 'description', 'status', 'schedule', 'lastRun', /* 'isPublic', 'readOnly', */ 'reflow' ],
 
-  searchColumns: [ 'name', 'status', 'source', 'schedule' ],
+  searchColumns: [ 'name', 'status', 'source', 'keywords' ],
 
   constants: { ROLE_PERMISSION_PREFIX: '@' },
 
