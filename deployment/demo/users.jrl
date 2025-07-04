@@ -1,3 +1,4 @@
+// password: admin
 p({
   "class":"foam.core.auth.User",
   "id":42,
