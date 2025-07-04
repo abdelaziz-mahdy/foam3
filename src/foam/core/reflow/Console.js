@@ -631,7 +631,7 @@ foam.CLASS({
       border-right: 1px solid $grey200;
     }
     ^middle-holder {
-      padding: 10px;
+      padding: 36px;
       width: 100%;
       background-color: $grey100;
       overflow: auto;
