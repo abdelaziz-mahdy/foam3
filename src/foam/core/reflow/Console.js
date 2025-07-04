@@ -829,7 +829,7 @@ foam.CLASS({
       text-align: left;
       width: 100%
     }
-    ^ .property-input {
+    ^input-field .property-input {
       border: none !important;
     }
     ^ .foam-u2-view-ValueView {
