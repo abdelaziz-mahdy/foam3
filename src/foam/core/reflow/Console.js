@@ -479,7 +479,8 @@ foam.CLASS({
       padding: 4px;
     }
     ^:not(^hidePrompts) {
-      border-top: 1px solid $grey200;
+      border-bottom: 1px solid $grey200;
+      padding: 16px;
     }
     ^output {
       overflow-x: auto;
@@ -501,7 +502,6 @@ foam.CLASS({
     ^:hover { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
-      padding-right: 40px; // large so that you can still access the scrollbar
       overflow-x: auto;
       width: 100%;
     }
