@@ -782,6 +782,7 @@ foam.CLASS({
     'params',
     'scope?',
     'setTimeout',
+    'toolbarControlDAO',
     'window',
     'showNav'
   ],
@@ -1093,8 +1094,13 @@ foam.CLASS({
 
       this.flowName$ = this.value.name$;
 
-
       if ( this.route ) this.ROUTE.postSet.call(this, '', this.route);
+    },
+
+    function renderToolbar(self) {
+      this.select(self.toolbarControlDAO, function(c) {
+        this.tag({class: c.view});
+      });
     },
 
     function renderSelf(self) {
@@ -1106,8 +1112,8 @@ foam.CLASS({
             show(self.showInput$).
             addClass(self.myClass('input-field')).
             start('b').style({ display: 'flex', 'white-space': 'pre'}).
-              start(self.Link).add('help').on('click',    () => self.eval_('help'),    this).end()./*add(', ').
-              start(self.Link).add('history').on('click', () => self.eval_('history'), this).end().*/add(' >').
+              call(self.renderToolbar, [self]).
+              add(' >').
             end().
             start(self.INPUT, null, self.input_$).
               addClass(self.myClass('input')).
