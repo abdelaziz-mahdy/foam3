@@ -1116,7 +1116,7 @@ foam.CLASS({
               addClass(self.myClass('input')).
               on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
             end().
-            tag(self.ON_INPUT).
+//            tag(self.ON_INPUT).
           end().
           start(self.ReflowToolBar, { data: self }).show(self.showPrompts$).end().
         end();
