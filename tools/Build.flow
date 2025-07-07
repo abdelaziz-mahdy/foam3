@@ -149,20 +149,6 @@ Using --flags:test will include all source and configuration flagged as 'test' t
   <li></li>
 </ul>
 
-<h1>Additional Tooling</h1>
-<h2>Project</h2>
-<p>Project tooling provides a task for creating a new FOAM based project, complete with an example Model and Test case.  The task will create the default directory layout along with required poms, and initial journal configuration for logging in and mananging the new Model.</p>
-<code>
-  ./build.sh -Tsetup/Project --appName:Recipe --package:com.foamdev.cook --adminPassword:badpassword
-  # then build with
-  ./build.sh deployment/demo/run.sh
-  # login with demo user - username: demo, password: demopassword
-  # or admin user - username: foam-admin, password: foam-admin
-  #
-  # Run the test case with
-  ./build.sh --java-tests:RecipeTest
-</code>
-
 <h2>RemoteInstall</h2>
 <p>The RemoteInstall tooling provide tasks to install a release on a remote instance.</p>
 <p>After building with task <b>tar</b>, re-run the build with RemoteInstall tooling to upload and install the tarball on a remote host.</p>
