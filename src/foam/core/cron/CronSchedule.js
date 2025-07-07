@@ -192,8 +192,7 @@ foam.CLASS({
       transient: true,
       hidden: true,
       javaSetter: `
-      if ( ! daysOfWeekIsSet_ &&
-           ! daysOfMonthIsSet_ ) {
+      if ( ! daysOfWeekIsSet_ && ! daysOfMonthIsSet_ ) {
         if ( val == -1 ) {
           setDaysOfWeek(foam.time.DayOfWeek.values());
         } else if ( val > 0 ) {
@@ -224,8 +223,7 @@ foam.CLASS({
       transient: true,
       hidden: true,
       javaSetter: `
-      if ( val > 0 &&
-           ! daysOfMonthIsSet_ ) {
+      if ( val > 0 && ! daysOfMonthIsSet_ ) {
         setDaysOfMonth(new Integer[] { val });
       }
       `,
