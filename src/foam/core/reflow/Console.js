@@ -300,15 +300,15 @@ foam.CLASS({
       padding: 10px 8px;
       align-items: center;
       cursor: pointer;
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
       border-radius: 4px;
     }
 
     .foam-u2-ActionView-text:hover:not(:disabled) {
-      background-color: $grey400!important;
+      background-color: $backgroundInverseTertiary!important;
     }
     ^ table td .close svg{
-      fill: $grey700;
+      fill: $textSecondary;
       cursor: pointer;
       font-weight: 500;
     }
@@ -316,24 +316,24 @@ foam.CLASS({
       padding: 4px;
     }
     ^ table td .close button:active {
-      border-color: $destructive500;
-      background-color: $destructive100!important;
+      border-color: $textDestructive;
+      background-color: $backgroundDestructiveTertiary!important;
     }
 
     ^selected {
-      background: $grey100;
+      background: $backgroundTertiary;
       font-weight: 500;
     }
     ^error {
-      background: $destructive50;
-      color: $destructive600;
+      background: $backgroundDestructiveTertiary;
+      color: $textDestructive;
     }
     ^left-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px;
-      border-bottom: 1px solid $grey200;
+      border-bottom: 1px solid $borderLight;
       font-weight: bold;
       font-size: 16px;
     }
