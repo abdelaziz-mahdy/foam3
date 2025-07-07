@@ -51,33 +51,68 @@ foam.CLASS({
 
   tableColumns: [ 'name', 'source', 'description', 'status', 'schedule', 'lastRun', /* 'isPublic', 'readOnly', */ 'reflow' ],
 
-  searchColumns: [ 'name', 'status', 'source', 'schedule' ],
+  searchColumns: [ 'name', 'status', 'source', 'keywords' ],
 
   constants: { ROLE_PERMISSION_PREFIX: '@' },
+
+  sections: [
+    {
+      name: 'general',
+      title: 'General',
+    },
+    {
+      name: 'scriptSection',
+      title: 'Script',
+      collapsable: true
+    },
+    {
+      name: 'scheduleSection',
+      title: 'Schedule',
+      collapsable: true
+    }
+  ],
 
   properties: [
     {
       class: 'String',
       name: 'name',
+      section: 'general',
       onKey: true
     },
     {
       class: 'String',
       name: 'description',
+      section: 'general',
       width: 80
     },
     {
       class: 'String',
       name: 'status',
+      section: 'general',
+      tableCellFormatter: function(value, obj) {
+        if ( value.startsWith('PASSED') ) {
+          this.style({color: 'green'});
+        } else if ( value.startsWith('FAILED') ) {
+          this.style({color: 'red'});
+        }
+        this.add(value);
+      },
       width: 20
     },
     {
       class: 'String',
       name: 'source',
+      section: 'general',
       width: 30
     },
     {
+      class: 'StringArray',
+      section: 'general',
+      name: 'keywords'
+    },
+    {
       class: 'String',
+      section: 'general',
       name: 'notes',
       width: 80,
       view: { class: 'foam.u2.tag.TextArea', rows: 3, cols: 78 }
@@ -86,12 +121,15 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.core.reflow.FlowAccess',
       name: 'accessLevel',
+      section: 'general',
+      label: 'Access',
       value: foam.core.reflow.FlowAccess.PUBLIC_RW
     },
     {
       class: 'FObjectArray',
       of: 'foam.core.reflow.UserFlowAccess',
       name: 'specifiedUserAccess',
+      section: 'general',
       visibility: function(accessLevel) {
         return accessLevel != foam.core.reflow.FlowAccess.SHARED ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
       }
@@ -100,6 +138,7 @@ foam.CLASS({
       class: 'FObjectArray',
       of: 'foam.core.reflow.RoleFlowAccess',
       name: 'specifiedRoleAccess',
+      section: 'general',
       visibility: function(accessLevel) {
         return accessLevel != foam.core.reflow.FlowAccess.SHARED ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
       }
@@ -113,48 +152,22 @@ foam.CLASS({
       hidden: true
     },
     {
-//      class: 'FObjectArray',
-//      of: 'com.google.flow.Property',
-      name: 'memento',
-      hidden: true,
-      transient: true,
-      postSet: function(_, n) {
-        if ( this.feedback_ ) return;
-        this.feedback_ = true;
-        try {
-          // TODO: should still not output empty reactions_: or children:
-          var json = foam.json.Outputter.create({
-            pretty: true,
-            strict: true,
-            formatDatesAsNumbers: false,
-            outputDefaultValues: false,
-            useShortNames: false,
-            propertyPredicate: function(_, p) { return p.name === 'reactions_' || ( ! p.externalTransient && ! p.networkTransient ); }
-          });
-          //          this.mementoStr = foam.json.Short.stringify(n);
-          // HACK: Console doesn't set name until after the block is added, so if we store the mementoStr
-          // now it will lack the name. Just delay a bit to allow name to be set.
-
-        } finally {
-//          setTimeout(()=> {
-            this.mementoStr = json.stringify(n)
-            this.feedback_ = false;
-//          }, 1);
-        }
-      }
-    },
-    {
       class: 'Reference',
       of: 'foam.core.auth.ServiceProvider',
-      name: 'spid'
+      name: 'spid',
+      section: 'general',
+      readPermissionRequired: true,
+      writePermissionRequired: true
     },
     {
       class: 'Int',
-      name: 'version'
+      name: 'version',
+      section: 'general'
     },
     {
       class: 'Int',
       name: 'revision',
+      section: 'general',
       transient: true,
       xxxview: {
         class: 'foam.u2.view.DualView',
@@ -164,37 +177,30 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'mementoStr',
-      label: 'Script',
-      postSet: function(_, n) {
-        if ( this.feedback_ ) return;
-        this.feedback_ = true;
-        try {
-          // console.log('*********** FLOW mementoStr change:', n);
-          n = n.trim();
-          if ( n ) {
-            var json = JSON.parse(n);
-            this.memento = foam.json.parse(json, null, this.__context__);
-          } else {
-            this.memento = [];
-          }
-        } finally {
-          this.feedback_ = false;
-        }
-      },
-      view: { class: 'foam.u2.tag.TextArea', rows: 8, cols: 78 }
+      name: 'script',
+      section: 'scriptSection',
+      reactive: false,
+      value: '[\n\t\n]', // Is needed so that mementoMgr doesn't get confused on the first state
+      preSet: function(o, n) { return n.trim(); },
+      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 60 }
     },
     {
-      class: 'FObjectProperty',
-      name: 'mementoMgr',
-      transient: true,
-      hidden: true,
-      factory: function() {
-        return foam.memento.MementoMgr.create({memento$: this.mementoStr$, position$: this.revision$});
-      }
+      class: 'DateTime',
+      name: 'lastRun',
+      section: 'scheduleSection',
+      readPermissionRequired: true,
+      factory: function() { return new Date(); },
+      documentation: 'Timestamp of the last execution of this flow. Works with this.schedule.'
+    },
+    {
+      class: 'DateTime',
+      name: 'nextRun',
+      section: 'scheduleSection',
+      visibility: 'RO'
     },
     {
       name: 'schedule',
+      section: 'scheduleSection',
       class: 'FObjectProperty',
       of: 'foam.core.cron.Schedule',
       view: {
@@ -215,10 +221,6 @@ foam.CLASS({
   ],
 
   methods: [
-    function init() {
-      this.SUPER();
-      this.mementoMgr; // force creation
-    },
     {
       name: 'authorizeOnCreate',
       javaCode: `

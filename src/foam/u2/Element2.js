@@ -121,7 +121,7 @@ foam.CLASS({
 
   properties: [
     {
-      name: 'slot',
+      name: 'slot_',
       preSet: function(o, n) {
         return n.framed();
       }
@@ -140,13 +140,13 @@ foam.CLASS({
 
   methods: [
     function detach() {
-      if ( this.slot ) this.slot.detach();
+      if ( this.slot_ ) this.slot_.detach();
       this.SUPER();
       this.element_ = null;
     },
 
     function load() {
-      this.onDetach(this.slot.sub(this.update));
+      this.onDetach(this.slot_.sub(this.update));
       this.update();
     },
 
@@ -172,7 +172,7 @@ foam.CLASS({
             n = foam.u2.Element.create({nodeName:'span'}, this);
             n.add.apply(n, val);
           } else if ( foam.lang.Slot.isInstance(val) ) {
-            n = this.cls_.create({ slot: val });
+            n = this.cls_.create({ slot_: val });
           } else if ( val.then ) {
             val.then(n => update_(n));
             return;
@@ -193,7 +193,7 @@ foam.CLASS({
           old.detach();
         };
 
-        update_(this.slot.get());
+        update_(this.slot_.get());
       }
     }
   ]
@@ -302,16 +302,12 @@ foam.CLASS({
         var self = this;
         return this.dynamic(function(data_) {
           data_.forEach(d => {
-            this.startContext({ data: d });
-
-            var e = this.code.call(this.startContext({ data: d }), d);
+            var e = this.code.call(this, d);
             if ( e ) {
               // TODO: remove after port from U2 to U3
               console.log('Deprecated use of select({return E}). Just do self.start() instead in DAOSelectNode.', this.code);
               this.tag(e);
             }
-
-            this.endContext()
           })
         });
       }
@@ -404,7 +400,6 @@ foam.CLASS({
 
   requires: [
     'foam.lang.PromiseSlot',
-    'foam.dao.MergedResetSink',
     'foam.u2.AttrSlot',
     'foam.u2.Entity',
     'foam.u2.RenderSink',
@@ -653,7 +648,7 @@ foam.CLASS({
     },
 
     function slotE_(slot) {
-      return foam.u2.SlotNode.create({slot: slot}, this);
+      return foam.u2.SlotNode.create({slot_: slot}, this);
     },
 
     function load() {
@@ -1173,13 +1168,13 @@ foam.CLASS({
       return this;
     },
 
-    function createChild_(spec, args) {
-      return foam.u2.ViewSpec.createView(spec, args, this, this.__subSubContext__);
+    function createChild_(spec, args, disableWarning) {
+      return foam.u2.ViewSpec.createView(spec, args, this, this.__subSubContext__, disableWarning);
     },
 
-    function start(spec, args, slot) {
+    function start(spec, args, slot, disableWarning) {
       /* Create a new Element and add it as a child. Return the child. */
-      var c = this.createChild_(spec, args);
+      var c = this.createChild_(spec, args, disableWarning);
 
       this.add(c);
 
@@ -1255,7 +1250,7 @@ foam.CLASS({
         return;
       }
       if ( foam.lang.Slot.isInstance(c) ) {
-        c = foam.u2.SlotNode.create({slot: c}, this);
+        c = foam.u2.SlotNode.create({slot_: c}, this);
       }
         /*
         var v = this.slotE_(c);
@@ -1598,7 +1593,7 @@ foam.CLASS({
     },
 
     function createElFromSpec_(spec, args, X) {
-      let el = foam.u2.ViewSpec.createView(spec, args, this, X);
+      let el = foam.u2.ViewSpec.createView(spec, args, this, X, true);
 
       if ( X.data$ && ! ( args && ( args.data || args.data$ ) ) ) {
         el.data$ = X.data$.dot(this.name);

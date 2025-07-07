@@ -1533,23 +1533,8 @@ foam.CLASS({
        var info = this.SUPER(cls);
        var m = info.getMethod('cast');
        m.body = `
-        try {
-          if ( o instanceof Number ) {
-            return new java.util.Date(((Number) o).longValue());
-          }
-          if ( o instanceof String ) {
-            o = (java.util.Date) fromString((String) o);
-          }
-          // convert the Date to be Noon time in GMT
-          var cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT"));
-          cal.setTime((java.util.Date) o);
-          cal.set(java.util.Calendar.HOUR_OF_DAY, 12);
-          cal.set(java.util.Calendar.MINUTE, 0);
-
-          return cal.getTime();
-        } catch ( Throwable t ) {
-          throw new RuntimeException(t);
-        }`;
+        return foam.util.DateUtil.adapt(o);
+       `;
 
        return info;
      }
@@ -2403,24 +2388,24 @@ foam.CLASS({
         var args = this.args;
         var boxPropName = foam.String.capitalize(this.boxPropName);
 
-        var code =
-`foam.box.Message message = getX().create(foam.box.Message.class);
-foam.box.RPCMessage rpc = getX().create(foam.box.RPCMessage.class);
+        var code = `
+var envelope = getX().create(foam.box.Envelope.class);
+var rpc = getX().create(foam.box.RPCMessage.class);
 rpc.setName("${name}");
 Object[] args = { ${ args.map( a => a.name ).join(',') } };
 rpc.setArgs(args);
 
-message.setObject(rpc);
-foam.box.RPCReturnBox replyBox = getX().create(foam.box.RPCReturnBox.class);
-message.getAttributes().put("replyBox", replyBox);
-get${boxPropName}().send(message);
+envelope.setMessage(rpc);
+var replyBox = getX().create(foam.box.RPCReturnBox.class);
+envelope.setReplyBox(replyBox);
+get${boxPropName}().send(envelope);
 try {
   replyBox.getSemaphore().acquire();
 } catch (Throwable t) {
   throw new RuntimeException(t);
 }
 
-Object result = replyBox.getMessage().getObject();
+Object result = replyBox.getEnvelope().getMessage();
 `;
 
         if ( this.javaType && this.javaType !== 'void' ) {

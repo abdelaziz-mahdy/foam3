@@ -21,7 +21,8 @@ foam.CLASS({
   properties: [
     {
       name: 'of',
-      factory: function() { return this.referenceDAO.of; }
+      transient: true,
+      factory: function() { return this.referenceDAO?.of; }
     }
   ],
 
@@ -84,7 +85,7 @@ foam.CLASS({
         this.props = null;
         this.useProjection = false;
       }
-      SUPER(e);
+      return SUPER(e);
     },
     function getProjectionSink() {
       var exprArray = [];
@@ -121,8 +122,8 @@ foam.CLASS({
       return s;
     }
   ]
+});
 
-})
 
 foam.CLASS({
   package: 'foam.core.reflow',
@@ -141,7 +142,6 @@ foam.CLASS({
 
   methods: [
     function execute(e) {
-      debugger;
       return this.dao.select(this.createSink()).then(s => {
         var a = s.array;
         for ( var i = 0 ; i < a.length ; i++ ) {
@@ -190,7 +190,7 @@ foam.CLASS({
     {
       name: 'prop',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     }
   ],
@@ -226,7 +226,7 @@ foam.CLASS({
       view: function(_, X) {
         return {
           class: 'foam.core.reflow.PropertyChoiceView',
-          of: X.data.of,
+          forCls: X.data.of,
           predicate: function(p) {
             return foam.lang.Int.isInstance(p) || foam.lang.Float.isInstance(p);
           }
@@ -275,7 +275,9 @@ foam.CLASS({
     function execute(e) {
       var self = this;
 
-      this.columns$ = this.block.value.columns$;
+      this.columns$.follow(this.block.value.columns$.map(
+        c => c.trim().split(',').map(c => c.trim()).filter(c => c)
+      ));
       this.block.value.value = this;
 
       e.add(this.dynamic(function(columns) {
@@ -293,7 +295,7 @@ foam.CLASS({
 
         this.startContext({click: self.click}).
           start(self.TableView, config).
-            style({height: '700px'});
+            style({height: '600px'});
       }));
     }
   ],
@@ -332,6 +334,7 @@ foam.CLASS({
   requires: [ 'foam.dao.CSVSink', 'foam.core.reflow.CopyFromBorder' ],
 
   methods: [
+    function value(s) { return foam.lang.StringHolder.create({value: s.csv}); },
     function getSinkWithProjectionData(s) { return s; },
     function getProjectionSink() { return this.CSVSink.create({ of: this.of, props: this.props }); },
     function getSink() { return this.CSVSink.create({of: this.of}); },
@@ -348,6 +351,7 @@ foam.CLASS({
   requires: [ 'foam.core.reflow.XMLSink', 'foam.core.reflow.CopyFromBorder' ],
 
   methods: [
+    function value(s) { return foam.lang.StringHolder.create({value: s.xml}); },
     function getSink() { return this.XMLSink.create({of: this.of}); },
     function addSinkToE(e, s) {
       s = this.useProjection ? this.getSinkWithProjectionData(s) : s;
@@ -365,6 +369,7 @@ foam.CLASS({
   requires: [ 'foam.core.reflow.JSONSink', 'foam.core.reflow.CopyFromBorder' ],
 
   methods: [
+    function value(s) { return foam.lang.StringHolder.create({value: s.json}); },
     function getSink() { return this.JSONSink.create({of: this.of}); },
     function addSinkToE(e, s) {
       s = this.useProjection ? this.getSinkWithProjectionData(s) : s;
@@ -379,24 +384,55 @@ foam.CLASS({
   name: 'GroupByDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
+  imports: [ 'eval_', 'nestedGroupBy?' ],
+
+  exports: [ 'as nestedGroupBy' ],
+
   properties: [
     {
       name: 'prop',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
-    { name: 'sink', view: 'foam.core.reflow.SinkView' }
+    {
+      name: 'sink',
+      view: { class: 'foam.core.reflow.SinkView', choice: 'Count' },
+      preSet: function(o, n) {
+        // Temporary fix to recontextualize the object after load.
+        // TODO: remove once JSON parsing/loading is fixed
+        if ( n && n.__context__ != this.__subContext__ ) {
+          return n.clone(this.__subContext__);
+        }
+        return n;
+      }
+    }
   ],
 
   methods: [
     function value(s) { return s; },
     function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
     function addToE(e) {
+      var self = this;
+      // TODO: figure out why BROWSE doesn't work after reloading
       e.startContext({data: this}).
         start().
-          style({display: 'flex'}).
-          add(this.PROP, this.SINK);
+          style({paddingLeft: '12px'}).
+          add(this.PROP, this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
+    }
+  ],
+
+  actions: [
+    {
+      name: 'browse',
+      isAvailable: function(nestedGroupBy) { return ! nestedGroupBy; },
+      code: async function() {
+        var block = this.block || this.__context__.currentBlock; // ??? Why needed?
+        var cls   = block?.value?.value?.cls_;
+
+        await block.value.waitForRun();
+        this.eval_(`dao(${block.flowName}.value.asDAO(), '${block.flowName}GroupBy')`);
+      }
     }
   ]
 });
@@ -413,13 +449,14 @@ foam.CLASS({
     {
       name: 'prop',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
     { name: 'sink', view: 'foam.core.reflow.SinkView' }
   ],
 
   methods: [
+    function value(s) { return this.sink.value(s.sink); },
     function createSink() { return this.DuplicateSink.create({expr: this.prop, sink: this.sink.createSink()}); },
     function addToE(e) {
       e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP, this.SINK);
@@ -439,13 +476,13 @@ foam.CLASS({
     {
       name: 'prop1',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
     {
       name: 'prop2',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyChoiceView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
     { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'Count' } }
@@ -459,7 +496,7 @@ foam.CLASS({
       acc:   this.sink.createSink()
     }); },
     function addToE(e) {
-      e.startContext({data: this}).start().style({display: 'flex'}).add(this.PROP1, this.PROP2, this.SINK);
+      e.startContext({data: this}).start().style({paddingLeft: '12px', display: 'flex'}).add(this.PROP1, this.PROP2, this.SINK);
     }
   ]
 });
@@ -501,7 +538,7 @@ foam.CLASS({
     function addToE(e) {
       e.startContext({data: this}).
         start().
-          style({display: 'flex'}).
+          style({display: 'flex', paddingLeft: '8px'}).
           add(this.ORIENTATION, this.SINKS);
     }
   ]

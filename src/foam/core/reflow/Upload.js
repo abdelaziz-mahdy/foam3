@@ -16,43 +16,6 @@ foam.CLASS({
 });
 
 
-
-foam.CLASS({
-  package: 'foam.core.reflow',
-  name: 'Mapping',
-
-  constants: {
-    UNKNOWN: { name: '--', set: function() {}, cls_: { name: '--' } }
-  },
-
-  properties: [
-    {
-      class: 'String',
-      name: 'id'
-    },
-    {
-      name: 'handler',
-      view: function(_, X) {
-        return { class: 'foam.core.reflow.PropertyChoiceView', optionalChoice: [ this.UNKNOWN, '--' ], of: X.data.of };
-      }
-    },
-    {
-      name: 'of',
-      hidden: true
-    }
-  ],
-
-  methods: [
-    function process(obj, value) {
-      if ( foam.String.isInstance(value) ) value = value.trim();
-      if ( value !== '' ) {
-        this.handler.set(obj, value);
-      }
-    }
-  ]
-});
-
-
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'MappingsView',
@@ -91,10 +54,19 @@ foam.CLASS({
   ]
 });
 
-
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Upload',
+  // extends: 'foam.u2.Controller',
+
+  documentation: `
+    Data upload component supporting file drag & drop or manual text input.
+    Handles CSV, JSON, XML formats with auto-detection, column mapping, 
+    and bulk import to DAOs. Provides preview and progress tracking.
+    
+    When files are uploaded, their content is processed and moved to input.
+    When input is manually cleared, uploadedFiles is cleared.
+  `,
 
   requires: [
     'foam.dao.MDAO',
@@ -102,12 +74,69 @@ foam.CLASS({
     'foam.core.reflow.ColumnParser',
     'foam.core.reflow.DAOHolder',
     'foam.core.reflow.Mapping',
-    'foam.core.reflow.UploadAgent'
+    'foam.core.reflow.UploadAgent',
+    'foam.core.fs.fileDropZone.FileDropZone',
+    'foam.core.fs.File'
   ],
 
   imports: [ 'currentBlock?', 'eval_?', 'setTimeout' ],
 
+  constants: {
+    SUPPORTED_FORMATS: {
+      'text/csv': 'CSV',
+      'application/json': 'JSON', 
+      'text/xml': 'XML',
+      'text/plain': 'TXT'
+    }
+  },
+
   properties: [
+    {
+      class: 'FObjectArray',
+      of: 'foam.lang.FObject',
+      name: 'uploadedFiles',
+      factory: function() { return []; },
+      postSet: function(_, n) {
+        if ( n && n.length > 0 ) {
+          // Clear any existing text input since we're switching to file mode
+          // The file content will be processed and displayed in the text area
+          this.input = '';
+          this.processUploadedFiles();
+        }
+      },
+      view: function(_, X) {
+        return {
+          class: 'foam.core.fs.fileDropZone.FileDropZone',
+          files$: X.data.uploadedFiles$,
+          supportedFormats: X.data.SUPPORTED_FORMATS,
+          isMultipleFiles: false,
+          title: 'Drag and drop a file here or click to browse',
+          onFilesChanged: X.data.onFilesChanged.bind(X.data)
+        };
+      },
+      visibility: function(input) {
+        return ( ! input || input.trim() === '' ) ? 
+          foam.u2.DisplayMode.RW : 
+          foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      class: 'String',
+      name: 'input',
+      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
+      postSet: function(_, n) {
+        if ( n && n.trim() !== '' ) {
+          // Clear uploaded files when user manually enters/edits text
+          // Since the file content is now represented as text, we no longer need the file reference
+          this.uploadedFiles = [];
+        }
+      },
+      visibility: function(uploadedFiles) {
+        return ( ! uploadedFiles || uploadedFiles.length === 0 ) ? 
+          foam.u2.DisplayMode.RW : 
+          foam.u2.DisplayMode.HIDDEN;
+      }
+    },
     {
       class: 'String',
       name: 'daoKey',
@@ -188,11 +217,7 @@ foam.CLASS({
       name: 'rows',
       visibility: 'RO'
     },
-    {
-      class: 'String',
-      name: 'input',
-      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 }
-    },
+
     {
       class: 'FObjectArray',
       of: 'foam.core.reflow.Mapping',
@@ -241,6 +266,25 @@ foam.CLASS({
   ],
 
   methods: [
+    function onFilesChanged(files) {
+      var foamFiles = [];
+      for ( var i = 0 ; i < files.length ; i++ ) {
+        var file = files[i];
+        if ( file.cls_ && file.cls_.id === 'foam.core.fs.File' ) {
+          foamFiles.push(file);
+        } else {
+          var foamFile = this.File.create({
+            filename: file.name || `File ${i+1}`,
+            filesize: file.size || 0,
+            mimeType: file.type || 'text/plain',
+            data: { blob: file }
+          });
+          foamFiles.push(foamFile);
+        }
+      }
+      this.uploadedFiles = foamFiles;
+    },
+
     function init() {
       this.SUPER();
 
@@ -271,6 +315,51 @@ foam.CLASS({
       this.lastColumns = s;
 
       return this.mappings;
+    },
+
+    async function processUploadedFiles() {
+      if ( ! this.uploadedFiles || this.uploadedFiles.length === 0 ) {
+        return;
+      }
+
+      try {
+        var firstFile = this.uploadedFiles[0];
+        var content = await this.readFileContent(firstFile);
+        this.input = content;
+        
+        this.format = this.SUPPORTED_FORMATS[firstFile.mimeType] || 'AUTO';
+      } catch (e) {
+        console.error('Error processing uploaded files:', e);
+        this.output += '<span style="color:red">Error reading uploaded file: ' + e.message + '</span><br>';
+      }
+    },
+
+    function readFileContent(file) {
+      return new Promise((resolve, reject) => {
+        try {
+          var actualFile = file.data ? file.data.blob : file;
+          
+          if ( ! actualFile ) {
+            reject('No file data available');
+            return;
+          }
+
+          var reader = new FileReader();
+          
+          reader.onload = function(e) {
+            resolve(e.target.result);
+          };
+          
+          reader.onerror = function() {
+            reject('Error reading file');
+          };
+          
+          reader.readAsText(actualFile);
+        } catch (e) {
+          console.error('Error accessing file:', e);
+          reject('Error accessing file: ' + e.message);
+        }
+      });
     },
 
     async function process(real) {
@@ -461,7 +550,10 @@ foam.CLASS({
       this.rows = a.length-1;
 
       try {
-        var props  = this.parseColumns(a[0]);
+        // Use existing mappings if available, otherwise parse from CSV headers
+        var props = this.mappings && this.mappings.length > 0 ? 
+          this.mappings : 
+          this.parseColumns(a[0]);
         var parser = this.CSVParser.create({});
         var agent;
 
