@@ -27,9 +27,6 @@ foam.CLASS({
     'java.util.Arrays'
   ],
 
-  requires: [
-    'foam.core.cron.CronSchedule',
-  ],
 
   imports: [ 'flowDAO' ],
 
@@ -49,7 +46,7 @@ foam.CLASS({
   ],
     */
 
-  tableColumns: [ 'name', 'source', 'description', 'status', 'schedule', 'lastRun', /* 'isPublic', 'readOnly', */ 'reflow' ],
+  tableColumns: [ 'name', 'source', 'description', 'status', /* 'isPublic', 'readOnly', */ 'reflow' ],
 
   searchColumns: [ 'name', 'status', 'source', 'keywords' ],
 
@@ -63,11 +60,6 @@ foam.CLASS({
     {
       name: 'scriptSection',
       title: 'Script',
-      collapsable: true
-    },
-    {
-      name: 'scheduleSection',
-      title: 'Schedule',
       collapsable: true
     }
   ],
@@ -183,27 +175,6 @@ foam.CLASS({
       value: '[\n\t\n]', // Is needed so that mementoMgr doesn't get confused on the first state
       preSet: function(o, n) { return n.trim(); },
       view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 60 }
-    },
-    {
-      class: 'DateTime',
-      name: 'lastRun',
-      section: 'scheduleSection',
-      readPermissionRequired: true,
-      factory: function() { return new Date(); },
-      documentation: 'Timestamp of the last execution of this flow. Works with this.schedule.'
-    },
-    {
-      class: 'DateTime',
-      name: 'nextRun',
-      section: 'scheduleSection',
-      visibility: 'RO'
-    },
-    {
-      name: 'schedule',
-      section: 'scheduleSection',
-      class: 'FObjectProperty',
-      of: 'foam.core.cron.CronSchedule',
-      documentation: 'Schedule to run this flow.'
     }
   ],
 
