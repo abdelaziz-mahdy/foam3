@@ -304,20 +304,8 @@ foam.CLASS({
       border-radius: 4px;
     }
 
-    .foam-u2-ActionView-text:hover:not(:disabled) {
-      background-color: $backgroundInverseTertiary!important;
-    }
-    ^ table td .close svg{
-      fill: $textSecondary;
-      cursor: pointer;
-      font-weight: 500;
-    }
     ^ table td .close button {
       padding: 4px;
-    }
-    ^ table td .close button:active {
-      border-color: $textDestructive;
-      background-color: $backgroundDestructiveTertiary!important;
     }
 
     ^selected {
@@ -444,7 +432,7 @@ foam.CLASS({
       name: 'close',
       label: '',
       themeIcon: 'close',
-      buttonStyle: 'TEXT',
+      buttonStyle: 'TERTIARY',
       size: 'SMALL',
       code: function() { this.flowParent.removeFlowChild(this); }
     },
@@ -580,13 +568,13 @@ foam.CLASS({
       name: 'del',
       label: '',
       themeIcon: 'close',
-      buttonStyle: 'TEXT',
+      buttonStyle: 'TERTIARY',
       size: 'SMALL',
       code: function() {
         this.deleted_ = true;
         this.flowParent && this.flowParent.removeFlowChild(this);
       }
-    },
+    }
   ],
 
   listeners: [
