@@ -146,3 +146,19 @@ p({
   "id": "input",
   "description": "Take Input from user or from URL parameter."
 })
+
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "preLoad",
+  "description": "Pre-load evaluation hook",
+  "script": "// Pre-load evaluation - currently does nothing",
+  "hidden": true
+})
+
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "postLoad",
+  "description": "Post-load evaluation hook", 
+  "script": "// Post-load evaluation - currently does nothing",
+  "hidden": true
+})

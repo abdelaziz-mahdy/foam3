@@ -865,11 +865,11 @@ foam.CLASS({
         if ( n !== this.flowName ) {
           this.clearFlow();
           if ( n ) {
-            // TODO: first eval_('preLoad');
+            this.eval_('preLoad');
             await this.eval_(`load("${n}")`);
             this.flowName = n;
             this.selected = this.currentBlock;
-            // TODO: last eval_('postLoad');
+            this.eval_('postLoad');
           }
         }
       }

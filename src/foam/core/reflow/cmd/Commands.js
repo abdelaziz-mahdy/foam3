@@ -27,7 +27,8 @@ foam.CLASS({
     { class: 'String',  name: 'description' },
     { class: 'Code',    name: 'script' },
     { class: 'Boolean', name: 'linkable', value: true },
-    { class: 'Boolean', name: 'permissionRequired' }
+    { class: 'Boolean', name: 'permissionRequired' },
+    { class: 'Boolean', name: 'hidden', value: false }
   ],
 
   methods: [
@@ -133,6 +134,7 @@ foam.CLASS({
       this.out.start('h3').add('Commands').end().
       start('table').style({width: 'max-content'}).
         select(this.commandDAO, function(c) {
+          if ( c.hidden ) return;
           if ( q && ( c.id + c.description ).toLowerCase().indexOf(q) == -1 ) return;
 
           this.start('tr').
