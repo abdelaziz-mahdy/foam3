@@ -52,7 +52,6 @@ foam.POM({
     { name: 'Mapping',                 flags: 'js|java' },
     { name: 'ToolbarControl',          flags: 'js|java' },
     { name: 'control/HelpControl',     flags: 'js' },
-    { name: 'lib',                     flags: 'js' },
     { name: 'headless/HeadlessRunnerService', flags: 'js|java' }
   ],
   javaFiles: [
