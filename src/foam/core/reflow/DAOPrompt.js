@@ -160,6 +160,7 @@ foam.CLASS({
       }
     },
     {
+      class: 'foam.dao.DAOProperty',
       name: 'limitedDAO',
       section: 'general',
       hidden: true,
@@ -172,6 +173,7 @@ foam.CLASS({
       }
     },
     {
+      class: 'foam.dao.DAOProperty',
       name: 'filteredDAO',
       section: 'general',
       hidden: true,

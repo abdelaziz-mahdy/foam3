@@ -819,7 +819,7 @@ foam.CLASS({
       align-items: center;
       position: sticky;
       bottom: 0;
-      padding: 0 8px;
+      padding: 10px 8px 0 8px;
     }
     ^input-field, ^input-field ^input {
       background: $backgroundSecondary;
@@ -830,7 +830,7 @@ foam.CLASS({
       text-align: left;
       width: 100%
     }
-    ^ .property-input {
+    ^input-field .property-input {
       border: none !important;
     }
     ^ .foam-u2-view-ValueView {
@@ -951,6 +951,7 @@ foam.CLASS({
     {
       name: 'selected',
       postSet: function(o, n) {
+        if ( o === n ) return;
         this.selectedValue = n ? n.value : null;
         if (n && n.element_) {
           n.element_.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1116,7 +1117,7 @@ foam.CLASS({
               addClass(self.myClass('input')).
               on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) self.onInput(); }).
             end().
-            tag(self.ON_INPUT).
+//            tag(self.ON_INPUT).
           end().
           start(self.ReflowToolBar, { data: self }).show(self.showPrompts$).end().
         end();
