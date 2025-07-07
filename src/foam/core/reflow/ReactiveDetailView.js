@@ -371,16 +371,8 @@ foam.CLASS({
     ^ .foam-u2-detail-SectionView-actionDiv {
       flex-direction: column;
     }
-    ^ .foam-u2-detail-SectionView-section-title {
-      padding-inline: 24px;
-      padding-block: 16px;
-      font-size: 16px;
-    }
     ^ .foam-u2-detail-SectionView {
-      border-bottom: 1px solid $grey200;
-    }
-    ^ .foam-u2-detail-SectionView-grid {
-      padding-inline: 24px;
+      border-bottom: 1px solid $borderLight;
     }
   `,
 
