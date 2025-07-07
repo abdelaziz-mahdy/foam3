@@ -22,6 +22,7 @@ foam.CLASS({
       name: 'id'
     },
     {
+      class: "foam.mlang.ExprProperty",
       name: 'handler',
       view: function(_, X) {
         return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
