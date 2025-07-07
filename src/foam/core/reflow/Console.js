@@ -869,7 +869,6 @@ foam.CLASS({
             await this.eval_(`load("${n}")`);
             this.flowName = n;
             this.selected = this.currentBlock;
-            await this.eval_('postLoad');
           }
         }
       }
@@ -990,7 +989,7 @@ foam.CLASS({
       var flow = await this.flowDAO.find(name);
 
       if ( flow ) {
-        this.includeScript(flow.script);
+        await this.includeScript(flow.script);
       }
     },
 
@@ -1002,7 +1001,7 @@ foam.CLASS({
       for ( var i = 0 ; i < cs.length ; i++ ) {
         var c = cs[i];
 
-        this.eval_(c.cmd);
+        await this.eval_(c.cmd);
 
         this.currentBlock.flowName = c.flowName;
 
@@ -1013,6 +1012,9 @@ foam.CLASS({
 
         await this.currentBlock.value?.onLoad?.();
       }
+      
+      // Call postLoad after all blocks have executed
+      await this.eval_('postLoad');
     },
 
     function clearFlow() {

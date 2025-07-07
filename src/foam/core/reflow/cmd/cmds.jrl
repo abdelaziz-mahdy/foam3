@@ -151,7 +151,7 @@ p({
   "class":"foam.core.reflow.cmd.Command",
   "id": "preLoad",
   "description": "Pre-load evaluation hook",
-  "script": "// Pre-load evaluation - currently does nothing",
+  "script": "var now = Date.now(); globalThis.preLoadTime = now; console.log('PreLoad executed at:', new Date(now).toISOString(), 'timestamp:', now);",
   "hidden": true
 })
 
@@ -159,6 +159,6 @@ p({
   "class":"foam.core.reflow.cmd.Command",
   "id": "postLoad",
   "description": "Post-load evaluation hook", 
-  "script": "// Post-load evaluation - currently does nothing",
+  "script": "var now = Date.now(); globalThis.postLoadTime = now; var duration = globalThis.preLoadTime ? (now - globalThis.preLoadTime) : 0; console.log('PostLoad executed at:', new Date(now).toISOString(), 'timestamp:', now, 'Load duration:', duration + 'ms');",
   "hidden": true
 })
