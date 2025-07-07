@@ -185,19 +185,25 @@ foam.CLASS({
       view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 60 }
     },
     {
+      class: 'DateTime',
+      name: 'lastRun',
+      section: 'scheduleSection',
+      readPermissionRequired: true,
+      factory: function() { return new Date(); },
+      documentation: 'Timestamp of the last execution of this flow. Works with this.schedule.'
+    },
+    {
+      class: 'DateTime',
+      name: 'nextRun',
+      section: 'scheduleSection',
+      visibility: 'RO'
+    },
+    {
       name: 'schedule',
       section: 'scheduleSection',
       class: 'FObjectProperty',
       of: 'foam.core.cron.CronSchedule',
       documentation: 'Schedule to run this flow.'
-    },
-    {
-      class: 'DateTime',
-      name: 'lastRun',
-      section: 'general',
-      label: 'Last Run',
-      readPermissionRequired: true,
-      documentation: 'Timestamp of the last execution of this flow. Works with this.schedule.'
     }
   ],
 
