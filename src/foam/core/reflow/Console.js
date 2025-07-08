@@ -602,11 +602,11 @@ foam.CLASS({
       overflow: auto;
     }
     ^header {
-      padding: 10px;
+      padding: 5px;
       height: fit-content;
       max-height: 64px;
       background-color: $white;
-      border-bottom: 1px solid $grey200;
+      border-bottom: 1px solid $grey100;
     }
     ^l {
       padding: 4px;
