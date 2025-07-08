@@ -8,14 +8,6 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Mapping',
 
-  constants: [
-    {
-      name: 'UNKNOWN',
-      value: { name: '--', set: function() {}, cls_: { name: '--' } },
-      javaValue: null
-    }
-  ],
-
   properties: [
     {
       class: 'String',
@@ -37,8 +29,10 @@ foam.CLASS({
   methods: [
     function process(obj, value) {
       if ( foam.String.isInstance(value) ) value = value.trim();
-      if ( value !== '' ) {
-        this.handler.set(obj, value);
+      if ( value !== '' && this.handler && this.handler.name ) {
+        obj[this.handler.name] = value;
+      } else {
+        console.warn('Mapping.process: No handler defined for', this.id, 'with value', value);
       }
     }
   ]
