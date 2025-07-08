@@ -46,7 +46,7 @@ foam.POM({
     { name: 'float/Test',              flags: 'js' },
     { name: 'XMLSink',                 flags: 'js|java' },
     { name: 'cmd/Commands',            flags: 'js|java' },
-    { name: 'cmd/DaoRowView',          flags: 'js' },
+    { name: 'cmd/DAORowView',          flags: 'js' },
     { name: 'ColumnParser',            flags: 'js' },
     { name: 'Prompt',                  flags: 'js' },
     { name: 'lib',                     flags: 'js' },
