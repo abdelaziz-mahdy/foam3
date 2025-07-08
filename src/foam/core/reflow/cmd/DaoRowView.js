@@ -4,12 +4,11 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-
 foam.CLASS({
     package: 'foam.core.reflow.cmd',
     name: 'DAORowView',
     extends: 'foam.u2.View',
-  
+
     requires: [
       'foam.u2.tag.Button',
     ],
@@ -24,14 +23,14 @@ foam.CLASS({
         min-width: 300px;
       }
     `,
-  
+
     properties: [
       'shortName',
       'description',
       'ofId',
       'uploadAvailable'
     ],
-  
+
     methods: [
       function render() {
         this.addClass();
@@ -57,9 +56,9 @@ foam.CLASS({
             }).add(this.description).
           end().
         end();
-      },
+      }
     ],
-    
+
     listeners: [
       {
         name: 'addFn',
@@ -86,5 +85,4 @@ foam.CLASS({
         }
       }
     ]
-  
 });
