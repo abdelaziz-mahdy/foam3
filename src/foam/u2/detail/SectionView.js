@@ -239,7 +239,7 @@ foam.CLASS({
       name: 'collapse',
       label: '',
       size: 'SMALL',
-      buttonStyle: 'TEXT',
+      buttonStyle: 'TERTIARY',
       themeIcon: 'plus',
       code: function() {
         this.collapsed = ! this.collapsed;

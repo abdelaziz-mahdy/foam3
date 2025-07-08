@@ -301,34 +301,28 @@ foam.CLASS({
       padding: 10px 8px;
       align-items: center;
       cursor: pointer;
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
       border-radius: 4px;
     }
-    ^ table td .close {
-      font-size: 1.2rem;
+
+    ^ table td .close button {
+      padding: 4px;
     }
-    .foam-u2-ActionView-text:hover:not(:disabled) {
-      background-color: $grey400!important;
-    }
-    ^ table td .close svg{
-      font-size: 1rem;
-      cursor: pointer;
-      font-weight: 500;
-    }
+
     ^selected {
-      background: $grey100;
+      background: $backgroundTertiary;
       font-weight: 500;
     }
     ^error {
-      background: $destructive50;
-      color: $destructive600;
+      background: $backgroundDestructiveTertiary;
+      color: $textDestructive;
     }
     ^left-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px;
-      border-bottom: 1px solid $grey200;
+      border-bottom: 1px solid $borderLight;
       font-weight: bold;
       font-size: 16px;
     }
@@ -439,7 +433,7 @@ foam.CLASS({
       name: 'close',
       label: '',
       themeIcon: 'close',
-      buttonStyle: 'TEXT',
+      buttonStyle: 'TERTIARY',
       size: 'SMALL',
       code: function() { this.flowParent.removeFlowChild(this); }
     },
@@ -490,7 +484,6 @@ foam.CLASS({
       align-items: center;
     }
     ^ span .property-cmd { width: inherit; }
-    ^ .foam-u2-ActionView-del { padding: 2px; }
     ^ .foam-u2-TextField-cmd, ^ .foam-u2-ReadWriteView .foam-u2-TextField {
       border: none;
       height: 20px;
@@ -537,7 +530,7 @@ foam.CLASS({
         .end()
         .add(' = ')
         .add(this.CMD);
-      this.rightSection.tag(this.DEL, { isDestructive: true });
+      this.rightSection.tag(this.DEL);
       this.SUPER();
     },
 
@@ -565,7 +558,6 @@ foam.CLASS({
       themeIcon: 'close',
       buttonStyle: 'TERTIARY',
       size: 'SMALL',
-      destructive: true,
       code: function() {
         this.deleted_ = true;
         this.flowParent && this.flowParent.removeFlowChild(this);
@@ -669,9 +661,6 @@ foam.CLASS({
     ^r .foam-core-reflow-PropertyListView {
       justify-content: space-between;
     }
-    ^r .foam-u2-detail-SectionView-actionDiv {
-      gap: 10px;
-    }
     @media (min-width: /*%DISPLAYWIDTH.XL%*/ 1280px ) {
       ^middle-holder {
         padding: 24px;
@@ -691,7 +680,7 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'rightWidth',
-      value: 400
+      value: 300
     }
   ],
 
@@ -845,14 +834,14 @@ foam.CLASS({
     ^ .foam-u2-ProgressView { width: 600px; }
     ^rightBar-title {
       border-bottom: 1px solid $borderLight;
-      padding: 16px 0;
+      padding: 8px 16px;
     }
     ^rightBar {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      padding: 8px 16px;
+ 
     }
+
 
   `,
 
@@ -866,11 +855,10 @@ foam.CLASS({
         if ( n !== this.flowName ) {
           this.clearFlow();
           if ( n ) {
-            // TODO: first eval_('preLoad');
+            await this.eval_('preLoad');
             await this.eval_(`load("${n}")`);
             this.flowName = n;
             this.selected = this.currentBlock;
-            // TODO: last eval_('postLoad');
           }
         }
       }
@@ -991,7 +979,7 @@ foam.CLASS({
       var flow = await this.flowDAO.find(name);
 
       if ( flow ) {
-        this.includeScript(flow.script);
+        await this.includeScript(flow.script);
       }
     },
 
@@ -1003,7 +991,7 @@ foam.CLASS({
       for ( var i = 0 ; i < cs.length ; i++ ) {
         var c = cs[i];
 
-        this.eval_(c.cmd);
+        await this.eval_(c.cmd);
 
         this.currentBlock.flowName = c.flowName;
 
@@ -1014,6 +1002,9 @@ foam.CLASS({
 
         await this.currentBlock.value?.onLoad?.();
       }
+      
+      // Call postLoad after all blocks have executed
+      await this.eval_('postLoad');
     },
 
     function clearFlow() {

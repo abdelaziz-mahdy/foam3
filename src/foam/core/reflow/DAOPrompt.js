@@ -85,15 +85,18 @@ foam.CLASS({
     },
     {
       name: 'output',
-      title: 'Output'
+      title: 'Output',
+      collapsable: true
     },
     {
       name: 'scroll',
-      title: 'Scroll'
+      title: 'Scroll',
+      collapsable: true
     },
     {
       name: 'filter',
-      title: 'Filter'
+      title: 'Filter',
+      collapsable: true
     },
     {
       name: 'actions',
@@ -342,6 +345,7 @@ visible      },
     },
     {
       name: 'describeModel',
+      section: 'actions',
       availablePermissions: [ 'command.read.describe' ],
       code: function() {
         this.eval_('describe ' + this.dao.of.id);
@@ -349,6 +353,7 @@ visible      },
     },
     {
       name: 'createTest',
+      section: 'actions',
       // TODO:
 //      isEnabled: function(value) { return this.value; },
       availablePermissions: [ 'command.read.test' ],

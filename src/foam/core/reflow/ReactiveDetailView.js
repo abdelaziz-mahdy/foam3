@@ -368,12 +368,13 @@ foam.CLASS({
     ^ > div > .foam-u2-layout-Rows {
       gap: 10px;
     }
-    ^ .foam-u2-detail-SectionView-actionDiv {
+    ^ .foam-core-reflow-CollapsedByDefaultSectionView-actionDiv {
+      display: flex;
       flex-direction: column;
     }
-    ^ .foam-u2-detail-SectionView {
+    ^ .foam-core-reflow-CollapsedByDefaultSectionView {
       border-bottom: 1px solid $borderLight;
-      padding: 16px 0;
+      padding: 8px 16px;
     }
   `,
 
