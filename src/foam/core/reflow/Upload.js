@@ -15,41 +15,6 @@ foam.CLASS({
   ]
 });
 
-foam.CLASS({
-  package: 'foam.core.reflow',
-  name: 'Mapping',
-
-  constants: {
-    UNKNOWN: { name: '--', set: function() {}, cls_: { name: '--' } }
-  },
-
-  properties: [
-    {
-      class: 'String',
-      name: 'id'
-    },
-    {
-      name: 'handler',
-      view: function(_, X) {
-        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
-      }
-    },
-    {
-      name: 'of',
-      hidden: true
-    }
-  ],
-
-  methods: [
-    function process(obj, value) {
-      if ( foam.String.isInstance(value) ) value = value.trim();
-      if ( value !== '' ) {
-        this.handler.set(obj, value);
-      }
-    }
-  ]
-});
-
 
 foam.CLASS({
   package: 'foam.core.reflow',

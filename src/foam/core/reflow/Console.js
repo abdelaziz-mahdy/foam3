@@ -467,9 +467,8 @@ foam.CLASS({
       padding: 4px;
     }
     ^:not(^hidePrompts) {
-      border-bottom: 1px solid $grey200;
-      padding-inline: 32px;
-      padding-block: 16px;
+      border-top: 1px solid #999;
+      padding: 8px 16px;
     }
     ^output {
       overflow-x: auto;
@@ -619,7 +618,7 @@ foam.CLASS({
       border-right: 1px solid $grey200;
     }
     ^middle-holder {
-      padding: 36px;
+      padding: 16px;
       width: 100%;
       background-color: $grey100;
       overflow: auto;
@@ -676,9 +675,10 @@ foam.CLASS({
     ^r .foam-u2-detail-SectionView-actionDiv {
       gap: 10px;
     }
-
-    ^r .foam-u2-detail-SectionView-actions {
-      padding: 24px;
+    @media (min-width: /*%DISPLAYWIDTH.XL%*/ 1280px ) {
+      ^middle-holder {
+        padding: 24px;
+      }
     }
   `,
 
@@ -827,7 +827,7 @@ foam.CLASS({
       align-items: center;
       position: sticky;
       bottom: 0;
-      padding: 10px 8px 0 8px;
+      padding: 10px 8px;
     }
     ^input-field, ^input-field ^input {
       background: $backgroundSecondary;
@@ -846,13 +846,15 @@ foam.CLASS({
     }
     .foam-core-reflow-Layout-l { overflow-y: auto; }
     ^ .foam-u2-ProgressView { width: 600px; }
-
     ^rightBar-title {
-      padding-inline: 24px;
-      padding-block: 16px;
-      border-bottom: 1px solid $grey200;
-      font-size: 16px;
-      font-weight: bold;
+      border-bottom: 1px solid $borderLight;
+      padding: 16px 0;
+    }
+    ^rightBar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 8px 16px;
     }
 
   `,
@@ -867,9 +869,11 @@ foam.CLASS({
         if ( n !== this.flowName ) {
           this.clearFlow();
           if ( n ) {
+            // TODO: first eval_('preLoad');
             await this.eval_(`load("${n}")`);
             this.flowName = n;
             this.selected = this.currentBlock;
+            // TODO: last eval_('postLoad');
           }
         }
       }
@@ -1081,8 +1085,8 @@ foam.CLASS({
       layout.showHeader = true;
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
       layout.middle.call(this.renderSelf, [this]);
-      layout.right.add(this.dynamic(function(selectedValue, selected$configViewSpec) {
-        this.start().addClass(self.myClass('rightBar-title'))
+      layout.right.addClass(self.myClass('rightBar')).add(this.dynamic(function(selectedValue, selected$configViewSpec) {
+        this.start().addClass(self.myClass('rightBar-title'), 'h400')
           .add('Flow Properties')
         .end()
         .tag(self.ReactiveSectionedDetailView, {
