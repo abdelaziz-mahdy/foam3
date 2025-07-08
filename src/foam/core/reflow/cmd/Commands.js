@@ -302,7 +302,7 @@ foam.CLASS({
 
   mixins: [ 'foam.mlang.Expressions' ],
 
-  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
+  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch', 'foam.core.reflow.cmd.DAORowView' ],
 
   imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO' ],
 
@@ -341,31 +341,13 @@ foam.CLASS({
           var uplFn = () => self.eval_('upload ' + shortName);
           var desFn = () => self.eval_('describe(' + of.id + ')');
 
-          this.start('tr').
-            start('td').attr('align', 'left').
-              start(self.Link).add('add').on('click', addFn).end().
-            end().
-            start('td').attr('align', 'left').
-              show(self.uploadAvailable).
-              start(self.Link).add('upload').on('click', uplFn).end().
-            end().
-            start('th').attr('align', 'left').
-              start(self.Link).add(shortName).on('click', daoFn).end().
-            end().
-            start('td').attr('align', 'left').
-              start(self.Link).add(of.id).on('click', desFn).end().
-            end().
-            start('td').attr('align', 'left').
-              style({
-                textWrapMode: 'nowrap',
-                overflow: 'hidden',
-                paddingRight: '8px',
-                maxWidth: '500px',
-                textOverflow: 'ellipsis'
-              }).
-              add(n.description).
-            end()
-            ;
+            this.tag(self.DAORowView, {
+              shortName: shortName,
+              description: n.description,
+              ofId: of.id,
+              uploadAvailable: self.uploadAvailable,
+              data: self
+            });
         }).
         end().
         start('b').add(count, ' selected').end();
