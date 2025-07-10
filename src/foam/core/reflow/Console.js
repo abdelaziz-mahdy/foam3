@@ -607,7 +607,7 @@ foam.CLASS({
       border-right: 1px solid $grey200;
     }
     ^middle-holder {
-      padding: 16px;
+      padding: 16px 16px 0 16px;
       width: 100%;
       background-color: $grey100;
       overflow: auto;
@@ -663,7 +663,7 @@ foam.CLASS({
     }
     @media (min-width: /*%DISPLAYWIDTH.XL%*/ 1280px ) {
       ^middle-holder {
-        padding: 24px;
+        padding: 24px 24px 0 24px;
       }
     }
   `,
@@ -839,7 +839,7 @@ foam.CLASS({
     ^rightBar {
       display: flex;
       flex-direction: column;
- 
+
     }
 
 
@@ -1002,7 +1002,7 @@ foam.CLASS({
 
         await this.currentBlock.value?.onLoad?.();
       }
-      
+
       // Call postLoad after all blocks have executed
       await this.eval_('postLoad');
     },
@@ -1064,7 +1064,6 @@ foam.CLASS({
       this.value.script$.sub(this.onScriptChange);
 
       this.flowChildren$.sub(this.onFlowChildrenChange);
-
 
       var layout = this.start(this.Layout);
 
@@ -1335,6 +1334,16 @@ foam.CLASS({
       });
 
       this.value.script = json.stringify(this.flowChildren);
+    },
+
+    function maybeRegenScript() {
+//      if ( this.feedback_ ) return;
+      this.feedback_ = true;
+      try {
+        this.generateScript();
+      } finally {
+        this.feedback_ = false;
+      }
     }
   ],
 
@@ -1444,13 +1453,16 @@ foam.CLASS({
         if ( this.feedback_ ) return;
         this.feedback_ = true;
         try {
+          var currentBlockName = (this.selected || this).flowName;
+
           this.clearFlow();
-          var currentBlockName = this.selected ? this.selected.flowName : this.flowName;
 
           var script = this.value.script;
-          this.includeScript(script);
+          await this.includeScript(script);
 
-          this.selected = currentBlockName == this.flowName ? this : this.findFlowChildByName(currentBlockName) || this;
+          this.selected = ( currentBlockName == this.flowName ) ?
+            this :
+            ( this.findFlowChildByName(currentBlockName) || this );
         } finally {
           this.feedback_ = false;
         }
@@ -1458,14 +1470,27 @@ foam.CLASS({
     },
     {
       name: 'onFlowChildrenChange',
-      isFramed: true,
-      code: async function() {
-        this.feedback_ = true;
-        try {
-          this.generateScript();
-        } finally {
-          this.feedback_ = false;
-        }
+      isMerged: true,
+      delay: 250,
+      code: function() {
+// if ( this.feedback_ ) return;
+        if ( this.flowChildrenSub_ ) this.flowChildrenSub_.detach();
+        this.flowChildrenSub_ = foam.lang.FObject.create();
+        this.flowChildren.forEach(c => {
+          if ( c.value )
+            this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
+        });
+
+        this.maybeRegenScript();
+      }
+    },
+    {
+      name: 'onFlowChildChange',
+      isMerged: true,
+      delay: 2000,
+      code: function() {
+// if ( this.feedback_ ) return;
+       this.maybeRegenScript();
       }
     }
   ]
