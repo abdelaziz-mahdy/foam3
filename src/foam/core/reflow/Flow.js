@@ -179,6 +179,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'script',
+      label: '',
+      columnLabel:'Script',
       section: 'scriptSection',
       reactive: false,
       value: '[\n\t\n]', // Is needed so that mementoMgr doesn't get confused on the first state
