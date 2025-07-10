@@ -26,6 +26,9 @@ public interface ClassInfo
 
   boolean     isAssignableFrom(Class cls);
 
+  default
+  boolean     isAssignableTo(Class cls) { return cls.isAssignableFrom(getObjClass()); }
+
   String      getName();
 
   String      getSimpleName();
