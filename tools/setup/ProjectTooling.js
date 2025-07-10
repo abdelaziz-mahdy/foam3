@@ -6,7 +6,7 @@
 
 /**
    Support for creating new FOAM based projects.
-   usage: node tools/build.js -T+setup/Project --appName:MyApp --package:com.foamdev.com --adminPassword:badpassword
+   usage: node tools/build.js -T+setup/Project --appName:MyApp --package:com.foamdev --adminPassword:badpassword
 */
 foam.POM({
   name: 'project',
