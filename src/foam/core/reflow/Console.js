@@ -625,11 +625,14 @@ foam.CLASS({
       transition: width 0.1s;
     }
     ^resize-handle {
-      width: 6px;
+      width: 2px;
       cursor: ew-resize;
-      background: $primary100;
+      background: $borderLight;
       height: 100%;
       z-index: 10;
+    }
+    ^resize-handle:hover, ^resize-handle:active {
+      background: $primary500;
     }
 
     ^r .foam-core-reflow-SinkView, .foam-u2-view-IntView {
@@ -641,7 +644,8 @@ foam.CLASS({
     }
 
     ^menuClosed {
-     width: fit-content;
+     width: 60px!important;
+     transition: width 0.2s cubic-bezier(0.4,0,0.2,1);
     }
 
     ^r .foam-u2-view-TitledArrayView-value-view-container {
@@ -681,6 +685,11 @@ foam.CLASS({
       class: 'Int',
       name: 'rightWidth',
       value: 300
+    },
+    {
+      class: 'Int',
+      name: 'leftWidth',
+      value: 300
     }
   ],
 
@@ -691,26 +700,31 @@ foam.CLASS({
         addClass().
         start('div', {}, this.header$).addClass(this.myClass('header')).show(this.showHeader$).end().
         start().addClass(this.myClass('flex-container')).
-          start('div', {}, this.left$)
-            .addClass(this.myClass('l'))
-            .enableClass(this.myClass('menuClosed'), this.isMenuOpen$.map(open => !open))
-            .show(this.showLeft$)
-          .end().
-          start().addClass(this.myClass('middle-holder'))
-            .start('div', {}, this.middle$).addClass(this.myClass('m')).end()
-          .end()
+          start('div', {}, this.left$).
+            addClass(this.myClass('l')).
+            enableClass(this.myClass('menuClosed'), this.isMenuOpen$.map(open => !open)).
+            show(this.showLeft$).
+            style({ width: this.leftWidth$.map(w => w + 'px') }).
+          end().
+          start('div').
+            addClass(this.myClass('resize-handle')).
+            on('mousedown', this.onLeftResizeStart).
+          end().
+          start().addClass(this.myClass('middle-holder')).
+            start('div', {}, this.middle$).addClass(this.myClass('m')).end().
+          end().
           // --- Resize handle ---
-          .start('div')
-            .addClass(this.myClass('resize-handle'))
-            .on('mousedown', this.onResizeStart)
-          .end()
+          start('div').
+            addClass(this.myClass('resize-handle')).
+            on('mousedown', this.onResizeStart).
+          end().
           // --- Right sidebar ---
-          .start('div', {}, this.right$)
-            .addClass(this.myClass('r'))
-            .style({ width: this.rightWidth$.map(w => w + 'px') })
-            .show(this.showRight$)
-          .end()
-        .end();
+          start('div', {}, this.right$).
+            addClass(this.myClass('r')).
+            style({ width: this.rightWidth$.map(w => w + 'px') }).
+            show(this.showRight$).
+          end().
+        end();
     },
   ],
   listeners: [
@@ -732,7 +746,31 @@ foam.CLASS({
 
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
-    }
+    },
+    function onLeftResizeStart(e) {
+      var self = this;
+      var startX = e.clientX;
+      var startWidth = this.leftWidth;
+    
+      function onMouseMove(e) {
+        var newWidth = startWidth + (e.clientX - startX);
+        if ( newWidth <= 150 ) {
+          self.isMenuOpen = false;
+          self.leftWidth = 60; 
+        } else {
+          self.isMenuOpen = true;
+          self.leftWidth = newWidth;
+        }
+      }
+    
+      function onMouseUp() {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+    
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    } 
   ]
 
 });
