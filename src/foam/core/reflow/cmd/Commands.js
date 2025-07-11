@@ -289,7 +289,7 @@ foam.CLASS({
 
   methods: [
     function execute(daoKey) {
-      var value = this.DAOCreate.create({daoKey: daoKey});
+      var value = foam.dao.DAO.isInstance(daoKey) ? this.DAOCreate.create({dao: daoKey}) : this.DAOCreate.create({daoKey: daoKey});
       // this.currentBlock.value = foam.core.reflow.cmd.DAOCreateSave.create({daoCreate: value});
       this.out.tag(value);
     }
