@@ -17,7 +17,16 @@ foam.CLASS({
       class: "foam.mlang.ExprProperty",
       name: 'handler',
       view: function(_, X) {
-        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
+        // Try multiple ways to get the class reference
+        var cls = X.data.of;
+        
+        // Workaround: When loading from DAO, 'of' is not serialized but handler maintains sourceCls_
+        // This prevents the view from showing just the default placeholder
+        if ( ! cls && X.data.handler && X.data.handler.sourceCls_ ) {
+          cls = X.data.handler.sourceCls_;
+        }
+        
+        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: cls };
       }
     },
     {
