@@ -69,7 +69,8 @@ public class ClassReferenceParser
 
     String msg = classId + " is not a modelled class.";
     System.err.println(msg);
-    x.set("error", msg);
-    throw new RuntimeException(msg);
+    var ex = new RuntimeException(msg);
+    x.set("error", ex);
+    throw ex;
   }
 }
