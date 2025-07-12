@@ -155,7 +155,7 @@ public class SimpleFacetManager
             clsName = sb.toString();
             cls = Class.forName(clsName);
           } else
-            throw new ClassNotFoundException(clsName);
+            return null;
         }
 
         if ( cls != null ) return getClassInfo(cls);
