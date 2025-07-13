@@ -154,7 +154,8 @@ public class SimpleFacetManager
             sb.setCharAt(i, '$');
             clsName = sb.toString();
             cls = Class.forName(clsName);
-          }
+          } else
+            return null;
         }
 
         if ( cls != null ) return getClassInfo(cls);

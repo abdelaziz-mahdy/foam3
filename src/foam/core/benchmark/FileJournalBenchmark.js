@@ -1,45 +1,71 @@
 /**
  * @license
- * Copyright 2019 The FOAM Authors. All Rights Reserved.
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package foam.core.benchmark;
+foam.CLASS({
+  package: 'foam.core.benchmark',
+  name: 'FileJournalBenchmark',
+  extends: 'foam.core.bench.Benchmark',
 
-import foam.lang.X;
-import foam.dao.FileJournal;
-import foam.dao.DAO;
-import foam.dao.MDAO;
-import foam.dao.NullDAO;
-import foam.core.auth.User;
-import foam.core.bench.Benchmark;
-import foam.core.bench.BenchmarkResult;
+  javaImports: [
+    'foam.lang.X',
+    'foam.core.auth.User',
+    'foam.core.bench.Benchmark',
+    'foam.core.bench.BenchmarkResult',
+    'foam.dao.DAO',
+    'foam.dao.MDAO',
+    'foam.dao.NullDAO',
+    'foam.dao.FileJournal'
+  ],
 
-public class FileJournalBenchmark
- extends Benchmark
-{
-  protected FileJournal journal_;
-  protected DAO         dao_;
+  javaCode: `
+    protected FileJournal journal_;
+    protected DAO         dao_;
+  `,
 
-  @Override
-  public void setup(X x, BenchmarkResult br) {
-    dao_ = new NullDAO();
-    journal_ = new FileJournal.Builder(x)
-      .setDao(new MDAO(User.getOwnClassInfo()))
-      .setFilename("journalbenchmark")
-      .setCreateFile(true)
-      .build();
-  }
+  methods: [
+    {
+      name: 'setup',
+      args: [
+        {
+          name: 'x',
+          type: 'X'
+        },
+        {
+          name: 'br',
+          type: 'BenchmarkResult'
+        }
+      ],
+      javaCode: `
+        dao_ = new NullDAO();
+        journal_ = new FileJournal.Builder(x)
+          .setDao(new MDAO(User.getOwnClassInfo()))
+          .setFilename("journalbenchmark")
+          .setCreateFile(true)
+          .build();
+      `
+    },
+    {
+      name: 'execute',
+      args: [
+        {
+          name: 'x',
+          type: 'X'
+        }
+      ],
+      javaCode: `
+        User u = new User();
+        u.setId(System.currentTimeMillis());
+        u.setFirstName("test");
+        u.setLastName("testing");
+        journal_.put(x, "", dao_, u);
+      `
+    }
+  ]
+});
 
-  @Override
-  public void execute(X x) {
-    User u = new User();
-    u.setId(System.currentTimeMillis());
-    u.setFirstName("test");
-    u.setLastName("testing");
-    journal_.put(x, "", dao_, u);
-  }
-}
 
 /*
 
