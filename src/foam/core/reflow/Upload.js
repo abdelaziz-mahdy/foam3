@@ -295,6 +295,13 @@ foam.CLASS({
         if ( ! where ) return '';
         return matchedRows + ' rows match filter (of ' + rows + ' total)';
       }
+    },
+    {
+      class: 'Map',
+      name: 'extraParams',
+      documentation: 'Extra parameters to set on all uploaded objects',
+      factory: function() { return {}; },
+      hidden: true
     }
   ],
 
@@ -420,6 +427,15 @@ foam.CLASS({
 
       var sink = this.bulkUpload ? {
         put: async function(o) {
+          // Apply extra parameters to the object
+          if ( self.extraParams ) {
+            Object.keys(self.extraParams).forEach(key => {
+              if ( o.cls_.getAxiomByName(key) ) {
+                o[key] = self.extraParams[key];
+              }
+            });
+          }
+          
           totalRows++;
           self.processing = totalRows;
           self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
