@@ -575,7 +575,7 @@ foam.CLASS({
   name: 'Load',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [ 'flow', 'flowDAO', 'selected' ],
+  imports: [ 'flow', 'flowDAO', 'mementoMgr', 'selected' ],
 
   properties: [
     [ 'description', 'Load a specified flow' ]
@@ -588,11 +588,21 @@ foam.CLASS({
 
       if ( loaded ) {
         // Don't save the 'load' command
-        this.currentBlock.del();
+        this.block.del();
 
         this.selected = this.flow;
         this.flow.copyFrom(loaded);
-      } else {
+
+        // HACK: after loading a flow the revision is set to 2 for some unknown
+        // reason. This resets it back to 0.
+        // TODO: find out why it is 2 and remove this code.
+        this.flow.revision$.sub((sub, _, __, e) => {
+          console.log(e.get());
+          if ( e.get() == 2 ) {
+            sub.detach();
+            setTimeout(() => this.mementoMgr.clear(), 100);
+          }
+        });
       }
     }
   ]

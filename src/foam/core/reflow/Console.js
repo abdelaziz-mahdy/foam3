@@ -795,6 +795,7 @@ foam.CLASS({
     'flowScope as scope',
     'history_',
     'log',
+    'mementoMgr',
     'out',
     'save',
     'scrollToBottom',
