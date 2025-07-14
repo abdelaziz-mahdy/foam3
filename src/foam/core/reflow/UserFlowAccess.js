@@ -7,6 +7,7 @@
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'UserFlowAccess',
+
   requires: [
     'foam.core.reflow.FlowAccess'
   ],
@@ -16,20 +17,22 @@ foam.CLASS({
       class: 'Reference',
       of: 'foam.core.auth.User',
       name: 'userId',
+      reactive: false,
       required: true
     },
     {
       class: 'Enum',
       of: 'foam.core.reflow.FlowAccess',
       name: 'accessLevel',
-      required: true,
+      reactive: false,
+      factory: function() { return foam.core.reflow.FlowAccess.PUBLIC_RO; },
       view: function(_, X) {
         return {
           class: 'foam.u2.view.RadioView',
           isHorizontal: true,
           choices: [
-            [ X.data.FlowAccess.PUBLIC_RO, X.data.FlowAccess.PUBLIC_RO.label ],
-            [ X.data.FlowAccess.PUBLIC_RW, X.data.FlowAccess.PUBLIC_RW.label ],
+            [ foam.core.reflow.FlowAccess.PUBLIC_RO, foam.core.reflow.FlowAccess.PUBLIC_RO.label ],
+            [ foam.core.reflow.FlowAccess.PUBLIC_RW, foam.core.reflow.FlowAccess.PUBLIC_RW.label ]
           ]
         }
       }

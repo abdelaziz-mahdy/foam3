@@ -28,6 +28,7 @@ foam.CLASS({
       of: 'foam.core.auth.Group',
       name: 'roleId',
       required: true,
+      reactive: false,
       view: function(_, X) {
         var self = X.data;
         var rolesDAO = self.groupDAO.where(self.CONTAINS(self.Group.ID, self.ROLE_PREFIX));
@@ -44,21 +45,7 @@ foam.CLASS({
       }
     },
     {
-      class: 'Enum',
-      of: 'foam.core.reflow.FlowAccess',
-      name: 'accessLevel',
-      required: true,
-      view: function(_, X) {
-        debugger
-        return {
-          class: 'foam.u2.view.RadioView',
-          isHorizontal: true,
-          choices: [
-            [ X.data.FlowAccess.PUBLIC_RO, X.data.FlowAccess.PUBLIC_RO.label ],
-            [ X.data.FlowAccess.PUBLIC_RW, X.data.FlowAccess.PUBLIC_RW.label ],
-          ]
-        }
-      }
+      __copyFrom__: 'foam.core.reflow.UserFlowAccess.ACCESS_LEVEL'
     }
   ]
 });

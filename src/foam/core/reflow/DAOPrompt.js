@@ -86,17 +86,17 @@ foam.CLASS({
     {
       name: 'output',
       title: 'Output',
-      collapsable: true
+      collapsable: false
     },
     {
       name: 'scroll',
       title: 'Scroll',
-      collapsable: true
+      collapsable: false
     },
     {
       name: 'filter',
       title: 'Filter',
-      collapsable: true
+      collapsable: false
     },
     {
       name: 'actions',
