@@ -298,9 +298,9 @@ foam.CLASS({
     },
     {
       class: 'Function',
-      name: 'objectAdaption',
+      name: 'adaptObject',
       documentation: 'Callback function to adapt objects before uploading. Called with (object).',
-      factory: function() { return null; },
+      factory: function(obj) { },
       hidden: true
     }
   ],
@@ -428,13 +428,12 @@ foam.CLASS({
       var sink = this.bulkUpload ? {
         put: async function(o) {
           // Apply object adaptation callback
-          if ( self.objectAdaption ) {
-            try {
-              self.objectAdaption(o);
-            } catch (e) {
-              console.warn('Object adaptation callback failed:', e);
-            }
+          try {
+            await self.adaptObject(o);
+          } catch (e) {
+            console.warn('Object adaptation callback failed:', e);
           }
+          
           
           totalRows++;
           self.processing = totalRows;
