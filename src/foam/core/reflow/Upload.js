@@ -300,7 +300,7 @@ foam.CLASS({
       class: 'Function',
       name: 'adaptObject',
       documentation: 'Callback function to adapt objects before uploading. Called with (object).',
-      factory: function(obj) { },
+      value: function() { },
       hidden: true
     }
   ],
