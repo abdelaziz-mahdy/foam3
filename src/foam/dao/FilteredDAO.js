@@ -65,11 +65,12 @@ return try delegate.select_(
     {
       name: 'removeAll_',
       code: function removeAll_(x, skip, limit, order, predicate) {
+        var thisPredicate = this.predicateIn(x);
         return this.delegate.removeAll_(
           x, skip, limit, order,
           predicate ?
-            this.And.create({ args: [this.predicate, predicate] }) :
-          this.predicate);
+            this.And.create({ args: [thisPredicate, predicate] }) :
+            thisPredicate);
       },
       javaCode: 'super.removeAll_(x, skip, limit, order, predicate == null ? predicateIn(x) : foam.mlang.MLang.AND(predicateIn(x), predicate));'
     },
@@ -77,11 +78,12 @@ return try delegate.select_(
     {
       name: 'listen_',
       code: function listen_(x, sink, predicate) {
+        var thisPredicate = this.predicateIn(x);
         return this.delegate.listen_(
           x, sink,
           predicate ?
-            this.And.create({ args: [this.predicateIn(x), predicate] }) :
-            this.predicateIn(x));
+            this.And.create({ args: [thisPredicate, predicate] }) :
+            thisPredicate);
       },
       swiftCode: `
 return try delegate.listen_(

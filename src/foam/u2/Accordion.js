@@ -60,19 +60,43 @@ foam.CLASS({
     {
       name: 'title',
       documentation: `
-        Title of the accordion, you can pass foam.u2.Element objects as well for more flexibility.
+        Title of the accordion. The title property is pre-initialized as a foam.u2.Element
+        that is already bound to the DOM. You should add content to this existing element
+        rather than replacing it.
 
+        IMPORTANT: I spend too much time on this mistake.
+        So, DO NOT replace the title element (this.title = ...) as this will break the DOM binding. Instead, use .add() to add content to the existing element.
+        
         USAGE:
+          EXAMPLE 1 - Simple string title:
           this
             .start(foam.u2.Accordion)
             .call(function() {
-              this.title = foam.u2.Element.create()
-                .tag({
+              this.title.add('My Accordion Title');
+            });
+
+          EXAMPLE 2 - Complex title with icon and reactive content:
+          var self = this;
+          this
+            .start(self.Accordion, {
+              expanded: false,
+              togglerPosition: 'left'
+            })
+            .call(function() {
+              this.title
+                .start({
                   class: 'foam.u2.tag.Image',
-                  data: 'images/success.svg'
+                  data: 'images/folder.svg'
                 })
-                .add('Success');
-            }
+                .end()
+                .add(' ')
+                .add(self.data$.map(function(item) {
+                  return item ? item.name + ' (' + item.count + ')' : 'Loading...';
+                }));
+            });
+
+        For a real-world implementation example, see:
+        - foam3/src/foam/core/reflow/Console.js (Block class, lines 523-533)
       `
     },
     {

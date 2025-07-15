@@ -55,6 +55,13 @@ p({
     this.__context__.scope.testResults.report(test);
     this.currentBlock.value = test;
     this.out.tag(foam.core.reflow.float.TestView, {data: test});
+    
+    // Listen for block detach to clean up the test from testResults
+    this.currentBlock.onDetach(() => {
+      if ( this.__context__.scope.testResults && this.__context__.scope.testResults.dao ) {
+        this.__context__.scope.testResults.dao.remove(test);
+      }
+    });
 //    this.addValue(test);
    """,
    permissionRequired: true
@@ -158,7 +165,13 @@ p({
 p({
   "class":"foam.core.reflow.cmd.Command",
   "id": "postLoad",
-  "description": "Post-load evaluation hook", 
-  "script": "this.block.del(); var now = Date.now(); globalThis.postLoadTime = now; var duration = globalThis.preLoadTime ? (now - globalThis.preLoadTime) : 0; console.log('PostLoad executed at:', new Date(now).toISOString(), 'timestamp:', now, 'Load duration:', duration + 'ms');",
+  "description": "Post-load evaluation hook",
+  "script": """
+  this.block.del();
+  var now = Date.now();
+  globalThis.postLoadTime = now;
+  var duration = globalThis.preLoadTime ? (now - globalThis.preLoadTime) : 0;
+  console.log('PostLoad executed at:', new Date(now).toISOString(), 'timestamp:', now, 'Load duration:', duration + 'ms');
+""",
   "hidden": true
 })

@@ -92,7 +92,6 @@ foam.CLASS({
     }
     ^ ^label {
       color: $black;
-      width: 90%;
     }
     ^view: {
       min-height: 0px;
@@ -110,13 +109,12 @@ foam.CLASS({
       border-radius: 5px;
       border: 1px solid $grey200;
     }
-    ^switch { color: #ccc; width: 12px !important; }
-    ^switch.reactive {
-      font-weight: 600;
+    ^switch { color: $grey600;  }
+    ^propHolder.reactive > div{
       color: $primary500!important;
     }
     ^formulaInput input:focus {
-      outline: 1px solid $primary500 !important;
+      outline: 1px solid $primary500!important;
     }
     ^element-icon {
       width: 14px;
@@ -129,6 +127,23 @@ foam.CLASS({
       gap: 5px;
     }
     ^ .foam-core-reflow-SinkView > div > div {
+      width: 100%;
+    }
+    ^labelHolder {
+      border-radius: 4px;
+      padding-block: 5px;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+    ^labelHolder:hover {
+      padding-inline: 5px;
+      background-color: $grey100;
+    }
+    ^layoutView {
       width: 100%;
     }
   `,
@@ -179,8 +194,27 @@ foam.CLASS({
         enableClass(this.myClass('u2'), ! this.U3).
         addClass().
         show(visibilitySlot).
-        add(labelSlot).
-        add(supportingLabelSlot).
+        start().
+          addClass(this.myClass('propHolder')).addClass(this.myClass('labelHolder')).
+          enableClass('reactive', this.reactive$).
+          on('click', this.toggleMode).
+          add(labelSlot).
+          add(supportingLabelSlot).
+          start().
+            addClass(this.myClass('switch')).
+            add(this.dynamic(function(reactive) {
+              if ( reactive ) {
+                this.start().
+                  add('Dynamic').
+                end()
+              } else {
+                this.start().
+                  add('Static').
+                end()
+              }
+            })).
+          end().
+        end().
         call(this.layoutView, [self, prop, viewSlot]).
         start().
           addClass(this.myClass('propHolder')).
@@ -230,38 +264,23 @@ foam.CLASS({
 
     function layoutView(self, prop, viewSlot) {
       this.start().
-        addClass(self.myClass('switch')).
-        enableClass('reactive', self.reactive$).
-        on('click', self.toggleMode).
-        add(self.dynamic(function(reactive) {
-          if ( reactive ) {
-            this.start(foam.u2.tag.Image, {
-              glyph: 'functionSign',
-              embedSVG: true
-            }).addClass(self.myClass('element-icon')).end()
-          } else {
-            this.start(foam.u2.tag.Image, {
-              glyph: 'equalSign',
-              embedSVG: true
-            }).addClass(self.myClass('element-icon')).end()
-          }
-        })).
-      end().
-      add(
-        self.dynamic(function(reactive) {
-          if ( reactive ) {
-            this.start().
-              start(self.FORMULA, {data$: self.formula$}).
-                addClass(self.myClass('formulaInput')).
-                on('blur', function() { self.reactive = !! self.formula; }).
-                focus().
-              end().add(self.data.slot(self.prop.name)).
-            end();
-          } else {
-            this.add(viewSlot);
-          }
-        })
-      );
+        addClass(self.myClass('layoutView')).
+        add(
+          self.dynamic(function(reactive) {
+            if ( reactive ) {
+              this.start().
+                start(self.FORMULA, {data$: self.formula$}).
+                  addClass(self.myClass('formulaInput')).
+                  on('blur', function() { self.reactive = !! self.formula; }).
+                  focus().
+                end().add(self.data.slot(self.prop.name)).
+              end();
+            } else {
+              this.add(viewSlot);
+            }
+          })
+        ).
+      end();
     },
 
     function setFormula(formula) {

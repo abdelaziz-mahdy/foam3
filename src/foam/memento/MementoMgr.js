@@ -99,7 +99,7 @@ foam.CLASS({
       name:  'back',
       label: '',
       help:  'Go to previous view',
-      buttonStyle: 'TEXT',
+      buttonStyle: 'BLACK',
       themeIcon: 'undo',
       isEnabled: function(stackSize_) { return !! stackSize_; },
       code: function() {
@@ -114,7 +114,7 @@ foam.CLASS({
       name:  'forth',
       label: '',
       help:  'Undo the previous back.',
-      buttonStyle: 'TEXT',
+      buttonStyle: 'BLACK',
       themeIcon: 'redo',
       isEnabled: function(redoSize_) { return !! redoSize_; },
       code: function() {

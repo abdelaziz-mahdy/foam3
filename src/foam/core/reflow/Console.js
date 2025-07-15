@@ -100,6 +100,7 @@ foam.CLASS({
       display: flex;
       align-items: center;
       color: $grey700;
+      gap: 4px;
     }
     ^header-container {
       display: flex;
@@ -128,9 +129,13 @@ foam.CLASS({
     ^ .foam-u2-view-OverlayActionListView {
       color: $textDefault;
     }
-    ^ .foam-u2-ActionView[name="back"]:not([disabled="disabled"]),
-    ^ .foam-u2-ActionView[name="forth"]:not([disabled="disabled"]) {
-      color: $textDefault;
+
+    ^separator {
+      display: inline-block;
+      width: 1px;
+      height: 30px;
+      background: $grey200;
+      margin: 0 8px;
     }
   `,
 
@@ -141,6 +146,11 @@ foam.CLASS({
   methods: [
     function render() {
       let self = this;
+
+      var fullVersion = this.data.value.dynamic(function(version, revision) {
+        this.add(`v${version}.${revision}`);
+      });
+
       this.addClass()
         .start().addClass(this.myClass('header-container'))
           .start().addClass(this.myClass('navigator'))
@@ -158,6 +168,7 @@ foam.CLASS({
               })
               .end()
             .end()
+            .start().add(fullVersion).end()
           .end()
 
           .start().addClass(this.myClass('header-actions'))
@@ -165,16 +176,7 @@ foam.CLASS({
               .tag(this.data.mementoMgr.BACK)
               .tag(this.data.mementoMgr.FORTH)
             .endContext()
-            .start('span')
-                .style({
-                  display: 'inline-block',
-                  width: '1px',
-                  height: '30px', // or whatever height fits your header
-                  background: '#E0E0E0', // or $grey200 if you have a variable
-                  margin: '0 8px', // optional, for spacing
-                  verticalAlign: 'middle'
-                })
-              .end()
+            .start('span').addClass(this.myClass('separator')).end()
             .startContext({data: this})
               .tag(this.SAVE)
               .tag(this.OverlayActionListView, {
@@ -185,16 +187,7 @@ foam.CLASS({
                 size: 'SMALL',
                 horizontal: false
               })
-              .start('span')
-                .style({
-                  display: 'inline-block',
-                  width: '1px',
-                  height: '30px', // or whatever height fits your header
-                  background: '#E0E0E0', // or $grey200 if you have a variable
-                  margin: '0 8px', // optional, for spacing
-                  verticalAlign: 'middle'
-                })
-              .end()
+              .start('span').addClass(this.myClass('separator')).end()
               .tag(this.FULL_SCREEN)
             .endContext()
             // callIf(this.data.showPrompts$, function() {
@@ -248,7 +241,6 @@ foam.CLASS({
         flow.revision = undefined;
 
         this.data.showPrompts = false;
-
       }
     },
     {
@@ -256,6 +248,9 @@ foam.CLASS({
       label: 'Save',
       buttonStyle: foam.u2.ButtonStyle.PRIMARY,
       size: 'SMALL',
+      isEnabled: function(data$flowErrors_) {
+        return ! data$flowErrors_;
+      },
       isAvailable: function(showPrompts) {
         return showPrompts;
       },
@@ -693,11 +688,14 @@ foam.CLASS({
       transition: width 0.1s;
     }
     ^resize-handle {
-      width: 6px;
+      width: 2px;
       cursor: ew-resize;
-      background: $primary100;
+      background: $borderLight;
       height: 100%;
       z-index: 10;
+    }
+    ^resize-handle:hover, ^resize-handle:active {
+      background: $primary500;
     }
 
     ^r .foam-core-reflow-SinkView, .foam-u2-view-IntView {
@@ -709,7 +707,8 @@ foam.CLASS({
     }
 
     ^menuClosed {
-     width: fit-content;
+     width: 60px!important;
+     transition: width 0.2s cubic-bezier(0.4,0,0.2,1);
     }
 
     ^r .foam-u2-view-TitledArrayView-value-view-container {
@@ -749,6 +748,11 @@ foam.CLASS({
       class: 'Int',
       name: 'rightWidth',
       value: 300
+    },
+    {
+      class: 'Int',
+      name: 'leftWidth',
+      value: 300
     }
   ],
 
@@ -759,26 +763,31 @@ foam.CLASS({
         addClass().
         start('div', {}, this.header$).addClass(this.myClass('header')).show(this.showHeader$).end().
         start().addClass(this.myClass('flex-container')).
-          start('div', {}, this.left$)
-            .addClass(this.myClass('l'))
-            .enableClass(this.myClass('menuClosed'), this.isMenuOpen$.map(open => !open))
-            .show(this.showLeft$)
-          .end().
-          start().addClass(this.myClass('middle-holder'))
-            .start('div', {}, this.middle$).addClass(this.myClass('m')).end()
-          .end()
+          start('div', {}, this.left$).
+            addClass(this.myClass('l')).
+            enableClass(this.myClass('menuClosed'), this.isMenuOpen$.map(open => !open)).
+            show(this.showLeft$).
+            style({ width: this.leftWidth$.map(w => w + 'px') }).
+          end().
+          start('div').
+            addClass(this.myClass('resize-handle')).
+            on('mousedown', this.onLeftResizeStart).
+          end().
+          start().addClass(this.myClass('middle-holder')).
+            start('div', {}, this.middle$).addClass(this.myClass('m')).end().
+          end().
           // --- Resize handle ---
-          .start('div')
-            .addClass(this.myClass('resize-handle'))
-            .on('mousedown', this.onResizeStart)
-          .end()
+          start('div').
+            addClass(this.myClass('resize-handle')).
+            on('mousedown', this.onResizeStart).
+          end().
           // --- Right sidebar ---
-          .start('div', {}, this.right$)
-            .addClass(this.myClass('r'))
-            .style({ width: this.rightWidth$.map(w => w + 'px') })
-            .show(this.showRight$)
-          .end()
-        .end();
+          start('div', {}, this.right$).
+            addClass(this.myClass('r')).
+            style({ width: this.rightWidth$.map(w => w + 'px') }).
+            show(this.showRight$).
+          end().
+        end();
     },
   ],
   listeners: [
@@ -800,7 +809,31 @@ foam.CLASS({
 
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
-    }
+    },
+    function onLeftResizeStart(e) {
+      var self = this;
+      var startX = e.clientX;
+      var startWidth = this.leftWidth;
+    
+      function onMouseMove(e) {
+        var newWidth = startWidth + (e.clientX - startX);
+        if ( newWidth <= 150 ) {
+          self.isMenuOpen = false;
+          self.leftWidth = 60; 
+        } else {
+          self.isMenuOpen = true;
+          self.leftWidth = newWidth;
+        }
+      }
+    
+      function onMouseUp() {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+    
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    } 
   ]
 
 });
@@ -855,6 +888,7 @@ foam.CLASS({
     'flowScope as scope',
     'history_',
     'log',
+    'mementoMgr',
     'out',
     'save',
     'scrollToBottom',
@@ -1038,7 +1072,8 @@ foam.CLASS({
       factory: function() {
         return foam.memento.MementoMgr.create({memento$: this.value.script$, position$: this.value.revision$});
       }
-    }
+    },
+    'flowErrors_'
   ],
 
   methods: [
@@ -1104,7 +1139,7 @@ foam.CLASS({
 
       this.flowName$.sub(() => this.refreshFlowScope());
       this.value$.sub(() => this.refreshFlowScope());
-
+      this.flowErrors_$.follow(this.value.errors_$);
 
       globalThis.shell = this; // for debugging
 

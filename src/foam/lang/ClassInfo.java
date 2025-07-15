@@ -9,7 +9,7 @@ package foam.lang;
 import java.util.List;
 
 /** Provides runtime information about a Class. **/
-// KGR: Why is this mutable?
+// KGR: Why is this mutable? TODO: remove unncessary methods
 public interface ClassInfo
   extends Comparable
 {
@@ -22,6 +22,7 @@ public interface ClassInfo
   ClassInfo   addAxiom(Axiom a);
 
   boolean     isInstance(Object o);
+  // TODO: should return FObject
   Object      newInstance() throws IllegalAccessException, InstantiationException;
 
   boolean     isAssignableFrom(Class cls);
