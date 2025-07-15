@@ -129,7 +129,7 @@ foam.CLASS({
     ^ .foam-core-reflow-SinkView > div > div {
       width: 100%;
     }
-    ^propHolder {
+    ^labelHolder {
       border-radius: 4px;
       padding-block: 5px;
       cursor: pointer;
@@ -139,7 +139,7 @@ foam.CLASS({
       align-items: center;
       justify-content: space-between;
     }
-    ^propHolder:hover {
+    ^labelHolder:hover {
       padding-inline: 5px;
       background-color: $grey100;
     }
@@ -195,7 +195,7 @@ foam.CLASS({
         addClass().
         show(visibilitySlot).
         start().
-          addClass(this.myClass('propHolder')).
+          addClass(this.myClass('propHolder')).addClass(this.myClass('labelHolder')).
           enableClass('reactive', this.reactive$).
           on('click', this.toggleMode).
           add(labelSlot).
