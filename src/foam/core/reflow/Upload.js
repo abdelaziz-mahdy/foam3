@@ -21,7 +21,7 @@ foam.CLASS({
   name: 'MappingsView',
   extends: 'foam.u2.Controller',
 
-  properties: [ 'data' ],
+  properties: [ 'data', 'of' ],
 
   css: `
     ^ .foam-u2-tag-Select { height: 20px; }
@@ -34,20 +34,27 @@ foam.CLASS({
 
       this.addClass().
       start('table').start('tr').
+        start('td').style({fontWeight: 'bold'}).add('Field').end().
         start('td').style({fontWeight: 'bold'}).add('Property').end().
         start('td').style({fontWeight: 'bold'}).add('Handler').end().
         start('td').style({fontWeight: 'bold'}).add('Type').end().
         start('td').style({fontWeight: 'bold'}).add('Required').end().
       end().
-      add(function(data) {
-        this.forEach(data, function(d) {
+      add(function(of) {
+        if ( ! of ) return;
+        
+        // Show all properties of the target model
+        this.forEach(of.getOwnAxioms().filter(a => a.cls_.name === 'Property'), function(prop) {
           this.
-            startContext({data: d}).
             start('tr').
-              start('td').add(d.id).end().
-              start('td').add(d.HANDLER).end().
-              start('td').add(d.handler$.map(h => h.cls_.name)).end().
-              start('td').add(d.handler$.map(h => h.required)).end();
+              start('td').
+                start('input').attrs({type: 'text', placeholder: 'TODO: field mapping logic'}).end().
+              end().
+              start('td').add(prop.name).end().
+              start('td').add('TODO: Handler').end().
+              start('td').add(prop.cls_.name).end().
+              start('td').add(prop.required || false).end().
+            end();
         });
       });
     }
@@ -229,7 +236,9 @@ foam.CLASS({
       class: 'FObjectArray',
       of: 'foam.core.reflow.Mapping',
       name: 'mappings',
-      view: 'foam.core.reflow.MappingsView',
+      view: function(_, X) {
+        return { class: 'foam.core.reflow.MappingsView', of: X.data.of };
+      },
       factory: function() { return []; }
     },
     {
