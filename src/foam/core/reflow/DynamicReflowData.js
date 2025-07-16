@@ -94,7 +94,7 @@ foam.CLASS({
                     // console.log('filtered', filtered);
                       this.start().addClass(self.myClass('collection-list'))
                         .forEach(filtered, function(collection) {
-                          this.start(self.CommandItemView, { data: self.data, command: 'dao('+collection.name+')', description: collection.name });
+                          this.start(self.CommandItemView, { data: self.data, command: 'dao("'+collection.name+'")', description: collection.name });
                         })
                       .end();
                     })
