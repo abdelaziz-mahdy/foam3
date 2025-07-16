@@ -24,19 +24,9 @@ foam.CLASS({
   properties: [ 'data' ],
 
   css: `
-    ^ {
-      overflow-x: auto;
-    }
-    ^ table {
-      width: 100%;
-      table-layout: fixed;
-    }
-    ^ .foam-u2-tag-Select { 
-      height: 20px; 
-    }
-    ^ td { 
-      padding: 2px 10px; 
-    }
+    ^ { overflow-x: auto; }
+    ^ .foam-u2-tag-Select { height: 20px; }
+    ^ td { padding: 2px 10px; }
   `,
 
   methods: [
