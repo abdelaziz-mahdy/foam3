@@ -154,7 +154,7 @@ foam.CLASS({
       this.addClass()
         .start().addClass(this.myClass('header-container'))
           .start().addClass(this.myClass('navigator'))
-            .tag(this.HOME)                     
+            .tag(this.HOME)
             .start(foam.u2.tag.Image, {
               glyph: 'rightChevron',
               embedSVG: true
@@ -814,26 +814,26 @@ foam.CLASS({
       var self = this;
       var startX = e.clientX;
       var startWidth = this.leftWidth;
-    
+
       function onMouseMove(e) {
         var newWidth = startWidth + (e.clientX - startX);
         if ( newWidth <= 150 ) {
           self.isMenuOpen = false;
-          self.leftWidth = 60; 
+          self.leftWidth = 60;
         } else {
           self.isMenuOpen = true;
           self.leftWidth = newWidth;
         }
       }
-    
+
       function onMouseUp() {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
       }
-    
+
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
-    } 
+    }
   ]
 
 });
@@ -1287,6 +1287,13 @@ foam.CLASS({
 
       // Add binding for this
       s[this.flowName] = this.value;
+
+      // Add shortname bindings for DAO children
+      this.flowChildren.forEach(c => {
+        if ( c.value && c.flowName.endsWith('DAO') ) {
+          s[c.flowName.substring(0, c.flowName.length-3)] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value;
+        }
+      });
 
       // Add bindings for children
       this.flowChildren.forEach(c => {
