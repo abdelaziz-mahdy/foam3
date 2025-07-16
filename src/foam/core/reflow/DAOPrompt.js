@@ -114,7 +114,7 @@ foam.CLASS({
     'foam.parse.QueryParser'
   ],
 
-  imports: [ 'block', 'eval_' ],
+  imports: [ 'block', 'eval_', 'scope' ],
 
   exports: [
     'dao',
@@ -152,7 +152,10 @@ foam.CLASS({
       adapt: function(o, n, p) {
         let oldAdapt = foam.dao.DAOProperty.ADAPT;
         if ( foam.String.isInstance(n) ) {
-          if ( this.__context__[n + 'DAO'] ) {
+          if ( this.scope[n] ) {
+            this.daoKey = n;
+            n = this.scope[n];
+          } else if ( this.__context__[n + 'DAO'] ) {
             n =  n + 'DAO';
           } else if ( n.endsWith('s') ) {
             this.daoKey = n;
