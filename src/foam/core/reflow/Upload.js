@@ -24,6 +24,7 @@ foam.CLASS({
   properties: [ 'data' ],
 
   css: `
+    ^ { overflow-x: auto; }
     ^ .foam-u2-tag-Select { height: 20px; }
     ^ td { padding: 2px 10px; }
   `,
@@ -34,10 +35,10 @@ foam.CLASS({
 
       this.addClass().
       start('table').start('tr').
-        start('td').style({fontWeight: 'bold'}).add('Property').end().
-        start('td').style({fontWeight: 'bold'}).add('Handler').end().
-        start('td').style({fontWeight: 'bold'}).add('Type').end().
-        start('td').style({fontWeight: 'bold'}).add('Required').end().
+        start('th').add('Property').end().
+        start('th').add('Handler').end().
+        start('th').add('Type').end().
+        start('th').add('Required').end().
       end().
       add(function(data) {
         this.forEach(data, function(d) {
