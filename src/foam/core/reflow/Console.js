@@ -1587,8 +1587,19 @@ foam.CLASS({
         if ( this.flowChildrenSub_ ) this.flowChildrenSub_.detach();
         this.flowChildrenSub_ = foam.lang.FObject.create();
         this.flowChildren.forEach(c => {
-          if ( c.value )
+          var prev;
+          if ( c.value ) {
             this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
+
+            // TODO: this is a little hackish, it would be better if DAOPrompt tracked
+            // that itself and updated its own hidden revision property
+            if ( foam.core.reflow.DAOPrompt.isInstance(c.value) ) {
+              this.flowChildrenSub_.onDetach(c.value.select$.sub(() => {
+                prev?.detach();
+                this.flowChildrenSub_.onDetach(c.value.select.sub(this.onFlowChildChange));
+              }));
+            }
+          }
         });
 
         this.maybeRegenScript();
