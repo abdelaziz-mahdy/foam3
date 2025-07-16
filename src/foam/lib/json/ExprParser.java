@@ -29,11 +29,7 @@ public class ExprParser
     Parser p = (Parser) map__.get(cls.getName());
 
     if ( p == null ) {
-      // ExprParser can parse enums via FObjectParser, but if we know it's
-      // an Enum then just create an EnumParser and skip the two middle-men.
-      p = ( cls != null && cls.isEnum() ) ?
-        EnumParserFactory.getInstance(cls) :
-        new ExprParser(cls) ;
+      p = new ExprParser(cls) ;
 
       map__.put(cls.getName(), p);
     }
