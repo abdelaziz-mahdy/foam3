@@ -23,11 +23,15 @@ foam.CLASS({
   name: 'MappingsView',
   extends: 'foam.u2.Controller',
 
+
   properties: [ 'data' ],
 
   css: `
     ^ .foam-u2-tag-Select { height: 20px; }
     ^ td { padding: 2px 10px; }
+    ^ .foam-u2-DetailView { padding: 0; }
+    ^ .foam-u2-DetailView table { margin: 0; }
+    ^ .foam-u2-DetailView td { padding: 0; }
   `,
 
   methods: [
@@ -37,8 +41,8 @@ foam.CLASS({
       this.addClass().
       start('table').start('tr').
         start('td').style({fontWeight: 'bold'}).add('Property').end().
-        start('td').style({fontWeight: 'bold'}).add('Value').end().
         start('td').style({fontWeight: 'bold'}).add('Type').end().
+        start('td').style({fontWeight: 'bold'}).add('Value').end().
         start('td').style({fontWeight: 'bold'}).add('Required').end().
       end().
       add(this.dynamic(function(data) {
@@ -56,10 +60,18 @@ foam.CLASS({
                 start(foam.u2.DetailView, {
                   data: mapping,
                   showActions: false,
+                  showHeader: false,
+                  properties: ['type']
+                }).end().
+              end().
+              start('td').
+                start(foam.u2.DetailView, {
+                  data: mapping,
+                  showActions: false,
+                  showHeader: false,
                   properties: ['constantValue', 'fieldName', 'dynamicExpression']
                 }).end().
               end().
-              start('td').add(prop ? prop.cls_.name : '').end().
               start('td').add(prop ? (prop.required || false) : false).end().
             end();
         });
