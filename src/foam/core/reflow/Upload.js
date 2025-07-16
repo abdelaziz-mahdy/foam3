@@ -24,8 +24,53 @@ foam.CLASS({
   properties: [ 'data' ],
 
   css: `
-    ^ .foam-u2-tag-Select { height: 20px; }
-    ^ td { padding: 2px 10px; }
+    ^ {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      box-sizing: border-box;
+    }
+    ^ table {
+      width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    ^ .foam-u2-tag-Select { 
+      height: 20px; 
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    ^ td { 
+      padding: 2px 10px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 0;
+      box-sizing: border-box;
+    }
+    ^ th {
+      padding: 2px 10px;
+      font-weight: bold;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 0;
+      box-sizing: border-box;
+    }
+    ^ .property-col { width: 25%; }
+    ^ .handler-col { width: 30%; }
+    ^ .type-col { width: 25%; }
+    ^ .required-col { width: 20%; }
+    
+    @media (max-width: 768px) {
+      ^ table {
+        font-size: 12px;
+      }
+      ^ td, ^ th {
+        padding: 1px 5px;
+      }
+    }
   `,
 
   methods: [
@@ -34,20 +79,20 @@ foam.CLASS({
 
       this.addClass().
       start('table').start('tr').
-        start('td').style({fontWeight: 'bold'}).add('Property').end().
-        start('td').style({fontWeight: 'bold'}).add('Handler').end().
-        start('td').style({fontWeight: 'bold'}).add('Type').end().
-        start('td').style({fontWeight: 'bold'}).add('Required').end().
+        start('th').addClass('property-col').add('Property').end().
+        start('th').addClass('handler-col').add('Handler').end().
+        start('th').addClass('type-col').add('Type').end().
+        start('th').addClass('required-col').add('Required').end().
       end().
       add(function(data) {
         this.forEach(data, function(d) {
           this.
             startContext({data: d}).
             start('tr').
-              start('td').add(d.id).end().
-              start('td').add(d.HANDLER).end().
-              start('td').add(d.handler$.map(h => h.cls_.name)).end().
-              start('td').add(d.handler$.map(h => h.required)).end();
+              start('td').addClass('property-col').add(d.id).end().
+              start('td').addClass('handler-col').add(d.HANDLER).end().
+              start('td').addClass('type-col').add(d.handler$.map(h => h.cls_.name)).end().
+              start('td').addClass('required-col').add(d.handler$.map(h => h.required)).end();
         });
       });
     }
