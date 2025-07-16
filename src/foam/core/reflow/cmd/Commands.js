@@ -283,12 +283,15 @@ foam.CLASS({
 
   requires: [ 'foam.core.reflow.DAOCreate' ],
 
+  imports: [ 'scope' ],
+
   properties: [
     [ 'description', 'Add an object to a DAO' ]
   ],
 
   methods: [
     function execute(daoKey) {
+      if ( foam.String.isInstance(daoKey) && this.scope[daoKey] ) daoKey = this.scope[daoKey];
       var value = foam.dao.DAO.isInstance(daoKey) ? this.DAOCreate.create({dao: daoKey}) : this.DAOCreate.create({daoKey: daoKey});
       // this.currentBlock.value = foam.core.reflow.cmd.DAOCreateSave.create({daoCreate: value});
       this.out.tag(value);

@@ -64,19 +64,19 @@ foam.CLASS({
     {
       name: 'addFn',
       code: function() {
-        this.data.eval_(`add('${this.shortName}')`);
+        this.data.eval_(`add ${this.shortName}`);
       }
     },
     {
       name: 'uplFn',
       code: function() {
-        this.data.eval_(`upload('${this.shortName}')`);
+        this.data.eval_(`upload ${this.shortName}`);
       }
     },
     {
       name: 'daoFn',
       code: function() {
-        this.data.eval_(`dao('${this.shortName}')`);
+        this.data.eval_(`dao ${this.shortName}`);
       }
     },
     {
