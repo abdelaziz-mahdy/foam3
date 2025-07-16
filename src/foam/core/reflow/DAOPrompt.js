@@ -284,7 +284,6 @@ foam.CLASS({
         };
       },
       postSet: function(_, n) {
-        debugger
         this.updateColumnStorage(n);
       }
     },
