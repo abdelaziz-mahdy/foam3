@@ -290,7 +290,7 @@ foam.CLASS({
       if ( ! this.scrollToIndex ) return;
       var page = Math.floor(this.scrollToIndex/this.pageSize_);
       if ( this.renderedPages_[page] ) {
-        var el = document.querySelector(`[data-idx='${this.$UID}-${this.scrollToIndex}']`);
+        var el = document.querySelector(`[data-idx='${this.scrollToIndex}']`);
         if ( ! el ) return;
         this.scrollView(el.offsetTop);
       } else {
@@ -371,7 +371,7 @@ foam.CLASS({
           }
 
           var isEven = (index + 1) % 2 !== 0 ;
-          var rowEl = e.start(self.rowView, args).attr('data-idx', `${this.$UID}-${index}`).attr('data-even', isEven);
+          var rowEl = e.start(self.rowView, args).attr('data-idx', `${index}`).attr('data-even', isEven);
           rowEl.el().then(a => {
             self.rowObserver.observe(a)
           });
