@@ -306,7 +306,7 @@ foam.CLASS({
 
   requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch', 'foam.core.reflow.cmd.DAORowView' ],
 
-  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO', 'scope' ],
 
   properties: [
     [ 'description', 'Display available DAO services', 'uploadAvailable' ]
@@ -326,11 +326,12 @@ foam.CLASS({
       this.out.tag('br');
       this.out.start('table').attr('width', '100%').
         select(dao, function(n) {
-          var sdao  = self.__context__[n.name];
-          var of    = sdao.of;
+          var sdao = self.__context__[n.name] || self.scope[n.name];
+          var of   = sdao.of;
 
           if ( ! of ) {
             console.log('Bad DAO:', n.name);
+            debugger;
             return;
           }
 
