@@ -489,7 +489,24 @@ foam.CLASS({
       if ( ! this.mappings || this.mappings.length === 0 ) return;
       
       this.mappings.forEach(mapping => {
-        mapping.process(obj, undefined, rowData);
+        try {
+          mapping.process(obj, undefined, rowData);
+        } catch (x) {
+          // Handle dynamic expression errors gracefully
+          var errorMsg = `Dynamic expression error in property '${mapping.property}': ${x.message}`;
+          console.error(errorMsg, {
+            mapping: mapping,
+            expression: mapping.dynamicExpression,
+            rowData: rowData
+          });
+          
+          // Add error to output for user visibility
+          this.output += `<span style="color:red">${errorMsg}</span><br>`;
+          
+          // Set errors on the object for tracking
+          if ( ! obj.errors_ ) obj.errors_ = [];
+          obj.errors_.push([mapping, errorMsg]);
+        }
       });
     },
 

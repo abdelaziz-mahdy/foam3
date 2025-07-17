@@ -35,6 +35,8 @@ foam.CLASS({
     'foam.core.reflow.MappingType'
   ],
 
+  imports: [ 'scope?' ],
+
   properties: [
     {
       class: 'String',
@@ -80,6 +82,8 @@ foam.CLASS({
       class: 'String',
       name: 'dynamicExpression',
       documentation: 'JavaScript expression for dynamic computation',
+      help: 'JavaScript expression that can access row data fields directly. Examples: firstName + " " + lastName, age > 18 ? "Adult" : "Minor", email.toLowerCase()',
+      view: { class: 'foam.u2.tag.TextArea', rows: 2, cols: 40 },
       visibility: function(type) {
         return foam.u2.DisplayMode[type === foam.core.reflow.MappingType.DYNAMIC ? 'RW' : 'HIDDEN'];
       }
@@ -110,8 +114,16 @@ foam.CLASS({
           }
           break;
         case this.MappingType.DYNAMIC:
-          // TODO: Implement dynamic expression evaluation
-          value = this.dynamicExpression;
+          if ( this.dynamicExpression && rowData ) {
+            try {
+              value = this.evaluateExpression(this.dynamicExpression, rowData);
+            } catch (x) {
+              console.warn('Dynamic expression evaluation failed:', x);
+              value = '';
+            }
+          } else {
+            value = this.dynamicExpression || '';
+          }
           break;
       }
       
@@ -119,6 +131,101 @@ foam.CLASS({
       
       if ( value !== '' ) {
         obj[this.property] = value;
+      }
+    },
+
+    function evaluateExpression(expression, rowData) {
+      /**
+       * Safely evaluate a JavaScript expression within the context of rowData.
+       * Uses the same scoping pattern as ReactiveDetailView.js (lines 56-58).
+       * 
+       * @param {string} expression - The JavaScript expression to evaluate
+       * @param {Object} rowData - The row data object containing field values
+       * @returns {*} The result of the expression evaluation
+       */
+      if ( ! expression || ! rowData ) return '';
+      
+      // Validate expression before evaluation
+      this.validateExpression(expression);
+      
+      // Create utility functions
+      var utilities = {
+        isEmpty: function(value) {
+          return value === undefined || value === null || value === '';
+        },
+        isNotEmpty: function(value) {
+          return !utilities.isEmpty(value);
+        },
+        defaultValue: function(value, defaultVal) {
+          return utilities.isEmpty(value) ? defaultVal : value;
+        },
+        capitalize: function(str) {
+          return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+        }
+      };
+      
+      // Create a combined scope that includes existing scope, rowData, and utilities
+      var combinedScope = {
+        // Include existing scope if available
+        ...(this.scope || {}),
+        
+        // Add rowData fields directly to scope
+        ...rowData,
+        
+        // Add utility functions
+        ...utilities
+      };
+      
+      // Use the same pattern as ReactiveDetailView.js: with scope + eval
+      var result;
+      try {
+        with ( combinedScope ) {
+          result = eval(expression);
+        }
+      } catch (x) {
+        console.error('Expression evaluation error:', {
+          expression: expression,
+          rowData: rowData,
+          error: x.message
+        });
+        throw x;
+      }
+      
+      return result;
+    },
+
+    function validateExpression(expression) {
+      /**
+       * Validate a JavaScript expression for basic safety.
+       * This provides basic checks to catch common errors early.
+       * 
+       * @param {string} expression - The expression to validate
+       * @throws {Error} If the expression appears unsafe or malformed
+       */
+      if ( ! expression || typeof expression !== 'string' ) {
+        throw new Error('Expression must be a non-empty string');
+      }
+      
+      // Check for potentially dangerous patterns
+      var dangerousPatterns = [
+        /\b(eval|Function|setTimeout|setInterval)\b/,
+        /\b(document|window|global|process)\b/,
+        /\b(require|import|export)\b/,
+        /\b(__proto__|prototype)\b/,
+        /\b(constructor)\b/
+      ];
+      
+      dangerousPatterns.forEach(pattern => {
+        if ( pattern.test(expression) ) {
+          throw new Error('Expression contains potentially unsafe patterns');
+        }
+      });
+      
+      // Basic syntax check - try to parse as function body
+      try {
+        new Function('', 'return ' + expression);
+      } catch (x) {
+        throw new Error('Expression has invalid syntax: ' + x.message);
       }
     }
   ]
