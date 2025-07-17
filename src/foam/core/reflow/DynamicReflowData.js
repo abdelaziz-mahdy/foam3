@@ -42,6 +42,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'filterSearch',
+      onKey: true,
       placeholder: 'Search...'
     },
     {
@@ -90,10 +91,10 @@ foam.CLASS({
                       var filtered = collections.filter(c =>
                       !search || (c.name && c.name.toLowerCase().includes(search))
                       );
-                    console.log('filtered', filtered);
+                    // console.log('filtered', filtered);
                       this.start().addClass(self.myClass('collection-list'))
                         .forEach(filtered, function(collection) {
-                          this.start(self.CommandItemView, { data: self.data, command: 'dao '+collection.name, description: collection.name });
+                          this.start(self.CommandItemView, { data: self.data, command: 'dao("'+collection.name+'")', description: collection.name });
                         })
                       .end();
                     })

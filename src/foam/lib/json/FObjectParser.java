@@ -47,12 +47,12 @@ public class FObjectParser
       Whitespace.instance(),
       new Parser() {
         private Parser delegate = new Seq1(4,
-            new KeyParser("class"),
-            Whitespace.instance(),
-            Literal.create(":"),
-            Whitespace.instance(),
-            StringParser.instance(),
-            new Optional(Literal.create(",")));
+          new KeyParser("class"),
+          Whitespace.instance(),
+          Literal.create(":"),
+          Whitespace.instance(),
+          StringParser.instance(),
+          new Optional(Literal.create(",")));
 
         public PStream parse(PStream ps, ParserContext x) {
           PStream originalPS = ps;

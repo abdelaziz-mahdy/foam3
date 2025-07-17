@@ -55,7 +55,7 @@ p({
     this.__context__.scope.testResults.report(test);
     this.currentBlock.value = test;
     this.out.tag(foam.core.reflow.float.TestView, {data: test});
-    
+
     // Listen for block detach to clean up the test from testResults
     this.currentBlock.onDetach(() => {
       if ( this.__context__.scope.testResults && this.__context__.scope.testResults.dao ) {
@@ -116,10 +116,14 @@ p({
   "id": "upload",
   "description": "Upload Data",
   "script": """
-//    addValue(foam.core.reflow.Upload.create({bdaoKey: args[0]}, this));
-    this.out.add(foam.core.reflow.Upload.create({daoKey: args[0]}, this));
-  """,
-  permissionRequired: true
+    var scope = this.__context__.scope;
+    if ( foam.String.isInstance(args[0]) && scope[args[0]] ) args[0] = scope[args[0]];
+    if ( foam.dao.DAO.isInstance(args[0]) ) {
+      this.out.add(foam.core.reflow.Upload.create({dao: args[0]}, this));
+    } else {
+      this.out.add(foam.core.reflow.Upload.create({daoKey: args[0]}, this));
+    }
+  """
 })
 p({
   "class":"foam.core.reflow.cmd.Command",

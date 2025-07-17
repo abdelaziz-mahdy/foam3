@@ -43,7 +43,7 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'NO_DATA', message: 'No ${modelName} found', template: true}
+    { name: 'NO_DATA', message: 'No ${modelName} found', template: true }
   ],
 
   css: `
@@ -54,6 +54,7 @@ foam.CLASS({
       align-items: center;
     }
   `,
+
   properties: [
     {
       class: 'foam.dao.DAOProperty',
@@ -317,8 +318,6 @@ foam.CLASS({
       delete this.renderedPages_[page];
     },
 
-
-
     function getPage(dao, page) {
       var self       = this;
       var proxy      = this.ProxyDAO.create({ delegate: dao });
@@ -343,22 +342,22 @@ foam.CLASS({
           var index = (page*self.pageSize_) + i + 1;
           var group = null;
           var showHeader = false;
-          
+
           if ( self.groupBy ) {
             group = self.groupBy.f(args.data);
             var groupKey = foam.json.stringify(group);
-            
+
             // Track if this is the first time we've seen this group
             if ( self.groupFirstPage_[groupKey] === undefined ) {
               self.groupFirstPage_[groupKey] = page;
             }
-            
+
             // Show header only if this is the first page where this group appears
             // and it's different from the previous group in this page
             if ( page === self.groupFirstPage_[groupKey] ) {
               showHeader = ! foam.util.equals(group, previousGroup);
             }
-            
+
             if ( showHeader ) {
               e.tag(self.groupHeaderView,
                 { ...args,
@@ -367,12 +366,12 @@ foam.CLASS({
               }
               );
             }
-            
+
             previousGroup = group;
           }
 
           var isEven = (index + 1) % 2 !== 0 ;
-          var rowEl = e.start(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);
+          var rowEl = e.start(self.rowView, args).attr('data-idx', `${index}`).attr('data-even', isEven);
           rowEl.el().then(a => {
             self.rowObserver.observe(a)
           });
@@ -425,17 +424,17 @@ foam.CLASS({
         this.daoLoading = false;
         return;
       }
-      
+
       var page = this.currentTopPage_ + pageIndex;
       if ( this.renderedPages_[page] || this.loadingPages_[page] ) {
         // Skip this page and move to next
         this.processPageSequentially_(pageIndex + 1);
         return;
       }
-      
+
       var skip = page * this.pageSize_;
       var dao  = this.data.limit(this.pageSize_).skip(skip);
-      
+
       this.getPage(dao, page).then(() => {
         // Process next page after this one completes
         this.processPageSequentially_(pageIndex + 1);

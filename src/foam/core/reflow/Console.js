@@ -154,7 +154,7 @@ foam.CLASS({
       this.addClass()
         .start().addClass(this.myClass('header-container'))
           .start().addClass(this.myClass('navigator'))
-            .tag(this.HOME)                     
+            .tag(this.HOME)
             .start(foam.u2.tag.Image, {
               glyph: 'rightChevron',
               embedSVG: true
@@ -257,7 +257,7 @@ foam.CLASS({
       code: function() {
         if ( this.data.flowName && this.data.flowName !== '' ) {
           this.data.eval_(`save ${this.data.flowName}`);
-          this.data.showPrompts = false;
+//          this.data.showPrompts = false;
         } else {
           // Using error message instead of disabling the save button to provide users feedback on why it’s not working.
           this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
@@ -814,26 +814,26 @@ foam.CLASS({
       var self = this;
       var startX = e.clientX;
       var startWidth = this.leftWidth;
-    
+
       function onMouseMove(e) {
         var newWidth = startWidth + (e.clientX - startX);
         if ( newWidth <= 150 ) {
           self.isMenuOpen = false;
-          self.leftWidth = 60; 
+          self.leftWidth = 60;
         } else {
           self.isMenuOpen = true;
           self.leftWidth = newWidth;
         }
       }
-    
+
       function onMouseUp() {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
       }
-    
+
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
-    } 
+    }
   ]
 
 });
@@ -1000,7 +1000,7 @@ foam.CLASS({
         return flowMode === this.FlowMode.EDIT;
       },
       preSet: function(_, n) { return n === 'false' ? '' : n; },
-      memorable: true
+      // memorable: true
     },
     {
       name: 'showInput',
@@ -1288,6 +1288,13 @@ foam.CLASS({
       // Add binding for this
       s[this.flowName] = this.value;
 
+      // Add shortname bindings for DAO children
+      this.flowChildren.forEach(c => {
+        if ( c.value && c.flowName.endsWith('DAO') ) {
+          s[c.flowName.substring(0, c.flowName.length-3)] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value;
+        }
+      });
+
       // Add bindings for children
       this.flowChildren.forEach(c => {
         if ( c.value ) {
@@ -1472,6 +1479,7 @@ foam.CLASS({
       // You can do this.showPrompts = true|false; from flow scripts
       // You can do this.showInput = true|false; from flow scripts
       code: function() {
+        this.showPrompts = undefined;
         if ( this.flowMode !== this.FlowMode.READONLY ) {
           this.flowMode = { EDIT: this.FlowMode.VIEW, VIEW: this.FlowMode.CONSOLE, CONSOLE: this.FlowMode.EDIT }[this.flowMode.name];
         }
@@ -1580,8 +1588,19 @@ foam.CLASS({
         if ( this.flowChildrenSub_ ) this.flowChildrenSub_.detach();
         this.flowChildrenSub_ = foam.lang.FObject.create();
         this.flowChildren.forEach(c => {
-          if ( c.value )
+          var prev;
+          if ( c.value ) {
             this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
+
+            // TODO: this is a little hackish, it would be better if DAOPrompt tracked
+            // that itself and updated its own hidden revision property
+            if ( foam.core.reflow.DAOPrompt.isInstance(c.value) ) {
+              this.flowChildrenSub_.onDetach(c.value.select$.sub(() => {
+                prev?.detach();
+                this.flowChildrenSub_.onDetach(c.value.select.sub(this.onFlowChildChange));
+              }));
+            }
+          }
         });
 
         this.maybeRegenScript();

@@ -27,6 +27,7 @@ foam.CLASS({
   properties: [ 'data' ],
 
   css: `
+    ^ { overflow-x: auto; }
     ^ .foam-u2-tag-Select { height: 20px; }
     ^ td { padding: 2px 10px; }
     ^ .foam-u2-DetailView { padding: 0; }
@@ -40,10 +41,10 @@ foam.CLASS({
 
       this.addClass().
       start('table').start('tr').
-        start('td').style({fontWeight: 'bold'}).add('Property').end().
-        start('td').style({fontWeight: 'bold'}).add('Type').end().
-        start('td').style({fontWeight: 'bold'}).add('Value').end().
-        start('td').style({fontWeight: 'bold'}).add('Required').end().
+        start('th').add('Property').end().
+        start('th').add('Type').end().
+        start('th').add('Value').end().
+        start('th').add('Required').end().
       end().
       add(this.dynamic(function(data) {
         if ( ! data || data.length === 0 ) return;
@@ -339,6 +340,13 @@ foam.CLASS({
       }
     },
     {
+      class: 'Function',
+      name: 'adaptObject',
+      documentation: 'Callback function to adapt objects before uploading. Called with (object).',
+      value: function() { },
+      hidden: true
+    },
+    {
       name: 'fileHeaders',
       hidden: true,
       documentation: 'File headers from processed data (CSV columns, XML tags/attributes, DAO properties)',
@@ -570,6 +578,14 @@ foam.CLASS({
 
       var sink = this.bulkUpload ? {
         put: async function(o) {
+          // Apply object adaptation callback
+          try {
+            self.adaptObject(o);
+          } catch (e) {
+            console.warn('Object adaptation callback failed:', e);
+          }
+          
+          
           totalRows++;
           self.processing = totalRows;
           self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
