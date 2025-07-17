@@ -343,8 +343,9 @@ foam.CLASS({
       hidden: true,
       documentation: 'File headers from processed data (CSV columns, XML tags/attributes, DAO properties)',
       postSet: function(o, n) {
-        // Reactive mapping generation when headers change
-        if ( this.of && n && JSON.stringify(o) !== JSON.stringify(n) ) {
+        // Only auto-generate mappings if no mappings are explicitly set
+        // This prevents overwriting explicitly set mappings from FileUploadConfig
+        if ( this.of && n && JSON.stringify(o) !== JSON.stringify(n) && (!this.mappings || this.mappings.length === 0) ) {
           this.generateMappings(n);
         }
       }
