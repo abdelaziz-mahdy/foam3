@@ -3,6 +3,18 @@ foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'AutoCompleter',
 
+  documentation: `
+    Usage:
+      'query' is bound to the query string to be autocompleted
+      Before 'query' is changed, the reset() method is called
+      The query is parsed and apply() is passed to parseString() so the AutoCompleter
+        can be informed of the parsing process.
+      During the parseString(), apply() builds up the maps 'suggestions' and 'previousSuggestions'
+        which are used to make suggestions.
+      The render() method re-renders after query has changed to show updated suggestions.
+      If the user clicks on a suggestion, it's output is appended to the query.
+  `,
+
   properties: [
     {
       class: 'String',
