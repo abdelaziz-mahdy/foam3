@@ -698,7 +698,7 @@ foam.CLASS({
       name: 'methodName',
       expression: function(propertyName) {
         return 'get' + foam.String.capitalize(propertyName);
-      },
+      }
     },
     ['transient', true],
     ['tableCellFormatter', null],
@@ -731,7 +731,7 @@ foam.CLASS({
     {
       class: 'Map',
       name: 'methodOverrides'
-    },
+    }
   ],
 
   methods: [
