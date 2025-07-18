@@ -229,6 +229,7 @@ foam.CLASS({
           this.updateCount();
         }
       })));
+      this.id = 'id' + this.$UID;
       this.updateCount();
       this.dataLoading = false;
     },
@@ -290,8 +291,10 @@ foam.CLASS({
       if ( ! this.scrollToIndex ) return;
       var page = Math.floor(this.scrollToIndex/this.pageSize_);
       if ( this.renderedPages_[page] ) {
-        var el = document.querySelector(`[data-idx='${this.scrollToIndex}']`);
+        var el = document.querySelector(`#${this.id} [data-idx='${this.scrollToIndex}']`);
         if ( ! el ) return;
+        try {
+          if ( el.dataset['owner'] != this.$UID ) debugger; } catch (t) { debugger; }
         this.scrollView(el.offsetTop);
       } else {
         if ( page == 0 && this.currentTopPage_ != 0 ) {
@@ -371,7 +374,7 @@ foam.CLASS({
           }
 
           var isEven = (index + 1) % 2 !== 0 ;
-          var rowEl = e.start(self.rowView, args).attr('data-idx', `${index}`).attr('data-even', isEven);
+          var rowEl = e.start(self.rowView, args).attr('data-idx', index).attr('data-even', isEven);
           rowEl.el().then(a => {
             self.rowObserver.observe(a)
           });
