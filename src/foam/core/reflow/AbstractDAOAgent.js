@@ -141,7 +141,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'code',
-      value: '// var o is the current object\n\nconsole.log(o);\n',
+      value: '// var o is the current object\nlog(o.id);\n',
       view: { class: 'foam.u2.tag.TextArea', rows: 6 },
       displayWidth: 60
     },
