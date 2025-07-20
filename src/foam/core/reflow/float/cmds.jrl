@@ -1,0 +1,42 @@
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "testresults",
+  "description": "Insert an Test Results Summary",
+  "script": """
+    var results = foam.core.reflow.float.TestResults.create({}, this);
+    this.currentBlock.value = results;
+    this.currentBlock.flowName = 'testResults';
+    this.out.tag(foam.core.reflow.float.TestResultsView, {data: results});
+   """,
+   permissionRequired: true
+})
+
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "test",
+  "description": "Insert an Expectation Test",
+  "help": "",
+  "script": """
+//    if ( ! this.__context__.scope.testResults ) {
+//      this.eval_('testresults');
+//    }
+
+    var test = foam.core.reflow.float.Test.create({received: args[0], description: args[1] || ''}, this);
+    test.accept();
+    this.__context__.scope.testResults.report(test);
+    this.block.value = test;
+    this.out.tag(foam.core.reflow.float.TestView, {data: test});
+    this.block.treeRowRenderer = function(e) {
+      e.start().style({color: test.status$.map(s => s ? 'green' : 'red')}).add(this.flowName);
+    };
+
+    // Listen for block detach to clean up the test from testResults
+    this.currentBlock.onDetach(() => {
+      if ( this.__context__.scope.testResults && this.__context__.scope.testResults.dao ) {
+        this.__context__.scope.testResults.dao.remove(test);
+      }
+    });
+//    this.addValue(test);
+   """,
+   permissionRequired: true
+})

@@ -6,6 +6,7 @@ foam.POM({
     { name: 'CellsSink',               flags: 'js|java' },
     { name: 'Check',                   flags: 'js' },
     { name: 'CitationSink',            flags: 'js|java' },
+    { name: 'FlowableTree',            flags: 'js' },
     { name: 'Console',                 flags: 'js' },
     { name: 'ConsoleZACClient',        flags: 'js' },
     { name: 'DAOCreate',               flags: 'js' },

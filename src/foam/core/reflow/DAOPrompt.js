@@ -252,7 +252,6 @@ foam.CLASS({
       placeholder: '',
       displayWidth: 8,
       visibility: function(select) {
-        debugger;
         // Show skip/limit only for sink agents (agents with getSink method like CSVDAOAgent, JSONDAOAgent)
         // Hide for non-sink agents (agents without getSink method like TableDAOAgent)
         if ( ! select ) return foam.u2.DisplayMode.HIDDEN;
