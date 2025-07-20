@@ -9,6 +9,8 @@ foam.CLASS({
   name: 'FlowableTree',
   extends: 'foam.u2.View',
 
+  imports: [ 'moveFlowChild' ],
+
   css: `
     ^ {
       width: 100%;
@@ -114,6 +116,13 @@ foam.CLASS({
         this.start('tr').
           on('click',    () => self.selected = data).
           on('dblclick', () => data.expanded = ! data.expanded).
+          /*
+          attrs({draggable: 'true'}).
+          on('dragstart', self.onDragStart.bind(self, data)).
+          on('dragenter', self.onDragOver.bind(self, data)).
+          on('dragover',  self.onDragOver.bind(self, data)).
+          on('drop',      self.onDrop.bind(self, data)).
+          */
           start('td').
             addClass(self.myClass('element-row')).
             style({'marginLeft': (depth * 12) + 'px'}).
@@ -150,6 +159,46 @@ foam.CLASS({
           this.call(self.branch, [self, d, depth+1]);
         });
       }))
+    },
+
+    function onDragStart(row, e) {
+      console.log('onDragStart', e);
+      e.dataTransfer.setData('application/x-foam-obj-id', row.flowName);
+      console.log('onDragStart', e, row.flowName);
+      e.stopPropagation();
+    },
+
+    function onDragOver(row, e) {
+      // console.log('onDragOver', e);
+      if ( ! e.dataTransfer.types.some(m => m === 'application/x-foam-obj-id') )
+        return;
+
+      var src = e.dataTransfer.getData('application/x-foam-obj-id');
+
+      console.log('onDragOver', e);
+      console.log('over', src, '->', row.flowName);
+
+      if ( src === row.flowName ) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+    },
+
+    function onDrop(row, e) {
+      console.log('onDrop', e, row.flowName);
+      if ( ! e.dataTransfer.types.some(function(m) { return m === 'application/x-foam-obj-id'; }) )
+        return;
+
+      var src = e.dataTransfer.getData('application/x-foam-obj-id');
+
+      if ( src === row.flowName ) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      console.log('drop', src, '->', row.flowName);
+
+      this.moveFlowChild(src, row);
     }
   ],
 

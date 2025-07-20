@@ -723,6 +723,7 @@ foam.CLASS({
     'history_',
     'log',
     'mementoMgr',
+    'moveFlowChild',
     'out',
     'save',
     'scrollToBottom',
@@ -1257,6 +1258,15 @@ foam.CLASS({
 
     function removeFlowChild_(c) {
       c.remove();
+    },
+
+    function moveFlowChild(childName, parent) {
+      // TODO: prevent cycles
+      console.log('moveFlowChild', childName, parent.flowName);
+      // TODO: findFlowChildByName needs to work recursively
+      var child = this.findFlowChildByName(childName);
+      child.flowParent.removeFlowChild(child);
+      parent.addFlowChild(child);
     },
 
     function save() {
