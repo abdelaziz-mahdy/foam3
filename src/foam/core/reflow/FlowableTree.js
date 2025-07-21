@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'FlowableTree',
   extends: 'foam.u2.View',
 
-  imports: [ 'moveFlowChild' ],
+  imports: [ 'moveFlowChild', 'moveFlowChildAfter' ],
 
   css: `
     ^ {
@@ -18,7 +18,7 @@ foam.CLASS({
     ^ table {
       width: 100%;
       border-collapse: separate;
-      border-spacing: 10px;
+      border-spacing: 5px;
     }
     ^ table td {
       display: flex;
@@ -64,6 +64,17 @@ foam.CLASS({
     ^element-row-icon {
       color: $primary500;
     }
+    td^moveTarget {
+      background: rgba(0,0,0,0);
+      border: none!important;
+      width: 100%;
+      height: 6px;
+      padding: 0!important;
+      margin: 0!important;
+    }
+    ^activeTarget {
+      background: lightblue!important;
+    }
   `,
 
   properties: [
@@ -94,7 +105,8 @@ foam.CLASS({
           .endContext()
         .end()
         .start('table')
-          .attr('cellpadding', '4')
+          .attr('cellpadding', '0')
+          .attr('cellspacing', '0')
           .call(this.branch, [this, this.data, 0])
         .end();
     },
@@ -113,16 +125,19 @@ foam.CLASS({
 
     function branch(self, data, depth) {
       this.add(data.dynamic(function (flowName) {
-        this.start('tr').
+        this.
+        start('tr').
           on('click',    () => self.selected = data).
           on('dblclick', () => data.expanded = ! data.expanded).
-          /*
           attrs({draggable: 'true'}).
-          on('dragstart', self.onDragStart.bind(self, data)).
-          on('dragenter', self.onDragOver.bind(self, data)).
-          on('dragover',  self.onDragOver.bind(self, data)).
-          on('drop',      self.onDrop.bind(self, data)).
-          */
+          call(function() {
+            this.
+            on('dragstart', self.onDragStart.bind(self, data))
+/*            on('dragenter', self.onDragOver.bind(self, data, this)).
+            on('dragleave', self.onDragLeave.bind(self, this))*/;
+              // on('dragover',  self.onDragOver.bind(self, data, this)).
+            // on('drop',      self.onDrop.bind(self, data)).
+          }).
           start('td').
             addClass(self.myClass('element-row')).
             style({'marginLeft': (depth * 12) + 'px'}).
@@ -151,7 +166,20 @@ foam.CLASS({
                 startContext({ data: data }).tag(self.CLOSE).endContext().
               end();
             }).
-          end();
+          end().
+        end().
+        start('tr').
+          start('td').
+            addClass(self.myClass('moveTarget')).
+            call(function() {
+              this.
+              on('dragenter', self.onDragOver.bind(self, data, this)).
+              on('dragover',  self.onDragOver.bind(self, data, this)).
+              on('dragleave', self.onDragLeave.bind(self, this)).
+              on('drop',      self.onMove.bind(self, data, this));
+            }).
+          end().
+        end();
       }));
 
       this.add(data.dynamic(function (flowChildren) {
@@ -168,7 +196,8 @@ foam.CLASS({
       e.stopPropagation();
     },
 
-    function onDragOver(row, e) {
+    function onDragOver(row, el, e) {
+      el.addClass(this.myClass('activeTarget'));
       // console.log('onDragOver', e);
       if ( ! e.dataTransfer.types.some(m => m === 'application/x-foam-obj-id') )
         return;
@@ -184,9 +213,15 @@ foam.CLASS({
       e.stopPropagation();
     },
 
-    function onDrop(row, e) {
+    function onDragLeave(el) {
+      el.removeClass(this.myClass('activeTarget'));
+    },
+
+    function onDrop(row, el, e) {
+      /** Dropped on another row to cause a change of parent. **/
+      el.removeClass(this.myClass('activeTarget'));
       console.log('onDrop', e, row.flowName);
-      if ( ! e.dataTransfer.types.some(function(m) { return m === 'application/x-foam-obj-id'; }) )
+      if ( ! e.dataTransfer.types.some(m => m === 'application/x-foam-obj-id') )
         return;
 
       var src = e.dataTransfer.getData('application/x-foam-obj-id');
@@ -199,6 +234,23 @@ foam.CLASS({
       console.log('drop', src, '->', row.flowName);
 
       this.moveFlowChild(src, row);
+    },
+
+    function onMove(row, el, e) {
+      /** Dropped on a space after a row to cause a move. **/
+      el.removeClass(this.myClass('activeTarget'));
+      console.log('onMove', e, row.flowName);
+      if ( ! e.dataTransfer.types.some(m => m === 'application/x-foam-obj-id') )
+        return;
+
+      var src = e.dataTransfer.getData('application/x-foam-obj-id');
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      console.log('move', src, '->', row.flowName);
+
+      this.moveFlowChildAfter(src, row);
     }
   ],
 

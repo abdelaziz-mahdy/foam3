@@ -47,6 +47,16 @@ foam.CLASS({
 
   methods: [
     {
+      name: 'toSummary',
+      type: 'String',
+      code: function() {
+        return this.toolbar;
+      },
+      javaCode: `
+        return getToolbar();
+      `
+    },
+    {
       name: 'authorizeOnCreate',
       args: 'Context x',
       javaThrows: ['AuthorizationException'],
@@ -88,13 +98,6 @@ foam.CLASS({
           throw new AuthorizationException();
         }
       `
-    },
-    {
-      name: 'toSummary',
-      type: 'String',
-      code: function() {
-        return this.id;
-      }
     }
   ]
 });

@@ -36,6 +36,12 @@ foam.CLASS({
       overflow-y: auto;
       padding-top: 10px;
     }
+    ^header {
+      font-size: 14px;
+      font-weight: 600;
+      border-bottom: 1px solid $grey200;
+      padding-bottom: 5px;
+    }
   `,
 
   properties: [
@@ -46,72 +52,52 @@ foam.CLASS({
       placeholder: 'Search...'
     },
     {
-      name: 'selectedTab',
-      value: 'collections'
+      name: 'header',
+      value: 'Collections'
     },
     {
-      name: 'tabs',
-      value: [
-        { name: 'collections', label: 'Collections' },
-        { name : 'flows', label: 'Flows' }
-      ]
+      name: 'dataType',
+      value: 'collections'
     },
     {
       name: 'collections',
       value: []
     },
-    {
-      name: 'flows',
-      value: []
-    }
   ],
 
   methods: [
     async function render() {
       var self = this;
-      const collectionsSink = await this.cSpecDAO.where(this.CSpec.DAOS).select();
-
-      const flowsSink = await this.flowDAO.select();
-      this.collections = collectionsSink.array;
-      this.flows = flowsSink.array;
+      if ( this.dataType == 'collections' ) {
+        const collectionsSink = await this.cSpecDAO.where(this.CSpec.DAOS).select();
+        this.collections = collectionsSink.array;
+      } else if ( this.dataType == 'flows' ) {
+        const flowsSink = await this.flowDAO.select();
+        this.collections = flowsSink.array;
+      } else {
+        this.collections = [];
+      }
 
       this.addClass()
         .start().addClass(this.myClass('container'))
+          .start().addClass(this.myClass('header'))
+            .add(this.header)
+          .end()
           .tag(this.FILTER_SEARCH, { data$: this.filterSearch$ })
-          .add(this.dynamic(function(selectedTab, filterSearch, collections, flows) {
-            this.start(self.UnderlinedTabs).addClass(self.myClass('tabs'))
-              .forEach(self.tabs, function(tab) {
-                this.start(self.Tab, {
-                  label: tab.label,
-                  selected: tab.name === selectedTab
-                })
-                  .start()
-                    .callIf(tab.name === 'collections', function() {
-                      var search = (filterSearch || '').toLowerCase();
-                      var filtered = collections.filter(c =>
-                      !search || (c.name && c.name.toLowerCase().includes(search))
-                      );
-                    // console.log('filtered', filtered);
-                      this.start().addClass(self.myClass('collection-list'))
-                        .forEach(filtered, function(collection) {
-                          this.start(self.CommandItemView, { data: self.data, command: 'dao("'+collection.name+'")', description: collection.name });
-                        })
-                      .end();
-                    })
-                    .callIf(tab.name === 'flows', function() {
-                      var search = (filterSearch || '').toLowerCase();
-                      var filtered = flows.filter(f =>
-                        !search || (f.name && f.name.toLowerCase().includes(search))
-                      );
-                      this.start().addClass(self.myClass('collection-list'))
-                        .forEach(filtered, function(flow) {
-                          this.start(self.CommandItemView, { data: self.data, command: 'load '+flow.name, description: flow.name });
-                        })
-                      .end();
-                    })
-                  .end()
+          .add(this.dynamic(function(filterSearch, collections) {
+            var search = (filterSearch || '').toLowerCase();
+            var filtered = collections.filter(c =>
+              !search || (c.name && c.name.toLowerCase().includes(search))
+            );
+            this.start().addClass(self.myClass('collection-list'))
+              .forEach(filtered, function(collection) {
+                if ( self.dataType == 'collections' ) {
+                  this.start(self.CommandItemView, { data: self.data, command: 'dao '+collection.name, description: collection.name });
+                } else if ( self.dataType == 'flows' ) {
+                  this.start(self.CommandItemView, { data: self.data, command: 'load '+collection.name, description: collection.name });
+                }
               })
-              .end()
+            .end();
           }))
         .end();
     }

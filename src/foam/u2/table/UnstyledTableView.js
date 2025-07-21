@@ -126,8 +126,8 @@ foam.CLASS({
     {
       name: 'selectedColumnNames',
       documentation: `Property responsible for deciding what columns to use when tableView is rendered
-        Order of precedece: Memento -> localStorage -> default cols.
-        Gets updated when 'columns' changes and tries to fetch the latest value from localStorage.
+        Order of precedece: Memento -> columnStorage (localStorage) -> default cols.
+        Gets updated when 'columns' changes and tries to fetch the latest value from columnStorage.
         Can also be set by any column config view to change the current columns loaded by the table`,
       memorable: true,
       expression: function(columns, of) {
@@ -358,7 +358,7 @@ foam.CLASS({
       this.groupBy = column;
     },
     function updateColumns() {
-      this.updateLocalStorage();
+      this.updateColumnStorage();
 
       this.isColumnChanged = ! this.isColumnChanged;
     },
@@ -378,7 +378,7 @@ foam.CLASS({
       this.isColumnChanged$.sub(this.updateColumns_);
       this.updateColumns_();
 
-      this.onDetach(this.colWidthUpdated$.sub(this.updateLocalStorage));
+      this.onDetach(this.colWidthUpdated$.sub(this.updateColumnStorage));
       if ( view.editColumnsEnabled )
         var editColumnView = foam.u2.view.EditColumnsView.create({data:view}, this);
 
@@ -546,7 +546,7 @@ foam.CLASS({
       }
     },
     {
-      name: 'updateLocalStorage',
+      name: 'updateColumnStorage',
       isMerged: true,
       mergeDelay: 5000,
       code: function() {
