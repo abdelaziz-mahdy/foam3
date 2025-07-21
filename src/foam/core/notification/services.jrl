@@ -288,3 +288,13 @@ p({
       .build();
   """
 })
+
+p({
+  class: "foam.core.boot.CSpec",
+  name: "notificationAgency",
+  lazy: false,
+  serve: false,
+  serviceScript: """
+    return new foam.lang.VirtualThreadAgency("notification-agency");
+  """
+})
