@@ -1253,8 +1253,9 @@ foam.CLASS({
           block.log(r);
         }
       }
-
-      this.input_.focus();
+      this.setTimeout(() => {
+        this.input_.focus();
+      }, 0);
 
       /*
       this.setTimeout(() => this.scrollToBottom(), 16);
