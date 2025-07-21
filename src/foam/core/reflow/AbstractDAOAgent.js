@@ -268,6 +268,8 @@ foam.CLASS({
     'foam.u2.table.TableView'
   ],
 
+  imports: ['columnStorage'],
+
   properties: [
     {
       class: 'StringArray',
@@ -287,23 +289,22 @@ foam.CLASS({
       ));
       this.block.value.value = this;
 
-      e.add(this.dynamic(function(columns) {
-        var config = {
-          data: self.unlimitedDAO,
-          config: self.DAOControllerConfig.create({
-            dao: self.unlimitedDAO,
-            disableSelection: false
-          })
-        };
+      var config = {
+        data: self.unlimitedDAO,
+        config: self.DAOControllerConfig.create({
+          dao: self.unlimitedDAO,
+          disableSelection: false
+        })
+      };
 
-        if ( columns.length ) {
-          config.selectedColumnNames = columns;
-        }
+      if ( this.columns.length ) {
+        config.selectedColumnNames = JSON.parse(this.columnStorage.getItem(this.of.id));
+      }
 
-        this.startContext({click: self.click}).
-          start(self.TableView, config).
-            style({height: '600px'});
-      }));
+      e.startContext({click: self.click}).
+        start(self.TableView.create({}, this.__subContext__), config).
+          style({height: '600px'});
+   
     }
   ],
 
