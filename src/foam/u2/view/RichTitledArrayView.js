@@ -15,17 +15,17 @@ foam.CLASS({
 
   css: `
     ^ .foam-u2-DetailView {
-      border: 1px solid #ddd;
+      border: 1px solid #borderLight;
       margin-bottom: 8px;
     }
     ^header-row {
       align-items: center;
       cursor: pointer;
-      border-bottom: 1px solid $grey100;
+      border-bottom: 1px solid $borderLight;
       padding: 5px;
     }
     ^value-view-container {
-      border: 1px solid $grey100;
+      border: 1px solid $borderLight;
       border-radius: 4px;
      
     }
@@ -51,15 +51,15 @@ foam.CLASS({
     ^item-index {
       color: $grey700;
     }
-    
     ^typeLabel {
         padding: 5px;
         border-radius: 4px;
         font-size: 12px;
         font-weight: bold;
     }
-
-
+    ^control.opened {
+        transform: rotate(180deg);
+    }
     ^ .foam-u2-layout-Rows {
         gap: 10px;
     }
@@ -94,6 +94,7 @@ foam.CLASS({
               .forEach(data || [], function(e, i) {
                 var row = self.Row.create({ index: i, value: e });
                 var isCollapsed = collapsed[i] === undefined ? true : collapsed[i];
+                console.log(row.value$);
                 this
                   .startContext({ data: row })
                     .start()
@@ -109,9 +110,10 @@ foam.CLASS({
                                 ).end()
                             .end()
                             .start().addClass(self.myClass('actions-holder'))
-                                .start().addClass(self.myClass('typeLabel')).addClass(row.value$.dot('type').map(type => type.toLowerCase().replace(/[^a-z0-9_-]/g, '-')))
-                                    .add(row.value$.dot('type').map(type => type))
-                                .end()
+                              .start().addClass(self.myClass('typeLabel'))
+                                .addClass(row.value$.dot('type').dot('name').map(name => name ? name.toLowerCase().replace(/[^a-z0-9_-]/g, '-') : ''))
+                                .add(row.value$.dot('type').dot('label').map(label => label))
+                              .end()
                                 .tag(self.Row.REMOVE, {
                                     buttonStyle: 'TERTIARY',
                                     themeIcon: 'trash',
@@ -119,8 +121,8 @@ foam.CLASS({
                                 })
                                 .start(foam.u2.tag.Button, {
                                     buttonStyle: 'BLACK',
-                                    themeIcon: isCollapsed ? 'dropdown' : 'upChevron',
-                                }).on('click', function() { self.toggleCollapse(i); })
+                                    themeIcon: 'dropdown',
+                                }).addClass(self.myClass('control')).enableClass('opened', !isCollapsed).on('click', function() { self.toggleCollapse(i); })
                                 .end()
                             .end()
                         .end()
@@ -149,7 +151,7 @@ foam.CLASS({
   listeners: [
     function toggleCollapse(idx) {
       this.collapsed[idx] = ! this.collapsed[idx];
-      this.collapsed = Object.assign({}, this.collapsed); // trigger update
+      this.collapsed = Object.assign({}, this.collapsed);
     },
   ]
 });
