@@ -308,6 +308,7 @@ foam.POM({
     { name: "notification/GoogleChatSetting",                                             flags: "js|java" },
     { name: "notification/MyNotificationDAO",                                             flags: "js|java" },
     { name: "notification/Notifiable",                                                    flags: "js|java" },
+    { name: "notification/NotifiableNotificationRuleAction",                              flags: "js|java" },
     { name: "notification/Notification",                                                  flags: "js|java" },
     { name: "notification/NotificationCitationView",                                      flags: "js" },
     { name: "notification/NotificationExpansionDAO",                                      flags: "js|java" },

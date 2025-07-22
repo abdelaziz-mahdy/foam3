@@ -151,10 +151,11 @@ foam.CLASS({
     {
       class: 'foam.u2.ViewSpec',
       name: 'summaryView',
-      expression: function(tableColumns) {
+      expression: function(tableColumns, selectMode) {
         return {
           class: 'foam.u2.table.TableView',
           editColumnsEnabled: true,
+          multiSelectEnabled: selectMode,
           columns: tableColumns,
           css: {
             width: '100%'
@@ -323,6 +324,17 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'hideQueryBar'
+    },
+    {
+      class: 'Boolean',
+      name: 'selectMode',
+      documentation: 'Enables multi-select mode for choosing objects (e.g., for Many-to-Many relationships).'
+    },
+    {
+      class: 'String',
+      name: 'selectTitle',
+      value: 'Select',
+      documentation: 'Label for the select button when selectMode is true.'
     },
     {
       class: 'Int',
