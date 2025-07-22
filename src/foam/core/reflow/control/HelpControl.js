@@ -15,28 +15,28 @@ foam.CLASS({
 
   css: `
     :has(> ^promptHolder) {
-        width: 100%;
+      width: 100%;
     }
     ^promptHolder {
       display: flex;
       flex-direction: row;
       align-items: center;
-      gap: 10px;
+      gap: 0px;
     }
     ^promptLink {
       text-decoration: none !important;
       font-weight: bold;
       color: $primary500!important;
-      width: 20%;
     }
     ^input {
       border: none;
+      padding-left: 0;
+      padding-right: 0;
       width: 100%;
     }
     ^input:focus-visible {
       border: none;
     }
-
   `,
 
   properties: [
@@ -45,14 +45,16 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.start().addClass(this.myClass('promptHolder'))
-        .start(this.Link).addClass(this.myClass('promptLink')).add('Prompt help').on('click', () => this.eval_('help')).end()
+      this.start().
+        addClass(this.myClass('promptHolder'))
+        .start(this.Link).addClass(this.myClass('promptLink')).add('help').on('click', () => this.eval_('help')).end()
         .start(foam.u2.tag.Image, {
           glyph: 'rightChevron',
           embedSVG: true
         }).addClass(this.myClass('chevron')).end()
         .start(this.data.INPUT, null, this.data.input_$)
           .addClass(this.myClass('input'))
+          .focus()
           .on('keyup', e => { if ( e.key == 'Enter' || e.keyCode == 13 ) this.data.onInput(); })
         .end()
       .end();

@@ -1,4 +1,3 @@
-
 foam.CLASS({
   package: 'foam.demos.autocomplete',
   name: 'AutoCompleter',
@@ -32,7 +31,7 @@ foam.CLASS({
       factory: function() { return {}; }
     },
     {
-      name: 'apply',
+      name: 'apply', // TODO: a better name
       factory: function() {
         var auto = this;
 
@@ -51,6 +50,7 @@ foam.CLASS({
         }
 
         return function(p, obj) {
+          // 'this' is the PStream, TODO: pass ps as first param
           if ( p == foam.parse.EOF.create() ) return;
           if ( this.pos > auto.query.length ) return;
 

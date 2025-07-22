@@ -52,8 +52,15 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow',
+  name: 'AbstractSinkDAOAgent',
+  extends: 'foam.core.reflow.AbstractDAOAgent'
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow',
   name: 'AbstractColumnAwareDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   imports: [
     'block',
@@ -128,13 +135,13 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ScriptDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   properties: [
     {
       class: 'String',
       name: 'code',
-      value: '// var o is the current object\n\nconsole.log(o);\n',
+      value: '// var o is the current object\nlog(o.id);\n',
       view: { class: 'foam.u2.tag.TextArea', rows: 6 },
       displayWidth: 60
     },
@@ -166,7 +173,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'CountDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   methods: [
     function value(s) {
@@ -184,7 +191,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'MinDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   properties: [
     {
@@ -261,6 +268,8 @@ foam.CLASS({
     'foam.u2.table.TableView'
   ],
 
+  imports: ['columnStorage'],
+
   properties: [
     {
       class: 'StringArray',
@@ -280,23 +289,22 @@ foam.CLASS({
       ));
       this.block.value.value = this;
 
-      e.add(this.dynamic(function(columns) {
-        var config = {
-          data: self.unlimitedDAO,
-          config: self.DAOControllerConfig.create({
-            dao: self.unlimitedDAO,
-            disableSelection: false
-          })
-        };
+      var config = {
+        data: self.unlimitedDAO,
+        config: self.DAOControllerConfig.create({
+          dao: self.unlimitedDAO,
+          disableSelection: false
+        })
+      };
 
-        if ( columns.length ) {
-          config.selectedColumnNames = columns;
-        }
+      if ( this.columns.length ) {
+        config.selectedColumnNames = JSON.parse(this.columnStorage.getItem(this.of.id));
+      }
 
-        this.startContext({click: self.click}).
-          start(self.TableView, config).
-            style({height: '600px'});
-      }));
+      e.startContext({click: self.click}).
+        start(self.TableView.create({}, this.__subContext__), config).
+          style({height: '600px'});
+
     }
   ],
 
@@ -382,11 +390,9 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'GroupByDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
-  imports: [ 'eval_', 'nestedGroupBy?' ],
-
-  exports: [ 'as nestedGroupBy' ],
+  imports: [ 'eval_' ],
 
   properties: [
     {
@@ -406,6 +412,12 @@ foam.CLASS({
         }
         return n;
       }
+    },
+    {
+      name: 'browseEnabled',
+      hidden: true,
+      // Only enable Browse action if this is the top-level DAOAgent
+      factory: function() { return this.block.value.select === this; }
     }
   ],
 
@@ -425,7 +437,7 @@ foam.CLASS({
   actions: [
     {
       name: 'browse',
-      isAvailable: function(nestedGroupBy) { return ! nestedGroupBy; },
+      isAvailable: function(browseEnabled) { return browseEnabled; },
       code: async function() {
         var block = this.block || this.__context__.currentBlock; // ??? Why needed?
         var cls   = block?.value?.value?.cls_;
@@ -441,7 +453,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DuplicateDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   requires: [ 'foam.core.reflow.DuplicateSink' ],
 
@@ -468,7 +480,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'GridByDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   requires: [ 'foam.core.reflow.GridBy' ],
 
@@ -505,7 +517,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ColumnDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   requires: [ 'foam.mlang.sink.Sequence' ],
 
@@ -585,7 +597,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ViewDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   requires: [ 'foam.core.reflow.ViewSink' ],
 
@@ -598,7 +610,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'EditDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   requires: [ 'foam.core.reflow.EditSink' ],
 
@@ -624,7 +636,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'CitationDAOAgent',
-  extends: 'foam.core.reflow.AbstractDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
 
   requires: [ 'foam.core.reflow.CitationSink' ],
 

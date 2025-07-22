@@ -366,7 +366,7 @@ foam.CLASS({
                 { ...args,
                   groupLabel: group,
                   groupBy: self.groupBy,
-              }
+                }
               );
             }
 

@@ -15,6 +15,10 @@ foam.CLASS({
     'foam.u2.view.RootColumnConfigPropView'
   ],
 
+  imports: [
+    'columnStorage'
+  ],
+
   css: `
     ^ {
       max-width: 200px;
@@ -390,7 +394,7 @@ foam.CLASS({
       name: 'resetColumns',
       label: 'Reset Columns',
       code: function() {
-        localStorage.removeItem(this.data.of.id);
+        this.columnStorage.removeItem(this.data.of.id);
         this.data.selectedColumnNames = undefined;
         this.data.resetColWidths();
         this.data.updateColumns();
