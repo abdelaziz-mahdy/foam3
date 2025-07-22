@@ -105,7 +105,7 @@ foam.CLASS({
 
         var credential = getCredentials(getX());
         return new ApnsClientBuilder()
-          .setConnectionTimeout(ofMillis(getConnectionTimeout()))
+          .setConnectionTimeout(Duration.ofMillis(getConnectionTimeout()))
           .setApnsServer(credential.getHost())
           .setClientCredentials(
             new java.io.ByteArrayInputStream(
