@@ -307,6 +307,27 @@ foam.CLASS({
   ],
 
   methods: [
+    function cleanFormattedNumber(value) {
+      // Clean values that look like formatted numbers
+      if ( ! value || typeof value !== 'string' ) return value;
+      
+      // Only clean if it looks like a formatted number (contains commas with digits)
+      if ( /\d{1,3}(,\d{3})*(\.\d+)?/.test(value) || /^\$/.test(value) || /^\(.*\)$/.test(value) ) {
+        // Remove commas, spaces, and dollar signs but preserve decimal points and minus signs
+        var cleaned = value.replace(/[,\s\$]/g, '');
+        
+        // Handle negative numbers in accounting format (123.45) -> -123.45
+        if ( cleaned.startsWith('(') && cleaned.endsWith(')') ) {
+          cleaned = '-' + cleaned.slice(1, -1);
+        }
+        
+        return cleaned;
+      }
+      
+      // Return unchanged if it doesn't look like a formatted number
+      return value;
+    },
+
     function onFilesChanged(files) {
       var foamFiles = [];
       for ( var i = 0 ; i < files.length ; i++ ) {
@@ -656,12 +677,29 @@ foam.CLASS({
           if ( ! agent ) agent = this.UploadAgent.create();
           var row = a[i];
           if ( ! row ) continue;
-          var obj = this.of.create();
-          var csv = parser.parseString(row, this.delimiter);
-          for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
-            props[j].process(obj, csv[j].value);
+          
+          try {
+            var obj = this.of.create();
+            var csv = parser.parseString(row, this.delimiter);
+            
+            if ( ! csv || ! Array.isArray(csv) ) {
+              this.output += '<span style="color:red">CSV parsing failed for row ' + i + ': ' + row + '</span><br>';
+              continue;
+            }
+            
+            for ( var j = 0 ; j < csv.length && j < props.length ; j++ ) {
+              if ( csv[j] && csv[j].value !== undefined ) {
+                var rawValue = csv[j].value;
+                var cleanedValue = this.cleanFormattedNumber(rawValue);
+                props[j].process(obj, cleanedValue);
+              }
+            }
+            await sink.put(obj);
+          } catch (rowError) {
+            this.output += '<span style="color:red">Error processing row ' + i + ': ' + rowError.message + '<br>Row data: ' + row + '</span><br>';
+            console.error('CSV row processing error:', rowError, 'Row:', row);
+            // Continue processing other rows instead of failing completely
           }
-          await sink.put(obj);
           /*
           if ( ids[obj.id] ) {
             this.output += '<span style="color:red">Duplicate Records for id "' + obj.id + '":<br>' + ids[obj.id] + '<br>' + row + '</span>';
