@@ -323,6 +323,7 @@ foam.POM({
     { name: "foam/dao/ExternalException",                             flags: "js|java" },
     { name: "foam/dao/UniqueConstraintException",                     flags: "js|java" },
     { name: "foam/dao/CompositeRelationship",                         flags: "web" },
+    { name: "foam/dao/AdapterDAO",                                    flags: "js" },
     { name: "foam/mlang/pom",                                         flags: "js|java" },
     { name: "foam/swift/refines/MLang",                               flags: "swift" },
     { name: "foam/swift/refines/Predicate",                           flags: "swift" },
