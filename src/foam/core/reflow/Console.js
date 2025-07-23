@@ -675,7 +675,7 @@ foam.CLASS({
 foam.ENUM({
   package: 'foam.core.reflow',
   name: 'FlowMode',
-  values: [ 'EDIT', 'VIEW', 'RO', 'CONSOLE' ]
+  values: [ 'EDIT', 'VIEW', 'CONSOLE' ]
 });
 
 
@@ -862,7 +862,7 @@ foam.CLASS({
       value: true,
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       expression: function(flowMode) {
-        return flowMode != this.FlowMode.VIEW && flowMode != this.FlowMode.RO;
+        return flowMode != this.FlowMode.VIEW;
       },
       memorable: true
     },
@@ -1086,10 +1086,9 @@ foam.CLASS({
           end().
         end();
 
-
         // These observers might cause scroll issues later when queries in the console can be edited
         // In that case there should be an explicit flag to only do the scroll when the query is submitted
-      // from the main console input
+        // from the main console input
       /*
         const resizeObserver = new ResizeObserver(this.scrollToBottom.bind(this));
         var observer = new MutationObserver(function(mutations) {
@@ -1253,9 +1252,6 @@ foam.CLASS({
           block.log(r);
         }
       }
-      this.setTimeout(() => {
-        this.input_.focus();
-      }, 0);
 
       /*
       this.setTimeout(() => this.scrollToBottom(), 16);
