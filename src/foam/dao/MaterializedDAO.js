@@ -155,7 +155,8 @@ foam.CLASS({
         if ( getPm() )
           val = new foam.dao.PMDAO.Builder(getX()).setCSpec(getCSpec()).setDelegate(val).build();
         */
-      `
+      `,
+      javaFactory: 'return new foam.dao.MDAO(getOf());'
     },
     {
       class: 'Array',
