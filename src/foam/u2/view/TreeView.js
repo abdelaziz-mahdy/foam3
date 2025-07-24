@@ -232,10 +232,15 @@ foam.CLASS({
       if ( self.showRootOnSearch )
         self.showRootOnSearch.set(self.showRootOnSearch.get() || self.doesThisIncludeSearch);
 
-      this.data[self.relationship.forwardName].select().then(function(val) {
-        self.hasChildren = val.array.length > 0;
-        self.subMenus    = val.array;
-      });
+      var cb = () => {
+        this.data[self.relationship.forwardName].select().then(function(val) {
+          self.hasChildren = val.array.length > 0;
+          self.subMenus    = val.array;
+        });
+      }
+      
+      this.onDetach(this.data[self.relationship.forwardName].listen({ put: cb }));
+      cb();
 
       var labelString = this.data.label;
       if ( this.translationService ) {

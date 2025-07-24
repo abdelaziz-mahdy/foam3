@@ -114,7 +114,7 @@ foam.CLASS({
       .end();
     },
     function handlePropertyRouting() {
-      if ( ! this.detailView.route ) return;
+      if ( ! this.detailView?.route ) return;
       if ( this.detailView.route == this.prop?.name ) {
         if ( this.view_?.shown ) {
           return;
@@ -129,11 +129,11 @@ foam.CLASS({
     },
     function openFullTable(id) {
       this.view_ = this.stack.push({
-          class: this.DAOController,
-          data$: this.data$,
-          config$: this.config$,
-          ...(id ? {route: id} : {})
-        }, this);
+        ...this.config.browseController,
+        data: this.data,
+        config: this.config,
+        idOfRecord: id,
+      }, this.detailView);
     }
   ],
 

@@ -39,6 +39,7 @@ foam.CLASS({
           public void execute(X x) {
             x = XLocator.get();
             PushService pushService = (PushService) x.get("pushService");
+            // Loggers.logger(x, this).debug("pushing");
             String title = notification.getToastMessage();    // restricted to 30 chars
             String body  = notification.getToastSubMessage(); // restricted to 60 chars
             var extra = notification.getExtra();
