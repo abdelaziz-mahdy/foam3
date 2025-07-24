@@ -36,7 +36,6 @@ foam.CLASS({
           throw new RuntimeException("Invalid Parameters: Missing user or title"); 
         }
 
-        Loggers.logger(getX(), this).debug("Push to User", user.getId());
         var pushRegistrationDAO = user.getPushRegistrations(getX());
 
         var   subs = ((foam.dao.ArraySink) pushRegistrationDAO.select(new foam.dao.ArraySink())).getArray();
@@ -47,6 +46,7 @@ foam.CLASS({
           msgMap.putAll(extra);
         }
 
+        Loggers.logger(getX(), this).debug("got " + subs.size() + "subs");
         for ( Object obj : subs ) {
           PushRegistration sub = (PushRegistration) obj;
           send(sub, msgMap);

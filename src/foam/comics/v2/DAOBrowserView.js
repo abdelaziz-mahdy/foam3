@@ -27,7 +27,6 @@ foam.CLASS({
     'foam.u2.layout.Rows',
     'foam.u2.stack.StackBlock',
     'foam.u2.view.OverlayActionListView',
-    'foam.u2.table.TableView',
     'foam.u2.view.SimpleSearch',
     'foam.u2.view.TabChoiceView'
   ],

@@ -70,24 +70,29 @@ foam.CLASS({
     async function render() {
       this.SUPER();
       var self = this;
-      (this.config.createMenu ? this.config.createMenu$find : new Promise(res => res())).then(v => {
+      (this.config.createMenu ? this.config.createMenu$find : new Promise(res => res())).then(createMenu => {
         this.onDetach(this.stack.setTrailingContainer(
           this.E()
-            .callIfElse(v, function() {
-              this.startContext({ data: self }).tag(v, { buttonStyle: 'PRIMARY', size: 'LARGE' }).endContext();
-            }, function() {
-              let createAction = self.config.of.getAxiomByName('create');
-              if ( createAction && foam.comics.v3.ComicsAction.isInstance(createAction) ) {
-                createAction = self.CREATE.clone(self).copyFrom({ ...createAction })
-              } else {
-                createAction = self.CREATE;
+            .call(function() {
+              let createAction = createMenu;
+              if ( ! createAction ) {
+                createAction = self.config.of.getAxiomByName('create');
+                
+                if ( createAction && foam.comics.v3.ComicsAction.isInstance(createAction) ) {
+                  createAction = self.CREATE.clone(self).copyFrom({ ...createAction })
+                } else {
+                  createAction = self.CREATE;
+                }
               }
-              this.startContext({ data: self })
-                .tag(createAction, { label$: self.config$.dot('createTitle'), size: 'LARGE' })
-              .endContext()
-            })
-        ))
+              
+              this
+                .startContext({ data: self })
+                .tag(createAction, { label$: self.config$.dot('createTitle'), buttonStyle: 'PRIMARY', size: 'LARGE' })
+                .tag(self.SELECT, { label$: self.config$.dot('selectTitle'), size: 'LARGE' })
+                .endContext()
+            })))
       });
+      
       this
         .addClass()  
         .start(this.config.browseBorder)
@@ -126,6 +131,20 @@ foam.CLASS({
       code: function(x) {
         x.daoController.route = 'create';
       }
-    }
+    },
+    {
+      class: 'foam.comics.v3.ComicsAction',
+      name: 'select',
+      buttonStyle: 'PRIMARY',
+      internalIsAvailable: function(config) {
+        return config.selectMode;
+      },
+      internalIsEnabled: function(config$selectedObjs) {
+        return Object.keys(config$selectedObjs || {}).length > 0
+      },
+      code: async function(x) {
+        this.config.pub('select');
+      }
+    },
   ],
 });

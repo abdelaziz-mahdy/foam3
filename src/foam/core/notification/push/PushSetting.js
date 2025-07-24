@@ -47,17 +47,18 @@ foam.CLASS({
         String title = notification.getToastMessage();    // restricted to 30 chars
         String body  = notification.getToastSubMessage(); // restricted to 60 chars
         var extra = notification.getExtra();
+        if ( SafetyUtil.isEmpty(title) ||
+             SafetyUtil.isEmpty(body) ) {
+          // Loggers.logger(x, this).debug("push suppressed, title or body empty");
+          return;
+        }
 
         Agency agency = (Agency) x.get(getThreadPoolName());
         ContextAgent agent = new ContextAgent() {
           public void execute(X x) {
             x = XLocator.get();
             PushService pushService = (PushService) x.get("pushService");
-            if ( SafetyUtil.isEmpty(title) ||
-                 SafetyUtil.isEmpty(body) ) {
-              // Loggers.logger(x, this).debug("push suppressed, title or body empty");
-              return;
-            }
+            // Loggers.logger(x, this).debug("pushing");
             ((foam.core.om.OMLogger) x.get("OMLogger")).log("Notification:Push");
             try {
               pushService.sendPush(user, title, body, extra);

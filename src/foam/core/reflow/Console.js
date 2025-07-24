@@ -6,10 +6,8 @@
 
 // Bugs:
 //  - Command.execute_ Action doesn't work in TableView because it has the wrong Context
-//  - shows extra line between blocks
 
 // Features:
-//  - put current user in Context, use in Signature
 //  ? how are Commands different than flows?
 // ???: Would it be better to have compose rather than mixing Flowable?
 
@@ -623,6 +621,7 @@ foam.CLASS({
         end();
     },
   ],
+
   listeners: [
     function onResizeStart(e) {
       var self = this;
@@ -668,7 +667,6 @@ foam.CLASS({
       window.addEventListener('mouseup', onMouseUp);
     }
   ]
-
 });
 
 
@@ -677,7 +675,6 @@ foam.ENUM({
   name: 'FlowMode',
   values: [ 'EDIT', 'VIEW', 'CONSOLE' ]
 });
-
 
 
 foam.CLASS({
@@ -1253,11 +1250,6 @@ foam.CLASS({
         }
       }
 
-      /*
-      this.setTimeout(() => this.scrollToBottom(), 16);
-      this.setTimeout(() => this.scrollToBottom(), 32);
-      this.setTimeout(() => this.scrollToBottom(), 64);
-      */
       this.setTimeout(() => this.scrollToBottom(), 100);
 
       return block;
