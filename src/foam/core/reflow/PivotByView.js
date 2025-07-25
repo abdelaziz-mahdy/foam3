@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'PivotByView',
   extends: 'foam.u2.View',
 
-  documentation: 'Table View for GridBy mLang.',
+  documentation: 'Table View for PivotBy',
 
   cssTokens: [
     {
