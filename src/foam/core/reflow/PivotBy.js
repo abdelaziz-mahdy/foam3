@@ -48,9 +48,12 @@ foam.CLASS({
       name:  'rows',
       javaCloneProperty: '// noop',
       javaFactory: `
+        if ( getYFunc() == null ) return null;
         var x =  getAcc();
-        for (int i = getXFunc().length - 1; i >= 0; i-- ) {
-          x = GROUP_BY((foam.mlang.Expr) getXFunc()[i], x);
+        if ( getXFunc() != null ) {
+          for (int i = getXFunc().length - 1; i >= 0; i-- ) {
+            x = GROUP_BY((foam.mlang.Expr) getXFunc()[i], x);
+          }
         }
         var y = x;
         for (int i = getYFunc().length - 1; i >= 0; i-- ) {
@@ -59,9 +62,12 @@ foam.CLASS({
         return y;
       `,
       factory: function() {
+        if ( this.yFinc == null ) return null;
         var x = this.acc;
-        for ( var i = this.xFunc.length - 1; i >= 0; i-- ) {
-          x = this.GROUP_BY(this.xFunc[i], x);
+        if ( this.xFunc ) {
+          for ( var i = this.xFunc.length - 1; i >= 0; i-- ) {
+            x = this.GROUP_BY(this.xFunc[i], x);
+          }
         }
         var y = x
         for ( var i = this.yFunc.length - 1; i >= 0; i-- ) {
@@ -77,13 +83,15 @@ foam.CLASS({
       help:  'Columns.',
       javaCloneProperty: '// noop',
       javaFactory: `
-        var ret = GROUP_BY((foam.mlang.Expr) getXFunc()[getXFunc().length - 1]);;
+        if ( getXFunc() == null ) return null;
+        var ret = GROUP_BY((foam.mlang.Expr) getXFunc()[getXFunc().length - 1]);
         for (int i = getXFunc().length - 2; i >= 0; i-- ) {
           ret = GROUP_BY((foam.mlang.Expr) getXFunc()[i], ret);
         }
         return ret;
       `,
       factory: function() {
+        if ( ! this.xFunc ) return null;
         var ret = this.GROUP_BY(this.xFunc[this.xFunc.length - 1]);
         for ( var i = this.xFunc.length - 2; i >= 0; i-- ) {
           ret = this.GROUP_BY(this.xFunc[i], ret);
@@ -110,12 +118,12 @@ foam.CLASS({
     {
       name: 'put',
       code: function put(obj, sub) {
-        this.cols.put(obj);
-        this.rows.put(obj);
+        this.cols && this.cols.put(obj);
+        this.rows && this.rows.put(obj);
       },
       javaCode: `
-        getCols().put(obj, sub);
-        getRows().put(obj, sub);
+        if ( getCols() != null ) getCols().put(obj, sub);
+        if ( getRows() != null ) getRows().put(obj, sub);
       `
     },
 
