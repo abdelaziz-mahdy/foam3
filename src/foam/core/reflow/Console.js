@@ -705,7 +705,6 @@ foam.CLASS({
     'commandDAO',
     'flowDAO',
     'params',
-    'scope?',
     'setTimeout',
     'toolbarControlDAO',
     'window',
@@ -718,7 +717,8 @@ foam.CLASS({
     'currentBlock',
     'eval_',
     'flowChildren',
-    'flowScope as scope',
+    'scope',
+    'localScope',
     'history_',
     'log',
     'mementoMgr',
@@ -786,6 +786,12 @@ foam.CLASS({
   `,
 
   properties: [
+    {
+      name: 'scope',
+      getter: function() {
+        return {...this.localScope, ...this.flowScope};
+      }
+    },
     {
       class: 'String',
       name: 'route',
@@ -1144,6 +1150,7 @@ foam.CLASS({
           delete s[x];
 
       // Add binding for this
+      // TODO: make constant
       s[this.flowName] = this.value;
 
       // Add shortname bindings for DAO children
@@ -1162,7 +1169,7 @@ foam.CLASS({
     },
 
     async function eval_(cmd, opt_ignoreSelect) {
-      /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected  block **/
+      /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected block **/
       var self = this;
 
       cmd = cmd.trim();
@@ -1184,7 +1191,7 @@ foam.CLASS({
       };
 
       // TODO: move into Block
-      with ( this.scope || {} ) { with ( this.localScope ) { with ( innerScope ) { with ( this.flowScope ) {
+      with ( this.localScope ) { with ( innerScope ) { with ( this.flowScope ) {
         let scope = { ...(this.scope || {} ), ...this.localScope };
         var r, arg;
         try {
@@ -1226,7 +1233,7 @@ foam.CLASS({
         if ( r instanceof Promise ) {
           r = await r;
         }
-      }}}}
+      }}}
 
       this.addFlowChild(block);
 
