@@ -235,23 +235,6 @@ foam.CLASS({
       }
     },
     {
-      name: 'checkboxes_',
-      documentation: 'The checkbox elements when multi-select support is enabled. Used internally to implement the select all feature.',
-      factory: function() {
-        return {};
-      }
-    },
-    {
-      class: 'Boolean',
-      name: 'togglingCheckBoxes_',
-      documentation: 'Used internally to improve performance when toggling all checkboxes on or off.'
-    },
-    {
-      class: 'Boolean',
-      name: 'allCheckBoxesEnabled_',
-      documentation: 'Used internally to denote when the user has pressed the checkbox in the header to enable all checkboxes.'
-    },
-    {
       class: 'Int',
       name: 'tableWidth_',
       documentation: 'Width of the whole table. Used to get proper scrolling on narrow screens.',
@@ -413,29 +396,23 @@ foam.CLASS({
                     addClass(view.myClass('th')).
                     tag(view.CheckBox, {}, slot).
                     style({ width: `${this.CHECKBOX_CONTAINER_WIDTH}px`, 'min-width': `${this.CHECKBOX_CONTAINER_WIDTH}px` }).
-                  end();
+                    end();
 
                   // Set up a listener so we can update the existing CheckBox
                   // views when a user wants to select all or select none.
                   view.onDetach(slot.value.dot('data').sub(function(_, __, ___, newValueSlot) {
                     var checked = newValueSlot.get();
-                    view.allCheckBoxesEnabled_ = checked;
 
                     if ( checked ) {
-                      view.selectedObjects = {};
+                      var objs = {};
                       view.data.select(function(obj) {
-                        view.selectedObjects[obj.id] = obj;
+                        objs[obj.id] = obj;
+                      }).then(function() {
+                        view.selectedObjects = objs;
                       });
                     } else {
                       view.selectedObjects = {};
                     }
-
-                    // Update the existing CheckBox views.
-                    view.togglingCheckBoxes_ = true;
-                    Object.keys(view.checkboxes_).forEach(function(key) {
-                      view.checkboxes_[key].data = checked;
-                    });
-                    view.togglingCheckBoxes_ = false;
                   }));
                 }).
 
