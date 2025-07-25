@@ -148,39 +148,15 @@ foam.CLASS({
       // Validate expression before evaluation
       this.validateExpression(expression);
       
-      // Create utility functions
-      var utilities = {
-        isEmpty: function(value) {
-          return value === undefined || value === null || value === '';
-        },
-        isNotEmpty: function(value) {
-          return !utilities.isEmpty(value);
-        },
-        defaultValue: function(value, defaultVal) {
-          return utilities.isEmpty(value) ? defaultVal : value;
-        },
-        capitalize: function(str) {
-          return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
-        }
-      };
-      
-      // Create a combined scope that includes existing scope, rowData, and utilities
-      var combinedScope = {
-        // Include existing scope if available
-        ...(this.scope || {}),
-        
-        // Add rowData fields directly to scope
-        ...rowData,
-        
-        // Add utility functions
-        ...utilities
-      };
-      
       // Use the same pattern as ReactiveDetailView.js: with scope + eval
       var result;
       try {
-        with ( combinedScope ) {
-          result = eval(expression);
+        with ( foam.core.reflow.lib ) {
+          with ( this.scope ) {
+            with ( rowData ) {
+              result = eval(expression);
+            }
+          }
         }
       } catch (x) {
         console.error('Expression evaluation error:', {
