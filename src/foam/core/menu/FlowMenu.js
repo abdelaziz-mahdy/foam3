@@ -20,7 +20,7 @@ foam.CLASS({
     {
       name: 'link',
       expression: function(flow) {
-        return '#flow/' + flow + '?flowMode=READONLY';
+        return '#flow/' + flow + '?flowMode=PRESENTATION';
       }
     }
   ]
