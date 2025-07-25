@@ -673,7 +673,7 @@ foam.CLASS({
 foam.ENUM({
   package: 'foam.core.reflow',
   name: 'FlowMode',
-  values: [ 'EDIT', 'VIEW', 'CONSOLE' ]
+  values: [ 'CONSOLE', 'PRESENTATION' ]
 });
 
 
@@ -705,7 +705,6 @@ foam.CLASS({
     'commandDAO',
     'flowDAO',
     'params',
-    'scope?',
     'setTimeout',
     'toolbarControlDAO',
     'window',
@@ -718,7 +717,8 @@ foam.CLASS({
     'currentBlock',
     'eval_',
     'flowChildren',
-    'flowScope as scope',
+    'scope',
+    'localScope',
     'history_',
     'log',
     'mementoMgr',
@@ -787,6 +787,12 @@ foam.CLASS({
 
   properties: [
     {
+      name: 'scope',
+      getter: function() {
+        return {...this.localScope, ...this.flowScope};
+      }
+    },
+    {
       class: 'String',
       name: 'route',
       memorable: true,
@@ -837,7 +843,7 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.core.reflow.FlowMode',
       name: 'flowMode',
-      factory: function() { return this.FlowMode.EDIT; },
+      value: 'CONSOLE',
       memorable: true
     },
     {
@@ -849,7 +855,7 @@ foam.CLASS({
       name: 'showPrompts',
       value: true,
       expression: function(flowMode) {
-        return flowMode === this.FlowMode.EDIT;
+        return flowMode === this.FlowMode.CONSOLE;
       },
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       // memorable: true
@@ -859,7 +865,7 @@ foam.CLASS({
       value: true,
       preSet: function(_, n) { return n === 'false' ? '' : n; },
       expression: function(flowMode) {
-        return flowMode != this.FlowMode.VIEW;
+        return flowMode == this.FlowMode.CONSOLE;
       },
       memorable: true
     },
@@ -1144,6 +1150,7 @@ foam.CLASS({
           delete s[x];
 
       // Add binding for this
+      // TODO: make constant
       s[this.flowName] = this.value;
 
       // Add shortname bindings for DAO children
@@ -1162,7 +1169,7 @@ foam.CLASS({
     },
 
     async function eval_(cmd, opt_ignoreSelect) {
-      /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected  block **/
+      /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected block **/
       var self = this;
 
       cmd = cmd.trim();
@@ -1184,7 +1191,7 @@ foam.CLASS({
       };
 
       // TODO: move into Block
-      with ( this.scope || {} ) { with ( this.localScope ) { with ( innerScope ) { with ( this.flowScope ) {
+      with ( this.localScope ) { with ( innerScope ) { with ( this.flowScope ) {
         let scope = { ...(this.scope || {} ), ...this.localScope };
         var r, arg;
         try {
@@ -1226,7 +1233,7 @@ foam.CLASS({
         if ( r instanceof Promise ) {
           r = await r;
         }
-      }}}}
+      }}}
 
       this.addFlowChild(block);
 
@@ -1347,11 +1354,8 @@ foam.CLASS({
   actions: [
     {
       name: 'helpKey',
-      isAvailable: function(input_) {
-          if ( this.flowMode === this.FlowMode.READONLY ) {
-          return false;
-        }
-        return input_.element_ === document.activeElement;
+      isAvailable: function(flowMode, input_) {
+        return this.flowMode == this.FlowMode.CONSOLE && input_.element_ === document.activeElement;
       },
       code: function() { this.help(); },
       keyboardShortcuts: [ 'f1' ]
@@ -1367,9 +1371,9 @@ foam.CLASS({
       // You can do this.showInput = true|false; from flow scripts
       code: function() {
         this.showPrompts = undefined;
-        if ( this.flowMode !== this.FlowMode.READONLY ) {
-          this.flowMode = { EDIT: this.FlowMode.VIEW, VIEW: this.FlowMode.CONSOLE, CONSOLE: this.FlowMode.EDIT }[this.flowMode.name];
-        }
+        this.flowMode = this.flowMode == this.FlowMode.CONSOLE ?
+          this.FlowMode.PRESENTATION :
+          this.FlowMode.CONSOLE ;
       },
       keyboardShortcuts: [ 'escape' ]
     },
