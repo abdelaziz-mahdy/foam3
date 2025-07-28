@@ -11,30 +11,24 @@ foam.CLASS({
 
   requires: [
     'foam.mlang.sink.GroupBy',
-    'foam.dashboard.model.VisualizationSize'
+    'foam.mlang.sink.Count',
+    'foam.mlang.sink.Sum',
+    'foam.mlang.sink.Average',
+    'foam.mlang.sink.Min',
+    'foam.mlang.sink.Max',
+    'foam.dashboard.model.VisualizationSize',
+    'foam.dashboard.model.GroupBy as DashboardGroupBy',
+    'foam.dashboard.model.Count as DashboardCount',
+    'foam.dashboard.model.XYVisualization'
   ],
 
   constants: {
     VIEW_TYPES: {
-      // Chart views that need DAO and chart-specific configuration (x/y axis, formatters)
-      CHART_VIEWS: [
-        'foam.dashboard.view.Bar',
-        'foam.dashboard.view.Line', 
-        'foam.dashboard.view.Pie'
-      ],
-      // DAO views that need DAO but not chart configuration
-      DAO_VIEWS: [
-        'foam.dashboard.view.Count',
-        'foam.dashboard.view.DAOTable'
-      ],
-      // Text-based views that need content
-      TEXT_VIEWS: [
-        'foam.u2.view.RichTextView'
-      ],
-      // Views that need a data object (not DAO)
-      DATA_VIEWS: [
-        'foam.u2.DetailView',
-        'foam.u2.CitationView'
+      // Dashboard visualization models that need DAO
+      DASHBOARD_MODELS: [
+        'foam.dashboard.model.Count',
+        'foam.dashboard.model.GroupBy',
+        'foam.dashboard.model.XYVisualization'
       ],
       // Self-contained views that don't need external configuration
       SIMPLE_VIEWS: [
@@ -60,16 +54,47 @@ foam.CLASS({
       view: {
         class: 'foam.u2.view.ChoiceView',
         choices: [
-          ['foam.u2.DetailView', 'Detail View'],
-          ['foam.u2.CitationView', 'Citation View'],
-          ['foam.u2.view.RichTextView', 'Rich Text'],
-          ['foam.dashboard.view.Bar', 'Bar Chart'],
-          ['foam.dashboard.view.Line', 'Line Chart'],
-          ['foam.dashboard.view.Pie', 'Pie Chart'],
-          ['foam.dashboard.view.Count', 'Count Display'],
-          ['foam.dashboard.view.DAOTable', 'DAO Table'],
+          ['foam.dashboard.model.Count', 'Count Display'],
+          ['foam.dashboard.model.GroupBy', 'Grouped Charts (Pie, Bar with aggregation)'],
+          ['foam.dashboard.model.XYVisualization', 'X/Y Charts (Line, Table with X/Y data)'],
           ['foam.dashboard.view.UserGreetingView', 'User Greeting']
         ]
+      }
+    },
+    {
+      class: 'String',
+      name: 'chartView',
+      documentation: 'Which chart view to display',
+      visibility: function(view) {
+        return (view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.XYVisualization') ? 'RW' : 'HIDDEN';
+      },
+      expression: function(view) {
+        // Set default based on the view type
+        if ( view === 'foam.dashboard.model.GroupBy' ) {
+          return 'Pie';
+        } else if ( view === 'foam.dashboard.model.XYVisualization' ) {
+          return 'Line';
+        }
+        return 'Pie';
+      },
+      view: function(args, X) {
+        return {
+          class: 'foam.u2.view.ChoiceView',
+          choices$: X.data.view$.map(function(viewType) {
+            if ( viewType === 'foam.dashboard.model.GroupBy' ) {
+              return [
+                ['Pie', 'Pie Chart'],
+                ['Bar', 'Bar Chart']
+              ];
+            } else if ( viewType === 'foam.dashboard.model.XYVisualization' ) {
+              return [
+                ['Line', 'Line Chart'],
+                ['Table', 'Table View']
+              ];
+            }
+            return [];
+          })
+        };
       }
     },
     {
@@ -77,7 +102,7 @@ foam.CLASS({
       name: 'daoKey',
       documentation: 'DAO key for data-driven widgets',
       visibility: function(view) {
-        return (this.VIEW_TYPES.DAO_VIEWS.includes(view) || this.VIEW_TYPES.CHART_VIEWS.includes(view)) ? 'RW' : 'HIDDEN';
+        return this.VIEW_TYPES.DASHBOARD_MODELS.includes(view) ? 'RW' : 'HIDDEN';
       },
       view: function() {
         return {
@@ -91,22 +116,20 @@ foam.CLASS({
       hidden: true,
       transient: true,
       expression: function(daoKey) {
-        return this.resolveDAOFromKey(daoKey);
+        var dao = this.resolveDAOFromKey(daoKey);
+        console.log('WidgetConfig: Resolved DAO for key:', daoKey, '-> DAO:', dao, 'DAO.of:', dao?.of);
+        return dao;
       },
-    },
-    {
-      class: 'String',
-      name: 'text',
-      documentation: 'Text content for text-based widgets',
-      visibility: function(view) {
-        return this.VIEW_TYPES.TEXT_VIEWS.includes(view) ? 'RW' : 'HIDDEN';
-      },
-      value: '<p>Sample rich text content</p>'
     },
     {
       class: 'Boolean',
       name: 'useWrapper',
-      documentation: 'Enable wrapper around the configured view'
+      documentation: 'Enable wrapper around the configured view',
+      value: true,
+      visibility: function(view) {
+        // Dashboard models (Count, GroupBy) already have their own card wrappers
+        return this.VIEW_TYPES.DASHBOARD_MODELS.includes(view) ? 'HIDDEN' : 'RW';
+      }
     },
     {
       class: 'String',
@@ -145,19 +168,11 @@ foam.CLASS({
       value: 'MEDIUM'
     },
     {
-      class: 'FObjectProperty',
-      name: 'dataObject',
-      documentation: 'Data object for views that need a specific object',
-      visibility: function(view) {
-        return this.VIEW_TYPES.DATA_VIEWS.includes(view) ? 'RW' : 'HIDDEN';
-      }
-    },
-    {
       class: 'String',
       name: 'xProperty',
       documentation: 'X-axis property name for chart views',
       visibility: function(view, dao) {
-        return this.VIEW_TYPES.CHART_VIEWS.includes(view) && dao && dao.of ? 'RW' : 'HIDDEN';
+        return (view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.XYVisualization') && dao && dao.of ? 'RW' : 'HIDDEN';
       },
       postSet: function(_, value) {
         console.log('X Property set to:', value);
@@ -172,14 +187,20 @@ foam.CLASS({
     {
       class: 'String', 
       name: 'yProperty',
-      documentation: 'Y-ax`is property name for chart views',
+      documentation: 'Y-axis property name for chart views',
       visibility: function(view, dao) {
-        return this.VIEW_TYPES.CHART_VIEWS.includes(view) && dao && dao.of ? 'RW' : 'HIDDEN';
+        // Show Y property only for XY visualization charts
+        return view === 'foam.dashboard.model.XYVisualization' && dao && dao.of ? 'RW' : 'HIDDEN';
+      },
+      required: function(view) {
+        // Y property is required for XY visualization
+        return view === 'foam.dashboard.model.XYVisualization';
       },
       view: function(_, X) {
         return {
           class: 'foam.core.reflow.PropertyChoiceView',
-          forCls: X.data.dao.of,        };
+          forCls: X.data.dao.of
+        };
       }
     },
     {
@@ -187,7 +208,7 @@ foam.CLASS({
       name: 'chartTitle',
       documentation: 'Title for chart views', 
       visibility: function(view) {
-        return this.VIEW_TYPES.CHART_VIEWS.includes(view) ? 'RW' : 'HIDDEN';
+        return view === 'foam.dashboard.view.GroupBy' ? 'RW' : 'HIDDEN';
       }
     },
     {
@@ -195,7 +216,7 @@ foam.CLASS({
       name: 'xAxisLabel',
       documentation: 'X-axis label for chart views',
       visibility: function(view) {
-        return this.VIEW_TYPES.CHART_VIEWS.includes(view) ? 'RW' : 'HIDDEN';
+        return view === 'foam.dashboard.view.GroupBy' ? 'RW' : 'HIDDEN';
       }
     },
     {
@@ -203,7 +224,49 @@ foam.CLASS({
       name: 'yAxisLabel', 
       documentation: 'Y-axis label for chart views',
       visibility: function(view) {
-        return this.VIEW_TYPES.CHART_VIEWS.includes(view) ? 'RW' : 'HIDDEN';
+        return view === 'foam.dashboard.view.GroupBy' ? 'RW' : 'HIDDEN';
+      }
+    },
+    {
+      class: 'String',
+      name: 'aggregation',
+      documentation: 'Aggregation type for chart views',
+      value: 'COUNT',
+      visibility: function(view) {
+        // Show aggregation only for GroupBy charts
+        return view === 'foam.dashboard.model.GroupBy' ? 'RW' : 'HIDDEN';
+      },
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          ['COUNT', 'Count - Number of records'],
+          ['SUM', 'Sum - Total of values'],
+          ['AVG', 'Average - Mean value'],
+          ['MIN', 'Minimum - Smallest value'],
+          ['MAX', 'Maximum - Largest value']
+        ]
+      }
+    },
+    {
+      class: 'String',
+      name: 'aggregationProperty',
+      documentation: 'Property to aggregate (for SUM, AVG, MIN, MAX)',
+      visibility: function(view, aggregation) {
+        // Show aggregation property only for GroupBy charts when aggregation is not COUNT
+        return view === 'foam.dashboard.model.GroupBy' && aggregation !== 'COUNT' ? 'RW' : 'HIDDEN';
+      },
+      view: function(_, X) {
+        return {
+          class: 'foam.core.reflow.PropertyChoiceView',
+          forCls: X.data.dao.of,
+          predicate: function(p) {
+            // Only show numeric properties
+            return foam.lang.Int.isInstance(p) || 
+                   foam.lang.Long.isInstance(p) || 
+                   foam.lang.Float.isInstance(p) || 
+                   foam.lang.Double.isInstance(p);
+          }
+        };
       }
     },
     {
@@ -245,32 +308,36 @@ foam.CLASS({
     },
 
     function getViewSpec() {
-      // Return a view spec like the menu system uses
+      // For dashboard models, we need special handling
+      if ( this.VIEW_TYPES.DASHBOARD_MODELS.includes(this.view) ) {
+        var config = this.getBaseViewConfig();
+        if ( config.visualization ) {
+          // For GroupBy models, find the selected chart view
+          if ( this.view === 'foam.dashboard.model.GroupBy' ) {
+            var view = config.visualization.views.find(function(v) { 
+              return v[1] === config.currentView; 
+            }.bind(this));
+            if ( view ) {
+              return { class: view[0] };
+            }
+          }
+          // For Count models, use the first view (which is the count display)
+          return { class: config.visualization.views[0][0] };
+        }
+      }
+      
+      // For non-dashboard views with wrapper
       if ( this.useWrapper && this.wrapperType ) {
-        // If wrapper is enabled, get the full wrapper config
         var spec = {
           class: this.wrapperType
         };
-        
-        // Add wrapper configuration from getViewConfig
         var wrapperConfig = this.getViewConfig();
         Object.assign(spec, wrapperConfig);
-        
-        console.log('WidgetConfig.getViewSpec - returning wrapped spec:', spec);
-        return spec;
-      } else {
-        // No wrapper, return base view spec
-        var spec = {
-          class: this.view
-        };
-        
-        // Add configuration from getBaseViewConfig
-        var baseConfig = this.getBaseViewConfig();
-        Object.assign(spec, baseConfig);
-        
-        console.log('WidgetConfig.getViewSpec - returning base spec:', spec);
         return spec;
       }
+      
+      // Simple views
+      return { class: this.view };
     },
 
     function createView() {
@@ -301,52 +368,134 @@ foam.CLASS({
     function getBaseViewConfig() {
       var config = {};
       
-      console.log('WidgetConfig.getBaseViewConfig - view:', this.view, 'dao:', this.dao);
-      
-      if ( this.VIEW_TYPES.CHART_VIEWS.includes(this.view) && this.dao ) {
-        // Chart views need DAO data and chart configuration
-        config.data = this.dao;
-        console.log('WidgetConfig.getBaseViewConfig - CHART_VIEW, setting data to dao:', this.dao);
-        
-        // Create dataProperties for chart formatting
-        if ( this.xProperty && this.yProperty && this.dao.of ) {
-          var xProp = this.dao.of.getAxiomByName(this.xProperty);
-          var yProp = this.dao.of.getAxiomByName(this.yProperty);
+      if ( this.VIEW_TYPES.DASHBOARD_MODELS.includes(this.view) ) {
+        if ( ! this.dao ) {
+          console.warn('No DAO available for dashboard widget:', this.view);
+          return config;
+        }
+        if ( ! this.dao.of ) {
+          console.warn('DAO has no model (of property):', this.dao);
+          return config;
+        }
+        if ( this.view === 'foam.dashboard.model.Count' ) {
+          // Use DashboardCount for count display
+          var countVisualization = this.DashboardCount.create({
+            dao: this.dao,
+            size: this.cardSize ? this.VisualizationSize[this.cardSize] : this.VisualizationSize.SMALL,
+            label: this.chartTitle || 'Count',
+            configView: null  // Hide the configuration dropdown
+          });
           
-          if ( xProp && yProp ) {
-            // Create a GroupBy sink that chart views expect
-            config.data = this.GroupBy.create({
-              arg1: xProp,
-              arg2: yProp
+          config.data = countVisualization;
+          config.visualization = countVisualization;
+          config.currentView = this.chartView;  // Will be ignored for Count
+          
+        } else if ( this.view === 'foam.dashboard.model.GroupBy' ) {
+          if ( this.xProperty && this.dao && this.dao.of ) {
+            // Extract just the property name from fully qualified name
+            var xPropertyName = this.xProperty;
+            if ( xPropertyName.includes('.') ) {
+              xPropertyName = xPropertyName.split('.').pop();
+            }
+            
+            var yPropertyName = this.yProperty;
+            if ( yPropertyName && yPropertyName.includes('.') ) {
+              yPropertyName = yPropertyName.split('.').pop();
+            }
+            
+            // Validate that the x property exists on the model
+            var xProp = this.dao.of.getAxiomByName(xPropertyName);
+            if ( ! xProp ) {
+              console.warn('X Property not found on model:', xPropertyName, 'from xProperty:', this.xProperty);
+              return config;
+            }
+            
+            
+            // Use DashboardGroupBy for aggregation charts (Pie, Bar)
+            var visualization = this.DashboardGroupBy.create({
+              dao: this.dao,
+              arg1: xPropertyName,
+              size: this.cardSize ? this.VisualizationSize[this.cardSize] : this.VisualizationSize.MEDIUM,
+              label: this.chartTitle || xPropertyName + ' (' + this.aggregation + ')',
+              configView: null  // Hide the configuration dropdown
             });
-            console.log('WidgetConfig.getBaseViewConfig - CHART_VIEW, setting data to GroupBy:', config.data);
+            
+            console.log('Created DashboardGroupBy:', visualization, 'sink:', visualization.sink);
+            console.log('DashboardGroupBy views:', visualization.views);
+            console.log('Setting currentView to:', this.chartView);
+            
+            // Set currentView safely - only if it matches a view in the views array
+            var matchingView = visualization.views.find(function(v) { return v[1] === this.chartView; }.bind(this));
+            if ( matchingView ) {
+              visualization.currentView = this.chartView;
+            } else {
+              console.warn('ChartView', this.chartView, 'not found in views array:', visualization.views.map(function(v) { return v[1]; }));
+              // Fallback to first view
+              visualization.currentView = visualization.views[0][1];
+            }
+            
+            config.data = visualization;
+            config.visualization = visualization;
+            config.currentView = this.chartView;
+          }
+        
+        } else if ( this.view === 'foam.dashboard.model.XYVisualization' ) {
+          if ( this.xProperty && this.dao && this.dao.of ) {
+            // Extract simple property names
+            var xPropertyName = this.xProperty.includes('.') ? 
+              this.xProperty.split('.').pop() : this.xProperty;
+            var yPropertyName = this.yProperty && this.yProperty.includes('.') ? 
+              this.yProperty.split('.').pop() : this.yProperty;
+            
+            // Validate x property exists
+            var xProp = this.dao.of.getAxiomByName(xPropertyName);
+            if ( ! xProp ) {
+              console.warn('X Property not found on model:', xPropertyName);
+              return config;
+            }
+            
+            // Validate y property if provided
+            if ( yPropertyName ) {
+              var yProp = this.dao.of.getAxiomByName(yPropertyName);
+              if ( ! yProp ) {
+                console.warn('Y Property not found on model:', yPropertyName);
+                return config;
+              }
+            }
+            
+            // Use XYVisualization for true X/Y plotting
+            var visualization = this.XYVisualization.create({
+              dao: this.dao,
+              xProperty: xPropertyName,
+              yProperty: yPropertyName,
+              size: this.cardSize ? this.VisualizationSize[this.cardSize] : this.VisualizationSize.MEDIUM,
+              label: this.chartTitle || xPropertyName + (yPropertyName ? ' vs ' + yPropertyName : ''),
+              configView: null
+            });
+            
+            console.log('Created XYVisualization:', visualization, 'sink:', visualization.sink);
+            console.log('XYVisualization views:', visualization.views);
+            console.log('Setting currentView to:', this.chartView);
+            
+            // Set currentView safely - only if it matches a view in the views array
+            var matchingView = visualization.views.find(function(v) { return v[1] === this.chartView; }.bind(this));
+            if ( matchingView ) {
+              visualization.currentView = this.chartView;
+            } else {
+              console.warn('ChartView', this.chartView, 'not found in views array:', visualization.views.map(function(v) { return v[1]; }));
+              // Fallback to first view
+              visualization.currentView = visualization.views[0][1];
+            }
+            
+            config.data = visualization;
+            config.visualization = visualization;
+            config.currentView = this.chartView;
           }
         }
-        
-        // Add chart-specific configuration
-        if ( this.chartTitle ) config.title = this.chartTitle;
-        if ( this.xAxisLabel ) config.xAxisLabel = this.xAxisLabel;
-        if ( this.yAxisLabel ) config.yAxisLabel = this.yAxisLabel;
-        
-      } else if ( this.VIEW_TYPES.DAO_VIEWS.includes(this.view) && this.dao ) {
-        config.data = this.dao;
-        console.log('WidgetConfig.getBaseViewConfig - DAO_VIEW, setting data to dao:', this.dao);
-      } else if ( this.VIEW_TYPES.TEXT_VIEWS.includes(this.view) ) {
-        if ( this.view === 'foam.u2.view.RichTextView' && this.text ) {
-          config.data = this.text;
-          console.log('WidgetConfig.getBaseViewConfig - TEXT_VIEW, setting data to text:', this.text);
-        }
-      } else if ( this.VIEW_TYPES.DATA_VIEWS.includes(this.view) && this.dataObject ) {
-        config.data = this.dataObject;
-        console.log('WidgetConfig.getBaseViewConfig - DATA_VIEW, setting data to dataObject:', this.dataObject);
       } else if ( this.VIEW_TYPES.SIMPLE_VIEWS.includes(this.view) ) {
         // Simple views like UserGreetingView don't need external config
-        console.log('WidgetConfig.getBaseViewConfig - SIMPLE_VIEW, no data needed');
-      } else {
-        console.log('WidgetConfig.getBaseViewConfig - NO MATCH for view type, no data set');
       }
       
-      console.log('WidgetConfig.getBaseViewConfig - final config:', config);
       return config;
     },
 

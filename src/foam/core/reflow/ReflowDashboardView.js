@@ -8,6 +8,7 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ReflowDashboardView',
   extends: 'foam.dashboard.view.Dashboard',
+  // extends: 'foam.u2.View',
   mixins: ['foam.u2.layout.ContainerWidth'],
 
   imports: [
@@ -127,13 +128,49 @@ foam.CLASS({
             
             // Get view spec like the menu system uses
             var viewSpec = widget.getViewSpec ? widget.getViewSpec() : {class: widget.view};
+            var viewConfig = widget.getViewConfig();
             
-            // Use the original dashboard pattern: startContext().start(viewSpec)
-            widgetContainer.startContext().start(viewSpec).style({
-              'grid-column': self.containerMap$.map(v => {
-                return v[widget.id] || 'span 12';
-              })
-            }).end();
+            
+            // Handle dashboard models differently
+            if ( widget.view && widget.view.startsWith('foam.dashboard.model.') ) {
+              // Use the existing dashboard context since we extend foam.dashboard.view.Dashboard
+              var ctx = widgetContainer.__subContext__;
+              
+              // For dashboard models, render the visualization with card
+              if ( viewConfig.visualization ) {
+                var card = viewConfig.visualization.toE(null, ctx);
+                
+                // Create the view in the card's context, which provides the necessary imports
+                var view = foam.u2.ViewSpec.createView(viewSpec, {
+                  data: viewConfig.visualization
+                }, card, card.__subContext__);
+                
+                card.add(view);
+                
+                widgetContainer.start('div').style({
+                  'grid-column': self.containerMap$.map(v => {
+                    return v[widget.id] || 'span 12';
+                  })
+                }).add(card).end();
+              } else {
+                // Non-visualization dashboard views
+                widgetContainer.start('div').style({
+                  'grid-column': self.containerMap$.map(v => {
+                    return v[widget.id] || 'span 12';
+                  })
+                }).add(foam.u2.ViewSpec.createView(viewSpec, viewConfig, ctx, ctx)).end();
+              }
+            } else {
+              // Base views (org.chartjs.*, foam.u2.*, etc)
+              widgetContainer.tag({
+                class: viewSpec.class,
+                ...viewConfig
+              }, {
+                'grid-column': self.containerMap$.map(v => {
+                  return v[widget.id] || 'span 12';
+                })
+              });
+            }
           }
         });
       });
