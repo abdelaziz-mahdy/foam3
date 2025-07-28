@@ -38,18 +38,6 @@ foam.CLASS({
 
   listeners: [
     {
-      name: 'onDataUpdate',
-      on: [
-        'data.onUpdate',
-        'data.propertyChange.widgets'
-      ],
-      isMerged: true,
-      code: function() {
-        this.pub('data','propertyChange');
-        
-      }
-    },
-    {
       name: 'updateCols',
       isFramed: true,
       code: function() {
@@ -135,26 +123,17 @@ foam.CLASS({
         console.log('ReflowDashboardView: Rendering widgets number', widgets.length);
         widgets.forEach(function(widget) {
           if ( widget.view ) {
-            try {
-              console.log('ReflowDashboardView: Rendering widget', widget.id);
-              
-              // Create the fully configured view (with wrapper if enabled)
-              var widgetView = widget.createView ? widget.createView(self) : null;
-              
-              if ( widgetView ) {
-                // Simply tag the created view
-                widgetContainer.startContext().tag(widgetView).style({
-                  'grid-column': self.containerMap$.map(v => {
-                    return v[widget.id] || 'span 12';
-                  })
-                }).end();
-              } else {
-                console.warn('ReflowDashboardView: Could not create view for widget', widget.id);
-              }
-              
-            } catch (error) {
-              console.warn('ReflowDashboardView: Error creating view for widget', widget.id, error);
-            }
+            console.log('ReflowDashboardView: Rendering widget', widget.id);
+            
+            // Get view spec like the menu system uses
+            var viewSpec = widget.getViewSpec ? widget.getViewSpec() : {class: widget.view};
+            
+            // Use the original dashboard pattern: startContext().start(viewSpec)
+            widgetContainer.startContext().start(viewSpec).style({
+              'grid-column': self.containerMap$.map(v => {
+                return v[widget.id] || 'span 12';
+              })
+            }).end();
           }
         });
       });

@@ -13,7 +13,6 @@ foam.CLASS({
     'foam.core.reflow.WidgetConfig'
   ],
 
-  topics: ['onUpdate'],
 
   messages: [
     { name: 'TITLE', message: 'Dashboard' }
@@ -59,41 +58,60 @@ foam.CLASS({
       documentation: 'Array of widget configurations for the dashboard.',
       factory: function() {
         return [];
+      },
+      postSet: function(oldValue, newValue) {
+        var self = this;
+        
+        // Detach old widget listeners
+        if ( oldValue ) {
+          oldValue.forEach(function(widget) {
+            widget.detach && widget.detach();
+          });
+        }
+        
+        // Subscribe to new widget property changes
+        if ( newValue ) {
+          newValue.forEach(function(widget) {
+            widget.sub && widget.sub('propertyChange', function() {
+              self.pub('propertyChange', 'widgets');
+            });
+          });
+        }
+        
+        // Publish property change for widget array changes
+        this.pub('propertyChange', 'widgets');
       }
     },
   ],
 
   methods: [
-    function addWidget(widget) {
-      if ( ! foam.core.reflow.WidgetConfig.isInstance(widget) ) {
-        widget = this.WidgetConfig.create(widget);
-      }
-      this.widgets = this.widgets.concat([widget]);
-      this.pub('onUpdate');
-    },
-
-    function removeWidget(widgetId) {
-      this.widgets = this.widgets.filter(w => w.id !== widgetId);
-      this.pub('onUpdate');
-    },
-
-    function updateWidget(widgetId, updates) {
-      var widget = this.widgets.find(w => w.id === widgetId);
-      if ( widget ) {
-        Object.keys(updates).forEach(key => {
-          widget[key] = updates[key];
+    function init() {
+      this.SUPER();
+      var self = this;
+      
+      // Set up listeners for existing widgets
+      (this.widgets || []).forEach(function(widget) {
+        widget.sub && widget.sub('propertyChange', function() {
+          self.pub('propertyChange', 'widgets');
         });
-        this.pub('onUpdate');
-      }
-    },
-
-    function getWidget(widgetId) {
-      return this.widgets.find(w => w.id === widgetId);
+      });
+      
+      // Trigger initial property change
+      this.pub('propertyChange', 'widgets');
     },
 
     function clearWidgets() {
+      // Detach all widget listeners
+      (this.widgets || []).forEach(function(widget) {
+        widget.detach && widget.detach();
+      });
       this.widgets = [];
-      this.pub('onUpdate');
+      this.pub('propertyChange', 'widgets');
+    },
+
+    function updateLayout() {
+      // Trigger layout recalculation
+      this.pub('propertyChange', 'widgets');
     }
   ],
 

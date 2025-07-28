@@ -10,7 +10,8 @@ foam.CLASS({
   mixins: ['com.paytic.flow.DAOResolverMixin'],
 
   requires: [
-    'foam.mlang.sink.GroupBy'
+    'foam.mlang.sink.GroupBy',
+    'foam.dashboard.model.VisualizationSize'
   ],
 
   constants: {
@@ -111,17 +112,8 @@ foam.CLASS({
       class: 'String',
       name: 'wrapperType',
       documentation: 'Type of wrapper to use',
-      visibility: function(useWrapper) {
-        return useWrapper ? 'RW' : 'HIDDEN';
-      },
-      view: {
-        class: 'foam.u2.view.ChoiceView',
-        choices: [
-          ['foam.dashboard.view.Card', 'Card'],
-          ['foam.dashboard.view.CardWrapper', 'Card Wrapper']
-        ]
-      },
-      value: 'foam.dashboard.view.Card'
+      hidden: true,
+      value: 'foam.dashboard.view.CardWrapper'
     },
     {
       class: 'String',
@@ -130,6 +122,27 @@ foam.CLASS({
       visibility: function(useWrapper) {
         return useWrapper ? 'RW' : 'HIDDEN';
       }
+    },
+    {
+      class: 'String',
+      name: 'cardSize',
+      documentation: 'Size for card/wrapper views',
+      visibility: function(useWrapper) {
+        return useWrapper ? 'RW' : 'HIDDEN';
+      },
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          ['TINY', 'Tiny (176px × 358px)'],
+          ['SMALL', 'Small (312px × ~)'],
+          ['SMEDIUM', 'Small-Medium (312px × 358px)'],
+          ['MEDIUM', 'Medium (424px × 356px)'],
+          ['LMEDIUM', 'Large-Medium (570px × 450px)'],
+          ['LARGE', 'Large (936px × 528px)'],
+          ['XLARGE', 'Extra Large (1580px × 698px)']
+        ]
+      },
+      value: 'MEDIUM'
     },
     {
       class: 'FObjectProperty',
@@ -231,27 +244,39 @@ foam.CLASS({
       // Override in subclasses if needed
     },
 
-    function createView(context) {
-      // Create the base view with its configuration
-      var baseConfig = this.getBaseViewConfig();
-      var baseView = foam.lookup(this.view).create(baseConfig, context);
-      
-      // If wrapper is enabled, wrap the base view
+    function getViewSpec() {
+      // Return a view spec like the menu system uses
       if ( this.useWrapper && this.wrapperType ) {
-        var wrapperConfig = {};
+        // If wrapper is enabled, get the full wrapper config
+        var spec = {
+          class: this.wrapperType
+        };
         
-        if ( this.wrapperType === 'foam.dashboard.view.Card' ) {
-          if ( this.wrapperLabel ) wrapperConfig.cardData = { label: this.wrapperLabel };
-          wrapperConfig.content = baseView;
-          return foam.lookup(this.wrapperType).create(wrapperConfig, context);
-        } else if ( this.wrapperType === 'foam.dashboard.view.CardWrapper' ) {
-          if ( this.wrapperLabel ) wrapperConfig.title = this.wrapperLabel;
-          wrapperConfig.currentView = baseView;
-          return foam.lookup(this.wrapperType).create(wrapperConfig, context);
-        }
+        // Add wrapper configuration from getViewConfig
+        var wrapperConfig = this.getViewConfig();
+        Object.assign(spec, wrapperConfig);
+        
+        console.log('WidgetConfig.getViewSpec - returning wrapped spec:', spec);
+        return spec;
+      } else {
+        // No wrapper, return base view spec
+        var spec = {
+          class: this.view
+        };
+        
+        // Add configuration from getBaseViewConfig
+        var baseConfig = this.getBaseViewConfig();
+        Object.assign(spec, baseConfig);
+        
+        console.log('WidgetConfig.getViewSpec - returning base spec:', spec);
+        return spec;
       }
-      
-      return baseView;
+    },
+
+    function createView() {
+      // This method is deprecated - use getViewSpec() with startContext().start() instead
+      console.warn('WidgetConfig.createView is deprecated - use getViewSpec() with container.startContext().start()');
+      return null;
     },
 
     function getViewConfig() {
@@ -262,13 +287,10 @@ foam.CLASS({
       if ( this.useWrapper && this.wrapperType ) {
         var wrapperConfig = {};
         
-        if ( this.wrapperType === 'foam.dashboard.view.Card' ) {
-          if ( this.wrapperLabel ) wrapperConfig.cardData = { label: this.wrapperLabel };
-          wrapperConfig.content = { class: this.view, ...baseConfig };
-        } else if ( this.wrapperType === 'foam.dashboard.view.CardWrapper' ) {
-          if ( this.wrapperLabel ) wrapperConfig.title = this.wrapperLabel;
-          wrapperConfig.currentView = { class: this.view, ...baseConfig };
-        }
+        // CardWrapper expects size property to be set
+        wrapperConfig.size = this.VisualizationSize[this.cardSize] || this.VisualizationSize.MEDIUM;
+        if ( this.wrapperLabel ) wrapperConfig.title = this.wrapperLabel;
+        wrapperConfig.currentView = { class: this.view, ...baseConfig };
         
         return wrapperConfig;
       }
@@ -279,9 +301,12 @@ foam.CLASS({
     function getBaseViewConfig() {
       var config = {};
       
+      console.log('WidgetConfig.getBaseViewConfig - view:', this.view, 'dao:', this.dao);
+      
       if ( this.VIEW_TYPES.CHART_VIEWS.includes(this.view) && this.dao ) {
         // Chart views need DAO data and chart configuration
         config.data = this.dao;
+        console.log('WidgetConfig.getBaseViewConfig - CHART_VIEW, setting data to dao:', this.dao);
         
         // Create dataProperties for chart formatting
         if ( this.xProperty && this.yProperty && this.dao.of ) {
@@ -294,6 +319,7 @@ foam.CLASS({
               arg1: xProp,
               arg2: yProp
             });
+            console.log('WidgetConfig.getBaseViewConfig - CHART_VIEW, setting data to GroupBy:', config.data);
           }
         }
         
@@ -304,16 +330,23 @@ foam.CLASS({
         
       } else if ( this.VIEW_TYPES.DAO_VIEWS.includes(this.view) && this.dao ) {
         config.data = this.dao;
+        console.log('WidgetConfig.getBaseViewConfig - DAO_VIEW, setting data to dao:', this.dao);
       } else if ( this.VIEW_TYPES.TEXT_VIEWS.includes(this.view) ) {
         if ( this.view === 'foam.u2.view.RichTextView' && this.text ) {
           config.data = this.text;
+          console.log('WidgetConfig.getBaseViewConfig - TEXT_VIEW, setting data to text:', this.text);
         }
       } else if ( this.VIEW_TYPES.DATA_VIEWS.includes(this.view) && this.dataObject ) {
         config.data = this.dataObject;
+        console.log('WidgetConfig.getBaseViewConfig - DATA_VIEW, setting data to dataObject:', this.dataObject);
       } else if ( this.VIEW_TYPES.SIMPLE_VIEWS.includes(this.view) ) {
         // Simple views like UserGreetingView don't need external config
+        console.log('WidgetConfig.getBaseViewConfig - SIMPLE_VIEW, no data needed');
+      } else {
+        console.log('WidgetConfig.getBaseViewConfig - NO MATCH for view type, no data set');
       }
       
+      console.log('WidgetConfig.getBaseViewConfig - final config:', config);
       return config;
     },
 
