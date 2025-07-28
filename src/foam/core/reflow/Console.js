@@ -1168,8 +1168,9 @@ foam.CLASS({
       });
     },
 
-    async function eval_(cmd, opt_ignoreSelect) {
+    async function eval_(cmd, opt_ignoreSelect, opt_noBlock) {
       /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected block **/
+      /** opt_noBlock if true, prevents block creation entirely - just executes the command **/
       var self = this;
 
       cmd = cmd.trim();
@@ -1235,7 +1236,9 @@ foam.CLASS({
         }
       }}}
 
-      this.addFlowChild(block);
+      if ( ! opt_noBlock ) {
+        this.addFlowChild(block);
+      }
 
       if ( ! opt_ignoreSelect ) this.selected = block;
 
