@@ -101,7 +101,7 @@ foam.CLASS({
     ^navigator {
       display: flex;
       align-items: center;
-      color: $grey700;
+      color: $textSecondary;
       gap: 4px;
     }
     ^header-container {
@@ -110,11 +110,11 @@ foam.CLASS({
       align-items: center;
     }
     ^chevron {
-       color: $grey700;
+      color: $textSecondary;
     }
     ^title input {
       border: none;
-      color: $black;
+      color: $textDefault;
     }
     ^title .foam-u2-TextInputCSS::placeholder {
       color: $textDefault;
@@ -126,7 +126,7 @@ foam.CLASS({
       align-items: center;
     }
     ^save-text {
-      color: $grey700;
+      color: $textSecondary;
     }
     ^ .foam-u2-view-OverlayActionListView {
       color: $textDefault;
@@ -136,7 +136,7 @@ foam.CLASS({
       display: inline-block;
       width: 1px;
       height: 30px;
-      background: $grey200;
+      background: $backgroundTertiary;
       margin: 0 8px;
     }
   `,
@@ -491,31 +491,31 @@ foam.CLASS({
       padding: 5px 24px;
       height: fit-content;
       max-height: 64px;
-      background-color: $white;
+      background-color: $backgroundDefault;
       border-bottom: 1px solid $borderLight;
     }
     ^l {
       padding: 4px;
-      background-color: $white;
+      background-color: $backgroundDefault;
       width: 15%;
-      border-right: 1px solid $grey200;
+      border-right: 1px solid $borderLight;
     }
     ^middle-holder {
       padding: 16px 16px 0 16px;
       width: 100%;
-      background-color: $grey100;
+      background-color: $backgroundTertiary;
       overflow: auto;
       flex: 1 1 50%;
     }
     ^m {
-       border: 2px dashed $grey200;
+       border: 2px dashed $borderLight;
        overflow-x: auto;
-       background-color: $white;
+       background-color: $backgroundDefault;
     }
     ^r {
       overflow-y: auto;
       width: 30%;
-      background-color: $white;
+      background-color: $backgroundDefault;
       transition: width 0.1s;
     }
     ^resize-handle {
@@ -526,7 +526,7 @@ foam.CLASS({
       z-index: 10;
     }
     ^resize-handle:hover, ^resize-handle:active {
-      background: $primary500;
+      background: $backgroundBrandSecondary;
     }
 
     ^r .foam-core-reflow-SinkView, .foam-u2-view-IntView {
@@ -543,13 +543,13 @@ foam.CLASS({
     }
 
     ^r .foam-u2-view-TitledArrayView-value-view-container {
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
       padding: 10px;
       border-radius: 4px;
     }
     ^r .foam-u2-PropertyBorder-select {
       padding: 5px;
-      background-color: $grey200;
+      background-color: $backgroundTertiary;
       border-radius: 4px;
       gap: 10px;
     }
