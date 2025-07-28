@@ -499,13 +499,14 @@ foam.CLASS({
       background-color: $backgroundDefault;
       width: 15%;
       border-right: 1px solid $borderLight;
+      flex: 0 0 auto;
     }
     ^middle-holder {
       padding: 16px 16px 0 16px;
       width: 100%;
       background-color: $backgroundTertiary;
       overflow: auto;
-      flex: 1 1 50%;
+      flex: 3 1 50%;
     }
     ^m {
        border: 2px dashed $borderLight;
@@ -516,7 +517,7 @@ foam.CLASS({
       overflow-y: auto;
       width: 30%;
       background-color: $backgroundDefault;
-      transition: width 0.1s;
+      flex: 0 0 auto;
     }
     ^resize-handle {
       width: 2px;
@@ -566,6 +567,15 @@ foam.CLASS({
     }
   `,
 
+
+  constants: [
+    {
+      type: 'Int',
+      name: 'MIN_SIDEBAR_WIDTH_FALLBACK',
+      value: 200
+    }
+  ],
+
   properties: [
     'showLeft',
     'showRight',
@@ -584,7 +594,8 @@ foam.CLASS({
       class: 'Int',
       name: 'leftWidth',
       value: 300
-    }
+    },
+    'oldX_', 'oldWidth_'
   ],
 
   methods: [
@@ -602,7 +613,10 @@ foam.CLASS({
           end().
           start('div').
             addClass(this.myClass('resize-handle')).
-            on('mousedown', this.onLeftResizeStart).
+            attrs({ draggable: 'true', 'data-side': 'left' }).
+            on('dragstart', self.dragStart.bind(self)).
+            on('drag', self.drag.bind(self)).
+            on('dragend', self.dragEnd.bind(self)).
           end().
           start().addClass(this.myClass('middle-holder')).
             start('div', {}, this.middle$).addClass(this.myClass('m')).end().
@@ -610,7 +624,10 @@ foam.CLASS({
           // --- Resize handle ---
           start('div').
             addClass(this.myClass('resize-handle')).
-            on('mousedown', this.onResizeStart).
+            attrs({ draggable: 'true', 'data-side': 'right' }).
+            on('dragstart', self.dragStart.bind(self)).
+            on('drag', self.drag.bind(self)).
+            on('dragend', self.dragEnd.bind(self)).
           end().
           // --- Right sidebar ---
           start('div', {}, this.right$).
@@ -619,52 +636,45 @@ foam.CLASS({
             show(this.showRight$).
           end().
         end();
-    },
+    }
   ],
 
   listeners: [
-    function onResizeStart(e) {
-      var self = this;
-      var startX = e.clientX;
-      var startWidth = this.rightWidth;
-
-      function onMouseMove(e) {
-        var newWidth = startWidth - (e.clientX - startX);
-        newWidth = Math.max(200, Math.min(newWidth, 1000));
-        self.rightWidth = newWidth;
+     {
+      name: 'dragStart',
+      code: function(evt) {
+        evt.dataTransfer.effectAllowed = 'none';
+        evt.dataTransfer.dropEffect = 'none';
+        let dragImg_ = document.createElement('img');
+        dragImg_.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+        evt.dataTransfer.setDragImage(dragImg_, 0, 0);
+        var sidebarName = evt.target.dataset.side + 'Width'
+        this.oldX_ = evt.clientX;
+        this.oldWidth_ = this[sidebarName] || this.MIN_SIDEBAR_WIDTH_FALLBACK;
       }
-
-      function onMouseUp() {
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-      }
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
     },
-    function onLeftResizeStart(e) {
-      var self = this;
-      var startX = e.clientX;
-      var startWidth = this.leftWidth;
-
-      function onMouseMove(e) {
-        var newWidth = startWidth + (e.clientX - startX);
-        if ( newWidth <= 150 ) {
-          self.isMenuOpen = false;
-          self.leftWidth = 60;
+    {
+      name: 'drag',
+      code: function(evt) {
+        evt.preventDefault();
+        var sidebarName = evt.target.dataset.side + 'Width'
+        if ( ! sidebarName || event.clientX == 0 ) return;
+        var w = evt.clientX - this.oldX_;
+        if ( sidebarName == 'leftWidth' ) {
+          w = this.oldWidth_ + w;
         } else {
-          self.isMenuOpen = true;
-          self.leftWidth = newWidth;
+          w = this.oldWidth_ - w; 
+        }
+        if ( w > this.MIN_SIDEBAR_WIDTH_FALLBACK ) {
+          this[sidebarName] = w;
         }
       }
-
-      function onMouseUp() {
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
+    },
+    {
+      name: 'dragEnd',
+      code: function(evt) {
+        this.drag(evt);
       }
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
     }
   ]
 });
