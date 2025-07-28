@@ -1,0 +1,167 @@
+/**
+ * @license
+ * Copyright 2022 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'ReflowDashboardView',
+  extends: 'foam.dashboard.view.Dashboard',
+  mixins: ['foam.u2.layout.ContainerWidth'],
+
+  imports: [
+    'displayWidth?',
+    'document'
+  ],
+
+  css: `
+    ^ {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    ^main {
+      height: fit-content;
+      min-height: 600px;
+      padding: 24px 32px;
+      max-width: 160rem;
+      margin: auto;
+    }
+    ^widget-container {
+      width: 100%;
+      display: grid;
+      flex-grow: 1;
+    }
+  `,
+
+  listeners: [
+    {
+      name: 'onDataUpdate',
+      on: [
+        'data.onUpdate',
+        'data.propertyChange.widgets'
+      ],
+      isMerged: true,
+      code: function() {
+        this.pub('data','propertyChange');
+        
+      }
+    },
+    {
+      name: 'updateCols',
+      isFramed: true,
+      code: function() {
+        let cw = this.containerWidth;
+        let currentWidgetSet = 0;
+        let widgetSetCount = 0;
+        let cm = {};
+        
+        if ( this.data && this.data.widgets ) {
+          this.data.widgets.forEach(widget => {
+            let col = widget[`${cw}Column`] ?? widget['column'];
+            if ( foam.String.isInstance(col) ) {
+              let colSpan = col.indexOf('fr') != -1 ? col.split('fr')[0] : 1;
+              if ( widgetSetCount == 0 )
+                currentWidgetSet++;
+              widgetSetCount += Number(colSpan);
+              cm[widget.id] = `span calc(${colSpan}*var(--dashboard-max-col)/var(--split-row-${currentWidgetSet}))`;
+            } else {
+              if ( widgetSetCount > 0 )
+                this.document.documentElement.style.setProperty(`--split-row-${currentWidgetSet}`, widgetSetCount); 
+              widgetSetCount = 0;
+              cm[widget.id] = 'span ' + col;
+            }
+          });
+        }
+        
+        this.containerMap = cm;
+      }
+    }
+  ],
+
+  properties: [
+    {name:'data'},
+    {
+      class: 'Map',
+      name: 'containerMap'
+    }
+  ],
+
+  methods: [
+    function render() {
+      this.SUPER();
+      this.initContainer();
+      var self = this;
+      
+      // Ensure data exists before accessing properties
+      if ( ! this.data ) {
+        console.warn('ReflowDashboardView: No data provided');
+        return;
+      }
+      
+      var widgetContainer = this.start()
+        .addClass(this.myClass('widget-container'))
+        .style({
+          'grid-template-columns': this.data$.dot('width'),
+          'grid-template-rows': this.data$.dot('height'), 
+          'grid-gap': this.data$.dot('gap')
+        });
+
+      this
+        .addClass(this.myClass())
+        .enableClass(this.myClass('main'), this.data$.dot('main'))
+        .start()
+          .show(this.data$.dot('dashboardTitle').map(t => !!t))
+          .enableClass('h500', this.data$.dot('dashboardTitle'))
+          .style({ height: '2em' })
+          .add(this.data$.dot('dashboardTitle'))
+        .end()
+        .tag(widgetContainer);
+
+      // Process widgets using dynamic pattern - following original dashboard approach
+      this.data.dynamic(function(widgets) {
+        console.log('ReflowDashboardView: Rendering widgets dynamically', widgets);
+        
+        // Clear existing widgets
+        widgetContainer.removeAllChildren();
+        
+        if ( ! widgets || widgets.length === 0 ) {
+          console.warn('ReflowDashboardView: No widgets to render');
+          return;
+        }
+        
+        console.log('ReflowDashboardView: Rendering widgets number', widgets.length);
+        widgets.forEach(function(widget) {
+          if ( widget.view ) {
+            try {
+              console.log('ReflowDashboardView: Rendering widget', widget.id);
+              
+              // Create the fully configured view (with wrapper if enabled)
+              var widgetView = widget.createView ? widget.createView(self) : null;
+              
+              if ( widgetView ) {
+                // Simply tag the created view
+                widgetContainer.startContext().tag(widgetView).style({
+                  'grid-column': self.containerMap$.map(v => {
+                    return v[widget.id] || 'span 12';
+                  })
+                }).end();
+              } else {
+                console.warn('ReflowDashboardView: Could not create view for widget', widget.id);
+              }
+              
+            } catch (error) {
+              console.warn('ReflowDashboardView: Error creating view for widget', widget.id, error);
+            }
+          }
+        });
+      });
+
+      this.updateCols();
+      this.containerWidth$.sub(this.updateCols);
+    }
+  ]
+
+});

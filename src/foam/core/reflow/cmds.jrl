@@ -1,0 +1,14 @@
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "reflowDashboard",
+  "description": "Reflow Dashboard",
+  "script": """
+    var dashboardData = foam.core.reflow.ReflowDashboardData.create({
+      dashboardTitle: 'Reflow Dashboard',
+      main: true
+    }, this);
+    this.currentBlock.value = dashboardData;
+    this.out.tag(foam.core.reflow.ReflowDashboardView, {data: dashboardData});
+   """,
+   permissionRequired: true
+})
