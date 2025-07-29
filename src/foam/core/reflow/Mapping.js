@@ -53,12 +53,14 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.core.reflow.MappingType',
       name: 'type',
+      label: '',
       value: 'FIELD',
       documentation: 'The type of mapping: CONSTANT, FIELD, or DYNAMIC (evaluation delegated to pure FScript)'
     },
     {
       class: 'String',
       name: 'constantValue',
+      label: '',
       documentation: 'Static value applied to all rows',
       visibility: function(type) {
         return foam.u2.DisplayMode[type === foam.core.reflow.MappingType.CONSTANT ? 'RW' : 'HIDDEN'];
@@ -67,6 +69,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'fieldName',
+      label: '',
       documentation: 'Name of the field/column in input data',
       view: function(_, X) {
         return {
@@ -82,6 +85,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'dynamicExpression',
+      label: '',
       documentation: 'Pure FScript expression for computation with rowData context access',
       help: 'Pure FScript expression that can access row data in two ways: 1) Direct field access: firstName, lastName, age 2) Via rowData object: rowData.firstName, rowData["Field Name"]. Examples: firstName + " " + lastName, if (age > 18) { "Adult" } else { "Minor" }, rowData["Email Address"]',
       view: { class: 'foam.u2.tag.TextArea', rows: 2, cols: 40 },
