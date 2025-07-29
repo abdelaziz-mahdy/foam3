@@ -85,7 +85,8 @@ foam.CLASS({
   requires: [
     'foam.u2.dialog.ConfirmationModal',
     'foam.log.LogLevel',
-    'foam.u2.view.OverlayActionListView'
+    'foam.u2.view.OverlayActionListView',
+    'foam.core.reflow.FlowMode',
   ],
 
   imports: [
@@ -101,7 +102,7 @@ foam.CLASS({
     ^navigator {
       display: flex;
       align-items: center;
-      color: $grey700;
+      color: $textSecondary;
       gap: 4px;
     }
     ^header-container {
@@ -110,11 +111,11 @@ foam.CLASS({
       align-items: center;
     }
     ^chevron {
-       color: $grey700;
+      color: $textSecondary;
     }
     ^title input {
       border: none;
-      color: $black;
+      color: $textDefault;
     }
     ^title .foam-u2-TextInputCSS::placeholder {
       color: $textDefault;
@@ -126,7 +127,7 @@ foam.CLASS({
       align-items: center;
     }
     ^save-text {
-      color: $grey700;
+      color: $textSecondary;
     }
     ^ .foam-u2-view-OverlayActionListView {
       color: $textDefault;
@@ -136,7 +137,7 @@ foam.CLASS({
       display: inline-block;
       width: 1px;
       height: 30px;
-      background: $grey200;
+      background: $backgroundTertiary;
       margin: 0 8px;
     }
   `,
@@ -187,10 +188,13 @@ foam.CLASS({
                 obj: this,
                 buttonStyle: 'SECONDARY',
                 size: 'SMALL',
+                themeIcon: 'dropdown',
+                isIconAfter: true,
+                showDropdownIcon: false,
                 horizontal: false
               })
               .start('span').addClass(this.myClass('separator')).end()
-              .tag(this.FULL_SCREEN)
+              .tag(this.FULL_SCREEN, { themeIcon$: self.data.flowMode$.map(c => c.name == 'CONSOLE' ? 'fullScreen' : 'minimize') })
             .endContext()
             // callIf(this.data.showPrompts$, function() {
             //   this.start().addClass(self.myClass('save-text'))
@@ -317,28 +321,12 @@ foam.CLASS({
     {
       name: 'fullScreen',
       label: '',
-      themeIcon: 'fullScreen',
       buttonStyle: foam.u2.ButtonStyle.SECONDARY,
       code: function() {
-        let doc = window.document;
-        let elem = doc.documentElement;
-
-        if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-          if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-          } else if (elem.webkitRequestFullscreen) { /* Safari */
-            elem.webkitRequestFullscreen();
-          } else if (elem.msRequestFullscreen) { /* IE11 */
-            elem.msRequestFullscreen();
-          }
+        if (this.data.flowMode.name == 'CONSOLE') {
+          this.data.flowMode = this.FlowMode.PRESENTATION;
         } else {
-          if (doc.exitFullscreen) {
-            doc.exitFullscreen();
-          } else if (doc.webkitExitFullscreen) { /* Safari */
-            doc.webkitExitFullscreen();
-          } else if (doc.msExitFullscreen) { /* IE11 */
-            doc.msExitFullscreen();
-          }
+          this.data.flowMode = this.FlowMode.CONSOLE;
         }
       }
     }
@@ -491,32 +479,33 @@ foam.CLASS({
       padding: 5px 24px;
       height: fit-content;
       max-height: 64px;
-      background-color: $white;
+      background-color: $backgroundDefault;
       border-bottom: 1px solid $borderLight;
     }
     ^l {
       padding: 4px;
-      background-color: $white;
+      background-color: $backgroundDefault;
       width: 15%;
-      border-right: 1px solid $grey200;
+      border-right: 1px solid $borderLight;
+      flex: 0 0 auto;
     }
     ^middle-holder {
       padding: 16px 16px 0 16px;
       width: 100%;
-      background-color: $grey100;
+      background-color: $backgroundTertiary;
       overflow: auto;
-      flex: 1 1 50%;
+      flex: 3 1 50%;
     }
     ^m {
-       border: 2px dashed $grey200;
+       border: 2px dashed $borderLight;
        overflow-x: auto;
-       background-color: $white;
+       background-color: $backgroundDefault;
     }
     ^r {
       overflow-y: auto;
       width: 30%;
-      background-color: $white;
-      transition: width 0.1s;
+      background-color: $backgroundDefault;
+      flex: 0 0 auto;
     }
     ^resize-handle {
       width: 2px;
@@ -526,7 +515,7 @@ foam.CLASS({
       z-index: 10;
     }
     ^resize-handle:hover, ^resize-handle:active {
-      background: $primary500;
+      background: $backgroundBrandSecondary;
     }
 
     ^r .foam-core-reflow-SinkView, .foam-u2-view-IntView {
@@ -543,13 +532,13 @@ foam.CLASS({
     }
 
     ^r .foam-u2-view-TitledArrayView-value-view-container {
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
       padding: 10px;
       border-radius: 4px;
     }
     ^r .foam-u2-PropertyBorder-select {
       padding: 5px;
-      background-color: $grey200;
+      background-color: $backgroundTertiary;
       border-radius: 4px;
       gap: 10px;
     }
@@ -565,6 +554,15 @@ foam.CLASS({
       }
     }
   `,
+
+
+  constants: [
+    {
+      type: 'Int',
+      name: 'MIN_SIDEBAR_WIDTH_FALLBACK',
+      value: 200
+    }
+  ],
 
   properties: [
     'showLeft',
@@ -584,7 +582,8 @@ foam.CLASS({
       class: 'Int',
       name: 'leftWidth',
       value: 300
-    }
+    },
+    'oldX_', 'oldWidth_'
   ],
 
   methods: [
@@ -602,7 +601,10 @@ foam.CLASS({
           end().
           start('div').
             addClass(this.myClass('resize-handle')).
-            on('mousedown', this.onLeftResizeStart).
+            attrs({ draggable: 'true', 'data-side': 'left' }).
+            on('dragstart', self.dragStart.bind(self)).
+            on('drag', self.drag.bind(self)).
+            on('dragend', self.dragEnd.bind(self)).
           end().
           start().addClass(this.myClass('middle-holder')).
             start('div', {}, this.middle$).addClass(this.myClass('m')).end().
@@ -610,7 +612,10 @@ foam.CLASS({
           // --- Resize handle ---
           start('div').
             addClass(this.myClass('resize-handle')).
-            on('mousedown', this.onResizeStart).
+            attrs({ draggable: 'true', 'data-side': 'right' }).
+            on('dragstart', self.dragStart.bind(self)).
+            on('drag', self.drag.bind(self)).
+            on('dragend', self.dragEnd.bind(self)).
           end().
           // --- Right sidebar ---
           start('div', {}, this.right$).
@@ -619,52 +624,45 @@ foam.CLASS({
             show(this.showRight$).
           end().
         end();
-    },
+    }
   ],
 
   listeners: [
-    function onResizeStart(e) {
-      var self = this;
-      var startX = e.clientX;
-      var startWidth = this.rightWidth;
-
-      function onMouseMove(e) {
-        var newWidth = startWidth - (e.clientX - startX);
-        newWidth = Math.max(200, Math.min(newWidth, 1000));
-        self.rightWidth = newWidth;
+     {
+      name: 'dragStart',
+      code: function(evt) {
+        evt.dataTransfer.effectAllowed = 'none';
+        evt.dataTransfer.dropEffect = 'none';
+        let dragImg_ = document.createElement('img');
+        dragImg_.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+        evt.dataTransfer.setDragImage(dragImg_, 0, 0);
+        var sidebarName = evt.target.dataset.side + 'Width'
+        this.oldX_ = evt.clientX;
+        this.oldWidth_ = this[sidebarName] || this.MIN_SIDEBAR_WIDTH_FALLBACK;
       }
-
-      function onMouseUp() {
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-      }
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
     },
-    function onLeftResizeStart(e) {
-      var self = this;
-      var startX = e.clientX;
-      var startWidth = this.leftWidth;
-
-      function onMouseMove(e) {
-        var newWidth = startWidth + (e.clientX - startX);
-        if ( newWidth <= 150 ) {
-          self.isMenuOpen = false;
-          self.leftWidth = 60;
+    {
+      name: 'drag',
+      code: function(evt) {
+        evt.preventDefault();
+        var sidebarName = evt.target.dataset.side + 'Width'
+        if ( ! sidebarName || event.clientX == 0 ) return;
+        var w = evt.clientX - this.oldX_;
+        if ( sidebarName == 'leftWidth' ) {
+          w = this.oldWidth_ + w;
         } else {
-          self.isMenuOpen = true;
-          self.leftWidth = newWidth;
+          w = this.oldWidth_ - w; 
+        }
+        if ( w > this.MIN_SIDEBAR_WIDTH_FALLBACK ) {
+          this[sidebarName] = w;
         }
       }
-
-      function onMouseUp() {
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
+    },
+    {
+      name: 'dragEnd',
+      code: function(evt) {
+        this.drag(evt);
       }
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
     }
   ]
 });

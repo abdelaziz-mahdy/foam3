@@ -1611,7 +1611,9 @@ foam.CLASS({
         return trim ? `val = foam.util.SafetyUtil.trim(val);\n` : '';
       }
     },
-    ['javaJSONParser',  'foam.lib.json.StringParser.instance()'],
+    // Breaks parsing for some reason, but probably doesn't help much
+    // because the default is AnyParser which first list NullParser then StringParser
+    // ['javaJSONParser',  'foam.lib.json.StringParser.instance()'],
     {
       name: 'sqlType',
       expression: function(width) {
