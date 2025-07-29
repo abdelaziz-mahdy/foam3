@@ -80,6 +80,49 @@ foam.CLASS({
   ],
 
   methods: [
+    function getColumnSpan(widget) {
+      // Extract column span from widget configuration
+      var cw = this.containerWidth;
+      var col = widget[`${cw}Column`] ?? widget['column'];
+      
+      if ( foam.String.isInstance(col) ) {
+        // Handle fractional columns like "2fr"
+        var colSpan = col.indexOf('fr') != -1 ? col.split('fr')[0] : 1;
+        return Number(colSpan);
+      } else {
+        // Handle numeric column spans
+        return col || 6; // Default to 6 columns if not specified
+      }
+    },
+
+    function calculateResponsiveDimensions(columnSpan) {
+      // Calculate responsive dimensions based on column span
+      // Assuming a 12-column grid system with responsive breakpoints
+      var maxColumns = 12;
+      var baseWidth = 1200; // Base container width assumption
+      var columnWidth = baseWidth / maxColumns;
+      
+      // Calculate width based on column span
+      var width = Math.floor(columnWidth * columnSpan);
+      
+      // Calculate proportional height (maintaining reasonable aspect ratios)
+      var height;
+      if ( columnSpan <= 3 ) {
+        height = 300; // Smaller widgets get compact height
+      } else if ( columnSpan <= 6 ) {
+        height = 400; // Medium widgets
+      } else if ( columnSpan <= 9 ) {
+        height = 450; // Larger widgets
+      } else {
+        height = 500; // Full-width widgets
+      }
+      
+      return {
+        width: Math.max(200, width - 40), // Minimum width with padding adjustment
+        height: Math.max(150, height - 60) // Minimum height with header adjustment
+      };
+    },
+
     function render() {
       this.SUPER();
       this.initContainer();
@@ -141,6 +184,34 @@ foam.CLASS({
               // For dashboard models, render the visualization with card
               if ( viewConfig.visualization ) {
                 var card = viewConfig.visualization.toE(null, ctx);
+                
+                // Calculate responsive dimensions based on grid column span
+                var columnSpan = self.getColumnSpan(widget);
+                var responsiveDimensions = self.calculateResponsiveDimensions(columnSpan);
+                
+                // Override the card's size with responsive dimensions
+                if ( viewConfig.visualization && viewConfig.visualization.data ) {
+                  // Create a responsive size that matches Card's SIZES format: [width, height]
+                  var responsiveSize = {
+                    name: 'RESPONSIVE'
+                  };
+                  
+                  // Add the RESPONSIVE size to the Card's SIZES if it doesn't exist
+                  if ( !foam.dashboard.view.Card.SIZES ) {
+                    foam.dashboard.view.Card.SIZES = {};
+                  }
+                  if ( !foam.dashboard.view.Card.SIZES.RESPONSIVE ) {
+                    foam.dashboard.view.Card.SIZES.RESPONSIVE = [responsiveDimensions.width, responsiveDimensions.height];
+                  } else {
+                    // Update existing RESPONSIVE size
+                    foam.dashboard.view.Card.SIZES.RESPONSIVE = [responsiveDimensions.width, responsiveDimensions.height];
+                  }
+                  
+                  // Set the responsive size (create property if it doesn't exist)
+                  viewConfig.visualization.data.size = responsiveSize;
+                  // Also set it on the visualization itself in case that's what the Card looks for
+                  viewConfig.visualization.size = responsiveSize;
+                }
                 
                 // Create the view in the card's context, which provides the necessary imports
                 var view = foam.u2.ViewSpec.createView(viewSpec, {
