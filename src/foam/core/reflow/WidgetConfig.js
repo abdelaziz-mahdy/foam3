@@ -18,8 +18,8 @@ foam.CLASS({
     'foam.mlang.sink.Max',
     'foam.dashboard.model.VisualizationSize',
     'foam.dashboard.model.GroupBy as DashboardGroupBy',
-    'foam.dashboard.model.Count as DashboardCount',
-    'foam.dashboard.model.XYVisualization'
+    'foam.dashboard.model.GroupByGroupBy',
+    'foam.dashboard.model.Count as DashboardCount'
   ],
 
   constants: {
@@ -28,7 +28,7 @@ foam.CLASS({
       DASHBOARD_MODELS: [
         'foam.dashboard.model.Count',
         'foam.dashboard.model.GroupBy',
-        'foam.dashboard.model.XYVisualization'
+        'foam.dashboard.model.GroupByGroupBy'
       ],
       // Self-contained views that don't need external configuration
       SIMPLE_VIEWS: [
@@ -51,12 +51,13 @@ foam.CLASS({
       class: 'String', 
       name: 'view',
       documentation: 'View class name or reference for the widget',
+      value: 'foam.dashboard.model.Count',
       view: {
         class: 'foam.u2.view.ChoiceView',
         choices: [
           ['foam.dashboard.model.Count', 'Count Display'],
           ['foam.dashboard.model.GroupBy', 'Grouped Charts (Pie, Bar with aggregation)'],
-          ['foam.dashboard.model.XYVisualization', 'X/Y Charts (Line, Table with X/Y data)'],
+          ['foam.dashboard.model.GroupByGroupBy', 'Advanced Grouped Charts (Bar, Line with dual grouping)'],
           ['foam.dashboard.view.UserGreetingView', 'User Greeting']
         ]
       }
@@ -66,14 +67,14 @@ foam.CLASS({
       name: 'chartView',
       documentation: 'Which chart view to display',
       visibility: function(view) {
-        return (view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.XYVisualization') ? 'RW' : 'HIDDEN';
+        return (view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.GroupByGroupBy') ? 'RW' : 'HIDDEN';
       },
       expression: function(view) {
         // Set default based on the view type
         if ( view === 'foam.dashboard.model.GroupBy' ) {
           return 'Pie';
-        } else if ( view === 'foam.dashboard.model.XYVisualization' ) {
-          return 'Line';
+        } else if ( view === 'foam.dashboard.model.GroupByGroupBy' ) {
+          return 'Bar';
         }
         return 'Pie';
       },
@@ -86,10 +87,11 @@ foam.CLASS({
                 ['Pie', 'Pie Chart'],
                 ['Bar', 'Bar Chart']
               ];
-            } else if ( viewType === 'foam.dashboard.model.XYVisualization' ) {
+            } else if ( viewType === 'foam.dashboard.model.GroupByGroupBy' ) {
               return [
+                ['Bar', 'Bar Chart'],
                 ['Line', 'Line Chart'],
-                ['Table', 'Table View']
+                ['Configure', 'Configure']
               ];
             }
             return [];
@@ -125,7 +127,7 @@ foam.CLASS({
       class: 'Boolean',
       name: 'useWrapper',
       documentation: 'Enable wrapper around the configured view',
-      value: true,
+      value: false,
       visibility: function(view) {
         // Dashboard models (Count, GroupBy) already have their own card wrappers
         return this.VIEW_TYPES.DASHBOARD_MODELS.includes(view) ? 'HIDDEN' : 'RW';
@@ -172,7 +174,7 @@ foam.CLASS({
       name: 'xProperty',
       documentation: 'X-axis property name for chart views',
       visibility: function(view, dao) {
-        return (view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.XYVisualization') && dao && dao.of ? 'RW' : 'HIDDEN';
+        return (view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.GroupByGroupBy') && dao && dao.of ? 'RW' : 'HIDDEN';
       },
       postSet: function(_, value) {
         console.log('X Property set to:', value);
@@ -189,12 +191,12 @@ foam.CLASS({
       name: 'yProperty',
       documentation: 'Y-axis property name for chart views',
       visibility: function(view, dao) {
-        // Show Y property only for XY visualization charts
-        return view === 'foam.dashboard.model.XYVisualization' && dao && dao.of ? 'RW' : 'HIDDEN';
+        // Show Y property for GroupByGroupBy charts
+        return view === 'foam.dashboard.model.GroupByGroupBy' && dao && dao.of ? 'RW' : 'HIDDEN';
       },
       required: function(view) {
-        // Y property is required for XY visualization
-        return view === 'foam.dashboard.model.XYVisualization';
+        // Y property is required for GroupByGroupBy
+        return view === 'foam.dashboard.model.GroupByGroupBy';
       },
       view: function(_, X) {
         return {
@@ -312,8 +314,8 @@ foam.CLASS({
       if ( this.VIEW_TYPES.DASHBOARD_MODELS.includes(this.view) ) {
         var config = this.getBaseViewConfig();
         if ( config.visualization ) {
-          // For GroupBy models, find the selected chart view
-          if ( this.view === 'foam.dashboard.model.GroupBy' ) {
+          // For GroupBy and GroupByGroupBy models, find the selected chart view
+          if ( this.view === 'foam.dashboard.model.GroupBy' || this.view === 'foam.dashboard.model.GroupByGroupBy' ) {
             var view = config.visualization.views.find(function(v) { 
               return v[1] === config.currentView; 
             }.bind(this));
@@ -439,42 +441,37 @@ foam.CLASS({
             config.currentView = this.chartView;
           }
         
-        } else if ( this.view === 'foam.dashboard.model.XYVisualization' ) {
-          if ( this.xProperty && this.dao && this.dao.of ) {
-            // Extract simple property names
+        } else if ( this.view === 'foam.dashboard.model.GroupByGroupBy' ) {
+          if ( this.xProperty && this.yProperty && this.dao && this.dao.of ) {
+            // Extract simple property names for GroupByGroupBy
             var xPropertyName = this.xProperty.includes('.') ? 
               this.xProperty.split('.').pop() : this.xProperty;
-            var yPropertyName = this.yProperty && this.yProperty.includes('.') ? 
+            var yPropertyName = this.yProperty.includes('.') ? 
               this.yProperty.split('.').pop() : this.yProperty;
             
-            // Validate x property exists
+            // Validate properties exist
             var xProp = this.dao.of.getAxiomByName(xPropertyName);
+            var yProp = this.dao.of.getAxiomByName(yPropertyName);
             if ( ! xProp ) {
               console.warn('X Property not found on model:', xPropertyName);
               return config;
             }
-            
-            // Validate y property if provided
-            if ( yPropertyName ) {
-              var yProp = this.dao.of.getAxiomByName(yPropertyName);
-              if ( ! yProp ) {
-                console.warn('Y Property not found on model:', yPropertyName);
-                return config;
-              }
+            if ( ! yProp ) {
+              console.warn('Y Property not found on model:', yPropertyName);
+              return config;
             }
             
-            // Use XYVisualization for true X/Y plotting
-            var visualization = this.XYVisualization.create({
+            // Use GroupByGroupBy for dual-axis grouping with dynamic views
+            var visualization = this.GroupByGroupBy.create({
               dao: this.dao,
-              xProperty: xPropertyName,
-              yProperty: yPropertyName,
+              arg1: xPropertyName,
+              arg2: yPropertyName,
               size: this.cardSize ? this.VisualizationSize[this.cardSize] : this.VisualizationSize.MEDIUM,
-              label: this.chartTitle || xPropertyName + (yPropertyName ? ' vs ' + yPropertyName : ''),
-              configView: null
+              label: this.chartTitle || xPropertyName + ' by ' + yPropertyName
             });
             
-            console.log('Created XYVisualization:', visualization, 'sink:', visualization.sink);
-            console.log('XYVisualization views:', visualization.views);
+            console.log('Created GroupByGroupBy:', visualization, 'sink:', visualization.sink);
+            console.log('GroupByGroupBy views:', visualization.views);
             console.log('Setting currentView to:', this.chartView);
             
             // Set currentView safely - only if it matches a view in the views array

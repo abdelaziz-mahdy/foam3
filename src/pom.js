@@ -920,6 +920,7 @@ foam.POM({
     { name: "foam/dashboard/model/VisualizationSize",                 flags: "js" },
     { name: "foam/dashboard/model/Visualization",                     flags: "js" },
     { name: "foam/dashboard/model/GroupBy",                           flags: "js" },
+    { name: "foam/dashboard/model/GroupByGroupBy",                    flags: "js" },
     { name: "foam/dashboard/model/Count",                             flags: "js" },
     { name: "foam/dashboard/model/Table",                             flags: "js" },
     { name: "foam/dashboard/view/Count",                              flags: "js" },
