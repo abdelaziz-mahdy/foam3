@@ -211,9 +211,9 @@ foam.CLASS({
     {
       class: 'String',
       name: 'chartTitle',
-      documentation: 'Title for chart views', 
+      documentation: 'Title for chart and count views', 
       visibility: function(view) {
-        return view === 'foam.dashboard.view.GroupBy' ? 'RW' : 'HIDDEN';
+        return (view === 'foam.dashboard.model.Count' || view === 'foam.dashboard.model.GroupBy' || view === 'foam.dashboard.model.GroupByGroupBy') ? 'RW' : 'HIDDEN';
       }
     },
     {
