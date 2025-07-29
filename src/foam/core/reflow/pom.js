@@ -52,7 +52,6 @@ foam.POM({
     { name: 'Prompt',                  flags: 'js' },
     { name: 'lib',                     flags: 'js' },
     { name: 'Mapping',                 flags: 'js|java' },
-    { name: 'MappingFScriptParser',    flags: 'js' },
     { name: 'FromCsvRefines',          flags: 'js' },
     { name: 'ToolbarControl',          flags: 'js|java' },
     { name: 'control/HelpControl',     flags: 'js' },

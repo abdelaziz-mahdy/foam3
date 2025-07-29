@@ -22,7 +22,7 @@ foam.ENUM({
     {
       name: 'DYNAMIC',
       label: 'Dynamic',
-      documentation: 'Value computed from dynamic expression (uses FScript internally)'
+      documentation: 'Value computed from pure FScript expression with rowData context access'
     }
   ]
 });
@@ -33,7 +33,7 @@ foam.CLASS({
 
   requires: [
     'foam.core.reflow.MappingType',
-    'foam.core.reflow.MappingFScriptParser'
+    'foam.parse.FScriptParser'
   ],
 
   imports: [ 'scope?' ],
@@ -54,7 +54,7 @@ foam.CLASS({
       of: 'foam.core.reflow.MappingType',
       name: 'type',
       value: 'FIELD',
-      documentation: 'The type of mapping: CONSTANT, FIELD, or DYNAMIC (all use FScript internally)'
+      documentation: 'The type of mapping: CONSTANT, FIELD, or DYNAMIC (evaluation delegated to pure FScript)'
     },
     {
       class: 'String',
@@ -82,8 +82,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'dynamicExpression',
-      documentation: 'Dynamic expression for computation (converted to FScript internally)',
-      help: 'Expression that can access row data fields directly. Examples: firstName + " " + lastName, age > 18 ? "Adult" : "Minor", email.toLowerCase(). Will be converted to FScript for frontend/backend compatibility.',
+      documentation: 'Pure FScript expression for computation with rowData context access',
+      help: 'Pure FScript expression that can access row data in two ways: 1) Direct field access: firstName, lastName, age 2) Via rowData object: rowData.firstName, rowData["Field Name"]. Examples: firstName + " " + lastName, if (age > 18) { "Adult" } else { "Minor" }, rowData["Email Address"]',
       view: { class: 'foam.u2.tag.TextArea', rows: 2, cols: 40 },
       visibility: function(type) {
         return foam.u2.DisplayMode[type === foam.core.reflow.MappingType.DYNAMIC ? 'RW' : 'HIDDEN'];
@@ -105,11 +105,12 @@ foam.CLASS({
     function process(obj, value, rowData) {
       if ( ! this.property ) return;
       
-      // Generate FScript expression based on mapping type and evaluate it
+      // Generate pure FScript expression based on mapping type
       var fscriptExpression = this.generateFScriptExpression();
       
       if ( fscriptExpression ) {
         try {
+          // All evaluation is now done in pure FScript
           value = this.evaluateFScriptExpression(fscriptExpression, rowData);
         } catch (x) {
           console.warn('FScript expression evaluation failed:', x);
@@ -129,13 +130,12 @@ foam.CLASS({
       }
     },
 
-
     function generateFScriptExpression() {
       /**
-       * Generate FScript expression based on the current mapping type and field values.
-       * This allows us to maintain the existing UI/UX while using FScript internally.
+       * Generate pure FScript expression based on the current mapping type.
+       * All evaluation is delegated to FScript - no JavaScript conversion.
        * 
-       * @returns {string} The generated FScript expression
+       * @returns {string} The pure FScript expression
        */
       switch ( this.type ) {
         case this.MappingType.CONSTANT:
@@ -143,66 +143,25 @@ foam.CLASS({
           return this.constantValue ? '"' + this.constantValue.replace(/"/g, '\\"') + '"' : '""';
           
         case this.MappingType.FIELD:
-          // Generate direct field reference
+          // Generate direct field reference for FScript
           return this.fieldName || '';
           
         case this.MappingType.DYNAMIC:
-          // Convert JavaScript expression to FScript where possible
-          return this.convertJavaScriptToFScript(this.dynamicExpression);
+          // Return the expression as pure FScript (no conversion)
+          return this.dynamicExpression || '';
           
         default:
           return '';
       }
     },
 
-    function convertJavaScriptToFScript(jsExpression) {
-      /**
-       * Convert JavaScript expressions to FScript equivalents where possible.
-       * This handles common patterns and provides fallback for complex expressions.
-       * 
-       * @param {string} jsExpression - The JavaScript expression to convert
-       * @returns {string} The FScript equivalent expression
-       */
-      if ( ! jsExpression ) return '';
-      
-      var fscriptExpr = jsExpression;
-      
-      // Simple conversions for common JavaScript patterns
-      // Note: More sophisticated conversion could be added here
-      
-      // Convert .length to .len (FScript convention)
-      fscriptExpr = fscriptExpr.replace(/\.length\b/g, '.len');
-      
-      // Convert .toLowerCase() to equivalent (if FScript supports it)
-      // For now, keep as-is since FScript may support similar functions
-      
-      // Convert ternary operator to FScript if statement (basic cases)
-      var ternaryMatch = fscriptExpr.match(/^\s*(.+?)\s*\?\s*(.+?)\s*:\s*(.+?)\s*$/);
-      if ( ternaryMatch ) {
-        var condition = ternaryMatch[1].trim();
-        var trueValue = ternaryMatch[2].trim();
-        var falseValue = ternaryMatch[3].trim();
-        
-        // Add quotes around string literals if they're not already quoted
-        if ( trueValue.match(/^[a-zA-Z][a-zA-Z0-9]*$/) && !trueValue.match(/^(true|false|null|undefined)$/) ) {
-          trueValue = '"' + trueValue + '"';
-        }
-        if ( falseValue.match(/^[a-zA-Z][a-zA-Z0-9]*$/) && !falseValue.match(/^(true|false|null|undefined)$/) ) {
-          falseValue = '"' + falseValue + '"';
-        }
-        
-        return 'if (' + condition + ') { ' + trueValue + ' } else { ' + falseValue + ' }';
-      }
-      
-      return fscriptExpr;
-    },
 
     function evaluateFScriptExpression(expression, rowData) {
       /**
-       * Safely evaluate an FScript expression using the singleton parser.
-       * This is much more efficient as it reuses the same parser instance.
+       * Delegate all expression evaluation to standard FScriptParser.
+       * Pass rowData directly as context to the parser.
        * 
-       * @param {string} expression - The FScript expression to evaluate
+       * @param {string} expression - The pure FScript expression to evaluate
        * @param {Object} rowData - The row data object containing field values
        * @returns {*} The result of the FScript expression evaluation
        */
@@ -210,9 +169,16 @@ foam.CLASS({
       if ( ! rowData ) return '';
       
       try {
-        // Use the singleton parser for efficient evaluation
-        var parser = this.MappingFScriptParser.create();
-        return parser.evaluateExpression(expression, rowData);
+        // Create FScript parser with rowData as context
+        var parser = this.FScriptParser.create(null, rowData);
+        
+        // Parse and evaluate the expression
+        var parsedExpr = parser.parseString(expression);
+        if ( ! parsedExpr ) {
+          throw new Error('Failed to parse FScript expression: ' + expression);
+        }
+        
+        return parsedExpr.f(rowData);
       } catch (x) {
         console.error('FScript evaluation error:', {
           expression: expression,
@@ -221,43 +187,6 @@ foam.CLASS({
           stack: x.stack
         });
         throw x;
-      }
-    },
-
-
-
-    function validateExpression(expression) {
-      /**
-       * Validate a JavaScript expression for basic safety.
-       * This provides basic checks to catch common errors early.
-       * 
-       * @param {string} expression - The expression to validate
-       * @throws {Error} If the expression appears unsafe or malformed
-       */
-      if ( ! expression || typeof expression !== 'string' ) {
-        throw new Error('Expression must be a non-empty string');
-      }
-      
-      // Check for potentially dangerous patterns
-      var dangerousPatterns = [
-        /\b(eval|Function|setTimeout|setInterval)\b/,
-        /\b(document|window|global|process)\b/,
-        /\b(require|import|export)\b/,
-        /\b(__proto__|prototype)\b/,
-        /\b(constructor)\b/
-      ];
-      
-      dangerousPatterns.forEach(pattern => {
-        if ( pattern.test(expression) ) {
-          throw new Error('Expression contains potentially unsafe patterns');
-        }
-      });
-      
-      // Basic syntax check - try to parse as function body
-      try {
-        new Function('', 'return ' + expression);
-      } catch (x) {
-        throw new Error('Expression has invalid syntax: ' + x.message);
       }
     }
   ]
