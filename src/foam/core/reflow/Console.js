@@ -187,6 +187,9 @@ foam.CLASS({
                 obj: this,
                 buttonStyle: 'SECONDARY',
                 size: 'SMALL',
+                themeIcon: 'dropdown',
+                isIconAfter: true,
+                showDropdownIcon: false,
                 horizontal: false
               })
               .start('span').addClass(this.myClass('separator')).end()
