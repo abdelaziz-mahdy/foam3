@@ -22,7 +22,7 @@ foam.ENUM({
     {
       name: 'DYNAMIC',
       label: 'Dynamic',
-      documentation: 'Value computed from JavaScript expression'
+      documentation: 'Value computed from dynamic expression (uses FScript internally)'
     }
   ]
 });
@@ -32,7 +32,8 @@ foam.CLASS({
   name: 'Mapping',
 
   requires: [
-    'foam.core.reflow.MappingType'
+    'foam.core.reflow.MappingType',
+    'foam.core.reflow.MappingFScriptParser'
   ],
 
   imports: [ 'scope?' ],
@@ -53,7 +54,7 @@ foam.CLASS({
       of: 'foam.core.reflow.MappingType',
       name: 'type',
       value: 'FIELD',
-      documentation: 'The type of mapping: CONSTANT, FIELD, or DYNAMIC'
+      documentation: 'The type of mapping: CONSTANT, FIELD, or DYNAMIC (all use FScript internally)'
     },
     {
       class: 'String',
@@ -81,8 +82,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'dynamicExpression',
-      documentation: 'JavaScript expression for dynamic computation',
-      help: 'JavaScript expression that can access row data fields directly. Examples: firstName + " " + lastName, age > 18 ? "Adult" : "Minor", email.toLowerCase()',
+      documentation: 'Dynamic expression for computation (converted to FScript internally)',
+      help: 'Expression that can access row data fields directly. Examples: firstName + " " + lastName, age > 18 ? "Adult" : "Minor", email.toLowerCase(). Will be converted to FScript for frontend/backend compatibility.',
       view: { class: 'foam.u2.tag.TextArea', rows: 2, cols: 40 },
       visibility: function(type) {
         return foam.u2.DisplayMode[type === foam.core.reflow.MappingType.DYNAMIC ? 'RW' : 'HIDDEN'];
@@ -104,27 +105,18 @@ foam.CLASS({
     function process(obj, value, rowData) {
       if ( ! this.property ) return;
       
-      switch ( this.type ) {
-        case this.MappingType.CONSTANT:
-          value = this.constantValue;
-          break;
-        case this.MappingType.FIELD:
-          if ( rowData && this.fieldName ) {
-            value = rowData[this.fieldName] !== undefined ? rowData[this.fieldName] : value;
-          }
-          break;
-        case this.MappingType.DYNAMIC:
-          if ( this.dynamicExpression && rowData ) {
-            try {
-              value = this.evaluateExpression(this.dynamicExpression, rowData);
-            } catch (x) {
-              console.warn('Dynamic expression evaluation failed:', x);
-              value = '';
-            }
-          } else {
-            value = this.dynamicExpression || '';
-          }
-          break;
+      // Generate FScript expression based on mapping type and evaluate it
+      var fscriptExpression = this.generateFScriptExpression();
+      
+      if ( fscriptExpression ) {
+        try {
+          value = this.evaluateFScriptExpression(fscriptExpression, rowData);
+        } catch (x) {
+          console.warn('FScript expression evaluation failed:', x);
+          value = '';
+        }
+      } else {
+        value = '';
       }
       
       if ( foam.String.isInstance(value) && value != null && value !== undefined ) {
@@ -137,41 +129,102 @@ foam.CLASS({
       }
     },
 
-    function evaluateExpression(expression, rowData) {
+
+    function generateFScriptExpression() {
       /**
-       * Safely evaluate a JavaScript expression within the context of rowData.
-       * Uses the same scoping pattern as ReactiveDetailView.js (lines 56-58).
+       * Generate FScript expression based on the current mapping type and field values.
+       * This allows us to maintain the existing UI/UX while using FScript internally.
        * 
-       * @param {string} expression - The JavaScript expression to evaluate
-       * @param {Object} rowData - The row data object containing field values
-       * @returns {*} The result of the expression evaluation
+       * @returns {string} The generated FScript expression
        */
-      if ( ! expression || ! rowData ) return '';
+      switch ( this.type ) {
+        case this.MappingType.CONSTANT:
+          // Generate quoted string literal for constants
+          return this.constantValue ? '"' + this.constantValue.replace(/"/g, '\\"') + '"' : '""';
+          
+        case this.MappingType.FIELD:
+          // Generate direct field reference
+          return this.fieldName || '';
+          
+        case this.MappingType.DYNAMIC:
+          // Convert JavaScript expression to FScript where possible
+          return this.convertJavaScriptToFScript(this.dynamicExpression);
+          
+        default:
+          return '';
+      }
+    },
+
+    function convertJavaScriptToFScript(jsExpression) {
+      /**
+       * Convert JavaScript expressions to FScript equivalents where possible.
+       * This handles common patterns and provides fallback for complex expressions.
+       * 
+       * @param {string} jsExpression - The JavaScript expression to convert
+       * @returns {string} The FScript equivalent expression
+       */
+      if ( ! jsExpression ) return '';
       
-      // Validate expression before evaluation
-      this.validateExpression(expression);
+      var fscriptExpr = jsExpression;
       
-      // Use the same pattern as ReactiveDetailView.js: with scope + eval
-      var result;
-      try {
-        with ( foam.core.reflow.lib ) {
-          with ( this.scope ) {
-            with ( rowData ) {
-              result = eval(expression);
-            }
-          }
+      // Simple conversions for common JavaScript patterns
+      // Note: More sophisticated conversion could be added here
+      
+      // Convert .length to .len (FScript convention)
+      fscriptExpr = fscriptExpr.replace(/\.length\b/g, '.len');
+      
+      // Convert .toLowerCase() to equivalent (if FScript supports it)
+      // For now, keep as-is since FScript may support similar functions
+      
+      // Convert ternary operator to FScript if statement (basic cases)
+      var ternaryMatch = fscriptExpr.match(/^\s*(.+?)\s*\?\s*(.+?)\s*:\s*(.+?)\s*$/);
+      if ( ternaryMatch ) {
+        var condition = ternaryMatch[1].trim();
+        var trueValue = ternaryMatch[2].trim();
+        var falseValue = ternaryMatch[3].trim();
+        
+        // Add quotes around string literals if they're not already quoted
+        if ( trueValue.match(/^[a-zA-Z][a-zA-Z0-9]*$/) && !trueValue.match(/^(true|false|null|undefined)$/) ) {
+          trueValue = '"' + trueValue + '"';
         }
+        if ( falseValue.match(/^[a-zA-Z][a-zA-Z0-9]*$/) && !falseValue.match(/^(true|false|null|undefined)$/) ) {
+          falseValue = '"' + falseValue + '"';
+        }
+        
+        return 'if (' + condition + ') { ' + trueValue + ' } else { ' + falseValue + ' }';
+      }
+      
+      return fscriptExpr;
+    },
+
+    function evaluateFScriptExpression(expression, rowData) {
+      /**
+       * Safely evaluate an FScript expression using the singleton parser.
+       * This is much more efficient as it reuses the same parser instance.
+       * 
+       * @param {string} expression - The FScript expression to evaluate
+       * @param {Object} rowData - The row data object containing field values
+       * @returns {*} The result of the FScript expression evaluation
+       */
+      if ( ! expression ) return '';
+      if ( ! rowData ) return '';
+      
+      try {
+        // Use the singleton parser for efficient evaluation
+        var parser = this.MappingFScriptParser.create();
+        return parser.evaluateExpression(expression, rowData);
       } catch (x) {
-        console.error('Expression evaluation error:', {
+        console.error('FScript evaluation error:', {
           expression: expression,
           rowData: rowData,
-          error: x.message
+          error: x.message,
+          stack: x.stack
         });
         throw x;
       }
-      
-      return result;
     },
+
+
 
     function validateExpression(expression) {
       /**
