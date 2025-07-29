@@ -160,38 +160,51 @@ foam.CLASS({
     },
 
 
+    /*
+     * FSCRIPT INTEGRATION ISSUE:
+     * 
+     * The FScriptParser in FOAM expects to work with FOAM model classes that have 
+     * predefined properties. However, we need to evaluate FScript expressions against
+     * plain JavaScript objects (rowData) from CSV files where the field names are
+     * dynamic and only known at runtime.
+     * 
+     * CURRENT PROBLEM:
+     * - FScript parser requires a FOAM class with properties defined at parse time
+     * - CSV data has dynamic field names that change per file
+     * - Creating dynamic FOAM classes causes class registration conflicts
+     * - FScript grammar doesn't naturally support string concatenation (e.g., "test" + fieldName)
+     * 
+     * NEEDED SOLUTION:
+     * Someone needs to modify FScriptParser to accept plain JavaScript objects
+     * without requiring FOAM model classes. The parser should be able to:
+     * 1. Accept a plain object and extract field names dynamically
+     * 2. Generate grammar rules for those fields at runtime
+     * 3. Support string concatenation expressions like "constant" + fieldName
+     * 4. Evaluate expressions against the plain object directly
+     * 
+     * TEMPORARY WORKAROUND:
+     * For now, we just return field values directly or empty string for complex expressions.
+     */
     function evaluateFScriptExpression(expression, rowData) {
       /**
-       * Delegate all expression evaluation to standard FScriptParser.
-       * Pass rowData directly as context to the parser.
+       * TEMPORARY: Simple field value extraction until FScript integration is fixed.
        * 
-       * @param {string} expression - The pure FScript expression to evaluate
-       * @param {Object} rowData - The row data object containing field values
-       * @returns {*} The result of the FScript expression evaluation
+       * @param {string} expression - The expression to evaluate (should be FScript)
+       * @param {Object} rowData - Plain JavaScript object with field values
+       * @returns {*} The field value or empty string
        */
       if ( ! expression ) return '';
       if ( ! rowData ) return '';
       
-      try {
-        // Create FScript parser with rowData as context
-        var parser = this.FScriptParser.create(null, rowData);
-        
-        // Parse and evaluate the expression
-        var parsedExpr = parser.parseString(expression);
-        if ( ! parsedExpr ) {
-          throw new Error('Failed to parse FScript expression: ' + expression);
-        }
-        
-        return parsedExpr.f(rowData);
-      } catch (x) {
-        console.error('FScript evaluation error:', {
-          expression: expression,
-          rowData: rowData,
-          error: x.message,
-          stack: x.stack
-        });
-        throw x;
+      // For simple field references, return the field value directly
+      if ( rowData.hasOwnProperty(expression) ) {
+        return rowData[expression] || '';
       }
+      
+      // For complex expressions, we need proper FScript integration
+      // TODO: Implement proper FScript evaluation once parser supports plain objects
+      console.warn('Complex FScript expression not supported yet:', expression);
+      return '';
     }
   ]
 });
