@@ -40,6 +40,7 @@ foam.CLASS({
   listeners: [
     {
       name: 'updateCols',
+      on: 'data.propertyChange.widgets',
       isFramed: true,
       code: function() {
         let cw = this.containerWidth;
@@ -110,7 +111,8 @@ foam.CLASS({
         .tag(widgetContainer);
 
       // Process widgets using dynamic pattern - following original dashboard approach
-      this.data.dynamic(function(widgets) {
+      this.dynamic(function(containerMap,data$widgets) {
+        var widgets = self.data.widgets;
         console.log('ReflowDashboardView: Rendering widgets dynamically', widgets);
         
         // Clear existing widgets
