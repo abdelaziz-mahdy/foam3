@@ -12,6 +12,7 @@ foam.CLASS({
     'foam.mlang.sink.Count',
     'foam.mlang.sink.GroupBy',
     'foam.dashboard.view.Pie',
+    'foam.dashboard.view.Donut',
     'foam.dashboard.view.Table',
     'foam.dashboard.view.Line',
     'foam.dashboard.view.Bar',
@@ -30,6 +31,8 @@ foam.CLASS({
       name: 'views',
       factory: function() {
         return [
+          [ this.Pie, 'Pie', ],
+          [ this.Donut, 'Donut', ],
           [ this.Bar, 'Bar', ],
           [ this.Line, 'Line' ],
           [ this.DetailView, 'Configure' ]

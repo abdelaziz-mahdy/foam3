@@ -56,8 +56,8 @@ foam.CLASS({
         class: 'foam.u2.view.ChoiceView',
         choices: [
           ['foam.dashboard.model.Count', 'Count Display'],
-          ['foam.dashboard.model.GroupBy', 'Grouped Charts (Pie, Bar with aggregation)'],
-          ['foam.dashboard.model.GroupByGroupBy', 'Advanced Grouped Charts (Bar, Line with dual grouping)'],
+          ['foam.dashboard.model.GroupBy', 'Charts (Pie, Donut, Bar)'],
+          ['foam.dashboard.model.GroupByGroupBy', 'Multi-Group Charts (Pie, Donut, Bar, Line)'],
           ['foam.dashboard.view.UserGreetingView', 'User Greeting']
         ]
       }
@@ -85,10 +85,13 @@ foam.CLASS({
             if ( viewType === 'foam.dashboard.model.GroupBy' ) {
               return [
                 ['Pie', 'Pie Chart'],
+                ['Donut', 'Donut Chart'],
                 ['Bar', 'Bar Chart']
               ];
             } else if ( viewType === 'foam.dashboard.model.GroupByGroupBy' ) {
               return [
+                ['Pie', 'Pie Chart'],
+                ['Donut', 'Donut Chart'],
                 ['Bar', 'Bar Chart'],
                 ['Line', 'Line Chart'],
                 ['Configure', 'Configure']
