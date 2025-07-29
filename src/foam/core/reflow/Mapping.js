@@ -109,19 +109,30 @@ foam.CLASS({
     function process(obj, value, rowData) {
       if ( ! this.property ) return;
       
-      // Generate pure FScript expression based on mapping type
-      var fscriptExpression = this.generateFScriptExpression();
-      
-      if ( fscriptExpression ) {
-        try {
-          // All evaluation is now done in pure FScript
-          value = this.evaluateFScriptExpression(fscriptExpression, rowData);
-        } catch (x) {
-          console.warn('FScript expression evaluation failed:', x);
-          value = '';
-        }
-      } else {
-        value = '';
+      // Use direct mapping type evaluation instead of FScript conversion
+      switch ( this.type ) {
+        case this.MappingType.CONSTANT:
+          value = this.constantValue;
+          break;
+          
+        case this.MappingType.FIELD:
+          if ( rowData && this.fieldName ) {
+            value = rowData[this.fieldName] !== undefined ? rowData[this.fieldName] : value;
+          }
+          break;
+          
+        case this.MappingType.DYNAMIC:
+          if ( this.dynamicExpression && rowData ) {
+            try {
+              value = this.evaluateFScriptExpression(this.dynamicExpression, rowData);
+            } catch (x) {
+              console.warn('Dynamic expression evaluation failed:', x);
+              value = '';
+            }
+          } else {
+            value = this.dynamicExpression || '';
+          }
+          break;
       }
       
       if ( foam.String.isInstance(value) && value != null && value !== undefined ) {
@@ -131,31 +142,6 @@ foam.CLASS({
       if ( value !== '' && value != null && value !== undefined ) {
         var handler = this.of && this.of.getAxiomByName(this.property);
         obj[this.property] = handler.fromCSV(value);
-      }
-    },
-
-    function generateFScriptExpression() {
-      /**
-       * Generate pure FScript expression based on the current mapping type.
-       * All evaluation is delegated to FScript - no JavaScript conversion.
-       * 
-       * @returns {string} The pure FScript expression
-       */
-      switch ( this.type ) {
-        case this.MappingType.CONSTANT:
-          // Generate quoted string literal for constants
-          return this.constantValue ? '"' + this.constantValue.replace(/"/g, '\\"') + '"' : '""';
-          
-        case this.MappingType.FIELD:
-          // Generate direct field reference for FScript
-          return this.fieldName || '';
-          
-        case this.MappingType.DYNAMIC:
-          // Return the expression as pure FScript (no conversion)
-          return this.dynamicExpression || '';
-          
-        default:
-          return '';
       }
     },
 
