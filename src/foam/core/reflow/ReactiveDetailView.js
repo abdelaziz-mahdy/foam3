@@ -365,6 +365,17 @@ foam.CLASS({
   name: 'CollapsedByDefaultSectionView',
   extends: 'foam.u2.detail.SectionView',
 
+  css:`
+    ^actionDiv {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    ^ {
+      padding: 8px 0;
+    }
+  `,
+
   properties: [ [ 'collapsed', true ] ]
 });
 
@@ -380,17 +391,11 @@ foam.CLASS({
   ],
 
   css: `
-    ^ > div > .foam-u2-layout-Rows {
-      gap: 10px;
-    }
-    ^ .foam-core-reflow-CollapsedByDefaultSectionView-actionDiv {
-      display: flex;
-      gap: 4px;
-      flex-direction: column;
-    }
-    ^ .foam-core-reflow-CollapsedByDefaultSectionView {
-      border-bottom: 1px solid $borderLight;
+    ^ {
       padding: 8px 16px;
+    }
+    ^ > .foam-u2-layout-Rows > div:not(:last-child) > * {
+      border-bottom: 1px solid $borderLight;
     }
   `,
 
