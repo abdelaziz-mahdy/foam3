@@ -59,19 +59,19 @@ foam.CLASS({
           return this.Count.create();
         case 'SUM':
           return this.Sum.create({
-            arg1: this.property || ExpressionsSingleton.TRUE
+            arg1: this.property 
           });
         case 'MIN':
           return this.Min.create({
-            arg1: this.property || ExpressionsSingleton.TRUE
+            arg1: this.property
           });
         case 'MAX':
           return this.Max.create({
-            arg1: this.property || ExpressionsSingleton.TRUE
+            arg1: this.property
           });
         case 'AVG':
           return this.Average.create({
-            arg1: this.property || ExpressionsSingleton.TRUE
+            arg1: this.property
           });
         default:
           return this.Count.create();
