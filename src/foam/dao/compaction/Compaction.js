@@ -43,35 +43,24 @@ Used in conjuction with a custom compaction sink, the compaction process can fac
       value: false
     },
     {
-      documentation: 'An entry eligible for compaction is normally output only once, but if not reducible, then all copies are output',
-      name: 'reducible',
-      class: 'Boolean',
-      value: true
-    },
-    {
-      documentation: 'LifecycleAware objects which are deleted/removed are set to state DELETED, an r() journal entry is not created.  This option allows to compact DELETED entries.',
-      name: 'compactLifecycleDeleted',
-      class: 'Boolean',
-      value: false
-    },
-    {
-      documentation: 'Entry data can be clear after compaction',
-      name: 'clearable',
-      class: 'Boolean',
-      value: true
-    },
-    {
-      documentation: 'DAO specific Sink to control compaction. When null/undefined, a test for a facetted sink will occur',
-      name: 'sink',
+      name: 'predicate',
       class: 'FObjectProperty',
-      of: 'foam.dao.Sink',
+      of: 'foam.mlang.predicate.Predicate',
       view: { class: 'foam.u2.view.JSONTextView' }
     },
     {
-      documentation: 'An nspec is eligible for reading into a medusa system for bootstrapping.',
-      name: 'loadable',
+      documentation: 'LifecycleAware objects which are deleted/removed are set to state DELETED, an r() journal entry is not created.  This option allows to compact DELETED entries.',
+      name: 'discardLifecycleDeleted',
       class: 'Boolean',
       value: true
+    },
+    {
+      name: 'createdSince',
+      class: 'DateTime'
+    },
+    {
+      name: 'lastModifiedSince',
+      class: 'DateTime'
     },
     {
       documentation: 'Name for JDAO creation during loading. Default is best gues. Required when nspec has JDAO setup outside of EasyDAO.',

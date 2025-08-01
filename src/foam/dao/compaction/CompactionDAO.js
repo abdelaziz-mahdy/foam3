@@ -107,10 +107,15 @@ select from mdao and write full records to new empty journal
       EventRecord er = (EventRecord) ((DAO) x.get("eventRecordDAO")).put(new EventRecord(x, getServiceName(), "compaction", "start")).fclone();
       er.clearId();
       setEventRecord(er);
+      Compaction compaction = (Compaction) ((DAO) x.get("compactionDAO")).find(getServiceName());
 
       try {
         roll(x);
-        compaction(x);
+        if ( compaction.getCompactible() ) {
+          compaction(x);
+        } else {
+          logger.warning(getServiceName(), "not compactibe");
+        }
 
         logger.info("end");
         er = getEventRecord();
@@ -166,6 +171,7 @@ select from mdao and write full records to new empty journal
       args: 'X x',
       javaCode: `
       final Logger logger = Loggers.logger(x, this, "compaction", getServiceName());
+      Compaction compaction = (Compaction) ((DAO) x.get("compactionDAO")).find(getServiceName());
 
       DAO dao = (DAO) x.get(getServiceName());
       MDAO mdao = null;
@@ -197,9 +203,32 @@ select from mdao and write full records to new empty journal
 
       final Count total = (Count) dao.select(new Count());
       final Count processed = new Count();
-      final CompactionSink compactionSink = new CompactionSink(x, getServiceName(),
-        new JournalSink(x, jdao.getJournal()));
-      final Sink sink = new Sequence.Builder(x)
+      CompactionSink compactionSink = new CompactionSink(x, getServiceName(), null);
+      ProxySink sink = compactionSink;
+      ProxySink delegate = null;
+      if ( compaction.getDiscardLifecycleDeleted() ) {
+        delegate = new LifecycleDeletedCompactionSink(x, compaction.getDiscardLifecycleDeleted(), null);
+        sink.setDelegate(delegate);
+        sink = delegate;
+      }
+      if ( compaction.getPredicate() != null ) {
+        delegate = new PredicateCompactionSink(x, compaction.getPredicate(), null);
+        sink.setDelegate(delegate);
+        sink = delegate;
+      } else if ( compaction.getCreatedSince() != null ) {
+        delegate = new CreatedCompactionSink(x, compaction.getCreatedSince(), null);
+        sink.setDelegate(delegate);
+        sink = delegate;
+      } else if ( compaction.getLastModifiedSince() != null ) {
+        delegate = new LastModifiedCompactionSink(x, compaction.getLastModifiedSince(), null);
+        sink.setDelegate(delegate);
+        sink = delegate;
+      }
+
+      JournalSink journalSink = new JournalSink(x, jdao.getJournal());
+      sink.setDelegate(journalSink);
+
+      final Sink fsink = new Sequence.Builder(x)
                      .setArgs(new Sink[] {
                        processed,
                        compactionSink
@@ -211,7 +240,7 @@ select from mdao and write full records to new empty journal
       agency.submit(x, new ContextAgent() {
         public void execute(X x) {
           logger.info("start");
-          sourceDAO.select(sink);
+          sourceDAO.select(fsink);
           long compactionTime = System.currentTimeMillis() - startTime;
           logger.info("agency", "end", "duration", Duration.ofMillis(compactionTime));
         }
@@ -228,18 +257,24 @@ select from mdao and write full records to new empty journal
           break;
         }
       }
+      long compacted = journalSink.getCount();
+      double reduced = ((((Long) processed.getValue()) - compacted) / ((Long) processed.getValue()).doubleValue()) * 100.0;
       long compactionTime = System.currentTimeMillis() - startTime;
       double seconds = compactionTime / 1000.0;
       double minutes = compactionTime / 60;
       double min100K = minutes / ( (Long) processed.getValue() / 100000.0 );
       StringBuilder report = new StringBuilder();
-      report.append("instance,processed,duration s,date");
+      report.append("instance,processed,compacted,duration s,reduced,date");
       report.append("\\n");
       report.append(System.getProperty("hostname", "loalhost"));
       report.append(",");
       report.append(processed.getValue());
       report.append(",");
+      report.append(compacted);
+      report.append(",");
       report.append(Math.round(seconds));
+      report.append(",");
+      report.append(String.format("%.2f%%", reduced));
       report.append(",");
       report.append(new java.util.Date(startTime));
 
@@ -278,6 +313,10 @@ select from mdao and write full records to new empty journal
         {
           name: 'isEof',
           class: 'Boolean'
+        },
+        {
+          name: 'count',
+          class: 'Long'
         }
       ],
 
@@ -286,6 +325,7 @@ select from mdao and write full records to new empty journal
           name: 'put',
           javaCode: `
           ((Journal) getJournal()).put(getX(), "", getNullDAO(), (FObject) obj);
+          setCount(getCount() +1);
           `
         },
         {

@@ -25,9 +25,19 @@ foam.CLASS({
 
   javaCode: `
     public CompactionSink(X x, String serviceName, Sink delegate) {
-      super(x, delegate);
+      setX(x);
       setServiceName(serviceName);
-      setSink(getFacetedSink(x));
+      setDelegate(delegate);
+      if ( delegate != null ) {
+        setSink(getFacetedSink(x));
+      }
+    }
+
+    public void setDelegate(Sink delegate) {
+      super.setDelegate(delegate);
+      if ( delegate != null ) {
+        setSink(getFacetedSink(getX()));
+      }
     }
   `,
 
@@ -61,17 +71,13 @@ foam.CLASS({
       DAO dao = (DAO) x.get(getServiceName());
       Compaction compaction = (Compaction) ((DAO) getX().get("compactionDAO")).find(getServiceName());
       Sink sink = null;
-      if ( compaction != null ) {
-        sink = (Sink) compaction.getSink();
+      try {
+        FacetManager fm = (FacetManager) x.get("facetManager");
+        sink = (Sink) fm.create(dao.getOf().getId()+"CompactionSink", x);
+      } catch (Throwable t) {
+        // nop
       }
-      if ( sink == null ) {
-        try {
-          FacetManager fm = (FacetManager) x.get("facetManager");
-          sink = (Sink) fm.create(dao.getOf().getId()+"CompactionSink", x);
-        } catch (Throwable t) {
-          // nop
-        }
-      }
+
       if ( sink != null ) {
         if ( sink instanceof ContextAware ) {
           ((ContextAware) sink).setX(x);
