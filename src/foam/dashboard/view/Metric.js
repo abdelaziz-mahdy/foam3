@@ -9,6 +9,10 @@ foam.CLASS({
   name: 'Metric',
   extends: 'foam.u2.Element',
 
+  requires: [
+    'foam.u2.util.NumberShortener'
+  ],
+
   imports: [
     'data',
     'visualizationWidth',
@@ -93,20 +97,14 @@ foam.CLASS({
         end().
         start('div').
           addClass(this.myClass('title')).
-          add(this.slot(function(data$label, data$operation) {
-            return data$label || this.getOperationLabel(data$operation);
+          add(this.slot(function(data$label) {
+            return data$label || this.data.sink.label || 'Metric';
           })).
         end().
         start('div').
           addClass(this.myClass('value')).
           add(this.slot(function(data$data) {
-            return this.formatValue(data$data?.value);
-          })).
-        end().
-        start('div').
-          addClass(this.myClass('operation')).
-          add(this.slot(function(data$operation) {
-            return this.getOperationLabel(data$operation);
+            return this.NumberShortener.shortenNumber(data$data?.value);
           })).
         end();
 
@@ -124,32 +122,6 @@ foam.CLASS({
       }
     },
 
-    function getOperationLabel(operation) {
-      switch(operation) {
-        case 'COUNT': return 'Count';
-        case 'SUM':   return 'Sum';
-        case 'MIN':   return 'Minimum';
-        case 'MAX':   return 'Maximum';
-        case 'AVG':   return 'Average';
-        default:      return 'Metric';
-      }
-    },
 
-    function formatValue(value) {
-      if ( value === null || value === undefined ) return '—';
-      
-      if ( typeof value === 'number' ) {
-        // Format large numbers with appropriate suffixes
-        if ( value >= 1000000 ) {
-          return (value / 1000000).toFixed(1) + 'M';
-        } else if ( value >= 1000 ) {
-          return (value / 1000).toFixed(1) + 'K';
-        } else if ( value % 1 !== 0 ) {
-          return value.toFixed(2);
-        }
-      }
-      
-      return value.toString();
-    }
   ]
 });
