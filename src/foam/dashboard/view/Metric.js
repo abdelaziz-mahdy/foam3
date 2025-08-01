@@ -26,27 +26,27 @@ foam.CLASS({
       justify-content: center;
       align-items: center;
       padding: 20px;
-      background: $backgroundDefault;
+      background: $backgroundSecondary;
       border-radius: 8px;
     }
 
     ^icon {
       font-size: 24px;
       margin-bottom: 12px;
-      color: $primary400;
+      color: $textBrand;
       display: flex;
       align-items: center;
       justify-content: center;
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: $primary50;
+      background: $backgroundBrandTertiary;
     }
 
     ^title {
       font-size: 14px;
       font-weight: 500;
-      color: $grey600;
+      color: $textTertiary;
       margin-bottom: 8px;
       text-align: center;
       text-transform: uppercase;
@@ -56,14 +56,14 @@ foam.CLASS({
     ^value {
       font-size: 32px;
       font-weight: 700;
-      color: $grey900;
+      color: $textDefault;
       line-height: 1;
       text-align: center;
     }
 
     ^operation {
       font-size: 12px;
-      color: $grey500;
+      color: $textSecondary;
       margin-top: 4px;
       text-transform: capitalize;
     }
