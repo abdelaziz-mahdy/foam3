@@ -107,7 +107,6 @@ foam.CLASS({
 
   exports: [
     'dao',
-    'data as objData'  // PredicateView expects objData with dao property
   ],
 
   constants: {
@@ -336,7 +335,7 @@ foam.CLASS({
       class: 'String',
       name: 'where',
       label: 'Filter',
-      view: { class: 'foam.core.reflow.PredicateView' },
+      view: { class: 'foam.core.reflow.PredicateSuggestedField' },
       help: 'Filter data. Applied to both preview and upload.'
     },
     {
