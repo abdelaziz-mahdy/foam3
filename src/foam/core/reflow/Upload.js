@@ -324,19 +324,11 @@ foam.CLASS({
       value: 0
     },
     {
-      class: 'Int',
-      name: 'validationFailures',
-      visibility: 'RO',
-      value: 0,
-      documentation: 'Count of rows that failed validation'
-    },
-    {
-      class: 'FObjectArray',
-      of: 'foam.lang.FObject',
-      name: 'validationErrors',
-      factory: function() { return []; },
+      class: 'Map',
+      name: 'validationErrorMap',
+      factory: function() { return {}; },
       hidden: true,
-      documentation: 'Array of validation error details for failed rows'
+      documentation: 'Map tracking validation error counts by field:error key'
     },
     {
       class: 'String',
@@ -481,7 +473,6 @@ foam.CLASS({
       if ( ! this.mappings || this.mappings.length === 0 ) return;
 
       var hasValidationErrors = false;
-      var validationErrorDetails = [];
 
       this.mappings.forEach(mapping => {
         try {
@@ -500,13 +491,16 @@ foam.CLASS({
             rowData: rowData
           });
 
-          // Collect validation error details
-          validationErrorDetails.push({
-            field: mapping.property,
-            value: rowData[mapping.fieldName],
-            error: x.message,
-            type: mapping.type
-          });
+          // Track validation error in map for efficient counting
+          var errorKey = `${mapping.property}:${x.message.substring(0, 80)}`;
+          if ( ! this.validationErrorMap[errorKey] ) {
+            this.validationErrorMap[errorKey] = {
+              field: mapping.property,
+              error: x.message.substring(0, 80),
+              count: 0
+            };
+          }
+          this.validationErrorMap[errorKey].count++;
 
           // Add error to output for user visibility
           this.output += `<span style="color:red">${errorMsg}</span><br>`;
@@ -517,15 +511,6 @@ foam.CLASS({
         }
       });
 
-      // Track validation statistics
-      if ( hasValidationErrors ) {
-        this.validationFailures++;
-        this.validationErrors.push({
-          rowNumber: this.processing + 1,
-          errors: validationErrorDetails,
-          rowData: rowData
-        });
-      }
     },
 
     function validateProcessedValue(obj, propertyName) {
@@ -594,8 +579,7 @@ foam.CLASS({
       await this.data.removeAll();
       this.processing = 0;
       this.matchedRows = 0;
-      this.validationFailures = 0;
-      this.validationErrors = [];
+      this.validationErrorMap = {};
       this.clear();
       console.time('upload');
       var totalRows = 0;
