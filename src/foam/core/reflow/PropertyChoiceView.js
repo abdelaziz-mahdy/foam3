@@ -23,9 +23,9 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'PropertyCitationView',
   extends: 'foam.u2.CitationView',
-  
+
   documentation: 'Citation view for properties showing label and name in a vertical stacked layout',
-  
+
   css: `
     ^row {
       display: flex;
@@ -35,17 +35,17 @@ foam.CLASS({
       gap: 2px;
       border-bottom: 1px solid $borderXLight;
     }
-    
+
     ^row:last-child {
       border-bottom: none;
     }
-    
+
     ^label {
       font-size: 14px;
       font-weight: 500;
       line-height: 1.2;
     }
-    
+
     ^name {
       font-family: monospace;
       font-size: 12px;
@@ -53,7 +53,7 @@ foam.CLASS({
       line-height: 1.2;
     }
   `,
-  
+
   methods: [
     function getSummary(data) {
       // Override to prevent default summary behavior
@@ -162,5 +162,4 @@ foam.CLASS({
       this.start(this.PropertyChoiceView_, {forCls: this.forCls, data$: this.propName$});
     }
   ]
-
 });

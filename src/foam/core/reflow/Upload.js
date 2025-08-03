@@ -107,7 +107,6 @@ foam.CLASS({
 
   exports: [
     'dao',
-    'data as objData'  // PredicateView expects objData with dao property
   ],
 
   constants: {
@@ -254,8 +253,9 @@ foam.CLASS({
     },
 
     {
-      class: 'FObjectArray',
-      of: 'foam.core.reflow.Mapping',
+      // having class and of, makes the mapping expression not reactive, even if the post set is there, (somewhere it gets set to empty array)
+      // class: 'FObjectArray',
+      // of: 'foam.core.reflow.Mapping',
       name: 'mappings',
       view: function(_, X) {
         return {
@@ -263,7 +263,31 @@ foam.CLASS({
           of: X.data.of
         };
       },
-      factory: function() { return []; },
+      expression: function(of, fileHeaders) {
+        // Auto-calculate mappings from fileHeaders when available
+        // Once explicitly set, this expression stops being reactive (FOAM3 behavior)
+        if (!of || !fileHeaders || fileHeaders.length === 0) return [];
+        
+        // Clean up file headers
+        var cleanHeaders = fileHeaders.filter(function(h) { return h && h.trim(); });
+        if (cleanHeaders.length === 0) return [];
+        
+        // Get all properties for the target model
+        var props = of.getAxiomsByClass(foam.lang.Property)
+          .filter(function(p) { return p.showInPropertyChoice; })
+          .sort(foam.lang.Property.NAME.compare);
+        
+        // Create mappings for all properties with file headers
+        var mappings = [];
+        var self = this;
+        props.forEach(function(prop) {
+          mappings.push(self.createFieldMapping(prop, {
+            fileHeaders: cleanHeaders
+          }));
+        });
+        
+        return mappings;
+      },
       visibility: function(fileHeaders) {
         return fileHeaders && fileHeaders.length > 0 ?
           foam.u2.DisplayMode.RW :
@@ -312,7 +336,7 @@ foam.CLASS({
       class: 'String',
       name: 'where',
       label: 'Filter',
-      view: { class: 'foam.core.reflow.PredicateView' },
+      view: { class: 'foam.core.reflow.PredicateSuggestedField' },
       help: 'Filter data. Applied to both preview and upload.'
     },
     {
@@ -351,15 +375,8 @@ foam.CLASS({
     {
       name: 'fileHeaders',
       hidden: true,
-      documentation: 'File headers from processed data (CSV columns, XML tags/attributes, DAO properties)',
-      postSet: function(o, n) {
-        // Only auto-generate mappings if no mappings are explicitly set
-        // This prevents overwriting explicitly set mappings from FileUploadConfig
-        if ( this.of && n && JSON.stringify(o) !== JSON.stringify(n) && (!this.mappings || this.mappings.length === 0) ) {
-          this.generateMappings(n);
-        }
-      }
-    }
+      documentation: 'File headers from processed data (CSV columns, XML tags/attributes, DAO properties)'
+    },
   ],
 
   methods: [
@@ -403,28 +420,7 @@ foam.CLASS({
       }
     },
 
-    function generateMappings(fileHeaders) {
-      if ( ! this.of ) return;
 
-      // Clean up file headers
-      var cleanHeaders = fileHeaders && fileHeaders.length > 0 ?
-        fileHeaders.filter(h => h && h.trim()) : [];
-
-      // Get all properties for the target model
-      var props = this.of.getAxiomsByClass(foam.lang.Property)
-        .filter(p => p.showInPropertyChoice)
-        .sort(foam.lang.Property.NAME.compare);
-
-      // Create mappings for all properties with file headers
-      var mappings = [];
-      props.forEach(prop => {
-        mappings.push(this.createFieldMapping(prop, {
-          fileHeaders: cleanHeaders
-        }));
-      });
-
-      this.mappings = mappings;
-    },
 
     function findMatchingHeader(headers, prop) {
       if ( ! headers || headers.length === 0 ) return null;
@@ -914,13 +910,6 @@ foam.CLASS({
       isAvailable: function(where) { return !!where; },
       code: function() {
         this.where = '';
-      }
-    },
-    {
-      name: 'resetMappings',
-      isAvailable: function(mappings) { return mappings.length; },
-      code: function() {
-        this.mappings = [];
       }
     }
   ]

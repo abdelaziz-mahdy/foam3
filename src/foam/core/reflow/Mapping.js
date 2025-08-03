@@ -27,6 +27,7 @@ foam.ENUM({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Mapping',
@@ -44,7 +45,7 @@ foam.CLASS({
       documentation: 'The source field/column name'
     },
     {
-      class: 'String', 
+      class: 'String',
       name: 'property',
       documentation: 'The target property name'
     },
@@ -107,7 +108,7 @@ foam.CLASS({
   methods: [
     function process(obj, value, rowData) {
       if ( ! this.property ) return;
-      
+
       switch ( this.type ) {
         case this.MappingType.CONSTANT:
           value = this.constantValue;
@@ -130,11 +131,11 @@ foam.CLASS({
           }
           break;
       }
-      
+
       if ( foam.String.isInstance(value) && value != null && value !== undefined ) {
         value = value.trim();
       }
-      
+
       if ( value !== '' && value != null && value !== undefined ) {
         var handler = this.of && this.of.getAxiomByName(this.property);
         obj[this.property] = handler.fromCSV(value);
@@ -145,16 +146,16 @@ foam.CLASS({
       /**
        * Safely evaluate a JavaScript expression within the context of rowData.
        * Uses the same scoping pattern as ReactiveDetailView.js (lines 56-58).
-       * 
+       *
        * @param {string} expression - The JavaScript expression to evaluate
        * @param {Object} rowData - The row data object containing field values
        * @returns {*} The result of the expression evaluation
        */
       if ( ! expression || ! rowData ) return '';
-      
+
       // Validate expression before evaluation
       this.validateExpression(expression);
-      
+
       // Use the same pattern as ReactiveDetailView.js: with scope + eval
       var result;
       try {
@@ -171,7 +172,7 @@ foam.CLASS({
         });
         throw x;
       }
-      
+
       return result;
     },
 
@@ -179,14 +180,14 @@ foam.CLASS({
       /**
        * Validate a JavaScript expression for basic safety.
        * This provides basic checks to catch common errors early.
-       * 
+       *
        * @param {string} expression - The expression to validate
        * @throws {Error} If the expression appears unsafe or malformed
        */
       if ( ! expression || typeof expression !== 'string' ) {
         throw new Error('Expression must be a non-empty string');
       }
-      
+
       // Check for potentially dangerous patterns
       var dangerousPatterns = [
         /\b(eval|Function|setTimeout|setInterval)\b/,
@@ -195,13 +196,13 @@ foam.CLASS({
         /\b(__proto__|prototype)\b/,
         /\b(constructor)\b/
       ];
-      
+
       dangerousPatterns.forEach(pattern => {
         if ( pattern.test(expression) ) {
           throw new Error('Expression contains potentially unsafe patterns');
         }
       });
-      
+
       // Basic syntax check - try to parse as function body
       try {
         new Function('', 'return ' + expression);

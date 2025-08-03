@@ -16,6 +16,8 @@ foam.CLASS({
   css: `
   `,
 
+  properties: [ { class: 'Long', name: 'version' } ],
+
   methods: [
     function render() {
       var self = this;
@@ -23,30 +25,23 @@ foam.CLASS({
       // TODO: Temporary while detailview is hidden (or make into a Controller instead)
       this.data.where$.sub(this.rerun);
 
+      this.data.skip$.sub(this.onUpdate);
+      this.data.version$.sub(this.onUpdate);
+
       this.
         addClass().
         show(this.data.visible$).
         start('h3').
           add(self.data.label$).
         end().
-            /*
-          start('span').
-            style({display: 'flex', gap: '10px', flexDirection: 'column'}).
-            start().
-              style({marginTop: '6px'}).
-              add('Query').
-            end().
-            tag({class: 'foam.u2.TextField'}, {data$: self.data.where$, placeholder: 'Type your query'}).
-            end().
-            */
         br().
         start().
-          add(self.data.dynamic(async function(version, skip) {
+          add(self.dynamic(async function(version) {
             var startTime = Date.now();
             // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
             // TODO: fix JSON parsing should setup context correctly
             var select    = self.data.select.clone(self.data.__subContext__);
-            await select.execute(this.start());
+            await select.execute(this);
             self.data.readyLatch_.resolve();
             self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
           })).
@@ -55,6 +50,15 @@ foam.CLASS({
   ],
 
   listeners: [
+    {
+      name: 'onUpdate',
+      isIdled: true,
+      delay: 150,
+      code: function() {
+        // Used to avoid excessive number of updates, especially on slower connections
+        this.version++;
+      }
+    },
     function copyToClipboard() {
       var range = document.createRange();
       range.selectNode(this.content.element_);
@@ -267,7 +271,7 @@ foam.CLASS({
       name: 'where',
       section: 'filter',
       displayWidth: 60,
-      view: { class: 'foam.core.reflow.PredicateView' }
+      view: { class: 'foam.core.reflow.PredicateSuggestedField' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
@@ -275,7 +279,7 @@ foam.CLASS({
       name: 'order',
       section: 'filter',
       displayWidth: 60,
-      view: { class: 'foam.core.reflow.ComparatorView' }
+      view: { class: 'foam.core.reflow.ComparatorSuggestedField' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
@@ -285,8 +289,7 @@ foam.CLASS({
       displayWidth: 60,
       view: function(_, X) {
         return {
-          class: 'foam.core.reflow.PropertyListView',
-          forCls: X.data.dao.of
+          class: 'foam.core.reflow.PropertySuggestedField'
         };
       },
       postSet: function(_, n) {
@@ -397,7 +400,7 @@ visible      },
     },
 
     async function updateRowCount_() {
-      this.rowCount = (await this.dao.select(this.COUNT())).value;
+      this.rowCount = (await this.filteredDAO.select(this.COUNT())).value;
     }
   ],
 

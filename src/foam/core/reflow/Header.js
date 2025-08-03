@@ -30,12 +30,12 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Header',
-  
+
   sections: [
     {
       name: 'general',
       title: 'General'
-    },
+    }
   ],
 
   properties: [

@@ -62,7 +62,7 @@ foam.CLASS({
     {
       name: 'collections',
       value: []
-    },
+    }
   ],
 
   methods: [
@@ -101,6 +101,5 @@ foam.CLASS({
           }))
         .end();
     }
-  ],
-
+  ]
 });

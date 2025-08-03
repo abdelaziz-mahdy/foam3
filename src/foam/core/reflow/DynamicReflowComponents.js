@@ -48,7 +48,7 @@ foam.CLASS({
     },
     {
       name: 'commands',
-      value: []
+      factory: function() { return []; }
     }
   ],
 
@@ -78,6 +78,7 @@ foam.CLASS({
         .end();
     }
   ],
+
   actions: [
     {
       name: 'addComponent',
@@ -86,7 +87,7 @@ foam.CLASS({
       size: 'SMALL',
       themeIcon: 'plus',
       code: function() {
-        this.data.eval_('Test')
+        this.data.eval_('Test');
       }
     }
   ]

@@ -46,7 +46,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'command'
-    },
+    }
   ],
 
   methods: [

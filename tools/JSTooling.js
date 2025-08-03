@@ -19,6 +19,7 @@ foam.POM({
   tasks: {
     cleanFOAM: ['clean-foam', 'Remove foam-bin files.', [], function() {
       this.execSync(`rm -f ${BUILD_DIR}/js/foam-bin-* >/dev/null 2>&1`);
+      this.execSync(`rm -f ${BUILD_DIR}/webroot/foam-bin-* >/dev/null 2>&1`);
     }],
 
     genFoamBinVersion: ['gen-foam-bin-version', 'Generate version string for the foam-bin, with our without a timestamp', [], function() {

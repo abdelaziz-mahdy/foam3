@@ -64,7 +64,7 @@ rm -rf ~/foam3/build
 ln -s /Volumes/RamDisk/build ~/foam3/build
 */
 
-const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, warning, writeFileIfUpdated, verbose } = require('./buildlib');
+const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, stat, warning, writeFileIfUpdated, verbose } = require('./buildlib');
 const { appendFileSync, existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
 const os = require('os');
 const { join }                                    = require('path');
@@ -434,7 +434,7 @@ TOOLING_OPTIONS = addOptions({
   homeDir: ['', 'home-dir', 'HOME_DIR', 'Home directory of user executing build', () => os.homedir(), arg => HOME_DIR = arg ],
   platform: ['', 'platform', 'PLATFORM', 'Operation System Type. One of: darwin (MacOS), freebsd, linux, win32', () => os.platform(), arg => PLATFORM = arg ],
   silent: ['', 'silent', 'SILENT', "Suppress all 'info' and 'warning' log messages.", false, function(arg) { SILENT = arg ? bool(arg) : true; }],
-  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'.  To \'add\' tooling to default list, prefix name with +.',
+  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,RAMDisk,Npm,Maven,Git,JS,Java\'.  To \'add\' tooling to default list, prefix name with +.',
                  function() {
                    var poms;
                    var fn = join(process.cwd(),`tools/defaultTooling`);
@@ -443,7 +443,7 @@ TOOLING_OPTIONS = addOptions({
                      verbose(`[build] using project tooling: ${poms}`);
                    }
                    if ( ! poms ) {
-                     poms = 'Standard,Npm,Maven,Git,JS,Java';
+                     poms = 'Standard,RAMDisk,Npm,Maven,Git,JS,Java';
                      verbose(`[build] using default tooling: ${poms}`);
                    }
                    return poms;

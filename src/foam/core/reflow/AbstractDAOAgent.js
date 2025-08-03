@@ -67,7 +67,7 @@ foam.CLASS({
     'dao as referenceDAO',
     'sinkDAO as dao',
     'sinkUnlimitedDAO as unlimitedDAO',
-    'columns'
+    'columns?'
   ],
 
   properties: [
