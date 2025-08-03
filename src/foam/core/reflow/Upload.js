@@ -348,6 +348,13 @@ foam.CLASS({
       value: 0
     },
     {
+      class: 'Map',
+      name: 'validationErrorMap',
+      factory: function() { return {}; },
+      hidden: true,
+      documentation: 'Map tracking validation error counts by field:error key'
+    },
+    {
       class: 'String',
       name: 'filterStatus',
       visibility: function(where) {
@@ -461,17 +468,35 @@ foam.CLASS({
     function processAllMappings(obj, rowData) {
       if ( ! this.mappings || this.mappings.length === 0 ) return;
 
+      var hasValidationErrors = false;
+
       this.mappings.forEach(mapping => {
         try {
           mapping.process(obj, undefined, rowData);
+          
+          // Check for NaN/invalid values after processing
+          this.validateProcessedValue(obj, mapping.property);
         } catch (x) {
+          hasValidationErrors = true;
+          
           // Handle dynamic expression errors gracefully
-          var errorMsg = `error: ${mapping.property}': ${x.message}, stack: ${x.stack}`;
+          var errorMsg = `error: ${mapping.property}': ${x.message}`;
           console.error(errorMsg, {
             mapping: mapping,
             expression: mapping.dynamicExpression,
             rowData: rowData
           });
+
+          // Track validation error in map for efficient counting
+          var errorKey = `${mapping.property}:${x.message.substring(0, 80)}`;
+          if ( ! this.validationErrorMap[errorKey] ) {
+            this.validationErrorMap[errorKey] = {
+              field: mapping.property,
+              error: x.message.substring(0, 80),
+              count: 0
+            };
+          }
+          this.validationErrorMap[errorKey].count++;
 
           // Add error to output for user visibility
           this.output += `<span style="color:red">${errorMsg}</span><br>`;
@@ -481,7 +506,23 @@ foam.CLASS({
           obj.errors_.push([mapping, errorMsg]);
         }
       });
+
     },
+
+    function validateProcessedValue(obj, propertyName) {
+      var value = obj[propertyName];
+      
+      // Check for NaN in numeric fields
+      if ( typeof value === 'number' && (isNaN(value) || !isFinite(value)) ) {
+        throw new Error(`Invalid number (NaN/Infinity/null) in field '${propertyName}'`);
+      }
+      
+      // Check for invalid dates
+      if ( value instanceof Date && isNaN(value.getTime()) ) {
+        throw new Error(`Invalid date in field '${propertyName}'`);
+      }
+    },
+
 
     async function processUploadedFiles() {
       if ( ! this.uploadedFiles || this.uploadedFiles.length === 0 ) {
@@ -534,6 +575,7 @@ foam.CLASS({
       await this.data.removeAll();
       this.processing = 0;
       this.matchedRows = 0;
+      this.validationErrorMap = {};
       this.clear();
       console.time('upload');
       var totalRows = 0;
@@ -601,6 +643,7 @@ foam.CLASS({
             if ( agent ) await self.dao.cmd(agent);
             self.progress = 100;
             console.timeEnd('upload');
+
 
             if ( ! real ) {
               var block = self.block;
