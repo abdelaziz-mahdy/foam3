@@ -8,7 +8,7 @@
 
 <h2>Uploading / Installing</h2>
 <p>Once a tar ball is prepared, it can be uploaded and the application installed</p>
-<code>./build.sh -TStandard,RemoteInstall,Java --remote-hostname:hostname</code>
+<code>./build.sh -TStandard,RemoteInstall,Java -Jyour_deployment_directories --remote-hostname:hostname</code>
 
 <p>This will upload and install</p>
 <p>Additional (most common) installation flags:

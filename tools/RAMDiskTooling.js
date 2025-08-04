@@ -32,6 +32,7 @@ foam.POM({
       }
       let bytes = RAM_DISK_SIZE * 1024 * 1024 / RAM_DISK_BLOCK_SIZE_DARWIN;
       try {
+        // https://blog.robe.one/ram-disk-on-macos
         let device = this.execSync(`hdiutil attach -nomount ram://${bytes}`);
         info = this.execSync(`diskutil erasevolume HFS+ \"${RAM_DISK_NAME}\" ${device}`);
         this.info(`Created RAM Disk: ${RAM_DISK_NAME}`);
