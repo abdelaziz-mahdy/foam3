@@ -73,9 +73,6 @@ foam.CLASS({
             });
           });
         }
-        
-        // // Publish property change for widget array changes
-        // this.pub('propertyChange', 'widgets');
       }
     },
   ],
