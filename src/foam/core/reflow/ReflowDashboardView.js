@@ -72,7 +72,7 @@ foam.CLASS({
   ],
 
   properties: [
-    {name:'data'},
+    'data',
     {
       class: 'Map',
       name: 'containerMap'
@@ -252,5 +252,4 @@ foam.CLASS({
       this.containerWidth$.sub(this.updateCols);
     }
   ]
-
 });

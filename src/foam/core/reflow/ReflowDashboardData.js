@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 The FOAM Authors. All Rights Reserved.
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
@@ -12,7 +12,6 @@ foam.CLASS({
   requires: [
     'foam.core.reflow.WidgetConfig'
   ],
-
 
   messages: [
     { name: 'TITLE', message: 'Dashboard' }
@@ -56,9 +55,6 @@ foam.CLASS({
       of: 'foam.core.reflow.WidgetConfig',
       name: 'widgets',
       documentation: 'Array of widget configurations for the dashboard.',
-      factory: function() {
-        return [];
-      },
       postSet: function(oldValue, newValue) {
         var self = this;
         
@@ -78,8 +74,8 @@ foam.CLASS({
           });
         }
         
-        // Publish property change for widget array changes
-        this.pub('propertyChange', 'widgets');
+        // // Publish property change for widget array changes
+        // this.pub('propertyChange', 'widgets');
       }
     },
   ],
