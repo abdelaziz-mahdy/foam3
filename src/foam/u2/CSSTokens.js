@@ -148,6 +148,7 @@ foam.CLASS({
     { name: 'backgroundDefault', value: '$white', variants: { dark: { value: '$black500' } } },
     { name: 'backgroundSecondary', value: '$grey50', variants: { dark: { value: '$black100' } } },
     { name: 'backgroundTertiary', value: '$grey100', variants: { dark: { value: '$black200' } } },
+    { name: 'backgroundHover', value: '$backgroundTertiary' },
 
     { name: 'backgroundBrand', value: '$primary400' },
     { name: 'backgroundBrandSecondary', value: '$primary600', variants: { dark: { value: '$primary200' } } },
@@ -165,6 +166,7 @@ foam.CLASS({
     { name: 'textDefault', value: '$black', variants: { dark: { value: '$grey100' } } },
     { name: 'textSecondary', value: '$grey700', variants: { dark: { value: '$grey200' } } },
     { name: 'textTertiary', value: '$grey500',variants: { dark: { value: '$grey400' } } },
+    { name: 'dropdownIcon', value: 'currentColor'},
 
     { name: 'textBrand', value: '$primary400' },
     { name: 'textBrandSecondary', value: '$primary700', variants: { dark: { value: '$primary50' } } },
@@ -177,6 +179,16 @@ foam.CLASS({
     { name: 'textOnInverse', value: '$white', variants: { dark: { value: '$black' } } },
 
     { name: 'textOnDestructive', value: '$white' },
+
+    { name: 'font-light', value: '300' },
+    { name: 'font-regular', value: '500' },
+    { name: 'font-medium', value: '600' },
+    { name: 'font-semi-bold', value: '700' },
+    { name: 'font-bold', value: '800' },
+    { name: 'font-extra-bold', value: '900' },
+  
+
+    
 
     // BORDER COLOR
     { name: 'borderXLight', value: '$grey50', variants: { dark: { value: '$black400' } } },

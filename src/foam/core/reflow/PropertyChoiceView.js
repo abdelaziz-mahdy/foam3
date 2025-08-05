@@ -23,9 +23,9 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'PropertyCitationView',
   extends: 'foam.u2.CitationView',
-  
+
   documentation: 'Citation view for properties showing label and name in a vertical stacked layout',
-  
+
   css: `
     ^row {
       display: flex;
@@ -35,17 +35,17 @@ foam.CLASS({
       gap: 2px;
       border-bottom: 1px solid $borderXLight;
     }
-    
+
     ^row:last-child {
       border-bottom: none;
     }
-    
+
     ^label {
       font-size: 14px;
       font-weight: 500;
       line-height: 1.2;
     }
-    
+
     ^name {
       font-family: monospace;
       font-size: 12px;
@@ -53,7 +53,7 @@ foam.CLASS({
       line-height: 1.2;
     }
   `,
-  
+
   methods: [
     function getSummary(data) {
       // Override to prevent default summary behavior
@@ -107,17 +107,20 @@ foam.CLASS({
         if ( ! this.forCls ) return [
           {
             heading: 'Properties',
-            dao: foam.dao.ArrayDAO.create({ of: foam.lang.Property, array: [] })
+            dao: foam.dao.ArrayDAO.create({ of: foam.lang.Property, array: [] }),
+            searchBy: [ foam.lang.Property.NAME ]
           }
         ];
         let arr = this.forCls.getAxiomsByClass(foam.lang.Property)
           .filter(p => p.showInPropertyChoice)
-          .filter(p => ! this.predicate || this.predicate(p));
+          .filter(p => ! this.predicate || this.predicate(p))
+          .sort(foam.lang.Property.NAME.compare);
 
         return [
           {
             heading: 'Properties',
-            dao: foam.dao.ArrayDAO.create({ of: foam.lang.Property, array: arr })
+            dao: foam.dao.ArrayDAO.create({ of: foam.lang.Property, array: arr }),
+            searchBy: [ foam.lang.Property.NAME ]
           }
         ];
       }
@@ -159,5 +162,4 @@ foam.CLASS({
       this.start(this.PropertyChoiceView_, {forCls: this.forCls, data$: this.propName$});
     }
   ]
-
 });

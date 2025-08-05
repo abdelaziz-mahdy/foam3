@@ -287,6 +287,30 @@ foam.CLASS({
       text-decoration: underline;
     }
 
+     /* Black */
+
+    ^black{
+      background: none;
+      border: 1px solid transparent;
+      color: $textDefault;
+    }
+
+    ^black svg { fill: currentColor; }
+
+    ^black:hover:not(:disabled) {
+      background-color: $buttonPrimaryLightColor;
+      color: $textDefault;
+    }
+
+    ^black:active:not(:disabled) {
+      background-color: $buttonPrimaryLightColor;
+      border-color: $textDefault;
+    }
+
+    ^black:disabled {
+      color: $buttonSecondaryColor$active;
+    }
+    
     /* Text */
 
     ^text{
@@ -329,6 +353,10 @@ foam.CLASS({
     ^iconOnly{
       padding: 8px;
       max-height: inherit;
+    }
+
+    ^iconOnly^small {
+      padding: 4px;
     }
 
     ^link^small,

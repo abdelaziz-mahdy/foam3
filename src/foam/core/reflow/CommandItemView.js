@@ -20,7 +20,7 @@ foam.CLASS({
       height: 40px;
     }
     ^command-item:hover {
-      background-color: $grey50;
+      background-color: $backgroundSecondary;
     }
     ^ .foam-u2-ActionView-addComponent {
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -46,7 +46,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'command'
-    },
+    }
   ],
 
   methods: [

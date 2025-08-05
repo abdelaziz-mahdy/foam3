@@ -22,7 +22,7 @@ foam.CLASS({
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      bottom: 50px;
+      bottom: 64px;
       z-index: 20;
     }
     ^island-holder {
@@ -36,9 +36,9 @@ foam.CLASS({
       
     ^holder {
       padding: 10px;
-      background-color: $white;
+      background-color: $backgroundDefault;
       border-radius: 4px;
-      border: 1px solid $grey200;
+      border: 1px solid $borderLight;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       width: 100%;
     }

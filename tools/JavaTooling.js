@@ -30,7 +30,7 @@ foam.POM({
     debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, args => DEBUG_PORT = args],
     deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals.', false, function(arg) { DELETE_RUNTIME_JOURNALS = arg ? this.bool(arg) : true; } ],
     javacParameters: ['', 'javac-parameters', 'JAVAC_PARAMETERS', 'Parameters passed to Java Compiler','-proc:none', arg => JAVAC_PARAMETERS = arg ],
-    javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '17', args => JAVA_RELEASE = args],
+    javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '21', args => JAVA_RELEASE = args],
     journals: [ 'J', 'journals', 'JOURNALS', 'Comma seperated list of additional journal directories, relative to deployment/ from the root project.', '', function(args) { JOURNALS = this.comma(JOURNALS, args); } ],
     jar: [ 'a', 'jar', 'JAR', 'Run/launch from Java jar file.', false, function(arg) { JAR = arg ? this.bool(arg) : true; } ],
     javaManifestVendor: ['', 'java-manifest-vendor', 'JAVA_MANIFEST_VENDOR', 'Java Manifest Vendor', () => APP_NAME ? `${APP_NAME}` : 'APP_NAME', args => JAVA_MANIFEST_VENDOR = args ],
@@ -46,6 +46,7 @@ foam.POM({
     tarball: ['', 'tarball', 'TARBALL', 'Tar file name', () => APP_NAME + '-deploy-' + VERSION + '.tar.gz', arg => TARBALL = arg],
     tarballPath: ['', 'tarball-path', 'TARBALL_PATH', 'Path to the tarball to upload. Defaults to the last tar built.', () => BUILD_DIR + '/package/' + TARBALL, arg => TARBALL_PATH = arg],
     tests: ['', 'tests', 'TESTS', 'Java test cases to execute', '', arg => TESTS = arg],
+    testArgs: ['', 'test-args', 'TEST_ARGS', 'Arguments passed to test cases or benchmarks via JVM parameter -Dfoam.test.args. Example: --test-args:"identifier1=x,identifier2=y" (quoted list of comma seperated, key=value, pairs)', '', arg => TEST_ARGS = arg],
     timezone: ['', 'timezone', 'TIMEZONE', 'Set JVM user.timezone. NOTE: this only affects local deployment. In production the JVM will use the system timezone.', 'GMT', arg => TIMEZOME = arg],
     webPort: [ 'W', 'web-port', 'WEB_PORT', 'Port WebServer will listen on. HTTP defaults to 8080, HTTPS defaults to 8443.  WebSocketServer will use PORT+1', '8080', args => WEB_PORT = args ],
     version: ['', 'version', 'VERSION', 'Application version', '1.0.0', args => VERSION = args ]
@@ -155,7 +156,7 @@ foam.POM({
     }],
 
     cleanTest: ['clean-test', 'Remove entire test deployment for next run', [], function() {
-      this.rmdir(APP_HOME);
+      this.emptyDir(APP_HOME);
     }],
 
     deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals.', [], function() {
@@ -221,12 +222,12 @@ foam.POM({
     // TODO: not tested
     javaBenchmarks: ['java-benchmarks', 'Run all or specified benchmarks. ex: javaBenchmarks[:Benchmark1,Benchmark2]', [/*'stopCORE'*/], function(args) {
       BENCHMARKS=args;
-      APP_ROOT = '/tmp';
+      APP_ROOT = ! APP_ROOT || APP_ROOT == '/opt' ? '/tmp' : APP_ROOT;
       FLAGS = this.comma(FLAGS, 'test');
       // this.addJournal('test'); ??
       this.execute('pomEnvs');
       if ( CLEAN ) this.execute('clean');
-      this.execute(cleanTest);
+      this.execute('cleanTest');
       BOOT_SCRIPT = 'benchmarkRunnerScript';
 
       this.execute('buildJar');
@@ -247,7 +248,7 @@ foam.POM({
 
     javaTests: ['java-tests', 'Run all or specified test cases. ex: javaTests[:Test1,Test2]', [], function(args) {
       TESTS=args;
-      APP_ROOT='/tmp';
+      APP_ROOT = ! APP_ROOT || APP_ROOT == '/opt' ? '/tmp' : APP_ROOT;
       FLAGS = this.comma(FLAGS, 'test');
       this.addJournal('test');
       this.addJournal('../foam3/deployment/test');
@@ -323,9 +324,13 @@ foam.POM({
         MESSAGE = 'Running benchmarks...';
         if ( BENCHMARKS )
           JAVA_OPTS += ` -Dfoam.benchmarks=${BENCHMARKS}`;
+        if ( TEST_ARGS )
+          JAVA_OPTS += ` -Dfoam.test.args=${TEST_ARGS}`;
       } else {
         if ( TESTS )
           JAVA_OPTS += ` -Dfoam.tests=${TESTS}`;
+        if ( TEST_ARGS )
+          JAVA_OPTS += ` -Dfoam.test.args=${TEST_ARGS}`;
       }
 
       this.showSummary();
@@ -366,7 +371,7 @@ foam.POM({
     }],
 
     usage: ['usage', 'Build usage examples', [], function() {
-      this.log('Running Java application server:');
+      this.log('\nRunning Java application server:');
       this.log('NOTE: All builds will still start a Java web server (CORE), unless directed otherwise.');
       this.log('  ./build.sh -aJhttps -EJAVA_OPTS:\"-Xms4g -Xmx8g\"');
       this.log('    Start CORE with additional memory, launch from JAR, start HTTPS web server, set JVM max and min memory.');
@@ -378,7 +383,7 @@ foam.POM({
       this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
       this.log('  ./build.sh -EAPP_NAME:demo,WEB_PORT:8300,JAR:true,JOURNALS:https');
       this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
-      this.log('Running Java Test Cases:');
+      this.log('\nRunning Java Test Cases:');
       this.log('  ./build.sh --java-tests');
       this.log('    Run all Java test cases.');
       this.log('  ./build.sh --java-tests:SequenceNumberDAO,MapDAOTest');

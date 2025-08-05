@@ -16,6 +16,8 @@ foam.CLASS({
   css: `
   `,
 
+  properties: [ { class: 'Long', name: 'version' } ],
+
   methods: [
     function render() {
       var self = this;
@@ -23,25 +25,18 @@ foam.CLASS({
       // TODO: Temporary while detailview is hidden (or make into a Controller instead)
       this.data.where$.sub(this.rerun);
 
+      this.data.skip$.sub(this.onUpdate);
+      this.data.version$.sub(this.onUpdate);
+
       this.
         addClass().
         show(this.data.visible$).
         start('h3').
           add(self.data.label$).
         end().
-            /*
-          start('span').
-            style({display: 'flex', gap: '10px', flexDirection: 'column'}).
-            start().
-              style({marginTop: '6px'}).
-              add('Query').
-            end().
-            tag({class: 'foam.u2.TextField'}, {data$: self.data.where$, placeholder: 'Type your query'}).
-            end().
-            */
         br().
         start().
-          add(self.data.dynamic(async function(version, skip) {
+          add(self.dynamic(async function(version) {
             var startTime = Date.now();
             // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
             // TODO: fix JSON parsing should setup context correctly
@@ -55,6 +50,15 @@ foam.CLASS({
   ],
 
   listeners: [
+    {
+      name: 'onUpdate',
+      isIdled: true,
+      delay: 150,
+      code: function() {
+        // Used to avoid excessive number of updates, especially on slower connections
+        this.version++;
+      }
+    },
     function copyToClipboard() {
       var range = document.createRange();
       range.selectNode(this.content.element_);
@@ -85,15 +89,18 @@ foam.CLASS({
     },
     {
       name: 'output',
-      title: 'Output'
+      title: 'Output',
+      collapsable: false
     },
     {
       name: 'scroll',
-      title: 'Scroll'
+      title: 'Scroll',
+      collapsable: false
     },
     {
       name: 'filter',
-      title: 'Filter'
+      title: 'Filter',
+      collapsable: false
     },
     {
       name: 'actions',
@@ -111,13 +118,13 @@ foam.CLASS({
     'foam.parse.QueryParser'
   ],
 
-  imports: [ 'block', 'eval_' ],
+  imports: [ 'block', 'eval_', 'scope' ],
 
   exports: [
     'dao',
     'limitedDAO as sinkDAO',
     'filteredDAO as sinkUnlimitedDAO',
-    'columns'
+    'columnStorage'
   ],
 
   properties: [
@@ -149,7 +156,13 @@ foam.CLASS({
       adapt: function(o, n, p) {
         let oldAdapt = foam.dao.DAOProperty.ADAPT;
         if ( foam.String.isInstance(n) ) {
-          if ( this.__context__[n + 'DAO'] ) {
+          if ( this.scope[n] ) {
+            this.daoKey = n;
+            n = this.scope[n];
+          } else if ( this.scope[n + 'DAO'] ) {
+            this.daoKey = n + 'DAO';
+            n = this.scope[n + 'DAO'];
+          } else if ( this.__context__[n + 'DAO'] ) {
             n =  n + 'DAO';
           } else if ( n.endsWith('s') ) {
             this.daoKey = n;
@@ -160,6 +173,7 @@ foam.CLASS({
       }
     },
     {
+      class: 'foam.dao.DAOProperty',
       name: 'limitedDAO',
       section: 'general',
       hidden: true,
@@ -172,6 +186,7 @@ foam.CLASS({
       }
     },
     {
+      class: 'foam.dao.DAOProperty',
       name: 'filteredDAO',
       section: 'general',
       hidden: true,
@@ -227,6 +242,13 @@ foam.CLASS({
           viewa: { class: 'foam.u2.IntView' },
           viewb: { class: 'foam.u2.RangeView', minValue: 0, maxValue$: X.data.rowCount$.map(c => c-1), onKey: true }
         };
+      },
+      visibility: function(select) {
+        // Show skip/limit only for sink agents (agents with getSink method like CSVDAOAgent, JSONDAOAgent)
+        // Hide for non-sink agents (agents without getSink method like TableDAOAgent)
+        if ( ! select ) return foam.u2.DisplayMode.HIDDEN;
+        var isSinkAgent = foam.core.reflow.AbstractSinkDAOAgent.isInstance(select);
+        return isSinkAgent ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -235,14 +257,21 @@ foam.CLASS({
       section: 'scroll',
       value: 100,
       placeholder: '',
-      displayWidth: 8
+      displayWidth: 8,
+      visibility: function(select) {
+        // Show skip/limit only for sink agents (agents with getSink method like CSVDAOAgent, JSONDAOAgent)
+        // Hide for non-sink agents (agents without getSink method like TableDAOAgent)
+        if ( ! select ) return foam.u2.DisplayMode.HIDDEN;
+        var isSinkAgent = foam.core.reflow.AbstractSinkDAOAgent.isInstance(select);
+        return isSinkAgent ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
     },
     {
       class: 'String',
       name: 'where',
       section: 'filter',
       displayWidth: 60,
-      view: { class: 'foam.core.reflow.PredicateView' }
+      view: { class: 'foam.core.reflow.PredicateSuggestedField' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
@@ -250,7 +279,7 @@ foam.CLASS({
       name: 'order',
       section: 'filter',
       displayWidth: 60,
-      view: { class: 'foam.core.reflow.ComparatorView' }
+      view: { class: 'foam.core.reflow.ComparatorSuggestedField' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
     {
@@ -260,9 +289,30 @@ foam.CLASS({
       displayWidth: 60,
       view: function(_, X) {
         return {
-          class: 'foam.core.reflow.PropertyListView',
-          forCls: X.data.dao.of
+          class: 'foam.core.reflow.PropertySuggestedField'
         };
+      },
+      postSet: function(_, n) {
+        this.updateColumnStorage(n);
+      }
+    },
+    {
+      name: 'columnStorage',
+      transient: true,
+      hidden: true,
+      section: 'filter',
+      factory: function() {
+        var self = this;
+        return Object.create({
+          getItem: function(k) { return this[k] || null; },
+          setItem:    function(k, v) {
+            this[k] = v;
+            // save column updates from tableview
+            self.columns = self.getColumnNamesFromStorage(v);
+          },
+          removeItem: function(k)    { delete this[k]; },
+          clear:      function()     { for ( const k in this ) delete this[k]; }
+        });
       }
     },
     {
@@ -286,8 +336,8 @@ visible      },
       label: '',
       factory: function() { return this.TableDAOAgent.create(); }
     },
-    { class: 'Long',       hidden: true,    name: 'rowCount', visibility: 'RO' },
-    { class: 'String',     hidden: true,   name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
+    { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO' },
+    { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Boolean',    section: 'general',   name: 'autoRun', view: { class: 'foam.u2.Switch' } },
     { class: 'Int',        hidden: true,  name: 'version', hidden: true },
     { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' },
@@ -302,15 +352,37 @@ visible      },
   ],
 
   methods: [
+    function getColumnNamesFromStorage(json) {
+      if ( ! json ) return null;
+      return JSON.parse(json)?.map(a => a[0]).join(',');
+    },
+
+    function updateColumnStorage(columns) {
+      if ( columns === this.getColumnNamesFromStorage(this.columnStorage.getItem(this.dao.of.id)) )
+        return;
+      var defaultCols = JSON.parse(localStorage.getItem(this.dao.of.id));
+      var cols = columns?.trim().length > 0 ?
+        columns.trim().split(',').map(c => c.trim()).filter(c => c).map(c => {
+          var defaultCol = defaultCols?.find(dc => dc[0] === c );
+          var w = defaultCol ? defaultCol[1] : 0;
+          return [c, w];
+        }) :
+        defaultCols;
+        this.columnStorage[this.dao.of.id] = JSON.stringify(cols);
+    },
+
     function init() {
       this.SUPER();
-
+      if ( ! this.columns ) {
+        this.columns = this.getColumnNamesFromStorage(localStorage.getItem(this.dao.of.id));
+      }
       this.where$.sub(this.maybeAutoRun);
       this.order$.sub(this.maybeAutoRun);
     },
 
     async function addToE(e) {
-      this.rowCount = (await this.dao.select(this.COUNT())).value;
+      this.onDetach(this.dao.listen(this.updateRowCount));
+      this.updateRowCount_();
 
       // TODO: name current block
       e.tag(this.DAOPromptView, {data: this, label: this.label});
@@ -325,6 +397,10 @@ visible      },
       this.readyLatch_ = undefined;
       this.run();
       return this.readyLatch_;
+    },
+
+    async function updateRowCount_() {
+      this.rowCount = (await this.filteredDAO.select(this.COUNT())).value;
     }
   ],
 
@@ -340,6 +416,7 @@ visible      },
     },
     {
       name: 'describeModel',
+      section: 'actions',
       availablePermissions: [ 'command.read.describe' ],
       code: function() {
         this.eval_('describe ' + this.dao.of.id);
@@ -347,6 +424,7 @@ visible      },
     },
     {
       name: 'createTest',
+      section: 'actions',
       // TODO:
 //      isEnabled: function(value) { return this.value; },
       availablePermissions: [ 'command.read.test' ],
@@ -361,6 +439,11 @@ visible      },
   ],
 
   listeners: [
+    {
+      name: 'updateRowCount',
+      isFramed: true,
+      code: function() { this.updateRowCount_(); this.run(); }
+    },
     {
       name: 'maybeAutoRun',
       isMerged: true,

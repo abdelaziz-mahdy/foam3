@@ -212,14 +212,14 @@ foam.CLASS({
     }
     ^dropdown svg {
       height: 1em;
-      fill: currentColor;
+      fill: $dropdownIcon;
       aspect-ratio: 1;
     }
 
     ^selection-view:hover,
     ^selection-view:hover ^clear-btn {
       border-color: $borderDefault;
-      background: $backgroundTertiary;
+      background: $backgroundHover;
     }
 
     ^:focus {

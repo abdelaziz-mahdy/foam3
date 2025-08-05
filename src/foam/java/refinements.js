@@ -1533,26 +1533,8 @@ foam.CLASS({
        var info = this.SUPER(cls);
        var m = info.getMethod('cast');
        m.body = `
-        try {
-          if ( o != null ) {
-            if ( o instanceof Number ) {
-              return new java.util.Date(((Number) o).longValue());
-            }
-            if ( o instanceof String ) {
-              // TODO: build from Calendar directly without creating Date
-              o = (java.util.Date) fromString((String) o);
-            }
-            // convert the Date to be Noon time in GMT
-            var cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT"));
-            cal.setTime((java.util.Date) o);
-            cal.set(java.util.Calendar.HOUR_OF_DAY, 12);
-            cal.set(java.util.Calendar.MINUTE, 0);
-            return cal.getTime();
-          }
-          return (java.util.Date) o;
-        } catch ( Throwable t ) {
-          throw new RuntimeException(t);
-        }`;
+        return foam.util.DateUtil.adapt(o);
+       `;
 
        return info;
      }
@@ -1629,6 +1611,9 @@ foam.CLASS({
         return trim ? `val = foam.util.SafetyUtil.trim(val);\n` : '';
       }
     },
+    // Breaks parsing for some reason, but probably doesn't help much
+    // because the default is AnyParser which first list NullParser then StringParser
+    // ['javaJSONParser',  'foam.lib.json.StringParser.instance()'],
     {
       name: 'sqlType',
       expression: function(width) {
@@ -2026,7 +2011,8 @@ foam.CLASS({
   properties: [
     ['javaType',       'boolean'],
     ['javaInfoType',   'foam.lang.AbstractBooleanPropertyInfo'],
-    ['javaCompare',    '']
+    ['javaCompare',    ''],
+    ['javaJSONParser',  'foam.lib.json.BooleanParser.instance()']
   ],
 
   methods: [

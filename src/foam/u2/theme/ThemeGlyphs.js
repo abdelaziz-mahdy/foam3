@@ -943,9 +943,7 @@ foam.CLASS({
       factory: () => {
         return {
           template: `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-	            <path fill="currentColor" d="M12.207 2.293a1 1 0 0 1 0 1.414L10.914 5H12.5c4.652 0 8.5 3.848 8.5 8.5S17.152 22 12.5 22S4 18.152 4 13.5a1 1 0 1 1 2 0c0 3.548 2.952 6.5 6.5 6.5s6.5-2.952 6.5-6.5S16.048 7 12.5 7h-1.586l1.293 1.293a1 1 0 0 1-1.414 1.414l-3-3a1 1 0 0 1 0-1.414l3-3a1 1 0 0 1 1.414 0" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M9.9 19q-2.425 0-4.163-1.575T4 13.5t1.738-3.925T9.9 8h6.3l-2.6-2.6L15 4l5 5l-5 5l-1.4-1.4l2.6-2.6H9.9q-1.575 0-2.738 1T6 13.5T7.163 16T9.9 17H17v2z"/></svg>
           `
         };
       }
@@ -957,9 +955,7 @@ foam.CLASS({
       factory: () => {
         return {
           template: `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-	            <path fill="currentColor" d="M21 11c-.6 0-1 .4-1 1c0 2.9-1.5 5.5-4 6.9c-3.8 2.2-8.7.9-10.9-2.9S4.2 7.3 8 5.1c3.3-1.9 7.3-1.2 9.8 1.4h-2.4c-.6 0-1 .4-1 1s.4 1 1 1h4.5c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1s-1 .4-1 1v1.8C17 3 14.6 2 12 2C6.5 2 2 6.5 2 12s4.5 10 10 10s10-4.5 10-10c0-.6-.4-1-1-1" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7 19v-2h7.1q1.575 0 2.738-1T18 13.5T16.838 11T14.1 10H7.8l2.6 2.6L9 14L4 9l5-5l1.4 1.4L7.8 8h6.3q2.425 0 4.163 1.575T20 13.5t-1.737 3.925T14.1 19z"/></svg>
           `
         };
       }
@@ -974,6 +970,72 @@ foam.CLASS({
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12.6 12L8.7 8.1q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l4.6 4.6q.15.15.213.325t.062.375t-.062.375t-.213.325l-4.6 4.6q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7z"/></svg>
           `
         };
+      }
+    },
+    {
+      name: 'upload',
+      class: 'GlyphProperty',
+      of: 'foam.lang.Glyph',
+      factory: () => {
+        return {
+          template: `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M6 20q-.825 0-1.412-.587T4 18v-2q0-.425.288-.712T5 15t.713.288T6 16v2h12v-2q0-.425.288-.712T19 15t.713.288T20 16v2q0 .825-.587 1.413T18 20zm5-12.15L9.125 9.725q-.3.3-.712.288T7.7 9.7q-.275-.3-.288-.7t.288-.7l3.6-3.6q.15-.15.325-.212T12 4.425t.375.063t.325.212l3.6 3.6q.3.3.288.7t-.288.7q-.3.3-.712.313t-.713-.288L13 7.85V15q0 .425-.288.713T12 16t-.712-.288T11 15z"/></svg>
+          `
+        }
+      }
+    },
+    {
+      name: 'boldHome',
+      class: 'GlyphProperty',
+      of: 'foam.lang.Glyph',
+      factory: () => {
+        return {
+          template: `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h3v-6h6v6h3v-9l-6-4.5L6 10zm-2 2V9l8-6l8 6v12h-7v-6h-2v6zm8-8.75"/></svg>
+          `
+        }
+      }
+    },
+    {
+      name: 'fullScreen',
+      class: 'GlyphProperty',
+      of: 'foam.lang.Glyph',
+      factory: () => {
+        return {
+          template: `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 21v-5h2v3h3v2zm13 0v-2h3v-3h2v5zM3 8V3h5v2H5v3zm16 0V5h-3V3h5v5z"/></svg>
+          `
+        }
+      }
+    },
+    {
+      name: 'minimize',
+      class: 'GlyphProperty',
+      of: 'foam.lang.Glyph',
+      factory: () => {
+        return { template: `
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M14 14h5v2h-3v3h-2zm-9 0h5v5H8v-3H5zm3-9h2v5H5V8h3zm11 3v2h-5V5h2v3z"/></svg>
+        ` };
+      }
+    },
+    {
+      name: 'flow',
+      class: 'GlyphProperty',
+      of: 'foam.lang.Glyph',
+      factory: () => {
+        return { template: `
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"><path fill="currentColor" d="M5 2.75A2 2 0 0 1 6.854 4h6.896a3.25 3.25 0 0 1 0 6.5h-7.5a1.75 1.75 0 1 0 0 3.5h6.897a2 2 0 1 1 0 1.5H6.25a3.25 3.25 0 0 1 0-6.5h7.5a1.75 1.75 0 1 0 0-3.5H6.854A2 2 0 1 1 5 2.75"/></svg>
+        ` };
+      }
+    },
+    {
+      name: 'minus',
+      class: 'GlyphProperty',
+      of: 'foam.lang.Glyph',
+      factory: () => {
+        return { template: `
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M18 12.998H6a1 1 0 0 1 0-2h12a1 1 0 0 1 0 2"/></svg>
+        ` };
       }
     }
   ]

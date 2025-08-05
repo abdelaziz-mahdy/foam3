@@ -97,10 +97,10 @@ foam.CLASS({
   actions: [
     {
       name:  'back',
-      label: 'Undo',
+      label: '',
       help:  'Go to previous view',
-      buttonStyle: 'TERTIARY',
-      themeIcon: 'undo',
+      buttonStyle: 'BLACK',
+      themeIcon: 'redo',
       isEnabled: function(stackSize_) { return !! stackSize_; },
       code: function() {
         this.dumpState('preBack');
@@ -112,10 +112,10 @@ foam.CLASS({
     },
     {
       name:  'forth',
-      label: 'Redo',
+      label: '',
       help:  'Undo the previous back.',
-      buttonStyle: 'TERTIARY',
-      themeIcon: 'redo',
+      buttonStyle: 'BLACK',
+      themeIcon: 'undo',
       isEnabled: function(redoSize_) { return !! redoSize_; },
       code: function() {
         this.dumpState('preForth');

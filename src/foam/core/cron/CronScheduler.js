@@ -139,6 +139,23 @@ foam.CLASS({
           Date now = new Date();
           DAO cronJobDAO = (DAO) x.get(getCronJobDAO());
           cronJobDAO.where(
+            MLang.AND(
+              MLang.EQ(Cron.STATUS, ScriptStatus.RUNNING),
+              MLang.GT(Cron.THREAD_TIMEOUT, 0)
+            )
+          ).select(new AbstractSink() {
+            @Override
+            public void put(Object obj, Detachable sub) {
+              Cron cron = (Cron) ((FObject) obj).fclone();
+              long elapsed = System.currentTimeMillis() - cron.getThreadStartTime();
+              if ( elapsed > cron.getThreadTimeout() ) {
+                cron.setStatus(ScriptStatus.INTERRUPTED);
+                cronJobDAO.put_(x, cron);
+              }
+            }
+          });
+
+          cronJobDAO.where(
                          MLang.AND(
                                    MLang.LTE(Cron.SCHEDULED_TIME, now),
                                    MLang.EQ(Cron.ENABLED, true),
@@ -180,7 +197,12 @@ foam.CLASS({
           delay = Math.min(getCronDelay(), delay);
           delay = Math.max(500, delay);
         }
-        Thread.sleep(delay);
+
+        try {
+          Thread.sleep(delay);
+        } catch ( InterruptedException e ) {
+          // noop, do not kill cron scheduler since we now support cron timeout via interrupt
+        }
       }
     } catch (Throwable t) {
       logger.error(t.getMessage(), t);

@@ -16,8 +16,7 @@ foam.CLASS({
     'foam.core.auth.EnabledAware',
     'foam.core.auth.LastModifiedAware',
     'foam.core.auth.ServiceProviderAware',
-    'foam.core.auth.LifecycleAware',
-    'foam.core.notification.Notifiable'
+    'foam.core.auth.LifecycleAware'
   ],
 
   requires: [
@@ -928,6 +927,10 @@ foam.CLASS({
     },
     {
       name: 'doNotify',
+      args: [
+        { name: 'x', type: 'Context' },
+        { name: 'notification', type: 'foam.core.notification.Notification' }
+      ],
       javaCode: `
         HashMap<String, NotificationSetting> settingsMap = new HashMap<String, NotificationSetting>();
 
@@ -1009,7 +1012,7 @@ foam.CLASS({
           .select(new ArraySink()))
           .getArray();
         for ( NotificationSetting setting : settingDefaults ) {
-          if ( setting.getEnabled() ) {
+          if ( setting.getEnabled() || setting.getClass() == NotificationSetting.class ) {
             settingsMap.put(setting.getClassInfo().getId(), setting);
           } else {
             // use disabled to opt-out
@@ -1021,7 +1024,7 @@ foam.CLASS({
         List<NotificationSetting> settings = ((ArraySink) getNotificationSettings(x)
           .select(new ArraySink())).getArray();
         for ( NotificationSetting setting : settings ) {
-          if ( setting.getEnabled() ) {
+          if ( setting.getEnabled() || setting.getClass() == NotificationSetting.class ) {
             settingsMap.put(setting.getClassInfo().getId(), setting);
           } else {
             // use disabled to opt-out

@@ -50,6 +50,7 @@ foam.CLASS({
     'cancelAnimationFrame',
     'clearInterval',
     'clearTimeout',
+    'columnStorage',
     'console',
     'debug',
     'delayed',
@@ -75,6 +76,10 @@ foam.CLASS({
   properties: [
     [ 'name', 'window' ],
     'window',
+    {
+      name: 'columnStorage',
+      factory: function() { return localStorage; }
+    },
     {
       name: 'document',
       factory: function() { return this.window.document; }

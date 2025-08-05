@@ -24,6 +24,7 @@ foam.CLASS({
     'foam.lang.Detachable',
     'foam.lang.FObject',
     'foam.dao.index.AddIndexCommand',
+    'static foam.mlang.MLang.COUNT',
     'foam.mlang.sink.Count',
     'foam.mlang.predicate.Predicate',
     'foam.mlang.predicate.True',
@@ -131,7 +132,7 @@ foam.CLASS({
       class: 'String',
       name: 'permissionPrefix',
       javaFactory: `
-      return getSourceDAO().getOf().getObjClass().getSimpleName().toLowerCase();
+      return getSourceDAO().getOf().getSimpleName().toLowerCase();
      `
     },
     {
@@ -172,7 +173,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'instanceName',
-      javaFactory: 'return "MaterializedDAO-" + getSourceDAO().getOf().getObjClass().getSimpleName() + "-" + getDelegate().getOf().getObjClass().getSimpleName();'
+      javaFactory: 'return "MaterializedDAO-" + getSourceDAO().getOf().getSimpleName() + "-" + getDelegate().getOf().getSimpleName();'
     }
   ],
 
@@ -182,7 +183,8 @@ foam.CLASS({
       javaType: 'void',
       synchronized: true,
       javaCode: `
-        if ( getInitialized() ) return;
+        if ( getInitialized() )
+          return;
 
         Logger logger = Loggers.logger(getX(), this, getInstanceName());
         logger.info("initializing");
@@ -192,10 +194,19 @@ foam.CLASS({
         startThread();
 
         // Could take a long time
-        PM pm = new PM("MaterializedDAO", "initializing", getSourceDAO().getOf().getObjClass().getSimpleName());
+        PM pm = new PM("MaterializedDAO", "initializing", getSourceDAO().getOf().getSimpleName());
+
         AddIndexCommand cmd = new AddIndexCommand();
+        Count count = (Count) getDelegate().select(COUNT());
+        logger.info("maybeInit, count", count.getValue());
+        if ( count.getValue() > 0 ) {
+          // If delegate is already populated then skip bulkloading
+          // on index creation.
+          cmd.setStore(true);
+        }
         cmd.setIndex(new MaterializedDAOIndex(this));
         getSourceDAO().cmd(cmd);
+
         pm.log(getX());
         logger.info("initialized");
 
@@ -242,7 +253,6 @@ foam.CLASS({
         return this;
       `
     },
-
     {
       name: 'indexRemove',
       type: 'Object',

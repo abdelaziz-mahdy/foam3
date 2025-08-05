@@ -27,7 +27,8 @@ foam.CLASS({
     { class: 'String',  name: 'description' },
     { class: 'Code',    name: 'script' },
     { class: 'Boolean', name: 'linkable', value: true },
-    { class: 'Boolean', name: 'permissionRequired' }
+    { class: 'Boolean', name: 'permissionRequired' },
+    { class: 'Boolean', name: 'hidden', value: false }
   ],
 
   methods: [
@@ -133,6 +134,7 @@ foam.CLASS({
       this.out.start('h3').add('Commands').end().
       start('table').style({width: 'max-content'}).
         select(this.commandDAO, function(c) {
+          if ( c.hidden ) return;
           if ( q && ( c.id + c.description ).toLowerCase().indexOf(q) == -1 ) return;
 
           this.start('tr').
@@ -281,13 +283,17 @@ foam.CLASS({
 
   requires: [ 'foam.core.reflow.DAOCreate' ],
 
+  imports: [ 'scope' ],
+
   properties: [
     [ 'description', 'Add an object to a DAO' ]
   ],
 
   methods: [
     function execute(daoKey) {
-      var value = this.DAOCreate.create({daoKey: daoKey});
+      if ( foam.String.isInstance(daoKey) && this.scope[daoKey] ) daoKey = this.scope[daoKey];
+      else if ( foam.String.isInstance(daoKey) && this.scope[daoKey + 'DAO'] ) daoKey = this.scope[daoKey + 'DAO'];
+      var value = foam.dao.DAO.isInstance(daoKey) ? this.DAOCreate.create({dao: daoKey}) : this.DAOCreate.create({daoKey: daoKey});
       // this.currentBlock.value = foam.core.reflow.cmd.DAOCreateSave.create({daoCreate: value});
       this.out.tag(value);
     }
@@ -302,9 +308,9 @@ foam.CLASS({
 
   mixins: [ 'foam.mlang.Expressions' ],
 
-  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch' ],
+  requires: [ 'foam.core.boot.CSpec', 'foam.lang.Latch', 'foam.core.reflow.cmd.DAORowView' ],
 
-  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO' ],
+  imports: [ 'AuthenticatedCSpecDAO as cSpecDAO', 'commandDAO', 'scope' ],
 
   properties: [
     [ 'description', 'Display available DAO services', 'uploadAvailable' ]
@@ -322,10 +328,14 @@ foam.CLASS({
           this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
         ));
       this.out.tag('br');
-      this.out.start('table').attr('width', '100%').attr('cellpadding', '4').
+      this.out.start('table').attr('width', '100%').
         select(dao, function(n) {
-          var sdao  = self.__context__[n.name];
-          var of    = sdao.of;
+          var sdao = self.__context__[n.name] || self.scope[n.name];
+          if ( ! sdao ) {
+            console.error('Uknown DAO:', n.name);
+            return;
+          }
+          var of   = sdao.of;
 
           if ( ! of ) {
             console.log('Bad DAO:', n.name);
@@ -341,31 +351,13 @@ foam.CLASS({
           var uplFn = () => self.eval_('upload ' + shortName);
           var desFn = () => self.eval_('describe(' + of.id + ')');
 
-          this.start('tr').
-            start('td').attr('align', 'left').
-              start(self.Link).add('add').on('click', addFn).end().
-            end().
-            start('td').attr('align', 'left').
-              show(self.uploadAvailable).
-              start(self.Link).add('upload').on('click', uplFn).end().
-            end().
-            start('th').attr('align', 'left').
-              start(self.Link).add(shortName).on('click', daoFn).end().
-            end().
-            start('td').attr('align', 'left').
-              start(self.Link).add(of.id).on('click', desFn).end().
-            end().
-            start('td').attr('align', 'left').
-              style({
-                textWrapMode: 'nowrap',
-                overflow: 'hidden',
-                paddingRight: '8px',
-                maxWidth: '500px',
-                textOverflow: 'ellipsis'
-              }).
-              add(n.description).
-            end()
-            ;
+            this.tag(self.DAORowView, {
+              shortName: shortName,
+              description: n.description,
+              ofId: of.id,
+              uploadAvailable: self.uploadAvailable,
+              data: self
+            });
         }).
         end().
         start('b').add(count, ' selected').end();
@@ -591,7 +583,7 @@ foam.CLASS({
   name: 'Load',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [ 'flow', 'flowDAO', 'selected' ],
+  imports: [ 'flow', 'flowDAO', 'mementoMgr', 'selected' ],
 
   properties: [
     [ 'description', 'Load a specified flow' ]
@@ -604,11 +596,21 @@ foam.CLASS({
 
       if ( loaded ) {
         // Don't save the 'load' command
-        this.currentBlock.del();
+        this.block.del();
 
         this.selected = this.flow;
         this.flow.copyFrom(loaded);
-      } else {
+
+        // HACK: after loading a flow the revision is set to 2 for some unknown
+        // reason. This resets it back to 0.
+        // TODO: find out why it is 2 and remove this code.
+        this.flow.revision$.sub((sub, _, __, e) => {
+          console.log(e.get());
+          if ( e.get() == 2 ) {
+            sub.detach();
+            setTimeout(() => this.mementoMgr.clear(), 100);
+          }
+        });
       }
     }
   ]

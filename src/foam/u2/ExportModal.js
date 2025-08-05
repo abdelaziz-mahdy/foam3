@@ -89,7 +89,7 @@ foam.CLASS({
       name: 'note',
       label: 'Response',
       view: 'foam.u2.tag.TextArea',
-      visibility: function(note) { return note ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
+      visibility: function(note) { return note ? foam.u2.DisplayMode.RO : foam.u2.DisplayMode.HIDDEN; },
       value: ''
     },
     {
@@ -161,9 +161,11 @@ foam.CLASS({
           .tag(this.DATA_TYPE.__)
           .start().show(this.isDataTypeSelected$)
             .add(function(dataType) {
-
               this.start().addClass(self.myClass('datatype-group'))
-                .start().addClass(self.myClass('dimmed-text')).add('Data will be exported as').end()
+                .start()
+                  .addClass(self.myClass('dimmed-text'))
+                  .add('Data will be exported as')
+                .end()
                 .start().addClass(self.myClass('datatype-text')).add(`${dataType}.`).end()
               .end()
             })
@@ -196,7 +198,9 @@ foam.CLASS({
             .end()
           .end()
         .end()
-      .endContext();
+        .endContext()
+        .br()
+        .start('i').add(`Downloads limited to ${foam.core.export.ExportDriver.LIMIT.toLocaleString()} rows.`).end();
     }
   ],
 

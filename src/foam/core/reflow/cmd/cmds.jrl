@@ -28,38 +28,6 @@ p({
    permissionRequired: true
 })
 
-p({
-  "class":"foam.core.reflow.cmd.Command",
-  "id": "testresults",
-  "description": "Insert an Test Results Summary",
-  "script": """
-    var results = foam.core.reflow.float.TestResults.create({}, this);
-    this.currentBlock.value = results;
-    this.currentBlock.flowName = 'testResults';
-    this.out.tag(foam.core.reflow.float.TestResultsView, {data: results});
-   """,
-   permissionRequired: true
-})
-
-p({
-  "class":"foam.core.reflow.cmd.Command",
-  "id": "test",
-  "description": "Insert an Expectation Test",
-  "script": """
-//    if ( ! this.__context__.scope.testResults ) {
-//      this.eval_('testresults');
-//    }
-
-    var test = foam.core.reflow.float.Test.create({received: args[0], description: args[1] || ''}, this);
-    test.accept();
-    this.__context__.scope.testResults.report(test);
-    this.currentBlock.value = test;
-    this.out.tag(foam.core.reflow.float.TestView, {data: test});
-//    this.addValue(test);
-   """,
-   permissionRequired: true
-})
-
 p({"class":"foam.core.reflow.cmd.Command", "id": "signature", "description": "Insert a Signature Block",  "script": """var s = foam.core.reflow.Signature.create({label: args[0] || ''}, this); this.out.add(s); this.currentBlock.value = s;"""})
 
 p({"class":"foam.core.reflow.cmd.Command", "id": "check", "description": "Insert a checkmark",  "script": """var s = foam.core.reflow.Check.create({label: args[0] || ''}, this); this.out.add(s); this.currentBlock.value = s;""", permissionRequired: true })
@@ -108,11 +76,17 @@ p({
   "class":"foam.core.reflow.cmd.Command",
   "id": "upload",
   "description": "Upload Data",
+  linkable: false,
   "script": """
-//    addValue(foam.core.reflow.Upload.create({bdaoKey: args[0]}, this));
-    this.out.add(foam.core.reflow.Upload.create({daoKey: args[0]}, this));
-  """,
-  permissionRequired: true
+    var scope = this.__context__.scope;
+    if ( foam.String.isInstance(args[0]) && scope[args[0]] ) args[0] = scope[args[0]];
+    else if ( foam.String.isInstance(args[0]) && scope[args[0] + 'DAO'] ) args[0] = scope[args[0] + 'DAO'];
+    if ( foam.dao.DAO.isInstance(args[0]) ) {
+      this.out.add(foam.core.reflow.Upload.create({dao: args[0]}, this));
+    } else {
+      this.out.add(foam.core.reflow.Upload.create({daoKey: args[0]}, this));
+    }
+  """
 })
 p({
   "class":"foam.core.reflow.cmd.Command",
@@ -145,4 +119,26 @@ p({
   "class":"foam.core.reflow.cmd.Input",
   "id": "input",
   "description": "Take Input from user or from URL parameter."
+})
+
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "preLoad",
+  "description": "Pre-load evaluation hook",
+  "script": "this.block.del(); var now = Date.now(); globalThis.preLoadTime = now; console.log('PreLoad executed at:', new Date(now).toISOString(), 'timestamp:', now);",
+  "hidden": true
+})
+
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "postLoad",
+  "description": "Post-load evaluation hook",
+  "script": """
+  this.block.del();
+  var now = Date.now();
+  globalThis.postLoadTime = now;
+  var duration = globalThis.preLoadTime ? (now - globalThis.preLoadTime) : 0;
+  console.log('PostLoad executed at:', new Date(now).toISOString(), 'timestamp:', now, 'Load duration:', duration + 'ms');
+""",
+  "hidden": true
 })

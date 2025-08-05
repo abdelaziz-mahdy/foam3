@@ -6,16 +6,16 @@
 
 package foam.core.http;
 
-import foam.lang.*;
 import foam.core.session.Session;
-import foam.util.SafetyUtil;
+import foam.lang.VirtualThreadAgency;
+import foam.lang.X;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.PrintWriter;
-import java.lang.StackTraceElement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.servlet.http.HttpServletRequest;
 
 /** Display thread information. **/
 public class ThreadsWebAgent
@@ -49,14 +49,24 @@ public class ThreadsWebAgent
   public void execute(X x) {
     PrintWriter        out         = x.get(PrintWriter.class);
     HttpServletRequest req         = x.get(HttpServletRequest.class);
-    Set<Thread>        threadSet   = Thread.getAllStackTraces().keySet();
     Session            session     = x.get(Session.class);
-    Thread[]           threadArray = threadSet.toArray(new Thread[threadSet.size()]);
     boolean            showAll     = "y".equals(req.getParameter("showAll"));
     String             id          = req.getParameter("id");
 
+    Set<Thread>  platformThreadSet = Thread.getAllStackTraces().keySet();
+    Set<Thread>   virtualThreadSet = VirtualThreadAgency.getRunningThreads();
+    Thread[]           threadArray = new Thread[platformThreadSet.size() + virtualThreadSet.size() ];
+    int i = 0;
+    for ( Thread t : platformThreadSet ) threadArray[i++] = t;
+    for ( Thread t : virtualThreadSet  ) threadArray[i++] = t;
+
     out.println("<HTML>");
     out.println("<HEAD><TITLE>Threads</TITLE></HEAD>\n");
+    out.println("<STYLE>");
+    out.println("  tr:hover {");
+    out.println("    background-color: #f2f2f2;");
+    out.println("  }");
+    out.println("</STYLE>");
     out.println("<BODY>");
     if ( showAll ) {
       out.println("<a href=\"?" + showAllParam(false) + "sessionId=" + session.getId() + "\">Hide parked threads.</a>");
@@ -73,11 +83,14 @@ public class ThreadsWebAgent
     out.println("<tr>");
     out.println("<th style=\"text-align: left\">Thread Name</th>");
     out.println("<th style=\"text-align: left\">State</th>");
+    out.println("<th style=\"text-align: left\">Virtual</th>");
     out.println("<th>Last Method Call</th>");
     out.println("</tr>");
 
     Thread selected = null;
     for ( Thread thread : threadArray ) {
+      if ( ! thread.isAlive() ) continue;
+
       Boolean isSelected = String.valueOf(thread.getId()).equals(id);
       if ( isSelected ) selected = thread;
 
@@ -117,6 +130,9 @@ public class ThreadsWebAgent
       } else {
         threadsInState.put(thread.getState(), Integer.valueOf(count.intValue() + 1));
       }
+      out.println("</td>");
+      out.println("<td>");
+      out.println(thread.isVirtual() ? "TRUE" : "FALSE");
       out.println("</td>");
       out.println("<td>");
       out.println(methodName);

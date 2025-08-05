@@ -43,7 +43,7 @@ foam.CLASS({
   ],
 
   messages: [
-    { name: 'NO_DATA', message: 'No ${modelName} found', template: true}
+    { name: 'NO_DATA', message: 'No ${modelName} found', template: true }
   ],
 
   css: `
@@ -54,6 +54,7 @@ foam.CLASS({
       align-items: center;
     }
   `,
+
   properties: [
     {
       class: 'foam.dao.DAOProperty',
@@ -228,6 +229,7 @@ foam.CLASS({
           this.updateCount();
         }
       })));
+      this.id = 'id' + this.$UID;
       this.updateCount();
       this.dataLoading = false;
     },
@@ -289,8 +291,10 @@ foam.CLASS({
       if ( ! this.scrollToIndex ) return;
       var page = Math.floor(this.scrollToIndex/this.pageSize_);
       if ( this.renderedPages_[page] ) {
-        var el = document.querySelector(`[data-idx='${this.scrollToIndex}']`);
+        var el = document.querySelector(`#${this.id} [data-idx='${this.scrollToIndex}']`);
         if ( ! el ) return;
+        try {
+          if ( el.dataset['owner'] != this.$UID ) debugger; } catch (t) { debugger; }
         this.scrollView(el.offsetTop);
       } else {
         if ( page == 0 && this.currentTopPage_ != 0 ) {
@@ -317,8 +321,6 @@ foam.CLASS({
       delete this.renderedPages_[page];
     },
 
-
-
     function getPage(dao, page) {
       var self       = this;
       var proxy      = this.ProxyDAO.create({ delegate: dao });
@@ -343,31 +345,31 @@ foam.CLASS({
           var index = (page*self.pageSize_) + i + 1;
           var group = null;
           var showHeader = false;
-          
+
           if ( self.groupBy ) {
             group = self.groupBy.f(args.data);
             var groupKey = foam.json.stringify(group);
-            
+
             // Track if this is the first time we've seen this group
             if ( self.groupFirstPage_[groupKey] === undefined ) {
               self.groupFirstPage_[groupKey] = page;
             }
-            
+
             // Show header only if this is the first page where this group appears
             // and it's different from the previous group in this page
             if ( page === self.groupFirstPage_[groupKey] ) {
               showHeader = ! foam.util.equals(group, previousGroup);
             }
-            
+
             if ( showHeader ) {
               e.tag(self.groupHeaderView,
                 { ...args,
                   groupLabel: group,
                   groupBy: self.groupBy,
-              }
+                }
               );
             }
-            
+
             previousGroup = group;
           }
 
@@ -425,17 +427,17 @@ foam.CLASS({
         this.daoLoading = false;
         return;
       }
-      
+
       var page = this.currentTopPage_ + pageIndex;
       if ( this.renderedPages_[page] || this.loadingPages_[page] ) {
         // Skip this page and move to next
         this.processPageSequentially_(pageIndex + 1);
         return;
       }
-      
+
       var skip = page * this.pageSize_;
       var dao  = this.data.limit(this.pageSize_).skip(skip);
-      
+
       this.getPage(dao, page).then(() => {
         // Process next page after this one completes
         this.processPageSequentially_(pageIndex + 1);
