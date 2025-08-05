@@ -52,8 +52,6 @@ foam.CLASS({
     }
   ],
 
-
-
   actions: [
     function run() {
       with ( this.scope ) {
