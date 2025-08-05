@@ -38,12 +38,29 @@ foam.CLASS({
       reactive: false,
       view: { class: 'foam.u2.tag.TextArea', rows: 8 },
       displayWidth: 60
-    }
+    },
+    { class: 'Boolean', name: 'autoRun', view: { class: 'foam.u2.Switch' } }
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+      this.code$.sub(this.maybeAutoRun);
+    },
+
     function log() {
       this.output += Array.from(arguments).join(' ') + '\n';
+    }
+  ],
+
+  listeners: [
+    {
+      name: 'maybeAutoRun',
+      isMerged: true,
+      delay: 200,
+      code: function maybeAutoRun() {
+        if ( this.autoRun ) this.run();
+      }
     }
   ],
 
