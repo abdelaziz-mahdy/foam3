@@ -21,6 +21,68 @@ foam.CLASS({
     'foam.u2.ContextSensitiveDetailView as DetailView'
   ],
 
+  classes: [
+    {
+      name: 'MetricOperation',
+      extends: 'foam.lang.AbstractEnum',
+      
+      properties: [
+        {
+          name: 'createSink',
+          value: function(metric) {
+            return metric.Count.create();
+          }
+        }
+      ],
+      
+      values: [
+        { 
+          name: 'COUNT', 
+          label: 'Count',
+          createSink: function(metric) {
+            return metric.Count.create();
+          }
+        },
+        { 
+          name: 'SUM',   
+          label: 'Sum',
+          createSink: function(metric) {
+            return metric.Sum.create({
+              arg1: metric.property 
+            });
+          }
+        },
+        { 
+          name: 'MIN',   
+          label: 'Minimum',
+          createSink: function(metric) {
+            return metric.Min.create({
+              arg1: metric.property
+            });
+          }
+        },
+        { 
+          name: 'MAX',   
+          label: 'Maximum',
+          createSink: function(metric) {
+            return metric.Max.create({
+              arg1: metric.property
+            });
+          }
+        },
+        { 
+          name: 'AVG',   
+          label: 'Average',
+          createSink: function(metric) {
+            return metric.Average.create({
+              arg1: metric.property
+            });
+          }
+        }
+      ]
+    }
+  ],
+
   properties: [
     {
       name: 'views',
@@ -33,7 +95,7 @@ foam.CLASS({
     },
     {
       class: 'Enum',
-      of: 'foam.dashboard.model.MetricOperation',
+      of: this.MetricOperation,
       name: 'operation',
       value: 'COUNT'
     },
@@ -52,43 +114,7 @@ foam.CLASS({
 
   methods: [
     function createSink() {
-      var ExpressionsSingleton = foam.mlang.ExpressionsSingleton.create();
-      
-      switch(this.operation) {
-        case 'COUNT':
-          return this.Count.create();
-        case 'SUM':
-          return this.Sum.create({
-            arg1: this.property 
-          });
-        case 'MIN':
-          return this.Min.create({
-            arg1: this.property
-          });
-        case 'MAX':
-          return this.Max.create({
-            arg1: this.property
-          });
-        case 'AVG':
-          return this.Average.create({
-            arg1: this.property
-          });
-        default:
-          return this.Count.create();
-      }
+      return this.operation.createSink(this);
     }
-  ]
-});
-
-foam.ENUM({
-  package: 'foam.dashboard.model',
-  name: 'MetricOperation',
-  
-  values: [
-    { name: 'COUNT', label: 'Count' },
-    { name: 'SUM',   label: 'Sum' },
-    { name: 'MIN',   label: 'Minimum' },
-    { name: 'MAX',   label: 'Maximum' },
-    { name: 'AVG',   label: 'Average' }
   ]
 });
