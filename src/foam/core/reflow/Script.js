@@ -43,9 +43,9 @@ foam.CLASS({
   ],
 
   methods: [
-    function init() {
-      this.SUPER();
-      this.code$.sub(this.maybeAutoRun);
+    function onLoad() {
+      console.log('Script onLoad', this.autoRun);
+      if ( this.autoRun ) this.run();
     },
 
     function log() {
@@ -53,16 +53,7 @@ foam.CLASS({
     }
   ],
 
-  listeners: [
-    {
-      name: 'maybeAutoRun',
-      isMerged: true,
-      delay: 200,
-      code: function maybeAutoRun() {
-        if ( this.autoRun ) this.run();
-      }
-    }
-  ],
+
 
   actions: [
     function run() {
