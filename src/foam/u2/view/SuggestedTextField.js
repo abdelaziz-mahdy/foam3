@@ -186,7 +186,7 @@
               // using mousedown not click since mousedown is fired before blur is fired so we can intercept rowClick
               // otherwise when using click the blur gets fired first and the row listener is never called
                 let fn = self.onRowSelect ? self.onRowSelect(obj) : self.onSelect.call(self, obj);
-                fn.then(() => {
+                fn?.then(() => {
                   self.inputFocused = false;
                 });
 

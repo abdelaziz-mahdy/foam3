@@ -99,8 +99,9 @@ foam.CLASS({
             data$: self.data_$,
             propertyWhitelist$: self.viewClass$.map(cls => {
               if ( ! cls ) return [];
+              let props = [];
               cls = self.__subContext__.maybeLookup(cls);
-              props = cls.getAxiomsByClass(foam.lang.Property)
+              props = cls?.getAxiomsByClass(foam.lang.Property)
                 .filter(p => ! (p.hidden ||  p.transient));
               return props;
             })

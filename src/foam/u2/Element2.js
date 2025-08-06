@@ -487,6 +487,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'id',
+      hidden: true,
       postSet: function(o,n) {
         if ( this.hasOwnProperty('element_') ) {
           this.element_.id = n;
@@ -557,6 +558,7 @@ foam.CLASS({
     */
     {
       name: 'nodeName',
+      hidden: true,
       adapt: function(_, v) { return foam.String.toLowerCase(v); },
       value: 'div'
     },
@@ -601,6 +603,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'focused',
+      hidden: true,
       postSet: function(o, n) {
         if ( n ) this.element_.focus();
       }
@@ -2164,7 +2167,7 @@ foam.CLASS({
     {
       name: 'data',
       attribute: true,
-      // transient: true
+      transient: true
     },
     // {
     //   class: 'String',
