@@ -37,21 +37,18 @@ foam.CLASS({
       }
       
       // Ensure charts are responsive by default
-      var defaultConfig = {
-        options: {
-          responsive: true,
-          maintainAspectRatio: false
-        }
+      var chartJSOptions = {
+        responsive: true,
+        maintainAspectRatio: false
       };
       
-      var finalConfig = config ? {...defaultConfig, ...config} : defaultConfig;
       if (config && config.options) {
-        finalConfig.options = {...defaultConfig.options, ...config.options};
+        chartJSOptions = {...chartJSOptions, ...config.options};
       }
       
       var chart = ChartClass.create({
         data: chartData,
-        ...finalConfig
+        chartJSOptions: chartJSOptions
       }, e.__subContext__);
       
       // Wrap chart in responsive container
@@ -278,6 +275,7 @@ foam.CLASS({
     },
 
     function createPieConfig() {
+      var self = this;
       var legendPosition = this.labelPosition.name.toLowerCase();
       
       var options = {
@@ -289,6 +287,30 @@ foam.CLASS({
       };
 
       if (this.showPercentages) {
+        // Disable legend clicks completely - Chart.js way
+        options.plugins.legend.onClick = null;
+        
+        // Add percentages to legend labels
+        options.plugins.legend.labels = {
+          generateLabels: function(chart) {
+            var dataset = chart.data.datasets[0];
+            var total = dataset.data.reduce(function(sum, val) { return sum + val; }, 0);
+            
+            return chart.data.labels.map(function(label, i) {
+              var percentage = ((dataset.data[i] / total) * 100).toFixed(1);
+              var style = chart.getDatasetMeta(0).controller.getStyle(i);
+              
+              return {
+                text: percentage + '% ' + label,
+                fillStyle: style.backgroundColor,
+                fontColor: undefined, // Use default font color
+                index: i
+              };
+            });
+          }
+        };
+        
+        // Also update tooltip to show percentage
         options.plugins.tooltip = {
           callbacks: {
             label: function(context) {
@@ -300,23 +322,9 @@ foam.CLASS({
             }
           }
         };
-
-        options.plugins.datalabels = {
-          formatter: function(value, context) {
-            var total = context.dataset.data.reduce(function(sum, val) {
-              return sum + val;
-            }, 0);
-            var percentage = ((value / total) * 100).toFixed(1);
-            return percentage + '%';
-          },
-          color: '#fff',
-          font: {
-            weight: 'bold'
-          }
-        };
       }
 
-      return { options: options };
+      return { options: options, plugins: [] };
     },
 
     function addToE(e) {
@@ -373,6 +381,7 @@ foam.CLASS({
     },
 
     function createDonutConfig() {
+      var self = this;
       var legendPosition = this.labelPosition.name.toLowerCase();
       
       var options = {
@@ -384,6 +393,30 @@ foam.CLASS({
       };
 
       if (this.showPercentages) {
+        // Disable legend clicks completely - Chart.js way
+        options.plugins.legend.onClick = null;
+        
+        // Add percentages to legend labels
+        options.plugins.legend.labels = {
+          generateLabels: function(chart) {
+            var dataset = chart.data.datasets[0];
+            var total = dataset.data.reduce(function(sum, val) { return sum + val; }, 0);
+            
+            return chart.data.labels.map(function(label, i) {
+              var percentage = ((dataset.data[i] / total) * 100).toFixed(1);
+              var style = chart.getDatasetMeta(0).controller.getStyle(i);
+              
+              return {
+                text: percentage + '% ' + label,
+                fillStyle: style.backgroundColor,
+                // fontColor: undefined, // Use default font color
+                index: i
+              };
+            });
+          }
+        };
+        
+        // Also update tooltip to show percentage
         options.plugins.tooltip = {
           callbacks: {
             label: function(context) {
@@ -395,23 +428,9 @@ foam.CLASS({
             }
           }
         };
-
-        options.plugins.datalabels = {
-          formatter: function(value, context) {
-            var total = context.dataset.data.reduce(function(sum, val) {
-              return sum + val;
-            }, 0);
-            var percentage = ((value / total) * 100).toFixed(1);
-            return percentage + '%';
-          },
-          color: '#fff',
-          font: {
-            weight: 'bold'
-          }
-        };
       }
 
-      return { options: options };
+      return { options: options, plugins: [] };
     },
 
     function addToE(e) {
