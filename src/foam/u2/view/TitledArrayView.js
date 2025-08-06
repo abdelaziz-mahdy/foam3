@@ -123,7 +123,7 @@ foam.CLASS({
                       .start().style({alignContent: 'center'}).addClass(self.myClass('item-row'))
                         .start('span').addClass(self.myClass('item-index')).add(i+1).end()
                         .start('span').addClass(self.myClass('item-name')).add(
-                          row.value$.dot('label').map(label => label ? label : 'New Property')
+                          self.title || row.value$.dot('label').map(label => label ? label : row.value.toSummary && row.value.toSummary() || self.of.model_.label)
                         ).end()
                       .end()
                       .start().addClass(self.myClass('actions-holder'))
