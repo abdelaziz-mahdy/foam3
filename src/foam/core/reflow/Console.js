@@ -952,7 +952,7 @@ foam.CLASS({
       }
 
       // Call postLoad after all blocks have executed
-      await this.eval_('postLoad');
+      await this.eval_('postLoad', null, true);
     },
 
     function clearFlow() {
@@ -1041,7 +1041,7 @@ foam.CLASS({
       }));
 
       if ( this.route ) this.ROUTE.postSet.call(this, '', this.route);
-      await this.eval_('preLoad');
+      await this.eval_('preLoad', null, true);
     },
 
     function renderToolbar(self) {
@@ -1155,7 +1155,7 @@ foam.CLASS({
       });
     },
 
-    async function eval_(cmd, opt_ignoreSelect) {
+    async function eval_(cmd, opt_ignoreSelect, ignoreHistory) {
       /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected block **/
       var self = this;
 
@@ -1163,7 +1163,8 @@ foam.CLASS({
 
       this.clearProperty('historyPosition');
       if ( ! cmd ) return;
-      this.addHistory(cmd);
+      if ( ! ignoreHistory )
+        this.addHistory(cmd);
 
 //      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
       var block = this.currentBlock = this.Block.create({cmd: cmd, flowParent: this});

@@ -71,6 +71,7 @@ foam.CLASS({
 //    'autocompleter',
     'inputMode', // Allows a browser to display an appropriate virtual keyboard
     {
+      class: 'Array',
       name: 'choices',
       documentation: `Array of [value, text] choices. You can pass in just
           an array of strings, which are expanded to [str, str]. Can also

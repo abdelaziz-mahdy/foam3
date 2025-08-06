@@ -110,7 +110,7 @@ foam.CLASS({
     ],
     {
       name: 'view',
-      value: { class: 'foam.u2.view.MapView' }
+      value: { class: 'foam.u2.view.JSONTextView' }
     },
     {
       name: 'adapt',

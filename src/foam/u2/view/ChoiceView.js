@@ -86,6 +86,7 @@ foam.CLASS({
           be a map, which results in [key, value] pairs listed in
           enumeration order.`,
       factory: function() { return []; },
+      view: { class: 'foam.u2.view.ArrayView' },
       adapt: function(old, nu) {
         if ( typeof nu === 'object' && ! Array.isArray(nu) ) {
           var out = [];
@@ -219,6 +220,7 @@ foam.CLASS({
 
   methods: [
     function init() {
+      this.SUPER();
       this.onDetach(this.choices$.sub(this.onChoicesUpdate));
     },
 

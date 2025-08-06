@@ -24,6 +24,10 @@ foam.CLASS({
 
   properties: [
     {
+      class: 'Array',
+      name: 'data'
+    },
+    {
       class: 'foam.u2.ViewSpec',
       name: 'valueView',
       value: { class: 'foam.u2.view.AnyView' }

@@ -261,6 +261,7 @@ foam.CLASS({
   properties: [
     {
       class: 'Int',
+      hidden: true,
       name: 'stackPos',
       factory: function() {
         return this.__context__.stackPos ?? undefined;

@@ -142,3 +142,20 @@ p({
 """,
   "hidden": true
 })
+
+p({
+  "class":"foam.core.reflow.cmd.Command",
+  "id": "reflowDashboard",
+  "description": "Reflow Dashboard",
+  "script": """
+    var dashboard = foam.core.reflow.ReflowDashboard.create({
+      dashboardTitle: 'Reflow Dashboard',
+      main: true
+    }, this);
+    this.currentBlock.value = dashboard;
+    this.currentBlock.configViewSpec = {
+      useSections: ['config']
+    }
+    this.out.add(dashboard);
+   """
+})

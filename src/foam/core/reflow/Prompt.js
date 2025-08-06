@@ -13,6 +13,17 @@ foam.CLASS({
 
   imports: [ 'params' ],
 
+  sections: [
+    {
+      name: '_defaultSection',
+      title: 'General'
+    },
+    {
+      name: 'viewSection',
+      title: 'View'
+    }
+  ],
+
   properties: [
     {
       class: 'String',
@@ -33,7 +44,7 @@ foam.CLASS({
       hidden: true,
       reactive: false,
       postSet: function() { this.value = undefined; this.value; },
-      view: { class: 'foam.u2.view.RadioView', choices: [
+      view: { class: 'foam.u2.view.ChoiceView', choices: [
         [ 'String', 'Abc' ],
         [ 'Long',   '##' ],
         [ 'Double', '##.##' ],
@@ -51,6 +62,20 @@ foam.CLASS({
 //          this.value = foam.lang[this.type].ADAPT.value(null, this.defaultValue);
           this.value = n;
       }
+    },
+    {
+      class: 'foam.u2.ViewSpec',
+      name: 'view',
+      section: 'viewSection',
+      label: '',
+      view: function (_, X) {
+        return { class: 'foam.u2.view.ViewConfiguratorView', traceId$: X.data$.dot('traceId') };
+      }
+    },
+    {
+      name: 'traceId',
+      hidden: true,
+      transient: true
     },
     {
       name: 'value',
@@ -75,9 +100,14 @@ foam.CLASS({
 
     function addToE(e) {
       var self = this;
-      e.add(this.dynamic(function(type, label, supportingLabel, value) {
-        var prop = foam.lang[type].create({name: 'value', label: label, supportingLabel: supportingLabel});
-        this.startContext({data: self}).add(prop.__).endContext();
+      e.add(this.dynamic(function(type) {
+        var prop = foam.lang[type].create({name: 'value' });
+        let traceId = 'el-' + foam.next$UID();
+        prop.view = {...(self.view || prop.view), id: traceId};
+        this.startContext({data: self})
+          .tag(prop.__, { config: { label$: self.label$, supportingLabel$: self.supportingLabel$ } })
+        .endContext();
+        self.traceId = traceId;
       }));
     }
   ]

@@ -31,7 +31,8 @@ foam.CLASS({
       reactive: false,
       view: function(_, X) {
         var self = X.data;
-        var rolesDAO = self.groupDAO.where(self.CONTAINS(self.Group.ID, self.ROLE_PREFIX));
+        var rolesDAO = self.groupDAO
+        // .where(self.CONTAINS(self.Group.ID, self.ROLE_PREFIX));
         return {
           class: 'foam.u2.view.RichChoiceView',
           search: true,

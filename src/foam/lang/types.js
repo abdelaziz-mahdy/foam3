@@ -871,6 +871,10 @@ foam.CLASS({
 
   // TODO: Remove need for sorting
   properties: [
+    [
+      'isDefaultValue',
+      function(v) { return ! v || ! Object.keys(v)?.length; }
+    ],
     [ 'factory', function() { return {} } ],
     [
       'comparePropertyValues',
