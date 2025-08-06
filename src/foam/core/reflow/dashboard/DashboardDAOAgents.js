@@ -13,7 +13,7 @@
  */
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DirectChartMixin',
   
   documentation: 'Mixin providing direct Chart.js integration for DAO agents',
@@ -136,10 +136,10 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardCountDAOAgent', 
   extends: 'foam.core.reflow.AbstractDAOAgent',
-  mixins: ['foam.core.reflow.DirectChartMixin'],
+  mixins: ['foam.core.reflow.dashboard.DirectChartMixin'],
 
   requires: [
     'foam.mlang.sink.Count'
@@ -187,10 +187,10 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardBarChartDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
-  mixins: ['foam.core.reflow.DirectChartMixin'],
+  mixins: ['foam.core.reflow.dashboard.DirectChartMixin'],
 
   requires: [
     'foam.mlang.sink.GroupBy',
@@ -240,9 +240,23 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardPieChartDAOAgent',
-  extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
+  extends: 'foam.core.reflow.dashboard.DashboardBarChartDAOAgent',
+
+  properties: [
+    {
+      class: 'Boolean',
+      name: 'showPercentages',
+      value: false
+    },
+    {
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.LabelPosition',
+      name: 'labelPosition',
+      value: 'TOP'
+    }
+  ],
 
   methods: [
     function execute(e) {
@@ -253,23 +267,91 @@ foam.CLASS({
         return;
       }
       
-      // Group data by property and render pie chart
       this.dao.select(this.GroupBy.create({
         arg1: this.prop,
         arg2: this.Count.create()
       })).then(function(groupBy) {
         var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'pie');
-        self.renderDirectChart(e, 'pie', chartData, null, self.block);
+        var config = self.createPieConfig();
+        self.renderDirectChart(e, 'pie', chartData, config, self.block);
       });
+    },
+
+    function createPieConfig() {
+      var legendPosition = this.labelPosition.name.toLowerCase();
+      
+      var options = {
+        plugins: {
+          legend: {
+            position: legendPosition
+          }
+        }
+      };
+
+      if (this.showPercentages) {
+        options.plugins.tooltip = {
+          callbacks: {
+            label: function(context) {
+              var total = context.dataset.data.reduce(function(sum, value) {
+                return sum + value;
+              }, 0);
+              var percentage = ((context.raw / total) * 100).toFixed(1);
+              return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+            }
+          }
+        };
+
+        options.plugins.datalabels = {
+          formatter: function(value, context) {
+            var total = context.dataset.data.reduce(function(sum, val) {
+              return sum + val;
+            }, 0);
+            var percentage = ((value / total) * 100).toFixed(1);
+            return percentage + '%';
+          },
+          color: '#fff',
+          font: {
+            weight: 'bold'
+          }
+        };
+      }
+
+      return { options: options };
+    },
+
+    function addToE(e) {
+      e.startContext({data: this}).
+        start().
+          style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
+          add('Property: ', this.PROP).
+          add('Show Percentages: ', this.SHOW_PERCENTAGES).
+          add('Label Position: ', this.LABEL_POSITION).
+        end().
+      endContext();
     }
   ]
 });
 
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardDonutChartDAOAgent',
-  extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
+  extends: 'foam.core.reflow.dashboard.DashboardBarChartDAOAgent',
+
+  properties: [
+    {
+      class: 'Boolean',
+      name: 'showPercentages',
+      value: false
+    },
+    {
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.LabelPosition',
+      name: 'labelPosition',
+      value: 'TOP'
+    }
+  ],
+
 
   methods: [
     function execute(e) {
@@ -285,17 +367,71 @@ foam.CLASS({
         arg2: this.Count.create()
       })).then(function(groupBy) {
         var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'donut');
-        self.renderDirectChart(e, 'donut', chartData, null, self.block);
+        var config = self.createDonutConfig();
+        self.renderDirectChart(e, 'donut', chartData, config, self.block);
       });
+    },
+
+    function createDonutConfig() {
+      var legendPosition = this.labelPosition.name.toLowerCase();
+      
+      var options = {
+        plugins: {
+          legend: {
+            position: legendPosition
+          }
+        }
+      };
+
+      if (this.showPercentages) {
+        options.plugins.tooltip = {
+          callbacks: {
+            label: function(context) {
+              var total = context.dataset.data.reduce(function(sum, value) {
+                return sum + value;
+              }, 0);
+              var percentage = ((context.raw / total) * 100).toFixed(1);
+              return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+            }
+          }
+        };
+
+        options.plugins.datalabels = {
+          formatter: function(value, context) {
+            var total = context.dataset.data.reduce(function(sum, val) {
+              return sum + val;
+            }, 0);
+            var percentage = ((value / total) * 100).toFixed(1);
+            return percentage + '%';
+          },
+          color: '#fff',
+          font: {
+            weight: 'bold'
+          }
+        };
+      }
+
+      return { options: options };
+    },
+
+    function addToE(e) {
+      e.startContext({data: this}).
+        start().
+          style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
+          add('Property: ', this.PROP).
+          add('Show Percentages: ', this.SHOW_PERCENTAGES).
+          add('Label Position: ', this.LABEL_POSITION).
+        end().
+      endContext();
     }
   ]
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardLineChartDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
-  mixins: ['foam.core.reflow.DirectChartMixin'],
+  mixins: ['foam.core.reflow.dashboard.DirectChartMixin'],
 
   requires: [
     'foam.mlang.sink.GroupBy',
@@ -430,7 +566,7 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardMetricDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
@@ -440,13 +576,13 @@ foam.CLASS({
     'foam.mlang.sink.Min',
     'foam.mlang.sink.Max',
     'foam.mlang.sink.Average',
-    'foam.core.reflow.MetricOperation'
+    'foam.core.reflow.dashboard.MetricOperation'
   ],
 
   properties: [
     {
       class: 'Enum',
-      of: 'foam.core.reflow.MetricOperation',
+      of: 'foam.core.reflow.dashboard.MetricOperation',
       name: 'operation',
       value: 'COUNT'
     },
@@ -526,7 +662,7 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardGridDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
@@ -541,12 +677,12 @@ foam.CLASS({
         valueView: {
           class: 'foam.u2.view.FObjectView',
           choices: [
-            ['foam.core.reflow.DashboardCountDAOAgent', 'Count - Shows total number of records'],
-            ['foam.core.reflow.DashboardMetricDAOAgent', 'Metric - Shows count, sum, min, max, or average'],
-            ['foam.core.reflow.DashboardBarChartDAOAgent', 'Bar Chart - Displays data grouped by property'],
-            ['foam.core.reflow.DashboardPieChartDAOAgent', 'Pie Chart - Shows proportional data distribution'],
-            ['foam.core.reflow.DashboardDonutChartDAOAgent', 'Donut Chart - Shows proportional data with center hole'],
-            ['foam.core.reflow.DashboardLineChartDAOAgent', 'Line Chart - Displays trends over property values']
+            ['foam.core.reflow.dashboard.DashboardCountDAOAgent', 'Count - Shows total number of records'],
+            ['foam.core.reflow.dashboard.DashboardMetricDAOAgent', 'Metric - Shows count, sum, min, max, or average'],
+            ['foam.core.reflow.dashboard.DashboardBarChartDAOAgent', 'Bar Chart - Displays data grouped by property'],
+            ['foam.core.reflow.dashboard.DashboardPieChartDAOAgent', 'Pie Chart - Shows proportional data distribution'],
+            ['foam.core.reflow.dashboard.DashboardDonutChartDAOAgent', 'Donut Chart - Shows proportional data with center hole'],
+            ['foam.core.reflow.dashboard.DashboardLineChartDAOAgent', 'Line Chart - Displays trends over property values']
           ],
           config: {
             'of': { 

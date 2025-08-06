@@ -5,7 +5,7 @@
  */
 
 foam.ENUM({
-  package: 'foam.core.reflow',
+  package: 'foam.core.reflow.dashboard',
   name: 'MetricOperation',
 
   documentation: 'Operations available for dashboard metrics',
@@ -14,7 +14,7 @@ foam.ENUM({
     {
       name: 'createSink',
       value: function(agent) {
-        return agent.Count.create();
+        console.warn('createSink not implemented for MetricOperation', this.name);
       }
     }
   ],

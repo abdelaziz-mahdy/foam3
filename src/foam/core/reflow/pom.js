@@ -1,5 +1,8 @@
 foam.POM({
   name: 'console',
+  projects: [
+    { name: 'dashboard/pom' }
+  ],
   files: [
     { name: '../../u2/mlang/Table',    flags: 'js|java' },
     { name: 'AbstractDAOAgent',        flags: 'js' },
@@ -59,8 +62,6 @@ foam.POM({
     { name: 'control/HelpControl',     flags: 'js' },
     { name: 'control/CollectionsControl', flags: 'js' },
     { name: 'control/FlowsControl',     flags: 'js' },
-    { name: 'control/ComponentsControl', flags: 'js' },
-    { name: 'MetricOperation',         flags: 'js' },
-    { name: 'DashboardDAOAgents',      flags: 'js' }
+    { name: 'control/ComponentsControl', flags: 'js' }
   ]
 });
