@@ -183,7 +183,7 @@ foam.CLASS({
       gap: 0.4rem;
       width: 100%;
     }
-    ^view.error input, ^view.error input:focus {
+    ^view.error > span > input, ^view.error > span > input:focus {
       border-color: $destructive400!important;
     }
     ^colorText {
