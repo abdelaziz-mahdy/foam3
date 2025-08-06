@@ -84,7 +84,7 @@ foam.POM({
       }
     }],
 
-    buildJar: ['build-jar', 'Build Java JAR file.', [()=>JAR=true, 'setupDirs', 'genJS', 'genJava', 'versions', 'copy', 'genImages', 'genJavaManifest', 'jarFOAM' ], function() {
+    buildJar: ['build-jar', 'Build Java JAR file.', [()=>JAR=true, 'pomEnvs', 'setupDirs', 'genJS', 'genJava', 'versions', 'copy', 'genImages', 'genJavaManifest', 'jarFOAM' ], function() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} webroot `;
       this.execSync(`jar cfm ${BUILD_DIR}/lib/${JAR_NAME} ${BUILD_DIR}/MANIFEST.MF ${JAR_INCLUDES}`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
     }],
