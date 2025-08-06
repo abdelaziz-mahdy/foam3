@@ -20,8 +20,8 @@ foam.CLASS({
 
   methods: [
     function link() {
-      function f(a) { console.log('*** f', a); if ( a ) debugger; return a ? a.join(',') : ''; }
-      function fPrime(s) { console.log('*** fPrime', s); if ( s ) debugger; return s ? s.split(',').map(s => s.trim()) : []; }
+      function fPrime(a) { return a ? a.join(',') : ''; }
+      function f(s) { return s ? s.split(',').map(s => s.trim()) : []; }
       var slot = this.attrSlot(null, this.onKey ? 'input' : null);
 
 //      slot.follow(this.data$.map(a => a ? a.join(',') : ''));
