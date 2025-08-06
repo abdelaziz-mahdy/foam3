@@ -6,6 +6,7 @@
 
 foam.POM({
   name: 'ram-disk',
+  description: 'Tooling to create a RAM disk to be used as the build directory.',
 
   options: {
     ramDiskBlockSizeDarwin: ['', 'ram-disk-block-size-darwin', 'RAM_DISK_BLOCK_SIZE_DARWIN', 'RAM Disk block size in bytes', '512', arg => RAM_DISK_BLOCK_SIZE_DARWIN = arg],
@@ -13,6 +14,8 @@ foam.POM({
     ramDiskSize: ['', 'ram-disk-size', 'RAM_DISK_SIZE', 'Size of ram disk in MegaBytes to use as build directory', '500', arg => RAM_DISK_SIZE = arg]
   },
   tasks: {
+    all: ['all', 'Execute default RAMDisk tooling tasks.', ['ramDisk']],
+
     ramDisk: ['ram-disk', 'Create RAM Disk and symbolic link to build directory. Optionaly provide size in bytes. --ramDisk:400', [], function(arg) {
       if ( PLATFORM == 'darwin' ) {
         this.execute('ramDiskDarwin', arg);
@@ -52,10 +55,11 @@ foam.POM({
 
     usage: ['usage', 'Build usage examples', [], function() {
       this.log('\nCreating a RAM Disk to use as the build directory:');
-      this.log('  ./build.sh --ram-disk');
-      this.log('  ./build.sh --ram-disk:500');
-      this.log('  ./build.sh --ram-disk --ram-disk-size:500');
-      this.log('  ./build.sh --ram-disk --ram-disk-name:buildRAMDisk');
+      this.log('  ./build.sh -TRAMDisk');
+      this.log('  ./build.sh -TRAMDisk --ram-disk');
+      this.log('  ./build.sh -TRAMDisk --ram-disk:500');
+      this.log('  ./build.sh -TRAMDisk --ram-disk --ram-disk-size:500');
+      this.log('  ./build.sh -TRAMDisk --ram-disk --ram-disk-name:buildRAMDisk');
     }]
   }
 });
