@@ -26,3 +26,4 @@ p({"class":"foam.core.reflow.SinkAgent", "id": 25, "label":"Dashboard Pie Chart"
 p({"class":"foam.core.reflow.SinkAgent", "id": 26, "label":"Dashboard Line Chart", "value":"DashboardLineChart", "sink":true, "type":"structure"})
 p({"class":"foam.core.reflow.SinkAgent", "id": 27, "label":"Dashboard Metric", "value":"DashboardMetric", "sink":true, "type":"calculation"})
 p({"class":"foam.core.reflow.SinkAgent", "id": 28, "label":"Dashboard Grid", "value":"DashboardGrid", "sink":false, "type":"structure"})
+p({"class":"foam.core.reflow.SinkAgent", "id": 29, "label":"Dashboard Donut Chart", "value":"DashboardDonutChart", "sink":true, "type":"structure"})

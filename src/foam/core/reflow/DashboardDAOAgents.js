@@ -21,7 +21,8 @@ foam.CLASS({
   requires: [
     'org.chartjs.Bar2',
     'org.chartjs.Pie2', 
-    'org.chartjs.Line2'
+    'org.chartjs.Line2',
+    'org.chartjs.Donut2'
   ],
   
   methods: [
@@ -30,6 +31,7 @@ foam.CLASS({
       switch(chartType) {
         case 'bar': ChartClass = this.Bar2; break;
         case 'pie': ChartClass = this.Pie2; break;
+        case 'donut': ChartClass = this.Donut2; break;
         case 'line': ChartClass = this.Line2; break;
         default: throw new Error('Unknown chart type: ' + chartType);
       }
@@ -109,6 +111,7 @@ foam.CLASS({
           break;
           
         case 'pie':
+        case 'donut':
           var colors = ['rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)', 
                        'rgba(255, 205, 86, 0.5)', 'rgba(75, 192, 192, 0.5)',
                        'rgba(153, 102, 255, 0.5)', 'rgba(255, 159, 64, 0.5)'];
@@ -262,6 +265,31 @@ foam.CLASS({
   ]
 });
 
+
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'DashboardDonutChartDAOAgent',
+  extends: 'foam.core.reflow.DashboardBarChartDAOAgent',
+
+  methods: [
+    function execute(e) {
+      var self = this;
+      
+      if ( ! this.prop ) {
+        this.showPropertyRequiredMessage(e);
+        return;
+      }
+      
+      this.dao.select(this.GroupBy.create({
+        arg1: this.prop,
+        arg2: this.Count.create()
+      })).then(function(groupBy) {
+        var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'donut');
+        self.renderDirectChart(e, 'donut', chartData, null, self.block);
+      });
+    }
+  ]
+});
 
 foam.CLASS({
   package: 'foam.core.reflow',
@@ -570,6 +598,7 @@ foam.CLASS({
             ['foam.core.reflow.DashboardMetricDAOAgent', 'Metric - Shows count, sum, min, max, or average'],
             ['foam.core.reflow.DashboardBarChartDAOAgent', 'Bar Chart - Displays data grouped by property'],
             ['foam.core.reflow.DashboardPieChartDAOAgent', 'Pie Chart - Shows proportional data distribution'],
+            ['foam.core.reflow.DashboardDonutChartDAOAgent', 'Donut Chart - Shows proportional data with center hole'],
             ['foam.core.reflow.DashboardLineChartDAOAgent', 'Line Chart - Displays trends over property values']
           ],
           config: {

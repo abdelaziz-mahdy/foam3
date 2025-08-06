@@ -917,6 +917,7 @@ foam.POM({
     { name: "org/chartjs/Line2",                                      flags: "web" },
     { name: "org/chartjs/Bar2",                                       flags: "web" },
     { name: "org/chartjs/Pie2",                                       flags: "web" },
+    { name: "org/chartjs/Donut2",                                     flags: "web" },
     { name: "foam/dashboard/model/VisualizationSize",                 flags: "js" },
     { name: "foam/dashboard/model/Visualization",                     flags: "js" },
     { name: "foam/dashboard/model/GroupBy",                           flags: "js" },
