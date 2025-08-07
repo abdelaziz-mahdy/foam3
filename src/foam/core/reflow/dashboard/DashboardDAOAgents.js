@@ -61,7 +61,8 @@ foam.CLASS({
       
       // Apply the merged options back to the chart
       chart.chartJSOptions = chartJSOptions;
-      
+      // Debug logging (remove in production)
+      // console.log('Chart.js config:', { type: chartType, data: chartData, options: chart.chartJSOptions });
       // Wrap chart in responsive container
       e.start('div').
         style({
@@ -910,7 +911,7 @@ foam.CLASS({
         var options = {
           scales: {
             x: {
-              type: isXAxisDate ? 'time' : 'linear',
+              type:  isXAxisDate ? 'time' : 'linear',
               title: { display: true, text: self.xProp.label }
             },
             y: {
@@ -954,6 +955,12 @@ foam.CLASS({
           var processedXVal = self.xProp.chartJsFormatter ? 
                              self.xProp.chartJsFormatter(xVal) : xVal;
           
+          // For linear scales, ensure x values are numbers, not formatted strings
+          if ( !isXAxisDate && typeof processedXVal === 'string' ) {
+            // Remove commas and convert to number for linear scales
+            processedXVal = parseFloat(processedXVal.replace(/,/g, ''));
+          }
+          
           data.push({x: processedXVal, y: yVal});
         }
       });
@@ -964,7 +971,8 @@ foam.CLASS({
         if (isXAxisDate) {
           return new Date(a.x) - new Date(b.x);
         }
-        return a.x - b.x;
+        // Ensure numeric comparison for linear scales
+        return parseFloat(a.x) - parseFloat(b.x);
       });
       
       return {
