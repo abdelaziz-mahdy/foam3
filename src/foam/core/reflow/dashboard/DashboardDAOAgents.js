@@ -76,7 +76,7 @@ foam.CLASS({
     
     function showPropertyRequiredMessage(e) {
       e.start('div').
-        style({padding: '20px', textAlign: 'center', color: '$textTertiary'}).
+        style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
         add('Please select a property to group by').
       end();
     },
@@ -160,13 +160,13 @@ foam.CLASS({
         // Create a simple count display
         e.start('div').
           style({
-            padding: '$inputVerticalPadding $inputHorizontalPadding',
+            padding: '20px',
             textAlign: 'center', 
             fontSize: '2em',
-            fontWeight: '$font-bold',
-            border: '1px solid $borderLight',
-            borderRadius: '$inputBorderRadius',
-            backgroundColor: '$backgroundTertiary'
+            fontWeight: foam.CSS.returnTokenValue('$font-bold', this.cls_, this.__context__),
+            border: '1px solid ' + foam.CSS.returnTokenValue('$borderLight', this.cls_, this.__context__),
+            borderRadius: foam.CSS.returnTokenValue('$inputBorderRadius', this.cls_, this.__context__),
+            backgroundColor: foam.CSS.returnTokenValue('$backgroundTertiary', this.cls_, this.__context__)
           }).
           add(self.label + ': ' + count.value).
         end();
@@ -406,7 +406,7 @@ foam.CLASS({
       
       if ( ! this.xProp || ! this.yProp ) {
         e.start('div').
-          style({padding: '20px', textAlign: 'center', color: '$textTertiary'}).
+          style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
           add('Please select both X and Y properties').
         end();
         return;
@@ -560,9 +560,9 @@ foam.CLASS({
             textAlign: 'center',
             fontSize: '2em',
             fontWeight: 'bold',
-            border: '1px solid $borderLight',
-            borderRadius: '$inputBorderRadius',
-            backgroundColor: '$backgroundTertiary'
+            border: '1px solid ' + foam.CSS.returnTokenValue('$borderLight', this.cls_, this.__context__),
+            borderRadius: foam.CSS.returnTokenValue('$inputBorderRadius', this.cls_, this.__context__),
+            backgroundColor: foam.CSS.returnTokenValue('$backgroundTertiary', this.cls_, this.__context__)
           }).
           add(self.getDisplayLabel() + ': ' + result.value).
         end();
@@ -584,7 +584,7 @@ foam.CLASS({
 
     function showPropertyRequiredMessage(e) {
       e.start('div').
-        style({padding: '20px', textAlign: 'center', color: '$textTertiary'}).
+        style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
         add('Please select a property for ' + this.operation.label + ' operation').
       end();
     },
