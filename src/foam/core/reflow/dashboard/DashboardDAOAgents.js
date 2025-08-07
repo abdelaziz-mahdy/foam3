@@ -344,22 +344,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardDonutChartDAOAgent',
-  extends: 'foam.core.reflow.dashboard.DashboardBarChartDAOAgent',
-
-  properties: [
-    {
-      class: 'Boolean',
-      name: 'showPercentages',
-      value: false
-    },
-    {
-      class: 'Enum',
-      of: 'foam.core.reflow.dashboard.LabelPosition',
-      name: 'labelPosition',
-      value: 'TOP'
-    }
-  ],
-
+  extends: 'foam.core.reflow.dashboard.DashboardPieChartDAOAgent',
 
   methods: [
     function execute(e) {
@@ -375,73 +360,9 @@ foam.CLASS({
         arg2: this.Count.create()
       })).then(function(groupBy) {
         var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'donut');
-        var config = self.createDonutConfig();
+        var config = self.createPieConfig(); // Reuse pie config method
         self.renderDirectChart(e, 'donut', chartData, config, self.block);
       });
-    },
-
-    function createDonutConfig() {
-      var self = this;
-      var legendPosition = this.labelPosition.name.toLowerCase();
-      
-      var options = {
-        plugins: {
-          legend: {
-            position: legendPosition
-          }
-        }
-      };
-
-      if (this.showPercentages) {
-        // Disable legend clicks completely - Chart.js way
-        options.plugins.legend.onClick = null;
-        
-        // Add percentages to legend labels
-        options.plugins.legend.labels = {
-          generateLabels: function(chart) {
-            var dataset = chart.data.datasets[0];
-            var total = dataset.data.reduce(function(sum, val) { return sum + val; }, 0);
-            
-            return chart.data.labels.map(function(label, i) {
-              var percentage = ((dataset.data[i] / total) * 100).toFixed(1);
-              var style = chart.getDatasetMeta(0).controller.getStyle(i);
-              
-              return {
-                text: percentage + '% ' + label,
-                fillStyle: style.backgroundColor,
-                // fontColor: undefined, // Use default font color
-                index: i
-              };
-            });
-          }
-        };
-        
-        // Also update tooltip to show percentage
-        options.plugins.tooltip = {
-          callbacks: {
-            label: function(context) {
-              var total = context.dataset.data.reduce(function(sum, value) {
-                return sum + value;
-              }, 0);
-              var percentage = ((context.raw / total) * 100).toFixed(1);
-              return context.label + ': ' + context.raw + ' (' + percentage + '%)';
-            }
-          }
-        };
-      }
-
-      return { options: options, plugins: [] };
-    },
-
-    function addToE(e) {
-      e.startContext({data: this}).
-        start().
-          style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
-          add('Property: ', this.PROP).
-          add('Show Percentages: ', this.SHOW_PERCENTAGES).
-          add('Label Position: ', this.LABEL_POSITION).
-        end().
-      endContext();
     }
   ]
 });
