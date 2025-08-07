@@ -22,7 +22,8 @@ foam.CLASS({
     'org.chartjs.Bar2',
     'org.chartjs.Pie2', 
     'org.chartjs.Line2',
-    'org.chartjs.Donut2'
+    'org.chartjs.Donut2',
+    'org.chartjs.StackedBar2'
   ],
   
   methods: [
@@ -30,6 +31,7 @@ foam.CLASS({
       var ChartClass;
       switch(chartType) {
         case 'bar': ChartClass = this.Bar2; break;
+        case 'stackedbar': ChartClass = this.StackedBar2; break;
         case 'pie': ChartClass = this.Pie2; break;
         case 'donut': ChartClass = this.Donut2; break;
         case 'line': ChartClass = this.Line2; break;
@@ -104,6 +106,12 @@ foam.CLASS({
         case 'bar':
           dataset.backgroundColor = foam.CSS.returnTokenValue('$primary200', this.cls_, this.__context__);
           dataset.borderColor = foam.CSS.returnTokenValue('$primary400', this.cls_, this.__context__);
+          dataset.borderWidth = 1;
+          break;
+          
+        case 'stackedbar':
+          dataset.backgroundColor = foam.CSS.returnTokenValue('$blue200', this.cls_, this.__context__);
+          dataset.borderColor = foam.CSS.returnTokenValue('$blue400', this.cls_, this.__context__);
           dataset.borderWidth = 1;
           break;
           
@@ -192,17 +200,43 @@ foam.CLASS({
 
   requires: [
     'foam.mlang.sink.GroupBy',
-    'foam.mlang.sink.Count'
+    'foam.mlang.sink.Count',
+    'foam.mlang.sink.Sum',
+    'foam.mlang.sink.Min',
+    'foam.mlang.sink.Max',
+    'foam.mlang.sink.Average',
+    'foam.core.reflow.dashboard.MetricOperation'
   ],
 
   properties: [
     {
-      name: 'prop',
+      name: 'groupBy',
+      label: 'Group By',
       view: function(_, X) {
         return { 
           class: 'foam.core.reflow.PropertyChoiceView', 
           forCls: X.data.dao.of
         };
+      }
+    },
+    {
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.MetricOperation',
+      name: 'operation',
+      label: 'Metric Operation',
+      value: 'COUNT'
+    },
+    {
+      name: 'valueProp',
+      label: 'Value Property',
+      view: function(_, X) {
+        return { 
+          class: 'foam.core.reflow.PropertyChoiceView', 
+          forCls: X.data.dao.of
+        };
+      },
+      visibility: function(operation) {
+        return operation !== 'COUNT' ? 'RW' : 'HIDDEN';
       }
     }
   ],
@@ -211,26 +245,211 @@ foam.CLASS({
     function execute(e) {
       var self = this;
       
-      if ( ! this.prop ) {
+      if ( ! this.groupBy ) {
         this.showPropertyRequiredMessage(e);
         return;
       }
       
+      if ( this.operation !== 'COUNT' && ! this.valueProp ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
+          add('Please select a Value property for ' + this.operation.label + ' operation').
+        end();
+        return;
+      }
+      
+      // Create the appropriate sink based on operation
+      var sink = this.operation.createSink(this.valueProp);
+      
       // Group data by property and render bar chart
       this.dao.select(this.GroupBy.create({
-        arg1: this.prop,
-        arg2: this.Count.create()
+        arg1: this.groupBy,
+        arg2: sink
       })).then(function(groupBy) {
-        var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'bar');
+        var chartData = self.convertGroupByToChartData(groupBy, self.getDisplayLabel(), 'bar');
         self.renderDirectChart(e, 'bar', chartData, null, self.block);
       });
+    },
+    
+    function getDisplayLabel() {
+      if ( this.operation === 'COUNT' ) {
+        return this.groupBy.label + ' Count';
+      }
+      return this.operation.label + ' of ' + (this.valueProp ? this.valueProp.label : 'Value') + ' by ' + this.groupBy.label;
     },
     
     function addToE(e) {
       e.startContext({data: this}).
         start().
           style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
-          add('Property: ', this.PROP).
+          add('Group By: ', this.GROUP_BY).
+          add('Operation: ', this.OPERATION).
+          add('Value Property: ', this.VALUE_PROP).
+        end().
+      endContext();
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow.dashboard',
+  name: 'DashboardStackedBarChartDAOAgent',
+  extends: 'foam.core.reflow.AbstractSinkDAOAgent',
+  mixins: ['foam.core.reflow.dashboard.DirectChartMixin'],
+
+  requires: [
+    'foam.mlang.sink.GroupBy',
+    'foam.mlang.sink.Count',
+    'foam.mlang.sink.Sum',
+    'foam.mlang.sink.Min',
+    'foam.mlang.sink.Max',
+    'foam.mlang.sink.Average',
+    'foam.core.reflow.dashboard.MetricOperation'
+  ],
+
+  properties: [
+    {
+      name: 'xGroupBy',
+      label: 'X Group By',
+      view: function(_, X) {
+        return { 
+          class: 'foam.core.reflow.PropertyChoiceView', 
+          forCls: X.data.dao.of
+        };
+      }
+    },
+    {
+      name: 'yGroupBy',
+      label: 'Y Group By',
+      view: function(_, X) {
+        return { 
+          class: 'foam.core.reflow.PropertyChoiceView', 
+          forCls: X.data.dao.of
+        };
+      }
+    },
+    {
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.MetricOperation',
+      name: 'operation',
+      label: 'Metric Operation',
+      value: 'COUNT'
+    },
+    {
+      name: 'valueProp',
+      label: 'Value Property',
+      view: function(_, X) {
+        return { 
+          class: 'foam.core.reflow.PropertyChoiceView', 
+          forCls: X.data.dao.of
+        };
+      },
+      visibility: function(operation) {
+        return operation !== 'COUNT' ? 'RW' : 'HIDDEN';
+      }
+    }
+  ],
+
+  methods: [
+    function execute(e) {
+      var self = this;
+      
+      if ( ! this.xGroupBy || ! this.yGroupBy ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
+          add('Please select both X and Y group by properties').
+        end();
+        return;
+      }
+      
+      if ( this.operation !== 'COUNT' && ! this.valueProp ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
+          add('Please select a Value property for ' + this.operation.label + ' operation').
+        end();
+        return;
+      }
+      
+      // Create the appropriate sink based on operation
+      var sink = this.operation.createSink(this.valueProp);
+      
+      // Group data by both properties for stacked chart
+      this.dao.select(this.GroupBy.create({
+        arg1: this.xGroupBy,
+        arg2: this.GroupBy.create({
+          arg1: this.yGroupBy,
+          arg2: sink
+        })
+      })).then(function(outerGroupBy) {
+        var chartData = self.convertToStackedChartData(outerGroupBy);
+        self.renderDirectChart(e, 'stackedbar', chartData, null, self.block);
+      });
+    },
+    
+    function convertToStackedChartData(outerGroupBy) {
+      var labels = [];
+      var stackGroups = {};
+      
+      // First pass: collect all categories and stack values
+      for ( var category in outerGroupBy.groups ) {
+        if ( outerGroupBy.groups.hasOwnProperty(category) ) {
+          labels.push(category.toString());
+          var innerGroupBy = outerGroupBy.groups[category];
+          
+          for ( var stackValue in innerGroupBy.groups ) {
+            if ( innerGroupBy.groups.hasOwnProperty(stackValue) ) {
+              if ( ! stackGroups[stackValue] ) {
+                stackGroups[stackValue] = {};
+              }
+              stackGroups[stackValue][category] = innerGroupBy.groups[stackValue].value;
+            }
+          }
+        }
+      }
+      
+      // Create datasets for each stack
+      var datasets = [];
+      var colorIndex = 0;
+      var tokenColors = ['$blue200', '$green200', '$red200', '$yellow200', '$purple200', '$orange200'];
+      
+      for ( var stackValue in stackGroups ) {
+        if ( stackGroups.hasOwnProperty(stackValue) ) {
+          var data = [];
+          
+          // Fill data array for each category
+          labels.forEach(function(category) {
+            data.push(stackGroups[stackValue][category] || 0);
+          });
+          
+          var color = foam.CSS.returnTokenValue(tokenColors[colorIndex % tokenColors.length], this.cls_, this.__context__);
+          var borderColor = color.replace('200', '400'); // Darker border
+          
+          datasets.push({
+            label: stackValue.toString(),
+            data: data,
+            backgroundColor: color,
+            borderColor: borderColor,
+            borderWidth: 1
+          });
+          
+          colorIndex++;
+        }
+      }
+      
+      return {
+        labels: labels,
+        datasets: datasets
+      };
+    },
+    
+    function addToE(e) {
+      e.startContext({data: this}).
+        start().
+          style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
+          add('X Group By: ', this.X_GROUP_BY).
+          add('Y Group By: ', this.Y_GROUP_BY).
+          add('Operation: ', this.OPERATION).
+          add('Value Property: ', this.VALUE_PROP).
         end().
       endContext();
     }
@@ -260,16 +479,27 @@ foam.CLASS({
     function execute(e) {
       var self = this;
       
-      if ( ! this.prop ) {
+      if ( ! this.groupBy ) {
         this.showPropertyRequiredMessage(e);
         return;
       }
       
+      if ( this.operation !== 'COUNT' && ! this.valueProp ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
+          add('Please select a Value property for ' + this.operation.label + ' operation').
+        end();
+        return;
+      }
+      
+      // Create the appropriate sink based on operation
+      var sink = this.operation.createSink(this.valueProp);
+      
       this.dao.select(this.GroupBy.create({
-        arg1: this.prop,
-        arg2: this.Count.create()
+        arg1: this.groupBy,
+        arg2: sink
       })).then(function(groupBy) {
-        var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'pie');
+        var chartData = self.convertGroupByToChartData(groupBy, self.getDisplayLabel(), 'pie');
         var config = self.createPieConfig();
         self.renderDirectChart(e, 'pie', chartData, config, self.block);
       });
@@ -332,7 +562,9 @@ foam.CLASS({
       e.startContext({data: this}).
         start().
           style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
-          add('Property: ', this.PROP).
+          add('Group By: ', this.GROUP_BY).
+          add('Operation: ', this.OPERATION).
+          add('Value Property: ', this.VALUE_PROP).
           add('Show Percentages: ', this.SHOW_PERCENTAGES).
           add('Label Position: ', this.LABEL_POSITION).
         end().
@@ -351,16 +583,27 @@ foam.CLASS({
     function execute(e) {
       var self = this;
       
-      if ( ! this.prop ) {
+      if ( ! this.groupBy ) {
         this.showPropertyRequiredMessage(e);
         return;
       }
       
+      if ( this.operation !== 'COUNT' && ! this.valueProp ) {
+        e.start('div').
+          style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
+          add('Please select a Value property for ' + this.operation.label + ' operation').
+        end();
+        return;
+      }
+      
+      // Create the appropriate sink based on operation
+      var sink = this.operation.createSink(this.valueProp);
+      
       this.dao.select(this.GroupBy.create({
-        arg1: this.prop,
-        arg2: this.Count.create()
+        arg1: this.groupBy,
+        arg2: sink
       })).then(function(groupBy) {
-        var chartData = self.convertGroupByToChartData(groupBy, self.prop.label, 'donut');
+        var chartData = self.convertGroupByToChartData(groupBy, self.getDisplayLabel(), 'donut');
         var config = self.createPieConfig(); // Reuse pie config method
         self.renderDirectChart(e, 'donut', chartData, config, self.block);
       });
@@ -618,12 +861,12 @@ foam.CLASS({
         valueView: {
           class: 'foam.u2.view.FObjectView',
           choices: [
-            ['foam.core.reflow.dashboard.DashboardCountDAOAgent', 'Count - Shows total number of records'],
-            ['foam.core.reflow.dashboard.DashboardMetricDAOAgent', 'Metric - Shows count, sum, min, max, or average'],
-            ['foam.core.reflow.dashboard.DashboardBarChartDAOAgent', 'Bar Chart - Displays data grouped by property'],
-            ['foam.core.reflow.dashboard.DashboardPieChartDAOAgent', 'Pie Chart - Shows proportional data distribution'],
-            ['foam.core.reflow.dashboard.DashboardDonutChartDAOAgent', 'Donut Chart - Shows proportional data with center hole'],
-            ['foam.core.reflow.dashboard.DashboardLineChartDAOAgent', 'Line Chart - Displays trends over property values']
+            ['foam.core.reflow.dashboard.DashboardMetricDAOAgent', 'Metric - Single number (count/sum/avg/min/max)'],
+            ['foam.core.reflow.dashboard.DashboardBarChartDAOAgent', 'Bar Chart - Compare values across categories'],
+            ['foam.core.reflow.dashboard.DashboardStackedBarChartDAOAgent', 'Stacked Bar - Compare categories with subcategories'],
+            ['foam.core.reflow.dashboard.DashboardPieChartDAOAgent', 'Pie Chart - Show proportional breakdown'],
+            ['foam.core.reflow.dashboard.DashboardDonutChartDAOAgent', 'Donut Chart - Pie chart with center space'],
+            ['foam.core.reflow.dashboard.DashboardLineChartDAOAgent', 'Line Chart - Show trends between two values']
           ],
           config: {
             'of': { 

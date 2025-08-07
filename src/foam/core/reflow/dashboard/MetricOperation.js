@@ -10,10 +10,18 @@ foam.ENUM({
 
   documentation: 'Operations available for dashboard metrics',
 
+  requires: [
+    'foam.mlang.sink.Count',
+    'foam.mlang.sink.Sum',
+    'foam.mlang.sink.Min',
+    'foam.mlang.sink.Max',
+    'foam.mlang.sink.Average'
+  ],
+
   properties: [
     {
       name: 'createSink',
-      value: function(agent) {
+      value: function(valueProp) {
         console.warn('createSink not implemented for MetricOperation', this.name);
       }
     }
@@ -23,36 +31,36 @@ foam.ENUM({
     { 
       name: 'COUNT', 
       label: 'Count',
-      createSink: function(agent) {
-        return agent.Count.create();
+      createSink: function(valueProp) {
+        return this.Count.create();
       }
     },
     { 
       name: 'SUM',   
       label: 'Sum',
-      createSink: function(agent) {
-        return agent.Sum.create({ arg1: agent.prop });
+      createSink: function(valueProp) {
+        return this.Sum.create({ arg1: valueProp });
       }
     },
     { 
       name: 'MIN',   
       label: 'Min',
-      createSink: function(agent) {
-        return agent.Min.create({ arg1: agent.prop });
+      createSink: function(valueProp) {
+        return this.Min.create({ arg1: valueProp });
       }
     },
     { 
       name: 'MAX',   
       label: 'Max',
-      createSink: function(agent) {
-        return agent.Max.create({ arg1: agent.prop });
+      createSink: function(valueProp) {
+        return this.Max.create({ arg1: valueProp });
       }
     },
     { 
       name: 'AVG',   
       label: 'Avg',
-      createSink: function(agent) {
-        return agent.Average.create({ arg1: agent.prop });
+      createSink: function(valueProp) {
+        return this.Average.create({ arg1: valueProp });
       }
     }
   ]
