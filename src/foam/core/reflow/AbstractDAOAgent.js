@@ -619,14 +619,14 @@ foam.CLASS({
       name: 'xProps',
       value: 'a,b',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyListView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyListView', forCls$: X.data.of$ };
       }
     },
     {
       name: 'yProps',
       value: 'c,d',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyListView', of: X.data.of };
+       return { class: 'foam.core.reflow.PropertyListView', forCls$: X.data.of$ };
       }
     },
     { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'Count' } }
