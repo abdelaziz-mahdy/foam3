@@ -40,7 +40,7 @@ Model/class definition:
 foam.CLASS({  
   package: 'com.google.project',  
   name: 'MyModel',  
-  extendsModel: 'com.google.project.MyBaseModel',  
+  extends: 'com.google.project.MyBaseModel',  
   implements: [  
     'com.google.project.MyFirstTrait',  
     'com.google.project.MyFirstSecondTrait'  
@@ -276,10 +276,10 @@ interface Sink {
 }  
 interface DAO {  
   **void put(obj, opt\_sink)** /\* Invoke to store an object; optionally put to sink once data is put to DAO. \*/  
-  **void remove(query, opt\_sink)** /\* Invoke to delete (an) object(s) from store; optionally remove from sink after removing from DAO. \*/  
+  **void remove(obj)** /\* Remove a single object from the DAO. \*/
+  **void removeAll()** /\* Remove all objects from the DAO. Usuaually prefixed with .where() to limit rows which are refmoved. \*/  
   **void find(query, sink)** /\* Look up by primary key; put result to sink \*/  
   **Future\<sink\> select(sink)** /\* Put all objects in DAO to sink. Future resolves with passed-in sink after operation is complete. \*/  
-  **Future\<sink\> update(expression)** /\* **TODO(markdittmer): Document this**. \*/  
   **void listen(sink)** /\* Listen to all sinkable operations on this DAO. \*/  
   **void pipe(sink)** /\* Short-hand for select(sink); listen(sink). \*/  
   **void unlisten(sink)** /\* Unhook listener from DAO. \*/  
@@ -446,7 +446,7 @@ Service with dependency injection:
 foam.CLASS({
   name: 'DataService',
   imports: ['userDAO', 'orderDAO', 'logger?'],
-  exports: ['as dataService'],
+  exports: ['as dataService'], // Short-form for 'this as dataService'
   requires: ['com.project.UserValidator'],
   
   methods: [
