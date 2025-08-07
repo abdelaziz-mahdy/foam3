@@ -38,20 +38,27 @@ foam.CLASS({
         default: throw new Error('Unknown chart type: ' + chartType);
       }
       
-      // Ensure charts are responsive by default
+      // Create the chart first to get its default options
+      var chart = ChartClass.create({
+        data: chartData
+      }, e.__subContext__);
+      
+      // Get the chart's existing options (preserves stacking config for StackedBar2)
+      var existingOptions = chart.chartJSOptions || {};
+      
+      // Merge with default responsive settings and any additional config
       var chartJSOptions = {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        ...existingOptions  // Preserve chart's built-in options (like stacking)
       };
       
       if (config && config.options) {
         chartJSOptions = {...chartJSOptions, ...config.options};
       }
       
-      var chart = ChartClass.create({
-        data: chartData,
-        chartJSOptions: chartJSOptions
-      }, e.__subContext__);
+      // Apply the merged options back to the chart
+      chart.chartJSOptions = chartJSOptions;
       
       // Wrap chart in responsive container
       e.start('div').
@@ -319,8 +326,8 @@ foam.CLASS({
       }
     },
     {
-      name: 'yGroupBy',
-      label: 'Y Group By',
+      name: 'stackBy',
+      label: 'Stack By',
       view: function(_, X) {
         return { 
           class: 'foam.core.reflow.PropertyChoiceView', 
@@ -354,10 +361,10 @@ foam.CLASS({
     function execute(e) {
       var self = this;
       
-      if ( ! this.xGroupBy || ! this.yGroupBy ) {
+      if ( ! this.xGroupBy || ! this.stackBy ) {
         e.start('div').
           style({padding: '20px', textAlign: 'center', color: foam.CSS.returnTokenValue('$textTertiary', this.cls_, this.__context__)}).
-          add('Please select both X and Y group by properties').
+          add('Please select both X Group By and Stack By properties').
         end();
         return;
       }
@@ -377,7 +384,7 @@ foam.CLASS({
       this.dao.select(this.GroupBy.create({
         arg1: this.xGroupBy,
         arg2: this.GroupBy.create({
-          arg1: this.yGroupBy,
+          arg1: this.stackBy,
           arg2: sink
         })
       })).then(function(outerGroupBy) {
@@ -447,7 +454,7 @@ foam.CLASS({
         start().
           style({display: 'flex', gap: '10px', flexWrap: 'wrap'}).
           add('X Group By: ', this.X_GROUP_BY).
-          add('Y Group By: ', this.Y_GROUP_BY).
+          add('Stack By: ', this.STACK_BY).
           add('Operation: ', this.OPERATION).
           add('Value Property: ', this.VALUE_PROP).
         end().
