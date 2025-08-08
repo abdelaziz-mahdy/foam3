@@ -461,7 +461,7 @@ foam.CLASS({
     function init() {
       let self = this;
       this.SUPER();
-      this.content.tag(this.borderClass, {}, self.borderEl_$);
+      this.content.tag(this.borderClass, this.border, self.borderEl_$);
       this.out = foam.u2.WrapperNode.create({ parentNode: this.content }, this);
       self.borderEl_.add(this.out);
     },
@@ -495,7 +495,7 @@ foam.CLASS({
     },
 
     function outputJSON(json) {
-      json.outputFObject_(this, this.cls_, [ this.FLOW_NAME, this.CMD, this.VALUE, this.FLOW_CHILDREN, this.REACTIONS_ ]);
+      json.outputFObject_(this, this.cls_, [ this.FLOW_NAME, this.CMD, this.VALUE, this.FLOW_CHILDREN, this.REACTIONS_, this.border ]);
     }
   ],
 
