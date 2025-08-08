@@ -1030,9 +1030,6 @@ foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardMetricDAOAgent',
   extends: 'foam.core.reflow.AbstractSinkDAOAgent',
-  mixins: [
-    'foam.core.reflow.dashboard.CardRenderMixin'
-  ],
 
   requires: [
     'foam.mlang.sink.Count',
@@ -1077,8 +1074,15 @@ foam.CLASS({
 
       var sink = this.operation.createSink(this.prop);
       this.dao.select(sink).then(function(result) {
-        // Render using CardRenderMixin
-        self.renderMetricValue(e, self.getDisplayLabel(), result.value);
+        // Label display
+        e.start('div')
+          .add(self.getDisplayLabel())
+        .end();
+        
+        // Value display
+        e.start('div')
+          .add(typeof result.value === 'number' ? result.value.toLocaleString() : result.value)
+        .end();
 
         if (self.block) {
           if (self.block.value) {
@@ -1109,7 +1113,6 @@ foam.CLASS({
           add('Operation: ', this.OPERATION).
           add('Property: ', this.PROP).
           add('Label: ', this.LABEL).
-          add('Render as Card: ', this.RENDER_AS_CARD).
         end().
       endContext();
     }
