@@ -394,6 +394,10 @@ foam.CLASS({
 
   imports: [ 'eval_' ],
 
+  requires: [
+    'foam.mlang.sink.GroupBySortOrder'
+  ],
+
   properties: [
     {
       name: 'prop',
@@ -414,6 +418,33 @@ foam.CLASS({
       }
     },
     {
+      class: 'Int',
+      name: 'topN',
+      label: 'Top N Results',
+      value: 0,
+      help: 'Limit results to top N groups (0 for no limit)'
+    },
+    {
+      class: 'Boolean',
+      name: 'sortDescending',
+      label: 'Sort Descending',
+      value: true,
+      help: 'If true, show top values (highest first). If false, show bottom values (lowest first).',
+      visibility: function(topN) {
+        return topN > 0 ? 'RW' : 'HIDDEN';
+      }
+    },
+    {
+      class: 'Boolean',
+      name: 'includeOthers',
+      label: 'Include Others',
+      value: false,
+      help: 'If true, includes an "Others" category aggregating remaining groups',
+      visibility: function(topN) {
+        return topN > 0 ? 'RW' : 'HIDDEN';
+      }
+    },
+    {
       name: 'browseEnabled',
       hidden: true,
       // Only enable Browse action if this is the top-level DAOAgent
@@ -423,14 +454,30 @@ foam.CLASS({
 
   methods: [
     function value(s) { return s; },
-    function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
+    function createSink() { 
+      var groupBySink = this.GROUP_BY(this.prop, this.sink.createSink());
+      
+      // Apply grouping limits if specified
+      if ( this.topN > 0 ) {
+        groupBySink.groupLimit = this.topN;
+        groupBySink.sortOrder = this.sortDescending ? 
+          this.GroupBySortOrder.DESC : this.GroupBySortOrder.ASC;
+        groupBySink.includeOthers = this.includeOthers;
+      }
+      
+      return groupBySink;
+    },
     function addToE(e) {
       var self = this;
       // TODO: figure out why BROWSE doesn't work after reloading
       e.startContext({data: this}).
         start().
           style({paddingLeft: '12px'}).
-          add(this.PROP, this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
+          add(this.PROP, this.SINK).
+          add('Top N: ', this.TOP_N).
+          add('Sort Desc: ', this.SORT_DESCENDING).
+          add('Include Others: ', this.INCLUDE_OTHERS).
+          callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
 
