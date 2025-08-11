@@ -198,7 +198,6 @@ foam.CLASS({
           enableClass('reactive', this.reactive$).
           on('click', this.toggleMode).
           add(labelSlot).
-          add(supportingLabelSlot).
           start().
             addClass(this.myClass('switch')).
             add(this.dynamic(function(reactive) {
@@ -214,6 +213,7 @@ foam.CLASS({
             })).
           end().
         end().
+        add(supportingLabelSlot).
         call(this.layoutView, [self, prop, viewSlot]).
         start().
           addClass(this.myClass('propHolder')).

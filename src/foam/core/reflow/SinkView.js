@@ -70,6 +70,10 @@ foam.CLASS({
               heading: 'Calculations',
               dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'calculation'))
             },
+            {
+              heading: 'Chart',
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'chart'))
+            }
           ]
         }
       }

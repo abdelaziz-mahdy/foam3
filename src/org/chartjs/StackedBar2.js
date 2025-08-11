@@ -6,7 +6,7 @@
 
 foam.CLASS({
   package: 'org.chartjs',
-  name: 'Pie2',
+  name: 'StackedBar2',
   extends: 'foam.graphics.CView',
 
   mixins: [ 'org.chartjs.Lib' ],
@@ -17,7 +17,6 @@ foam.CLASS({
       name: 'data',
       factory: function() {
         return {
-          labels: [],
           datasets: []
         };
       },
@@ -28,7 +27,17 @@ foam.CLASS({
     {
       name: 'chartJSOptions',
       factory: function() {
-        return {};
+        return {
+          scales: {
+            x: {
+              stacked: true
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true
+            }
+          }
+        };
       }
     },
     {
@@ -41,7 +50,7 @@ foam.CLASS({
       name: 'config',
       factory: function() {
         return {
-          type: 'pie',
+          type: 'bar',
           data: this.data,
           options: {...this.chartJSOptions},
           plugins: this.plugins
@@ -57,14 +66,17 @@ foam.CLASS({
         this.update();
       }
       this.chart.render();
-    }
+    },
+
   ],
 
   listeners: [
     {
       name: 'update',
       isFramed: true,
-      on: [ 'this.propertyChange.data' ],
+      on: [
+        'this.propertyChange.data'
+      ],
       code: function() {
         if ( ! this.chart ) return;
 

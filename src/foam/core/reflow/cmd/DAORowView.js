@@ -12,6 +12,7 @@ foam.CLASS({
   requires: [
     'foam.u2.tag.Button',
   ],
+  imports: ['eval_'],
 
   css: `
     ^desc-cell {
@@ -58,25 +59,25 @@ foam.CLASS({
     {
       name: 'addFn',
       code: function() {
-        this.data.eval_(`add ${this.shortName}`);
+        this.eval_(`add ${this.shortName}`);
       }
     },
     {
       name: 'uplFn',
       code: function() {
-        this.data.eval_(`upload ${this.shortName}`);
+        this.eval_(`upload ${this.shortName}`);
       }
     },
     {
       name: 'daoFn',
       code: function() {
-        this.data.eval_(`dao ${this.shortName}`);
+        this.eval_(`dao ${this.shortName}`);
       }
     },
     {
       name: 'desFn',
       code: function() {
-        this.data.eval_('describe(' + this.ofId + ')');
+        this.eval_('describe(' + this.ofId + ')');
       }
     }
   ]

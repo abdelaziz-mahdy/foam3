@@ -62,6 +62,7 @@ foam.POM({
     { name: "predicate/Keyword",                    flags: "js|java" },
     { name: "sink/Map",                             flags: "js|java" },
     { name: "sink/GroupBy",                         flags: "js|java" },
+    { name: "sink/GroupBySortOrder",                flags: "js|java" },
     { name: "sink/GroupByView",                     flags: "js" },
     { name: "sink/Projection",                      flags: "js|java" },
     { name: "sink/Plot",                            flags: "js|java" },

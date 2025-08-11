@@ -1,3 +1,4 @@
+/* eslint-disable no-with */
 /**
  * @license
  * Copyright 2024 The FOAM Authors. All Rights Reserved.
@@ -15,24 +16,29 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Flowable',
 
+  topics: ['flowUpdated'],
+
   properties: [
     {
       name: 'flowParent',
+      hidden: true,
       transient: true
     },
     {
       class: 'String',
-      name: 'flowName'
+      name: 'flowName',
+      onKey: true
     },
     {
-      class: 'List',
+      class: 'Array',
       name: 'flowChildren',
-      transient: true
+      hidden: true
     },
-    { name: 'value' },
+    { name: 'value', hidden: true },
     {
       name: 'treeRowRenderer',
-      value: function(e) { e.add(this.flowName); }
+      hidden: true,
+      value: function(e) { e.add(this.flowName$); }
     }
   ],
 
@@ -45,12 +51,15 @@ foam.CLASS({
     },
 
     function findFlowChildByName(n) {
-      return this.flowChildren.find(c => c.flowName === n);
+      return this.flowChildren.find(c => {
+        if ( c.flowName === n || (c.flowChildren?.length && c.findFlowChildByName(n)) )
+          return true;
+      });
     },
 
     function addFlowChild(f) {
       if ( f.deleted_ ) return;
-      this.flowChildren = this.flowChildren.concat([f]);
+      this.flowChildren$push(f);
       this.addFlowChild_ && this.addFlowChild_(f);
     },
 
@@ -345,9 +354,9 @@ foam.CLASS({
   name: 'Block',
   extends: 'foam.u2.Accordion',
 
-  mixins: [ 'foam.core.reflow.Flowable' ],
+  implements: [ 'foam.core.reflow.Flowable' ],
 
-  imports: [ 'data', 'showPrompts' ],
+  imports: [ 'data', 'showPrompts', 'addToScope', 'selected' ],
 
   exports: [ 'addValue', 'log', 'out', 'as block' ],
 
@@ -357,7 +366,6 @@ foam.CLASS({
     }
     ^:not(^hidePrompts) {
       border-bottom: 1px solid $borderLight;
-      padding: 8px 16px;
     }
     ^output {
       overflow-x: auto;
@@ -376,49 +384,103 @@ foam.CLASS({
       border: none;
       height: 20px;
     }
-    ^:hover { background: $backgroundSecondary; }
+    ^.block:hover:not(:has(.block:hover)) { background: $backgroundSecondary; }
     ^ .foam-u2-ReadWriteView { padding-right: 8px; }
     ^content {
       overflow-x: auto;
       width: 100%;
+      height: fit-content;
+      overflow-y: hidden;
     }
   `,
 
   properties: [
     {
+      name: 'flowName',
+      reactive: false,
+      label: 'Block Name',
+      supportingLabel: 'Used to as the name for this block and as the variable name in the scope'
+    },
+    {
       class: 'String',
       name: 'cmd',
+      visibility: 'RO',
       displayWidth: 80
     },
     [ 'value', null ],
     {
       name: 'out',
-      getter: function() {
-        return this.content;
+      hidden: true
+    },
+    {
+      class: 'Class',
+      name: 'borderClass',
+      label: 'Border Type',
+      factory: function() { return foam.u2.borders.NullBorder; },
+      view: function(_,X) {
+        // TODO: replace with strategizer
+        // TODO: add a new card with title border that uses the foam.u2.borders.CardBorder
+        // rather than foam.dashboard.view.Card
+        return {
+          class: 'foam.u2.view.ChoiceView',
+          choices: [
+            [foam.u2.borders.NullBorder, 'None'],
+            [foam.u2.borders.CardBorder, 'Card'],
+            [foam.u2.borders.BackgroundCard, 'Background'],
+            [foam.u2.borders.SpacingBorder, 'Padding'],
+            [foam.dashboard.view.CardWrapper, 'Card with Title']
+          ]
+        };
       }
     },
-    [ 'togglerPosition', 'left' ],
-    [ 'expanded', true ],
+    {
+      class: 'foam.u2.ViewSpec',
+      name: 'border',
+      label: 'Border Properties',
+      factory: function() { return {}; },
+      preSet: function(_, n) {
+        // Dont save the class so that the ViewSpec doesnt convert to a view
+        // The fromJSON should handle this but the scripts dont store the class
+        // so parsing ignores all the fromJSON
+        if ( n.class ) delete n.class;
+        return n;
+      },
+      view: function (_, X) {
+        return {
+          class: 'foam.u2.view.ViewConfiguratorView',
+          data_$: X.data$.dot('borderEl_'),
+          allowClassChange: false
+        };
+      }
+    },
+    {
+      name: 'borderEl_',
+      hidden: true
+    },
+    { name: 'togglerPosition', value: 'right', hidden: true },
+    { name: 'expanded', value: true, hidden: true },
     {
       class: 'foam.u2.ViewSpec',
       name: 'configViewSpec',
+      hidden: true,
       documentation: `Passed on to the ReactiveSectionedDetailView as config, see AbstractSectionedDetailView to learn more about configuring detail views`
     }
   ],
 
   methods: [
+    function init() {
+      let self = this;
+      this.SUPER();
+      this.content.tag(this.borderClass, { ...this.border }, self.borderEl_$);
+      this.out = foam.u2.WrapperNode.create({ parentNode: this.content }, this);
+      self.borderEl_.add(this.out);
+    },
     function render() {
       this.on('click', this.onClick);
+      this.addClass('block');
       this.enableClass(this.myClass('hidePrompts'), this.showPrompts$.not());
-      this.title.
-        on('click', (e) => { e.stopPropagation();  e.preventDefault(); }).
-        on('dblclick', (e) => { e.stopPropagation();  e.preventDefault(); }).
-        start('span')
-          .addClass(this.myClass('prompt')).start(foam.u2.ReadWriteView, {data$: this.flowName$})
-        .end()
-        .add(' = ')
-        .add(this.CMD);
-      this.rightSection.tag(this.DEL);
+      this.title.add(this.flowName$);
+      this.rightSection.tag(this.DEL, { label: ''});
       this.SUPER();
     },
 
@@ -427,22 +489,29 @@ foam.CLASS({
       this.value = o;
     },
 
+    function addFlowChild_(c) {
+      this.addToScope(c);
+      this.out.add(c);
+    },
+
+    function removeFlowChild_(c) {
+      c.remove();
+    },
     function log(...args) {
       if ( args.length == 0 ) return;
       if ( this.seen ) this.out.tag('br');
       this.seen = true;
       this.out.add(args.join(' '));
     },
-
     function outputJSON(json) {
-      json.outputFObject_(this, this.cls_, [ this.FLOW_NAME, this.CMD, this.VALUE ]);
+      json.outputFObject_(this, this.cls_, [ this.FLOW_NAME, this.CMD, this.VALUE, this.FLOW_CHILDREN, this.REACTIONS_, this.BORDER_CLASS, this.BORDER ]);
     }
   ],
 
   actions: [
     {
       name: 'del',
-      label: '',
+      label: 'Delete',
       themeIcon: 'close',
       buttonStyle: 'TERTIARY',
       size: 'SMALL',
@@ -455,9 +524,30 @@ foam.CLASS({
 
   listeners: [
     {
-      name: 'onClick',
+      name: 'pubUpdate',
+      on: ['this.propertyChange.borderClass', 'this.propertyChange.border'],
       code: function() {
-        this.data.selected = this;
+        this.flowUpdated.pub();
+      }
+    },
+    {
+      name: 'replaceBorder',
+      isFramed: true,
+      on: ['this.propertyChange.borderClass'],
+      code: function() {
+          let el = this.borderClass.create({...(this.border || {})}, this);
+          this.out.moveTo(el);
+          el.replaceElement_(this.borderEl_);
+          this.borderEl_ = el;
+      }
+    },
+    {
+      name: 'onClick',
+      code: function(e) {
+        if ( e.srcElement.nodeName == 'INPUT' ) return;
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        this.selected = this;
       }
     }
   ]
@@ -494,6 +584,7 @@ foam.CLASS({
       width: 15%;
       border-right: 1px solid $borderLight;
       flex: 0 0 auto;
+      overflow-y: auto;
     }
     ^middle-holder {
       padding: 16px 16px 0 16px;
@@ -637,7 +728,7 @@ foam.CLASS({
         let dragImg_ = document.createElement('img');
         dragImg_.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
         evt.dataTransfer.setDragImage(dragImg_, 0, 0);
-        var sidebarName = evt.target.dataset.side + 'Width'
+        var sidebarName = evt.target.dataset.side + 'Width';
         this.oldX_ = evt.clientX;
         this.oldWidth_ = this[sidebarName] || this.MIN_SIDEBAR_WIDTH_FALLBACK;
       }
@@ -646,7 +737,7 @@ foam.CLASS({
       name: 'drag',
       code: function(evt) {
         evt.preventDefault();
-        var sidebarName = evt.target.dataset.side + 'Width'
+        var sidebarName = evt.target.dataset.side + 'Width';
         if ( ! sidebarName || event.clientX == 0 ) return;
         var w = evt.clientX - this.oldX_;
         if ( sidebarName == 'leftWidth' ) {
@@ -685,9 +776,10 @@ foam.CLASS({
   mixins: [ 'foam.u2.memento.Memorable' ],
 
   requires: [
+    'foam.core.reflow.Flowable',
     'foam.core.reflow.ReflowHeader',
     'foam.core.reflow.ReactiveSectionedDetailView',
-    'foam.core.reflow.RightSidebarOutputView',
+    'foam.core.reflow.ReflowConfigView',
     'foam.core.reflow.ReflowToolBar',
     'foam.core.reflow.ToolbarControl',
     'foam.core.reflow.Block',
@@ -711,6 +803,7 @@ foam.CLASS({
   ],
 
   exports: [
+    'addToScope',
     'clearFlow',
     'createFlowChildName',
     'currentBlock',
@@ -741,18 +834,6 @@ foam.CLASS({
       align-items: center;
       justify-content: center;
     }
-    ^input-field {
-      position: relative;
-      margin-block-end: 0;
-      display: inline-flex;
-      width: 100%;
-      align-items: center;
-      position: sticky;
-      justify-content: space-between;
-      bottom: 0;
-      padding: 10px 16px;
-      border-top: 1px solid $borderLight;
-    }
     ^output {
       flex: 1;
       overflow: auto;
@@ -762,22 +843,7 @@ foam.CLASS({
     ^ .foam-u2-view-ValueView {
       min-width: 220px;
     }
-    .foam-core-reflow-Layout-l { overflow-y: auto; }
     ^ .foam-u2-ProgressView { width: 600px; }
-    ^rightBar-title {
-      border-bottom: 1px solid $borderLight;
-      padding: 8px 16px;
-    }
-    ^rightBar {
-      display: flex;
-      flex-direction: column;
-    }
-    ^input-field-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 80%;
-    }
     ^error {
       background: $backgroundDestructiveTertiary!important;
       color: $textDestructive;
@@ -834,26 +900,13 @@ foam.CLASS({
       memorable: true
     },
     {
-      class: 'String',
-      name: 'promptMode',
-      value: 'Standard'
-    },
-    {
+      // class: 'Boolean',
       name: 'showPrompts',
       value: true,
       expression: function(flowMode) {
         return flowMode === this.FlowMode.CONSOLE;
       },
       preSet: function(_, n) { return n === 'false' ? '' : n; },
-      // memorable: true
-    },
-    {
-      name: 'showInput',
-      value: true,
-      preSet: function(_, n) { return n === 'false' ? '' : n; },
-      expression: function(flowMode) {
-        return flowMode == this.FlowMode.CONSOLE;
-      },
       memorable: true
     },
     {
@@ -896,15 +949,11 @@ foam.CLASS({
       name: 'selected',
       postSet: function(o, n) {
         if ( o === n ) return;
-        this.selectedValue = n ? n.value : null;
         if (n && n.element_) {
           n.element_.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       },
       factory: function() { return this; }
-    },
-    {
-      name: 'selectedValue'
     },
     {
       name: 'value',
@@ -931,24 +980,33 @@ foam.CLASS({
       }
     },
 
-    async function includeScript(script) {
+    async function includeScript(script, ctx, skipParse) {
+      ctx = ctx || this.__subContext__;
       if ( ! script ) return;
 
-      var cs = foam.json.parseString(script, this.__subContext__);
+      var cs = skipParse ?
+      script :
+      foam.json.parseString(script, ctx);
 
       for ( var i = 0 ; i < cs.length ; i++ ) {
         var c = cs[i];
 
-        await this.eval_(c.cmd);
-
-        this.currentBlock.flowName = c.flowName;
+        await ctx.eval_(c.cmd);
+        let args = { ...c };
+        if ( args.value )
+          delete args.value;
+        this.currentBlock.copyFrom(args);
 
         if ( this.currentBlock.value && c.value ) {
-          if ( c.value.clone ) c.value = c.value.clone(this.__subContext__);
+          if ( c.value.clone ) c.value = c.value.clone(ctx);
           this.currentBlock.value.copyFrom(c.value);
         }
 
         await this.currentBlock.value?.onLoad?.();
+
+        if ( c.flowChildren ) {
+          await this.includeScript(c.flowChildren, this.currentBlock.__subContext__, true);
+        }
       }
 
       // Call postLoad after all blocks have executed
@@ -972,16 +1030,10 @@ foam.CLASS({
 
       let oldShowNav = this.showNav;
       this.showNav = false;
-      this.onDetach(() => { this.showNav = oldShowNav;})
+      this.onDetach(() => { this.showNav = oldShowNav;});
       this.SUPER();
 
       var self = this;
-
-      // Add listener to restore navigation when leaving reflow
-      this.onDetach(() => {
-        this.showNav = true;
-      });
-
       this.value.name$.sub(() => this.route = this.value.name);
 
       // Does this ever happen?
@@ -991,18 +1043,15 @@ foam.CLASS({
 
       globalThis.shell = this; // for debugging
 
-      // Doesn't work for some reason. Gets detached when new flow loaded
-      // Replaced with postSet
-      // this.selectedValue$.follow(this.selected$.dot('value'));
-
       // Add commands to localScope
       var cmds = await this.commandDAO.select();
 
       cmds.array.forEach(c => {
-        this.localScope[c.id] = (...args) => {
+        this.localScope[c.id] = async (...args) => {
           var cmd = c.clone(this.currentBlock);
-          return cmd.execute.apply(cmd, args);
+          return await cmd.execute.apply(cmd, args);
         }
+
       });
 
       // If this.value.script changes
@@ -1023,18 +1072,7 @@ foam.CLASS({
       layout.showHeader = true;
       layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
       layout.middle.call(this.renderSelf, [this]);
-      layout.right.addClass(self.myClass('rightBar')).add(this.dynamic(function(selectedValue, selected$configViewSpec) {
-        this.start().addClass(self.myClass('rightBar-title'), 'h400')
-          .add('Flow Properties')
-        .end()
-        .tag(self.ReactiveSectionedDetailView, {
-          of: selectedValue?.cls_.id ?? '',
-          ...(selected$configViewSpec || {}),
-          data: selectedValue,
-          showActions: true,
-          showHeader: true
-        });
-      }));
+      layout.right.tag(this.ReflowConfigView, { data$: this.selected$});
 
       layout.header.add(this.dynamic(function(showPrompts) {
         this.tag(self.ReflowHeader, {data: self, showPrompts: showPrompts, resetFlow: self.clearFlow});
@@ -1044,39 +1082,13 @@ foam.CLASS({
       await this.eval_('preLoad', null, true);
     },
 
-    function renderToolbar(self) {
-      self.toolbarControlDAO.where(self.EQ(self.ToolbarControl.TOOLBAR, self.promptMode))
-        .select().then(result => {
-          result.array
-            .sort((a, b) => (a.order || 0) - (b.order || 0))
-            .forEach(c => {
-              this.tag({class: c.view, data: self});
-            });
-        });
-    },
-
     function renderSelf(self) {
       this.
         addClass(self.myClass()).
         start('div', null, self.out$)
-          .addClass(self.myClass('output')).end().
-          start('span').
-            show(self.showInput$).
-            addClass(self.myClass('input-field')).
-            add(self.dynamic(function(promptMode) {
-              return this.start().addClass(self.myClass('input-field-container')).
-                        call(self.renderToolbar, [self]).
-                      end()
-            }))
-            .start({
-              class: 'foam.u2.view.ChoiceView',
-              data$: self.promptMode$,
-              choices: ['Standard', 'Advanced'] // TODO: get dynamic from toolbarDAO to create later
-            })
-              .addClass(self.myClass('prompt-mode-choice'))
-            .end().
-          end().
-        end();
+          .addClass(self.myClass('output')).
+        end().
+        tag(self.ReflowToolBar);
 
         // These observers might cause scroll issues later when queries in the console can be edited
         // In that case there should be an explicit flag to only do the scroll when the query is submitted
@@ -1131,7 +1143,7 @@ foam.CLASS({
     },
 
     function refreshFlowScope() {
-      var s = this.flowScope;
+      let s = this.flowScope;
 
       // Remove old bindings
       for ( var x in s )
@@ -1139,25 +1151,28 @@ foam.CLASS({
           delete s[x];
 
       s.flow = this.value;
-
-      // Add shortname bindings for DAO children
-      this.flowChildren.forEach(c => {
-        if ( c.value && c.flowName.endsWith('DAO') ) {
-          s[c.flowName.substring(0, c.flowName.length-3)] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value;
-        }
-      });
-
-      // Add bindings for children
-      this.flowChildren.forEach(c => {
-        if ( c.value ) {
-          s[c.flowName] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value;
-        }
-      });
+      let addBindings = (flow) => {
+        if ( ! flow.flowChildren.length ) return;
+        flow.flowChildren.forEach(c => {
+          // Add shortname bindings for DAO children
+          if ( c.value && c.flowName.endsWith('DAO') ) {
+            s[c.flowName.substring(0, c.flowName.length-3)] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value;
+          }
+          // Add bindings for children
+          if ( c.value ) {
+            s[c.flowName] = foam.lang.Holder.isInstance(c.value) ? c.value.value : c.value || c.value;
+          }
+          this.Flowable.isInstance(c) && addBindings(c);
+        });
+      };
+      addBindings(this);
+      this.flowScope = s;
     },
 
-    async function eval_(cmd, opt_ignoreSelect, ignoreHistory) {
+    async function eval_(cmd, opt_ignoreSelect, ignoreHistory, flowParent) {
       /** opt_ignoreSelect if true, causes the evaled cmd to not become the selected block **/
       var self = this;
+      flowParent = flowParent || this;
 
       cmd = cmd.trim();
 
@@ -1167,10 +1182,11 @@ foam.CLASS({
         this.addHistory(cmd);
 
 //      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
-      var block = this.currentBlock = this.Block.create({cmd: cmd, flowParent: this});
+      var block = this.currentBlock = this.Block.create({cmd: cmd, flowParent: flowParent}, flowParent);
 
       var innerScope = {
         // shell: this,
+        block: block,
         eval_: this.eval_.bind(this),
         addValue: block.addValue.bind(block),
         log: block.log.bind(block),
@@ -1206,7 +1222,8 @@ foam.CLASS({
             block.value = foam.lang.StringHolder.create({value: x.toString()});
             block.treeRowRenderer = function(e) {
               e.parentNode.addClass(self.myClass('error'));
-              e.add(this.flowName); }
+              e.add(this.flowName);
+            };
           }
         }
 
@@ -1223,7 +1240,10 @@ foam.CLASS({
         }
       }}}
 
-      this.addFlowChild(block);
+      // Re-set block in case the command changed currentBlock
+      // block = this.currentBlock;
+
+      flowParent.addFlowChild(block);
 
       if ( ! opt_ignoreSelect ) this.selected = block;
 
@@ -1251,10 +1271,14 @@ foam.CLASS({
     },
 
     function addFlowChild_(c) {
+      this.addToScope(c);
+      this.out.add(c);
+    },
+
+    function addToScope(c) {
       this.refreshFlowScope();
       c.flowName$.sub(() => this.refreshFlowScope());
       c.value$.sub(() => this.refreshFlowScope());
-      this.out.add(c);
     },
 
     function removeFlowChild_(c) {
@@ -1356,9 +1380,7 @@ foam.CLASS({
     {
       name: 'toggleMode',
       // You can do this.showPrompts = true|false; from flow scripts
-      // You can do this.showInput = true|false; from flow scripts
       code: function() {
-        this.showPrompts = undefined;
         this.flowMode = this.flowMode == this.FlowMode.CONSOLE ?
           this.FlowMode.PRESENTATION :
           this.FlowMode.CONSOLE ;
@@ -1382,21 +1404,6 @@ foam.CLASS({
         this.input = this.history_[this.history_.length - this.historyPosition] ?? '';
       },
       keyboardShortcuts: [ 'arrowdown' ]
-    },
-    {
-      name: 'onInput',
-      label: '',
-      themeIcon: 'next',
-      size: 'SMALL',
-      buttonStyle: 'TEXT',
-      code: function() {
-        var input = this.input;
-        this.input = '';
-        this.eval_(input);
-      },
-      // Using 'enter' keyboard shortcut doesn't work because it prevents newlines in
-      // text areas on the screen.
-      // keyboardShortcuts: [ 'enter' ]
     },
     {
       name: 'clear',
@@ -1428,6 +1435,14 @@ foam.CLASS({
   ],
 
   listeners: [
+    {
+      name: 'onInput',
+      code: function() {
+        var input = this.input;
+        this.input = '';
+        this.eval_(input);
+      }
+    },
     {
       name: 'onClick',
       // TODO: introduce a merge delay so that cut&paste still works
@@ -1466,7 +1481,7 @@ foam.CLASS({
 // if ( this.feedback_ ) return;
         if ( this.flowChildrenSub_ ) this.flowChildrenSub_.detach();
         this.flowChildrenSub_ = foam.lang.FObject.create();
-        this.flowChildren.forEach(c => {
+        let subFn = c => {
           var prev;
           if ( c.value ) {
             this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
@@ -1480,7 +1495,11 @@ foam.CLASS({
               }));
             }
           }
-        });
+          c.flowChildren?.forEach(subFn);
+          this.flowChildrenSub_.onDetach(c.flowChildren$.sub(this.onFlowChildrenChange));
+          this.flowChildrenSub_.onDetach(c.flowUpdated.sub(this.onFlowChildChange));
+        };
+        this.flowChildren.forEach(subFn);
 
         this.maybeRegenScript();
       }

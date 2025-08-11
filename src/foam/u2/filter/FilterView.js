@@ -445,7 +445,7 @@ foam.CLASS({
       if ( ! of ) this.filters = [];
 
       var searchColumns_ = await this.filterPropertiesByReadPermission(this.searchColumns, of.id);
-      if ( searchColumns_ ) {
+      if ( searchColumns_?.length ) {
         this.filters =  searchColumns_;
         return;
       }

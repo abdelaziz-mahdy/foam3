@@ -36,13 +36,16 @@ foam.CLASS({
       return Promise.resolve();
     },
 
-    function execute(...args) {
+    async function execute(...args) {
       with ( this ) {
         with ( { args: args, addValue: this.addValue.bind(this) } ) {
           try {
-            eval(this.script);
+            // Use arrow function to preserve this binding and with context
+            var result = await eval('(async () => { ' + this.script + ' })()');
+            return result;
           } catch (x) {
             console.log('Error:', x, 'in:', this.script);
+            throw x; // Re-throw to propagate the error
           }
         }
       }
@@ -97,7 +100,7 @@ foam.CLASS({
       name: 'execute_',
       label: 'execute',
       isAvailable: function() { return this.linkable; },
-      code: function() { this.execute(); }
+      code: async function() { await this.execute(); }
     }
   ]
 });
@@ -868,6 +871,29 @@ foam.CLASS({
           })
         .end();
       }))
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
+  name: 'Layout',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  imports: [ 'block', 'currentBlock' ],
+
+  methods: [
+    function execute(...args) {
+      // Take over old block and replace it
+      let b = foam.core.reflow.LayoutBlock.create({
+        cmd: this.block.cmd,
+        flowParent: this.block.flowParent,
+        flowName: this.block.flowName
+      }, this.block.flowParent);
+      this.block.flowParent.addFlowChild(b);
+      this.block.del();
+      this.currentBlock = b;
+      console.log(this.block, this.currentBlock, b);
     }
   ]
 });

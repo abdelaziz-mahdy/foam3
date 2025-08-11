@@ -239,7 +239,7 @@ foam.CLASS({
         if ( getDecorator() != null ) {
           if ( ! ( getDecorator() instanceof ProxyDAO) ) {
             logger.error(getName(), "delegateDAO", getDecorator(), "not instanceof ProxyDAO");
-            System.exit(1);
+            reportFatalDAOError();
           }
           // The decorator dao may be a proxy chain
           ProxyDAO proxy = (ProxyDAO) getDecorator();
@@ -893,15 +893,26 @@ foam.CLASS({
          if ( logger != null ) {
            logger.error("EasyDAO", getName(), "'of' not set.", new Exception("of not set"));
          } else {
-           System.err.println("EasyDAO "+getName()+" 'of' not set.");
+           System.err.println("EasyDAO " + getName() + " 'of' not set.");
          }
-         System.exit(1);
+         reportFatalDAOError();
        }
 
        if ( getInnerDAO() == null && getMdao() == null && ! getNullify() ) {
          setMdao(new foam.dao.MDAO(getOf()));
        }
      `
+    },
+    {
+      name: 'reportFatalDAOError',
+      type: 'void',
+      javaCode: `
+        Thread.dumpStack();
+        System.err.println("------------------------------------------------------ EasyDAO Shutting Down");
+        System.err.println("---- Due to inability to create DAO. Fix DAO specification.");
+
+        System.exit(-1);
+      `
     },
     {
       name: 'getJournalDelegate',

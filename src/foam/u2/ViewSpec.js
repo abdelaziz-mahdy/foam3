@@ -75,7 +75,7 @@ foam.CLASS({
 
             if ( spec.children ) {
               for ( var i = 0 ; i < spec.children.length ; i++ ) {
-                ret.tag(spec.children[0]);
+                ret.tag(spec.children[i]);
               }
             }
 

@@ -21,6 +21,8 @@ foam.CLASS({
     'foam.u2.Tab'
   ],
 
+  exports: ['clsDAO'],
+
   TODO: "reactions_ dont currently work when set on view properties",
 
   constants: {
@@ -54,19 +56,31 @@ foam.CLASS({
       value: true
     },
     {
+      name: 'clsDAO',
+      hidden: true,
+      factory: function() {
+        let a = foam.dao.MDAO.create({ of: foam.mlang.LabeledValue }, this);
+        [...Object.keys(foam.USED), ...Object.keys(foam.UNUSED)].map(v => {
+          a.put(foam.mlang.LabeledValue.create({ label: v }), this);
+        });
+        return a;
+      }
+    },
+    {
       name: 'viewClass',
       section: 'viewSection',
-      view: {
-        class: 'foam.u2.view.ClassCompleterView',
-        filterPredicate: foam.mlang.predicate.Func.create({
-          fn: function(v) {
-            let cls = v
-            if ( foam.String.isInstance(cls) ) 
-              cls = this.__subContext__.maybeLookup(cls);
-            if ( ! cls ) return false;
-            if ( foam.u2.Element.isSubClass(cls) ) return true;
-          }
-        })
+      view: function(_,X) {
+        return {
+          class: 'foam.u2.view.RichChoiceView',
+          of: foam.mlang.LabeledValue,
+          search: true,
+          sections: [
+            {
+              heading: 'Classes',
+              dao: X.clsDAO
+            }
+          ]
+        };
       },
       expression: function(data_) {
         return data_?.cls_.id ?? '';
@@ -130,9 +144,13 @@ foam.CLASS({
         if ( cls ) {
           let el = cls.create({}, this);
           el.id = this.traceId;
-          el.element_.u3 = this;
+          el.element_.u3 = el;
+          let children = this.data_?.childNodes || [];
           el.replaceElement_(this.data_);
-          this.data_.detach();
+          this.data_.childNodes = [];
+          children.forEach(v => {
+            if ( v.moveTo ) v.moveTo(el);
+          });
           this.data_ = el;
         }
       }
@@ -154,7 +172,9 @@ foam.CLASS({
       name: 'updateViewSpec',
       isFramed: true,
       code: function() {
-        this.data = this.VIEW_SPEC_OUTPUTTER.objectify(this.data_);
+        let c = this.VIEW_SPEC_OUTPUTTER.objectify(this.data_);
+        if ( ! foam.Object.equals(this.data, c) )
+          this.data = c;
       }
     }
   ]

@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   imports: [
-    'dashboardController'
+    'dashboardController?'
   ],
 
   exports: [
@@ -56,15 +56,19 @@ foam.CLASS({
 
   properties: [
     {
+      name: 'size',
+      expression: function(data$size) { return data$size || 'MEDIUM' }
+    },
+    {
       name: 'width',
-      expression: function(data$size) {
-        return this.SIZES[data$size.name][0];
+      expression: function(size) {
+        return this.SIZES[size?.name]?.[0];
       }
     },
     {
       name: 'height',
-      expression: function(data$size) {
-        return this.SIZES[data$size.name][1];
+      expression: function(size) {
+        return this.SIZES[size?.name]?.[1];
       }
     },
     {
@@ -100,6 +104,7 @@ foam.CLASS({
 
   methods: [
     function init() {
+      if ( this.dashboardController )
       this.onDetach(this.dashboardController.sub('dashboard', 'update', function() {
         this.data.update();
       }.bind(this)));
@@ -119,14 +124,14 @@ foam.CLASS({
         addClass(this.myClass()).
         start('div').
         addClass('h500', this.myClass('header')).
-        show(!!this.data.label || !!this.data.configView).
+        show(!!this.data?.label || !!this.data?.configView).
         start().
           style({ float: 'left' }).
-          add(this.data.label$).
+          add(this.data?.label$).
         end().
         start().
           style({ float: 'right' }).
-          tag(this.data.configView).
+          tag(this.data?.configView).
         end().
         end('div').
         start('div').

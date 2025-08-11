@@ -142,3 +142,10 @@ p({
 """,
   "hidden": true
 })
+
+
+p({
+  "class":"foam.core.reflow.cmd.Layout",
+  "id": "layout",
+  "description": "adds a layout block"
+})

@@ -11,153 +11,77 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.core.reflow.DynamicReflowData',
-    'foam.core.reflow.DynamicReflowComponents',
-    'foam.core.reflow.DynamicReflowHelp',
-    'foam.u2.ToggleActionView'
+    'foam.core.reflow.ToolbarControl'
   ],
+
+  imports: ['showPrompts','toolbarControlDAO', 'data as importedData'],
 
   css: `
     ^ {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 64px;
-      z-index: 20;
-    }
-    ^island-holder {
-      display: flex;
-      flex-direction: column;
-      align-items: left;
-      gap: 10px;
-      align-items: center;
-      max-width: 320px;
-    }
-      
-    ^holder {
-      padding: 10px;
-      background-color: $backgroundDefault;
-      border-radius: 4px;
-      border: 1px solid $borderLight;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+      margin-block-end: 0;
+      display: inline-flex;
       width: 100%;
+      align-items: center;
+      position: sticky;
+      justify-content: space-between;
+      bottom: 0;
+      padding: 10px 16px;
+      border-top: 1px solid $borderLight;
+    }
+    ^ > :lastChild {
+      flex-shrink: 0;
+    }
+    ^input-field-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
     }
 
-    ^button-group {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
   `,
 
   properties: [
     {
-      name: 'selected',
-      value: null
+      name: 'data',
+      factory: function() {
+        return this.importedData;
+      }
+    },
+    {
+      class: 'String',
+      name: 'promptMode',
+      value: 'Standard',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: ['Standard', 'Advanced']
+      }
     }
   ],
 
   methods: [
-    function init() {
-      this.SUPER();
-      this.boundHandleClickOutside = this.handleClickOutside.bind(this);
-      window.addEventListener('mousedown', this.boundHandleClickOutside);
-    },
-
-    function destroy() {
-      window.addEventListener('mousedown', this.boundHandleClickOutside);
-    },
-
-    function handleClickOutside(e) {
-      const islandHolder = document?.querySelector(`.${this.myClass('island-holder')}`);      if (islandHolder && !islandHolder.contains(e.target)) {
-        this.selected = null;
-      }
-    },
-
     function render() {
-      var self = this;
-      const actions = this.cls_.getAxiomsByClass(foam.lang.Action);
-      this.addClass()
-      .start().addClass(this.myClass('island-holder'))
-        .add(this.dynamic(function(selected) {
-          if (selected == 'collections') {
-            this.start().addClass(self.myClass('expanded-island'), self.myClass('holder'))
-              .start(self.DynamicReflowData, { data: self.data })
-            .end();
-          }
-          if (selected == 'components') {
-            this.start().addClass(self.myClass('expanded-island'), self.myClass('holder'))
-              .start(self.DynamicReflowComponents, { data: self.data })
-            .end();
-          }
-          if ( selected == 'help' ) {
-            this.start().addClass(self.myClass('expanded-island'), self.myClass('holder'))
-              .start(self.DynamicReflowHelp, { data: self.data })
-            .end();
-          }
-
-        }))
-        .start().addClass(this.myClass('holder'))
-          .start().addClass(self.myClass('button-group'))
-            .startContext({ data: self })
-              .forEach(actions, function(action) {
-                this.tag(self.ToggleActionView, {
-                  action: action,
-                  data: self,
-                  actionState$: self.selected$.map(function(selected) {
-                    return selected === action.name;
-                  })
-                }).end();
-              })
-            .endContext()
-          .end()
-        .end()
-      .end();
-    }
-  ],
-
-  actions: [
-    {
-      name: 'collections',
-      label: 'Data',
-      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
-      size: 'SMALL',
-      themeIcon: 'file',
-      code: function() {
-        if ( this.selected === 'collections' ) {
-          this.selected = null;
-        } else {
-          this.selected = 'collections';
-        }
-      }
-    },
-    {
-      name: 'components',
-      label: 'Components',
-      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
-      size: 'SMALL',
-      themeIcon: 'plus',
-      code: function() {
-        if ( this.selected === 'components' ) {
-          this.selected = null;
-        } else {
-          this.selected = 'components';
-        }
-      }
-    },
-    {
-      name: 'help',
-      label: 'Help',
-      buttonStyle: foam.u2.ButtonStyle.TERTIARY,
-      themeIcon: 'helpIcon',
-      size: 'SMALL',
-      code: function() {
-        if ( this.selected === 'help' ) {
-          this.selected = null;
-        } else {
-          this.selected = 'help';
-        }
-      }
+      let self = this;
+      this.
+        addClass().
+        show(this.showPrompts$).
+        start().
+        addClass(this.myClass('input-field-container')).
+        add(this.dynamic(function(promptMode) {
+          self.toolbarControlDAO
+            .where(self.EQ(self.ToolbarControl.TOOLBAR, self.promptMode))
+            .select().then(result => {
+              result.array
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .forEach(c => {
+                  this.tag({class: c.view, data: self.data});
+                });
+            });
+        })).
+        end().
+        startContext({ data: this }).
+        add(this.PROMPT_MODE).
+        endContext();
     }
   ]
 });

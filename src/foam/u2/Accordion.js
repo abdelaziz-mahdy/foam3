@@ -46,7 +46,7 @@ foam.CLASS({
     ^control {
       transition: transform 0.3s;
     }
-    ^.expanded ^control {
+    ^.expanded > ^toolbar ^control {
       transform: rotate(90deg);
     }
     ^control svg {
@@ -59,6 +59,7 @@ foam.CLASS({
   properties: [
     {
       name: 'title',
+      hidden: true,
       documentation: `
         Title of the accordion. The title property is pre-initialized as a foam.u2.Element
         that is already bound to the DOM. You should add content to this existing element
@@ -101,6 +102,7 @@ foam.CLASS({
     },
     {
       name: 'rightSection',
+      hidden: true,
       documentation: `
         Right section content. Can be a list of actions, a counter, ...etc
 
@@ -124,11 +126,13 @@ foam.CLASS({
     {
       class: 'String',
       name: 'controlGlyph',
+      hidden: true,
       value: 'next'
     },
     {
       class: 'String',
       name: 'togglerPosition',
+      hidden: true,
       view: {
         class: 'foam.u2.view.ChoiceView',
         choices: [ 'left', 'right' ]

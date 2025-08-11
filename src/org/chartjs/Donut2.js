@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright 2019 The FOAM Authors. All Rights Reserved.
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
 foam.CLASS({
   package: 'org.chartjs',
-  name: 'Pie2',
+  name: 'Donut2',
   extends: 'foam.graphics.CView',
 
   mixins: [ 'org.chartjs.Lib' ],
@@ -28,7 +28,9 @@ foam.CLASS({
     {
       name: 'chartJSOptions',
       factory: function() {
-        return {};
+        return {
+          cutout: '50%'  // Creates the donut hole
+        };
       }
     },
     {
@@ -41,7 +43,7 @@ foam.CLASS({
       name: 'config',
       factory: function() {
         return {
-          type: 'pie',
+          type: 'doughnut',
           data: this.data,
           options: {...this.chartJSOptions},
           plugins: this.plugins

@@ -625,9 +625,13 @@ foam.CLASS({
   name: 'ControllerDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
+  imports: [ 'sinkDAO as limitedDAO' ],
+
   methods: [
     function execute(e) {
-      e.tag({class: 'foam.comics.v3.DAOView', data: this.unlimitedDAO});
+      e.add(foam.core.reflow.FlowBrowserView.create({
+        data: this.limitedDAO
+      }, this));
     }
   ]
 });

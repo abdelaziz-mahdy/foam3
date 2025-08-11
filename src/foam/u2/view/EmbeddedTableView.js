@@ -79,39 +79,53 @@ foam.CLASS({
           importedClick.call(this, obj, id);
         };
       }
+    },
+    {
+      name: 'daoCount',
+      expression: async function(data, rowsToDisplay) {
+        // not selecting count because want num entries with limit and skip applied
+        var daoCount = (await data.select()).array;
+        return Math.max(daoCount.length - rowsToDisplay, 0);
+      }
     }
   ],
 
   methods: [
+    function setConfigPredicates() {
+      this.config.editPredicate =   foam.mlang.predicate.False.create();
+      this.config.copyPredicate =   foam.mlang.predicate.False.create();
+      this.config.createPredicate = foam.mlang.predicate.False.create();
+      this.config.deletePredicate = foam.mlang.predicate.False.create();
+    },
     async function render() {
       // Default controller config that would be used for nested tables if no menu config can be found.
       // Update this to be a fallback for menuKeys when we have menuKeys for references, DAOproperties and relationships
-      this.config.editPredicate =   foam.mlang.predicate.False.create();
-      this.config.createPredicate = foam.mlang.predicate.False.create();
-      this.config.deletePredicate = foam.mlang.predicate.False.create();
+      this.setConfigPredicates();
       let self = this;
       this.detailView?.dynamic(function(route) {
         self.handlePropertyRouting();
       })
       let mem = foam.u2.memento.Memento.create({}, this);
-      var daoCount = await this.data.select(this.Count.create()).then(s => { return s.value; });
-      this.start(this.CardBorder).addClass(this.myClass('wrapper'))
-          .startContext({ memento_: mem})
-          .start(this.TableView, {
-            data: this.data.limit(this.rowsToDisplay),
-            editColumnsEnabled: false,
-            multiSelectEnabled: false,
-            showPagination: false
-          })
-            .addClass(this.myClass())
-          .end()
+      this.add(this.slot(async function(data, daoCount) {
+        daoCount = await daoCount;
+        return this.E().start(this.CardBorder).addClass(this.myClass('wrapper'))
+            .startContext({ memento_: mem})
+            .start(this.TableView, {
+              data$: this.slot(function(rowsToDisplay) {return data.limit(rowsToDisplay)}),
+              editColumnsEnabled: false,
+              multiSelectEnabled: false,
+              showPagination: false
+            })
+              .addClass(this.myClass())
+            .end()
+            .endContext()
+          .startContext({ data: this })
+            .start(this.OPEN_TABLE, { label: `${this.VIEW_MORE} (${daoCount})`, buttonStyle: 'TERTIARY', themeIcon: 'plus' })
+              .addClass(this.myClass('button'))
+            .end()
           .endContext()
-        .startContext({ data: this })
-          .start(this.OPEN_TABLE, { label: `${this.VIEW_MORE} (${daoCount})`, buttonStyle: 'TERTIARY', themeIcon: 'plus' })
-            .addClass(this.myClass('button'))
-          .end()
-        .endContext()
-      .end();
+        .end();
+      }));
     },
     function handlePropertyRouting() {
       if ( ! this.detailView?.route ) return;
@@ -140,6 +154,9 @@ foam.CLASS({
   actions: [
     {
       name: 'openTable',
+      isEnabled: async function(daoCount) {
+        return ( await daoCount ) > 0;
+      },
       code: function() {
         this.openFullTable();
       }
