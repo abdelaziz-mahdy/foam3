@@ -82,7 +82,13 @@ foam.CLASS({
         this.rebuildSections();
       }
     },
-    'predicate',
+    {
+      name: 'predicate',
+      class: 'foam.mlang.predicate.PredicateProperty',
+      factory: function() {
+        return foam.mlang.predicate.True.create();
+      }
+    },
     {
       name: 'search',
       value: true
@@ -113,7 +119,7 @@ foam.CLASS({
         ];
         let arr = this.forCls.getAxiomsByClass(foam.lang.Property)
           .filter(p => p.showInPropertyChoice)
-          .filter(p => ! this.predicate || this.predicate(p))
+          .filter(p => this.predicate.f(p))
           .sort(foam.lang.Property.NAME.compare);
 
         return [
@@ -144,7 +150,14 @@ foam.CLASS({
 
   properties: [
     'forCls',
-    'propName'
+    'propName',
+    {
+      name: 'predicate',
+      class: 'foam.mlang.predicate.PredicateProperty',
+      factory: function() {
+        return foam.mlang.predicate.True.create();
+      }
+    }
   ],
 
   methods: [
@@ -159,7 +172,11 @@ foam.CLASS({
         function nameToProp(n) { return n ? self.forCls.getAxiomByName(n) : ''; }
       );
 
-      this.start(this.PropertyChoiceView_, {forCls: this.forCls, data$: this.propName$});
+      this.start(this.PropertyChoiceView_, {
+        forCls: this.forCls,
+        data$: this.propName$,
+        predicate: this.predicate
+      });
     }
   ]
 });
