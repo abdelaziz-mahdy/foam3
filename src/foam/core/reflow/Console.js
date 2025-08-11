@@ -16,6 +16,8 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Flowable',
 
+  topics: ['flowUpdated'],
+
   properties: [
     {
       name: 'flowParent',
@@ -434,7 +436,14 @@ foam.CLASS({
       class: 'foam.u2.ViewSpec',
       name: 'border',
       label: 'Border Properties',
-      value: { class: 'foam.u2.borders.NullBorder'},
+      factory: function() { return {}; },
+      preSet: function(_, n) {
+        // Dont save the class so that the ViewSpec doesnt convert to a view
+        // The fromJSON should handle this but the scripts dont store the class
+        // so parsing ignores all the fromJSON
+        if ( n.class ) delete n.class;
+        return n;
+      },
       view: function (_, X) {
         return {
           class: 'foam.u2.view.ViewConfiguratorView',
@@ -461,7 +470,7 @@ foam.CLASS({
     function init() {
       let self = this;
       this.SUPER();
-      this.content.tag(this.borderClass, {}, self.borderEl_$);
+      this.content.tag(this.borderClass, { ...this.border }, self.borderEl_$);
       this.out = foam.u2.WrapperNode.create({ parentNode: this.content }, this);
       self.borderEl_.add(this.out);
     },
@@ -493,9 +502,8 @@ foam.CLASS({
       this.seen = true;
       this.out.add(args.join(' '));
     },
-
     function outputJSON(json) {
-      json.outputFObject_(this, this.cls_, [ this.FLOW_NAME, this.CMD, this.VALUE, this.FLOW_CHILDREN, this.REACTIONS_ ]);
+      json.outputFObject_(this, this.cls_, [ this.FLOW_NAME, this.CMD, this.VALUE, this.FLOW_CHILDREN, this.REACTIONS_, this.BORDER_CLASS, this.BORDER ]);
     }
   ],
 
@@ -515,10 +523,18 @@ foam.CLASS({
 
   listeners: [
     {
+      name: 'pubUpdate',
+      on: ['this.propertyChange.borderClass', 'this.propertyChange.border'],
+      code: function() {
+        this.flowUpdated.pub();
+      }
+    },
+    {
       name: 'replaceBorder',
+      isFramed: true,
       on: ['this.propertyChange.borderClass'],
       code: function() {
-          let el = this.borderClass.create({}, this);
+          let el = this.borderClass.create({...(this.border || {})}, this);
           this.out.moveTo(el);
           el.replaceElement_(this.borderEl_);
           this.borderEl_ = el;
@@ -975,8 +991,10 @@ foam.CLASS({
         var c = cs[i];
 
         await ctx.eval_(c.cmd);
-
-        this.currentBlock.flowName = c.flowName;
+        let args = { ...c };
+        if ( args.value )
+          delete args.value;
+        this.currentBlock.copyFrom(args);
 
         if ( this.currentBlock.value && c.value ) {
           if ( c.value.clone ) c.value = c.value.clone(ctx);
@@ -1462,7 +1480,7 @@ foam.CLASS({
 // if ( this.feedback_ ) return;
         if ( this.flowChildrenSub_ ) this.flowChildrenSub_.detach();
         this.flowChildrenSub_ = foam.lang.FObject.create();
-        this.flowChildren.forEach(c => {
+        let subFn = c => {
           var prev;
           if ( c.value ) {
             this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
@@ -1476,7 +1494,11 @@ foam.CLASS({
               }));
             }
           }
-        });
+          c.flowChildren?.forEach(subFn);
+          this.flowChildrenSub_.onDetach(c.flowChildren$.sub(this.onFlowChildrenChange));
+          this.flowChildrenSub_.onDetach(c.flowUpdated.sub(this.onFlowChildChange));
+        };
+        this.flowChildren.forEach(subFn);
 
         this.maybeRegenScript();
       }
