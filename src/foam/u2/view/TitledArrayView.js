@@ -128,7 +128,7 @@ foam.CLASS({
               var row = self.CollapsableRow.create({ index: i, value: e, collapsed: self.collapseBehaviour == 'START_COLLAPSED' ? true : false });
               var summaryType = self.title || row.value.toSummary ? row.value$.map(v => v.toSummary()) : 'default';
               var label = row.value$.dot('label').map(label => label || 'New ' + self.of.model_.label)
-              var summaryTypeClass =  summaryType.map(v => v && v.code().toLowerCase().replace(/\s+/g, ''))
+              var summaryTypeClass =  summaryType.map(v => v && v.code().split(' ')[0].toLowerCase().replace(/\s+/g, ''))
 
               this
                 .startContext({ data: row })
