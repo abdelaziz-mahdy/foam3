@@ -478,29 +478,7 @@ foam.CLASS({
           this.validateProcessedValue(obj, mapping.property);
         } catch (x) {
           hasValidationErrors = true;
-          
-          // Handle dynamic expression errors gracefully
-          var errorMsg = `error: ${mapping.property}': ${x.message}`;
-          console.error(errorMsg, {
-            mapping: mapping,
-            expression: mapping.dynamicExpression,
-            rowData: rowData
-          });
-
-          // Track validation error in map for efficient counting
-          var errorKey = `${mapping.property}:${x.message.substring(0, 80)}`;
-          if ( ! this.validationErrorMap[errorKey] ) {
-            this.validationErrorMap[errorKey] = {
-              field: mapping.property,
-              error: x.message.substring(0, 80),
-              count: 0
-            };
-          }
-          this.validationErrorMap[errorKey].count++;
-
-          // Add error to output for user visibility
-          this.output += `<span style="color:red">${errorMsg}</span><br>`;
-
+          this.trackValidationError(x, { mapping: mapping, rowData: rowData });
         }
       });
 
@@ -518,6 +496,65 @@ foam.CLASS({
       if ( value instanceof Date && isNaN(value.getTime()) ) {
         throw new Error(`Invalid date in field '${propertyName}'`);
       }
+    },
+
+    function trackValidationError(errorSource, contextInfo) {
+      var errorMsg = '';
+      var errorKey = '';
+      var field = '';
+      var errorText = '';
+
+      // Handle different error types
+      if ( Array.isArray(errorSource) ) {
+        // Handle o.errors_ array format: [fieldAxiom, errorMessage]
+        errorMsg = errorSource.map(e => e[0].name + ' ' + e[1]).join(', ');
+        errorKey = `multiple:${errorMsg.substring(0, 80)}`;
+        field = 'multiple';
+        errorText = errorMsg;
+        
+        console.error('Validation errors:', {
+          errors: errorSource,
+          context: contextInfo
+        });
+      } else if ( errorSource && errorSource.message ) {
+        // Handle mapping validation errors
+        var mapping = contextInfo.mapping || {};
+        field = mapping.property || 'unknown';
+        errorText = errorSource.message.substring(0, 80);
+        errorMsg = `error: ${field}': ${errorSource.message}`;
+        errorKey = `${field}:${errorText}`;
+        
+        console.error(errorMsg, {
+          mapping: mapping,
+          expression: mapping.dynamicExpression,
+          rowData: contextInfo.rowData,
+          error: errorSource
+        });
+      } else {
+        // Handle generic error format
+        field = contextInfo.field || 'unknown';
+        errorText = String(errorSource).substring(0, 80);
+        errorMsg = `error: ${field}: ${errorText}`;
+        errorKey = `${field}:${errorText}`;
+        
+        console.error(errorMsg, {
+          error: errorSource,
+          context: contextInfo
+        });
+      }
+
+      // Track validation error in map for efficient counting
+      if ( ! this.validationErrorMap[errorKey] ) {
+        this.validationErrorMap[errorKey] = {
+          field: field,
+          error: errorText,
+          count: 0
+        };
+      }
+      this.validationErrorMap[errorKey].count++;
+
+      // Add error to output for user visibility
+      this.output += `<span style="color:red">${errorMsg}</span><br>`;
     },
 
 
@@ -594,8 +631,7 @@ foam.CLASS({
           self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
 
           if ( o.errors_ ) {
-            //            self.output += '<span style="color:red">' + o.errors_ + ', row: ' + totalRows + '<br>' + row + '</span>';
-            self.output += '<span style="color:red">' + o.errors_.map(e => e[0].name + ' ' + e[1]).join(', ') + '</span><br>';
+            self.trackValidationError(o.errors_, { row: totalRows });
           }
 
           // Apply filter for both preview and real uploads
