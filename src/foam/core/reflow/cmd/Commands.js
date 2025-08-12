@@ -735,10 +735,12 @@ foam.CLASS({
   name: 'Button',
   extends: 'foam.core.reflow.cmd.Command',
 
+  imports: [ 'scope?' ],
+
   classes: [
     {
       name: 'FlowAction',
-      extends: 'foam.lang.Action',
+      extends: 'foam.lang.Action',      
       documentation: 'Small inner class to set up some basic view and configuration settings to make actions easier to use in console, might want to move this out if we ever want to use them outside these commands',
       sections: [
         {
@@ -747,7 +749,6 @@ foam.CLASS({
           properties: [
             { name: 'label', onKey: true },
             { name: 'script', reactive: false  },
-            { name: 'ignoreHistory', value: false, documentation: 'If true, this action will not be added to the history of commands' },
             { name: 'buttonStyle' },
             { name: 'size' },
             { name: 'icon' },
@@ -769,17 +770,16 @@ foam.CLASS({
             rows: 5
           }
         },
-        {class: 'Boolean', name: 'ignoreHistory', value: false, documentation: 'If true, this action will not be added to the history of commands' },
         {
           name: 'code',
-          expression: function(script, ignoreHistory) {
+          expression: function(script) {
+            var self = this;
             if ( ! script ) return () => {};
-            return function(X) {
-              X.eval_(script, null, ignoreHistory).then((block) => {
-                if ( ignoreHistory ) {
-                  block.del(); // Remove the block created by eval
-                }
-              });
+            return function() {
+              with ( self.scope ) {
+                var result = eval('(async function() { ' + self.script + ' })').call(self);
+                return result;
+              }
             }
           }
         },
@@ -798,8 +798,7 @@ foam.CLASS({
             buttonStyle$: this.buttonStyle$,
             size$: this.size$,
             icon$: this.icon$,
-            themeIcon$: this.themeIcon$,
-            ignoreHistory$: this.ignoreHistory$
+            themeIcon$: this.themeIcon$
           }, this, X);
 
           if ( X.data$ && ! ( args && ( args.data || args.data$ ) ) ) {
