@@ -1154,10 +1154,10 @@ foam.CLASS({
       // Determine alignment style
       var alignmentStyle = 'center';
       var textAlign = 'center';
-      if ( this.alignment === 'LEFT' ) {
+      if ( this.alignment && this.alignment.name === 'LEFT' ) {
         alignmentStyle = 'flex-start';
         textAlign = 'left';
-      } else if ( this.alignment === 'RIGHT' ) {
+      } else if ( this.alignment && this.alignment.name === 'RIGHT' ) {
         alignmentStyle = 'flex-end';
         textAlign = 'right';
       }
