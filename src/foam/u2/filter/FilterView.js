@@ -224,6 +224,11 @@ foam.CLASS({
       name: 'searchData',
       shortName: 'search',
       memorable: true
+    },
+    {
+      class: 'Boolean',
+      name: 'showFiltersButton',
+      value: true
     }
   ],
 
@@ -304,7 +309,7 @@ foam.CLASS({
             .start().addClass(self.myClass('container-handle'))
             .startContext({ data: self })
               .start(self.TOGGLE_DRAWER, { label$: labelSlot, isIconAfter: true, themeIcon: 'dropdown', size: 'SMALL' })
-                .show(filters.length)
+                .show(filters.length && self.showFiltersButton)
                 .enableClass(self.myClass('filter-button-active'), self.isOpen$)
                 .addClass(self.myClass('filter-button'))
               .end()

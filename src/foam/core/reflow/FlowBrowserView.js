@@ -42,7 +42,11 @@ foam.CLASS({
 
   imports: [
     'stack',
-    'block'
+    'block',
+    'showSummaryView?',
+    'showFilterView?',
+    'showCreateButton?',
+    'showSearch?'
   ],
 
   css: `
@@ -104,7 +108,7 @@ foam.CLASS({
       var self = this;
       this.currentMemento_ = this.memento;
 
-      this.data.createEnabled = true;
+      this.data.createEnabled = this.showCreateButton !== false;
       this.data.selectEnabled = false;
       this.data.editEnabled   = false;
       this.data.exportEnabled = false;
@@ -112,24 +116,37 @@ foam.CLASS({
       var filterView = foam.u2.ViewSpec.createView(this.FilterView, {
         dao$:  this.data.data$,
         data$: this.data.predicate$,
+        showFiltersButton: this.showFilterView !== false
       }, this, this.__subContext__.createSubContext({
         controllerMode: foam.u2.ControllerMode.EDIT
       }));
 
+      // Auto-open filters when search is hidden
+      if ( this.showSearch === false && this.showFilterView !== false ) {
+        filterView.isOpen = true;
+      }
+
       this
         .start().addClass(this.myClass())
           .start().addClass(this.myClass('top-bar'))
+            .show(this.showFilterView !== false || this.showSearch !== false || this.showCreateButton !== false)
             .start().style({ 'min-width' : '70%' })
+              .show(this.showSearch !== false)
               .add(filterView)
             .end()
             .start('span')
               .addClass(this.myClass('button-span'))
-              .show(this.mode$.map(function(m) { return m == foam.u2.DisplayMode.RW; }))
+              .show(this.mode$.map(function(m) { return m == foam.u2.DisplayMode.RW && self.showCreateButton !== false; }))
               .add(this.cls.getAxiomsByClass(foam.lang.Action))
             .end()
           .end()
-          .start().tag(filterView.filtersContainer$).addClass(self.myClass('filters')).end()
           .start()
+            .tag(filterView.filtersContainer$)
+            .addClass(self.myClass('filters'))
+            .show(this.showFilterView !== false)
+          .end()
+          .start()
+            .show(this.showSummaryView !== false)
             .tag(self.summaryView, {
               data$: self.data.filteredDAO$,
               multiSelectEnabled: self.data.relationship,

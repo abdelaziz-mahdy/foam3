@@ -627,11 +627,61 @@ foam.CLASS({
 
   imports: [ 'sinkDAO as limitedDAO' ],
 
+  exports: [
+    'showSummaryView',
+    'showFilterView',
+    'showCreateButton',
+    'showSearch'
+  ],
+
+  properties: [
+    {
+      class: 'Boolean',
+      name: 'showSummaryView',
+      value: true,
+      label: 'Show Summary View'
+    },
+    {
+      class: 'Boolean',
+      name: 'showFilterView',
+      value: true,
+      label: 'Show Filter View'
+    },
+    {
+      class: 'Boolean',
+      name: 'showCreateButton',
+      value: true,
+      label: 'Show Create Button'
+    },
+    {
+      class: 'Boolean',
+      name: 'showSearch',
+      value: true,
+      label: 'Show Search'
+    }
+  ],
+
   methods: [
     function execute(e) {
       e.add(foam.core.reflow.FlowBrowserView.create({
         data: this.limitedDAO
       }, this));
+    },
+    function addToE(e) {
+      e.startContext({data: this})
+        .start()
+          .style({display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '12px'})
+          .start('h3').add('Display Options').end()
+          .start().style({display: 'flex', gap: '16px'})
+            .add(this.SHOW_SUMMARY_VIEW.__)
+            .add(this.SHOW_FILTER_VIEW.__)
+          .end()
+          .start().style({display: 'flex', gap: '16px'})
+            .add(this.SHOW_CREATE_BUTTON.__)
+            .add(this.SHOW_SEARCH.__)
+          .end()
+        .end()
+      .endContext();
     }
   ]
 });
