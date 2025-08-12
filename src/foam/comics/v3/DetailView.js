@@ -460,7 +460,8 @@ foam.CLASS({
               }
             } else {
               var menuId = this.currentMenu ? this.currentMenu.id : this.of.id;
-              var title  = this.translationService.getTranslation(foam.locale, menuId + '.browseTitle', this.config.browseTitle);
+              console.log('DetailView', this.config.dao);
+              var title  = this.translationService.getTranslation(foam.locale, menuId + '.browseTitle', ( this.config.of?.model_?.label || this.config.browseTitle ));
 
               this.notify(title + " " + this.UPDATED, '', this.LogLevel.INFO, true);
             }
