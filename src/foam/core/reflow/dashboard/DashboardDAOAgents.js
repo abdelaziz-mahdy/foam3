@@ -212,129 +212,6 @@ foam.CLASS({
 });
 
 foam.CLASS({
-  package: 'foam.core.reflow.dashboard',
-  name: 'CardRenderMixin',
-  
-  documentation: 'Mixin providing reusable card/tile rendering functionality for metrics and widgets',
-  
-  properties: [
-    {
-      class: 'Boolean',
-      name: 'renderAsCard',
-      label: 'Render as Card',
-      value: true,
-      help: 'If true, renders content in a styled card/tile. If false, renders simple display.'
-    }
-  ],
-  
-  methods: [
-    function renderCardWrapper(e, contentRenderer, options) {
-      // Helper method to render content either as card or simple display
-      options = options || {};
-      
-      if ( this.renderAsCard ) {
-        this.renderAsCardTile(e, contentRenderer, options);
-      } else {
-        this.renderAsSimpleDisplay(e, contentRenderer, options);
-      }
-    },
-    
-    function renderAsCardTile(e, contentRenderer, options) {
-      var self = this;
-      var cardE = e.start('div')
-        .style({
-          backgroundColor: foam.CSS.returnTokenValue('$backgroundPrimary', this.cls_, this.__context__),
-          border: '1px solid ' + foam.CSS.returnTokenValue('$borderLight', this.cls_, this.__context__),
-          borderRadius: foam.CSS.returnTokenValue('$inputBorderRadius', this.cls_, this.__context__),
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)',
-          transition: 'all 0.2s ease',
-          cursor: options.clickable ? 'pointer' : 'default',
-          minHeight: '140px',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          overflow: 'hidden'
-        })
-        .on('mouseenter', function() {
-          if ( options.clickable ) {
-            this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)';
-            this.style.transform = 'translateY(-1px)';
-          }
-        })
-        .on('mouseleave', function() {
-          if ( options.clickable ) {
-            this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)';
-            this.style.transform = 'translateY(0)';
-          }
-        });
-        
-      // Card content container
-      var contentE = cardE.start('div')
-        .style({
-          flex: '1',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center'
-        });
-        
-      // Call the content renderer with the content container
-      contentRenderer.call(this, contentE);
-      
-      contentE.end(); // content div
-      cardE.end(); // card div
-    },
-    
-    function renderAsSimpleDisplay(e, contentRenderer, options) {
-      // Simple display without card styling
-      contentRenderer.call(this, e);
-    },
-    
-    function renderMetricValue(e, label, value, options) {
-      // Helper specifically for metric values
-      options = options || {};
-      
-      var self = this;
-      this.renderCardWrapper(e, function(contentE) {
-        var container = contentE.start('div')
-          .style({
-            width: '100%',
-            padding: self.renderAsCard ? '0' : '20px'
-          });
-          
-        // Label display (above the number)
-        container.start('div')
-          .style({
-            fontSize: self.renderAsCard ? '0.875rem' : '1rem',
-            color: foam.CSS.returnTokenValue('$textSecondary', this.cls_, this.__context__),
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            fontWeight: foam.CSS.returnTokenValue('$font-medium', this.cls_, this.__context__),
-            marginBottom: '8px'
-          })
-          .add(label)
-        .end();
-        
-        // Value display (below the label)
-        container.start('div')
-          .style({
-            fontSize: self.renderAsCard ? '3rem' : '2.5rem',
-            fontWeight: foam.CSS.returnTokenValue('$font-bold', this.cls_, this.__context__),
-            color: options.valueColor || foam.CSS.returnTokenValue('$primary500', this.cls_, this.__context__),
-            lineHeight: '1',
-            letterSpacing: '-0.025em'
-          })
-          .add(typeof value === 'number' ? value.toLocaleString() : value)
-        .end();
-        
-        container.end(); // container div
-      }, options);
-    }
-  ]
-});
-
-foam.CLASS({
   package: 'foam.core.reflow.dashboard', 
   name: 'LimitedGroupByMixin',
   
@@ -1210,7 +1087,8 @@ foam.CLASS({
     'foam.mlang.sink.Min',
     'foam.mlang.sink.Max',
     'foam.mlang.sink.Average',
-    'foam.core.reflow.dashboard.MetricOperation'
+    'foam.core.reflow.dashboard.MetricOperation',
+    'foam.u2.Label'
   ],
 
   properties: [
@@ -1233,6 +1111,19 @@ foam.CLASS({
       class: 'String',
       name: 'label',
       value: 'Metric'
+    },
+    {
+      class: 'String',
+      name: 'icon',
+      label: 'Icon',
+      help: 'Theme icon name to display above the metric value (e.g., "chart", "users", "dollar")'
+    },
+    {
+      class: 'Enum',
+      name: 'alignment',
+      label: 'Alignment',
+      of: 'foam.core.reflow.dashboard.MetricAlignment',
+      value: 'CENTER'
     },
     {
       class: 'Boolean',
@@ -1260,13 +1151,64 @@ foam.CLASS({
         count = countResult.value;
       }
       
+      // Determine alignment style
+      var alignmentStyle = 'center';
+      var textAlign = 'center';
+      if ( this.alignment === 'LEFT' ) {
+        alignmentStyle = 'flex-start';
+        textAlign = 'left';
+      } else if ( this.alignment === 'RIGHT' ) {
+        alignmentStyle = 'flex-end';
+        textAlign = 'right';
+      }
+      
+      // Container with alignment
+      var container = e.start('div')
+        .style({
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: alignmentStyle,
+          textAlign: textAlign,
+          width: '100%'
+        });
+      
+      // Icon display (if provided)
+      if ( this.icon ) {
+        container.start('div')
+          .style({
+            fontSize: '2rem',
+            marginBottom: '12px',
+            color: foam.CSS.returnTokenValue('$primary500', this.cls_, this.__context__)
+          })
+          .add(this.Label.create({
+            themeIcon: this.icon,
+            showLabel: false
+          }))
+        .end();
+      }
+      
       // Label display
-      e.start('div')
+      container.start('div')
+        .style({
+          fontSize: '0.875rem',
+          color: foam.CSS.returnTokenValue('$textSecondary', this.cls_, this.__context__),
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          fontWeight: foam.CSS.returnTokenValue('$font-medium', this.cls_, this.__context__),
+          marginBottom: '8px'
+        })
         .add(this.getDisplayLabel())
       .end();
       
       // Value display
-      e.start('div')
+      container.start('div')
+        .style({
+          fontSize: '2.5rem',
+          fontWeight: foam.CSS.returnTokenValue('$font-bold', this.cls_, this.__context__),
+          color: foam.CSS.returnTokenValue('$primary500', this.cls_, this.__context__),
+          lineHeight: '1',
+          letterSpacing: '-0.025em'
+        })
         .add(typeof result.value === 'number' ? result.value.toLocaleString() : result.value)
       .end();
       
@@ -1275,7 +1217,7 @@ foam.CLASS({
         if ( this.operation === 'COUNT' ) {
           // For COUNT operation, don't show count again
         } else if ( count !== null ) {
-          e.start('div')
+          container.start('div')
             .style({
               fontSize: '0.75em',
               marginTop: '4px',
@@ -1286,6 +1228,8 @@ foam.CLASS({
           .end();
         }
       }
+      
+      container.end(); // Close container
 
       if (this.block) {
         if (this.block.value) {
@@ -1315,6 +1259,8 @@ foam.CLASS({
           add('Operation: ', this.OPERATION).
           add('Property: ', this.PROP).
           add('Label: ', this.LABEL).
+          add('Icon: ', this.ICON).
+          add('Alignment: ', this.ALIGNMENT).
           add('Show Count: ', this.SHOW_COUNT).
         end().
       endContext();
