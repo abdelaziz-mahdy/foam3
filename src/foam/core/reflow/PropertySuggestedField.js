@@ -146,7 +146,10 @@ foam.CLASS({
           if ( self.autocompleter ) {
             self.autocompleter.onUpdate();
           }
-        }
+        } 
+        // else {                                   // TODO: intentionally commented out, this was to fix issue where a pop-up is always active
+        //   self.inputFocused = false;             // But adding this line of code, disables the narrowed down search options which pop-up as user types    
+        // }
       }));
     },
 

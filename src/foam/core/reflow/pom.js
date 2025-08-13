@@ -14,6 +14,7 @@ foam.POM({
     { name: 'Console',                 flags: 'js' },
     { name: 'ConsoleZACClient',        flags: 'js' },
     { name: 'DAOCreate',               flags: 'js' },
+    { name: 'DAOFilterPrompt',         flags: 'js' },
     { name: 'DAOPrompt',               flags: 'js' },
     { name: 'Doc',                     flags: 'js' },
     { name: 'DocumentReadWriteView',   flags: 'js' },

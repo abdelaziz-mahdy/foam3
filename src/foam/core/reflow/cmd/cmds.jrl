@@ -149,3 +149,4 @@ p({
   "id": "layout",
   "description": "adds a layout block"
 })
+p({"class":"foam.core.reflow.cmd.DAOFilter", "id": "daofilter"})

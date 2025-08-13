@@ -9,7 +9,7 @@ foam.CLASS({
   package: 'foam.u2.view',
   name: 'ViewConfiguratorView',
   extends: 'foam.u2.Tabs',
-  documentation: `Renders a detail view using a given element or id for a rendered view. 
+  documentation: `Renders a detail view using a given element or id for a rendered view.
   Can be used to configure the view and return a ViewSpec.
   When using an id, slot the view id to traceId
   When using and element directly, slot the element to data_
@@ -92,8 +92,9 @@ foam.CLASS({
       name: 'data_',
       expression: function(traceId) {
         if ( traceId ) {
-          return document.getElementById(traceId)?.u3;
+          return document.getElementById(traceId)?.u3 || null;
         }
+        return null;
       }
     }
   ],
@@ -129,7 +130,7 @@ foam.CLASS({
           if ( ! data_ ) {
             this.add('Invalid trace Id for element');
             return;
-          } 
+          }
         }));
     }
   ],

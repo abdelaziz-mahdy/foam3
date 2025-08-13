@@ -113,6 +113,7 @@ foam.CLASS({
   ],
 
   requires: [
+    'foam.dao.ProxyDAO',
     'foam.core.reflow.TableDAOAgent',
     'foam.core.reflow.DAOPromptView',
     'foam.parse.QueryParser'
@@ -174,20 +175,25 @@ foam.CLASS({
     },
     {
       class: 'foam.dao.DAOProperty',
-      name: 'limitedDAO',
+      name: 'limitedDAO_',
       section: 'general',
       hidden: true,
       transient: true,
-      expression: function(skip, limit, filteredDAO) {
-        if ( ! filteredDAO ) return null;
-        if ( limit ) filteredDAO = filteredDAO.limit(limit);
-        if ( skip  ) filteredDAO = filteredDAO.skip(skip);
-        return filteredDAO;
+      expression: function(skip, limit, filteredDAO_) {
+        if ( ! filteredDAO_ ) return null;
+        if ( limit ) filteredDAO_ = filteredDAO_.limit(limit);
+        if ( skip  ) filteredDAO_ = filteredDAO_.skip(skip);
+        return filteredDAO_;
       }
     },
     {
       class: 'foam.dao.DAOProperty',
-      name: 'filteredDAO',
+      name: 'limitedDAO',
+      factory: function() { return this.ProxyDAO.create({delegate$: this.limitedDAO_$}); }
+    },
+    {
+      class: 'foam.dao.DAOProperty',
+      name: 'filteredDAO_',
       section: 'general',
       hidden: true,
       transient: true,
@@ -230,6 +236,11 @@ foam.CLASS({
 
         return dao;
       }
+    },
+    {
+      class: 'foam.dao.DAOProperty',
+      name: 'filteredDAO',
+      factory: function() { return this.ProxyDAO.create({delegate$: this.filteredDAO_$}); }
     },
     {
       class: 'Int',
@@ -336,10 +347,10 @@ visible      },
       label: '',
       factory: function() { return this.TableDAOAgent.create(); }
     },
-    { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO' },
+    { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO', transient: true },
     { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Boolean',    section: 'general',   name: 'autoRun', view: { class: 'foam.u2.Switch' } },
-    { class: 'Int',        hidden: true,  name: 'version', hidden: true },
+    { class: 'Int',        hidden: true,  name: 'version', transient: true },
     { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' },
     {
       name: 'readyLatch_',
@@ -358,6 +369,7 @@ visible      },
     },
 
     function updateColumnStorage(columns) {
+      if ( ! this.dao ) return;
       if ( columns === this.getColumnNamesFromStorage(this.columnStorage.getItem(this.dao.of.id)) )
         return;
       var defaultCols = JSON.parse(localStorage.getItem(this.dao.of.id));
@@ -417,7 +429,6 @@ visible      },
     {
       name: 'describeModel',
       section: 'actions',
-      availablePermissions: [ 'command.read.describe' ],
       code: function() {
         this.eval_('describe ' + this.dao.of.id);
       }
