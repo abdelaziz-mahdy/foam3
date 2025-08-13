@@ -1011,10 +1011,7 @@ foam.CLASS({
         await this.currentBlock.value?.onLoad?.();
 
         if ( c.flowChildren ) {
-          // For layouts with flowChildren, we need to process them as a JSON string
-          // to ensure they get properly instantiated with the right context
-          var childrenJson = foam.json.stringify(c.flowChildren);
-          await this.includeScript(childrenJson, this.currentBlock.__subContext__, false);
+          await this.includeScript(c.flowChildren, this.currentBlock.__subContext__, true);
         }
       }
 
