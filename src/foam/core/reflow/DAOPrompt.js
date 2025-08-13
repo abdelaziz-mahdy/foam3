@@ -175,7 +175,7 @@ foam.CLASS({
     },
     {
       class: 'foam.dao.DAOProperty',
-      name: 'limitedDAO',
+      name: 'limitedDAO_',
       section: 'general',
       hidden: true,
       transient: true,
@@ -185,6 +185,11 @@ foam.CLASS({
         if ( skip  ) filteredDAO_ = filteredDAO_.skip(skip);
         return filteredDAO_;
       }
+    },
+    {
+      class: 'foam.dao.DAOProperty',
+      name: 'limitedDAO',
+      factory: function() { return this.ProxyDAO.create({delegate$: this.limitedDAO_$}); }
     },
     {
       class: 'foam.dao.DAOProperty',
