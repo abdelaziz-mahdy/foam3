@@ -395,7 +395,7 @@ foam.CLASS({
       if ( ! predicate && m.Count.isInstance(sink) ) {
         var count = this.size();
         //        console.log('**************** COUNT SHORT-CIRCUIT ****************', count, this.toString());
-        return m.CountPlan.create({ count: count });
+        return m.CountPlan.create({ count: Math.min(count, limit) });
       }
 
       var prop = m.prop;
