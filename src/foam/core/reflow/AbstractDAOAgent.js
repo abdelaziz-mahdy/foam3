@@ -22,6 +22,7 @@ foam.CLASS({
     {
       name: 'of',
       transient: true,
+      hidden: true,
       factory: function() { return this.referenceDAO?.of; }
     }
   ],

@@ -180,7 +180,46 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.core.reflow.dashboard.DashboardBarSink'
+    'foam.core.reflow.dashboard.DashboardBarSink',
+    'foam.core.reflow.ReactiveSectionedDetailView'
+  ],
+
+  sections: [
+    {
+      name: 'dataConfig',
+      title: 'Data Configuration',
+      order: 1,
+      collapsable: true,
+      properties: ['prop', 'sink', 'groupLimit', 'sortOrder', 'includeOthers', 'othersLabel']
+    },
+    {
+      name: 'barChart',
+      title: 'Bar Chart Settings',
+      order: 2,
+      collapsable: true,
+      properties: ['horizontal', 'barThickness', 'timeUnit', 'showGridLines']
+    },
+    {
+      name: 'axisLabels',
+      title: 'Axis Labels',
+      order: 3,
+      collapsable: true,
+      properties: ['xAxisLabel', 'yAxisLabel']
+    },
+    {
+      name: 'display',
+      title: 'Display Options',
+      order: 4,
+      collapsable: true,
+      properties: ['responsive', 'maintainAspectRatio', 'height', 'width', 'showLegend', 'legendPosition', 'showTooltips', 'showTooltipSum', 'animate', 'animationDuration']
+    },
+    {
+      name: 'colors',
+      title: 'Color Configuration',
+      order: 5,
+      collapsable: true,
+      properties: ['colors']
+    }
   ],
 
   properties: [
@@ -192,6 +231,7 @@ foam.CLASS({
       name: 'timeUnit',
       label: 'Time Unit',
       value: 'DAY',
+      section: 'barChart',
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(prop) {
         return prop && (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop)) ? 
@@ -203,28 +243,33 @@ foam.CLASS({
       class: 'Boolean',
       name: 'horizontal',
       label: 'Horizontal Bars',
+      section: 'barChart',
       value: false
     },
     {
       class: 'Float',
       name: 'barThickness',
       label: 'Bar Thickness',
+      section: 'barChart',
       help: 'Thickness of bars (0 = auto)'
     },
     {
       class: 'String',
       name: 'xAxisLabel',
-      label: 'X-Axis Label'
+      label: 'X-Axis Label',
+      section: 'axisLabels'
     },
     {
       class: 'String',
       name: 'yAxisLabel',
-      label: 'Y-Axis Label'
+      label: 'Y-Axis Label',
+      section: 'axisLabels'
     },
     {
       class: 'Boolean',
       name: 'showGridLines',
       label: 'Show Grid Lines',
+      section: 'barChart',
       value: true
     }
   ],
@@ -265,35 +310,12 @@ foam.CLASS({
     },
     
     function addToE(e) {
-      var self = this;
       e.startContext({data: this})
-        .start('div').style({padding: '10px'})
-          .start('div').style({marginBottom: '10px'})
-            .add('Grouping: ', this.PROP, ' by ', this.SINK)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Limit: ', this.GROUP_LIMIT, ' Sort: ', this.SORT_ORDER)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Include Others: ', this.INCLUDE_OTHERS)
-            .add(self.dynamic(function(includeOthers) {
-              if (includeOthers) {
-                return this.add(' Label: ', self.OTHERS_LABEL);
-              }
-            }))
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Display: Horizontal: ', this.HORIZONTAL, ' Grid: ', this.SHOW_GRID_LINES, ' Time: ', this.TIME_UNIT)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('X: ', this.X_AXIS_LABEL, ' Y: ', this.Y_AXIS_LABEL)
-          .end();
-          
-      // Use mixin methods for consistent display
-      this.addChartDisplayToE(e);
-      this.addColorMappingToE(e);
-      
-      e.end().endContext();
+        .tag(this.ReactiveSectionedDetailView, {
+          data: this,
+          showTitle: true
+        })
+      .endContext();
     }
   ]
 });
@@ -308,7 +330,46 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.core.reflow.dashboard.DashboardStackedBarSink'
+    'foam.core.reflow.dashboard.DashboardStackedBarSink',
+    'foam.core.reflow.ReactiveSectionedDetailView'
+  ],
+
+  sections: [
+    {
+      name: 'dataConfig',
+      title: 'Data Configuration',
+      order: 1,
+      collapsable: true,
+      properties: ['prop2', 'prop1', 'sink', 'timeUnit']
+    },
+    {
+      name: 'stackedBarChart',
+      title: 'Stacked Bar Settings',
+      order: 2,
+      collapsable: true,
+      properties: ['horizontal', 'showGridLines']
+    },
+    {
+      name: 'axisLabels',
+      title: 'Axis Labels',
+      order: 3,
+      collapsable: true,
+      properties: ['xAxisLabel', 'yAxisLabel']
+    },
+    {
+      name: 'display',
+      title: 'Display Options',
+      order: 4,
+      collapsable: true,
+      properties: ['responsive', 'maintainAspectRatio', 'height', 'width', 'showLegend', 'legendPosition', 'showTooltips', 'showTooltipSum', 'animate', 'animationDuration']
+    },
+    {
+      name: 'colors',
+      title: 'Color Configuration',
+      order: 5,
+      collapsable: true,
+      properties: ['colors']
+    }
   ],
 
   properties: [
@@ -381,27 +442,11 @@ foam.CLASS({
     
     function addToE(e) {
       e.startContext({data: this})
-        .start('div').style({padding: '10px'})
-          .start('div').style({marginBottom: '10px'})
-            .add('X-Axis: ', this.PROP2, ' Stack By: ', this.PROP1)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Accumulator: ', this.SINK, ' Time Unit: ', this.TIME_UNIT)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Display: Horizontal: ', this.HORIZONTAL, ' Grid: ', this.SHOW_GRID_LINES)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('X Label: ', this.X_AXIS_LABEL, ' Y Label: ', this.Y_AXIS_LABEL)
-          .end();
-          
-      // Use mixin methods for consistent display
-      this.addChartDisplayToE(e);
-      this.addColorMappingToE(e);
-      
-      e.end().endContext();
+        .tag(this.ReactiveSectionedDetailView, {
+          data: this,
+          showTitle: true
+        })
+      .endContext();
     }
   ]
 });
@@ -416,7 +461,39 @@ foam.CLASS({
   ],
 
   requires: [
-    'foam.core.reflow.dashboard.DashboardPieSink'
+    'foam.core.reflow.dashboard.DashboardPieSink',
+    'foam.core.reflow.ReactiveSectionedDetailView'
+  ],
+
+  sections: [
+    {
+      name: 'dataConfig',
+      title: 'Data Configuration',
+      order: 1,
+      collapsable: true,
+      properties: ['prop', 'sink', 'groupLimit', 'sortOrder', 'includeOthers', 'othersLabel']
+    },
+    {
+      name: 'pieChart',
+      title: 'Pie Chart Settings',
+      order: 2,
+      collapsable: true,
+      properties: ['showPercentages', 'cutoutPercentage', 'clockwise', 'rotation']
+    },
+    {
+      name: 'display',
+      title: 'Display Options',
+      order: 3,
+      collapsable: true,
+      properties: ['responsive', 'maintainAspectRatio', 'height', 'width', 'showLegend', 'legendPosition', 'showTooltips', 'showTooltipSum', 'animate', 'animationDuration']
+    },
+    {
+      name: 'colors',
+      title: 'Color Configuration',
+      order: 4,
+      collapsable: true,
+      properties: ['colors']
+    }
   ],
 
   properties: [
@@ -485,35 +562,12 @@ foam.CLASS({
     },
     
     function addToE(e) {
-      var self = this;
       e.startContext({data: this})
-        .start('div').style({padding: '10px'})
-          .start('div').style({marginBottom: '10px'})
-            .add('Group By: ', this.PROP, ' Aggregate: ', this.SINK)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Limit: ', this.GROUP_LIMIT, ' Sort: ', this.SORT_ORDER)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Include Others: ', this.INCLUDE_OTHERS)
-            .add(self.dynamic(function(includeOthers) {
-              if (includeOthers) {
-                return this.add(' Label: ', self.OTHERS_LABEL);
-              }
-            }))
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Show %: ', this.SHOW_PERCENTAGES)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Cutout: ', this.CUTOUT_PERCENTAGE, '% Rotation: ', this.ROTATION, '°')
-          .end();
-          
-      // Use mixin methods for consistent display
-      this.addChartDisplayToE(e);
-      this.addColorMappingToE(e);
-      
-      e.end().endContext();
+        .tag(this.ReactiveSectionedDetailView, {
+          data: this,
+          showTitle: true
+        })
+      .endContext();
     }
   ]
 });
@@ -533,7 +587,46 @@ foam.CLASS({
   requires: [
     'foam.core.reflow.dashboard.DashboardLineSink',
     'foam.core.reflow.dashboard.TimeUnit',
-    'foam.mlang.sink.GroupBy'
+    'foam.mlang.sink.GroupBy',
+    'foam.core.reflow.ReactiveSectionedDetailView'
+  ],
+
+  sections: [
+    {
+      name: 'dataConfig',
+      title: 'Data Configuration',
+      order: 1,
+      collapsable: true,
+      properties: ['xProp', 'yProp', 'groupBy', 'aggregationSink', 'timeUnit']
+    },
+    {
+      name: 'lineChart',
+      title: 'Line Chart Settings',
+      order: 2,
+      collapsable: true,
+      properties: ['fill', 'tension', 'stepped', 'showPoints', 'pointRadius', 'showGridLines']
+    },
+    {
+      name: 'axisLabels',
+      title: 'Axis Labels',
+      order: 3,
+      collapsable: true,
+      properties: ['xAxisLabel', 'yAxisLabel']
+    },
+    {
+      name: 'display',
+      title: 'Display Options',
+      order: 4,
+      collapsable: true,
+      properties: ['responsive', 'maintainAspectRatio', 'height', 'width', 'showLegend', 'legendPosition', 'showTooltips', 'showTooltipSum', 'animate', 'animationDuration']
+    },
+    {
+      name: 'colors',
+      title: 'Color Configuration',
+      order: 5,
+      collapsable: true,
+      properties: ['colors']
+    }
   ],
 
   properties: [
@@ -681,46 +774,12 @@ foam.CLASS({
     },
     
     function addToE(e) {
-      var self = this;
       e.startContext({data: this})
-        .start('div').style({padding: '10px'})
-          .start('div').style({marginBottom: '10px'})
-            .add('X: ', this.X_PROP, ' Y: ', this.Y_PROP)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Group By: ', this.GROUP_BY)
-            .add(self.dynamic(function(groupBy) {
-              if (groupBy) {
-                return this.add(' Aggregate: ', self.AGGREGATION_SINK);
-              }
-            }))
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Time Unit: ', this.TIME_UNIT)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Fill: ', this.FILL, ' Tension: ', this.TENSION, ' Stepped: ', this.STEPPED)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Points: ', this.SHOW_POINTS)
-            .add(self.dynamic(function(showPoints) {
-              if (showPoints) {
-                return this.add(' Radius: ', self.POINT_RADIUS);
-              }
-            }))
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('X Label: ', this.X_AXIS_LABEL, ' Y Label: ', this.Y_AXIS_LABEL)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Grid: ', this.SHOW_GRID_LINES)
-          .end();
-          
-      // Use mixin methods for consistent display
-      this.addChartDisplayToE(e);
-      this.addColorMappingToE(e);
-      
-      e.end().endContext();
+        .tag(this.ReactiveSectionedDetailView, {
+          data: this,
+          showTitle: true
+        })
+      .endContext();
     }
   ]
 });
@@ -732,7 +791,25 @@ foam.CLASS({
 
   requires: [
     'foam.core.reflow.dashboard.DashboardMetricSink',
-    'foam.core.reflow.dashboard.MetricOperation'
+    'foam.core.reflow.dashboard.MetricOperation',
+    'foam.core.reflow.ReactiveSectionedDetailView'
+  ],
+
+  sections: [
+    {
+      name: 'metricConfig',
+      title: 'Metric Configuration',
+      order: 1,
+      collapsable: true,
+      properties: ['operation', 'prop', 'label', 'unit', 'decimalPlaces']
+    },
+    {
+      name: 'display',
+      title: 'Display Options',
+      order: 2,
+      collapsable: true,
+      properties: ['icon', 'alignment', 'showCount', 'valueColor']
+    }
   ],
 
   properties: [
@@ -821,31 +898,11 @@ foam.CLASS({
     },
     
     function addToE(e) {
-      var self = this;
       e.startContext({data: this})
-        .start('div').style({padding: '10px'})
-          .start('div').style({marginBottom: '10px'})
-            .add('Operation: ', this.OPERATION)
-            .add(self.dynamic(function(operation) {
-              // Only show Property field when operation is not COUNT
-              if (operation && operation.name !== 'COUNT') {
-                return this.add(' Property: ', self.PROP);
-              }
-            }))
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Label: ', this.LABEL, ' Unit: ', this.UNIT)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Icon: ', this.ICON, ' Alignment: ', this.ALIGNMENT)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Show Count: ', this.SHOW_COUNT)
-          .end()
-          .start('div').style({marginBottom: '10px'})
-            .add('Decimals: ', this.DECIMAL_PLACES, ' Color: ', this.VALUE_COLOR)
-          .end()
-        .end()
+        .tag(this.ReactiveSectionedDetailView, {
+          data: this,
+          showTitle: true
+        })
       .endContext();
     }
   ]
