@@ -94,6 +94,7 @@ foam.CLASS({
         if ( traceId ) {
           return document.getElementById(traceId)?.u3 || null;
         }
+        return null;
       }
     }
   ],

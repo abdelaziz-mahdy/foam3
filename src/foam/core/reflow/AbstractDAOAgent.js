@@ -298,7 +298,9 @@ foam.CLASS({
       };
 
       if ( this.columns.length ) {
-        config.selectedColumnNames = JSON.parse(this.columnStorage.getItem(this.of.id));
+        var cs = JSON.parse(this.columnStorage.getItem(this.of.id));
+        if ( cs )
+          config.selectedColumnNames = cs;
       }
 
       e.startContext({click: self.click}).
@@ -401,6 +403,27 @@ foam.CLASS({
        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
+    /* TODO: future
+    {
+      name: 'dateFn',
+      visibility: function(prop) {
+        return foam.lang.DateTime.isInstance(prop) ?
+          foam.u2.DisplayMode.RW :
+          foam.u2.DisplayMode.HIDDEN;
+      },
+      view: function(_, X) {
+        return {
+          class: 'foam.u2.view.ChoiceView',
+          choices: [
+            [ null,             '--'       ],
+            [ foam.mlang.Day,   'BY DAY'   ],
+            [ foam.mlang.Month, 'BY MONTH' ],
+//            [ foam.mlang.Year,  'BY YEAR'  ]
+          ]
+        };
+      }
+      },
+      */
     {
       name: 'sink',
       view: { class: 'foam.core.reflow.SinkView', choice: 'Count' },
@@ -423,14 +446,28 @@ foam.CLASS({
 
   methods: [
     function value(s) { return s; },
-    function createSink() { return this.GROUP_BY(this.prop, this.sink.createSink()); },
+    function createSink() {
+      var expr = this.prop;
+      /*
+        TODO: future
+      if ( foam.lang.Date.isInstance(this.prop) && this.dateFn ) {
+        debugger;
+        expr = this.DOT(expr, this.dateFn);
+      }*/
+      return this.GROUP_BY(expr, this.sink.createSink());
+    },
     function addToE(e) {
       var self = this;
       // TODO: figure out why BROWSE doesn't work after reloading
       e.startContext({data: this}).
         start().
           style({paddingLeft: '12px'}).
-          add(this.PROP, this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
+        add(this.PROP)./*
+        add(this.dynamic(function(prop) {
+          if ( foam.lang.Date.isInstance(prop) )
+            this.add(self.DATE_FN);
+        })).*/
+        add(this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
 

@@ -35,7 +35,7 @@ public abstract class AbstractStorage
     resourceDir_ = null;
   }
 
-  protected AbstractStorage (String root) {
+  protected AbstractStorage(String root) {
     resourceDir_ = root;
   }
 

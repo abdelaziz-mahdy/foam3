@@ -354,6 +354,8 @@ foam.CLASS({
   name: 'Block',
   extends: 'foam.u2.Accordion',
 
+  requires: ['foam.u2.WrapperNode'],
+
   implements: [ 'foam.core.reflow.Flowable' ],
 
   imports: [ 'data', 'showPrompts', 'addToScope', 'selected' ],
@@ -472,7 +474,7 @@ foam.CLASS({
       let self = this;
       this.SUPER();
       this.content.tag(this.borderClass, { ...this.border }, self.borderEl_$);
-      this.out = foam.u2.WrapperNode.create({ parentNode: this.content }, this);
+      this.out = this.WrapperNode.create({ parentNode: this.content }, this);
       self.borderEl_.add(this.out);
     },
     function render() {

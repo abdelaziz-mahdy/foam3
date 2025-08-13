@@ -634,7 +634,6 @@ foam.CLASS({
         // reason. This resets it back to 0.
         // TODO: find out why it is 2 and remove this code.
         this.flow.revision$.sub((sub, _, __, e) => {
-          console.log(e.get());
           if ( e.get() == 2 ) {
             sub.detach();
             setTimeout(() => this.mementoMgr.clear(), 100);
@@ -766,6 +765,9 @@ foam.CLASS({
       name: 'FlowAction',
       extends: 'foam.lang.Action',
       documentation: 'Small inner class to set up some basic view and configuration settings to make actions easier to use in console, might want to move this out if we ever want to use them outside these commands',
+      // the import has to be defined here, since we call the code in the action ?
+      imports: [ 'scope?' ],
+
       sections: [
         {
           name: 'config',
@@ -797,9 +799,13 @@ foam.CLASS({
         {
           name: 'code',
           expression: function(script) {
+            var self = this;
             if ( ! script ) return () => {};
-            return function(X) {
-              X.eval_(script);
+            return function() {
+              with ( self.scope ) {
+                var result = eval('(async function() { ' + self.script + ' })').call(self);
+                return result;
+              }
             }
           }
         },
