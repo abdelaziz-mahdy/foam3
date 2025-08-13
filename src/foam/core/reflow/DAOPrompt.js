@@ -113,6 +113,7 @@ foam.CLASS({
   ],
 
   requires: [
+    'foam.dao.ProxyDAO',
     'foam.core.reflow.TableDAOAgent',
     'foam.core.reflow.DAOPromptView',
     'foam.parse.QueryParser'
@@ -178,16 +179,16 @@ foam.CLASS({
       section: 'general',
       hidden: true,
       transient: true,
-      expression: function(skip, limit, filteredDAO) {
-        if ( ! filteredDAO ) return null;
-        if ( limit ) filteredDAO = filteredDAO.limit(limit);
-        if ( skip  ) filteredDAO = filteredDAO.skip(skip);
-        return filteredDAO;
+      expression: function(skip, limit, filteredDAO_) {
+        if ( ! filteredDAO_ ) return null;
+        if ( limit ) filteredDAO_ = filteredDAO_.limit(limit);
+        if ( skip  ) filteredDAO_ = filteredDAO_.skip(skip);
+        return filteredDAO_;
       }
     },
     {
       class: 'foam.dao.DAOProperty',
-      name: 'filteredDAO',
+      name: 'filteredDAO_',
       section: 'general',
       hidden: true,
       transient: true,
@@ -230,6 +231,11 @@ foam.CLASS({
 
         return dao;
       }
+    },
+    {
+      class: 'foam.dao.DAOProperty',
+      name: 'filteredDAO',
+      factory: function() { return this.ProxyDAO.create({delegate$: this.filteredDAO_$}); }
     },
     {
       class: 'Int',
