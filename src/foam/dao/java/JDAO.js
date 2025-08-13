@@ -94,7 +94,6 @@ In this current implementation setDelegate must be called last.`,
     },
     {
       name: 'delegate',
-      class: 'foam.dao.DAOProperty',
       javaFactory: 'return new MDAO(getOf());',
       javaPostSet: `
             var delegate = val;

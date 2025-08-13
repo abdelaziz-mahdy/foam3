@@ -2,7 +2,7 @@
 # Super simple launcher.
 
 HOST_NAME=`hostname -s`
-APP_HOME=$(dirname $(dirname $0))
+APP_HOME=
 APP_ROOT=$(echo $APP_HOME | cut -d "/" -f2)
 APP_NAME=$(echo $APP_HOME | cut -d "/" -f3)
 WEB_PORT=
@@ -35,8 +35,9 @@ function usage {
 # When used locally, the build.js arguments c (clean) and r (restart) are
 # handled as the script is often passed all parameters from build.js.
 # Similarly m and C are support for Medusa mediator configuration
-while getopts "D:dH:mN:P:pR:sW:V:" opt ; do
+while getopts "A:D:dH:mN:P:pR:sW:V:" opt ; do
     case $opt in
+        A) APP_HOME=${OPTARG};;
         D) DEBUG=1;
            if [ -n "${OPTARG}" ]; then
                DEBUG_PORT=${OPTARG};
@@ -59,7 +60,9 @@ while getopts "D:dH:mN:P:pR:sW:V:" opt ; do
    esac
 done
 
-APP_HOME="/${APP_ROOT}/${APP_NAME}"
+if [[ -z "${APP_HOME}" ]]; then
+    APP_HOME="/${APP_ROOT}/${APP_NAME}"
+fi
 
 echo "starting $APP_NAME @ $HOST_NAME:$WEB_PORT"
 

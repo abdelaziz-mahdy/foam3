@@ -6,6 +6,7 @@
 # - configuration for group name and id
 
 APP_NAME=
+APP_HOME=
 VERSION=
 USER=
 USER_ID=
@@ -35,6 +36,7 @@ function usage {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options are:"
+    echo "  -A app-home       : Application deployment directory"
     echo "  -B <true | false> : Backup"
     echo "  -C <true | false> : Configure as Medusa mediator"
     echo "  -T <path>         : Remote location of tarball"
@@ -47,8 +49,9 @@ function usage {
     echo ""
 }
 
-while getopts "B:C:E:N:T:U:V:W:Y:" opt ; do
+while getopts "A:B:C:E:N:T:U:V:W:Y:" opt ; do
     case $opt in
+        A) APP_HOME=${OPTARG};;
         B) BACKUP=${OPTARG};;
         C) CLUSTER=${OPTARG};;
         E) FOAM_REMOTE_OUTPUT=$OPTARG;;
@@ -62,8 +65,12 @@ while getopts "B:C:E:N:T:U:V:W:Y:" opt ; do
    esac
 done
 
-FOAM_ROOT=/opt/${APP_NAME}
-FOAM_HOME=/opt/${APP_NAME}-${VERSION}
+if [[ -z "${APP_HOME}" ]]; then
+    FOAM_ROOT=/opt/${APP_NAME}
+else
+    FOAM_ROOT="/${APP_ROOT}/${APP_NAME}"
+fi
+FOAM_HOME=${FOAM_ROOT}-${VERSION}
 MNT_HOME=/mnt/${APP_NAME}
 SHARED_HOME=${MNT_HOME}
 UNIQUE_HOME=${MNT_HOME}/$HOSTNAME

@@ -531,7 +531,8 @@ foam.CLASS({
                  this.setPrivate_(name, eFactory.call(this)) ;
         } :
         hasValue ? function valueGetter() {
-          var v = this.instance_[name];
+          if ( ! this.instance_ ) console.error('hasValue', value);
+          var v = this.instance_ && this.instance_[name];
           return v !== undefined ? v : value ;
         } :
         function simpleGetter() { return this.instance_[name]; };

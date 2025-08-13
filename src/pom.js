@@ -1150,7 +1150,6 @@ foam.POM({
     { name: "foam/box/SessionServerBox" },
     { name: "foam/box/socket/SocketRouter" },
     { name: "foam/box/socket/SocketServerProcessor" },
-    { name: "foam/box/socket/SocketWebAgent" },
     { name: "foam/net/WebSocket" },
     { name: "foam/test/TestUtils",                                    flags: "test" },
     { name: "foam/test/AddressUtilTests",                             flags: "test" },

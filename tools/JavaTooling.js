@@ -19,12 +19,14 @@ foam.POM({
     JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
     JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
     JOURNAL_OUT:       ['Build journals directory',() => `${PROJECT_HOME}/${BUILD_DIR}/journals`],
-    LOG_HOME:          ['Application logs directory',() => APP_NAME ? `${APP_HOME}/logs`: 'APP_HOME/logs']
+    LOG_HOME:          ['Application logs directory',() => APP_NAME ? `${APP_HOME}/logs`: 'APP_HOME/logs'],
+    SAF_HOME:          ['Application sf (store and forward) directory',() => `${APP_HOME}/saf`],
   },
 
   options: {
     benchmarks: ['', 'benchmarks', 'BENCHMARKS', 'Java benchmarks to execute', '', arg => BENCHMARKS = arg],
     bootScript: ['', 'boot-script', 'BOOT_SCRIPT', 'Boot executes a bootscript just after statup. This bootscript is how Test cases are run. TODO: elaborate.  bootScript:testRunnerScript','main', arg => BOOT_SCRIPT = arg ],
+    bootScriptAux: ['', 'boot-script-aux', 'BOOT_SCRIPT_AUX', 'Additional boot script to execute after the main bootScript. This bootscript is how Test cases are run. TODO: elaborate.  bootScriptAux:testRunnerScript','', arg => BOOT_SCRIPT_AUX = arg ],
     buildOnly: [ 'o', 'build-only', 'BUILD_ONLY', "Only execute java generation and java compilation build steps, don't start CORE server.", false, function(arg) { BUILD_ONLY = arg ? this.bool(arg) : true; } ],
     debug: [ 'd', 'debug', 'DEBUG', 'Launch JVM with JDPA debugging enabled. Default port 8000.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; } ],
     debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, args => DEBUG_PORT = args],
@@ -91,6 +93,9 @@ foam.POM({
 
     buildJavaMainArgs: ['build-java-main-args', 'Collection all options which should be passed to Java main', [], function() {
       JAVA_MAIN_ARGS = this.comma(JAVA_MAIN_ARGS, `boot.script:${BOOT_SCRIPT}`);
+      if ( BOOT_SCRIPT_AUX ) {
+        JAVA_MAIN_ARGS = this.comma(JAVA_MAIN_ARGS, `boot.script.aux:${BOOT_SCRIPT_AUX}`);
+      }
     }],
 
     buildJavaManifest: ['build-java-manifest', 'Contribute to Java Manifest', ['buildJavaMainArgs'], function() {
@@ -162,6 +167,7 @@ foam.POM({
     deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals.', [], function() {
       this.info('Runtime journals deleted.');
       this.emptyDir(JOURNAL_HOME);
+      this.emptyDir(SAF_HOME);
     }],
 
     genImages: ['gen-images', 'Prepare images from inclusion in jar.', [], function() {
@@ -222,13 +228,14 @@ foam.POM({
     // TODO: not tested
     javaBenchmarks: ['java-benchmarks', 'Run all or specified benchmarks. ex: javaBenchmarks[:Benchmark1,Benchmark2]', [/*'stopCORE'*/], function(args) {
       BENCHMARKS=args;
+      APP_NAME = 'benchmark';
       APP_ROOT = ! APP_ROOT || APP_ROOT == '/opt' ? '/tmp' : APP_ROOT;
       FLAGS = this.comma(FLAGS, 'test');
       // this.addJournal('test'); ??
       this.execute('pomEnvs');
       if ( CLEAN ) this.execute('clean');
       this.execute('cleanTest');
-      BOOT_SCRIPT = 'benchmarkRunnerScript';
+      BOOT_SCRIPT_AUX = 'benchmarkRunnerScript';
 
       this.execute('buildJar');
       this.execute('startCORETest', 'benchmark');
@@ -248,14 +255,15 @@ foam.POM({
 
     javaTests: ['java-tests', 'Run all or specified test cases. ex: javaTests[:Test1,Test2]', [], function(args) {
       TESTS=args;
+      APP_NAME = 'test';
       APP_ROOT = ! APP_ROOT || APP_ROOT == '/opt' ? '/tmp' : APP_ROOT;
       FLAGS = this.comma(FLAGS, 'test');
-      this.addJournal('test');
       this.addJournal('../foam3/deployment/test');
+      this.addJournal('test');
       this.execute('pomEnvs');
       if ( CLEAN ) this.execute('clean');
       this.execute('cleanTest');
-      BOOT_SCRIPT = 'testRunnerScript';
+      BOOT_SCRIPT_AUX = 'testRunnerScript';
       this.execute('buildJar');
       this.execute('startCORETest', 'test');
     }],
@@ -281,6 +289,7 @@ foam.POM({
 
     startCORE: ['start-core', 'Start CORE server (CLASSPATH).', ['setupDirs', 'deployJournals', 'deployDocuments', 'deployLib', 'buildJavaOpts', 'buildJavaMainArgs'], function() {
 
+      JAVA_OPTS += ` -Dhostname=test`;
       JAVA_OPTS += ` -Dcore.webroot=${PROJECT_HOME}`;
       JAVA_OPTS += ` -Duser.timezone=${TIMEZONE}`;
 
@@ -299,7 +308,7 @@ foam.POM({
       if ( BUILD_ONLY ) return;
 
       // see etc/shrc.local for jdwp configuration
-      this.execSync(`${APP_HOME}/bin/run.sh -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`, { stdio: 'inherit' });
+      this.execSync(`${APP_HOME}/bin/run.sh -A${APP_HOME} -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`, { stdio: 'inherit' });
 
       // TODO: Previously support running as a daemon process and using 'stop' to kill
       // z: [ 'Daemonize into the background, will write PID into $PIDFILE environment variable.',

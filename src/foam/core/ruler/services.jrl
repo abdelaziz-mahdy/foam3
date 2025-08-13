@@ -93,7 +93,7 @@ p({
       .setSeqNo(true)
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setJournalName("ruleHistory")
-      .setSAF(true)
+      .setSaf(true)
       .setRuler(false)
       .setPm(true)
       .setFixedSize(new foam.dao.FixedSizeDAO.Builder(x)
