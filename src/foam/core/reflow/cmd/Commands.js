@@ -349,18 +349,13 @@ foam.CLASS({
           var shortName = n.name;
           if ( shortName.endsWith('DAO') ) shortName = shortName.substring(0, shortName.length-3);
 
-          var daoFn = () => self.eval_('dao ' + shortName);
-          var addFn = () => self.eval_('add ' + shortName);
-          var uplFn = () => self.eval_('upload ' + shortName);
-          var desFn = () => self.eval_('describe(' + of.id + ')');
-
-            this.tag(self.DAORowView, {
-              shortName: shortName,
-              description: n.description,
-              ofId: of.id,
-              uploadAvailable: self.uploadAvailable,
-              data: self
-            });
+          this.tag(self.DAORowView, {
+            shortName: shortName,
+            description: n.description,
+            ofId: of.id,
+            uploadAvailable: self.uploadAvailable,
+            data: self
+          });
         }).
         end().
         start('b').add(count, ' selected').end();
