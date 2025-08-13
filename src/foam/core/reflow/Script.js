@@ -44,7 +44,7 @@ foam.CLASS({
 
   methods: [
     function onLoad() {
-      if ( this.autoRun ) this.run();
+      if ( this.autoRun ) return this.run();
     },
 
     function log() {
@@ -56,7 +56,9 @@ foam.CLASS({
     function run() {
       with ( this.scope ) {
         with ( { log: this.log.bind(this) } ) {
-          this.log(eval('(function() {' + this.code + '})').call(this.block));
+          var ret = eval('(async function() {' + this.code + '})').call(this.block);
+          this.log(ret);
+          return ret;
         }
       }
     },

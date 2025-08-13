@@ -766,6 +766,19 @@ foam.CLASS({
       value: 'Metric'
     },
     {
+      class: 'String',
+      name: 'icon',
+      label: 'Icon',
+      help: 'Theme icon name to display above the metric value (e.g., "chart", "users", "dollar")'
+    },
+    {
+      class: 'Enum',
+      name: 'alignment',
+      label: 'Alignment',
+      of: 'foam.core.reflow.dashboard.MetricAlignment',
+      value: 'CENTER'
+    },
+    {
       class: 'Boolean',
       name: 'showCount',
       label: 'Show Record Count',
@@ -823,6 +836,8 @@ foam.CLASS({
           .start('div').style({marginBottom: '10px'})
             .add('Label: ', this.LABEL, ' Unit: ', this.UNIT)
           .end()
+          add('Icon: ', this.ICON).
+          add('Alignment: ', this.ALIGNMENT)
           .start('div').style({marginBottom: '10px'})
             .add('Show Count: ', this.SHOW_COUNT)
           .end()

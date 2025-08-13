@@ -354,6 +354,8 @@ foam.CLASS({
   name: 'Block',
   extends: 'foam.u2.Accordion',
 
+  requires: ['foam.u2.WrapperNode'],
+
   implements: [ 'foam.core.reflow.Flowable' ],
 
   imports: [ 'data', 'showPrompts', 'addToScope', 'selected' ],
@@ -472,7 +474,7 @@ foam.CLASS({
       let self = this;
       this.SUPER();
       this.content.tag(this.borderClass, { ...this.border }, self.borderEl_$);
-      this.out = foam.u2.WrapperNode.create({ parentNode: this.content }, this);
+      this.out = this.WrapperNode.create({ parentNode: this.content }, this);
       self.borderEl_.add(this.out);
     },
     function render() {
@@ -535,10 +537,11 @@ foam.CLASS({
       isFramed: true,
       on: ['this.propertyChange.borderClass'],
       code: function() {
-          let el = this.borderClass.create({...(this.border || {})}, this);
-          this.out.moveTo(el);
-          el.replaceElement_(this.borderEl_);
-          this.borderEl_ = el;
+        if ( ! this.WrapperNode.isInstance(this.out) ) return;
+        let el = this.borderClass.create({...(this.border || {})}, this);
+        this.out.moveTo(el);
+        el.replaceElement_(this.borderEl_);
+        this.borderEl_ = el;
       }
     },
     {
@@ -995,6 +998,9 @@ foam.CLASS({
         let args = { ...c };
         if ( args.value )
           delete args.value;
+        // Don't copy flowChildren as they'll be processed separately
+        if ( args.flowChildren )
+          delete args.flowChildren;
         this.currentBlock.copyFrom(args);
 
         if ( this.currentBlock.value && c.value ) {
@@ -1484,7 +1490,8 @@ foam.CLASS({
         let subFn = c => {
           var prev;
           if ( c.value ) {
-            this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
+            if ( c.value.sub )
+              this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
 
             // TODO: this is a little hackish, it would be better if DAOPrompt tracked
             // that itself and updated its own hidden revision property

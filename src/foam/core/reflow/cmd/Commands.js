@@ -267,6 +267,32 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow.cmd',
+  name: 'DAOFilter',
+  extends: 'foam.core.reflow.cmd.Command',
+
+  requires: [ 'foam.core.reflow.DAOFilterPrompt' ],
+
+  imports: [ 'createFlowChildName' ],
+
+  properties: [
+    [ 'description', 'Perform DAO filter operation' ]
+  ],
+
+  methods: [
+    function execute(dao, opt_label) {
+      var p = this.DAOFilterPrompt.create({dao: dao, label: opt_label});
+
+      p.addToE(this.out);
+      this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
+      this.currentBlock.obj    = p;
+      this.currentBlock.value  = p;
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.core.reflow.cmd',
   name: 'DAOCreateSave',
 
   properties: [
@@ -349,18 +375,13 @@ foam.CLASS({
           var shortName = n.name;
           if ( shortName.endsWith('DAO') ) shortName = shortName.substring(0, shortName.length-3);
 
-          var daoFn = () => self.eval_('dao ' + shortName);
-          var addFn = () => self.eval_('add ' + shortName);
-          var uplFn = () => self.eval_('upload ' + shortName);
-          var desFn = () => self.eval_('describe(' + of.id + ')');
-
-            this.tag(self.DAORowView, {
-              shortName: shortName,
-              description: n.description,
-              ofId: of.id,
-              uploadAvailable: self.uploadAvailable,
-              data: self
-            });
+          this.tag(self.DAORowView, {
+            shortName: shortName,
+            description: n.description,
+            ofId: of.id,
+            uploadAvailable: self.uploadAvailable,
+            data: self
+          });
         }).
         end().
         start('b').add(count, ' selected').end();
@@ -608,7 +629,6 @@ foam.CLASS({
         // reason. This resets it back to 0.
         // TODO: find out why it is 2 and remove this code.
         this.flow.revision$.sub((sub, _, __, e) => {
-          console.log(e.get());
           if ( e.get() == 2 ) {
             sub.detach();
             setTimeout(() => this.mementoMgr.clear(), 100);
@@ -740,6 +760,9 @@ foam.CLASS({
       name: 'FlowAction',
       extends: 'foam.lang.Action',
       documentation: 'Small inner class to set up some basic view and configuration settings to make actions easier to use in console, might want to move this out if we ever want to use them outside these commands',
+      // the import has to be defined here, since we call the code in the action ?
+      imports: [ 'scope?' ],
+
       sections: [
         {
           name: 'config',
@@ -771,9 +794,13 @@ foam.CLASS({
         {
           name: 'code',
           expression: function(script) {
+            var self = this;
             if ( ! script ) return () => {};
-            return function(X) {
-              X.eval_(script);
+            return function() {
+              with ( self.scope ) {
+                var result = eval('(async function() { ' + self.script + ' })').call(self);
+                return result;
+              }
             }
           }
         },

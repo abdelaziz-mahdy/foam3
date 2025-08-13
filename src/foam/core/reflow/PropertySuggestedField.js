@@ -146,6 +146,8 @@ foam.CLASS({
           if ( self.autocompleter ) {
             self.autocompleter.onUpdate();
           }
+        } else {
+          self.inputFocused = false;
         }
       }));
     },
