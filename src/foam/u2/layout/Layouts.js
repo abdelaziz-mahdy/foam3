@@ -158,6 +158,7 @@ foam.CLASS({
       }
     },
     {
+      // redefined here to control the property order, to show it last
       name: 'shown',
     },
   ],
