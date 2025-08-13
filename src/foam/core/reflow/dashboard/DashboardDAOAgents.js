@@ -114,6 +114,13 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
+      name: 'showTooltipSum',
+      label: 'Show Tooltip Sum',
+      value: false,
+      help: 'Show sum total in tooltip footer when multiple values are displayed'
+    },
+    {
+      class: 'Boolean',
       name: 'animate',
       label: 'Enable Animation',
       value: true
@@ -145,7 +152,7 @@ foam.CLASS({
         }))
       .end()
       .start('div').style({marginBottom: '10px'})
-        .add('Tooltips: ', this.SHOW_TOOLTIPS, ' Animation: ', this.ANIMATE)
+        .add('Tooltips: ', this.SHOW_TOOLTIPS, ' Sum: ', this.SHOW_TOOLTIP_SUM, ' Animation: ', this.ANIMATE)
         .add(self.dynamic(function(animate) {
           if (animate) {
             return this.add(' Duration: ', self.ANIMATION_DURATION, 'ms');
@@ -249,6 +256,7 @@ foam.CLASS({
         showLegend: this.showLegend,
         legendPosition: this.legendPosition,
         showTooltips: this.showTooltips,
+        showTooltipSum: this.showTooltipSum,
         animate: this.animate,
         animationDuration: this.animationDuration
       });
@@ -365,6 +373,7 @@ foam.CLASS({
         showLegend: this.showLegend,
         legendPosition: this.legendPosition,
         showTooltips: this.showTooltips,
+        showTooltipSum: this.showTooltipSum,
         animate: this.animate,
         animationDuration: this.animationDuration
       });
@@ -374,7 +383,7 @@ foam.CLASS({
       e.startContext({data: this})
         .start('div').style({padding: '10px'})
           .start('div').style({marginBottom: '10px'})
-            .add('X-Axis: ', this.PROP1, ' Stack By: ', this.PROP2)
+            .add('X-Axis: ', this.PROP2, ' Stack By: ', this.PROP1)
           .end()
           .start('div').style({marginBottom: '10px'})
             .add('Accumulator: ', this.SINK, ' Time Unit: ', this.TIME_UNIT)
@@ -467,6 +476,7 @@ foam.CLASS({
         showLegend: this.showLegend,
         legendPosition: this.legendPosition,
         showTooltips: this.showTooltips,
+        showTooltipSum: this.showTooltipSum,
         animate: this.animate,
         animationDuration: this.animationDuration
       });
@@ -562,7 +572,10 @@ foam.CLASS({
       name: 'aggregationSink',
       label: 'Aggregation',
       view: { class: 'foam.core.reflow.SinkView', choice: 'Average' },
-      help: 'How to aggregate Y values when grouping'
+      help: 'How to aggregate Y values when grouping',
+      visibility: function(groupBy) {
+        return groupBy ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
     },
     {
       class: 'Enum',
@@ -657,6 +670,7 @@ foam.CLASS({
         showLegend: this.showLegend,
         legendPosition: this.legendPosition,
         showTooltips: this.showTooltips,
+        showTooltipSum: this.showTooltipSum,
         animate: this.animate,
         animationDuration: this.animationDuration
       });
@@ -674,7 +688,7 @@ foam.CLASS({
             .add('X: ', this.X_PROP, ' Y: ', this.Y_PROP)
           .end()
           .start('div').style({marginBottom: '10px'})
-            .add('Group By: ', this.GROUP_BY || 'None')
+            .add('Group By: ', this.GROUP_BY)
             .add(self.dynamic(function(groupBy) {
               if (groupBy) {
                 return this.add(' Aggregate: ', self.AGGREGATION_SINK);

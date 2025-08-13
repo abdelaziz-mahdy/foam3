@@ -46,13 +46,14 @@ foam.CLASS({
     { name: 'showLegend', value: false },  // Bar charts typically don't need legend for single dataset
     { name: 'legendPosition', value: 'TOP' },
     { name: 'showTooltips', value: true },
+    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { name: 'animate', value: true },
     { name: 'animationDuration', value: 1000 },
     {
       name: 'chart_',
       expression: function(groups, colors, timeUnit, horizontal, barThickness, datasetLabel, xAxisLabel, yAxisLabel, 
                           showGridLines, responsive, maintainAspectRatio, showLegend, 
-                          legendPosition, showTooltips, animate, animationDuration) {
+                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration) {
         
         var labels = [];
         var data = [];
@@ -112,7 +113,16 @@ foam.CLASS({
               position: legendPosition ? legendPosition.toString().toLowerCase() : 'top'
             },
             tooltip: {
-              enabled: showTooltips
+              enabled: showTooltips,
+              callbacks: showTooltipSum ? {
+                footer: function(tooltipItems) {
+                  var sum = 0;
+                  tooltipItems.forEach(function(tooltipItem) {
+                    sum += tooltipItem.parsed.y || tooltipItem.parsed.x || 0;
+                  });
+                  return 'Sum: ' + sum.toLocaleString();
+                }
+              } : undefined
             }
           },
           animation: animate ? {
@@ -218,13 +228,14 @@ foam.CLASS({
     },    { name: 'showLegend', value: true },
     { name: 'legendPosition', value: 'TOP' },
     { name: 'showTooltips', value: true },
+    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { name: 'animate', value: true },
     { name: 'animationDuration', value: 1000 },
     {
       name: 'chart_',
       expression: function(groups, colors, showPercentages, cutoutPercentage, clockwise, rotation,
                           responsive, maintainAspectRatio, showLegend, 
-                          legendPosition, showTooltips, animate, animationDuration) {
+                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration) {
         
         var labels = [];
         var data = [];
@@ -269,7 +280,16 @@ foam.CLASS({
               position: legendPosition ? legendPosition.toString().toLowerCase() : 'top'
             },
             tooltip: {
-              enabled: showTooltips
+              enabled: showTooltips,
+              callbacks: showTooltipSum ? {
+                footer: function(tooltipItems) {
+                  var sum = 0;
+                  tooltipItems.forEach(function(tooltipItem) {
+                    sum += tooltipItem.parsed || 0;
+                  });
+                  return 'Sum: ' + sum.toLocaleString();
+                }
+              } : undefined
             },
             datalabels: {
               display: true,
@@ -355,13 +375,14 @@ foam.CLASS({
     { name: 'showLegend', value: true },
     { name: 'legendPosition', value: 'TOP' },
     { name: 'showTooltips', value: true },
+    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { name: 'animate', value: true },
     { name: 'animationDuration', value: 1000 },
     {
       name: 'chart_',
       expression: function(cols, rows, colors, timeUnit, horizontal, xAxisLabel, yAxisLabel,
                           showGridLines, responsive, maintainAspectRatio,
-                          showLegend, legendPosition, showTooltips, animate, animationDuration) {
+                          showLegend, legendPosition, showTooltips, showTooltipSum, animate, animationDuration) {
         var colGroups = cols && cols.groups ? cols.groups : {};
         var rowGroups = rows && rows.groups ? rows.groups : {};
         
@@ -446,7 +467,16 @@ foam.CLASS({
             tooltip: {
               enabled: showTooltips,
               mode: 'index',
-              intersect: false
+              intersect: false,
+              callbacks: showTooltipSum ? {
+                footer: function(tooltipItems) {
+                  var sum = 0;
+                  tooltipItems.forEach(function(tooltipItem) {
+                    sum += tooltipItem.parsed.y || 0;
+                  });
+                  return 'Sum: ' + sum.toLocaleString();
+                }
+              } : undefined
             },
             datalabels: {
               display: true,
@@ -569,6 +599,7 @@ foam.CLASS({
     { name: 'showLegend', value: true },
     { name: 'legendPosition', value: 'TOP' },
     { name: 'showTooltips', value: true },
+    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer (for multiple lines)' },
     { name: 'animate', value: true },
     { name: 'animationDuration', value: 1000 },
     {
@@ -576,7 +607,7 @@ foam.CLASS({
       expression: function(array, xProp, yProp, groupBy, aggregationSink, timeUnit, colors, xAxisLabel, yAxisLabel,
                           fill, tension, stepped, showPoints, pointRadius, showGridLines,
                           responsive, maintainAspectRatio, showLegend, legendPosition,
-                          showTooltips, animate, animationDuration) {
+                          showTooltips, showTooltipSum, animate, animationDuration) {
         var self = this;
         var datasets = [];
         
@@ -599,24 +630,66 @@ foam.CLASS({
           for ( var key in groups ) {
             if ( groups.hasOwnProperty(key) ) {
               var data = [];
-              groups[key].forEach(function(obj) {
-                var xVal = obj[xProp.name];
-                var yVal = obj[yProp.name];
-                
-                if ( xVal != null && yVal != null ) {
-                  // For date/time properties, ensure we have a proper Date object or timestamp
-                  var processedXVal = xVal;
-                  if ( foam.lang.Date.isInstance(xProp) || foam.lang.DateTime.isInstance(xProp) ) {
-                    // Convert to Date object if it's a timestamp or string
-                    if ( typeof xVal === 'number' || typeof xVal === 'string' ) {
-                      processedXVal = new Date(xVal);
+              
+              // If we have aggregationSink, group by X values and aggregate Y values
+              if ( aggregationSink ) {
+                // Group by X value within this line group
+                var xGroups = {};
+                groups[key].forEach(function(obj) {
+                  var xVal = obj[xProp.name];
+                  var yVal = obj[yProp.name];
+                  
+                  if ( xVal != null && yVal != null ) {
+                    var xKey = xVal;
+                    // For dates, use consistent key format
+                    if ( foam.lang.Date.isInstance(xProp) || foam.lang.DateTime.isInstance(xProp) ) {
+                      xKey = new Date(xVal).toISOString();
                     }
-                  } else if ( xProp.chartJsFormatter ) {
-                    processedXVal = xProp.chartJsFormatter(xVal);
+                    
+                    if ( !xGroups[xKey] ) {
+                      xGroups[xKey] = {
+                        x: xVal,
+                        sink: aggregationSink.createSink(yProp)
+                      };
+                    }
+                    // Put the object into the sink for aggregation
+                    xGroups[xKey].sink.put(obj);
                   }
-                  data.push({x: processedXVal, y: yVal});
+                });
+                
+                // Extract aggregated values
+                for ( var xKey in xGroups ) {
+                  if ( xGroups.hasOwnProperty(xKey) ) {
+                    var processedXVal = xGroups[xKey].x;
+                    if ( foam.lang.Date.isInstance(xProp) || foam.lang.DateTime.isInstance(xProp) ) {
+                      if ( typeof processedXVal === 'number' || typeof processedXVal === 'string' ) {
+                        processedXVal = new Date(processedXVal);
+                      }
+                    } else if ( xProp.chartJsFormatter ) {
+                      processedXVal = xProp.chartJsFormatter(processedXVal);
+                    }
+                    data.push({x: processedXVal, y: xGroups[xKey].sink.value});
+                  }
                 }
-              });
+              } else {
+                // No aggregation - use raw values
+                groups[key].forEach(function(obj) {
+                  var xVal = obj[xProp.name];
+                  var yVal = obj[yProp.name];
+                  
+                  if ( xVal != null && yVal != null ) {
+                    var processedXVal = xVal;
+                    if ( foam.lang.Date.isInstance(xProp) || foam.lang.DateTime.isInstance(xProp) ) {
+                      if ( typeof xVal === 'number' || typeof xVal === 'string' ) {
+                        processedXVal = new Date(xVal);
+                      }
+                    } else if ( xProp.chartJsFormatter ) {
+                      processedXVal = xProp.chartJsFormatter(xVal);
+                    }
+                    data.push({x: processedXVal, y: yVal});
+                  }
+                });
+              }
               
               // Sort by X value
               data.sort(function(a, b) {
@@ -708,7 +781,16 @@ foam.CLASS({
             tooltip: {
               enabled: showTooltips,
               mode: datasets.length > 1 ? 'index' : 'nearest',
-              intersect: false
+              intersect: false,
+              callbacks: showTooltipSum && datasets.length > 1 ? {
+                footer: function(tooltipItems) {
+                  var sum = 0;
+                  tooltipItems.forEach(function(tooltipItem) {
+                    sum += tooltipItem.parsed.y || 0;
+                  });
+                  return 'Sum: ' + sum.toLocaleString();
+                }
+              } : undefined
             }
           },
           animation: animate ? {
