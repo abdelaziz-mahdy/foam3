@@ -418,7 +418,6 @@ visible      },
     {
       name: 'describeModel',
       section: 'actions',
-      availablePermissions: [ 'command.read.describe' ],
       code: function() {
         this.eval_('describe ' + this.dao.of.id);
       }
