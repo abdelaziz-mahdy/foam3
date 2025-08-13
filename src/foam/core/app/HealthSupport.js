@@ -20,14 +20,6 @@ foam.CLASS({
     'foam.lang.X'
   ],
 
-  properties: [
-    {
-      name: 'statusManagementManual',
-      class: 'Boolean',
-      value: false,
-    }
-  ],
-
   methods: [
     {
       name: 'getLocalHealth',

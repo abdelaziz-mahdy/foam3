@@ -273,13 +273,8 @@ foam.CLASS({
 
     Health old = (Health) ((DAO) x.get("healthDAO")).find_(x, getId());
     if ( old != null ) {
-      if ( ((HealthSupport) x.get("healthSupport")).getStatusManagementManual() ) {
-        // Loggers.logger(x, this).debug("Health.setStatus", getId(), "manual", getStatus(), old.getStatus() );
-        setStatus(old.getStatus());
-      } else {
-        // Loggers.logger(x, this).debug("Health.setStatus", getId(), "auto", getStatus(), old.getStatus() );
-        setStatus(HealthStatus.UP);
-      }
+      // creation via the factory sets the status to the default.
+      setStatus(old.getStatus());
     }
   }
   `,

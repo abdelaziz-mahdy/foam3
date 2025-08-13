@@ -56,7 +56,7 @@
 
 const { adaptOrCreateArgs, bool, buildEnv, addOptions, comma, copyDir, copyFile, emptyDir, ensureDir, exec, execSync, exportEnvs, findOption, findSimilarOptions, findTask, findSimilarTasks, flag, hyphenate, info, isExcluded, log, processBuildArgs, processToolingArgs, rmdir, rmfile, spawn, stat, warning, writeFileIfUpdated, verbose } = require('./buildlib');
 const { appendFileSync, existsSync, openSync, readdirSync, readFileSync, writeFileSync } = require('fs');
-const os = require('os');
+const { homedir, hostname, platform}              = require('os');
 const { join }                                    = require('path');
 const pmake                                       = require('./pmake');
 
@@ -411,11 +411,14 @@ EXPORTS = Object.assign(EXPORTS, {
   findOption,
   findTask,
   flag,
+  homedir,
+  hostname,
   info,
   isExcluded,
   join,
   log,
   openSync,
+  platform,
   pmake,
   readdirSync,
   readFileSync,
@@ -429,8 +432,8 @@ EXPORTS = Object.assign(EXPORTS, {
 });
 
 TOOLING_OPTIONS = addOptions({
-  homeDir: ['', 'home-dir', 'HOME_DIR', 'Home directory of user executing build', () => os.homedir(), arg => HOME_DIR = arg ],
-  platform: ['', 'platform', 'PLATFORM', 'Operation System Type. One of: darwin (MacOS), freebsd, linux, win32', () => os.platform(), arg => PLATFORM = arg ],
+  homeDir: ['', 'home-dir', 'HOME_DIR', 'Home directory of user executing build', () => homedir(), arg => HOME_DIR = arg ],
+  platform: ['', 'platform', 'PLATFORM', 'Operation System Type. One of: darwin (MacOS), freebsd, linux, win32', () => platform(), arg => PLATFORM = arg ],
   silent: ['', 'silent', 'SILENT', "Suppress all 'info' and 'warning' log messages.", false, function(arg) { SILENT = arg ? bool(arg) : true; }],
   toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'.  To \'add\' tooling to default list, prefix name with +.',
                  function() {
@@ -477,7 +480,7 @@ OPTIONS = addOptions({
     HELP = true;
     TOPIC_HELP = arg;
   }],
-  hostname: ['', 'hostname', 'HOST_NAME', 'Hostname to set in JVM', () => os.hostname(), arg => HOST_NAME = org ],
+  hostname: ['', 'hostname', 'HOST_NAME', 'Hostname to set in JVM', () => hostname(), arg => HOST_NAME = org ],
   nop: ['', 'nop', 'NOP', 'List of task NOT to run. ex: --nop:genJS,genJava', '', arg => NOP = comma(NOP, arg) ],
   poms: [ 'P', 'poms', 'POMS', "comma seperated list of pom files. Defaults to 'pom' at the root of the project.", '', arg => POMS = arg ],
   projectHome: ['', 'project-home', 'PROJECT_HOME', 'Project directory', process.cwd(), arg => PROJECT_HOME = arg ],

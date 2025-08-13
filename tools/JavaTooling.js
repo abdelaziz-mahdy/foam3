@@ -117,15 +117,19 @@ foam.POM({
     buildJavaOpts: ['build-java-opts', 'Set Java environmental variables.', [], function() {
       JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;
       JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
-      if ( HOST_NAME !== 'localhost' ) {
-        JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
-      }
       if ( WEB_PORT ) {
         JAVA_OPTS += ` -Dhttp.port=${WEB_PORT}`;
       }
     }],
 
     buildJavaTestOpts: ['build-java-test-ops', 'Add test specific JAVA_OPTS', ['buildJavaOpts'], function() {
+      JAVA_OPTS += ` -Dapp.name=${APP_NAME}`;
+      if ( HOST_NAME == this.hostname() ) {
+        HOST_NAME = 'test';
+      }
+      JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
+      JAVA_OPTS += ` -Duser.timezone=${TIMEZONE}`;
+
       JAVA_OPTS += ' -enableassertions';
       JAVA_OPTS += ' -Dresource.journals.dir=journals';
       JAVA_OPTS += ' -DRES_JAR_HOME=' + JAR_OUT;
@@ -289,7 +293,10 @@ foam.POM({
 
     startCORE: ['start-core', 'Start CORE server (CLASSPATH).', ['setupDirs', 'deployJournals', 'deployDocuments', 'deployLib', 'buildJavaOpts', 'buildJavaMainArgs'], function() {
 
-      JAVA_OPTS += ` -Dhostname=test`;
+      if ( HOST_NAME !== 'localhost' ) {
+        JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
+      }
+      JAVA_OPTS += ` -Dapp.name=${APP_NAME}`;
       JAVA_OPTS += ` -Dcore.webroot=${PROJECT_HOME}`;
       JAVA_OPTS += ` -Duser.timezone=${TIMEZONE}`;
 
@@ -306,6 +313,10 @@ foam.POM({
 
     startCOREJar: ['start-core-jar', 'Start CORE server (JAR).', [/*'stopCORE',*/ 'setupDirs', 'deployBin', 'deployLib', 'buildJavaOpts', 'buildRunArgs', 'showSummary'], function() {
       if ( BUILD_ONLY ) return;
+
+      if ( HOST_NAME !== 'localhost' ) {
+        JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
+      }
 
       // see etc/shrc.local for jdwp configuration
       this.execSync(`${APP_HOME}/bin/run.sh -A${APP_HOME} -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`, { stdio: 'inherit' });
@@ -326,8 +337,6 @@ foam.POM({
 
     startCORETest: ['start-core-test', 'Start CORE server (Test, Benchmarks).', ['deployJournals', 'deployDocuments', 'deployLib', 'buildJavaTestOpts'], function(mode) {
       MESSAGE = 'Running tests...';
-
-      JAVA_OPTS += ` -Duser.timezone=${TIMEZONE}`;
 
       if ( mode === 'benchmark' ) {
         MESSAGE = 'Running benchmarks...';
