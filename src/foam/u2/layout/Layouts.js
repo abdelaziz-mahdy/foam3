@@ -113,7 +113,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'autoWidth',
-      value: false,
+      value: true,
       documentation: 'When true, automatically distributes width based on layout type. Vertical layouts: children take full width. Horizontal layouts: children share width equally.',
       visibility: function(layoutType) {
         return layoutType === 'grid' ? 'HIDDEN' : 'RW';

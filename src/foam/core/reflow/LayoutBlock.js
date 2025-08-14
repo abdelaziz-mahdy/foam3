@@ -41,7 +41,7 @@ foam.CLASS({
       this.
         addClass(self.myClass()).
         tag(this.ReflowToolBar);
-      this.content.tag(this.Layout, { autoWidth: true }, this.cmdHolder$);
+      this.content.tag(this.Layout, { }, this.cmdHolder$);
       let sub = () => {
         this.addValue(this.cmdHolder, true);
       };
