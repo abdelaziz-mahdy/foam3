@@ -54,6 +54,14 @@ foam.CLASS({
       overflow: auto;
       align-items: stretch;
     }
+    ^autoWidth[layoutType="column"] > * {
+      width: 100%;
+    }
+    ^autoWidth[layoutType="row"] > * {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: auto;
+    }
   `,
   properties: [
     {
@@ -100,6 +108,15 @@ foam.CLASS({
       },
       postSet: function(_,n) {
         this.align = n ? 'flex-start': ['flex-start', 'flex-start'];
+      }
+    },
+    {
+      class: 'Boolean',
+      name: 'autoWidth',
+      value: false,
+      documentation: 'When true, automatically distributes width based on layout type. Vertical layouts: children take full width. Horizontal layouts: children share width equally.',
+      visibility: function(layoutType) {
+        return layoutType === 'grid' ? 'HIDDEN' : 'RW';
       }
     },
     {
@@ -166,6 +183,8 @@ foam.CLASS({
     function render() {
       this.SUPER();
       this.addClass();
+      this.enableClass(this.myClass('autoWidth'), this.autoWidth$);
+      this.attrs({ layoutType: this.layoutType$ });
       this.style({
         display: this.layoutType$.map(v => v != 'grid' ? 'flex' : v),
         'flex-direction': this.layoutType$.map(v => v != 'grid' ? v : 'unset'),
