@@ -68,10 +68,9 @@ foam.CLASS({
 
   properties: [
     {
-      class: 'String',
       name: 'label',
       factory: function() {
-        return String(this.value);
+        return this.data?.toSummary() ?? '';
       }
     },
     {
