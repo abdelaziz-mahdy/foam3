@@ -958,6 +958,7 @@ foam.POM({
     { name: "foam/u2/view/DAOtoFObjectArrayView",                     flags: "web" },
     { name: "foam/u2/view/CarouselView",                              flags: "web" },
     { name: "foam/u2/layout/DisplayWidth",                            flags: "js|java" },
+    { name: "foam/u2/layout/ChildSize",                               flags: "web" },
     { name: "foam/u2/layout/Layouts",                                 flags: "web" },
     { name: "foam/u2/layout/Grid",                                    flags: "web" },
     { name: "foam/u2/layout/Card",                                    flags: "web" },

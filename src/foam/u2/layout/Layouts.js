@@ -48,6 +48,17 @@ foam.CLASS({
   package: 'foam.u2.layout',
   name: 'Layout',
   extends: 'foam.u2.Element',
+  
+  imports: [
+    'setTimeout',
+    'clearTimeout'
+  ],
+  
+  requires: [
+    'foam.u2.layout.ChildSize',
+    'foam.u2.layout.SizeMode'
+  ],
+  
   documentation: 'Element that acts as a wrapper div, can change between flex and grid based on properties',
   css: `
     ^ {
@@ -56,11 +67,6 @@ foam.CLASS({
     }
     ^autoWidth[layoutType="column"] > * {
       width: 100%;
-    }
-    ^autoWidth[layoutType="row"] > * {
-      flex: 1 1 auto;
-      min-width: 0;
-      overflow: auto;
     }
   `,
   properties: [
@@ -76,10 +82,14 @@ foam.CLASS({
         class: 'foam.u2.view.ChoiceView',
         choices: [['row', 'Horizontal'], ['column', 'Vertical'], 'grid']
       },
-      postSet: function(_,n) {
+      postSet: function(o, n) {
         if ( n === 'grid' ) {
           this.autoGap = false;
           this.align = ['stretch', 'stretch'];
+        }
+        // Update child styles when layout changes
+        if ( o !== n ) {
+          this.updateAllChildStyles && this.updateAllChildStyles();
         }
       }
     },
@@ -114,9 +124,41 @@ foam.CLASS({
       class: 'Boolean',
       name: 'autoWidth',
       value: false,
-      documentation: 'When true, automatically distributes width based on layout type. Vertical layouts: children take full width. Horizontal layouts: children share width equally.',
+      documentation: 'When true, automatically distributes width based on layout type. Vertical layouts: children take full width. Horizontal layouts: children share width equally. Ignored when childSizes are specified.',
+      visibility: function(layoutType, childSizes) {
+        // Hide autoWidth if grid layout or if childSizes are specified for row layout
+        if ( layoutType === 'grid' ) return 'HIDDEN';
+        if ( layoutType === 'row' && childSizes && childSizes.length > 0 ) return 'HIDDEN';
+        return 'RW';
+      },
+      postSet: function(o, n) {
+        if ( o !== n ) {
+          this.updateAllChildStyles && this.updateAllChildStyles();
+        }
+      }
+    },
+    {
+      class: 'FObjectArray',
+      of: 'foam.u2.layout.ChildSize',
+      name: 'childSizes',
+      documentation: 'Array of ChildSize objects defining size for each child element. Only applies to row layouts.',
+      factory: function() { return []; },
       visibility: function(layoutType) {
-        return layoutType === 'grid' ? 'HIDDEN' : 'RW';
+        return layoutType === 'row' ? 'RW' : 'HIDDEN';
+      },
+      preSet: function(_, n) {
+        // Allow string array shorthand
+        if ( Array.isArray(n) && n.length > 0 && typeof n[0] === 'string' ) {
+          return n.map(s => this.ChildSize.fromString(s));
+        }
+        // Allow number array shorthand (treated as flex values)
+        if ( Array.isArray(n) && n.length > 0 && typeof n[0] === 'number' ) {
+          return n.map(v => this.ChildSize.flex(v));
+        }
+        return n;
+      },
+      postSet: function(o, n) {
+        this.updateAllChildStyles && this.updateAllChildStyles();
       }
     },
     {
@@ -177,9 +219,30 @@ foam.CLASS({
     {
       // redefined here to control the property order, to show it last
       name: 'shown',
-    },
+    }
   ],
+  
   methods: [
+    function init() {
+      this.SUPER();
+    },
+    
+    function add() {
+      // Call parent add to actually add the child
+      const result = this.SUPER.apply(this, arguments);
+      
+      // Schedule style update after current execution
+      if ( ! this.styleUpdateScheduled_ ) {
+        this.styleUpdateScheduled_ = true;
+        Promise.resolve().then(() => {
+          this.styleUpdateScheduled_ = false;
+          this.updateAllChildStyles();
+        });
+      }
+      
+      return result;
+    },
+    
     function render() {
       this.SUPER();
       this.addClass();
@@ -209,6 +272,65 @@ foam.CLASS({
           if ( layoutType === 'grid' ) return  align[0];
           return autoGap ? align : align[(layoutType === 'row' ? 0 : 1)];
         })
+      });
+    },
+    
+    function applyChildStyle(child, index) {
+      console.log('Layout: applyChildStyle called for child', index, 'child:', child);
+      
+      if ( ! child ) {
+        console.log('  -> Child is null/undefined');
+        return;
+      }
+      
+      if ( ! child.style ) {
+        console.log('  -> Child has no style method, child is:', child.cls_ ? child.cls_.id : typeof child);
+        return;
+      }
+      
+      console.log('Layout: Applying style to child', index, 
+                  'layoutType:', this.layoutType,
+                  'autoWidth:', this.autoWidth,
+                  'childSizes.length:', this.childSizes ? this.childSizes.length : 0);
+      
+      if ( this.layoutType === 'column' && this.autoWidth ) {
+        console.log('  -> Setting width: 100%');
+        child.style({ width: '100%' });
+      } else if ( this.layoutType === 'row' ) {
+        console.log('  -> Row layout detected');
+        if ( this.childSizes && this.childSizes.length > 0 && this.childSizes[index] ) {
+          const size = this.childSizes[index];
+          console.log('  -> Found childSize at index', index, ':', size);
+          if ( size ) {
+            const flexValue = size.toCSSFlex();
+            console.log('  -> Setting flex:', flexValue, 'from childSizes[' + index + ']');
+            child.style({ flex: flexValue });
+          }
+        } else if ( this.autoWidth && ( ! this.childSizes || this.childSizes.length === 0 ) ) {
+          console.log('  -> Setting flex: 1 1 0 (autoWidth=true, no childSizes)');
+          child.style({ flex: '1 1 0' });
+        } else {
+          console.log('  -> No style applied (autoWidth:', this.autoWidth, ', childSizes:', this.childSizes, ')');
+        }
+      } else {
+        console.log('  -> Not row or column with autoWidth');
+      }
+    },
+    
+    function updateAllChildStyles() {
+      // Use childNodes which are the actual FOAM elements
+      if ( ! this.childNodes || ! this.childNodes.length ) {
+        console.log('Layout: No childNodes to style');
+        return;
+      }
+      
+      console.log('Layout: Styling', this.childNodes.length, 'children with', 
+                  'layoutType:', this.layoutType, 
+                  'autoWidth:', this.autoWidth,
+                  'childSizes:', this.childSizes);
+      
+      this.childNodes.forEach((child, index) => {
+        this.applyChildStyle(child, index);
       });
     }
   ]
