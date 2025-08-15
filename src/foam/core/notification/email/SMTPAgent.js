@@ -181,7 +181,6 @@ foam.CLASS({
         Loggers.logger(getX(), this).info("stop");
         timer.cancel();
         clearTimer();
-        ((DAO) getX().get("eventRecordDAO")).put(new EventRecord(getX(), this, "stop", getId(), null, null, LogLevel.INFO, null));
       }
       `
     },
