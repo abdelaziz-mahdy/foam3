@@ -18,10 +18,18 @@ foam.CLASS({
   properties: [
     {
       name: 'views',
-      factory: () => [
-        { class: 'foam.u2.TextField' },
-        { class: 'foam.u2.view.ColorPicker' }
-      ]
+      factory: function() {
+        var self = this;
+        return [
+          { 
+            class: 'foam.u2.TextField',
+            placeholder: 'Enter color token ($primary500) or hex (#ff0000)',
+            // Show the raw token value if available, otherwise show the resolved value
+            data$: self.data$raw || self.data$
+          },
+          { class: 'foam.u2.view.ColorPicker' }
+        ];
+      }
     }
   ]
 });
