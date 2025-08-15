@@ -138,11 +138,6 @@ foam.CLASS({
   name: 'LayoutNode',
   extends: 'foam.core.reflow.Block',
   mixins: ['foam.u2.layouts.LayoutChild', 'foam.core.reflow.LayoutUtils'],
-  // css: `
-  //   ^ {
-  //     padding: 0;
-  //   }
-  // `,
   methods: [
     function render() {
       this.addLayoutProps();
