@@ -260,6 +260,7 @@ foam.CLASS({
     {
       name: 'gridColumns',
       class: 'Int',
+      value: 1,
       visibility: function(layout$layoutType) {
         return layout$layoutType === 'grid' ? 'RW' : 'HIDDEN';
       }
