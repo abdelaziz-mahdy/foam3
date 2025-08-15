@@ -862,7 +862,7 @@ foam.CLASS({
     {
       name: 'aggregationSink',
       label: 'Aggregation',
-      view: { class: 'foam.core.reflow.SinkView', choice: 'Average' },
+      view: { class: 'foam.core.reflow.SinkView', choice:  'foam.core.reflow.AvgDAOAgent' },
       help: 'How to aggregate Y values when grouping',
       visibility: function(groupBy) {
         return groupBy ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
