@@ -141,9 +141,9 @@ foam.CLASS({
             }
             if ( autoGap ) {
               return layoutType == 'row' ? [
-                ['flex-start', 'Top'], ['center', 'Center'], ['flex-end', 'Bottom']
+                ['flex-start', 'Top'], ['center', 'Center'], ['flex-end', 'Bottom'], ['stretch', 'Fill']
               ] : [
-                ['flex-start', 'Left'], ['center', 'Center'], ['flex-end', 'Right']
+                ['flex-start', 'Left'], ['center', 'Center'], ['flex-end', 'Right'], ['stretch', 'Fill']
               ];
             }
             return [

@@ -71,6 +71,11 @@ foam.CLASS({
     'foam.u2.layout.Layout'
   ],
 
+  css: `
+    ^ {
+      padding: 0;
+    }
+  `,
   properties: [
     {
       __copyFrom__: 'foam.core.reflow.Console.INPUT',
@@ -133,6 +138,11 @@ foam.CLASS({
   name: 'LayoutNode',
   extends: 'foam.core.reflow.Block',
   mixins: ['foam.u2.layouts.LayoutChild', 'foam.core.reflow.LayoutUtils'],
+  // css: `
+  //   ^ {
+  //     padding: 0;
+  //   }
+  // `,
   methods: [
     function render() {
       this.addLayoutProps();
