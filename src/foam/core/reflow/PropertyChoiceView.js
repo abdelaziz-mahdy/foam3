@@ -152,6 +152,10 @@ foam.CLASS({
     'forCls',
     'propName',
     {
+      name: 'placeholder',
+      value: 'Choose Property'
+    },
+    {
       name: 'predicate',
       class: 'foam.mlang.predicate.PredicateProperty',
       factory: function() {
@@ -175,7 +179,8 @@ foam.CLASS({
       this.start(this.PropertyChoiceView_, {
         forCls: this.forCls,
         data$: this.propName$,
-        predicate: this.predicate
+        predicate: this.predicate,
+        choosePlaceholder: this.placeholder
       });
     }
   ]

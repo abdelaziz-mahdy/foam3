@@ -331,7 +331,7 @@ foam.CLASS({
       view: function(_, X) {
         return foam.core.reflow.SinkView.create({
           sinksOnly: false,
-          choice: 'Table',
+          choice: 'foam.core.reflow.TableDAOAgent',
           dao: X.data.dao}, X.data);
 visible      },
       preSet: function(o, n) {

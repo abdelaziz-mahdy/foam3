@@ -39,7 +39,6 @@ foam.CLASS({
       name: 'position',
       postSet: function(_, n) {
         if ( this.posFeedback_ ) return;
-
         while ( n < this.stackSize_ ) this.back();
         while ( n > this.stackSize_ ) this.forth();
       }
@@ -58,6 +57,16 @@ foam.CLASS({
       this.stack = [];
       this.redo  = [];
       this.updateSizes();
+    },
+
+    function undoAll() {
+      this.posFeedback_  = true;
+      this.memento = this.stack[0];
+      this.stack.shift();
+      this.redo = [...this.stack.reverse(), ...this.redo];
+      this.stack = [];
+      this.updateSizes();
+      this.dumpState('undoAll');
     },
 
     function updateSizes() {

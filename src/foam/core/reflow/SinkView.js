@@ -85,11 +85,11 @@ foam.CLASS({
         if ( choice instanceof Promise ) {
           return choice.then(value => {
             if ( ! value ) return undefined;
-            var cls = foam.lookup(this.choiceToClass(value));
+            var cls = foam.lookup(value);
             return cls ? cls.create({}, this) : undefined;
           });
         }
-        var cls = foam.lookup(this.choiceToClass(choice));
+        var cls = foam.lookup(choice);
         return cls ? cls.create({}, this) : undefined;
       },
       postSet: async function(o, n) {
@@ -98,7 +98,7 @@ foam.CLASS({
         await this.agentDAO.select().then(agents => {
           const results = agents.array;
           for ( var i = 0 ; i < results.length ; i++ ) {
-            if ( this.choiceToClass(results[i].value) == n.cls_.id ) {
+            if ( results[i].value == n.cls_.id ) {
               this.feedback_ = true;
               this.choice = results[i].value;
               this.feedback_ = false;
@@ -112,7 +112,7 @@ foam.CLASS({
 
   methods: [
     function choiceToClass(choice) {
-      return this.cls_.package + '.' + choice + 'DAOAgent';
+      return this.cls_.package + '.' + choice;
     },
 
     function render() {

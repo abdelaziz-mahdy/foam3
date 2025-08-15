@@ -114,8 +114,7 @@ foam.CLASS({
             // for end-user, "Amount" label should be at top, if he searches(types) "Amount"
             return self.OR(
               self.CONTAINS_IC(foam.core.reflow.PropertyOption.LABEL, lastSegment),
-              self.CONTAINS_IC(foam.core.reflow.PropertyOption.ID, lastSegment),
-              self.CONTAINS_IC(foam.core.reflow.PropertyOption.VALUE, lastSegment)
+              self.CONTAINS_IC(foam.core.reflow.PropertyOption.ID, lastSegment)
             );
           }
         });
@@ -146,9 +145,10 @@ foam.CLASS({
           if ( self.autocompleter ) {
             self.autocompleter.onUpdate();
           }
-        } else {
-          self.inputFocused = false;
         }
+        // else {                                   // TODO: intentionally commented out, this was to fix issue where a pop-up is always active
+        //   self.inputFocused = false;             // But adding this line of code, disables the narrowed down search options which pop-up as user types
+        // }
       }));
     },
 

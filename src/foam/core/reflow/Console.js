@@ -250,18 +250,11 @@ foam.CLASS({
       buttonStyle: foam.u2.ButtonStyle.SECONDARY,
       size: 'SMALL',
       themeIcon: 'close',
-      isAvailable: function(showPrompts) {
-        return showPrompts;
+      isEnabled: function(data$value$revision) {
+        return data$value$revision;
       },
       code: function() {
-        var flow = this.data.value;
-
-        flow.name     = '';
-        this.mementoMgr.clear();
-        flow.version  = undefined;
-        flow.revision = undefined;
-
-        this.data.showPrompts = false;
+        this.mementoMgr.undoAll();
       }
     },
     {
@@ -910,7 +903,7 @@ foam.CLASS({
         return flowMode === this.FlowMode.CONSOLE;
       },
       preSet: function(_, n) { return n === 'false' ? '' : n; },
-      memorable: true
+//      memorable: true // use flowMode
     },
     {
       class: 'StringArray',
@@ -1084,8 +1077,8 @@ foam.CLASS({
         this.tag(self.ReflowHeader, {data: self, showPrompts: showPrompts, resetFlow: self.clearFlow});
       }));
 
-      if ( this.route ) this.ROUTE.postSet.call(this, '', this.route);
       await this.eval_('preLoad', null, true);
+      if ( this.route ) this.ROUTE.postSet.call(this, '', this.route);
     },
 
     function renderSelf(self) {

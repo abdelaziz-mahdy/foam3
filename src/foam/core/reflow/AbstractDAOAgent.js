@@ -431,7 +431,7 @@ foam.CLASS({
       */
     {
       name: 'sink',
-      view: { class: 'foam.core.reflow.SinkView', choice: 'Count' },
+      view: { class: 'foam.core.reflow.SinkView', choice: 'foam.core.reflow.CountDAOAgent' },
       preSet: function(o, n) {
         // Temporary fix to recontextualize the object after load.
         // TODO: remove once JSON parsing/loading is fixed
@@ -591,7 +591,7 @@ foam.CLASS({
        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
-    { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'Count' } }
+    { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'foam.core.reflow.CountDAOAgent' } }
   ],
 
   methods: [
