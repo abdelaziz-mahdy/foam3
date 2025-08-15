@@ -10,6 +10,9 @@ foam.CLASS({
   sections: [
     {
       name: 'layoutSettings',
+      isAvailable: function() {
+        return this.__context__.layout;
+      },
       order: 400,
       subtitle: "Settings for this block in it's current layout",
       properties: ['gridColumns', 'flexContainerType', 'flexValue']
