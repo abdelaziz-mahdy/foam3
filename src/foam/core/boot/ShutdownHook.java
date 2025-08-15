@@ -9,10 +9,13 @@
  */
 package foam.core.boot;
 
-import foam.lang.X;
+import foam.core.app.AppConfig;
 import foam.core.logger.Logger;
-import foam.core.logger.StdoutLogger;
+import foam.core.logger.Loggers;
+import foam.lang.X;
 import java.util.Map;
+import java.io.*;
+import java.nio.file.FileSystems;
 
 public class ShutdownHook
   extends Thread {
@@ -25,20 +28,44 @@ public class ShutdownHook
     factories_ = factories;
 
     Runtime.getRuntime().addShutdownHook(this);
-    StdoutLogger.instance().info("Shutdownhook,registered");
+    Loggers.logger(x).info("Shutdownhook,registered");
   }
 
   @Override
   public void run() {
-    Logger logger = StdoutLogger.instance();
+    Logger logger = Loggers.logger(x_);
     logger.info("Shutdownhook,shutdown requested");
 
     if ( factories_ != null ) {
       for ( CSpecFactory factory : factories_.values() ) {
+        // Report factory shutdown to troubleshoot services not stoppinp
+        logger.debug("Shutdownhook,shutdown,factory",factory.getCSpecName(),"start");
         factory.shutdown();
+        logger.debug("Shutdownhook,shutdown,factory",factory.getCSpecName(),"end");
       }
     }
 
     logger.info("ShutdownHook,shutdown complete");
+
+    // Generate a thrump dump to help troubleshoot system shutdown issues
+    try {
+      foam.core.http.ThreadsWebAgent agent = new foam.core.http.ThreadsWebAgent();
+      String tmp = System.getProperty("java.io.tmpdir", FileSystems.getDefault().getSeparator() + "tmp" + FileSystems.getDefault().getSeparator());
+      AppConfig appConfig = (AppConfig) x_.get("appConfig");
+      String appName = appConfig.getName().trim().replaceAll(" ","");
+      String hostname = System.getProperty("hostname", "localhost");
+      if ( hostname.equals("localhost") ) {
+        hostname = System.getProperty("user.name", "localhost");
+      }
+      String fileName = tmp + hostname + FileSystems.getDefault().getSeparator() + appName + FileSystems.getDefault().getSeparator() + "threaddump.html";
+      FileWriter fw = new FileWriter(fileName);
+      PrintWriter pw = new PrintWriter(fw);
+      X y = x_.put(PrintWriter.class, pw);
+      agent.execute(y);
+      fw.flush();
+      logger.info("ShutdownHook,shutdown,Thread report", fileName);
+    } catch (Throwable t) {
+      logger.warning("ShutdownHook,shutdown,Failed to generated thread report", t);
+    }
   }
 }

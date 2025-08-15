@@ -50,8 +50,8 @@ public class ThreadsWebAgent
     PrintWriter        out         = x.get(PrintWriter.class);
     HttpServletRequest req         = x.get(HttpServletRequest.class);
     Session            session     = x.get(Session.class);
-    boolean            showAll     = "y".equals(req.getParameter("showAll"));
-    String             id          = req.getParameter("id");
+    boolean            showAll     = req != null ? "y".equals(req.getParameter("showAll")) : true;
+    String             id          = req != null ? req.getParameter("id") : null;
 
     Set<Thread>  platformThreadSet = Thread.getAllStackTraces().keySet();
     Set<Thread>   virtualThreadSet = VirtualThreadAgency.getRunningThreads();
@@ -68,10 +68,12 @@ public class ThreadsWebAgent
     out.println("  }");
     out.println("</STYLE>");
     out.println("<BODY>");
-    if ( showAll ) {
-      out.println("<a href=\"?" + showAllParam(false) + "sessionId=" + session.getId() + "\">Hide parked threads.</a>");
-    } else {
-      out.println("<a href=\"?" + showAllParam(true) + "sessionId=" + session.getId() + "\">Show parked threads.</a>");
+    if ( session != null ) {
+      if ( showAll ) {
+        out.println("<a href=\"?" + showAllParam(false) + "sessionId=" + session.getId() + "\">Hide parked threads.</a>");
+      } else {
+        out.println("<a href=\"?" + showAllParam(true) + "sessionId=" + session.getId() + "\">Show parked threads.</a>");
+      }
     }
     out.println("<br><H1>Threads</H1>\n");
     out.println("<pre>");
