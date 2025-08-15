@@ -20,7 +20,7 @@ foam.CLASS({
   
   properties: [
     {
-      class: 'FObjectArray',
+      class: 'StringArray',
       of: 'Color',
       name: 'colors',
       label: 'Chart Colors',
