@@ -137,6 +137,9 @@ public class ClassInfoImpl
     Object ret = axiomsByName_.get(name);
     if ( ret == null ) {
       ret = getParent().getAxiomByName(name);
+      if ( ret != null ) {
+        axiomsByName_.put(name, ret);
+      }
     }
     return ret;
   }
