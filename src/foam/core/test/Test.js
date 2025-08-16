@@ -290,7 +290,13 @@ foam.CLASS({
             };
 
             with ( { log: log, print: log, x: this.__context__, expect: expect, test: test } ) {
-              Promise.resolve(eval('(async () => {' + this.code + '})()')).then(() => {
+              Promise.resolve(
+                this.code ?
+                  eval('(async () => {' + this.code + '})()') :
+                  this.runTest(this.__context__.createSubContext({
+                    log: log, print: log, expect: expect, test: test
+                  }))
+              ).then(() => {
                 updateStats();
                 resolve();
               }, (err) => {
