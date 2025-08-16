@@ -15,7 +15,10 @@ import foam.core.logger.Loggers;
 import foam.lang.X;
 import java.util.Map;
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ShutdownHook
   extends Thread {
@@ -57,13 +60,18 @@ public class ShutdownHook
       if ( hostname.equals("localhost") ) {
         hostname = System.getProperty("user.name", "localhost");
       }
-      String fileName = tmp + hostname + FileSystems.getDefault().getSeparator() + appName + FileSystems.getDefault().getSeparator() + "threaddump.html";
-      FileWriter fw = new FileWriter(fileName);
+      String dir = tmp + hostname + FileSystems.getDefault().getSeparator() + appName;
+      Path path = Paths.get(dir);
+      if ( ! Files.exists(path) ) {
+        path = Files.createDirectories(path);
+      }
+      path = path.resolve("threaddump.html");
+      FileWriter fw = new FileWriter(path.toFile());
       PrintWriter pw = new PrintWriter(fw);
       X y = x_.put(PrintWriter.class, pw);
       agent.execute(y);
       fw.flush();
-      logger.info("ShutdownHook,shutdown,Thread report", fileName);
+      logger.info("ShutdownHook,shutdown,Thread report", path.toString());
     } catch (Throwable t) {
       logger.warning("ShutdownHook,shutdown,Failed to generated thread report", t);
     }
