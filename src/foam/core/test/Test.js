@@ -30,18 +30,17 @@ foam.CLASS({
   tableColumns: [
     'id',
     'enabled',
-    'server',
+    'source',
     'passed',
     'failed',
-    'lastDuration',
-    'lastRun',
+//    'lastDuration',
+//    'lastRun',
     'run'
   ],
 
   searchColumns: [
     'id',
-    'description',
-    'server'
+    'description'
   ],
 
   documentation: `
@@ -53,6 +52,14 @@ foam.CLASS({
 
   properties: [
     'id',
+    {
+      class: 'String',
+      name: 'source',
+      tableWidth: 300,
+      transient: true,
+      factory: function() { return this.cls_.id === 'foam.core.test.Test' ? this.language : this.cls_.id; },
+      javaFactory: 'return getClass().toString();'
+    },
     'enabled',
     {
       class: 'String',
