@@ -79,7 +79,8 @@ p({
   "name":"appConfig",
   "service": {
     "class":"foam.core.app.AppConfig",
-    "pom":"${poms}"
+    "pom":"${poms}",
+    "flags":"${Object.keys(flags).toString()}"
   }
 })
 `);
