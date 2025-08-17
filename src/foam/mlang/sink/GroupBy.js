@@ -101,7 +101,13 @@ foam.CLASS({
       code: function sortedKeys(opt_comparator) {
         var a1 = this.arg1;
         // Use the property as a comparator but adapt to the correct type since number types will be stored as String values
-        this.groupKeys.sort(opt_comparator || ((o1,o2) => a1.comparePropertyValues(a1.adapt(null, o1, a1), a1.adapt(null, o2, a1))));
+        function safeAdapt(p, v) { return p.adapt ? p.adapt(null, v, p) : v; }
+
+        if ( a1.comparePropertyValues ) {
+          this.groupKeys.sort(opt_comparator || ((o1,o2) => a1.comparePropertyValues(safeAdapt(a1, o1), safeAdapt(a1, o2))));
+        } else {
+          this.groupKeys.sort();
+        }
         return this.groupKeys;
       },
       javaCode:
@@ -135,7 +141,7 @@ return getGroupKeys();`
 
         var group = this.groups.hasOwnProperty(key) && this.groups[key];
         var wasExisting = !! group;
-        
+
         if ( ! group ) {
           group = this.arg2.clone();
           this.groupKeys = undefined;
@@ -162,7 +168,7 @@ return getGroupKeys();`
       name: 'enforceSortedGroupLimit_',
       code: function enforceSortedGroupLimit_() {
         var currentGroupCount = Object.keys(this.groups).length;
-        
+
         // If "Others" exists, don't count it in the limit
         var hasOthers = this.groups.hasOwnProperty(this.othersLabel);
         var actualGroupCount = hasOthers ? currentGroupCount - 1 : currentGroupCount;
@@ -175,7 +181,7 @@ return getGroupKeys();`
         // We need to find the top groups and move excess to "Others"
         var self = this;
         var groupEntries = [];
-        
+
         Object.keys(this.groups).forEach(function(key) {
           if ( key !== self.othersLabel ) {
             var group = self.groups[key];
@@ -233,7 +239,7 @@ return getGroupKeys();`
         }
       }
     },
-    
+
     function reset() {
       this.arg2.reset();
       this.groups    = undefined;
