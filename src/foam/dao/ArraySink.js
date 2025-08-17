@@ -37,6 +37,7 @@ foam.CLASS({
     {
       class: 'List',
       name: 'array',
+      hidden: true,
       adapt: function(old, nu) {
         if ( ! this.of ) return nu;
         var cls = this.of;
@@ -52,17 +53,20 @@ foam.CLASS({
     {
       name: 'value',
       transient: true,
+      hidden: true,
       getter: function() {
         return this.array;
       }
     },
     {
       class: 'Class',
-      name: 'of'
+      name: 'of',
+      hidden: true
     },
     {
       name: 'a',
       transient: true,
+      hidden: true,
       getter: function() {
         this.__context__.warn('Use of deprecated ArraySink.a');
         return this.array;
