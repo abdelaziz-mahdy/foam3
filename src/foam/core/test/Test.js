@@ -33,8 +33,6 @@ foam.CLASS({
     'source',
     'passed',
     'failed',
-//    'lastDuration',
-//    'lastRun',
     'run'
   ],
 
@@ -69,6 +67,33 @@ foam.CLASS({
       class: 'String',
       name: 'daoKey',
       value: 'testDAO'
+    },
+    {
+      name: 'code',
+      visibility: function() {
+        return this.cls_.id === 'foam.core.test.Test' ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      name: 'modelCode',
+      label: 'Code',
+      view: { class: 'foam.u2.tag.TextArea', rows: 20 },
+      factory: function() {
+        var s = '';
+        if ( this.runTest != foam.core.test.Test.prototype.runTest ) {
+          s += 'Javascript: ' + this.runTest.toString();
+        }
+        if ( this.cls_.getAxiomByName('runTest').javaCode ) {
+          if ( s ) s += '\n\n';
+          s += 'Java: ' + this.cls_.getAxiomByName('runTest').javaCode;
+        }
+        return s;
+      },
+      visibility: function() {
+        return this.cls_.id === 'foam.core.test.Test' ?
+          foam.u2.DisplayMode.HIDDEN :
+          foam.u2.DisplayMode.RO ;
+      }
     },
     {
       class: 'Long',
@@ -319,11 +344,7 @@ foam.CLASS({
           }
         });
       },
-      args: [
-        {
-          name: 'x', type: 'Context'
-        }
-      ],
+      args: 'Context x',
       javaCode: `
         // disable tests in production
         if ( ((AppConfig) x.get("appConfig")).getMode() == Mode.PRODUCTION ) {
