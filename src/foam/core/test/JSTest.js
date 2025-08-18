@@ -10,6 +10,8 @@ foam.CLASS({
   extends: 'foam.core.test.Test',
   abstract: true,
 
+  documentation: 'Abstract base class for modelled JS tests that implement runTest directly.',
+
   properties: [
     {
       name: 'language',
@@ -21,7 +23,7 @@ foam.CLASS({
   /*
   // Add to sub-classes:
   methods: [
-    function runScript() {
+    function runTest() {
       // insert tests here
     }
   ]

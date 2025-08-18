@@ -10,7 +10,7 @@ foam.CLASS({
   extends: 'foam.core.test.Test',
   abstract: true,
 
-  documentation: 'Abstract base class for modelled Java tests that implement runScript directly.',
+  documentation: 'Abstract base class for modelled Java tests that implement runTest directly.',
 
   properties: [
     {
@@ -24,7 +24,7 @@ foam.CLASS({
   // Add to sub-classes:
   methods: [
     {
-      name: 'runScript',
+      name: 'runTest',
       javaCode: `
         // insert tests here
       `
