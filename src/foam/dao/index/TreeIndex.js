@@ -395,7 +395,12 @@ foam.CLASS({
       if ( ! predicate && m.Count.isInstance(sink) ) {
         var count = this.size();
         //        console.log('**************** COUNT SHORT-CIRCUIT ****************', count, this.toString());
-        return m.CountPlan.create({ count: Math.min(count, limit) });
+        // console.log('TreeIndex.plan: count = ' + count + ', limit = ' + limit);
+        /// if limit is undefined or zero, we should get the count
+        if (limit && limit > 0) {
+          count = Math.min(count, limit);
+        }
+        return m.CountPlan.create({ count: count });
       }
 
       var prop = m.prop;
