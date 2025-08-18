@@ -19,6 +19,7 @@ foam.CLASS({
     },
     {
       name: 'link',
+      hidden: true,
       expression: function(flow) {
         return '#flow/' + flow + '?flowMode=PRESENTATION';
       }
