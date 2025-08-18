@@ -1051,25 +1051,26 @@ foam.CLASS({
     
     function toE(_, x) {
       var self = this;
-      return x.E().add(this.metric_$.map(function(metric) {
-        var e = foam.u2.Element.create();
+      return x.E().add(this.dynamic(function(metric_) {
+        var metric = metric_;
+        var container = foam.u2.Element.create();
         
         
         // Label
-        e.start('div')
+        container.start('div')
           .style({
-            fontSize: '0.875rem',
-            color: foam.CSS.returnTokenValue('$textSecondary', self.cls_, self.__context__),
+            fontSize: metric.labelFontSize || '0.875rem',
+            color: metric.labelColor,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            fontWeight: 'medium',
+            fontWeight: metric.labelFontWeight || 'medium',
             marginBottom: '8px'
           })
           .add(metric.label)
         .end();
         
         // Value
-        e.start('div')
+        container.start('div')
           .style({
             fontSize: '3rem',
             fontWeight: 'bold',
@@ -1081,25 +1082,25 @@ foam.CLASS({
         
         // Count - show how many records were processed
         if ( metric.showCount && metric.count !== null ) {
-          e.start('div')
+          container.start('div')
             .style({
-              fontSize: '0.75rem',
+              fontSize: metric.countFontSize || '0.75rem',
               marginTop: '8px',
-              color: foam.CSS.returnTokenValue('$textSecondary', self.cls_, self.__context__),
-              fontWeight: 'normal'
+              color: metric.countColor,
+              fontWeight: metric.countFontWeight || 'normal'
             })
-            .add(metric.count.toLocaleString() + (self.countSuffix ? ' ' + self.countSuffix : ''))
+            .add(metric.count.toLocaleString() + (metric.countSuffix ? ' ' + metric.countSuffix : ''))
           .end();
         }
         
-        e.end();
-        return e;
+        this.add(container);
       }));
     },
     
     function addToE(e) {
       var self = this;
-      e.add(this.metric_$.map(function(metric) {
+      e.add(this.dynamic(function(metric_) {
+        var metric = metric_;
         // Determine alignment style
         var alignmentStyle = 'center';
         var textAlign = 'center';
@@ -1193,11 +1194,12 @@ foam.CLASS({
               color: metric.countColor,
               fontWeight: metric.countFontWeight || 'normal'
             })
-            .add(metric.count.toLocaleString() + (self.countSuffix ? ' ' + self.countSuffix : ''))
+            .add(metric.count.toLocaleString() + (metric.countSuffix ? ' ' + metric.countSuffix : ''))
           .end();
         }
         
         container.end();
+        this.add(container);
         return container;
       }));
     },
