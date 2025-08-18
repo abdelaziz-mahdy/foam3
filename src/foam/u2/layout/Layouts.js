@@ -107,6 +107,17 @@ foam.CLASS({
       }
     },
     {
+      class: 'Boolean',
+      name: 'stretch',
+      label: 'Stretch to Fill',
+      visibility: function(layoutType) {
+        return layoutType === 'grid' ? 'HIDDEN' : 'RW' ;
+      },
+      postSet: function(_,n) {
+        this.align = n ? 'flex-start': ['flex-start', 'flex-start'];
+      }
+    },
+    {
       class: 'Int',
       name: 'gap',
       value: 10,
@@ -117,14 +128,14 @@ foam.CLASS({
     {
       class: 'Array',
       name: 'align',
-      // Hide until grid placement is fixed
-      visibility: function(layoutType) {
+      visibility: function(layoutType, autoGap, stretch) {
+        if ( autoGap && stretch ) return 'HIDDEN';
         return layoutType === 'grid' ? 'HIDDEN' : 'RW' ;
       },
       view: function(_, X) {
         return {
           class: 'foam.u2.view.ChoiceView',
-          choices$: X.data.slot(function(autoGap, layoutType) {
+          choices$: X.data.slot(function(autoGap, layoutType, stretch) {
             if ( layoutType === 'grid' ) {
               return [
                 [['stretch', 'stretch'], 'Fill'],
@@ -139,12 +150,13 @@ foam.CLASS({
                 [['end', 'end'],         'Bottom Right']
               ]
             }
-            if ( autoGap ) {
-              return layoutType == 'row' ? [
-                ['flex-start', 'Top'], ['center', 'Center'], ['flex-end', 'Bottom'], ['stretch', 'Fill']
-              ] : [
-                ['flex-start', 'Left'], ['center', 'Center'], ['flex-end', 'Right'], ['stretch', 'Fill']
-              ];
+            let verticalArr = [ ['flex-start', 'Top'], ['center', 'Center'], ['flex-end', 'Bottom']];
+            let horizontalArr = [ ['flex-start', 'Left'], ['center', 'Center'], ['flex-end', 'Right']];
+            if ( autoGap && ! stretch ) {
+              return layoutType == 'row' ? verticalArr : horizontalArr;
+            }
+            if ( ! autoGap && stretch ) {
+              return layoutType == 'column' ? verticalArr : horizontalArr;
             }
             return [
               [['flex-start', 'flex-start'], 'Top Left'],
@@ -187,16 +199,18 @@ foam.CLASS({
         gap: this.slot(function(gap, autoGap) {
           return autoGap ? 'initial' : gap + 'px';
         }),
-        'justify-content': this.slot(function(align, autoGap, layoutType) {
+        'justify-content': this.slot(function(align, autoGap, layoutType, stretch) {
           if ( layoutType === 'grid' ) return  'unset';
+          if ( stretch ) return align;
           return autoGap ? 'space-between' : align[(layoutType === 'row' ? 1 : 0)];
         }),
         'justify-items': this.slot(function(align, layoutType) {
           if ( layoutType === 'grid' ) return align[1];
           return 'unset';
         }),
-        'align-items': this.slot(function(align, layoutType, autoGap){
+        'align-items': this.slot(function(align, layoutType, autoGap, stretch){
           if ( layoutType === 'grid' ) return  align[0];
+          if ( stretch ) return 'stretch';
           return autoGap ? align : align[(layoutType === 'row' ? 0 : 1)];
         })
       });
