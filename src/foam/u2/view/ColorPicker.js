@@ -47,7 +47,6 @@ foam.CLASS({
           return value;
         },
         function(value) {
-          
           if ( typeof value !== 'string' ) return value;
           
           // Resolve CSS tokens for display in the color picker
