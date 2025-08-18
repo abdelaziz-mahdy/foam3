@@ -161,7 +161,7 @@ public class CachingAuthService
   }
 
   public void start() throws Exception {
-    Timer timer = new Timer(this.getClass().getSimpleName());
+    Timer timer = new Timer(this.getClass().getSimpleName(), true);
     timer.schedule(new AgencyTimerTask(getX(), this), INITIAL_TIMER_DELAY);
   }
 

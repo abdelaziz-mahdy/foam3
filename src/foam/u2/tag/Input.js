@@ -112,7 +112,7 @@ foam.CLASS({
 
       if ( this.size          ) this.setAttribute('size',        this.size);
       if ( this.type          ) this.setAttribute('type',        this.type$);
-      if ( this.placeholder   ) this.setAttribute('placeholder', this.placeholder);
+      if ( this.placeholder   ) this.setAttribute('placeholder', this.placeholder$);
       if ( this.ariaLabel     ) this.setAttribute('aria-label',  this.ariaLabel);
       if ( this.maxLength > 0 ) this.setAttribute('maxlength',   this.maxLength);
       if ( this.inputMode     ) this.setAttribute('inputmode',   this.inputMode);

@@ -22,6 +22,7 @@ foam.CLASS({
     {
       name: 'of',
       transient: true,
+      hidden: true,
       factory: function() { return this.referenceDAO?.of; }
     }
   ],
@@ -396,6 +397,10 @@ foam.CLASS({
 
   imports: [ 'eval_' ],
 
+  requires: [
+    'foam.mlang.sink.GroupBySortOrder'
+  ],
+
   properties: [
     {
       name: 'prop',
@@ -403,7 +408,6 @@ foam.CLASS({
        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
       }
     },
-    /* TODO: future
     {
       name: 'dateFn',
       visibility: function(prop) {
@@ -415,15 +419,17 @@ foam.CLASS({
         return {
           class: 'foam.u2.view.ChoiceView',
           choices: [
-            [ null,             '--'       ],
-            [ foam.mlang.Day,   'BY DAY'   ],
-            [ foam.mlang.Month, 'BY MONTH' ],
-//            [ foam.mlang.Year,  'BY YEAR'  ]
+            [ null,                               '--'         ],
+            [ foam.mlang.expr.DateToHHExpr,       'HH'         ],
+            [ foam.mlang.expr.DateToHHMMExpr,     'HH:MM'      ],
+            [ foam.mlang.expr.DateToHHMMSSExpr,   'HH:MM:SS'   ],
+            [ foam.mlang.expr.DateToYYYYMMDDExpr, 'YYYY/MM/DD' ],
+            [ foam.mlang.expr.DateToYYYYMMExpr,   'YYYY/MM'    ],
+            [ foam.mlang.expr.DateToYYYYExpr,     'YYYY'       ]
           ]
         };
       }
-      },
-      */
+    },
     {
       name: 'sink',
       view: { class: 'foam.core.reflow.SinkView', choice: 'foam.core.reflow.CountDAOAgent' },
@@ -434,6 +440,44 @@ foam.CLASS({
           return n.clone(this.__subContext__);
         }
         return n;
+      }
+    },
+    {
+      class: 'Int',
+      name: 'groupLimit',
+      label: 'Group Limit',
+      value: 0,
+      help: 'Limit results to top N groups (0 for no limit)'
+    },
+    {
+      class: 'Enum',
+      of: 'foam.mlang.sink.GroupBySortOrder',
+      name: 'sortOrder',
+      label: 'Sort Order',
+      value: 'DESC',
+      help: 'Sort order for groups',
+      visibility: function(groupLimit) {
+        return groupLimit > 0 ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      class: 'Boolean',
+      name: 'includeOthers',
+      label: 'Include Others',
+      value: false,
+      help: 'If true, includes an "Others" category aggregating remaining groups',
+      visibility: function(groupLimit) {
+        return groupLimit > 0 ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      class: 'String',
+      name: 'othersLabel',
+      label: 'Others Label',
+      value: 'Others',
+      help: 'Label for the "Others" category',
+      visibility: function(includeOthers) {
+        return includeOthers ? 'RW' : 'HIDDEN';
       }
     },
     {
@@ -448,13 +492,21 @@ foam.CLASS({
     function value(s) { return s; },
     function createSink() {
       var expr = this.prop;
-      /*
-        TODO: future
       if ( foam.lang.Date.isInstance(this.prop) && this.dateFn ) {
-        debugger;
-        expr = this.DOT(expr, this.dateFn);
-      }*/
-      return this.GROUP_BY(expr, this.sink.createSink());
+        //        expr = this.DOT(expr, this.dateFn);
+        expr = this.dateFn.create({delegate: expr});
+      }
+      var groupBySink = this.GROUP_BY(expr, this.sink.createSink());
+      
+      // Apply grouping limits if specified
+      if ( this.groupLimit > 0 ) {
+        groupBySink.groupLimit = this.groupLimit;
+        groupBySink.sortOrder = this.sortOrder;
+        groupBySink.includeOthers = this.includeOthers;
+        groupBySink.othersLabel = this.othersLabel;
+      }
+      
+      return groupBySink;
     },
     function addToE(e) {
       var self = this;
@@ -462,12 +514,16 @@ foam.CLASS({
       e.startContext({data: this}).
         start().
           style({paddingLeft: '12px'}).
-        add(this.PROP)./*
+        add(this.PROP).
         add(this.dynamic(function(prop) {
           if ( foam.lang.Date.isInstance(prop) )
             this.add(self.DATE_FN);
-        })).*/
-        add(this.SINK).callIf(this.block, function() { this.add(self.BROWSE); });
+        })).
+          add(this.SINK).
+          add('Limit: ', this.GROUP_LIMIT).
+          add('Sort: ', this.SORT_ORDER).
+          add('Include Others: ', this.INCLUDE_OTHERS).
+          callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
 

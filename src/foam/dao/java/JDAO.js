@@ -67,7 +67,7 @@ In this current implementation setDelegate must be called last.`,
       documentation: 'Perform replay synchronously. Manual workaround for deadlock with AsyncAssemblyLine',
       class: 'Boolean',
       name: 'syncReplay',
-      value: true
+      value: false
     },
     {
       documentation: `Force caller to wait on nspec initailzation. The first call to 'get' for an nspec (x.get(servicename)) will have the calling thread wait on reply of service. This is the default behaviour and should be used for all essential services.  Also this should be used if the model is using SeqNo or NUID for id generation.`,
@@ -94,7 +94,6 @@ In this current implementation setDelegate must be called last.`,
     },
     {
       name: 'delegate',
-      class: 'foam.dao.DAOProperty',
       javaFactory: 'return new MDAO(getOf());',
       javaPostSet: `
             var delegate = val;
@@ -158,8 +157,8 @@ In this current implementation setDelegate must be called last.`,
               };
             } else {
               journals = new Journal[] {
-                    journal0,
-                    getJournal()
+                journal0,
+                getJournal()
               };
             }
           }
@@ -168,7 +167,14 @@ In this current implementation setDelegate must be called last.`,
               .build();
 
             if ( getWaitReplay() ) {
-              jnl.replay(getX(), delegate);
+              // Speedup replay to MDAOs by disabling safe mode which clones
+              // the incoming object for safety, but isn't needed here.
+              try { ((MDAO) delegate).setSafeMode(false); } catch (Throwable t) {}
+              try {
+                jnl.replay(getX(), delegate);
+              } finally {
+                try { ((MDAO) delegate).setSafeMode(true); } catch (Throwable t) {}
+              }
             } else {
               final String name = getFilename();
               Agency agency = (Agency) getX().get("threadPool");

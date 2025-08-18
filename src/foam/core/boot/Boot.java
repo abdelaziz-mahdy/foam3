@@ -171,20 +171,30 @@ public class Boot {
         .setAuthorizer(new foam.core.auth.AuthorizableAuthorizer("service"))
         .build());
 
-    String bootScript = ARGS.get("boot.script");
-    if ( SafetyUtil.isEmpty(bootScript) ) {
-      logger.warning("ARG boot.script not found");
-      bootScript = System.getProperty("foam.main", "main");
+    // Run main bootscript
+    // TOOD: support array of names
+    DAO scriptDAO = (DAO) root_.get("bootScriptDAO");
+    if ( scriptDAO == null ) {
+      logger.warning("DAO Not Found: bootScriptDAO. Falling back to scriptDAO");
+      scriptDAO = (DAO) root_.get("scriptDAO");
     }
+    String bootScript = System.getProperty("foam.main", "main");
     if ( bootScript != null ) {
-      DAO scriptDAO = (DAO) root_.get("bootScriptDAO");
-      if ( scriptDAO == null ) {
-        logger.warning("DAO Not Found: bootScriptDAO. Falling back to scriptDAO");
-        scriptDAO = (DAO) root_.get("scriptDAO");
-      }
       Script script = (Script) scriptDAO.find(bootScript);
       if ( script != null ) {
         logger.info("Boot,bootScript", bootScript);
+        ((Script) script.fclone()).runScript(root_);
+      } else {
+        logger.warning("Boot,bootScript not found", bootScript);
+      }
+    }
+
+    // Run auxilary boot script
+    bootScript = ARGS.get("boot.script.aux");
+    if ( bootScript != null ) {
+      Script script = (Script) scriptDAO.find(bootScript);
+      if ( script != null ) {
+        logger.info("Boot,bootScriptAux", bootScript);
         ((Script) script.fclone()).runScript(root_);
       } else {
         logger.warning("Boot,bootScript not found", bootScript);

@@ -261,7 +261,7 @@ p({
       .setSeqPropertyName("seqNo")
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setJournalName("userCapabilityJunctionHistory")
-      .setSAF(true)
+      .setSaf(true)
       .setPm(true)
       .setFixedSize(new foam.dao.FixedSizeDAO.Builder(x)
         .setComparator(foam.mlang.MLang.DESC(foam.dao.history.HistoryRecord.TIMESTAMP))

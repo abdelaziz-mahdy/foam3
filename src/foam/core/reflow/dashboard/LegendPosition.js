@@ -6,14 +6,15 @@
 
 foam.ENUM({
   package: 'foam.core.reflow.dashboard',
-  name: 'LabelPosition',
+  name: 'LegendPosition',
 
-  documentation: 'Label position options for pie and donut charts',
+  documentation: 'Legend position options for charts',
 
   values: [
     { name: 'TOP', label: 'Top' },
     { name: 'RIGHT', label: 'Right' },
     { name: 'BOTTOM', label: 'Bottom' },
-    { name: 'LEFT', label: 'Left' }
+    { name: 'LEFT', label: 'Left' },
+    // { name: 'CHARTAREA', label: 'Chart Area' }
   ]
 });

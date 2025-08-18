@@ -39,6 +39,7 @@ NOTE: when using the java client, the first call to a newly started instance may
     'foam.core.logger.Loggers',
     'foam.core.pm.PM',
     'foam.core.session.Session',
+    'foam.net.Host',
     'foam.util.SafetyUtil',
     'java.net.Authenticator',
     'java.net.CookieHandler',
@@ -816,7 +817,15 @@ NOTE: when using the java client, the first call to a newly started instance may
         } else {
           sb.append("http://");
         }
-        sb.append(System.getProperty("hostname", "localhost"));
+        String address = System.getProperty("hostname", "localhost");
+        DAO hostDAO = (DAO) x.get("hostDAO");
+        if ( hostDAO != null ) {
+          Host host = (Host) hostDAO.find(address);
+          if ( host != null ) {
+            address = host.getAddress();
+          }
+        }
+        sb.append(address);
         sb.append(":");
         sb.append(System.getProperty("http.port", "8080"));
       }

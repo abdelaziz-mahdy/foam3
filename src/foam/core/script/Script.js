@@ -236,6 +236,7 @@ p({class:"foam.core.auth.GroupPermissionJunction",sourceId:"example-group",targe
       name: 'language',
       value: 'BEANSHELL'
     },
+    // TODO: port and remove
     {
       documentation: 'Legacy support for JS scripts created before JShell',
       class: 'Boolean',

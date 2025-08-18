@@ -180,6 +180,12 @@ foam.CLASS({
           }
         }
 
+        if ( getMdao() != null && getLastDao() == null ) {
+          setLastDao(delegate);
+        }
+
+        delegate = getClusterDelegate(delegate);
+
         if ( getFuid() ) {
           delegate = new foam.dao.FUIDDAO(getX(), getName(), getSeqPropertyName(), delegate);
         } else if ( getSeqNo() ) {
@@ -194,18 +200,12 @@ foam.CLASS({
           delegate = new foam.dao.GUIDDAO(getX(), delegate);
         }
 
-        if ( getMdao() != null && getLastDao() == null ) {
-          setLastDao(delegate);
-        }
-
         if ( getMdao() != null && ! getEnableInterfaceDecorators() ) {
           logger.warning(getName(),
             "Interface decorators need to be disabled on the higher level of the decorator chain " +
             "if you are trying to prevent the decorators to be triggered multiple times"
           );
         }
-
-        delegate = getClusterDelegate(delegate);
 
         if ( getSubdomainAware() ) {
           delegate = new foam.core.theme.SubdomainAwareDAO.Builder(getX())
@@ -738,8 +738,9 @@ foam.CLASS({
       class: 'Boolean'
     },
     {
+      // refined in foam-saf
       documentation: 'Store and forward this DAO',
-      name: 'SAF',
+      name: 'saf',
       class: 'Boolean',
       value: false
     },
@@ -940,7 +941,7 @@ foam.CLASS({
             foam.dao.java.JDAO jdao = new foam.dao.java.JDAO();
             jdao.setX(x);
             jdao.setFilename(getJournalName());
-            jdao.setCluster(getCluster() && !getSAF());
+            jdao.setCluster(getCluster() && !getSaf());
             jdao.setWaitReplay(getWaitReplay());
             jdao.setNdiff(getNdiff());
             // Setting of delegate must be last as it triggers replay

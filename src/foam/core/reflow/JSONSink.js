@@ -13,6 +13,8 @@ foam.CLASS({
     {
       name: 'json',
       transient: true,
+      reactive: false,
+      view: 'foam.u2.tag.TextArea',
       expression: function(array) {
         return foam.json.Outputter.create({
           pretty: true,

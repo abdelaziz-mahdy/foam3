@@ -44,7 +44,7 @@ p({
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setJournalName("alarms")
       .setWriteOnly(true)
-      .setSAF(true)
+      .setSaf(true)
       .setOrder(new foam.mlang.order.Comparator[] {
         foam.core.alarming.Alarm.LAST_MODIFIED,
         new foam.mlang.order.Desc.Builder(x).setArg1(

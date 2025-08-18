@@ -38,7 +38,7 @@ foam.POM({
   tasks: {
     all: ['all', 'Execute all tasks for a remote deployment.', ['pomEnvs', 'validate', 'upload', 'install'], null],
     buildInstallOpts: ['build-install-opts', 'Build up options passed to the install script', ['pomEnvs'], function() {
-      INSTALL_OPTS += ` -B${BACKUP} -N${APP_NAME} -V${VERSION} -U${USER} -Y${USER_ID}`;
+      INSTALL_OPTS += ` -A${APP_HOME} -B${BACKUP} -N${APP_NAME} -V${VERSION} -U${USER} -Y${USER_ID}`;
       if ( WEB_PORT )
         INSTALL_OPTS += ` -W${WEB_PORT}`;
     }],

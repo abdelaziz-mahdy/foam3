@@ -39,10 +39,20 @@ foam.CLASS({
       name: 'treeRowRenderer',
       hidden: true,
       value: function(e) { e.add(this.flowName$); }
+    },
+    {
+      name: 'childType',
+      hidden: true,
+      transient: true,
+      documentation: 'Default child type for this flowable',
+      factory: function() { return this.cls_; }
     }
   ],
 
   methods: [
+    function toSummary() {
+      return this.flowName;
+    },
     function createFlowChildName(prefix) {
       for ( var i = 1, name = prefix ; ; ) {
         name = prefix + i++;
@@ -388,6 +398,19 @@ foam.CLASS({
       overflow-y: hidden;
     }
   `,
+
+  sections: [
+    {
+      name: 'general',
+      order: 100,
+      properties: ['flowName', 'cmd']
+    },
+    {
+      name: 'borderSettings',
+      order: 200,
+      properties: ['borderClass', 'border']
+    }
+  ],
 
   properties: [
     {
@@ -848,6 +871,12 @@ foam.CLASS({
 
   properties: [
     {
+      name: 'childType',
+      factory: function() {
+        return this.Block;
+      }
+    },
+    {
       name: 'scope',
       getter: function() {
         return {...this.localScope, ...this.flowScope};
@@ -1180,8 +1209,10 @@ foam.CLASS({
       if ( ! ignoreHistory )
         this.addHistory(cmd);
 
+      let blockType = flowParent?.childType || this.Block;
+
 //      this.out.tag('br').start().show(self.showPrompts$).start('b').add('> ').end().add(cmd);
-      var block = this.currentBlock = this.Block.create({cmd: cmd, flowParent: flowParent}, flowParent);
+      var block = this.currentBlock = blockType.create({cmd: cmd, flowParent: flowParent}, flowParent);
 
       var innerScope = {
         // shell: this,
@@ -1506,7 +1537,7 @@ foam.CLASS({
     },
     {
       name: 'onFlowChildChange',
-      isMerged: true,
+      isIdled: true,
       delay: 2000,
       code: function() {
 // if ( this.feedback_ ) return;

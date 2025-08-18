@@ -50,6 +50,7 @@ public class SocketServerProcessor
     throws IOException
   {
     setX(x);
+    setDaemon(true);
     socket_ = socket;
     in_ = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
     out_ = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));

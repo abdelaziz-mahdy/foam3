@@ -214,15 +214,13 @@ foam.CLASS({
       }
     },
     {
-      class: 'Boolean',
-      name: 'loaded_'
-    },
-    {
       name: 'element_',
       factory: function() { return this.document.createComment(this.id); }
     },
     {
       name: 'endElement_',
+      hidden: true,
+      transient: true,
       factory: function() { return this.document.createComment('/' + this.id); }
     },
     { class: 'Array', name: 'nodesToMove_', hidden: true }

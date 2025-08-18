@@ -135,8 +135,8 @@ foam.CLASS({
       section: 'general',
       label: 'Name',
       onKey: true,
-      factory: function() {
-        return this.dao.of.model_.plural;
+      expression: function(dao) {
+        return dao.of.model_.plural;
       },
       displayWidth: 60
     },

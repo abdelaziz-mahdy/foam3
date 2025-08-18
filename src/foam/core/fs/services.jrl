@@ -1,7 +1,7 @@
 p({
   "class":"foam.core.boot.CSpec",
   "name":"fileLabelDAO",
-  "authenticated":true,
+  "authenticate":true,
   "serve":true,
   "lazy":true,
   "serviceScript":

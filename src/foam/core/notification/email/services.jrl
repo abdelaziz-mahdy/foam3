@@ -47,7 +47,7 @@ p({
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setJournalName("emailMessages")
       .setWaitReplay(false)
-      .setSAF(true)
+      .setSaf(true)
       .setServiceProviderAware(false)
       .setFixedSize(new foam.dao.FixedSizeDAO.Builder(x)
         .setComparator(foam.mlang.MLang.DESC(foam.core.notification.email.EmailMessage.CREATED) )
@@ -85,7 +85,7 @@ p({
       .setJournalType(foam.dao.JournalType.SINGLE_JOURNAL)
       .setJournalName("emailMessagesReceived")
       .setServiceProviderAware(false)
-      .setSAF(true)
+      .setSaf(true)
       .setFixedSize(new foam.dao.FixedSizeDAO.Builder(x)
         .setComparator(foam.mlang.MLang.DESC(foam.core.notification.email.EmailMessage.CREATED) )
         .setSize(100000)
@@ -176,7 +176,7 @@ p({
   "class":"foam.core.boot.CSpec",
   "name":"emailConfigDAO",
   "serve":true,
-  "authorize":true,
+  "authenticate":true,
   "serviceScript":"""
     return new foam.dao.EasyDAO.Builder(x)
       .setOf(foam.core.notification.email.EmailConfig.getOwnClassInfo())
@@ -217,8 +217,7 @@ p({
   lazy: false,
   service:{
     class:"foam.core.notification.email.EmailFolderAgent",
-    id: 'imap',
-    protocol: 'imaps'
+    id: 'imap'
   }
 })
 
