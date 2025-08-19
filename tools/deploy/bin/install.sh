@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # TODO:
-# - configuration to set deployment root /opt
 # - configuration to not split deployment between /mnt and /opt
 # - configuration for group name and id
 
@@ -65,11 +64,10 @@ while getopts "A:B:C:E:N:T:U:V:W:Y:" opt ; do
    esac
 done
 
-if [[ -z "${APP_HOME}" ]]; then
-    FOAM_ROOT=/opt/${APP_NAME}
-else
-    FOAM_ROOT="/${APP_ROOT}/${APP_NAME}"
-fi
+FOAM_ROOT=/opt/${APP_NAME}
+# if [ -n "${APP_HOME}" ]; then
+#     FOAM_ROOT=${APP_HOME}
+# fi
 FOAM_HOME=${FOAM_ROOT}-${VERSION}
 MNT_HOME=/mnt/${APP_NAME}
 SHARED_HOME=${MNT_HOME}
@@ -344,7 +342,7 @@ function setupSystemd {
 
     SERVICE_FILE="${FOAM_HOME}/etc/${APP_NAME}.service"
     sudo -- sh -c "cd ${FOAM_HOME}/etc; cp system.service ${APP_NAME}.service; chown ${USER}:${GROUP} ${APP_NAME}.service"
-    sed -i -e "s/APP_NAME/${APP_NAME}/g" ${SERVICE_FILE}
+#    sed -i -e "s/APP_HOME/${FOAM_ROOT}/g" ${SERVICE_FILE}
     sed -i -e "s/APP_NAME/${APP_NAME}/g" ${SERVICE_FILE}
     sed -i -e "s/VERSION/${VERSION}/g" ${SERVICE_FILE}
     sed -i -e "s/USER/${USER}/g" ${SERVICE_FILE}

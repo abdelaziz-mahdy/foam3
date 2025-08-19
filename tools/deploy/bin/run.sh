@@ -60,9 +60,10 @@ while getopts "A:D:dH:mN:P:pR:sW:V:" opt ; do
    esac
 done
 
-if [[ -z "${APP_HOME}" ]]; then
-    APP_HOME="/${APP_ROOT}/${APP_NAME}"
-fi
+APP_HOME="/${APP_ROOT}/${APP_NAME}"
+# if [[ -z "${APP_HOME}" ]]; then
+#     APP_HOME="/${APP_ROOT}/${APP_NAME}"
+# fi
 
 echo "starting $APP_NAME @ $HOST_NAME:$WEB_PORT"
 

@@ -9,6 +9,7 @@ StartLimitBurst=3
 Type=simple
 Restart=always
 RestartSec=1
+#ExecStart=APP_HOME/bin/run.sh -AAPP_HOME -NAPP_NAME -VVERSION -WWEB_PORT
 ExecStart=/opt/APP_NAME/bin/run.sh -NAPP_NAME -VVERSION -WWEB_PORT
 User=USER
 Group=GROUP
