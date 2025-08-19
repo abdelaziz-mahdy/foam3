@@ -411,7 +411,7 @@ foam.CLASS({
     {
       name: 'dateFn',
       visibility: function(prop) {
-        return foam.lang.DateTime.isInstance(prop) ?
+        return foam.lang.Date.isInstance(prop) ?
           foam.u2.DisplayMode.RW :
           foam.u2.DisplayMode.HIDDEN;
       },
@@ -497,7 +497,7 @@ foam.CLASS({
         expr = this.dateFn.create({delegate: expr});
       }
       var groupBySink = this.GROUP_BY(expr, this.sink.createSink());
-      
+
       // Apply grouping limits if specified
       if ( this.groupLimit > 0 ) {
         groupBySink.groupLimit = this.groupLimit;
@@ -505,7 +505,7 @@ foam.CLASS({
         groupBySink.includeOthers = this.includeOthers;
         groupBySink.othersLabel = this.othersLabel;
       }
-      
+
       return groupBySink;
     },
     function addToE(e) {
