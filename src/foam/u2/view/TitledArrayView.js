@@ -50,7 +50,7 @@ foam.CLASS({
     ^ .foam-u2-layout-Rows {
         gap: 10px;
     }
-    ^type-label {
+    .type-label {
       padding: 5px;
       border-radius: 4px;
       font-size: $body-sm;
@@ -146,7 +146,7 @@ foam.CLASS({
                       .end()
                       .start().addClass(self.myClass('actions-holder'))
                         .start('span')
-                          .addClass(self.myClass('type-label'))
+                          .addClass('type-label')
                           .addClass(summaryTypeClass)
                           .add(summaryType)
                         .end()
