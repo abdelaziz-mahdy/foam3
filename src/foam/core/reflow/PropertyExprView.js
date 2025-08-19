@@ -13,28 +13,43 @@ foam.CLASS({
 
   properties: [
     {
+      class: 'Boolean',
+      name: 'updatingData_',
+      value: false,
+      hidden: true,
+      documentation: 'Internal flag to prevent infinite loops during data updates'
+    },
+    {
       name: 'data',
       documentation: 'The data to be transformed',
       preSet: function(oldValue, newValue) {
-        if ( ! newValue ) {
-          // Clear selections when data is null/undefined
-          this.selectedProperty = null;
-          this.selectedTransformation = null;
+        console.log('PropertyExprView data preSet:', oldValue, '->', newValue);
+        if ( this.updatingData_ ) return newValue;
+        
+        this.updatingData_ = true;
+        try {
+          if ( ! newValue ) {
+            // Clear selections when data is null/undefined
+            this.selectedProperty = null;
+            this.selectedTransformation = null;
+            return newValue;
+          }
+        
+          // Check if this is a transformation expression (has delegate)
+          if ( newValue.delegate ) {
+            // This is a transformation expression
+            this.selectedTransformation = newValue.cls_;
+            this.selectedProperty = newValue.delegate;
+          } else {
+            // This is just a plain property
+            this.selectedProperty = newValue;
+            this.selectedTransformation = null;
+          }
+          
           return newValue;
+        } finally {
+          this.updatingData_ = false;
         }
-        
-        // Check if this is a transformation expression (has delegate)
-        if ( newValue.delegate ) {
-          // This is a transformation expression
-          this.selectedTransformation = newValue.cls_;
-          this.selectedProperty = newValue.delegate;
-        } else {
-          // This is just a plain property
-          this.selectedProperty = newValue;
-          this.selectedTransformation = null;
-        }
-        
-        return newValue;
       }
     },
     {
@@ -43,11 +58,21 @@ foam.CLASS({
     },
     {
       name: 'selectedProperty',
-      documentation: 'The currently selected property'
+      documentation: 'The currently selected property',
+      postSet: function() {
+        if ( ! this.updatingData_ ) {
+          this.updateData();
+        }
+      }
     },
     {
       name: 'selectedTransformation',
-      documentation: 'The currently selected transformation function'
+      documentation: 'The currently selected transformation function',
+      postSet: function() {
+        if ( ! this.updatingData_ ) {
+          this.updateData();
+        }
+      }
     },
     {
       name: 'placeholder',
@@ -83,6 +108,23 @@ foam.CLASS({
   ],
 
   methods: [
+    function updateData() {
+      this.updatingData_ = true;
+      try {
+        if ( ! this.selectedProperty ) {
+          this.data = null;
+        } else if ( this.selectedTransformation ) {
+          // Create transformation expression
+          this.data = this.selectedTransformation.create({ delegate: this.selectedProperty });
+        } else {
+          // Just use the property directly
+          this.data = this.selectedProperty;
+        }
+      } finally {
+        this.updatingData_ = false;
+      }
+    },
+
     function render() {
       this.SUPER();
       var self = this;
@@ -121,18 +163,6 @@ foam.CLASS({
           }
         }));
 
-      // Update data$ based on selections
-      this.onDetach(this.dynamic(function(selectedProperty, selectedTransformation) {
-        if ( ! selectedProperty ) {
-          this.data = null;
-        } else if ( selectedTransformation ) {
-          // Create transformation expression
-          this.data = selectedTransformation.create({ delegate: selectedProperty });
-        } else {
-          // Just use the property directly
-          this.data = selectedProperty;
-        }
-      }));
     }
   ]
 });
