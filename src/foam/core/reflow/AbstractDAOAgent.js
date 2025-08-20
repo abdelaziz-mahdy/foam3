@@ -617,19 +617,23 @@ foam.CLASS({
   properties: [
     {
       name: 'xProps',
-      value: 'a,b',
       view: function(_, X) {
        return { class: 'foam.core.reflow.PropertyListView', forCls$: X.data.of$ };
       }
     },
     {
       name: 'yProps',
-      value: 'c,d',
       view: function(_, X) {
        return { class: 'foam.core.reflow.PropertyListView', forCls$: X.data.of$ };
       }
     },
-    { name: 'sink', view: { class: 'foam.core.reflow.SinkView', choice: 'foam.core.reflow.CountDAOAgent' } }
+    { name: 'sink',
+      view: {
+        class: 'foam.core.reflow.SinkView',
+        choice: 'foam.core.reflow.CountDAOAgent',
+        disabledTypes: [ 'structure', 'chart', 'format' ]
+      }
+    }
   ],
 
   methods: [
