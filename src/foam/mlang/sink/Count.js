@@ -23,19 +23,19 @@ foam.CLASS({
   methods: [
     {
       name: 'put',
-      code: function() { this.value++ },
+      code: function() { this.value++; },
       swiftCode: 'value+=1',
       javaCode: 'setValue(this.getValue() + 1);'
     },
     {
       name: 'remove',
-      code: function() { this.value-- },
-      swiftCode: 'value-=1',
+      code: function() { this.value--; },
+      swiftCode: 'value-=1'
     },
     {
       name: 'reset',
-      code: function() { this.value = 0 },
-      swiftCode: 'value = 0',
+      code: function() { this.value = 0; },
+      swiftCode: 'value = 0'
     },
     function toString() { return 'COUNT()'; },
     function toSummary() { return this.value; },
