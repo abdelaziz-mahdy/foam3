@@ -17,7 +17,7 @@ exports.init = function() {
 
 exports.visitDir = function(pom, f, fn) {
   if ( f.name === 'images' || ( f.name === 'favicon' && ! fn.includes('images') ) ) {
-    this.log(`[Image Maker] Found ${fn}`);
+    this.verbose(`[Image Maker] Found ${fn}`);
     // Collect directories instead of copying immediately
     this.imageDirs.push(fn);
   }
