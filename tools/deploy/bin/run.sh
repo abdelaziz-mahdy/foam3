@@ -3,8 +3,8 @@
 
 HOST_NAME=`hostname -s`
 APP_HOME=
-APP_ROOT=$(echo $APP_HOME | cut -d "/" -f2)
-APP_NAME=$(echo $APP_HOME | cut -d "/" -f3)
+APP_ROOT=/opt
+APP_NAME=
 WEB_PORT=
 export DEBUG=0
 export DEBUG_SUSPEND=n
@@ -60,7 +60,11 @@ while getopts "A:D:dH:mN:P:pR:sW:V:" opt ; do
    esac
 done
 
-if [[ -z "${APP_HOME}" ]]; then
+if [ -z "${APP_HOME}" ]; then
+    if [ -z "${APP_NAME}" ]; then
+        echo "usage: $0 either APP_NAME or APP_HOME required"
+        exit 1;
+    fi
     APP_HOME="/${APP_ROOT}/${APP_NAME}"
 fi
 
