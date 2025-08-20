@@ -39,30 +39,24 @@ foam.CLASS({
     {
       name: 'reduce',
       args: 'foam.mlang.sink.Max sink',
-      type: 'foam.mlang.sink.Max',
       code: function reduce(sink) {
-        if ( ! sink || ! sink.hasOwnProperty('value') ) return this;
-        if ( ! this.hasOwnProperty('value') ) {
+        if ( ! sink ) return;
+        
+        if ( ! this.hasOwnProperty('value') || foam.util.compare(sink.value, this.value) > 0 ) {
           this.value = sink.value;
-          return this;
         }
         
-        if ( foam.util.compare(sink.value, this.value) > 0 ) {
-          this.value = sink.value;
-        }
-        return this;
       },
       javaCode: `
-if (sink == null || ((Max) sink).getValue() == null) return this;
+if (sink == null || ((Max) sink).getValue() == null) return;
 if (getValue() == null) {
   setValue(((Max) sink).getValue());
-  return this;
+  return;
 }
 
 if (((Comparable) ((Max) sink).getValue()).compareTo(getValue()) > 0) {
   setValue(((Max) sink).getValue());
 }
-return this;
       `
     },
     function toSummary() { return this.value; },

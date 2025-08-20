@@ -43,33 +43,19 @@ setValue((getValue() * ( getCount()-1) + ((Number)this.getArg1().f(obj)).doubleV
     {
       name: 'reduce',
       args: 'foam.mlang.sink.Average sink',
-      type: 'foam.mlang.sink.Average',
       code: function reduce(sink) {
-        if ( ! sink || sink.count === 0 ) return this;
-        if ( this.count === 0 ) {
-          this.value = sink.value;
-          this.count = sink.count;
-          return this;
-        }
-        
+        if ( ! sink || sink.count === 0 ) return;
         var totalCount = this.count + sink.count;
         this.value = (this.value * this.count + sink.value * sink.count) / totalCount;
         this.count = totalCount;
-        return this;
       },
       javaCode: `
-if (sink == null || ((Average) sink).getCount() == 0) return this;
-if (getCount() == 0) {
-  setValue(((Average) sink).getValue());
-  setCount(((Average) sink).getCount());
-  return this;
-}
+if (sink == null || ((Average) sink).getCount() == 0) return;
 
 long totalCount = getCount() + ((Average) sink).getCount();
 double combinedValue = (getValue() * getCount() + ((Average) sink).getValue() * ((Average) sink).getCount()) / totalCount;
 setValue(combinedValue);
 setCount(totalCount);
-return this;
       `
     },
     function toSummary() { return this.value; },

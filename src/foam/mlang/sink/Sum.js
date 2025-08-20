@@ -32,16 +32,13 @@ foam.CLASS({
     {
       name: 'reduce',
       args: 'foam.mlang.sink.Sum sink',
-      type: 'foam.mlang.sink.Sum',
       code: function reduce(sink) {
-        if ( ! sink ) return this;
+        if ( ! sink ) return;
         this.value += sink.value;
-        return this;
       },
       javaCode: `
-if (sink == null) return this;
+if (sink == null) return;
 setValue(getValue() + sink.getValue());
-return this;
       `
     },
 

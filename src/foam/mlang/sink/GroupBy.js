@@ -47,6 +47,7 @@ foam.CLASS({
         if ( value ) {
           var tmp = cloneMap[this.name] = {};
           for ( var key in value ) {
+            /// Need to clone to get expressions to re-evaluate (since without it expressions gets saved)
             tmp[key] = foam.util.clone(value[key]);
           }
         }

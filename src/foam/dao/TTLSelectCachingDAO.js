@@ -86,6 +86,7 @@ foam.CLASS({
       if ( this.cache[key] ) {
         // console.log('************************ TTL CACHED:', key);
         if ( this.cache[key].clone ) {
+          /// Need to clone to get expressions to re-evaluate
           return Promise.resolve(this.cache[key].clone());
         } else {
           return Promise.resolve(this.cache[key]);
