@@ -6,10 +6,10 @@
 
 foam.CLASS({
   package: 'foam.core.reflow',
-  name: 'PivotByView',
+  name: 'PivotTableView',
   extends: 'foam.u2.View',
 
-  documentation: 'Table View for PivotBy',
+  documentation: 'Table View for Pivot',
 
   cssTokens: [
     {

@@ -6,20 +6,25 @@
 
 foam.CLASS({
   package: 'foam.core.reflow',
-  name: 'PivotBy',
+  name: 'Pivot',
   extends: 'foam.dao.AbstractSink',
 
-  documentation: 'A two-dimensional GroupBy.',
+  documentation: 'A Pivot Table',
 
   implements: [
     'foam.mlang.Expressions',
     'foam.lang.Serializable'
   ],
 
-  javaImports: [ 'static foam.mlang.MLang.*' ],
+  javaImports: [
+    'java.util.Arrays',
+    'java.util.List',
+    'java.util.stream.Collectors',
+    'static foam.mlang.MLang.*'
+  ],
 
   requires: [
-    'foam.core.reflow.PivotByView'
+    'foam.core.reflow.PivotTableView'
   ],
 
   properties: [
@@ -118,6 +123,7 @@ foam.CLASS({
     {
       name: 'put',
       code: function put(obj, sub) {
+        debugger
         this.cols && this.cols.put(obj);
         this.rows && this.rows.put(obj);
       },
@@ -128,7 +134,21 @@ foam.CLASS({
     },
 
     function addToE(e) {
-      e.tag(this.PivotByView, {data: this, x$: this.x$, y$: this.y$});
+      e.tag(this.PivotTableView, {data: this, x$: this.x$, y$: this.y$});
+    },
+
+    {
+      name: 'toString',
+      code: function toString() {
+        var x = `[${this.xFunc.map(a => a.name)}]`;
+        var y = `[${this.yFunc.map(a => a.name)}]`;
+        return 'pivot(' + x + ',' + y + ',' + ')';
+      },
+      javaCode: `
+        List<String> xNames = Arrays.asList(getXFunc()).stream().map(a -> ((foam.mlang.Expr)a).toString()).collect(Collectors.toList());
+        List<String> yNames = Arrays.asList(getXFunc()).stream().map(a -> ((foam.mlang.Expr)a).toString()).collect(Collectors.toList());
+        return "pivot(" + xNames.toString() + ", " + yNames.toString() + ")";
+      `
     }
   ]
 });

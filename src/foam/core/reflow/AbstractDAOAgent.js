@@ -609,10 +609,10 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.core.reflow',
-  name: 'PivotByDAOAgent',
+  name: 'PivotDAOAgent',
   extends: 'foam.core.reflow.AbstractDAOAgent',
 
-  requires: [ 'foam.core.reflow.PivotBy' ],
+  requires: [ 'foam.core.reflow.Pivot' ],
 
   properties: [
     {
@@ -631,7 +631,7 @@ foam.CLASS({
       view: {
         class: 'foam.core.reflow.SinkView',
         choice: 'foam.core.reflow.CountDAOAgent',
-        disabledTypes: [ 'structure', 'chart', 'format' ]
+        disabledTypes: [ 'structure', 'format' ]
       }
     }
   ],
@@ -642,7 +642,7 @@ foam.CLASS({
       var xProps = this.xProps.length ? [...new Set(this.xProps.split(','))].map(p => this.of?.axiomMap_[p]) : null;
       var yProps = this.yProps.length ? [...new Set(this.yProps.split(','))].map(p => this.of?.axiomMap_[p]) : null;
       this.sink = this.sink || foam.core.reflow.CountDAOAgent.create();
-      return this.PivotBy.create({
+      return this.Pivot.create({
         yFunc: xProps,
         xFunc: yProps,
         acc:   this.sink.createSink()
@@ -820,7 +820,7 @@ foam.CLASS({
         if ( a == 'Duplicate' ) return;
         if ( a == 'GroupBy' ) return;
         if ( a == 'GridBy' ) return;
-        if ( a == 'PivotBy' ) return;
+        if ( a == 'Pivot' ) return;
         if ( a == 'Pie' ) return;
         if ( a == 'Min' ) return;
         if ( a == 'Max' ) return;
