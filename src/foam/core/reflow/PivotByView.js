@@ -37,11 +37,6 @@ foam.CLASS({
       transition: background-color 0.2s ease;
     }
 
-    /* Header row */
-    ^tr:first-child {
-      background-color: $backgroundDefault;
-    }
-
     /* Cell styling - both TH and TD */
     ^th, ^td {
       text-align: center;
