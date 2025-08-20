@@ -513,10 +513,10 @@ foam.CLASS({
           style({paddingLeft: '12px'}).
         add(this.PROP).
           add(this.SINK).
-          add('Top N: ', this.TOP_N).
-          add('Sort: ', this.SORT_ORDER).
-          add('Others: ', this.INCLUDE_OTHERS).
-          add('Others Label: ', this.OTHERS_LABEL).
+          add(this.TOP_N.__).
+          add(this.SORT_ORDER.__).
+          add(this.INCLUDE_OTHERS.__).
+          add(this.OTHERS_LABEL.__).
           callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
