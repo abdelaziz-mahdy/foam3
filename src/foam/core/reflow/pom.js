@@ -35,6 +35,7 @@ foam.POM({
     { name: 'LayoutBlock',             flags: 'web' },
     { name: 'ModelDAO',                flags: 'js' },
     { name: 'PropertyChoiceView',      flags: 'js' },
+    { name: 'PropertyExprView',        flags: 'js' },
     { name: 'PropertySuggestedField',  flags: 'js' },
     { name: 'PropertyOptionCitationView',   flags: 'js' },
     { name: 'ComparatorSuggestedField', flags: 'js' },

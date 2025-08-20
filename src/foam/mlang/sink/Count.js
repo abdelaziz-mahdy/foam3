@@ -37,6 +37,18 @@ foam.CLASS({
       code: function() { this.value = 0; },
       swiftCode: 'value = 0'
     },
+    {
+      name: 'reduce',
+      args: 'foam.mlang.sink.Count sink',
+      code: function reduce(sink) {
+        if ( ! sink ) return;
+        this.value += sink.value;
+      },
+      javaCode: `
+if (sink == null) return;
+setValue(getValue() + sink.getValue());
+      `
+    },
     function toString() { return 'COUNT()'; },
     function toSummary() { return this.value; },
     function addToE(e) { e.add(this.value); },

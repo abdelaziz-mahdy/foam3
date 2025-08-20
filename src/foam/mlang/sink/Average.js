@@ -40,6 +40,24 @@ setCount(getCount() + 1);
 setValue((getValue() * ( getCount()-1) + ((Number)this.getArg1().f(obj)).doubleValue()) / getCount());
       `,
     },
+    {
+      name: 'reduce',
+      args: 'foam.mlang.sink.Average sink',
+      code: function reduce(sink) {
+        if ( ! sink || sink.count === 0 ) return;
+        var totalCount = this.count + sink.count;
+        this.value = (this.value * this.count + sink.value * sink.count) / totalCount;
+        this.count = totalCount;
+      },
+      javaCode: `
+if (sink == null || ((Average) sink).getCount() == 0) return;
+
+long totalCount = getCount() + ((Average) sink).getCount();
+double combinedValue = (getValue() * getCount() + ((Average) sink).getValue() * ((Average) sink).getCount()) / totalCount;
+setValue(combinedValue);
+setCount(totalCount);
+      `
+    },
     function toSummary() { return this.value; },
     function addToE(e) { e.add(this.value); }
   ]

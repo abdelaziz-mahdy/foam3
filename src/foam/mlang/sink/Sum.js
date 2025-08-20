@@ -29,6 +29,18 @@ foam.CLASS({
       code: function put(obj, sub) { this.value += this.arg1.f(obj); },
       javaCode: 'setValue(getValue() + ((Number) this.arg1_.f(obj)).doubleValue());'
     },
+    {
+      name: 'reduce',
+      args: 'foam.mlang.sink.Sum sink',
+      code: function reduce(sink) {
+        if ( ! sink ) return;
+        this.value += sink.value;
+      },
+      javaCode: `
+if (sink == null) return;
+setValue(getValue() + sink.getValue());
+      `
+    },
 
     function toSummary() { return this.value; },
 

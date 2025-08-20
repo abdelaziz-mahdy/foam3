@@ -398,36 +398,15 @@ foam.CLASS({
   imports: [ 'eval_' ],
 
   requires: [
-    'foam.mlang.sink.GroupBySortOrder'
+    'foam.mlang.sink.GroupBySortOrder',
+    'foam.mlang.sink.TopNGroupBy'
   ],
 
   properties: [
     {
       name: 'prop',
       view: function(_, X) {
-       return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
-      }
-    },
-    {
-      name: 'dateFn',
-      visibility: function(prop) {
-        return foam.lang.Date.isInstance(prop) ?
-          foam.u2.DisplayMode.RW :
-          foam.u2.DisplayMode.HIDDEN;
-      },
-      view: function(_, X) {
-        return {
-          class: 'foam.u2.view.ChoiceView',
-          choices: [
-            [ null,                               '--'         ],
-            [ foam.mlang.expr.DateToHHExpr,       'HH'         ],
-            [ foam.mlang.expr.DateToHHMMExpr,     'HH:MM'      ],
-            [ foam.mlang.expr.DateToHHMMSSExpr,   'HH:MM:SS'   ],
-            [ foam.mlang.expr.DateToYYYYMMDDExpr, 'YYYY/MM/DD' ],
-            [ foam.mlang.expr.DateToYYYYMMExpr,   'YYYY/MM'    ],
-            [ foam.mlang.expr.DateToYYYYExpr,     'YYYY'       ]
-          ]
-        };
+       return { class: 'foam.core.reflow.PropertyExprView', forCls: X.data.of };
       }
     },
     {
@@ -444,10 +423,23 @@ foam.CLASS({
     },
     {
       class: 'Int',
-      name: 'groupLimit',
-      label: 'Group Limit',
+      name: 'topN',
+      label: 'Top N',
       value: 0,
-      help: 'Limit results to top N groups (0 for no limit)'
+      help: 'Keep top N groups by value (0 = disabled). Remaining groups can be merged into "Others".',
+      visibility: function(sink) {
+        return sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      class: 'Boolean',
+      name: 'includeOthers',
+      label: 'Include Others',
+      value: true,
+      help: 'Include "Others" group for remaining items when using Top N',
+      visibility: function(topN, sink) {
+        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
     },
     {
       class: 'Enum',
@@ -455,19 +447,9 @@ foam.CLASS({
       name: 'sortOrder',
       label: 'Sort Order',
       value: 'DESC',
-      help: 'Sort order for groups',
-      visibility: function(groupLimit) {
-        return groupLimit > 0 ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
-      }
-    },
-    {
-      class: 'Boolean',
-      name: 'includeOthers',
-      label: 'Include Others',
-      value: false,
-      help: 'If true, includes an "Others" category aggregating remaining groups',
-      visibility: function(groupLimit) {
-        return groupLimit > 0 ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      help: 'Sort order for value-based limiting',
+      visibility: function(topN, sink) {
+        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -475,10 +457,21 @@ foam.CLASS({
       name: 'othersLabel',
       label: 'Others Label',
       value: 'Others',
-      help: 'Label for the "Others" category',
-      visibility: function(includeOthers) {
-        return includeOthers ? 'RW' : 'HIDDEN';
+      help: 'Label for the aggregated "Others" category',
+      visibility: function(topN, sink) {
+        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
+    },
+    {
+      class: 'Int',
+      name: 'groupLimit',
+      label: 'Group Limit',
+      value: 0,
+      help: 'Limit total number of groups returned (0 for no limit).',
+      hidden: true,
+      documentation: `groupLimit is hidden to avoid confusion with topN. 
+        groupLimit cuts off data collection early (during put), while topN properly 
+        aggregates all data first then limits groups (during eof). Use topN instead.`
     },
     {
       name: 'browseEnabled',
@@ -489,23 +482,35 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      /// due to grouplimit breaking the nested logic we will reset it to -1 in here to avoid saved scripts from using it
+      this.groupLimit = -1;
+    },
     function value(s) { return s; },
     function createSink() {
       var expr = this.prop;
-      if ( foam.lang.Date.isInstance(this.prop) && this.dateFn ) {
-        //        expr = this.DOT(expr, this.dateFn);
-        expr = this.dateFn.create({delegate: expr});
+      var innerSink = this.sink.createSink();
+      
+      // Use TopNGroupBy if topN > 0 and sink type is supported
+      if ( this.topN > 0 && this.TopNGroupBy.isSupported(innerSink) ) {
+        return this.TopNGroupBy.create({
+          arg1: expr,
+          arg2: innerSink,
+          topN: this.topN,
+          sortOrder: this.sortOrder,
+          othersLabel: this.othersLabel,
+          includeOthers: this.includeOthers
+        });
       }
-      var groupBySink = this.GROUP_BY(expr, this.sink.createSink());
-
-      // Apply grouping limits if specified
+      
+      // Fall back to regular GroupBy
+      var groupBySink = this.GROUP_BY(expr, innerSink);
+      
+      // Apply legacy group limit if specified
       if ( this.groupLimit > 0 ) {
         groupBySink.groupLimit = this.groupLimit;
-        groupBySink.sortOrder = this.sortOrder;
-        groupBySink.includeOthers = this.includeOthers;
-        groupBySink.othersLabel = this.othersLabel;
       }
-
+      
       return groupBySink;
     },
     function addToE(e) {
@@ -515,14 +520,11 @@ foam.CLASS({
         start().
           style({paddingLeft: '12px'}).
         add(this.PROP).
-        add(this.dynamic(function(prop) {
-          if ( foam.lang.Date.isInstance(prop) )
-            this.add(self.DATE_FN);
-        })).
           add(this.SINK).
-          add('Limit: ', this.GROUP_LIMIT).
-          add('Sort: ', this.SORT_ORDER).
-          add('Include Others: ', this.INCLUDE_OTHERS).
+          add(this.TOP_N.__).
+          add(this.SORT_ORDER.__).
+          add(this.INCLUDE_OTHERS.__).
+          add(this.OTHERS_LABEL.__).
           callIf(this.block, function() { this.add(self.BROWSE); });
     }
   ],
