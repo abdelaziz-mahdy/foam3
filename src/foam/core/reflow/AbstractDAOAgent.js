@@ -617,12 +617,14 @@ foam.CLASS({
   properties: [
     {
       name: 'xProps',
+      value: 'a,b',
       view: function(_, X) {
        return { class: 'foam.core.reflow.PropertyListView', of: X.data.of };
       }
     },
     {
       name: 'yProps',
+      value: 'c,d',
       view: function(_, X) {
        return { class: 'foam.core.reflow.PropertyListView', of: X.data.of };
       }
@@ -633,8 +635,8 @@ foam.CLASS({
   methods: [
     function value(s) { return s; },
     function createSink() {
-      var xProps = [...new Set(this.xProps.split(','))].map(p => this.of?.axiomMap_[p]);
-      var yProps = [...new Set(this.yProps.split(','))].map(p => this.of?.axiomMap_[p]);
+      var xProps = this.xProps.length ? [...new Set(this.xProps.split(','))].map(p => this.of?.axiomMap_[p]) : null;
+      var yProps = this.yProps.length ? [...new Set(this.yProps.split(','))].map(p => this.of?.axiomMap_[p]) : null;
       return this.PivotBy.create({
         yFunc: xProps,
         xFunc: yProps,

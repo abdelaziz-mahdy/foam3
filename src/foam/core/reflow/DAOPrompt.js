@@ -114,7 +114,7 @@ foam.CLASS({
 
   requires: [
     'foam.dao.ProxyDAO',
-    'foam.core.reflow.TableDAOAgent',
+    'foam.core.reflow.PivotByDAOAgent',
     'foam.core.reflow.DAOPromptView',
     'foam.parse.QueryParser'
   ],
@@ -331,7 +331,7 @@ foam.CLASS({
       view: function(_, X) {
         return foam.core.reflow.SinkView.create({
           sinksOnly: false,
-          choice: 'foam.core.reflow.TableDAOAgent',
+          choice: 'PivotBy',
           dao: X.data.dao}, X.data);
 visible      },
       preSet: function(o, n) {
@@ -345,7 +345,7 @@ visible      },
       reactive: false,
       section: 'output',
       label: '',
-      factory: function() { return this.TableDAOAgent.create(); }
+      factory: function() { return this.PivotByDAOAgent.create(); }
     },
     { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO', transient: true },
     { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
