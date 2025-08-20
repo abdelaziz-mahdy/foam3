@@ -93,15 +93,15 @@ foam.CLASS({
       var colsDict = colDepth > 0 ? this.getColsFromRows(this.data.rows, 0, {}, rowDepth, this.data.cols) : null;
 
       var table = this.start('table').addClass(this.myClass('table'));
-      this.renderColHeaders(self, table, colsDict, [], 0, rowDepth, colDepth);
+      this.renderColHeaders(table, colsDict, [], 0, rowDepth, colDepth);
       if ( ! this.data.rows ) 
-        this.renderColVals(self, table, colsDict);
+        this.renderColVals(table, colsDict);
       else
-        this.renderRows(self, table, rowsDict, 0, rowDepth);
+        this.renderRows(table, rowsDict, 0, rowDepth);
       table.end();
     },
 
-    function renderColHeaders(self, table, cols, rows, depth, rowDepth, colDepth, keyPrefix) {
+    function renderColHeaders(table, cols, rows, depth, rowDepth, colDepth, keyPrefix) {
       if ( ! cols ) return;
       if ( ! keyPrefix ) keyPrefix = '';
       var row;
@@ -117,7 +117,7 @@ foam.CLASS({
       if ( hasChildren ) {
         keys.forEach(c => {
           var childKeysSpan = 
-            this.renderColHeaders(self, table, cols[c], rows, depth + 1, rowDepth, colDepth, keyPrefix + c);
+            this.renderColHeaders(table, cols[c], rows, depth + 1, rowDepth, colDepth, keyPrefix + c);
           colSpans.push(childKeysSpan);
         });
       }
@@ -127,9 +127,9 @@ foam.CLASS({
         rows[depth].start('th')
           .addClass(this.myClass('th'))
           .attrs({ 'colspan' : colSpan  })
-          .on('mouseover', () => self.onCellMouseOver(key, null))
-          .on('mouseleave', () => self.onCellMouseLeave())
-          .enableClass(self.myClass('highlighted-col'), self.slot((currentHoverCol) => currentHoverCol === key || currentHoverCol?.startsWith(key) || key.startsWith(currentHoverCol)))
+          .on('mouseover', () => this.onCellMouseOver(key, null))
+          .on('mouseleave', () => this.onCellMouseLeave())
+          .enableClass(this.myClass('highlighted-col'), this.slot((currentHoverCol) => currentHoverCol === key || currentHoverCol?.startsWith(key) || key.startsWith(currentHoverCol)))
           .add(keys[i])
         .end();
         if ( depth == colDepth - 1 ) this.colIndexMap.push(key);
@@ -141,7 +141,7 @@ foam.CLASS({
         keys.length;
     },
 
-    function renderRows(self, table, rows, currDepth, rowDepth, prefix = '') {
+    function renderRows(table, rows, currDepth, rowDepth, prefix = '') {
       var rowKeys = Object.keys(rows);
       if ( currDepth == rowDepth ) {
         return 1;
@@ -151,39 +151,39 @@ foam.CLASS({
       for ( var i = 0; i < rowKeys.length; i++ ) {
         const key = prefix + rowKeys[i];
         if ( currDepth < rowDepth - 1 ) {
-          var ret = renderRows(self, table, rows[rowKeys[i]], currDepth + 1, rowDepth, key);
+          var ret = this.renderRows(table, rows[rowKeys[i]], currDepth + 1, rowDepth, key);
           if ( ret.row ) {
             var el = foam.u2.Element.create({nodeName: 'th'});
             el.attrs({ 'rowspan' : ret.rowSpan })
-              .addClass(self.myClass('th'))
+              .addClass(this.myClass('th'))
               .add(rowKeys[i])
-              .on('mouseover', () => self.onCellMouseOver(null, key))
-              .on('mouseleave', () => self.onCellMouseLeave())
-              .enableClass(self.myClass('highlighted-row'), self.slot((currentHoverRow) => currentHoverRow === key || key.startsWith(currentHoverRow) || currentHoverRow?.startsWith(key) ));
+              .on('mouseover', () => this.onCellMouseOver(null, key))
+              .on('mouseleave', () => this.onCellMouseLeave())
+              .enableClass(this.myClass('highlighted-row'), this.slot((currentHoverRow) => currentHoverRow === key || key.startsWith(currentHoverRow) || currentHoverRow?.startsWith(key) ));
             ret.row.insertBefore(el, ret.row.children[0]);
             if ( i == 0 ) retData.row = ret.row;
           }
           rowSpans.push(ret.rowSpan);
         } else {
-          var row = table.start('tr').addClass(self.myClass('tr'))
+          var row = table.start('tr').addClass(this.myClass('tr'))
           row.start('th')
-            .addClass(self.myClass('th'))
-            .on('mouseover', () => self.onCellMouseOver(null, key))
-            .on('mouseleave', () => self.onCellMouseLeave())
-            .enableClass(self.myClass('highlighted-col'), self.slot((currentHoverRow) => currentHoverRow === key || key.startsWith(currentHoverRow) || currentHoverRow?.startsWith(key) ))
+            .addClass(this.myClass('th'))
+            .on('mouseover', () => this.onCellMouseOver(null, key))
+            .on('mouseleave', () => this.onCellMouseLeave())
+            .enableClass(this.myClass('highlighted-col'), this.slot((currentHoverRow) => currentHoverRow === key || key.startsWith(currentHoverRow) || currentHoverRow?.startsWith(key) ))
             .add(rowKeys[i])
             .end();
-          if ( self.colIndexMap?.length ) {
-            var map = self.flattenMap(rows[rowKeys[i]], self.data.xFunc.length);
-            row.forEach(self.colIndexMap, function(col) {
+          if ( this.colIndexMap?.length ) {
+            var map = this.flattenMap(rows[rowKeys[i]], this.data.xFunc.length);
+            row.forEach(this.colIndexMap, col => {
               const c = col;
               row.start('td')
-                .addClass(self.myClass('td'))
-                .on('mouseover', () => self.onCellMouseOver(c, key))
-                .on('mouseleave', () => self.onCellMouseLeave())
+                .addClass(this.myClass('td'))
+                .on('mouseover', () => this.onCellMouseOver(c, key))
+                .on('mouseleave', () => this.onCellMouseLeave())
                 .enableClass(
-                  self.myClass('highlighted-col'),
-                  self.slot((currentHoverCol, currentHoverRow) => {
+                  this.myClass('highlighted-col'),
+                  this.slot((currentHoverCol, currentHoverRow) => {
                     var ret = currentHoverCol === c || currentHoverRow === key
                       || c.startsWith(currentHoverCol) || key.startsWith(currentHoverRow);
                     return ret;
@@ -193,12 +193,12 @@ foam.CLASS({
             })
           } else {
             row.start('td')
-              .addClass(self.myClass('td'))
-              .on('mouseover', () => self.onCellMouseOver(null, key))
-              .on('mouseleave', () => self.onCellMouseLeave())
+              .addClass(this.myClass('td'))
+              .on('mouseover', () => this.onCellMouseOver(null, key))
+              .on('mouseleave', () => this.onCellMouseLeave())
               .enableClass(
-                self.myClass('highlighted-col'),
-                self.slot((currentHoverRow) => currentHoverRow === key || key.startsWith(currentHoverRow) ))
+                this.myClass('highlighted-col'),
+                this.slot((currentHoverRow) => currentHoverRow === key || key.startsWith(currentHoverRow) ))
               .add(rows[rowKeys[i]])
             .end();
           }
@@ -211,18 +211,18 @@ foam.CLASS({
       return retData;
     },
 
-    function renderColVals(self, table, cols) {
-      cols = this.flattenMap(cols, self.data.xFunc.length);
-      var row = table.start('tr').addClass(self.myClass('tr'));
+    function renderColVals(table, cols) {
+      cols = this.flattenMap(cols, this.data.xFunc.length);
+      var row = table.start('tr').addClass(this.myClass('tr'));
       for ( const key in cols ) {
         const val = cols[key];
         row.start('td')
-          .addClass(self.myClass('td'))
-          .on('mouseover', () => self.onCellMouseOver(key, null))
-          .on('mouseleave', () => self.onCellMouseLeave())
+          .addClass(this.myClass('td'))
+          .on('mouseover', () => this.onCellMouseOver(key, null))
+          .on('mouseleave', () => this.onCellMouseLeave())
           .enableClass(
-            self.myClass('highlighted-col'),
-            self.slot((currentHoverCol ) => {
+            this.myClass('highlighted-col'),
+            this.slot((currentHoverCol ) => {
               var ret = currentHoverCol === key || key.startsWith(currentHoverCol);
               return ret;
             }))
@@ -238,7 +238,7 @@ foam.CLASS({
       var ret = {};
       var keys = data.sortedKeys();
       for ( var i = 0; i < keys.length; i++ ) {
-        ret[keys[i]] = makeDictionary(data.groups[keys[i]]);
+        ret[keys[i]] = this.makeDictionary(data.groups[keys[i]]);
       }
       return ret;
     },
@@ -278,7 +278,7 @@ foam.CLASS({
       for (var key in obj) {
         var val = obj[key];
         if ( colDepth > 1 && typeof val === 'object' && val !== null ) {
-          Object.assign(map, flattenMap(val, colDepth - 1, prefix + key));
+          Object.assign(map, this.flattenMap(val, colDepth - 1, prefix + key));
         } else {
           map[prefix + key] = val;
         }
