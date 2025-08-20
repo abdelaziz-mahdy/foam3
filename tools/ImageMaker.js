@@ -30,7 +30,7 @@ exports.end = function() {
     return;
   }
   
-  this.log(`[Image Maker] Processing ${this.imageDirs.length} image directories in reverse order`);
+  this.verbose(`[Image Maker] Processing ${this.imageDirs.length} image directories in reverse order`);
   
   // Reverse the array so application directories are processed last
   // That way if Application and FOAM have two images with same filename (e.g. export-icon.svg) then Application file will override FOAM image
