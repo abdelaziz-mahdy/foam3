@@ -775,8 +775,8 @@ foam.CLASS({
 
   requires: [
     'foam.core.reflow.dashboard.DashboardLineSink',
+    'foam.core.reflow.dashboard.DashboardMultiLineSink',
     'foam.core.reflow.dashboard.TimeUnit',
-    'foam.mlang.sink.GroupBy',
     'foam.core.reflow.ReactiveSectionedDetailView'
   ],
 
@@ -853,11 +853,8 @@ foam.CLASS({
     {
       name: 'aggregationSink',
       label: 'Aggregation',
-      view: { class: 'foam.core.reflow.SinkView', choice:  'foam.core.reflow.AvgDAOAgent' },
-      help: 'How to aggregate Y values when grouping',
-      visibility: function(groupBy) {
-        return groupBy ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
-      }
+      view: { class: 'foam.core.reflow.SinkView', choice: 'foam.core.reflow.CountDAOAgent' },
+      help: 'How to aggregate values when multiple records have the same X-value',
     },
     {
       class: 'Enum',
@@ -926,36 +923,68 @@ foam.CLASS({
 
   methods: [
     function createSink() {
-      if ( ! this.xProp || ! this.yProp ) {
+      if ( ! this.xProp ) {
         return this.ArraySink.create();
       }
       
-      return this.DashboardLineSink.create({
-        xProp: this.xProp,
-        yProp: this.yProp,
-        groupBy: this.groupBy,
-        aggregationSink: this.aggregationSink,
-        timeUnit: this.timeUnit,
-        colors: this.colors,
-        xAxisLabel: this.xAxisLabel,
-        yAxisLabel: this.yAxisLabel,
-        fill: this.fill,
-        tension: this.tension,
-        stepped: this.stepped,
-        showPoints: this.showPoints,
-        pointRadius: this.pointRadius,
-        showGridLines: this.showGridLines,
-        responsive: this.responsive,
-        maintainAspectRatio: this.maintainAspectRatio,
-        height: this.height,
-        width: this.width,
-        showLegend: this.showLegend,
-        legendPosition: this.legendPosition,
-        showTooltips: this.showTooltips,
-        showTooltipSum: this.showTooltipSum,
-        animate: this.animate,
-        animationDuration: this.animationDuration
-      });
+      // Use the aggregationSink if provided, otherwise COUNT (like StackedBar does)
+      var valueSink = this.aggregationSink ? this.aggregationSink.createSink() : this.COUNT();
+      
+      // Choose sink based on whether groupBy is set
+      if ( this.groupBy ) {
+        // Multi-line chart: Use GridBy-based sink
+        return this.DashboardMultiLineSink.create({
+          xFunc: this.xProp,        // x-axis grouping
+          yFunc: this.groupBy,      // line grouping  
+          acc: valueSink,          // aggregation sink (defaulted to COUNT)
+          timeUnit: this.timeUnit,
+          colors: this.colors,
+          xAxisLabel: this.xAxisLabel,
+          yAxisLabel: this.yAxisLabel,
+          fill: this.fill,
+          tension: this.tension,
+          stepped: this.stepped,
+          showPoints: this.showPoints,
+          pointRadius: this.pointRadius,
+          showGridLines: this.showGridLines,
+          responsive: this.responsive,
+          maintainAspectRatio: this.maintainAspectRatio,
+          height: this.height,
+          width: this.width,
+          showLegend: this.showLegend,
+          legendPosition: this.legendPosition,
+          showTooltips: this.showTooltips,
+          showTooltipSum: this.showTooltipSum,
+          animate: this.animate,
+          animationDuration: this.animationDuration
+        });
+      } else {
+        // Single-line chart: Use GroupBy-based sink
+        return this.DashboardLineSink.create({
+          arg1: this.xProp,         // x-axis grouping
+          arg2: valueSink,         // aggregation sink (defaulted to COUNT)
+          timeUnit: this.timeUnit,
+          colors: this.colors,
+          xAxisLabel: this.xAxisLabel,
+          yAxisLabel: this.yAxisLabel,
+          fill: this.fill,
+          tension: this.tension,
+          stepped: this.stepped,
+          showPoints: this.showPoints,
+          pointRadius: this.pointRadius,
+          showGridLines: this.showGridLines,
+          responsive: this.responsive,
+          maintainAspectRatio: this.maintainAspectRatio,
+          height: this.height,
+          width: this.width,
+          showLegend: this.showLegend,
+          legendPosition: this.legendPosition,
+          showTooltips: this.showTooltips,
+          showTooltipSum: this.showTooltipSum,
+          animate: this.animate,
+          animationDuration: this.animationDuration
+        });
+      }
     },
     
     function value(s) {
