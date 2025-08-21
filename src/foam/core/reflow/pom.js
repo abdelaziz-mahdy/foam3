@@ -1,7 +1,8 @@
 foam.POM({
   name: 'console',
   projects: [
-    { name: 'dashboard/pom' }
+    { name: 'dashboard/pom' },
+    { name: "pivottest/pom" }
   ],
   files: [
     { name: '../../u2/mlang/Table',    flags: 'js|java' },
@@ -24,6 +25,8 @@ foam.POM({
     { name: 'RoleFlowAccess',          flags: 'js|java' },
     { name: 'UserFlowAccess',          flags: 'js|java' },
     { name: 'Flow',                    flags: 'js|java' },
+    { name: 'Pivot',                   flags: 'js|java' },
+    { name: 'PivotTableView',          flags: 'js' },
     { name: 'GridBy',                  flags: 'js|java' },
     { name: 'GridByView',              flags: 'js' },
     { name: 'Header',                  flags: 'js' },
@@ -35,6 +38,7 @@ foam.POM({
     { name: 'LayoutBlock',             flags: 'web' },
     { name: 'ModelDAO',                flags: 'js' },
     { name: 'PropertyChoiceView',      flags: 'js' },
+    { name: 'PropertyExprView',        flags: 'js' },
     { name: 'PropertySuggestedField',  flags: 'js' },
     { name: 'PropertyOptionCitationView',   flags: 'js' },
     { name: 'ComparatorSuggestedField', flags: 'js' },

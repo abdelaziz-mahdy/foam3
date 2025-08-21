@@ -43,6 +43,10 @@ foam.CLASS({
       value: true
     },
     {
+      class: 'StringArray',
+      name: 'disabledTypes'
+    },
+    {
       name: 'choice',
       postSet: function(o, n) {
         if ( ! this.feedback_ ) this.data = undefined;
@@ -52,29 +56,20 @@ foam.CLASS({
         var dao = X.agentDAO;
 
         if ( X.data.sinksOnly ) dao = dao.where(E.EQ(foam.core.reflow.SinkAgent.SINK, true));
+        var sections = [ 'format', 'structure', 'calculation', 'chart' ]
+          .filter(type => ! X.data.disabledTypes?.includes(type.toLowerCase()))
+          .map(type => {
+            return {
+              heading: foam.String.capitalize(type),
+              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, type.toLowerCase()))
+            };
+          });
 
         return {
           class: 'foam.u2.view.RichChoiceView',
           search: true,
           idProperty: 'value',
-          sections: [
-            {
-              heading: 'Format',
-              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'format'))
-            },
-            {
-              heading: 'Structure',
-              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'structure'))
-            },
-            {
-              heading: 'Calculations',
-              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'calculation'))
-            },
-            {
-              heading: 'Chart',
-              dao: dao.where(E.EQ(foam.core.reflow.SinkAgent.TYPE, 'chart'))
-            }
-          ]
+          sections: sections
         }
       }
     },

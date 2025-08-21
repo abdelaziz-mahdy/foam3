@@ -5,7 +5,7 @@ foam.POM({
     { name: 'MetricAlignment',         flags: 'js|java' },
 
     { name: 'LegendPosition',          flags: 'js|java' },
-    { name: 'DashboardSinks',          flags: 'js' },
+    { name: 'DashboardSinks',          flags: 'js|java' },
     { name: 'DashboardDAOAgents',      flags: 'js' },
 
     { name: 'TimeUnit',                flags: 'js|java' },

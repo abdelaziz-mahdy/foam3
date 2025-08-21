@@ -57,6 +57,8 @@ foam.CLASS({
         AtomicInteger passCount = new AtomicInteger();
         AtomicInteger failCount = new AtomicInteger();
 
+        getLogger().info("Replay starting", getFilename());
+
         // NOTE: explicitly calling PM constructor as create only creates
         // a percentage of PMs, but we want all replay statistics
         PM pm = new PM(dao.getOf(), "replay." + getFilename());

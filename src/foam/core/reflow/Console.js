@@ -53,6 +53,7 @@ foam.CLASS({
     function toSummary() {
       return this.flowName;
     },
+
     function createFlowChildName(prefix) {
       for ( var i = 1, name = prefix ; ; ) {
         name = prefix + i++;
@@ -666,7 +667,6 @@ foam.CLASS({
     }
   `,
 
-
   constants: [
     {
       type: 'Int',
@@ -911,7 +911,7 @@ foam.CLASS({
         class: 'foam.u2.TextField', // Avoids ModeAltView focus() issue
         autocomplete: 'off',
         onKey: false
-      },
+      }
     },
     'input_', // Element pointer
     {
@@ -1008,7 +1008,6 @@ foam.CLASS({
     async function includeScript(script, ctx, skipParse) {
       ctx = ctx || this.__subContext__;
       if ( ! script ) return;
-
       var cs = skipParse ?
       script :
       foam.json.parseString(script, ctx);
@@ -1079,7 +1078,6 @@ foam.CLASS({
           var cmd = c.clone(this.currentBlock);
           return await cmd.execute.apply(cmd, args);
         }
-
       });
 
       // If this.value.script changes

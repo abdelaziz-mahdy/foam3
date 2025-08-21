@@ -73,6 +73,7 @@ foam.POM({
     { name: "order/ThenBy",                         flags: "js|java" },
     { name: "order/CustomComparator",               flags: "js|java" },
     { name: "sink/AbstractUnarySink",               flags: "js|java" },
+    { name: "sink/TopNGroupBy",                     flags: "js|java" },
     { name: "sink/Max",                             flags: "js|java" },
     { name: "sink/Min",                             flags: "js|java" },
     { name: "sink/Sum",                             flags: "js|java" },

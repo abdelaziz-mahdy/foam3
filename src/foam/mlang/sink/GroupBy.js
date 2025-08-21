@@ -15,8 +15,7 @@ foam.CLASS({
   requires: [
     'foam.dao.SequenceNumberDAO',
     'foam.mlang.sink.GroupByView',
-    'foam.mlang.sink.Sequence',
-    'foam.mlang.sink.GroupBySortOrder'
+    'foam.mlang.sink.Sequence'
   ],
 
   // TODO: it makes no sense to name the arguments arg1 and arg2
@@ -38,36 +37,22 @@ foam.CLASS({
       value: -1
     },
     {
-      class: 'Enum',
-      of: 'foam.mlang.sink.GroupBySortOrder',
-      name: 'sortOrder',
-      value: 'NONE',
-      documentation: 'Sort order for value-based limiting (NONE preserves existing behavior)'
-    },
-    {
-      class: 'Boolean',
-      name: 'includeOthers',
-      value: false,
-      documentation: 'If true, includes an "Others" category that aggregates all remaining groups'
-    },
-    {
-      class: 'String',
-      name: 'othersLabel',
-      value: 'Others',
-      documentation: 'Label for the aggregated "Others" category'
-    },
-    {
-      name: 'othersGroup_',
-      hidden: true,
-      documentation: 'Internal reference to the aggregated "Others" group'
-    },
-    {
       class: 'Map',
       name: 'groups',
       hidden: true,
       javaCloneProperty: '// noop',
       factory: function() { return {}; },
-      javaFactory: 'return new java.util.HashMap<Object, foam.dao.Sink>();'
+      javaFactory: 'return new java.util.HashMap<Object, foam.dao.Sink>();',
+      cloneProperty: function(value, cloneMap) {
+        if ( value ) {
+          var tmp = cloneMap[this.name] = {};
+          for ( var key in value ) {
+            /// Need to clone to get expressions to re-evaluate (since without it expressions gets saved)
+            tmp[key] = foam.util.clone(value[key]);
+          }
+        }
+      }
+    
     },
     {
       class: 'List',
@@ -126,21 +111,7 @@ return getGroupKeys();`
       name: 'putInGroup_',
       args: 'foam.lang.Detachable sub, Object key, Object obj',
       code: function putInGroup_(sub, key, obj) {
-        // Handle "Others" group separately for groupLimit functionality
-        if ( this.groupLimit > 0 && this.sortOrder !== this.GroupBySortOrder.NONE && key === this.othersLabel ) {
-          var group = this.groups.hasOwnProperty(key) && this.groups[key];
-          if ( ! group ) {
-            group = this.arg2.clone();
-            this.groupKeys = undefined;
-            this.groups[key] = group;
-          }
-          group.put(obj, sub);
-          this.pub('propertyChange', 'groups');
-          return;
-        }
-
         var group = this.groups.hasOwnProperty(key) && this.groups[key];
-        var wasExisting = !! group;
 
         if ( ! group ) {
           group = this.arg2.clone();
@@ -149,11 +120,6 @@ return getGroupKeys();`
         }
         group.put(obj, sub);
         this.pub('propertyChange', 'groups');
-
-        // Apply value-based limiting if enabled
-        if ( this.groupLimit > 0 && this.sortOrder !== this.GroupBySortOrder.NONE ) {
-          this.enforceSortedGroupLimit_();
-        }
       },
       javaCode:
 `foam.dao.Sink group = (foam.dao.Sink) getGroups().get(key);
@@ -164,87 +130,11 @@ return getGroupKeys();`
  }
  group.put(obj, sub);`
     },
-    {
-      name: 'enforceSortedGroupLimit_',
-      code: function enforceSortedGroupLimit_() {
-        var currentGroupCount = Object.keys(this.groups).length;
-
-        // If "Others" exists, don't count it in the limit
-        var hasOthers = this.groups.hasOwnProperty(this.othersLabel);
-        var actualGroupCount = hasOthers ? currentGroupCount - 1 : currentGroupCount;
-
-        // If we're not over the limit, nothing to do
-        if ( actualGroupCount <= this.groupLimit ) {
-          return;
-        }
-
-        // We need to find the top groups and move excess to "Others"
-        var self = this;
-        var groupEntries = [];
-
-        Object.keys(this.groups).forEach(function(key) {
-          if ( key !== self.othersLabel ) {
-            var group = self.groups[key];
-            var value = group.value != null ? group.value : 0;
-            groupEntries.push({ key: key, value: value, group: group });
-          }
-        });
-
-        // Sort by value based on sortOrder
-        if ( this.sortOrder === this.GroupBySortOrder.DESC ) {
-          groupEntries.sort(function(a, b) {
-            return b.value - a.value; // Descending (highest values first)
-          });
-        } else if ( this.sortOrder === this.GroupBySortOrder.ASC ) {
-          groupEntries.sort(function(a, b) {
-            return a.value - b.value; // Ascending (lowest values first)
-          });
-        }
-
-        // Keep only the top N groups
-        var topEntries = groupEntries.slice(0, this.groupLimit);
-        var excessEntries = groupEntries.slice(this.groupLimit);
-
-        if ( excessEntries.length > 0 ) {
-          // Create new groups map with only top entries
-          var newGroups = {};
-          topEntries.forEach(function(entry) {
-            newGroups[entry.key] = entry.group;
-          });
-
-          // Handle "Others" group if enabled
-          if ( this.includeOthers ) {
-            var othersGroup = this.othersGroup_;
-            if ( ! othersGroup ) {
-              othersGroup = this.arg2.clone();
-              this.othersGroup_ = othersGroup;
-            }
-
-            // Add excess entries to "Others"
-            excessEntries.forEach(function(entry) {
-              // This is a simplification - in a real implementation, you'd want to
-              // properly merge the sink data, not just add the value
-              if ( othersGroup.value != null && entry.group.value != null ) {
-                othersGroup.value += entry.group.value;
-              }
-            });
-
-            newGroups[this.othersLabel] = othersGroup;
-          }
-
-          // Replace groups and clear cached keys
-          this.groups = newGroups;
-          this.groupKeys = undefined;
-          this.pub('propertyChange', 'groups');
-        }
-      }
-    },
 
     function reset() {
       this.arg2.reset();
       this.groups    = undefined;
       this.groupKeys = undefined;
-      this.othersGroup_ = null;
     },
     {
       name: 'put',
@@ -284,7 +174,27 @@ if ( getGroupLimit() == getGroups().size() && sub != null ) sub.detach();
 `
     },
 
-    function eof() { },
+    {
+      name: 'eof',
+      code: function() { 
+        // Call eof on all nested sinks to ensure they finalize their state
+        for ( var key in this.groups ) {
+          var nestedSink = this.groups[key];
+          if ( nestedSink && nestedSink.eof ) {
+            nestedSink.eof();
+          }
+        }
+      },
+      javaCode: `
+// Call eof on all nested sinks to ensure they finalize their state
+for (Object key : getGroups().keySet()) {
+  foam.dao.Sink nestedSink = (foam.dao.Sink) getGroups().get(key);
+  if (nestedSink != null) {
+    nestedSink.eof();
+  }
+}
+      `
+    },
 
     {
       name: 'toString',

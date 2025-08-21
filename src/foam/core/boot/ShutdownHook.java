@@ -40,18 +40,7 @@ public class ShutdownHook
     Logger logger = Loggers.logger(x_);
     logger.info("Shutdownhook,shutdown requested");
 
-    if ( factories_ != null ) {
-      for ( CSpecFactory factory : factories_.values() ) {
-        // Report factory shutdown to troubleshoot services not stoppinp
-        logger.debug("Shutdownhook,shutdown,factory",factory.getCSpecName(),"start");
-        factory.shutdown();
-        logger.debug("Shutdownhook,shutdown,factory",factory.getCSpecName(),"end");
-      }
-    }
-
-    logger.info("ShutdownHook,shutdown complete");
-
-    // Generate a thrump dump to help troubleshoot system shutdown issues
+    // Generate a thrump dump
     try {
       foam.core.http.ThreadsWebAgent agent = new foam.core.http.ThreadsWebAgent();
       FileSystem fs = FileSystems.getDefault();
@@ -77,5 +66,16 @@ public class ShutdownHook
     } catch (Throwable t) {
       logger.warning("ShutdownHook,shutdown,Failed to generated thread report", t);
     }
+
+    if ( factories_ != null ) {
+      for ( CSpecFactory factory : factories_.values() ) {
+        // Report factory shutdown to troubleshoot services not stoppinp
+        logger.debug("Shutdownhook,shutdown,factory",factory.getCSpecName(),"start");
+        factory.shutdown();
+        logger.debug("Shutdownhook,shutdown,factory",factory.getCSpecName(),"end");
+      }
+    }
+
+    logger.info("ShutdownHook,shutdown complete");
   }
 }
