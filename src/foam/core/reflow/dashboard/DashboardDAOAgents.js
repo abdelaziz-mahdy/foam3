@@ -300,6 +300,7 @@ foam.CLASS({
         arg1: this.prop,
         arg2: valueSink,
         groupLimit: this.groupLimit,
+        topN: this.topN,
         sortOrder: this.sortOrder,
         includeOthers: this.includeOthers,
         othersLabel: this.othersLabel,
