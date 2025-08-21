@@ -8,7 +8,7 @@ foam.CLASS({
   package: 'foam.mlang.sink',
   name: 'Count',
   extends: 'foam.dao.AbstractSink',
-  implements: [ 'foam.lang.Serializable' ],
+  implements: [ 'foam.lang.Serializable', 'foam.mlang.sink.Reducible' ],
 
   documentation: 'Sink which counts number of objects put().',
 
@@ -39,14 +39,16 @@ foam.CLASS({
     },
     {
       name: 'reduce',
-      args: 'foam.mlang.sink.Count sink',
-      code: function reduce(sink) {
-        if ( ! sink ) return;
-        this.value += sink.value;
+      args: 'foam.mlang.sink.Reducible other',
+      code: function reduce(other) {
+        if ( ! other || ! foam.mlang.sink.Count.isInstance(other) ) return;
+        this.value += other.value;
       },
       javaCode: `
-if (sink == null) return;
-setValue(getValue() + sink.getValue());
+if (other == null) return;
+if (other instanceof foam.mlang.sink.Count) {
+  setValue(getValue() + ((foam.mlang.sink.Count) other).getValue());
+}
       `
     },
     function toString() { return 'COUNT()'; },

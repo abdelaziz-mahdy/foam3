@@ -8,6 +8,7 @@ foam.CLASS({
   package: 'foam.mlang.sink',
   name: 'Max',
   extends: 'foam.mlang.sink.AbstractUnarySink',
+  implements: [ 'foam.mlang.sink.Reducible' ],
 
   documentation: 'A Sink which remembers the maximum value put().',
 
@@ -38,24 +39,29 @@ foam.CLASS({
     },
     {
       name: 'reduce',
-      args: 'foam.mlang.sink.Max sink',
-      code: function reduce(sink) {
-        if ( ! sink ) return;
+      args: 'foam.mlang.sink.Reducible other',
+      code: function reduce(other) {
+        if ( ! other || ! foam.mlang.sink.Max.isInstance(other) ) return;
         
-        if ( ! this.hasOwnProperty('value') || foam.util.compare(sink.value, this.value) > 0 ) {
-          this.value = sink.value;
+        if ( ! this.hasOwnProperty('value') || foam.util.compare(other.value, this.value) > 0 ) {
+          this.value = other.value;
         }
         
       },
       javaCode: `
-if (sink == null || ((Max) sink).getValue() == null) return;
-if (getValue() == null) {
-  setValue(((Max) sink).getValue());
-  return;
-}
-
-if (((Comparable) ((Max) sink).getValue()).compareTo(getValue()) > 0) {
-  setValue(((Max) sink).getValue());
+if (other == null) return;
+if (other instanceof foam.mlang.sink.Max) {
+  foam.mlang.sink.Max max = (foam.mlang.sink.Max) other;
+  if (max.getValue() == null) return;
+  
+  if (getValue() == null) {
+    setValue(max.getValue());
+    return;
+  }
+  
+  if (((Comparable) max.getValue()).compareTo(getValue()) > 0) {
+    setValue(max.getValue());
+  }
 }
       `
     },

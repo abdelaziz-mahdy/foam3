@@ -8,6 +8,7 @@ foam.CLASS({
   package: 'foam.mlang.sink',
   name: 'Min',
   extends: 'foam.mlang.sink.AbstractUnarySink',
+  implements: [ 'foam.mlang.sink.Reducible' ],
 
   documentation: 'A Sink which remembers the minimum value put().',
 
@@ -32,24 +33,29 @@ foam.CLASS({
     },
     {
       name: 'reduce',
-      args: 'foam.mlang.sink.Min sink',
-      code: function reduce(sink) {
-        if ( ! sink ) return;
+      args: 'foam.mlang.sink.Reducible other',
+      code: function reduce(other) {
+        if ( ! other || ! foam.mlang.sink.Min.isInstance(other) ) return;
         
-        if ( ! this.hasOwnProperty('value') || foam.util.compare(sink.value, this.value) < 0 ) {
-          this.value = sink.value;
+        if ( ! this.hasOwnProperty('value') || foam.util.compare(other.value, this.value) < 0 ) {
+          this.value = other.value;
         }
         
       },
       javaCode: `
-if (sink == null || ((Min) sink).getValue() == null) return;
-if (getValue() == null) {
-  setValue(((Min) sink).getValue());
-  return;
-}
-
-if (((Comparable) ((Min) sink).getValue()).compareTo(getValue()) < 0) {
-  setValue(((Min) sink).getValue());
+if (other == null) return;
+if (other instanceof foam.mlang.sink.Min) {
+  foam.mlang.sink.Min min = (foam.mlang.sink.Min) other;
+  if (min.getValue() == null) return;
+  
+  if (getValue() == null) {
+    setValue(min.getValue());
+    return;
+  }
+  
+  if (((Comparable) min.getValue()).compareTo(getValue()) < 0) {
+    setValue(min.getValue());
+  }
 }
       `
     },

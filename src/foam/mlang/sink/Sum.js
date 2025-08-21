@@ -8,6 +8,7 @@ foam.CLASS({
   package: 'foam.mlang.sink',
   name: 'Sum',
   extends: 'foam.mlang.sink.AbstractUnarySink',
+  implements: [ 'foam.mlang.sink.Reducible' ],
 
   documentation: 'A Sink which sums put() values.',
 
@@ -31,14 +32,16 @@ foam.CLASS({
     },
     {
       name: 'reduce',
-      args: 'foam.mlang.sink.Sum sink',
-      code: function reduce(sink) {
-        if ( ! sink ) return;
-        this.value += sink.value;
+      args: 'foam.mlang.sink.Reducible other',
+      code: function reduce(other) {
+        if ( ! other || ! foam.mlang.sink.Sum.isInstance(other) ) return;
+        this.value += other.value;
       },
       javaCode: `
-if (sink == null) return;
-setValue(getValue() + sink.getValue());
+if (other == null) return;
+if (other instanceof foam.mlang.sink.Sum) {
+  setValue(getValue() + ((foam.mlang.sink.Sum) other).getValue());
+}
       `
     },
 

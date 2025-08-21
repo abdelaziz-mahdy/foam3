@@ -107,11 +107,9 @@ return (sink instanceof foam.mlang.sink.Sum) ||
           // Reduce all other remaining groups into the first one
           for ( var i = 1; i < remainingGroups.length; i++ ) {
             var currentGroup = remainingGroups[i][1];
-            if ( othersGroup.reduce ) {
-              othersGroup = othersGroup.reduce(currentGroup);
-            } else {
-              // Fallback for sinks without reduce method
-              othersGroup.value += currentGroup.value;
+            // Use Reducible interface - all supported sinks implement it
+            if ( foam.mlang.sink.Reducible.isInstance(othersGroup) ) {
+              othersGroup.reduce(currentGroup);
             }
           }
           
@@ -170,18 +168,10 @@ if (remainingGroups.size() > 0 && getIncludeOthers()) {
   // Reduce all other remaining groups into the first one
   for (int i = 1; i < remainingGroups.size(); i++) {
     foam.dao.Sink currentGroup = remainingGroups.get(i).getValue();
-    try {
-      java.lang.reflect.Method reduceMethod = othersGroup.getClass().getMethod("reduce", othersGroup.getClass());
-      othersGroup = (foam.dao.Sink) reduceMethod.invoke(othersGroup, currentGroup);
-    } catch (Exception e) {
-      // Fallback for sinks without reduce method - simple value addition
-      if (othersGroup instanceof foam.mlang.sink.Count && currentGroup instanceof foam.mlang.sink.Count) {
-        foam.mlang.sink.Count countOthers = (foam.mlang.sink.Count) othersGroup;
-        foam.mlang.sink.Count countCurrent = (foam.mlang.sink.Count) currentGroup;
-        foam.mlang.sink.Count newCount = new foam.mlang.sink.Count();
-        newCount.setValue(countOthers.getValue() + countCurrent.getValue());
-        othersGroup = newCount;
-      }
+    
+    // Use Reducible interface - all supported sinks implement it
+    if (othersGroup instanceof foam.mlang.sink.Reducible && currentGroup instanceof foam.mlang.sink.Reducible) {
+      ((foam.mlang.sink.Reducible) othersGroup).reduce((foam.mlang.sink.Reducible) currentGroup);
     }
   }
   

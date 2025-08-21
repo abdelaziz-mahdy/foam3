@@ -8,6 +8,7 @@ foam.CLASS({
   package: 'foam.mlang.sink',
   name: 'Average',
   extends: 'foam.mlang.sink.AbstractUnarySink',
+  implements: [ 'foam.mlang.sink.Reducible' ],
 
   documentation: 'A Sink which averages put() values.',
 
@@ -42,20 +43,24 @@ setValue((getValue() * ( getCount()-1) + ((Number)this.getArg1().f(obj)).doubleV
     },
     {
       name: 'reduce',
-      args: 'foam.mlang.sink.Average sink',
-      code: function reduce(sink) {
-        if ( ! sink || sink.count === 0 ) return;
-        var totalCount = this.count + sink.count;
-        this.value = (this.value * this.count + sink.value * sink.count) / totalCount;
+      args: 'foam.mlang.sink.Reducible other',
+      code: function reduce(other) {
+        if ( ! other || ! foam.mlang.sink.Average.isInstance(other) || other.count === 0 ) return;
+        var totalCount = this.count + other.count;
+        this.value = (this.value * this.count + other.value * other.count) / totalCount;
         this.count = totalCount;
       },
       javaCode: `
-if (sink == null || ((Average) sink).getCount() == 0) return;
-
-long totalCount = getCount() + ((Average) sink).getCount();
-double combinedValue = (getValue() * getCount() + ((Average) sink).getValue() * ((Average) sink).getCount()) / totalCount;
-setValue(combinedValue);
-setCount(totalCount);
+if (other == null) return;
+if (other instanceof foam.mlang.sink.Average) {
+  foam.mlang.sink.Average avg = (foam.mlang.sink.Average) other;
+  if (avg.getCount() == 0) return;
+  
+  long totalCount = getCount() + avg.getCount();
+  double combinedValue = (getValue() * getCount() + avg.getValue() * avg.getCount()) / totalCount;
+  setValue(combinedValue);
+  setCount(totalCount);
+}
       `
     },
     function toSummary() { return this.value; },
