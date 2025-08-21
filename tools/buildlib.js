@@ -206,14 +206,10 @@ function copyFile(src, dst) {
 }
 
 
-function spawn(s) {
+function spawn(cmd, args, options) {
   exportEnvs();
-
-  verbose('Spawn: ', s);
-  var [cmd, ...args] = s.split(' ');
-  return exec_.spawn(cmd, args, { stdio: 'ignore' });
+  return exec_.spawn(cmd, args, options);
 }
-
 
 function exportEnv(name, value) {
   verbose(`export ${name}="${value}"`);
@@ -235,7 +231,7 @@ function exec(cmd) {
   // return execSync(cmd, { stdio: 'inherit' });
 
   exportEnvs();
-  return exec_(cmd, (error, stdout, stderr) => {
+  return exec_.exec(cmd, (error, stdout, stderr) => {
     if (error) this.error(error);
   });
 }
@@ -246,8 +242,21 @@ function comma(list, value) {
 
 // TOOD: test for true, y, yes, ... and false, no,...
 function bool(val) {
-  return String(val).toLowerCase() === 'true';
+  let v = String(val).toLowerCase();
+  if ( v === 'true' ||
+       v === 'y' ||
+       v === 'yes' ) {
+    return true;
+  }
+  if ( v === 'false' ||
+       v === 'n' ||
+       v === 'no' ) {
+    return false;
+  }
+  this.error(`[buildlib] bool(${val} unsuported)`);
+  return false;
 }
+
 
 // Normal console.log messages, but can be silenced
 function log(...args) {
@@ -475,7 +484,7 @@ exports.processBuildArgs      = processBuildArgs;
 exports.processToolingArgs    = processToolingArgs;
 exports.rmdir                 = rmdir;
 exports.rmfile                = rmfile;
-exports.spawn                 = spawn;
 exports.warning               = warning;
+exports.spawn                 = spawn;
 exports.writeFileIfUpdated    = writeFileIfUpdated;
 exports.verbose               = verbose;

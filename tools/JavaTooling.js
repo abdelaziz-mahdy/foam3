@@ -8,13 +8,14 @@ foam.POM({
   name: 'java',
 
   envs: {
-    CORE_PIDFILE:      ['JVM process ID file', () => APP_NAME ? `/tmp/core_${APP_NAME}.pid` : '/tmp/core_APP_NAME.pid'],
+    CORE_PIDFILE:      ['JVM process ID file', () => `${APP_HOME}/core.pid`],
     DOCUMENT_HOME:     ['Appplication documents directory',() => APP_NAME ? `${APP_HOME}/documents`: 'APP_HOME/documents'],
     DOCUMENT_OUT:      ['Build documents directory',() => `${PROJECT_HOME}/${BUILD_DIR}/documents`],
     JAR_INCLUDES:      ['Additional directories to include Java jar',''],
     JAR_LIB_DIR:       ['Deployment lib directory',() => ( TAR ? `${PROJECT_HOME}/${BUILD_DIR}` : (APP_NAME ? APP_HOME : 'APP_HOME')) + '/lib'],
     JAR_NAME:          ['Java jar name',() => APP_NAME ? `${APP_NAME}-${VERSION}.jar` : 'APP_NAME-VERSION.jar' ],
     JAR_OUT:           ['Java jar path and name',() => `${JAR_LIB_DIR}/${JAR_NAME}`],
+    JAVA:              ['Java executable', ''],
     JAVA_MANIFEST:     ['Generated JAVA_MANIFEST', ''],
     JAVA_TOOL_OPTIONS: ['Internal configuration for JVM with the JAVA_OPTS',() => JAVA_OPTS],
     JOURNAL_HOME:      ['Application journals directory',() => `${APP_HOME}/journals`],
@@ -47,8 +48,9 @@ foam.POM({
     tar: [ 'k', 'tar', 'TAR', 'Package up a deployment tarball for remote application installation', false, function(arg) { TAR = arg ? this.bool(arg) : true; } ],
     tarball: ['', 'tarball', 'TARBALL', 'Tar file name', () => APP_NAME + '-deploy-' + VERSION + '.tar.gz', arg => TARBALL = arg],
     tarballPath: ['', 'tarball-path', 'TARBALL_PATH', 'Path to the tarball to upload. Defaults to the last tar built.', () => BUILD_DIR + '/package/' + TARBALL, arg => TARBALL_PATH = arg],
-    tests: ['', 'tests', 'TESTS', 'Java test cases to execute', '', arg => TESTS = arg],
     testArgs: ['', 'test-args', 'TEST_ARGS', 'Arguments passed to test cases or benchmarks via JVM parameter -Dfoam.test.args. Example: --test-args:"identifier1=x,identifier2=y" (quoted list of comma seperated, key=value, pairs)', '', arg => TEST_ARGS = arg],
+    tests: ['', 'tests', 'TESTS', 'test cases to execute', '', arg => TESTS = arg],
+    testSuite: ['', 'test-suite', 'TEST_SUITE', 'Run all test in test suite', '', arg => TEST_SUITE = arg],
     timezone: ['', 'timezone', 'TIMEZONE', 'Set JVM user.timezone. NOTE: this only affects local deployment. In production the JVM will use the system timezone.', 'GMT', arg => TIMEZOME = arg],
     webPort: [ 'W', 'web-port', 'WEB_PORT', 'Port WebServer will listen on. HTTP defaults to 8080, HTTPS defaults to 8443.  WebSocketServer will use PORT+1', '8080', args => WEB_PORT = args ],
     version: ['', 'version', 'VERSION', 'Application version', '1.0.0', args => VERSION = args ]
@@ -138,13 +140,6 @@ foam.POM({
         JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
     }],
 
-    buildRunArgs: ['set-run-args', 'Set arguments which will be passed to run.sh to start CORE server', [], function() {
-      if ( WEB_PORT ) RUN_ARGS += ` -W${WEB_PORT}`;
-      if ( DEBUG ) RUN_ARGS += ` -D${DEBUG_PORT}`;
-      if ( SUSPEND ) RUN_ARGS += ` -s`;
-      if ( HOST_NAME && HOST_NAME !== 'localhost' ) RUN_ARGS += ` -H${HOST_NAME}`;
-    }],
-
     buildTar: ['build-tar', 'Package files into a TAR archive', [()=>TAR=true, 'buildJar'], function() {
       this.ensureDir(this.join(BUILD_DIR, 'package'));
       // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
@@ -219,6 +214,12 @@ foam.POM({
       this.pmake(`-makers=Doc -flags=${this.flag()} -pom=${POMS} -builddir=${BUILD_DIR} -documentdir=${DOCUMENT_OUT}`);
     }],
 
+    genJavaManifest: ['gen-java-manifest', 'Generate Java Manifest File', ['buildJavaManifest'], function() {
+      JAVA_MANIFEST = 'Manifest-Version: 1.0' + JAVA_MANIFEST + '\n';
+      this.writeFileSync(BUILD_DIR + '/MANIFEST.MF', JAVA_MANIFEST);
+      return JAVA_MANIFEST;
+    }],
+
     genJournals: ['gen-journals', 'Concatenate repository journal files into .0 files', [], function() {
       JAR_INCLUDES += ` -C ${BUILD_DIR} journals `;
       this.pmake.bind(this, `-makers=Journal -flags=${this.flag()} -pom=${POMS} -builddir=${BUILD_DIR} -journaldir=${JOURNAL_OUT}`)();
@@ -227,6 +228,12 @@ foam.POM({
     jarFOAM: ['jar-foam', 'Copy foam-bin files for inclusion in JAR file.', ['genJava'], function() {
       this.ensureDir(this.join(BUILD_DIR, 'webroot'));
       this.execSync(`cp ${BUILD_DIR}/js/foam-bin-* ${BUILD_DIR}/webroot/`, {stdio: VERBOSE ? 'inherit' : 'ignore' });
+    }],
+
+    java: ['java', 'Acquire java executable', ['pomEnvs'], function(args) {
+      // TODO: Does this work on Windows?
+      JAVA = this.execSync('type java').toString();
+      JAVA = JAVA.substring(JAVA.indexOf('/')).trim();
     }],
 
     // TODO: not tested
@@ -251,19 +258,9 @@ foam.POM({
       }
     }],
 
-    genJavaManifest: ['gen-java-manifest', 'Generate Java Manifest File', ['buildJavaManifest'], function() {
-      JAVA_MANIFEST = 'Manifest-Version: 1.0' + JAVA_MANIFEST + '\n';
-      this.writeFileSync(BUILD_DIR + '/MANIFEST.MF', JAVA_MANIFEST);
-      return JAVA_MANIFEST;
-    }],
-
     javaTests: ['java-tests', 'Run all or specified test cases. ex: javaTests[:Test1,Test2]', [], function(args) {
       TESTS=args;
-      APP_NAME = 'test';
-      APP_ROOT = ! APP_ROOT || APP_ROOT == '/opt' ? '/tmp' : APP_ROOT;
-      FLAGS = this.comma(FLAGS, 'test');
-      this.addJournal('../foam3/deployment/test');
-      this.addJournal('test');
+      this.execute('testSetup');
       this.execute('pomEnvs');
       if ( CLEAN ) this.execute('clean');
       this.execute('cleanTest');
@@ -306,36 +303,68 @@ foam.POM({
       this.showSummary();
       if ( BUILD_ONLY ) return;
 
-      this.info(`Starting CORE ${APP_NAME}`);
+      // this.info(`Starting CORE ${APP_NAME}`);
       // Acquires environment variables via JAVA_TOOL_OPTIONS (JAVA_OPTS)
       this.execSync(`java -cp "${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes" ${JAVA_MAIN_CLASS} "${JAVA_MAIN_ARGS}"`, { stdio: 'inherit' });
     }],
 
-    startCOREJar: ['start-core-jar', 'Start CORE server (JAR).', [/*'stopCORE',*/ 'setupDirs', 'deployBin', 'deployLib', 'buildJavaOpts', 'buildRunArgs', 'showSummary'], function() {
+    startCOREAsync: ['start-core-async', 'Start CORE server (CLASSPATH) as an asynchronous/detached child process. When re-run the previous process will be terminated.', ['stopCORE', 'setupDirs', 'deployJournals', 'deployDocuments', 'deployLib', 'buildJavaOpts', 'buildJavaMainArgs','java'], function() {
+
+      if ( HOST_NAME !== 'localhost' ) {
+        JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
+      }
+      JAVA_OPTS += ` -Dapp.name=${APP_NAME}`;
+      JAVA_OPTS += ` -Dcore.webroot=${PROJECT_HOME}`;
+      JAVA_OPTS += ` -Duser.timezone=${TIMEZONE}`;
+
+      if ( DEBUG )
+        JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
+
+      this.showSummary();
+      if ( BUILD_ONLY ) return;
+
+      // this.info(`Starting CORE ${APP_NAME}`);
+      var proc = this.spawn(JAVA, ['-server', '-cp', `${BUILD_DIR}/lib/\*:${BUILD_DIR}/classes`, JAVA_MAIN_CLASS, JAVA_MAIN_ARGS], {
+        stdio: 'inherit',
+        shell: '/bin/bash',
+        detached: true,
+        env: {JAVA_TOOL_OPTIONS: JAVA_OPTS }
+      });
+      this.writeFileSync(CORE_PIDFILE, proc.pid.toString());
+    }],
+
+    startCOREJar: ['start-core-jar', 'Start CORE server (JAR).', ['setupDirs', 'deployBin', 'deployLib', 'buildJavaOpts', 'showSummary'], function() {
+      if ( BUILD_ONLY ) return;
+
+      if ( WEB_PORT ) RUN_ARGS += ` -W${WEB_PORT}`;
+      if ( DEBUG ) RUN_ARGS += ` -D${DEBUG_PORT}`;
+      if ( SUSPEND ) RUN_ARGS += ` -s`;
+      if ( HOST_NAME && HOST_NAME !== 'localhost' ) RUN_ARGS += ` -H${HOST_NAME}`;
+
+      // see etc/shrc.local for jdwp configuration
+      this.execSync(`${APP_HOME}/bin/run.sh -A${APP_HOME} -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`, { stdio: 'inherit' });
+    }],
+
+    startCOREJarAsync: ['start-core-jar-async', 'Start CORE server (JAR) as an asynchronous/detached child process. When re-run the previous process will be terminated.', ['stopCORE', 'setupDirs', 'deployBin', 'deployLib', 'buildJavaOpts', 'showSummary','java'], function() {
       if ( BUILD_ONLY ) return;
 
       if ( HOST_NAME !== 'localhost' ) {
         JAVA_OPTS += ` -Dhostname=${HOST_NAME}`;
       }
 
-      // see etc/shrc.local for jdwp configuration
-      this.execSync(`${APP_HOME}/bin/run.sh -A${APP_HOME} -N${APP_NAME} -V${VERSION} ${RUN_ARGS}`, { stdio: 'inherit' });
+      JAVA_OPTS += ` -Dapp.name=${APP_NAME}`;
+      JAVA_OPTS += ` -Dresource.journals.dir=journals`;
+      JAVA_OPTS += ` -DLOG_HOME=${LOG_HOME}`;
 
-      // TODO: Previously support running as a daemon process and using 'stop' to kill
-      // z: [ 'Daemonize into the background, will write PID into $PIDFILE environment variable.',
-      //      () => DAEMONIZE = true ]
-      // var proc = spawn(`java -cp ${CLASSPATH} foam.nanos.boot.Boot`);
-      // writeToPidFile(proc.pid);
-      // function writeToPidFile(pid) {
-      //   fs.writeFileSync(CORE_PIDFILE, pid.toString());
-      // }
-      // function readFromPidFile() {
-      //   if ( fs.existsSync(CORE_PIDFILE) )
-      //     return fs.readFileSync(CORE_PIDFILE).toString().trim();
-      // }
+      // this.info(`Starting CORE ${APP_NAME}`);
+
+      var JAR=`${APP_HOME}/lib/${APP_NAME}-${VERSION}.jar`;
+      var proc = this.spawn(JAVA, ['-server', '-jar', `${JAR}`], { shell: '/bin/bash', env: {JAVA_TOOL_OPTIONS: JAVA_OPTS, RES_JAR_HOME: JAR }, stdio: 'inherit'});
+      this.writeFileSync(CORE_PIDFILE, proc.pid.toString());
     }],
 
     startCORETest: ['start-core-test', 'Start CORE server (Test, Benchmarks).', ['deployJournals', 'deployDocuments', 'deployLib', 'buildJavaTestOpts'], function(mode) {
+
       MESSAGE = 'Running tests...';
 
       if ( mode === 'benchmark' ) {
@@ -347,6 +376,8 @@ foam.POM({
       } else {
         if ( TESTS )
           JAVA_OPTS += ` -Dfoam.tests=${TESTS}`;
+        if ( TEST_SUITE )
+          JAVA_OPTS += ` -Dfoam.test.suite=${TEST_SUITE}`;
         if ( TEST_ARGS )
           JAVA_OPTS += ` -Dfoam.test.args=${TEST_ARGS}`;
       }
@@ -367,7 +398,7 @@ foam.POM({
       }
     }],
 
-    stopCORE: ['stop-core', 'Stop CORE server.', [], function() {
+    stopCORE: ['stop-core', 'Stop CORE server.', ['pomEnvs'], function() {
       if ( this.existsSync(CORE_PIDFILE) ) {
         let pid = this.readFileSync(CORE_PIDFILE).toString().trim();
         if ( pid ) {
@@ -376,7 +407,6 @@ foam.POM({
             this.execSync(`kill -9 ${pid} &>/dev/null`);
             this.rmfile(CORE_PIDFILE);
             this.info('CORE server stopped.');
-            // FUTURE: query for pid in system process table
           } catch (e) {
             this.warning('CORE server failed stop.', e);
           }
@@ -384,8 +414,17 @@ foam.POM({
           this.verbose('CORE server not running.');
         }
       } else {
-        this.verbose('CORE PIDFILE not found.');
+        this.verbose('CORE server PID file not found.', CORE_PIDFILE);
       }
+    }],
+
+    testSetup: ['test-setup', 'Common Prepare to run test cases.  Include test journals from foam3/deployment/test and project deployment/test. Set test flag, appName, appRoot.', [], function() {
+      APP_NAME = 'test';
+      APP_ROOT = ! APP_ROOT || APP_ROOT == '/opt' ? '/tmp' : APP_ROOT;
+      FLAGS = this.comma(FLAGS, 'test');
+      this.addJournal('../foam3/deployment/test');
+      this.addJournal('../foam3/deployment/demo');
+      this.addJournal('test');
     }],
 
     usage: ['usage', 'Build usage examples', [], function() {

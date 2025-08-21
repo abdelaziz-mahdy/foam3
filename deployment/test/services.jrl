@@ -1,12 +1,4 @@
 p({
-  "class":"foam.core.boot.CSpec",
-  "name":"testRunnerConfig",
-  "lazy":false,
-  "service": {
-    "class":"foam.core.script.TestRunnerConfig"
-  }
-})
-p({
   class: "foam.core.boot.CSpec",
   name: "broadcast",
   authenticate:false,

@@ -137,22 +137,6 @@ p({"class":"foam.core.menu.Menu","id":"admin.support","label":"Support","handler
 p({"class":"foam.core.menu.Menu","id":"admin.support-email","label":"Support Email","handler":{"class":"foam.core.menu.ViewMenu","view":{"class":"foam.support.view.SupportEmailView"}},"parent":"admin"})
 p({
   "class":"foam.core.menu.Menu",
-  "id":"admin.tests",
-  "label":"Tests",
-  "handler":{
-    "class":"foam.core.menu.DAOMenu2",
-    "config":{
-      "class":"foam.comics.v2.DAOControllerConfig",
-      "daoKey":"testDAO",
-      "summaryView":{
-        "class":"foam.core.test.TestBorder"
-      }
-    }
-  },
-  "parent":"admin"
-})
-p({
-  "class":"foam.core.menu.Menu",
   "id":"admin.users",
   "label":"Users",
   "handler":{

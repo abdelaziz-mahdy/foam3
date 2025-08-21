@@ -67,7 +67,8 @@ process.on('unhandledRejection', e => {
 });
 
 var depth   = 1;
-var running = {};
+var running = {}; // tasks currently executing
+var fired   = {}; // tasks executed. See resetTask to re-run a task
 var summary = [];
 let TOOLING_TASKS = {};
 let POM_HELP = {}; // additional help topics provided in build
@@ -121,12 +122,12 @@ function task() {
   toolingTasks.push(toolingTask);
   TOOLING_TASKS[name] = toolingTasks;
 
-  var fired = false;
   var rec   = [];
   var SUPER = globalThis[name] || function() { };
   globalThis[name] = function(...args) {
-    if ( fired ) return;
-    fired = true;
+    if ( fired[name] ) return;
+    fired[name] = true;
+
     let tasks = TOOLING_TASKS[name];
     if ( ! tasks ) {
       outputHelp(name, 'Task not found:');
@@ -228,6 +229,11 @@ function execute(t, ...args) {
   } else {
     outputHelp(t, "Task not found:");
   }
+}
+
+// Allow a task to be run again.
+function resetTask(t) {
+  delete fired[t];
 }
 
 function showSummary() {
@@ -422,9 +428,11 @@ EXPORTS = Object.assign(EXPORTS, {
   pmake,
   readdirSync,
   readFileSync,
+  resetTask,
   rmdir,
   rmfile,
   showSummary,
+  spawn,
   warning,
   writeFileIfUpdated,
   writeFileSync,
@@ -453,7 +461,7 @@ TOOLING_OPTIONS = addOptions({
                    if ( arg.startsWith('+') ) {
                      // each addOptions call invokes the functions
                      if ( TOOLING_POMS.includes(arg.substring(1)) ) return;
-                     TOOLING_POMS = comma(arg.substring(1), TOOLING_POMS);
+                     TOOLING_POMS = comma(TOOLING_POMS, arg.substring(1));
                    } else {
                      TOOLING_POMS = arg;
                    }
