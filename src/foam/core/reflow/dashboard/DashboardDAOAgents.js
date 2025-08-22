@@ -256,11 +256,14 @@ foam.CLASS({
       label: 'Time Unit',
       value: 'DAY',
       section: 'barChart',
+      
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(prop) {
-        return prop && (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop)) ? 
-          foam.u2.DisplayMode.RW : 
-          foam.u2.DisplayMode.HIDDEN;
+        /// hidden for now (its not working due to our new propertyexprview returning values as strings instead of dates)
+        return foam.u2.DisplayMode.HIDDEN;
+        // return prop && (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop)) ? 
+        //   foam.u2.DisplayMode.RW : 
+        //   foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -476,9 +479,11 @@ foam.CLASS({
       value: 'DAY',
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(prop2) {
-        return prop2 && (foam.lang.Date.isInstance(prop2) || foam.lang.DateTime.isInstance(prop2)) ? 
-          foam.u2.DisplayMode.RW : 
-          foam.u2.DisplayMode.HIDDEN;
+        /// hidden for now (its not working due to our new propertyexprview returning values as strings instead of dates)
+        return foam.u2.DisplayMode.HIDDEN;  
+        // return prop2 && (foam.lang.Date.isInstance(prop2) || foam.lang.DateTime.isInstance(prop2)) ? 
+        //   foam.u2.DisplayMode.RW : 
+        //   foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -890,9 +895,11 @@ foam.CLASS({
       value: 'DAY',
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(xProp) {
-        return xProp && (foam.lang.Date.isInstance(xProp) || foam.lang.DateTime.isInstance(xProp)) ? 
-          foam.u2.DisplayMode.RW : 
-          foam.u2.DisplayMode.HIDDEN;
+        // hidden for now (its not working due to our new propertyexprview returning values as strings instead of dates)
+        return foam.u2.DisplayMode.HIDDEN;
+        // return prop2 && (foam.lang.Date.isInstance(prop2) || foam.lang.DateTime.isInstance(prop2)) ? 
+        //   foam.u2.DisplayMode.RW : 
+        //   foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
