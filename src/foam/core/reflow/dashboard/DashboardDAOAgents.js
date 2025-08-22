@@ -239,6 +239,14 @@ foam.CLASS({
   ],
 
   properties: [
+    {
+      name: 'sink',
+      view: {
+        class: 'foam.core.reflow.SinkView',
+        choice: 'foam.core.reflow.CountDAOAgent',
+        disabledTypes: [ 'structure', 'format', 'chart' ]
+      }
+    },
     // Inherited from GroupByDAOAgent: prop, sink, groupLimit, sortOrder, includeOthers, othersLabel
     // From mixins: colors, chart display options
     {
@@ -248,11 +256,14 @@ foam.CLASS({
       label: 'Time Unit',
       value: 'DAY',
       section: 'barChart',
+      
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(prop) {
-        return prop && (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop)) ? 
-          foam.u2.DisplayMode.RW : 
-          foam.u2.DisplayMode.HIDDEN;
+        /// hidden for now (its not working due to our new propertyexprview returning values as strings instead of dates)
+        return foam.u2.DisplayMode.HIDDEN;
+        // return prop && (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop)) ? 
+        //   foam.u2.DisplayMode.RW : 
+        //   foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -300,6 +311,7 @@ foam.CLASS({
         arg1: this.prop,
         arg2: valueSink,
         groupLimit: this.groupLimit,
+        topN: this.topN,
         sortOrder: this.sortOrder,
         includeOthers: this.includeOthers,
         othersLabel: this.othersLabel,
@@ -449,6 +461,14 @@ foam.CLASS({
       name: 'prop1',
       label: "Stacked By"
     },
+    {
+      name: 'sink',
+      view: {
+        class: 'foam.core.reflow.SinkView',
+        choice: 'foam.core.reflow.CountDAOAgent',
+        disabledTypes: [ 'structure', 'format', 'chart' ]
+      }
+    },
     // Inherited from GridByDAOAgent: prop1 (yFunc), prop2 (xFunc), sink
     // From mixins: colors, chart display options
     {
@@ -459,9 +479,11 @@ foam.CLASS({
       value: 'DAY',
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(prop2) {
-        return prop2 && (foam.lang.Date.isInstance(prop2) || foam.lang.DateTime.isInstance(prop2)) ? 
-          foam.u2.DisplayMode.RW : 
-          foam.u2.DisplayMode.HIDDEN;
+        /// hidden for now (its not working due to our new propertyexprview returning values as strings instead of dates)
+        return foam.u2.DisplayMode.HIDDEN;  
+        // return prop2 && (foam.lang.Date.isInstance(prop2) || foam.lang.DateTime.isInstance(prop2)) ? 
+        //   foam.u2.DisplayMode.RW : 
+        //   foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -623,6 +645,14 @@ foam.CLASS({
   ],
 
   properties: [
+    {
+      name: 'sink',
+      view: {
+        class: 'foam.core.reflow.SinkView',
+        choice: 'foam.core.reflow.CountDAOAgent',
+        disabledTypes: [ 'structure', 'format', 'chart' ]
+      }
+    },
     // Inherited from GroupByDAOAgent: prop, sink, groupLimit, sortOrder, includeOthers, othersLabel
     // From mixins: colors, chart display options
     {
@@ -775,8 +805,8 @@ foam.CLASS({
 
   requires: [
     'foam.core.reflow.dashboard.DashboardLineSink',
+    'foam.core.reflow.dashboard.DashboardMultiLineSink',
     'foam.core.reflow.dashboard.TimeUnit',
-    'foam.mlang.sink.GroupBy',
     'foam.core.reflow.ReactiveSectionedDetailView'
   ],
 
@@ -824,7 +854,7 @@ foam.CLASS({
       label: 'X Property',
       view: function(_, X) {
         return { 
-          class: 'foam.core.reflow.PropertyChoiceView', 
+          class: 'foam.core.reflow.PropertyExprView', 
           forCls: X.data.dao.of
         };
       }
@@ -853,11 +883,9 @@ foam.CLASS({
     {
       name: 'aggregationSink',
       label: 'Aggregation',
-      view: { class: 'foam.core.reflow.SinkView', choice:  'foam.core.reflow.AvgDAOAgent' },
-      help: 'How to aggregate Y values when grouping',
-      visibility: function(groupBy) {
-        return groupBy ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
-      }
+      view: { class: 'foam.core.reflow.SinkView', choice:  'foam.core.reflow.CountDAOAgent' },
+      help: 'How to aggregate values when multiple records have the same X-value',
+
     },
     {
       class: 'Enum',
@@ -867,9 +895,11 @@ foam.CLASS({
       value: 'DAY',
       help: 'Time unit for X-axis when using date/time properties',
       visibility: function(xProp) {
-        return xProp && (foam.lang.Date.isInstance(xProp) || foam.lang.DateTime.isInstance(xProp)) ? 
-          foam.u2.DisplayMode.RW : 
-          foam.u2.DisplayMode.HIDDEN;
+        // hidden for now (its not working due to our new propertyexprview returning values as strings instead of dates)
+        return foam.u2.DisplayMode.HIDDEN;
+        // return prop2 && (foam.lang.Date.isInstance(prop2) || foam.lang.DateTime.isInstance(prop2)) ? 
+        //   foam.u2.DisplayMode.RW : 
+        //   foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -926,36 +956,68 @@ foam.CLASS({
 
   methods: [
     function createSink() {
-      if ( ! this.xProp || ! this.yProp ) {
+      if ( ! this.xProp ) {
         return this.ArraySink.create();
       }
       
-      return this.DashboardLineSink.create({
-        xProp: this.xProp,
-        yProp: this.yProp,
-        groupBy: this.groupBy,
-        aggregationSink: this.aggregationSink,
-        timeUnit: this.timeUnit,
-        colors: this.colors,
-        xAxisLabel: this.xAxisLabel,
-        yAxisLabel: this.yAxisLabel,
-        fill: this.fill,
-        tension: this.tension,
-        stepped: this.stepped,
-        showPoints: this.showPoints,
-        pointRadius: this.pointRadius,
-        showGridLines: this.showGridLines,
-        responsive: this.responsive,
-        maintainAspectRatio: this.maintainAspectRatio,
-        height: this.height,
-        width: this.width,
-        showLegend: this.showLegend,
-        legendPosition: this.legendPosition,
-        showTooltips: this.showTooltips,
-        showTooltipSum: this.showTooltipSum,
-        animate: this.animate,
-        animationDuration: this.animationDuration
-      });
+      // Use the aggregationSink if provided, otherwise COUNT (like StackedBar does)
+      var valueSink = this.aggregationSink ? this.aggregationSink.createSink() : this.COUNT();
+      
+      // Choose sink based on whether groupBy is set
+      if ( this.groupBy ) {
+        // Multi-line chart: Use GridBy-based sink
+        return this.DashboardMultiLineSink.create({
+          xFunc: this.xProp,        // x-axis grouping
+          yFunc: this.groupBy,      // line grouping  
+          acc: valueSink,          // aggregation sink (defaulted to COUNT)
+          timeUnit: this.timeUnit,
+          colors: this.colors,
+          xAxisLabel: this.xAxisLabel,
+          yAxisLabel: this.yAxisLabel,
+          fill: this.fill,
+          tension: this.tension,
+          stepped: this.stepped,
+          showPoints: this.showPoints,
+          pointRadius: this.pointRadius,
+          showGridLines: this.showGridLines,
+          responsive: this.responsive,
+          maintainAspectRatio: this.maintainAspectRatio,
+          height: this.height,
+          width: this.width,
+          showLegend: this.showLegend,
+          legendPosition: this.legendPosition,
+          showTooltips: this.showTooltips,
+          showTooltipSum: this.showTooltipSum,
+          animate: this.animate,
+          animationDuration: this.animationDuration
+        });
+      } else {
+        // Single-line chart: Use GroupBy-based sink
+        return this.DashboardLineSink.create({
+          arg1: this.xProp,         // x-axis grouping
+          arg2: valueSink,         // aggregation sink (defaulted to COUNT)
+          timeUnit: this.timeUnit,
+          colors: this.colors,
+          xAxisLabel: this.xAxisLabel,
+          yAxisLabel: this.yAxisLabel,
+          fill: this.fill,
+          tension: this.tension,
+          stepped: this.stepped,
+          showPoints: this.showPoints,
+          pointRadius: this.pointRadius,
+          showGridLines: this.showGridLines,
+          responsive: this.responsive,
+          maintainAspectRatio: this.maintainAspectRatio,
+          height: this.height,
+          width: this.width,
+          showLegend: this.showLegend,
+          legendPosition: this.legendPosition,
+          showTooltips: this.showTooltips,
+          showTooltipSum: this.showTooltipSum,
+          animate: this.animate,
+          animationDuration: this.animationDuration
+        });
+      }
     },
     
     function value(s) {
@@ -1048,7 +1110,7 @@ foam.CLASS({
       title: 'Metric Configuration',
       order: 1,
       collapsable: true,
-      properties: ['operation', 'prop', 'label', 'unit', 'decimalPlaces']
+      properties: ['operation', 'prop', 'label', 'prefix', 'postfix', 'decimalPlaces']
     },
     {
       name: 'display',
@@ -1056,7 +1118,7 @@ foam.CLASS({
       order: 2,
       collapsable: true,
       // iconColor is hidden for now until implementation is fixed
-      properties: ['icon', 'alignment', 'showCount', 'countSuffix', 'valueColor']
+      properties: ['icon', 'iconSize', 'alignment', 'showCount', 'countSuffix', 'valueColor']
     },
     {
       name: 'labelFont',
@@ -1208,9 +1270,22 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'unit',
-      label: 'Unit',
-      help: 'Unit to display after value (e.g., $, %, ms)'
+      name: 'prefix',
+      label: 'Prefix',
+      help: 'Text to display before value (e.g., $, €, #)'
+    },
+    {
+      class: 'String',
+      name: 'postfix',
+      label: 'Postfix',
+      help: 'Text to display after value (e.g., %, ms, USD)'
+    },
+    {
+      class: 'String',
+      name: 'iconSize',
+      label: 'Icon Size',
+      help: 'Size of the icon (CSS size value like "2rem", "24px")',
+      value: '2rem'
     },
     {
       class: 'Int',
@@ -1233,7 +1308,9 @@ foam.CLASS({
         showCount: this.showCount,
         countSuffix: this.countSuffix,
         valueColor: this.valueColor,
-        unit: this.unit,
+        prefix: this.prefix,
+        postfix: this.postfix,
+        iconSize: this.iconSize,
         decimalPlaces: this.decimalPlaces
       });
     },
@@ -1245,7 +1322,7 @@ foam.CLASS({
       e.add(s);
       
       // Then update its properties reactively
-      this.onDetach(this.dynamic(function(label, icon, iconColor, alignment, showCount, countSuffix, valueColor, unit, decimalPlaces) { 
+      this.onDetach(this.dynamic(function(label, icon, iconColor, alignment, showCount, countSuffix, valueColor, prefix, postfix, iconSize, decimalPlaces) { 
         s.label = label;
         s.icon = icon;
         s.iconColor = iconColor;
@@ -1253,7 +1330,9 @@ foam.CLASS({
         s.showCount = showCount;
         s.countSuffix = countSuffix;
         s.valueColor = valueColor;
-        s.unit = unit;
+        s.prefix = prefix;
+        s.postfix = postfix;
+        s.iconSize = iconSize;
         s.decimalPlaces = decimalPlaces;
         
         // Force metric to update/redraw
@@ -1280,7 +1359,9 @@ foam.CLASS({
       clone.showCount$ = this.showCount$;
       clone.countSuffix$ = this.countSuffix$;
       clone.valueColor$ = this.valueColor$;
-      clone.unit$ = this.unit$;
+      clone.prefix$ = this.prefix$;
+      clone.postfix$ = this.postfix$;
+      clone.iconSize$ = this.iconSize$;
       clone.decimalPlaces$ = this.decimalPlaces$;
       clone.labelFontSize$ = this.labelFontSize$;
       clone.labelFontWeight$ = this.labelFontWeight$;

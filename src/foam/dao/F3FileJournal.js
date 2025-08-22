@@ -31,7 +31,7 @@ foam.CLASS({
       name: 'dao'
     },
     {
-      documentation: 'Perform replay synchronously. Manual workaround for deadlock with AsyncAssemblyLine',
+      documentation: 'Default journal replay is asynchronous. Some models with business logic that reference self can cause deadlock when parsed out of order.  If journal processing hangs, set syncReplay to true to replay synchronously.',
       class: 'Boolean',
       name: 'syncReplay'
     },
