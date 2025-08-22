@@ -56,6 +56,7 @@ an operation which will eventually set a completed flag.
     'foam.core.app.AppConfig',
     'foam.core.logger.Logger',
     'foam.core.logger.Loggers',
+    'foam.core.logger.PrefixLogger',
     'foam.core.session.Session',
     'foam.dao.DAO',
     'foam.lang.Agency',
@@ -122,14 +123,14 @@ an operation which will eventually set a completed flag.
     setX(x);
     setPath(path);
     setParams(params);
-    setLogger(Loggers.logger(x, getClass(), path));
+    setLogger(new PrefixLogger(new Object[] { "BrowserAgent", path }, Loggers.logger(x)));
   }
   public BrowserAgent(X x, String path, List params, long userId) {
     setX(x);
     setPath(path);
     setParams(params);
     setUserId(userId);
-    setLogger(Loggers.logger(x, getClass(), path));
+    setLogger(new PrefixLogger(new Object[] { "BrowserAgent", path }, Loggers.logger(x)));
   }
   `,
 
