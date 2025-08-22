@@ -150,10 +150,10 @@ To run tests and keep the server alive to inspect, run tests with the
           testRun = (TestRun) testRunDAO.put(testRun).fclone();
           testRun = runServerSideTests(x, tests, testRun);
           teardownServerSide(x);
+          serverTests = tests;
+          totalTests += tests.size();
+          serverTestRun = testRun;
         }
-        serverTests = tests;
-        totalTests += tests.size();
-        serverTestRun = testRun;
       }
 
       if ( SafetyUtil.isEmpty(side) ||
@@ -169,47 +169,71 @@ To run tests and keep the server alive to inspect, run tests with the
           testRun = runClientSideTests(x, tests, testRun);
           teardownClientSide(x);
           testRun = (TestRun) testRunDAO.find(testRun.getId());
+          clientTestRun = testRun;
+          clientTests = tests;
+          totalTests += tests.size();
         }
-        clientTests = tests;
-        totalTests += tests.size();
-        clientTestRun = testRun;
       }
 
-      if ( ! BOTH_SIDE.equals(side) && filtered > 0 && filtered != totalTests ) {
-        // TODO: better support for this case.
-        printBold(RED_COLOR + "\\n WARNING :: Not all tests run. Either Client or Server specified but requested tests contains a mix of Client and Server tests, or typo. " + RESET_COLOR);
+      int exitCode = 0;
+      if ( serverTestRun != null ) {
+        reportResults(x, serverTestRun);
+        if ( serverTestRun.getFailed() > 0 )
+          exitCode = 1;
       }
-      if ( ( clientTests == null || clientTests.size() == 0 ) &&
-           ( serverTests == null || serverTests.size() == 0 ) ) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ERROR :: Test(s) not found - ");
-        if ( ! SafetyUtil.isEmpty(suites) ) {
-          sb.append("(Suites: ");
-          sb.append(suites);
-          sb.append(") ");
-        }
-        if ( ! SafetyUtil.isEmpty(filter) ) {
-          sb.append(filter);
-        }
-        printBold(RED_COLOR + " " + sb.toString() + " " + RESET_COLOR);
-        if ( exit )
-          System.exit(1);
-      } else {
-        int exitCode = 0;
-        if ( serverTestRun != null ) {
-          reportResults(x, serverTestRun);
-          if ( serverTestRun.getFailed() > 0 )
-            exitCode = 1;
-        }
-        if ( clientTestRun != null ) {
-          reportResults(x, clientTestRun);
-          if (clientTestRun.getFailed() > 0 )
-            exitCode = 1;
-        }
-        System.out.println();
-        if ( exit )
-          System.exit(exitCode);
+      if ( clientTestRun != null ) {
+        reportResults(x, clientTestRun);
+        if (clientTestRun.getFailed() > 0 )
+          exitCode = 1;
       }
+      System.out.println("");
+
+      if ( filtered > 0 && filtered != totalTests ) {
+        Map<String, String> m = new HashMap();
+        for ( String id : filter.split(",") ) {
+          m.put(id, BOTH_SIDE);
+        }
+        if ( clientTests != null ) {
+          for ( Test test : clientTests ) {
+            if ( m.get(test.getId()) != null &&
+                 ( BOTH_SIDE.equals(side) || CLIENT_SIDE.equals(side)) ) {
+              m.remove(test.getId());
+            } else {
+              m.put(test.getId(), CLIENT_SIDE);
+            }
+          }
+        }
+        if ( serverTests != null ) {
+          for ( Test test : serverTests ) {
+            if ( m.get(test.getId()) != null &&
+                 ( BOTH_SIDE.equals(side) || SERVER_SIDE.equals(side)) ) {
+              m.remove(test.getId());
+            } else {
+              m.put(test.getId(), SERVER_SIDE);
+            }
+          }
+        }
+        if ( m.size() > 0 ) {
+          for ( String id : m.keySet() ) {
+            String mode = m.get(id);
+            StringBuilder sb = new StringBuilder();
+            sb.append("WARNING :: Test not run: ");
+            sb.append(id);
+            sb.append(". Mode: ");
+            sb.append(side);
+            if ( ! SafetyUtil.isEmpty(suites) ) {
+              sb.append(". Suites: ");
+              sb.append(suites);
+            }
+            sb.append(". Possible client/server/suite mismatch or typo.");
+            printBold(RED_COLOR + " " + sb.toString() +" "+ RESET_COLOR);
+          }
+          exitCode = 1;
+        }
+      }
+
+      if ( exit )
+        System.exit(exitCode);
       `
     },
     {
