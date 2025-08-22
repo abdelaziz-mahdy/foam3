@@ -134,8 +134,10 @@ To run tests and keep the server alive to inspect, run tests with the
       DAO testRunDAO = (DAO) x.get("testRunDAO");
       String side = System.getProperty(SYSTEM_TEST_SIDE);
       String filter = System.getProperty(SYSTEM_TESTS);
+      int filtered = SafetyUtil.isEmpty(filter) ? 0 : filter.split(",").length;
       String suites = System.getProperty(SYSTEM_TEST_SUITES);
       boolean exit = Boolean.valueOf(System.getProperty(SYSTEM_TEST_EXIT, "true"));
+      int totalTests = 0;
 
       if ( SafetyUtil.isEmpty(side) ||
            SERVER_SIDE.equals(side) ||
@@ -150,6 +152,7 @@ To run tests and keep the server alive to inspect, run tests with the
           teardownServerSide(x);
         }
         serverTests = tests;
+        totalTests += tests.size();
         serverTestRun = testRun;
       }
 
@@ -168,9 +171,14 @@ To run tests and keep the server alive to inspect, run tests with the
           testRun = (TestRun) testRunDAO.find(testRun.getId());
         }
         clientTests = tests;
+        totalTests += tests.size();
         clientTestRun = testRun;
       }
 
+      if ( ! BOTH_SIDE.equals(side) && filtered > 0 && filtered != totalTests ) {
+        // TODO: better support for this case.
+        printBold(RED_COLOR + "\\n WARNING :: Not all tests run. Either Client or Server specified but requested tests contains a mix of Client and Server tests, or typo. " + RESET_COLOR);
+      }
       if ( ( clientTests == null || clientTests.size() == 0 ) &&
            ( serverTests == null || serverTests.size() == 0 ) ) {
         StringBuilder sb = new StringBuilder();
