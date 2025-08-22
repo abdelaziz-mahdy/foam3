@@ -109,8 +109,8 @@ foam.CLASS({
           .start('span').add('Failed: ', this.failed$).end()
           .start('span').add('Status: ', this.status$).end()
         .end()
-          .addClass(this.myClass('table'))
         .start(this.TableView, { data$: this.data$, selectedObjects$: this.selectedObjects$ })
+          .addClass(this.myClass('table'))
         .end();
 
       this.dao.select({
