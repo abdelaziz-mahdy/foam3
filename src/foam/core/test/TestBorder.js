@@ -90,7 +90,7 @@ foam.CLASS({
   ],
 
   methods: [
-    async function render() {
+    function render() {
       var self = this;
       this.onDetach(this.stack.setTrailingContainer(
         this.E()
@@ -119,7 +119,7 @@ foam.CLASS({
           }
       });
       if ( this.testRunId ) {
-        await this.runTests(this.dao);
+        this.runTests(this.dao);
       }
     },
 
@@ -169,7 +169,7 @@ foam.CLASS({
             testRun.failed = self.failed;
             testRun.tests = self.passed + self.failed;
             testRun.completed = true;
-            await self.testRunDAO.put(testRun);
+            self.testRunDAO.put(testRun);
           }
         }
       });
