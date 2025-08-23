@@ -45,6 +45,7 @@ foam.POM({
     restart: [ 'r', 'restart', 'RESTART', 'Restart CORE Server using last build.', false, function(arg) { RESTART = arg ? this.bool(arg) : true; } ],
     runArgs: ['', 'run-args', 'RUN_ARGS', 'Arguments which will be passed to run.sh to when starting CORE server from JAR','', arg => RUN_ARGS = arg ],
     suspend: [ 's', 'suspend', 'SUSPEND', 'Start JDPA debugging in suspend state.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; SUSPEND = arg ? this.bool(arg) : true; } ],
+    systemProperty: [ '', 'system-property', 'SYSTEM_PROPERTY', 'Specify a Java System property (minus the -D prefix). Supports a comma seperated list. Each property will be prefixed with -D. ex: --system-property:foam.test.headed=true. Provided as it is not possible to set \' -Dproperty\'values with --java-opts', '', function(arg) { SYSTEM_PROPERTY = this.comma(SYSTEM_PROPERTY, arg); } ],
     tar: [ 'k', 'tar', 'TAR', 'Package up a deployment tarball for remote application installation', false, function(arg) { TAR = arg ? this.bool(arg) : true; } ],
     tarball: ['', 'tarball', 'TARBALL', 'Tar file name', () => APP_NAME + '-deploy-' + VERSION + '.tar.gz', arg => TARBALL = arg],
     tarballPath: ['', 'tarball-path', 'TARBALL_PATH', 'Path to the tarball to upload. Defaults to the last tar built.', () => BUILD_DIR + '/package/' + TARBALL, arg => TARBALL_PATH = arg],
@@ -120,9 +121,10 @@ foam.POM({
     buildJavaOpts: ['build-java-opts', 'Set Java environmental variables.', [], function() {
       JAVA_OPTS += ` -DJOURNAL_HOME=${JOURNAL_HOME}`;
       JAVA_OPTS += ` -DDOCUMENT_HOME=${DOCUMENT_HOME}`;
-      if ( WEB_PORT ) {
+      if ( WEB_PORT )
         JAVA_OPTS += ` -Dhttp.port=${WEB_PORT}`;
-      }
+      if ( SYSTEM_PROPERTY )
+        JAVA_OPTS += ` -D${SYSTEM_PROPERTY.split(',').join(' -D')}`;
     }],
 
     buildJavaTestOpts: ['build-java-test-ops', 'Add test specific JAVA_OPTS', ['buildJavaOpts'], function() {
@@ -139,6 +141,8 @@ foam.POM({
 
       if ( DEBUG )
         JAVA_OPTS += ` -agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND ? 'y' : 'n'},address=127.0.0.1:${DEBUG_PORT}`;
+      if ( SYSTEM_PROPERTY )
+        JAVA_OPTS += ` -D${SYSTEM_PROPERTY.split(',').join(' -D')}`;
     }],
 
     buildTar: ['build-tar', 'Package files into a TAR archive', [()=>TAR=true, 'buildJar'], function() {

@@ -27,6 +27,9 @@ run.
 To run tests and keep the server alive to inspect, run tests with the
 --text-exit:false flag
 ./build.sh --run-tests --test-exit:false
+
+To run headed rather than headless, run tests with
+./build.sh --client-tests --system-property:foam.test.headed=true
 `,
 
   javaImports: [
@@ -110,6 +113,11 @@ To run tests and keep the server alive to inspect, run tests with the
       name: 'SYSTEM_TEST_EXIT',
       type: 'String',
       value: 'foam.test.exit'
+    },
+    {
+      name: 'SYSTEM_TEST_HEADED',
+      type: 'String',
+      value: 'foam.test.headed'
     }
   ],
 
@@ -422,7 +430,7 @@ To run tests and keep the server alive to inspect, run tests with the
           logger.info("BrowserAgent,terminate,exit");
         }
       };
-      // agent.setHeadless(false); // useful during development
+      agent.setHeadless( ! Boolean.getBoolean(SYSTEM_TEST_HEADED) );
       agent.execute(x);
       return (TestRun) dao.find(testRun.getId());
       `
