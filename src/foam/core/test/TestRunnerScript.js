@@ -416,7 +416,7 @@ To run tests and keep the server alive to inspect, run tests with the
                 break;
               Thread.currentThread().sleep(5000);
             } catch (InterruptedException e) {
-              // nop
+              break;
             }
           }
           logger.info("BrowserAgent,terminate,exit");

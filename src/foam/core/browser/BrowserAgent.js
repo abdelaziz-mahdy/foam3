@@ -42,7 +42,7 @@ an operation which will eventually set a completed flag.
                 break;
               Thread.currentThread().sleep(5000);
             } catch (InterruptedException e) {
-              // nop
+              break;
             }
           }
           logger.info("BrowserAgent,terminate,exit");
