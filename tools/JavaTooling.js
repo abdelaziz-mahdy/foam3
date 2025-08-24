@@ -50,8 +50,7 @@ foam.POM({
     tarball: ['', 'tarball', 'TARBALL', 'Tar file name', () => APP_NAME + '-deploy-' + VERSION + '.tar.gz', arg => TARBALL = arg],
     tarballPath: ['', 'tarball-path', 'TARBALL_PATH', 'Path to the tarball to upload. Defaults to the last tar built.', () => BUILD_DIR + '/package/' + TARBALL, arg => TARBALL_PATH = arg],
     tests: ['', 'tests', 'TESTS', 'test cases to execute', '', arg => TESTS = arg],
-    testExit: ['', 'test-exit', 'TEST_EXIT', 'Terminate the foam test application when tests have completed executing. Normally the test app shutdowns but if you want to use or inspect the test environment, set this value to false.', true, function(arg) { TEST_EXIT = arg ? this.bool(arg) : false; }],
-    testHeaded: ['', 'test-headed', 'TEST_HEADED', 'Run the client tests from a regular browser view.  Normally client testing is performed via a \'headless\' browser. To see the test activity run with this flag.', false, function(arg) { TEST_HEADED = arg ? this.bool(arg) : true; }],
+    testHeaded: ['', 'test-headed', 'TEST_HEADED', 'Run the client tests from a regular browser view.  Normally client testing is performed via a \'headless\' browser. To see the test activity run with this flag. This also leaves the foam application running allowing inspection of results from the GUI', false, function(arg) { TEST_HEADED = arg ? this.bool(arg) : true; }],
     testSuites: ['', 'test-suite', 'TEST_SUITES', 'Run all or specified test suites', '', arg => TEST_SUITES = arg],
     testSide: ['', 'test-side', 'TEST_SIDE', 'Specify server or client side testing. Defaults to \'both\'.  ex. --testSide:client.  Choose \'server\' or \'client\'', 'both', arg => TEST_SIDE = arg],
     timezone: ['', 'timezone', 'TIMEZONE', 'Set JVM user.timezone. NOTE: this only affects local deployment. In production the JVM will use the system timezone.', 'GMT', arg => TIMEZOME = arg],
@@ -404,7 +403,6 @@ foam.POM({
           JAVA_OPTS += ` -Dfoam.test.side=${TEST_SIDE}`;
         if ( TEST_HEADED )
           JAVA_OPTS += ` -Dfoam.test.headed=${TEST_HEADED}`;
-        JAVA_OPTS += ` -Dfoam.test.exit=${TEST_EXIT}`;
       }
 
       this.showSummary();
@@ -472,7 +470,7 @@ foam.POM({
       this.log('    Run specified server side (Java) test cases.');
       this.log('  ./build.sh --client-tests');
       this.log('    Run all client side (Javascript) test cases.');
-      this.log('  ./build.sh --client-tests --test-exit:false --test-headed');
+      this.log('  ./build.sh --client-tests --test-headed');
       this.log('    Run all client side (Javascript) test cases and leave foam test app running after tests have completed executing. Also show the browser GUI to monitor test activity.');
       this.log('  ./build.sh --run-tests:CIDRTest,ClientAddressUtilAddressParsingTest');
       this.log('    This example is a mix of one server side test and one client side test');

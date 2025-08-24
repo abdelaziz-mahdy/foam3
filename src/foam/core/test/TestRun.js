@@ -16,6 +16,7 @@ foam.CLASS({
   tableColumns: [
     'created',
     'server',
+    'description',
     'cases',
     'tests',
     'passed',
@@ -26,6 +27,10 @@ foam.CLASS({
   properties: [
     {
       name: 'id',
+      class: 'String'
+    },
+    {
+      name: 'description',
       class: 'String'
     },
     {

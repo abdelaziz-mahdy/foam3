@@ -138,9 +138,9 @@ foam.CLASS({
 
             // NOTE t.run vs t.runScript
             // t.run sets the status to SCHEDULED, puts, then polls
-            // until until it's completed. It does not return a promise.
+            // until it is completed. It does not return a promise.
             // t.runScript directly runs the sript and returns a promise.
-            // with t.run, Neither sink operatin is garanteed to get
+            // with t.run, Neither sink operation is garanteed to get
             // correct results.
 
             t.runScript();
