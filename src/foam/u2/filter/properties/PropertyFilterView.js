@@ -20,7 +20,8 @@ foam.CLASS({
   ],
 
   imports: [
-    'filterController'
+    'filterController',
+    'window'
   ],
 
   requires: [
@@ -126,8 +127,11 @@ foam.CLASS({
     },
     {
       name: 'criteria'
-      },
+    },
     'isInit',
+    'leftOffset',
+    'topOffset',
+    'buttonElement_',
     {
       name: 'queryParser',
       factory: function() {
@@ -145,8 +149,11 @@ foam.CLASS({
       this.SUPER();
       var self = this;
 
+      this.window.addEventListener('resize', this.updatePosition);
+      this.onDetach(() => self.window.removeEventListener('resize', self.updatePosition));
+
       this.addClass()
-        .start('div', {tooltip: this.property.label}).addClass(this.myClass('container-property'))
+        .start('div', {tooltip: this.property.label}, this.buttonElement_$).addClass(this.myClass('container-property'))
           .enableClass(this.myClass('container-property-active'), this.active$)
           .enableClass(this.myClass('container-property-filtering'), this.activeFilterCheck_$.not())
           .on('click', this.switchActive)
@@ -163,6 +170,10 @@ foam.CLASS({
         }))
         .start('div', null, this.container_$).addClass(this.myClass('container-filter'))
           .show(this.active$)
+          .style({
+            'left': this.leftOffset$,
+            'top': this.topOffset$
+          })
         .end();
 
       this.isInit = true;
@@ -172,6 +183,9 @@ foam.CLASS({
         this.initView(false);
       this.isFiltering();
       this.isInit = false;
+      
+      // Set initial position
+      setTimeout(() => this.updatePosition(), 0);
     }
   ],
 
@@ -213,11 +227,43 @@ foam.CLASS({
       this.active = ! this.active;
       this.iconPath = this.active ? 'images/expand-less.svg' : 'images/expand-more.svg';
 
+      // Calculate position when opening
+      if ( this.active ) {
+        this.updatePosition();
+      }
+
       // View is not active. Does not require creation
       if ( ! this.active ) return;
       // View has been instantiated before. Does not require creation
       if ( ! this.firstTime_ ) return;
       this.initView();
+    },
+
+    function updatePosition() {
+      if ( this.buttonElement_ && this.buttonElement_.element_ ) {
+        var buttonRect = this.buttonElement_.element_.getBoundingClientRect();
+        var dropdownWidth = 216; // Min width from CSS
+        
+        // Ensure dropdown stays within viewport bounds
+        var leftPos = buttonRect.left;
+        var maxLeft = this.window.innerWidth - dropdownWidth - 10;
+        
+        // If dropdown would go off-screen, adjust position
+        if ( leftPos + dropdownWidth > this.window.innerWidth - 10 ) {
+          leftPos = Math.max(10, maxLeft);
+        }
+        
+        // Position dropdown below the button with proper spacing
+        this.leftOffset = leftPos + 'px';
+        this.topOffset = (buttonRect.bottom + 8) + 'px'; // 8px margin-top from CSS
+        
+        // If dropdown would go below viewport, position above button instead
+        var viewportHeight = this.window.innerHeight;
+        var estimatedDropdownHeight = 200; // Estimated height
+        if ( buttonRect.bottom + estimatedDropdownHeight > viewportHeight - 20 ) {
+          this.topOffset = (buttonRect.top - estimatedDropdownHeight - 8) + 'px';
+        }
+      }
     },
 
     function isFiltering() {
