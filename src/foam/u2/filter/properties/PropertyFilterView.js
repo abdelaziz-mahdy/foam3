@@ -66,7 +66,7 @@ foam.CLASS({
     }
 
     ^container-filter {
-      position: absolute;
+      position: fixed;
       z-index: 100;
       margin-top: 8px;
 
