@@ -1060,7 +1060,7 @@ foam.CLASS({
           if ( decimalPlaces === 0 ) {
             value = parseInt(value).toLocaleString();
           } else {
-            value = parseDouble(value).toLocaleString(undefined, {
+            value = parseFloat(value).toLocaleString(undefined, {
               minimumFractionDigits: decimalPlaces,
               maximumFractionDigits: decimalPlaces
             });
