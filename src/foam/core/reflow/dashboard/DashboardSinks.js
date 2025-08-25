@@ -725,7 +725,7 @@ foam.CLASS({
     },
     
     function addToE(e) { 
-      e.add(this.chart_$);
+      e.style({ 'min-height': this.height$, height: this.height$ }).add(this.chart_$);
     }
   ]
 });
@@ -942,6 +942,9 @@ foam.CLASS({
   methods: [
     function toE(_, x) { 
       return x.E().add(this.chart_$);
+    },
+    function addToE(e) { 
+      e.style({ 'min-height': this.height$, height: this.height$ }).add(this.chart_$);
     }
   ]
 });
