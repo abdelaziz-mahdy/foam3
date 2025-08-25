@@ -932,12 +932,15 @@ foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardMetricSink',
   extends: 'foam.dao.AbstractSink',
-  
-  requires: [
-    'foam.mlang.sink.Count',
-    'foam.u2.tag.Image'
+  implements: [
+    'foam.lang.Serializable'
   ],
   
+  requires: [
+    'foam.u2.tag.Image'
+  ],
+
+
   imports: [
     'theme'
   ],
@@ -945,6 +948,18 @@ foam.CLASS({
   properties: [
     { name: 'operation' },
     { name: 'prop' },
+    {
+      class: 'foam.mlang.SinkProperty',
+      name: 'sink',
+      javaFactory: 'return foam.mlang.MLang.COUNT();',
+      factory: function() { return foam.mlang.sink.Count.create(); }
+    },
+    {
+      class: 'foam.mlang.SinkProperty',
+      name: 'countSink',
+      javaFactory: 'return foam.mlang.MLang.COUNT();',
+      factory: function() { return foam.mlang.sink.Count.create(); }
+    },
     { name: 'label', value: 'Metric' },
     { name: 'icon' },
     {
@@ -1015,13 +1030,11 @@ foam.CLASS({
       help: 'Color for the count text (CSS color or token)',
       value: '$textSecondary'
     },
-    { name: 'metricSink_', hidden: true },
-    { name: 'countSink_', hidden: true },
     {
       name: 'metric_',
-      expression: function(metricSink_, countSink_, label, icon, iconColor, alignment, showCount, countSuffix, valueColor, prefix, postfix, iconSize, decimalPlaces, labelFontSize, labelFontWeight, labelColor, countFontSize, countFontWeight, countColor) {
-        var value = metricSink_ ? metricSink_.value : 0;
-        var count = countSink_ ? countSink_.value : null;
+      expression: function(sink, countSink, label, icon, iconColor, alignment, showCount, countSuffix, valueColor, prefix, postfix, iconSize, decimalPlaces, labelFontSize, labelFontWeight, labelColor, countFontSize, countFontWeight, countColor) {
+        var value = this.getComputedValue();
+        var count = countSink ? countSink.value : null;
         
         // Format value with decimal places
         if ( typeof value === 'number' ) {
@@ -1047,7 +1060,7 @@ foam.CLASS({
         }
         
         var displayLabel = label || 
-                          (this.prop ? this.operation.label + ' of ' + this.prop.label : this.operation.label);
+                          (this.sink && this.sink.label ? this.sink.label : 'Metric');
         
         return {
           label: displayLabel,
@@ -1075,21 +1088,26 @@ foam.CLASS({
     function init() {
       this.SUPER();
       
+      // Set sink based on operation
       if ( this.operation ) {
-        this.metricSink_ = this.operation.createSink(this.prop);
+        this.sink = this.operation.createSink(this.prop);
       }
-      
-      // Always create count sink to track number of records
-      this.countSink_ = this.Count.create();
     },
     
-    function put(obj, sub) {
-      if ( this.metricSink_ ) {
-        this.metricSink_.put(obj, sub);
-      }
-      if ( this.countSink_ ) {
-        this.countSink_.put(obj, sub);
-      }
+    {
+      name: 'put',
+      code: function put(obj, sub) { 
+        this.sink.put(obj, sub);
+        this.countSink.put(obj, sub);
+      },
+      javaCode: `
+getSink().put(obj, sub);
+getCountSink().put(obj, sub);
+      `
+    },
+    
+    function getComputedValue() {
+      return this.sink && this.sink.value !== undefined ? this.sink.value : 0;
     },
     
     function toE(_, x) {
@@ -1251,20 +1269,15 @@ foam.CLASS({
     },
     
     function eof() {
-      if ( this.metricSink_ && this.metricSink_.eof ) {
-        this.metricSink_.eof();
-      }
-      if ( this.countSink_ && this.countSink_.eof ) {
-        this.countSink_.eof();
-      }
+      // No action needed for simple sink
     },
     
     function reset(sub) {
-      if ( this.metricSink_ ) {
-        this.metricSink_.reset(sub);
+      if ( this.sink && this.sink.reset ) {
+        this.sink.reset(sub);
       }
-      if ( this.countSink_ ) {
-        this.countSink_.reset(sub);
+      if ( this.countSink && this.countSink.reset ) {
+        this.countSink.reset(sub);
       }
     }
   ]
