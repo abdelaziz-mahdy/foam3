@@ -95,7 +95,8 @@ return (sink instanceof foam.mlang.sink.Sum) ||
             newGroups[entry[0]] = entry[1];
           });
           this.groups = newGroups;
-          this.groupKeys = undefined;
+          // Set groupKeys to preserve order (JavaScript reorders numeric string keys)
+          this.groupKeys = topNGroups.map(function(entry) { return entry[0]; });
           return;
         }
         
@@ -123,7 +124,10 @@ return (sink instanceof foam.mlang.sink.Sum) ||
           newGroups[this.othersLabel] = othersGroup;
           
           this.groups = newGroups;
-          this.groupKeys = undefined;
+          // Set groupKeys to preserve order (JavaScript reorders numeric string keys)
+          var orderedKeys = topNGroups.map(function(entry) { return entry[0]; });
+          orderedKeys.push(this.othersLabel);
+          this.groupKeys = orderedKeys;
         }
         
       },
@@ -185,7 +189,14 @@ if (remainingGroups.size() > 0 && getIncludeOthers()) {
   newGroups.put(getOthersLabel(), othersGroup);
   
   setGroups(newGroups);
-  clearGroupKeys();
+  
+  // Set groupKeys to maintain order: top N groups first, then Others
+  java.util.List<Object> orderedKeys = new java.util.ArrayList<>();
+  for (java.util.Map.Entry<Object, foam.dao.Sink> entry : topNGroups) {
+    orderedKeys.add(entry.getKey());
+  }
+  orderedKeys.add(getOthersLabel());
+  setGroupKeys(orderedKeys);
 } else {
   // Just use top N groups without Others
   java.util.Map<Object, foam.dao.Sink> newGroups = new java.util.LinkedHashMap<>();
@@ -193,7 +204,13 @@ if (remainingGroups.size() > 0 && getIncludeOthers()) {
     newGroups.put(entry.getKey(), entry.getValue());
   }
   setGroups(newGroups);
-  clearGroupKeys();
+  
+  // Set groupKeys to maintain order: top N groups only
+  java.util.List<Object> orderedKeys = new java.util.ArrayList<>();
+  for (java.util.Map.Entry<Object, foam.dao.Sink> entry : topNGroups) {
+    orderedKeys.add(entry.getKey());
+  }
+  setGroupKeys(orderedKeys);
 }
       `
     },
