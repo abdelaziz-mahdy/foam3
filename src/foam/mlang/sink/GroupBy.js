@@ -59,7 +59,11 @@ foam.CLASS({
       hidden: true,
       name: 'groupKeys',
       javaCloneProperty: '// noop',
-      transient: true,
+      // IMPORTANT: Not transient - must be serialized to preserve backend order
+      // JavaScript automatically sorts numeric string keys (e.g., "554", "036") 
+      // which breaks the intended display order from the backend.
+      // TopNGroupBy sets this explicitly to maintain value-sorted order (DESC/ASC by sum, count, etc.)
+      // Without this, JavaScript would reorder keys numerically instead of by their aggregate values.
       javaFactory: 'return new java.util.ArrayList(this.getGroups().keySet());',
       factory: function() { return Object.keys(this.groups); },
     },
