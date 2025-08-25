@@ -29,29 +29,35 @@ foam.CLASS({
     { name: 'othersLabel', value: 'Others', help: 'Label for the "Others" category' },
     // Chart-specific properties
     {
+      class: 'StringArray',
       name: 'colors',   
     },
-    { name: 'timeUnit' },
-    { name: 'horizontal', value: false },
-    { name: 'barThickness' },
-    { name: 'datasetLabel', value: '', help: 'Label for the dataset (shown in legend if enabled)' },
-    { name: 'xAxisLabel' },
-    { name: 'yAxisLabel' },
-    { name: 'showGridLines', value: true },
-    // Display properties
-    { name: 'responsive', value: true },
-    { name: 'maintainAspectRatio', value: false },
-    { name: 'height', value: 300 },
     { 
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.TimeUnit', 
+      name: 'timeUnit' 
+    },
+    { class: 'Boolean', name: 'horizontal', value: false },
+    { class: 'Int', name: 'barThickness' },
+    { class: 'String', name: 'datasetLabel', value: '', help: 'Label for the dataset (shown in legend if enabled)' },
+    { class: 'String', name: 'xAxisLabel' },
+    { class: 'String', name: 'yAxisLabel' },
+    { class: 'Boolean', name: 'showGridLines', value: true },
+    // Display properties
+    { class: 'Boolean', name: 'responsive', value: true },
+    { class: 'Boolean', name: 'maintainAspectRatio', value: false },
+    { class: 'Int', name: 'height', value: 300 },
+    { 
+      class: 'Int',
       name: 'width', 
       value: 400
     },
-    { name: 'showLegend', value: false },  // Bar charts typically don't need legend for single dataset
-    { name: 'legendPosition', value: 'TOP' },
-    { name: 'showTooltips', value: true },
-    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
-    { name: 'animate', value: true },
-    { name: 'animationDuration', value: 1000 },
+    { class: 'Boolean', name: 'showLegend', value: false },  // Bar charts typically don't need legend for single dataset
+    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Boolean', name: 'showTooltips', value: true },
+    { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
+    { class: 'Boolean', name: 'animate', value: true },
+    { class: 'Int', name: 'animationDuration', value: 1000 },
     {
       name: 'chart_',
       transient: true,
@@ -225,29 +231,32 @@ foam.CLASS({
     { name: 'othersLabel', value: 'Others', help: 'Label for the "Others" slice' },
     // Pie-specific properties
     {
+      class: 'StringArray',
       name: 'colors',
     },
-    { name: 'showPercentages', value: false },
-    { name: 'cutoutPercentage', value: 0 },
-    { name: 'clockwise', value: true },
-    { name: 'rotation', value: -90 },
+    { class: 'Boolean', name: 'showPercentages', value: false },
+    { class: 'Int', name: 'cutoutPercentage', value: 0 },
+    { class: 'Boolean', name: 'clockwise', value: true },
+    { class: 'Int', name: 'rotation', value: -90 },
     // Display properties
-    { name: 'responsive', value: true },
-    { name: 'maintainAspectRatio', value: false },
-    { name: 'height', value: 300 },
+    { class: 'Boolean', name: 'responsive', value: true },
+    { class: 'Boolean', name: 'maintainAspectRatio', value: false },
+    { class: 'Int', name: 'height', value: 300 },
     { 
+      class: 'Int',
       name: 'width', 
       factory: function() { 
         // Default to 0 which means auto-width (100% of container)
         // But when rendered in a canvas, we need a real width
         return 400; 
       }
-    },    { name: 'showLegend', value: true },
-    { name: 'legendPosition', value: 'TOP' },
-    { name: 'showTooltips', value: true },
-    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
-    { name: 'animate', value: true },
-    { name: 'animationDuration', value: 1000 },
+    },    
+    { class: 'Boolean', name: 'showLegend', value: true },
+    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Boolean', name: 'showTooltips', value: true },
+    { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
+    { class: 'Boolean', name: 'animate', value: true },
+    { class: 'Int', name: 'animationDuration', value: 1000 },
     {
       name: 'chart_',
       transient: true,
@@ -384,24 +393,29 @@ foam.CLASS({
   properties: [
     // Stacked bar-specific properties
     {
+      class: 'StringArray',
       name: 'colors',
     },
-    { name: 'timeUnit' },
-    { name: 'horizontal', value: false },
-    { name: 'xAxisLabel' },
-    { name: 'yAxisLabel' },
-    { name: 'showGridLines', value: true },
+    { 
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.TimeUnit', 
+      name: 'timeUnit' 
+    },
+    { class: 'Boolean', name: 'horizontal', value: false },
+    { class: 'String', name: 'xAxisLabel' },
+    { class: 'String', name: 'yAxisLabel' },
+    { class: 'Boolean', name: 'showGridLines', value: true },
     // Display properties
-    { name: 'responsive', value: true },
-    { name: 'maintainAspectRatio', value: false },
-    { name: 'height', value: 300 },
-    { name: 'width', value: 400 },
-    { name: 'showLegend', value: true },
-    { name: 'legendPosition', value: 'TOP' },
-    { name: 'showTooltips', value: true },
-    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
-    { name: 'animate', value: true },
-    { name: 'animationDuration', value: 1000 },
+    { class: 'Boolean', name: 'responsive', value: true },
+    { class: 'Boolean', name: 'maintainAspectRatio', value: false },
+    { class: 'Int', name: 'height', value: 300 },
+    { class: 'Int', name: 'width', value: 400 },
+    { class: 'Boolean', name: 'showLegend', value: true },
+    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Boolean', name: 'showTooltips', value: true },
+    { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
+    { class: 'Boolean', name: 'animate', value: true },
+    { class: 'Int', name: 'animationDuration', value: 1000 },
     {
       name: 'chart_',
       transient: true,
@@ -608,28 +622,32 @@ foam.CLASS({
   
   properties: [
     // Chart rendering properties
-    { name: 'timeUnit' },
-    { name: 'colors' },
-    { name: 'borderColors', help: 'Border colors for line elements. If not specified, colors will be used.' },
-    { name: 'xAxisLabel' },
-    { name: 'yAxisLabel' },
-    { name: 'fill', value: false },
-    { name: 'tension', value: 0.1 },
-    { name: 'stepped', value: false },
-    { name: 'showPoints', value: true },
-    { name: 'pointRadius', value: 3 },
-    { name: 'showGridLines', value: true },
+    { 
+      class: 'Enum',
+      of: 'foam.core.reflow.dashboard.TimeUnit', 
+      name: 'timeUnit' 
+    },
+    { class: 'StringArray', name: 'colors' },
+    { class: 'StringArray', name: 'borderColors', help: 'Border colors for line elements. If not specified, colors will be used.' },
+    { class: 'String', name: 'xAxisLabel' },
+    { class: 'String', name: 'yAxisLabel' },
+    { class: 'Boolean', name: 'fill', value: false },
+    { class: 'Double', name: 'tension', value: 0.1 },
+    { class: 'Boolean', name: 'stepped', value: false },
+    { class: 'Boolean', name: 'showPoints', value: true },
+    { class: 'Int', name: 'pointRadius', value: 3 },
+    { class: 'Boolean', name: 'showGridLines', value: true },
     // Display properties
-    { name: 'responsive', value: true },
-    { name: 'maintainAspectRatio', value: false },
-    { name: 'height', value: 300 },
-    { name: 'width', value: 400 },
-    { name: 'showLegend', value: true },
-    { name: 'legendPosition', value: 'TOP' },
-    { name: 'showTooltips', value: true },
-    { name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer (for multiple lines)' },
-    { name: 'animate', value: true },
-    { name: 'animationDuration', value: 1000 }
+    { class: 'Boolean', name: 'responsive', value: true },
+    { class: 'Boolean', name: 'maintainAspectRatio', value: false },
+    { class: 'Int', name: 'height', value: 300 },
+    { class: 'Int', name: 'width', value: 400 },
+    { class: 'Boolean', name: 'showLegend', value: true },
+    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Boolean', name: 'showTooltips', value: true },
+    { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer (for multiple lines)' },
+    { class: 'Boolean', name: 'animate', value: true },
+    { class: 'Int', name: 'animationDuration', value: 1000 }
   ],
   
   methods: [
@@ -1029,7 +1047,7 @@ foam.CLASS({
           if ( decimalPlaces === 0 ) {
             value = parseInt(value).toLocaleString();
           } else {
-            value = parseFloat(value).toLocaleString(undefined, {
+            value = parseDouble(value).toLocaleString(undefined, {
               minimumFractionDigits: decimalPlaces,
               maximumFractionDigits: decimalPlaces
             });
