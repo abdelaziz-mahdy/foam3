@@ -187,8 +187,14 @@ foam.CLASS({
     { name: 'font-bold', value: '800' },
     { name: 'font-extra-bold', value: '900' },
   
+    { name: 'header-xl', value: '3.5rem' },
+    { name: 'header-lg', value: '3rem' },
+    { name: 'header-md', value: '2.4rem' },
+    { name: 'header-sm', value: '2rem' },
+    { name: 'header-xs', value: '1.6rem' },
+    { name: 'header-xxs', value: '1.4rem' },
+    { name: 'header-xxxs', value: '1.2rem' },
 
-    
 
     // BORDER COLOR
     { name: 'borderXLight', value: '$grey50', variants: { dark: { value: '$black400' } } },

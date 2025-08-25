@@ -36,49 +36,49 @@ foam.CLASS({
     .h100{
       font-style: normal;
       font-weight: $font-bold;
-      font-size: 3.5rem;
+      font-size: $header-xl;
       line-height: 1.14;
       margin: 0;
     }
     .h200{
       font-style: normal;
       font-weight: $font-medium;
-      font-size: 3rem;
+      font-size: $header-lg;
       line-height: 1.1;
       margin: 0;
     }
     .h300{
       font-style: normal;
       font-weight: $font-medium;
-      font-size: 2.4rem;
+      font-size: $header-md;
       line-height: 1.17;
       margin: 0;
     }
     .h400{
       font-style: normal;
       font-weight: $font-medium;
-      font-size: 2rem;
+      font-size: $header-sm;
       line-height: 1.2;
       margin: 0;
     }
     .h500{
       font-style: normal;
       font-weight: $font-medium;
-      font-size: 1.6rem;
+      font-size: $header-xs;
       line-height: 1.25;
       margin: 0;
     }
     .h600{
       font-style: normal;
       font-weight: $font-medium;
-      font-size: 1.4rem;
+      font-size: $header-xxs;
       line-height: 1.5;
       margin: 0;
     }
     .h700{
       font-style: normal;
       font-weight: $font-medium;
-      font-size: 1.2rem;
+      font-size: $header-xxxs;
       line-height: 1.5;
       margin: 0;
     }

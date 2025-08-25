@@ -293,9 +293,6 @@ foam.CLASS({
       label: 'Yes, Confirm',
       buttonStyle: foam.u2.ButtonStyle.PRIMARY,
       size: 'SMALL',
-      isAvailable: function(showPrompts) {
-        return showPrompts;
-      },
       code: function() {
         this.data.eval_('clear');
         var flow = this.data.value;
@@ -312,6 +309,25 @@ foam.CLASS({
       buttonStyle: foam.u2.ButtonStyle.SECONDARY,
       size: 'SMALL',
       themeIcon: 'trash',
+      code: function() {
+        let confirmationModal = this.ConfirmationModal.create({
+          title: `Are you sure you want to delete this document's content?`,
+          primaryAction: this.CONFIRM_CLEAR,
+          showCancel: true,
+          modalStyle: 'DESTRUCTIVE',
+          maxWidth: '35vw',
+          closeable: false,
+          description: 'This will remove all content from the document. This action cannot be undone.',
+          data: this
+        });
+        this.add(confirmationModal);
+      }
+    },
+    {
+      name: 'confirmClear',
+      label: 'Clear flow',
+      buttonStyle: foam.u2.ButtonStyle.PRIMARY,
+      size: 'SMALL',
       code: function() {
         this.data.eval_('clear');
       }
@@ -331,6 +347,8 @@ foam.CLASS({
           primaryAction: this.CONFIRM_RESET,
           showCancel: true,
           modalStyle: 'DESTRUCTIVE',
+          maxWidth: '35vw',
+          closeable: false,
           data: this
         });
         this.add(confirmationModal);
