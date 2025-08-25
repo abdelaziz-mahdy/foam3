@@ -272,10 +272,14 @@ This will also keep the foam application running for inspection from the GUI.
       name: 'teardownServerSide',
       args: 'X x',
       javaCode: `
+      // Don't reset logger when running just server side tests,
+      // else the results are obscured by the Shutdown hook output
+      if ( ! SERVER_SIDE.equals(System.getProperty(SYSTEM_TEST_SIDE)) ) {
         LogLevelFilterLogger loggerFilter = (LogLevelFilterLogger) x.get("logger");
-        loggerFilter.setLogDebug(false); // easier to see report on stdout
+        loggerFilter.setLogDebug(false);
         loggerFilter.setLogInfo(true);
         loggerFilter.setLogWarning(true);
+      }
       `
     },
     {
@@ -294,6 +298,11 @@ This will also keep the foam application running for inspection from the GUI.
       name: 'teardownClientSide',
       args: 'X x',
       javaCode: `
+        // re-disable debug, info so results are displayed last
+        LogLevelFilterLogger loggerFilter = (LogLevelFilterLogger) x.get("logger");
+        loggerFilter.setLogDebug(false);
+        loggerFilter.setLogInfo(false);
+        loggerFilter.setLogWarning(false);
       `
     },
     {
