@@ -34,6 +34,7 @@ This will also keep the foam application running for inspection from the GUI.
     'foam.core.logger.LogLevelFilterLogger',
     'foam.core.logger.Logger',
     'foam.core.logger.Loggers',
+    'foam.core.logger.PrefixLogger',
     'foam.core.script.Language',
     'foam.core.test.Test',
     'foam.core.test.TestRun',
@@ -347,8 +348,7 @@ This will also keep the foam application running for inspection from the GUI.
             printOutput(test);
           }
           catch ( Exception e ) {
-            Logger logger = (Logger) x.get("logger");
-            logger.error(e);
+            Loggers.logger(x).error("TestRunnerScript,runServerSideTests", e);
             failed += 1;
             failedTests.add(test);
           }
@@ -408,7 +408,9 @@ This will also keep the foam application running for inspection from the GUI.
       args: 'X x, List tests, TestRun testRun',
       type: 'TestRun',
       javaCode: `
-      final Logger logger = Loggers.logger(x, this);
+      final Logger logger = new PrefixLogger( new Object[] { "TestRunnerScript", getPath(), Loggers.logger(x) );
+      x = x.put("logger", logger);
+
       final DAO dao = (DAO) x.get("testRunDAO");
       final String id = testRun.getId();
 

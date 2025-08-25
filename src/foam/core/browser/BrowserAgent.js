@@ -131,14 +131,12 @@ an operation which will eventually set a completed flag.
     setX(x);
     setPath(path);
     setParams(params);
-    setLogger(new PrefixLogger(new Object[] { "BrowserAgent", path }, Loggers.logger(x)));
   }
   public BrowserAgent(X x, String path, List params, long userId) {
     setX(x);
     setPath(path);
     setParams(params);
     setUserId(userId);
-    setLogger(new PrefixLogger(new Object[] { "BrowserAgent", path }, Loggers.logger(x)));
   }
   `,
 
@@ -146,7 +144,7 @@ an operation which will eventually set a completed flag.
     {
       name: 'execute',
       javaCode: `
-      final Logger logger = getLogger();
+      final Logger logger = new PrefixLogger(new Object[] { "BrowserAgent", path }, Loggers.logger(x)));
 
       try {
         List<String> command = buildCommand(x);
@@ -168,7 +166,7 @@ an operation which will eventually set a completed flag.
                 }
               }
             } catch (IOException e) {
-              getLogger().warning("BrowserAgent,Process inputstream reader interupted");
+              logger.warning("Process inputstream reader interupted");
             }
           });
           CompletableFuture.runAsync(() -> {
@@ -181,7 +179,7 @@ an operation which will eventually set a completed flag.
                 }
               }
             } catch (IOException e) {
-              logger.warning("BrowserAgent,Process errorstream reader interupted");
+              logger.warning("Process errorstream reader interupted");
             }
           });
         } catch ( Throwable t ) {
