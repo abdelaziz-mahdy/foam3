@@ -39,7 +39,10 @@ foam.CLASS({
       name: 'array',
       hidden: true,
       adapt: function(old, nu) {
-        if ( ! this.of ) return nu;
+        if ( ! this.of ) {
+          if ( nu.length ) this.of = nu[0].cls_;
+          return nu;
+        }
         var cls = this.of;
         for ( var i = 0 ; i < nu.length ; i++ ) {
           if ( ! cls.isInstance(nu[i]) )
