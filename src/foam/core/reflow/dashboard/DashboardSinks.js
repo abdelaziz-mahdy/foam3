@@ -312,15 +312,41 @@ foam.CLASS({
             },
             tooltip: {
               enabled: showTooltips,
-              callbacks: showTooltipSum ? {
-                footer: function(tooltipItems) {
-                  var sum = 0;
-                  tooltipItems.forEach(function(tooltipItem) {
-                    sum += tooltipItem.parsed || 0;
-                  });
-                  return 'Sum: ' + sum.toLocaleString();
+              callbacks: (function() {
+                var callbacks = {};
+                
+                // Add percentage display to individual tooltip labels
+                if ( showPercentages ) {
+                  callbacks.label = function(context) {
+                    var label = context.label || '';
+                    var value = context.parsed || 0;
+                    var dataset = context.chart.data.datasets[0];
+                    var total = dataset.data.reduce(function(sum, val) { 
+                      return sum + val; 
+                    }, 0);
+                    var percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                    
+                    if ( label ) {
+                      label += ': ';
+                    }
+                    label += value.toLocaleString() + ' (' + percentage + '%)';
+                    return label;
+                  };
                 }
-              } : undefined
+                
+                // Add sum footer if requested
+                if ( showTooltipSum ) {
+                  callbacks.footer = function(tooltipItems) {
+                    var sum = 0;
+                    tooltipItems.forEach(function(tooltipItem) {
+                      sum += tooltipItem.parsed || 0;
+                    });
+                    return 'Sum: ' + sum.toLocaleString();
+                  };
+                }
+                
+                return Object.keys(callbacks).length > 0 ? callbacks : undefined;
+              })()
             },
             datalabels: {
               display: true,
