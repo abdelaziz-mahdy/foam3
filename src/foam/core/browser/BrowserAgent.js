@@ -36,11 +36,8 @@ an operation which will eventually set a completed flag.
         params.add("filter=" + testRun.getFilter());
 
       BrowserAgent agent = new BrowserAgent(x, path, params) {
-        public void waitTerminate(X x, boolean alive) {
-          logger.info("BrowserAgent,waitTerminate", alive);
-          if ( ! alive ) {
-            return;
-          }
+        public void waitTerminate(X x) {
+          logger.info("BrowserAgent,waitTerminate");
           while ( true ) {
             try {
               TestRun tr = (TestRun) dao.find(id);
@@ -194,7 +191,9 @@ an operation which will eventually set a completed flag.
         logger.info("pid", processHandle.pid());
 
         boolean alive = process != null && process.isAlive();
-        waitTerminate(x, alive);
+        if ( alive ) {
+          waitTerminate(x);
+        }
         process.destroy();
         if ( alive ) {
           process.destroyForcibly();
@@ -233,9 +232,8 @@ new BrowserAgent(...) {
 }
 `,
       name: 'waitTerminate',
-      args: 'X x, boolean alive',
+      args: 'X x',
       javaCode: `
-      if ( ! alive ) return;
       try {
         ((Process) getProcess()).waitFor(getTimeout(), TimeUnit.SECONDS);
       } catch (InterruptedException e) {

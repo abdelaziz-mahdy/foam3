@@ -429,11 +429,8 @@ This will also keep the foam application running for inspection from the GUI.
         params.add("filter=" + testRun.getFilter());
 
       BrowserAgent agent = new BrowserAgent(x, getPath(), params) {
-        public void waitTerminate(X x, boolean alive) {
-          logger.info("BrowserAgent,terminate", alive);
-          if ( ! alive ) {
-            return;
-          }
+        public void waitTerminate(X x) {
+          logger.info("BrowserAgent,terminate");
           while ( true ) {
             try {
               TestRun tr = (TestRun) dao.find(id);
