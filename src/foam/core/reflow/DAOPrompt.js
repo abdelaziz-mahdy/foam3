@@ -32,6 +32,7 @@ foam.CLASS({
         addClass().
         show(this.data.visible$).
         start('h3').
+          show(this.data.labelVisible$).
           add(self.data.label$).
         end().
         br().
@@ -137,6 +138,15 @@ foam.CLASS({
         return dao.of.model_.plural;
       },
       displayWidth: 60
+    },
+    // since the label is calculated by the expression when we try to hide it by making it empty that gets rendered
+    {
+      class: 'Boolean',
+      name: 'labelVisible',
+      section: 'general',
+      label: 'Show Name',
+      value: true,
+      view: { class: 'foam.u2.Switch' }
     },
     {
       class: 'Boolean',
