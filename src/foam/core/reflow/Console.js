@@ -336,7 +336,7 @@ foam.CLASS({
           modalStyle: 'DESTRUCTIVE',
           maxWidth: '35vw',
           closeable: false,
-          description: 'This will remove all content from the document. This action cannot be undone.',
+          description: 'This will remove all content from the document.',
           data: this
         });
         this.add(confirmationModal);
