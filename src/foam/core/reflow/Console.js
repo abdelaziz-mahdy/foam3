@@ -1042,8 +1042,8 @@ foam.CLASS({
       }
     },
 
-    async function includeScript(script, ctx, skipParse) {
-      ctx = ctx || this.__subContext__;
+    async function includeScript(script, parent, skipParse) {
+      var ctx = parent?.__subContext__ || this.__subContext__;
       if ( ! script ) return;
       var cs = skipParse ?
       script :
@@ -1052,7 +1052,7 @@ foam.CLASS({
       for ( var i = 0 ; i < cs.length ; i++ ) {
         var c = cs[i];
 
-        await ctx.eval_(c.cmd);
+        await ctx.eval_(c.cmd, undefined, undefined, parent);
         let args = { ...c };
         if ( args.value )
           delete args.value;
@@ -1069,7 +1069,7 @@ foam.CLASS({
         await this.currentBlock.value?.onLoad?.();
 
         if ( c.flowChildren ) {
-          await this.includeScript(c.flowChildren, this.currentBlock.__subContext__, true);
+          await this.includeScript(c.flowChildren, this.currentBlock, true);
         }
       }
 
