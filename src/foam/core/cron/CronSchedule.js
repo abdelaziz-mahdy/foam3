@@ -41,6 +41,10 @@ foam.CLASS({
     'foam.time.DayOfWeek'
   ],
 
+  imports: [
+    'controllerMode'
+  ],
+
   messages: [
     { name: 'INVALID_HOURS', message: 'Comma seperated list of hours in range 0 through 23, or -1 for all hours.'}
   ],
