@@ -26,6 +26,7 @@ foam.CLASS({
     {
       class: 'foam.mlang.predicate.PredicateProperty',
       name: 'predicate',
+      hidden: true,
       factory: function() {
         return this.CONTAINS(this.Group.ID, this.ROLE_PREFIX);
       }
