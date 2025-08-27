@@ -51,12 +51,22 @@ foam.CLASS({
             foam.lib.json.JSONParser parser = new foam.lib.json.JSONParser();
             parser.setX(getX());
             Object[] arrayResult = parser.parseStringForArray(decompressedJson, null);
-            Object parsed = arrayResult;
-            if ( parsed instanceof foam.lang.FObject[] ) {
-              System.out.println("Successfully decompressed data. length is " + ((foam.lang.FObject[]) parsed).length);
-              return (foam.lang.FObject[]) parsed;
+            
+            if ( arrayResult != null && arrayResult.length > 0 ) {
+              // Convert Object[] to foam.lang.FObject[] since each object is an FObject
+              foam.lang.FObject[] fObjectArray = new foam.lang.FObject[arrayResult.length];
+              for ( int i = 0; i < arrayResult.length; i++ ) {
+                if ( arrayResult[i] instanceof foam.lang.FObject ) {
+                  fObjectArray[i] = (foam.lang.FObject) arrayResult[i];
+                } else {
+                  System.err.println("Array element at index " + i + " is not an FObject: " + arrayResult[i].getClass().getName());
+                  return new foam.lang.FObject[0];
+                }
+              }
+              System.out.println("Successfully decompressed data. length is " + fObjectArray.length);
+              return fObjectArray;
             } else {
-              System.err.println("Failed to parse decompressed data.");
+              System.err.println("Failed to parse decompressed data or array is empty.");
               return new foam.lang.FObject[0];
             }
           } catch ( Exception e ) {
