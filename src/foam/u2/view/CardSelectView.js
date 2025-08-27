@@ -70,7 +70,7 @@ foam.CLASS({
     {
       name: 'label',
       factory: function() {
-        return this.data?.toSummary() ?? '';
+        return (this.data?.toSummary && this.data?.toSummary()) ?? (this.data || '');
       }
     },
     {
