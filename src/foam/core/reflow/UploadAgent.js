@@ -58,12 +58,9 @@ foam.CLASS({
               for ( int i = 0; i < arrayResult.length; i++ ) {
                 if ( arrayResult[i] instanceof foam.lang.FObject ) {
                   fObjectArray[i] = (foam.lang.FObject) arrayResult[i];
-                } else {
-                  System.err.println("Array element at index " + i + " is not an FObject: " + arrayResult[i].getClass().getName());
-                  return new foam.lang.FObject[0];
                 }
               }
-              System.out.println("Successfully decompressed data. length is " + fObjectArray.length);
+              
               return fObjectArray;
             } else {
               System.err.println("Failed to parse decompressed data or array is empty.");
