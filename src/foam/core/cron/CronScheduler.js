@@ -93,9 +93,11 @@ foam.CLASS({
     final Logger logger = Loggers.logger(x, this);
     try {
       logger.info("initialize", "cronjobs", "start");
+      DAO cronJobDAO = (DAO) x.get(getCronJobDAO());
       DAO schedulableDAO = (DAO) getX().get(getSchedulableDAO());
       schedulableDAO.where(MLang.EQ(Schedulable.ENABLED, true)).
-        select(new Sink() {
+        select(new AbstractSink() {
+          @Override
           public void put(Object obj, Detachable sub) {
             Schedulable schedulable = (Schedulable) ((FObject) obj).fclone();
             Date from = schedulable.getLastRun();
@@ -108,19 +110,32 @@ foam.CLASS({
                   true
                 )
             );
-            ((DAO) x.get(getCronJobDAO())).put(schedulable);
+            cronJobDAO.put_(x, schedulable);
           }
-          public void remove(Object obj, Detachable sub) {}
-          public void eof() {}
-          public void reset(Detachable sub) {}
         });
+
+      // On startup calculate next scheduledTime
+      cronJobDAO.where(
+        MLang.AND(
+          MLang.EQ(Cron.ENABLED, true),
+          MLang.IN(Cron.STATUS, new ScriptStatus[] {
+            ScriptStatus.UNSCHEDULED,
+            ScriptStatus.ERROR
+          })
+        )
+      ).select(new AbstractSink() {
+        @Override
+        public void put(Object obj, Detachable sub) {
+          cronJobDAO.put_(x, (Cron) obj);
+        }
+      });
+
       logger.info("initialize", "cronjobs", "complete");
 
       while ( true ) {
         long delay = getCronDelay();
         if ( getEnabled() ) {
           Date now = new Date();
-          DAO cronJobDAO = (DAO) x.get(getCronJobDAO());
           cronJobDAO.where(
             MLang.AND(
               MLang.EQ(Cron.STATUS, ScriptStatus.RUNNING),
@@ -140,35 +155,32 @@ foam.CLASS({
 
           Min min = (Min) MLang.MIN(Cron.SCHEDULED_TIME);
           ArraySink arraySink = new ArraySink();
-          cronJobDAO.select_(x,
-              new Sequence.Builder(x)
-                .setArgs(new Sink[] {
-                  min,
-                  arraySink
-                }).build(),
-              0, foam.dao.AbstractDAO.MAX_SAFE_INTEGER,
-              null,
-              MLang.AND(
-                MLang.EQ(Cron.ENABLED, true),
-                MLang.IN(Cron.STATUS, new ScriptStatus[] {
-                  ScriptStatus.UNSCHEDULED,
-                  ScriptStatus.ERROR
-                }))
-             );
-          List<Cron> crons = (List) arraySink.getArray();
-          for ( Cron cron : crons ) {
-            try {
-              if ( cron.getScheduledTime().getTime() > now.getTime() ||
-                   ! cron.canRun(x) )
-                continue;
-
-              cron = (Cron) cron.fclone();
-              cron.setStatus(ScriptStatus.SCHEDULED);
-              cronJobDAO.put_(x, cron);
-            } catch (Throwable t) {
-              ((DAO) x.get("eventRecordDAO")).put(new EventRecord(x, this, "schedule", cron.getId(), LogLevel.ERROR, t));
+          cronJobDAO.where(
+            MLang.AND(
+              MLang.EQ(Cron.ENABLED, true),
+              MLang.LTE(Cron.SCHEDULED_TIME, now),
+              MLang.IN(Cron.STATUS, new ScriptStatus[] {
+                ScriptStatus.UNSCHEDULED,
+                ScriptStatus.ERROR
+              }))
+          ).select(new Sequence.Builder(x).setArgs(new Sink[] {
+            min,
+            new AbstractSink() {
+              @Override
+              public void put(Object obj, Detachable sub) {
+                Cron cron = (Cron) obj;
+                if ( cron.canRun(x) ) {
+                  cron = (Cron) cron.fclone();
+                  cron.setStatus(ScriptStatus.SCHEDULED);
+                  try {
+                    cronJobDAO.put_(x, cron);
+                  } catch ( Throwable t ) {
+                    ((DAO) x.get("eventRecordDAO")).put(new EventRecord(x, this, "schedule", cron.getId(), LogLevel.ERROR, t));
+                  }
+                }
+              }
             }
-          }
+          }).build());
 
           // Check for new cronjobs every 5 seconds if no current jobs
           // or if their next scheduled execution time is > 5s away
