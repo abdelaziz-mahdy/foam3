@@ -434,6 +434,13 @@ foam.CLASS({
       width: 100%;
       height: fit-content;
       overflow-y: hidden;
+      padding: 16px;
+    }
+    ^.expanded > ^toolbar {
+      padding: 0 0 0.8rem 16px;
+    }
+    ^toolbar {
+      padding: 16px;
     }
   `,
 
