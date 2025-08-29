@@ -664,15 +664,15 @@ foam.CLASS({
               // No validation errors - proceed with actual upload
               if ( ! agent ) agent = self.UploadAgent.create();
               agent.data.push(o);
-              if ( self.matchedRows && self.matchedRows % 2000 === 0 ) {
+              if ( self.matchedRows && self.matchedRows % 1000 === 0 ) {
                 var oldAgent = agent;
                 agent = undefined;
                 await self.dao.cmd(oldAgent);
               }
             }
           }
-          // give wait time every 2 k rows
-          if ( totalRows && totalRows % 2000 === 0 ) {
+          // give wait time every 1 k rows
+          if ( totalRows && totalRows % 1000 === 0 ) {
             await new Promise(r => self.setTimeout(r, 0));
           }
         },
