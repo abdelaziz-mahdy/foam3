@@ -100,7 +100,8 @@ foam.CLASS({
     'foam.core.reflow.UploadAgent',
     'foam.parse.QueryParser',
     'foam.core.fs.fileDropZone.FileDropZone',
-    'foam.core.fs.File'
+    'foam.core.fs.File',
+    'foam.mlang.sink.Count'
   ],
 
   imports: [ 'currentBlock?', 'eval_?', 'setTimeout' ],
@@ -615,7 +616,8 @@ foam.CLASS({
       var totalRows = 0;
       var agent;
       var filter = self.parseFilter();
-
+      /// get count of dao as a wakeup call
+      await self.dao.select((this.Count.create()));
       var sink = this.bulkUpload ? {
         put: async function(o) {
           // Apply object adaptation callback
