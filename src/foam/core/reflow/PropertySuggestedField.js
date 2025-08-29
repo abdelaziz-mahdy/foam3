@@ -145,10 +145,12 @@ foam.CLASS({
           if ( self.autocompleter ) {
             self.autocompleter.onUpdate();
           }
+        } else if ( newValue.get() ) {
+          var lastSegment = self.getLastSegment(newValue.get());
+          if ( self.isValidProperty(lastSegment) ) {
+            self.inputFocused = false;  // Hide suggestions when last segment is valid property, assuming it probably was updated programmatically
+          }
         }
-        // else {                                   // TODO: intentionally commented out, this was to fix issue where a pop-up is always active
-        //   self.inputFocused = false;             // But adding this line of code, disables the narrowed down search options which pop-up as user types
-        // }
       }));
     },
 
@@ -163,6 +165,11 @@ foam.CLASS({
     function getLastSegment(str) {
       var segments = this.parseSegments(str);
       return segments[segments.length - 1].trim();
+    },
+
+    function isValidProperty(propertyName) {
+      if ( ! propertyName ) return false;
+      return !! this.objData.dao.of.getAxiomByName(propertyName);
     },
 
     function shouldTriggerSuggestions(oldStr, newStr) {
