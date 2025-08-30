@@ -78,7 +78,6 @@ foam.CLASS({
           }
         }).addActions({
           unquotedText: function(a) {
-//            if ( a === '' ) return '';
             return { node: 'unquotedText', value: a };
           },
 
@@ -130,6 +129,11 @@ foam.CLASS({
     function parseString(str, delimiter) {
       if ( ! this.delimiter )
         this.delimiter = delimiter;
+
+      // Short circuit if no quoted strings
+      if ( str.indexOf('"') == -1 )
+        return str.split(this.delimiter).map(s => s ? { node: 'unquotedText', value: s } : '');
+
       return this.stringParser.parseString(str);
     },
 
