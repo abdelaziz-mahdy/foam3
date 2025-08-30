@@ -237,22 +237,6 @@ foam.CLASS({
       }
     },
     {
-      class: 'Int',
-      name: 'processing',
-      visibility: 'RO'
-    },
-    {
-      class: 'Int',
-      name: 'progress',
-      view: { class: 'foam.u2.ProgressView' }
-    },
-    {
-      class: 'Int',
-      name: 'rows',
-      visibility: 'RO'
-    },
-
-    {
       // having class and of, makes the mapping expression not reactive, even if the post set is there, (somewhere it gets set to empty array)
       // class: 'FObjectArray',
       // of: 'foam.core.reflow.Mapping',
@@ -267,16 +251,16 @@ foam.CLASS({
         // Auto-calculate mappings from fileHeaders when available
         // Once explicitly set, this expression stops being reactive (FOAM3 behavior)
         if (!of || !fileHeaders || fileHeaders.length === 0) return [];
-        
+
         // Clean up file headers
         var cleanHeaders = fileHeaders.filter(function(h) { return h && h.trim(); });
         if (cleanHeaders.length === 0) return [];
-        
+
         // Get all properties for the target model
         var props = of.getAxiomsByClass(foam.lang.Property)
           .filter(function(p) { return p.showInPropertyChoice; })
           .sort(foam.lang.Property.NAME.compare);
-        
+
         // Create mappings for all properties with file headers
         var mappings = [];
         var self = this;
@@ -285,7 +269,7 @@ foam.CLASS({
             fileHeaders: cleanHeaders
           }));
         });
-        
+
         return mappings;
       },
       visibility: function(fileHeaders) {
@@ -377,6 +361,21 @@ foam.CLASS({
       hidden: true,
       documentation: 'File headers from processed data (CSV columns, XML tags/attributes, DAO properties)'
     },
+    {
+      class: 'Int',
+      name: 'processing',
+      visibility: 'RO'
+    },
+    {
+      class: 'Int',
+      name: 'progress',
+      view: { class: 'foam.u2.ProgressView' }
+    },
+    {
+      class: 'Int',
+      name: 'rows',
+      visibility: 'RO'
+    }
   ],
 
   methods: [
@@ -473,7 +472,7 @@ foam.CLASS({
       this.mappings.forEach(mapping => {
         try {
           mapping.process(obj, undefined, rowData);
-          
+
           // Check for NaN/invalid values after processing
           this.validateProcessedValue(obj, mapping.property);
         } catch (x) {
@@ -486,12 +485,12 @@ foam.CLASS({
 
     function validateProcessedValue(obj, propertyName) {
       var value = obj[propertyName];
-      
+
       // Check for NaN in numeric fields
       if ( typeof value === 'number' && (isNaN(value) || !isFinite(value)) ) {
         throw new Error(`Invalid number (NaN/Infinity/null) in field '${propertyName}'`);
       }
-      
+
       // Check for invalid dates
       if ( value instanceof Date && isNaN(value.getTime()) ) {
         throw new Error(`Invalid date in field '${propertyName}'`);
@@ -511,7 +510,7 @@ foam.CLASS({
         errorKey = `multiple:${errorMsg.substring(0, 80)}`;
         field = 'multiple';
         errorText = errorMsg;
-        
+
         console.error('Validation errors:', {
           errors: errorSource,
           context: contextInfo
@@ -523,7 +522,7 @@ foam.CLASS({
         errorText = errorSource.message.substring(0, 80);
         errorMsg = `error: ${field}': ${errorSource.message}`;
         errorKey = `${field}:${errorText}`;
-        
+
         console.error(errorMsg, {
           mapping: mapping,
           expression: mapping.dynamicExpression,
@@ -536,7 +535,7 @@ foam.CLASS({
         errorText = String(errorSource).substring(0, 80);
         errorMsg = `error: ${field}: ${errorText}`;
         errorKey = `${field}:${errorText}`;
-        
+
         console.error(errorMsg, {
           error: errorSource,
           context: contextInfo
@@ -625,7 +624,6 @@ foam.CLASS({
             console.warn('Object adaptation callback failed:', e);
           }
 
-
           totalRows++;
           self.processing = totalRows;
           self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
@@ -691,17 +689,17 @@ foam.CLASS({
               self.output += '<h3 style="color: #e65100; margin-top: 0;">Validation Error Summary</h3>';
               self.output += '<p style="color: #333;">Total rows processed: ' + totalRows + '</p>';
               self.output += '<p style="color: #333;">Rows with errors: ' + (totalRows - self.matchedRows) + '</p>';
-              
+
               // Group and display errors
               self.output += '<h4 style="color: #e65100;">Error Details:</h4>';
               self.output += '<ul style="color: #333;">';
-              
+
               var sortedErrors = Object.values(self.validationErrorMap).sort((a, b) => b.count - a.count);
               for ( var i = 0; i < sortedErrors.length; i++ ) {
                 var errorInfo = sortedErrors[i];
                 self.output += '<li><strong>' + errorInfo.field + '</strong>: ' + errorInfo.error + ' (' + errorInfo.count + ' occurrences)</li>';
               }
-              
+
               self.output += '</ul>';
               self.output += '</div><br>';
             }
@@ -891,7 +889,7 @@ foam.CLASS({
     },
 
     async function processCSV(sink) {
-      var a   = this.input.split('\n');
+      var a = this.input.split('\n');
 
       if ( ! a ) { this.rows = 0; return; }
 
@@ -899,16 +897,13 @@ foam.CLASS({
 
       try {
         // Parse CSV headers using existing CSVParser
-        var parser = this.CSVParser.create({});
-        var parsedHeaders = parser.parseString(a[0], this.delimiter);
-        var fileHeaders = parsedHeaders.map(h => h.value);
+        var parser        = this.CSVParser.create({delimiter: this.delimiter});
+        var parsedHeaders = parser.parseString(a[0], this.delimiter); // delimiter not used
+        var fileHeaders   = parsedHeaders.map(h => h.value);
+        var agent;
 
         // Set file headers - this will trigger mapping generation if headers changed
         this.fileHeaders = fileHeaders;
-
-        // Use CSV parser
-        var parser = this.CSVParser.create({});
-        var agent;
 
         this.rows = a.length-1;
 
@@ -916,7 +911,7 @@ foam.CLASS({
           if ( ! agent ) agent = this.UploadAgent.create();
           var row = a[i];
           if ( ! row ) continue;
-          var obj = this.of.create();
+          var obj = this.of.create(null, this);
           var csv = parser.parseString(row, this.delimiter);
 
           // Convert CSV array to a rowData object using file headers
@@ -926,6 +921,10 @@ foam.CLASS({
               rowData[fileHeaders[index]] = cell.value;
             }
           });
+
+          if ( i % 200 === 0 ) {
+            await new Promise(r => self.setTimeout(r, 0));
+          }
 
           // Process ALL mappings using universal method
           this.processAllMappings(obj, rowData);
