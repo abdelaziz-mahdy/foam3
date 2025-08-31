@@ -20,7 +20,6 @@ foam.CLASS({
     function render() {
       this.
         addClass().
-        show(this.data.visible$).
         tag(this.HTMLView, {data$: this.data.richText$});
     }
   ]
@@ -32,11 +31,6 @@ foam.CLASS({
   name: 'Doc',
 
   properties: [
-    {
-      class: 'Boolean',
-      name: 'visible',
-      value: true
-    },
     {
       class: 'String',
       name: 'richText',
