@@ -98,6 +98,12 @@ foam.CLASS({
       hidden: true
     },
     {
+      name: 'prop',
+      hidden: true,
+      transient: true,
+      expression: function(of, property) { return of.getAxiomByName(property); }
+    },
+    {
       name: 'fileHeaders',
       hidden: true,
       transient: true,
@@ -109,14 +115,16 @@ foam.CLASS({
     function process(obj, value, rowData) {
       if ( ! this.property ) return;
 
+      var fieldName = this.fieldName;
+
       switch ( this.type ) {
+        case this.MappingType.FIELD:
+          if ( rowData && fieldName ) {
+            value = rowData[fieldName] !== undefined ? rowData[fieldName] : value;
+          }
+          break;
         case this.MappingType.CONSTANT:
           value = this.constantValue;
-          break;
-        case this.MappingType.FIELD:
-          if ( rowData && this.fieldName ) {
-            value = rowData[this.fieldName] !== undefined ? rowData[this.fieldName] : value;
-          }
           break;
         case this.MappingType.DYNAMIC:
           if ( this.dynamicExpression && rowData ) {
@@ -132,13 +140,12 @@ foam.CLASS({
           break;
       }
 
-      if ( foam.String.isInstance(value) && value != null && value !== undefined ) {
+      if ( foam.String.isInstance(value) ) {
         value = value.trim();
       }
 
       if ( value !== '' && value != null && value !== undefined ) {
-        var handler = this.of && this.of.getAxiomByName(this.property);
-        obj[this.property] = handler.fromCSV(value);
+        this.prop.set(obj, value);
       }
     },
 
