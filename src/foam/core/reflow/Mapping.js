@@ -145,7 +145,7 @@ foam.CLASS({
       }
 
       if ( value !== '' && value != null && value !== undefined ) {
-        this.prop.set(obj, value);
+        this.prop.set(obj, this.prop.fromCSV(value));
       }
     },
 
