@@ -75,6 +75,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Upload',
@@ -242,12 +243,11 @@ foam.CLASS({
       // of: 'foam.core.reflow.Mapping',
       name: 'mappings',
       view: function(_, X) {
-        return {
-          class: 'foam.core.reflow.MappingsView',
-          of: X.data.of
-        };
+        // More complex version has the advantage of not showing the MappingsView when uploading or previewing, which makes
+        // it faster since it spends a lot of time updating the mappings. Also, it lets you more easily see the progress.
+        return X.data.progress$.map(p => ( p == 0 || p == 100 ) ? foam.core.reflow.MappingsView.create({data: X.data.mappings$}) : foam.u2.Element.create() );
+//        return { class: 'foam.core.reflow.MappingsView' };
       },
-      hidden: true,
       expression: function(of, fileHeaders) {
         // Auto-calculate mappings from fileHeaders when available
         // Once explicitly set, this expression stops being reactive (FOAM3 behavior)
@@ -606,6 +606,7 @@ foam.CLASS({
       var self  = this;
       var latch = foam.lang.Latch.create();
       await this.data.removeAll();
+      this.progress = 1;
       this.processing = 0;
       this.matchedRows = 0;
       this.validationErrorMap = {};
@@ -730,10 +731,6 @@ foam.CLASS({
               block2.flowName = block.flowName + 'data';
               block2.obj.dao = self.data;
               block2.obj.limit = 10;
-              setTimeout(() => {
-                // Needed because it is the SinkView which creates the 'select' object
-                block2.obj.run();
-              }, 100);
             }
 
             latch.resolve('eof');
