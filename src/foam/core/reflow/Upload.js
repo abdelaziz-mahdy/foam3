@@ -152,7 +152,13 @@ foam.CLASS({
     {
       class: 'String',
       name: 'input',
-      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
+      view: function(_, X) {
+        // More complex version has the advantage of not showing the MappingsView when uploading or previewing, which makes
+        // it faster since it spends a lot of time updating the mappings. Also, it lets you more easily see the progress.
+        return X.data.progress$.map(p => ( p == 0 || p == 100 ) ? foam.u2.tag.TextArea.create({data: X.data.input$, rows: 10, cols: 100}) : foam.u2.Element.create() );
+//        return { class: 'foam.core.reflow.MappingsView' };
+      },
+      // view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
       postSet: function(_, n) {
         if ( n && n.trim() !== '' ) {
           // Clear uploaded files when user manually enters/edits text
