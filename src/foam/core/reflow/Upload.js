@@ -121,6 +121,13 @@ foam.CLASS({
 
   properties: [
     {
+      class: 'Boolean',
+      name: 'hideControls',
+      value: false,
+      hidden: true,
+      documentation: 'When true, hides all controls and views except the progress bar'
+    },
+    {
       class: 'FObjectArray',
       of: 'foam.lang.FObject',
       name: 'uploadedFiles',
@@ -134,7 +141,7 @@ foam.CLASS({
         }
       },
       view: function(_, X) {
-        return {
+        return X.data.hideControls ? foam.u2.Element.create() : {
           class: 'foam.core.fs.fileDropZone.FileDropZone',
           files$: X.data.uploadedFiles$,
           supportedFormats: X.data.SUPPORTED_FORMATS,
@@ -143,7 +150,8 @@ foam.CLASS({
           onFilesChanged: X.data.onFilesChanged.bind(X.data)
         };
       },
-      visibility: function(input) {
+      visibility: function(input, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
         return ( ! input || input.trim() === '' ) ?
           foam.u2.DisplayMode.RW :
           foam.u2.DisplayMode.HIDDEN;
@@ -153,6 +161,7 @@ foam.CLASS({
       class: 'String',
       name: 'input',
       view: function(_, X) {
+        if ( X.data.hideControls ) return foam.u2.Element.create();
         // More complex version has the advantage of not showing the MappingsView when uploading or previewing, which makes
         // it faster since it spends a lot of time updating the mappings. Also, it lets you more easily see the progress.
         return X.data.progress$.map(p => ( p == 0 || p == 100 ) ? foam.u2.tag.TextArea.create({data: X.data.input$, rows: 10, cols: 100}) : foam.u2.Element.create() );
@@ -166,7 +175,8 @@ foam.CLASS({
           this.uploadedFiles = [];
         }
       },
-      visibility: function(uploadedFiles) {
+      visibility: function(uploadedFiles, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
         return ( ! uploadedFiles || uploadedFiles.length === 0 ) ?
           foam.u2.DisplayMode.RW :
           foam.u2.DisplayMode.HIDDEN;
@@ -176,6 +186,9 @@ foam.CLASS({
       class: 'String',
       name: 'daoKey',
       label: 'DAO',
+      visibility: function(hideControls) {
+        return hideControls ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
+      },
       adapt: function(o, n) {
         if ( this.__context__[n] ) return n;
         if ( this.__context__[n + 'DAO'] ) return n + 'DAO';
@@ -195,6 +208,9 @@ foam.CLASS({
       name: 'format',
       value: 'AUTO',
       view: { class: 'foam.u2.view.ChoiceView', choices: [ 'AUTO', 'DAO', 'CSV', 'JSON', 'XML' ] },
+      visibility: function(hideControls) {
+        return hideControls ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
+      },
       postSet: function(o, n) {
         // Clear cached headers when format changes to ensure mappings regenerate
         if ( o !== n ) {
@@ -212,9 +228,11 @@ foam.CLASS({
         if ( n.endsWith('s') ) return n.substring(0, n.length-1) + 'DAO';
         return n;
       },
-      visibility: function(format) { return format === 'DAO' ?
-        foam.u2.DisplayMode.RW :
-        foam.u2.DisplayMode.HIDDEN ;
+      visibility: function(format, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
+        return format === 'DAO' ?
+          foam.u2.DisplayMode.RW :
+          foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -228,9 +246,11 @@ foam.CLASS({
       class: 'String',
       name: 'delimiter',
       value: ',',
-      visibility: function(format) { return format === 'CSV' ?
-        foam.u2.DisplayMode.RW :
-        foam.u2.DisplayMode.HIDDEN ;
+      visibility: function(format, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
+        return format === 'CSV' ?
+          foam.u2.DisplayMode.RW :
+          foam.u2.DisplayMode.HIDDEN;
       },
       width: 1
     },
@@ -238,9 +258,11 @@ foam.CLASS({
       class: 'String',
       name: 'tagName',
       value: 'CardFinancial',
-      visibility: function(format) { return format === 'XML' ?
-        foam.u2.DisplayMode.RW :
-        foam.u2.DisplayMode.HIDDEN ;
+      visibility: function(format, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
+        return format === 'XML' ?
+          foam.u2.DisplayMode.RW :
+          foam.u2.DisplayMode.HIDDEN;
       }
     },
     {
@@ -249,6 +271,7 @@ foam.CLASS({
       // of: 'foam.core.reflow.Mapping',
       name: 'mappings',
       view: function(_, X) {
+        if ( X.data.hideControls ) return foam.u2.Element.create();
         // More complex version has the advantage of not showing the MappingsView when uploading or previewing, which makes
         // it faster since it spends a lot of time updating the mappings. Also, it lets you more easily see the progress.
         return X.data.progress$.map(p => ( p == 0 || p == 100 ) ? foam.core.reflow.MappingsView.create({data: X.data.mappings$}) : foam.u2.Element.create() );
@@ -279,7 +302,8 @@ foam.CLASS({
 
         return mappings;
       },
-      visibility: function(fileHeaders) {
+      visibility: function(fileHeaders, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
         return fileHeaders && fileHeaders.length > 0 ?
           foam.u2.DisplayMode.RW :
           foam.u2.DisplayMode.HIDDEN;
@@ -293,7 +317,9 @@ foam.CLASS({
         class: 'foam.u2.HTMLView',
         nodeName: 'pre'
       },
-      visibility: 'RO'
+      visibility: function(hideControls) {
+        return hideControls ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RO;
+      }
     },
     {
       class: 'foam.dao.DAOProperty',
@@ -329,12 +355,16 @@ foam.CLASS({
       name: 'where',
       label: 'Filter',
       view: { class: 'foam.core.reflow.PredicateSuggestedField' },
-      help: 'Filter data. Applied to both preview and upload.'
+      help: 'Filter data. Applied to both preview and upload.',
+      visibility: function(hideControls) {
+        return hideControls ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW;
+      }
     },
     {
       class: 'Int',
       name: 'matchedRows',
-      visibility: function(where) {
+      visibility: function(where, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
         return where ? foam.u2.DisplayMode.RO : foam.u2.DisplayMode.HIDDEN;
       },
       value: 0
@@ -349,7 +379,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'filterStatus',
-      visibility: function(where) {
+      visibility: function(where, hideControls) {
+        if ( hideControls ) return foam.u2.DisplayMode.HIDDEN;
         return where ? foam.u2.DisplayMode.RO : foam.u2.DisplayMode.HIDDEN;
       },
       expression: function(rows, where, matchedRows) {
@@ -963,7 +994,8 @@ foam.CLASS({
   actions: [
     {
       name: 'preview',
-      code: function() { this.process(false); }
+      code: function() { this.process(false); },
+      isAvailable: function(hideControls) { return !hideControls; }
     },
     {
       name: 'upload',
@@ -971,19 +1003,21 @@ foam.CLASS({
       isEnabled: function(data, where, matchedRows) {
         // Enable upload if we have data and (no filter OR matches exist)
         return data && (!where || matchedRows > 0);
-      }
+      },
+      isAvailable: function(hideControls) { return !hideControls; }
     },
     {
       name: 'clear',
       code: function() {
         this.output   = '';
         this.progress = 0;
-      }
+      },
+      isAvailable: function(hideControls) { return !hideControls; }
     },
     {
       name: 'clearFilter',
       label: 'Clear Filter',
-      isAvailable: function(where) { return !!where; },
+      isAvailable: function(where, hideControls) { return !!where && !hideControls; },
       code: function() {
         this.where = '';
       }
