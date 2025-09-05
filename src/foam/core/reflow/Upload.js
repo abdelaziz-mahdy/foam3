@@ -21,15 +21,15 @@ foam.CLASS({
   name: 'UploadView',
   extends: 'foam.u2.View',
 
-  documentation: 'UploadView which switches to a simplied progress view when uploading.',
+  documentation: 'UploadView which switches to a simplified progress view when uploading.',
 
   methods: [
     function render() {
       var self = this;
 
       this.SUPER();
-      this.add(function(uploading) {
-        if ( uploading ) {
+      this.add(function(uploading, hideControls) {
+        if ( uploading || hideControls ) {
           this.start().style({maxWidth: 700, width: 700, height: 100}).add(self.data.processing$, ' ', self.data.PROGRESS);
         } else {
           this.add(self.data);
@@ -142,6 +142,12 @@ foam.CLASS({
   },
 
   properties: [
+    {
+      class: 'Boolean',
+      name: 'hideControls',
+      documentation: 'Set to true to hide controls',
+      hidden: true
+    },
     {
       class: 'FObjectArray',
       of: 'foam.lang.FObject',
@@ -692,13 +698,15 @@ foam.CLASS({
 
           if ( ! real ) {
             // Preview mode: just store in data
-            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = self.matchedRows;
+            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
+            
+
             await self.data.put(o);
           } else {
             // Real upload mode
             if ( Object.keys(self.validationErrorMap).length > 0 ) {
               // Validation errors exist - store in preview data for review, don't upload
-              if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = self.matchedRows;
+              if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
               await self.data.put(o);
             } else {
               // No validation errors - proceed with actual upload
