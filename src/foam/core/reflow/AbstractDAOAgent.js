@@ -427,6 +427,12 @@ foam.CLASS({
       }
     },
     {
+      class: 'String',
+      name: 'generatedRowLabel', 
+      label: 'Generated Row Label',
+      documentation: 'Label for the generated row property in the model created by genModel().'
+    },
+    {
       class: 'Int',
       name: 'topN',
       label: 'Top N',
@@ -504,12 +510,13 @@ foam.CLASS({
           topN: this.topN,
           sortOrder: this.sortOrder,
           othersLabel: this.othersLabel,
-          includeOthers: this.includeOthers
+          includeOthers: this.includeOthers,
+          generatedRowLabel: this.generatedRowLabel
         });
       }
 
       // Fall back to regular GroupBy
-      var groupBySink = this.GROUP_BY(expr, innerSink);
+      var groupBySink = this.GROUP_BY(expr, innerSink, undefined, this.generatedRowLabel);
 
       // Apply legacy group limit if specified
       if ( this.groupLimit > 0 ) {
@@ -526,6 +533,7 @@ foam.CLASS({
           style({paddingLeft: '12px'}).
         add(this.PROP).
           add(this.SINK).
+          add(this.GENERATED_ROW_LABEL.__).
           add(this.TOP_N.__).
           add(this.SORT_ORDER.__).
           add(this.INCLUDE_OTHERS.__).
