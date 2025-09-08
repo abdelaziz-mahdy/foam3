@@ -16,6 +16,28 @@ foam.CLASS({
 });
 
 
+foam.CLASS({
+  package: 'foam.core.reflow',
+  name: 'UploadView',
+  extends: 'foam.u2.View',
+
+  documentation: 'UploadView which switches to a simplified progress view when uploading.',
+
+  methods: [
+    function render() {
+      var self = this;
+
+      this.SUPER();
+      this.add(function(uploading, hideControls) {
+        if ( uploading || hideControls ) {
+          this.start().style({maxWidth: 700, width: 700, height: 100}).add(self.data.processing$, ' ', self.data.PROGRESS);
+        } else {
+          this.add(self.data);
+        }
+      });
+    }
+  ]
+});
 
 
 foam.CLASS({
@@ -121,6 +143,12 @@ foam.CLASS({
 
   properties: [
     {
+      class: 'Boolean',
+      name: 'hideControls',
+      documentation: 'Set to true to hide controls',
+      hidden: true
+    },
+    {
       class: 'FObjectArray',
       of: 'foam.lang.FObject',
       name: 'uploadedFiles',
@@ -152,7 +180,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'input',
-      view: { class: 'foam.u2.tag.TextArea', rows: 10, cols: 100 },
+      view: { class: 'foam.u2.tag.TextArea', rows: 8, cols: 80 },
       postSet: function(_, n) {
         if ( n && n.trim() !== '' ) {
           // Clear uploaded files when user manually enters/edits text
@@ -243,10 +271,7 @@ foam.CLASS({
       // of: 'foam.core.reflow.Mapping',
       name: 'mappings',
       view: function(_, X) {
-        // More complex version has the advantage of not showing the MappingsView when uploading or previewing, which makes
-        // it faster since it spends a lot of time updating the mappings. Also, it lets you more easily see the progress.
-        return X.data.progress$.map(p => ( p == 0 || p == 100 ) ? foam.core.reflow.MappingsView.create({data: X.data.mappings$}) : foam.u2.Element.create() );
-//        return { class: 'foam.core.reflow.MappingsView' };
+        return { class: 'foam.core.reflow.MappingsView' };
       },
       expression: function(of, fileHeaders) {
         // Auto-calculate mappings from fileHeaders when available
@@ -366,12 +391,19 @@ foam.CLASS({
     {
       class: 'Int',
       name: 'processing',
-      visibility: 'RO'
+      visibility: 'RO',
+      hidden: true
     },
     {
       class: 'Int',
       name: 'progress',
-      view: { class: 'foam.u2.ProgressView' }
+      view: { class: 'foam.u2.ProgressView' },
+      hidden: true
+    },
+    {
+      class: 'Boolean',
+      name: 'uploading',
+      hidden: true
     },
     {
       class: 'Int',
@@ -408,7 +440,6 @@ foam.CLASS({
         this.block.upload = this;
         this.block.value  = this.DAOHolder.create({preview: this.data});
       }
-
     },
 
     function parseFilter() {
@@ -603,10 +634,13 @@ foam.CLASS({
     },
 
     async function process(real) {
+      this.data = undefined;
+      this.block.value  = this.DAOHolder.create({preview: this.data});
+
       var self  = this;
       var latch = foam.lang.Latch.create();
       await this.data.removeAll();
-      this.progress = 1;
+      this.uploading = true;
       this.processing = 0;
       this.matchedRows = 0;
       this.validationErrorMap = {};
@@ -619,8 +653,8 @@ foam.CLASS({
       var semaphore = this.CountingSemaphore.create({limit: 4});
 
       function updateStatus() {
-        self.processing = totalRows;
-        self.progress   = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
+        self.processing  = totalRows;
+        self.progress    = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
         self.matchedRows = matchedRows;
       }
 
@@ -664,13 +698,15 @@ foam.CLASS({
 
           if ( ! real ) {
             // Preview mode: just store in data
-            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = self.matchedRows;
+            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
+            
+
             await self.data.put(o);
           } else {
             // Real upload mode
             if ( Object.keys(self.validationErrorMap).length > 0 ) {
               // Validation errors exist - store in preview data for review, don't upload
-              if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = self.matchedRows;
+              if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
               await self.data.put(o);
             } else {
               // No validation errors - proceed with actual upload
@@ -687,7 +723,7 @@ foam.CLASS({
             }
           }
           // pause periodially to avoid blocking the UI
-          if ( totalRows && totalRows % 2000 === 0 ) {
+          if ( totalRows % 2000 === 0 ) {
             updateStatus();
             await new Promise(r => self.setTimeout(r, 0));
           }
@@ -700,6 +736,7 @@ foam.CLASS({
             }
             updateStatus();
             self.progress = 100;
+            self.uploading = false;
             console.timeEnd('upload');
 
             // Show validation error summary if there were any errors
