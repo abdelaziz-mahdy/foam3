@@ -129,7 +129,11 @@ p({
   description: "Hourly cron for monitoring disk space",
   code:
   """
+    threshold = scriptParameter.parameters.get("THRESHOLD_PERCENT");
+    path = scriptParameter.parameters.get("PATH");
     cron = new foam.core.alarming.DiskSpaceMonitoringCron.Builder(x).build();
+    if ( ! foam.util.SafetyUtil.isEmpty(path) ) cron.setPath(path);
+    if ( threshold != null && threshold > 0 ) cron.setThresholdPercent(threshold);
     cron.execute(x);
     print("Done");
   """

@@ -17,6 +17,7 @@ foam.CLASS({
   ],
 
   javaImports: [
+    'foam.core.er.EventRecord',
     'foam.core.logger.Loggers',
     'foam.dao.DAO',
     'foam.log.LogLevel',
@@ -56,22 +57,17 @@ foam.CLASS({
           double percentUsed = ((total - free) / total) * 100.0;
           if ( percentUsed > getThresholdPercent() ) {
             note = String.format("Disk usage at %.2f%% exceeds threshold of %.2f%% on %s", percentUsed, getThresholdPercent(), getPath());
-            Alarm alarm = new Alarm.Builder(x)
-              .setName("Disk space monitoring alarm")
-              .setReason(AlarmReason.THRESHOLD)
-              .setSeverity(LogLevel.ERROR)
-              .setNote(note)
-              .build();
-            ((DAO) x.get("alarmDAO")).put(alarm);
-            Loggers.logger(x, this).error(note);
+            EventRecord er = new EventRecord(x, this, "disk-space-monitor", note, LogLevel.ERROR, null);
+            ((DAO) x.get("eventRecordDAO")).put(er);
             return;
           }
 
           note = String.format("Disk space usage check passed. Percentage used: %.2f%%, Alarm threshold: %.2f%%", percentUsed, getThresholdPercent());
           Loggers.logger(x, this).info(note);
         } catch (IOException e) {
-          note = String.format("Unable to check disk space usage for path: %s", getPath());
+          note = String.format("Unable to check disk space usage for path: %s - %s", getPath(), e.getMessage());
           Loggers.logger(x, this).error(note, e);
+          throw new RuntimeException(note);
         }
       `
     },
