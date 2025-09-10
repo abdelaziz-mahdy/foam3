@@ -244,8 +244,8 @@ return locked;
     {
       name: 'updateRules',
       args: 'Context x',
-      javaCode: `DAO localRuleDAO = new foam.dao.ProxyDAO(x, getDaoKey().equals("localRuleDAO") ? this : (DAO) x.get("localRuleDAO")
-).where( EQ(Rule.DAO_KEY, getDaoKey()) );
+      javaCode: `DAO localRuleDAO = getDaoKey().equals("localRuleDAO") ? this : (DAO) x.get("localRuleDAO");
+localRuleDAO = localRuleDAO.where(EQ(Rule.DAO_KEY, getDaoKey()));
 
 localRuleDAO.listen(
   new UpdateRulesListSink.Builder(getX())
