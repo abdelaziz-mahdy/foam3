@@ -209,8 +209,15 @@ foam.CLASS({
             // which displays as previous day in negative UTC offset timezones
             d = new Date(match[1] + '-' + match[2] + '-' + match[3] + 'T00:00:00');
           } else {
-            // Fallback to default Date constructor
-            d = new Date(d);
+            // Parse mm/dd/yyyy
+            match = d.match(/^(\d{2})[-\/]?(\d{2})[-\/]?(\d{4})$/);
+            if ( match ) {
+              //           yyyy             mm               dd
+              d = new Date(match[3] + '-' + match[1] + '-' + match[2] + 'T00:00:00');
+            } else {
+              // Fallback to default Date constructor
+              d = new Date(d);
+            }
           }
         }
 
