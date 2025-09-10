@@ -167,6 +167,7 @@ foam.CLASS({
           files$: X.data.uploadedFiles$,
           supportedFormats: X.data.SUPPORTED_FORMATS,
           isMultipleFiles: false,
+          maxSize: 50,
           title: 'Drag and drop a file here or click to browse',
           onFilesChanged: X.data.onFilesChanged.bind(X.data)
         };
