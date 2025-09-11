@@ -111,6 +111,7 @@ foam.POM({
     { name: "alarming/MonitoringReport",                                                  flags: "js|java" },
     { name: "alarming/MonitorType",                                                       flags: "js|java" },
     { name: "alarming/OMName",                                                            flags: "js|java" },
+    { name: "alarming/DiskSpaceMonitoringCron",                                           flags: "js|java" },
     { name: "alarming/test/CandlestickAlarmTest",                                         flags: "js&test|java&test" },
     { name: "oauth/OAuthProvider",                                                        flags: "js|java" },
     { name: "oauth/OAuthCredential",                                                      flags: "js|java" },
