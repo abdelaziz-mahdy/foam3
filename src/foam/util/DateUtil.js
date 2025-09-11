@@ -117,10 +117,10 @@ foam.CLASS({
           } else {
             date = (java.util.Date) o;  
           }
-          // convert the Date to be midnight time in GMT
+          // convert the Date to be noon in GMT
           var cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT"));
           cal.setTime(date);
-          cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+          cal.set(java.util.Calendar.HOUR_OF_DAY, 12);
           cal.set(java.util.Calendar.MINUTE, 0);
           cal.set(java.util.Calendar.SECOND, 0);
           return cal.getTime();
