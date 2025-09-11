@@ -19,8 +19,8 @@ foam.CLASS({
     function render() {
       this.
         addClass().
-        add(this.data.dynamic(function(color, type, visible, text) {
-          if ( visible ) this.start(type).style({color: color}).add(text).end();
+        add(this.data.dynamic(function(color, type, text) {
+          this.start(type).style({color: color}).add(text).end();
         }));
     }
   ]
@@ -53,13 +53,6 @@ foam.CLASS({
       section: 'general',
       onKey: true,
       displayWidth: 60
-    },
-    {
-      class: 'Boolean',
-      name: 'visible',
-      section: 'general',
-      value: true,
-      view: { class: 'foam.u2.Switch' }
     },
     {
       class: 'Color',
