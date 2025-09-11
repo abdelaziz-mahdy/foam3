@@ -172,7 +172,7 @@ public class ClassInfoImpl
   }
   public Object getAxiomByNameOrShortNameOrAlias(String name) {
     if ( axiomsByNameOrShortNameOrAlias_ == null ) {
-      axiomsByNameOrShortName_ = new HashMap();
+      axiomsByNameOrShortNameOrAlias_ = new HashMap();
 
       for ( Object o : axioms ) {
         Axiom a = (Axiom) o;
