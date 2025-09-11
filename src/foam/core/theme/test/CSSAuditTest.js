@@ -14,6 +14,13 @@ foam.CLASS({
   Depends on System property project.home set by the build.
 
   run with --log-level:INFO to report what is being ignored/skipped.
+
+  Java Regex Testing
+https://www.regexplanet.com/advanced/java/index.html
+
+  Colour converters
+https://www.myfixguide.com/color-converter/ - hex,rgb,hsl, rgba, argb
+https://web-toolbox.dev/en/tools/color-converter - hsla
   `,
 
   javaImports: [
@@ -135,8 +142,8 @@ foam.CLASS({
             if ( value.contains("bold") ||
                  value.contains("normal") ||
                  value.contains("unset") ) {
-              continue;
               logger.info("ignoring", property, value);
+              continue;
             }
             if ( value.contains(".") ) {
               // enum

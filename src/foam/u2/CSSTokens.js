@@ -180,6 +180,8 @@ foam.CLASS({
 
     { name: 'textOnDestructive', value: '$white' },
 
+    { name: 'link', value: '$blue200' },
+
     { name: 'font-extra-light', value: '200' }, /* also 100 */
     { name: 'font-light', value: '300' },
     { name: 'font-normal', value: 'normal' }, /* 400 */
@@ -218,4 +220,5 @@ foam.CLASS({
     // FONT
     { name: 'font1', value: `'Source Sans Pro', sans-serif` }
   ].map(v => { v.variantKey = 'color'; return v; })
+
 });
