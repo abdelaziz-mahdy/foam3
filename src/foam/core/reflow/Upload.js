@@ -345,6 +345,13 @@ foam.CLASS({
       value: true
     },
     {
+      class: 'Boolean',
+      name: 'ignoreInvalidRows',
+      label: 'Ignore Invalid Rows',
+      help: 'Continue uploading valid rows even if some rows have validation errors',
+      value: false
+    },
+    {
       class: 'String',
       name: 'where',
       label: 'Filter',
@@ -365,6 +372,13 @@ foam.CLASS({
       factory: function() { return {}; },
       hidden: true,
       documentation: 'Map tracking validation error counts by field:error key'
+    },
+    {
+      name: 'invalidRowNumbers',
+      factory: function() { return new Set(); },
+      hidden: true,
+      transient: true,
+      documentation: 'Set of row numbers that failed validation for O(1) lookup'
     },
     {
       class: 'String',
@@ -496,23 +510,23 @@ foam.CLASS({
       return mapping;
     },
 
-    function processAllMappings(obj, rowData) {
-      if ( ! this.mappings || this.mappings.length === 0 ) return;
+    function processAllMappings(obj, rowData, rowNumber) {
+      if ( ! this.mappings || this.mappings.length === 0 ) return true;
 
       var hasValidationErrors = false;
 
       this.mappings.forEach(mapping => {
         try {
           mapping.process(obj, undefined, rowData);
-
           // Check for NaN/invalid values after processing
           this.validateProcessedValue(obj, mapping.property);
         } catch (x) {
           hasValidationErrors = true;
-          this.trackValidationError(x, { mapping: mapping, rowData: rowData });
+          this.trackValidationError(x, { mapping: mapping, rowData: rowData, row: rowNumber });
         }
       });
 
+      return !hasValidationErrors;
     },
 
     function validateProcessedValue(obj, propertyName) {
@@ -534,6 +548,11 @@ foam.CLASS({
       var errorKey = '';
       var field = '';
       var errorText = '';
+
+      // Store the invalid row number if provided
+      if ( contextInfo && contextInfo.row ) {
+        this.invalidRowNumbers.add(contextInfo.row);
+      }
 
       // Handle different error types
       if ( Array.isArray(errorSource) ) {
@@ -584,8 +603,12 @@ foam.CLASS({
       }
       this.validationErrorMap[errorKey].count++;
 
-      // Add error to output for user visibility
-      this.output += `<span style="color:red">${errorMsg}</span><br>`;
+      // Add error to output for user visibility (only if not ignoring invalid rows or in preview mode)
+      if ( ! this.ignoreInvalidRows ) {
+        this.output += `<span style="color:red">${errorMsg}</span><br>`;
+      }
+      
+      return true; // Return true to indicate an error was tracked
     },
 
 
@@ -645,10 +668,13 @@ foam.CLASS({
       this.processing = 0;
       this.matchedRows = 0;
       this.validationErrorMap = {};
+      this.invalidRowNumbers = new Set();
       this.clear();
       console.time('upload');
       var totalRows = 0;
       var matchedRows = 0;
+      var skippedRows = 0;
+      var uploadedRows = 0;
       var agent;
       var filter = self.parseFilter();
       var semaphore = this.CountingSemaphore.create({limit: 4});
@@ -669,17 +695,15 @@ foam.CLASS({
           }
 
           totalRows++;
-          // TODO: handle errors more efficiently because errors_ is a dynamic slot
-          // and we only need one-time validation here
+          
+          // Check for validation errors from the object itself
           var errors = o.errors_;
           if ( errors ) {
             self.trackValidationError(errors, { row: totalRows });
           }
-          /*
-          var errors = o.validateObject();
-          if ( errors ) {
-            self.trackValidationError(errors, { row: totalRows });
-          }*/
+          
+          // Check if this row number is in the invalid rows set (O(1) lookup)
+          var rowIsValid = !self.invalidRowNumbers.has(totalRows);
 
           // Apply filter for both preview and real uploads
           if ( filter ) {
@@ -700,17 +724,16 @@ foam.CLASS({
           if ( ! real ) {
             // Preview mode: just store in data
             if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
-            
-
             await self.data.put(o);
           } else {
             // Real upload mode
-            if ( Object.keys(self.validationErrorMap).length > 0 ) {
-              // Validation errors exist - store in preview data for review, don't upload
+            if ( !rowIsValid && !self.ignoreInvalidRows ) {
+              // Row has errors and we're NOT ignoring invalid rows - store in preview data for review
               if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
               await self.data.put(o);
-            } else {
-              // No validation errors - proceed with actual upload
+            } else if ( rowIsValid ) {
+              // Row is valid - proceed with actual upload
+              uploadedRows++;
               if ( ! agent ) agent = self.UploadAgent.create();
               agent.data.push(o);
               if ( matchedRows && matchedRows % 2000 === 0 ) {
@@ -721,18 +744,25 @@ foam.CLASS({
                 await semaphore;
                 self.dao.cmd(oldAgent).then(() => semaphore.decr());
               }
+            } else if ( !rowIsValid && self.ignoreInvalidRows ) {
+              // Row is invalid and we're ignoring invalid rows - skip it
+              skippedRows++;
             }
           }
-          // pause periodially to avoid blocking the UI
+          // pause periodically to avoid blocking the UI
           if ( totalRows % 2000 === 0 ) {
             updateStatus();
             await new Promise(r => self.setTimeout(r, 0));
           }
         },
-        eof: async function() {
+        eof: async function(error) {
           try {
-            // Only send agent command if no validation errors
-            if ( agent && Object.keys(self.validationErrorMap).length === 0 ) {
+            if ( error ) {
+              latch.reject('eof with error' + error);
+              return;
+            }
+            // Send agent command if we have data and either no errors or ignoring invalid rows
+            if ( agent && (Object.keys(self.validationErrorMap).length === 0 || self.ignoreInvalidRows) ) {
               await self.dao.cmd(agent);
             }
             updateStatus();
@@ -742,13 +772,26 @@ foam.CLASS({
 
             // Show validation error summary if there were any errors
             if ( Object.keys(self.validationErrorMap).length > 0 ) {
-              self.output += '<br><div style="border: 1px solid #ff9800; padding: 10px; background: #fff3e0; border-radius: 4px;">';
-              self.output += '<h3 style="color: #e65100; margin-top: 0;">Validation Error Summary</h3>';
-              self.output += '<p style="color: #333;">Total rows processed: ' + totalRows + '</p>';
-              self.output += '<p style="color: #333;">Rows with errors: ' + (totalRows - self.matchedRows) + '</p>';
+              var borderColor = self.ignoreInvalidRows ? '#4caf50' : '#ff9800';
+              var bgColor = self.ignoreInvalidRows ? '#e8f5e9' : '#fff3e0';
+              var titleColor = self.ignoreInvalidRows ? '#2e7d32' : '#e65100';
+              var invalidRowCount = self.invalidRowNumbers.size;
+              
+              self.output += '<br><div style="border: 1px solid ' + borderColor + '; padding: 10px; background: ' + bgColor + '; border-radius: 4px;">';
+              
+              if ( self.ignoreInvalidRows ) {
+                self.output += '<h3 style="color: ' + titleColor + '; margin-top: 0;">Upload Complete with Ignored Errors</h3>';
+                self.output += '<p style="color: #333;">Total rows processed: ' + totalRows + '</p>';
+                self.output += '<p style="color: #333;">Rows successfully uploaded: ' + uploadedRows + '</p>';
+                self.output += '<p style="color: #333;">Rows skipped due to errors: ' + invalidRowCount + '</p>';
+              } else {
+                self.output += '<h3 style="color: ' + titleColor + '; margin-top: 0;">Validation Error Summary</h3>';
+                self.output += '<p style="color: #333;">Total rows processed: ' + totalRows + '</p>';
+                self.output += '<p style="color: #333;">Rows with errors: ' + invalidRowCount + '</p>';
+              }
 
               // Group and display errors
-              self.output += '<h4 style="color: #e65100;">Error Details:</h4>';
+              self.output += '<h4 style="color: ' + titleColor + ';">Error Details:</h4>';
               self.output += '<ul style="color: #333;">';
 
               var sortedErrors = Object.values(self.validationErrorMap).sort((a, b) => b.count - a.count);
@@ -847,7 +890,7 @@ foam.CLASS({
       }
     },
 
-    function objectifyXML(doc) {
+    function objectifyXML(doc, rowNumber) {
       var obj      = this.of.create();
       var children = doc.children;
       var rowData  = {}; // Create rowData object for XML attributes/elements
@@ -866,8 +909,8 @@ foam.CLASS({
         }
       }
 
-      // Process ALL mappings using universal method
-      this.processAllMappings(obj, rowData);
+      // Process ALL mappings with the actual row number
+      this.processAllMappings(obj, rowData, rowNumber);
 
       return obj;
     },
@@ -901,8 +944,8 @@ foam.CLASS({
           }
         }
 
-        // Process ALL mappings using universal method
-        this.processAllMappings(targetObj, rowData);
+        // Process ALL mappings
+        this.processAllMappings(targetObj, rowData, i + 1);
 
         await sink.put(targetObj);
       }
@@ -932,10 +975,12 @@ foam.CLASS({
       this.fileHeaders = Array.from(xmlHeaders);
 
       // Second pass: process matched rows using generated mappings
+      var rowNum = 0;
       for ( var i = 0 ; i < children.length ; i++ ) {
         var node = children[i];
         if ( this.tagName && node.tagName !== this.tagName ) continue;
-        await sink.put(this.objectifyXML(node));
+        rowNum++;
+        await sink.put(this.objectifyXML(node, rowNum));
       }
 
       sink.eof();
@@ -958,7 +1003,6 @@ foam.CLASS({
         this.fileHeaders = fileHeaders;
 
         this.rows = a.length-1;
-
         for ( var i = 1 ; i < a.length ; i++ ) {
           if ( ! agent ) agent = this.UploadAgent.create();
           var row = a[i];
@@ -973,9 +1017,8 @@ foam.CLASS({
               rowData[fileHeaders[index]] = cell.value;
             }
           });
-
-          // Process ALL mappings using universal method
-          this.processAllMappings(obj, rowData);
+          // Process ALL mappings
+          this.processAllMappings(obj, rowData, i);
           await sink.put(obj);
           /*
           if ( ids[obj.id] ) {
@@ -987,7 +1030,10 @@ foam.CLASS({
 
         sink.eof();
       } catch (x) {
+
         this.output += '<span style="color:red">ERROR: ' + x + '</span>';
+        this.trackValidationError(x, { row: this.totalRows });
+        sink.eof(x);
       }
     }
   ],
