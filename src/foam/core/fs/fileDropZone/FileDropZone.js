@@ -86,7 +86,7 @@ foam.CLASS({
       justify-content: center;
     }
     ^caption {
-      color: #525455;
+      color: $textSecondary;
     }
     ^browse-container{
       align-items: center;

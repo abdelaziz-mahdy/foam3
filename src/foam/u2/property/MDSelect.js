@@ -121,7 +121,7 @@ foam.CLASS({
       width: 92%;
     }
     ^ .down-arrow {
-      font-weight: 800;
+      font-weight: $font-bold;
       float: right;
       top: 1rem;
       position: relative;

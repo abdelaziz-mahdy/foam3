@@ -28,10 +28,10 @@ foam.CLASS({
   ],
   css: `
     ^selected_day_cell {
-      background-color: #e5f1fc;
+      background-color: $backgroundTertiary;;
     }
     ^prev_month_cell, ^next_month_cell {
-      color: lightgray !important;
+      color: $grey400 !important;
     }
     ^calendar_table td {
       text-align: center;
@@ -44,14 +44,14 @@ foam.CLASS({
     }
 
     ^calendar_table td:hover {
-      background-color: #F5F7FA;
+      background-color: $backgroundHover;
     }
 
     ^calendar_table tr > td {
-      border:1px solid #cbcfd4;
-      color: #5e6061;
+      border:1px solid $borderDefault;
+      color: $textTertiary;
       padding: 6px 7px 6px 7px;
-      font-weight: 300;
+      font-weight: $font-light;
     }
 
     ^calendar_table  {
@@ -61,7 +61,7 @@ foam.CLASS({
     }
 
     ^calendar_table tbody > tr > th {
-      color: #5e6061;
+      color: $textTertiary;
     }
   `,
 

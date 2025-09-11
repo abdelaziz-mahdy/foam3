@@ -84,7 +84,7 @@ foam.CLASS({
         ^header {
           background: $backgroundInverse;
           color:$textOnInverse;
-          font-weight: 800;
+          font-weight: $font-bold;
         }
         ^footer {
           color: $textTertiary;

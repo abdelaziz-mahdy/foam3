@@ -64,7 +64,7 @@ foam.CLASS({
       background: $backgroundBrand;
       color: $textOnBrand;
       fill: currentColor;
-      font-weight: 600;
+      font-weight: $font-medium;
     }
 
     ^label^disabled-icon svg path {

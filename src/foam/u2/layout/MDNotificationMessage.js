@@ -74,7 +74,7 @@ foam.CLASS({
         display: inline-block;
         vertical-align: middle;
         font-size: 2.5em;
-        font-weight: 800;
+        font-weight: $font-bold;
         color: #19402e;
         letter-spacing: normal;
       }

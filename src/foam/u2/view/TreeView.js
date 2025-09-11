@@ -97,7 +97,7 @@ foam.CLASS({
           line-height: 1.78;
           font-size: 1.4rem;
           font-style: normal;
-          font-weight: 600;
+          font-weight: $font-medium;
           line-height: 1.71;
           margin: 0;
         }

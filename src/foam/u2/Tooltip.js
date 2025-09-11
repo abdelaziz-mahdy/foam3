@@ -118,9 +118,9 @@ foam.CLASS({
 
   css: `
     ^ {
-      background: rgba(80, 80, 80, 0.9);
+      background: $backgroundInverseSecondary;
       border-radius: 5px;
-      color: white;
+      color: $white;
       padding: 5px 8px;
       position: absolute;
       z-index: 2000;

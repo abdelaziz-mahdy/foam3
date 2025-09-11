@@ -850,7 +850,7 @@ foam.CLASS({
 
       css: `
         ^ {
-          border: 0;
+          border: none;
           border-top: 1px solid $borderDefault;
           justify-content: flex-start;
           width: 100%;

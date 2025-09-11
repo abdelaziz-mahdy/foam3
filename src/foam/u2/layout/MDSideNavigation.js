@@ -166,7 +166,7 @@ foam.CLASS({
 
     ^ .foam-u2-view-TreeViewRow-label {
       font-size: 2.5rem;
-      font-weight: 500;
+      font-weight: $font-regular;
       display: inline-flex;
       justify-content: space-between;
       align-items: center;
@@ -207,7 +207,7 @@ foam.CLASS({
       }
 
     ^ .child-menu .foam-u2-view-TreeViewRow-label {
-      font-weight: 300;
+      font-weight: $font-light;
     }
 
     ^ .child-menu .foam-u2-view-TreeViewRow-heading {

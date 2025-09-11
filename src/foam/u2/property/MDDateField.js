@@ -141,7 +141,7 @@ foam.CLASS({
       color: #999;
       flex-grow: 1;
       font-size: inherit;
-      font-weight: 500;
+      font-weight: $font-regular;
       transition: font-size 0.5s, top 0.5s;
       z-index: 0;
     }

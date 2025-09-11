@@ -181,7 +181,7 @@ foam.CLASS({
       background: $backgroundDefault;
       border: 1px solid $borderDefault;
       color: $textSecondary;
-      font-weight: 500;
+      font-weight: $font-regular;
       margin-bottom: 10px;
       padding: 6px;
     }

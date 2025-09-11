@@ -25,7 +25,7 @@ foam.CLASS({
     ^ .label {
       // WHY DOESN"T WORK?
       font-size: larger;
-      font-weight: 500;
+      font-weight: $font-regular;
       color: red;
     }
  `,
