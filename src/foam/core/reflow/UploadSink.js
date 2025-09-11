@@ -118,8 +118,14 @@ foam.CLASS({
   
   methods: [
     function updateStatus() {
-      this.processing = this.totalRows;
-      this.progress = this.totalRows ? Math.floor(100 * this.totalRows / 10000) : 0; // Estimate for unknown total
+      // processing is incremented in put() method
+      // progress should be calculated based on processing vs totalRows
+      if ( this.totalRows > 0 ) {
+        this.progress = Math.min(100, Math.floor(100 * this.processing / this.totalRows));
+      } else {
+        // If totalRows not set, estimate based on processing count
+        this.progress = Math.min(99, Math.floor(this.processing / 100)); // Cap at 99% until eof
+      }
       if ( this.progressCallback ) {
         this.progressCallback(this.processing, this.progress);
       }
@@ -135,12 +141,14 @@ foam.CLASS({
         console.warn('Object adaptation callback failed:', e);
       }
       
-      this.totalRows++;
+      // Increment processing counter (totalRows should be set by parser upfront)
+      this.processing++;
+      this.updateStatus();
       
       // Check for validation errors
       var errors = o.errors_;
       if ( errors ) {
-        this.trackValidationError(errors, { row: this.totalRows });
+        this.trackValidationError(errors, { row: this.processing });
       }
       
       // Apply filter for both preview and real uploads
@@ -201,8 +209,7 @@ foam.CLASS({
       }
       
       // Pause periodically to avoid blocking the UI
-      if ( this.totalRows % 2000 === 0 ) {
-        this.updateStatus();
+      if ( this.processing % 2000 === 0 ) {
         await new Promise(r => self.setTimeout(r, 0));
       }
     },
@@ -222,8 +229,8 @@ foam.CLASS({
       if ( Object.keys(this.validationErrorMap).length > 0 ) {
         this.output += '<br><div style="border: 1px solid #ff9800; padding: 10px; background: #fff3e0; border-radius: 4px;">';
         this.output += '<h3 style="color: #e65100; margin-top: 0;">Validation Error Summary</h3>';
-        this.output += '<p style="color: #333;">Total rows processed: ' + this.totalRows + '</p>';
-        this.output += '<p style="color: #333;">Rows with errors: ' + (this.totalRows - this.matchedRows) + '</p>';
+        this.output += '<p style="color: #333;">Total rows processed: ' + this.processing + '</p>';
+        this.output += '<p style="color: #333;">Rows with errors: ' + (this.processing - this.matchedRows) + '</p>';
         
         // Group and display errors
         this.output += '<h4 style="color: #e65100;">Error Details:</h4>';
