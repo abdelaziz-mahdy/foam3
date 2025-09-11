@@ -881,7 +881,8 @@ foam.CLASS({
     'scrollToBottom',
     'selected',
     'showPrompts',
-    'value as flow'
+    'value as flow',
+    'block'
   ],
 
   css: `
