@@ -13,7 +13,7 @@ foam.CLASS({
   css: `
     ^ {
       -webkit-appearance: none;
-      border: solid 2px #5a5a5a;
+      border: solid 2px $borderStrong;
       float: right;
       width: 3rem;
       height: 3rem;
@@ -26,7 +26,7 @@ foam.CLASS({
       // WHY DOESN"T WORK?
       font-size: larger;
       font-weight: $font-regular;
-      color: red;
+      color: $red300;
     }
  `,
 

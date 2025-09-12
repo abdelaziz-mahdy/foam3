@@ -138,7 +138,7 @@ foam.CLASS({
       width: 100%;
     }
     ^label {
-      color: #999;
+      color: $textTertiary;
       flex-grow: 1;
       font-size: inherit;
       font-weight: $font-regular;
@@ -150,11 +150,11 @@ foam.CLASS({
     }
     ^inner {
       background: transparent;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid $borderLight;
       border-left: none;
       border-top: none;
       border-right: none;
-      color: #444;
+      color: $textSecondary;
       flex-grow: 1;
       font-family: inherit;
       font-size: inherit;
@@ -165,11 +165,11 @@ foam.CLASS({
     }
 
     ^invalid ^inner {
-      border-bottom: 2px solid #db4437;
+      border-bottom: 2px solid $red400;
       margin-bottom: 4px;
     }
     ^validation-error {
-      color: #db4437;
+      color: $red400;
     }
   `
 });

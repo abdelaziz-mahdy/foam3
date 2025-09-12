@@ -95,7 +95,7 @@ foam.CLASS({
       flex-direction: column;
       height: 5rem;
       position: relative;
-      background-color: #e7eaec;
+      background-color: $backgroundTertiary;
       padding-left: 1rem;
       padding-top: 1rem;
       padding-right: 1rem;
@@ -106,7 +106,7 @@ foam.CLASS({
       transition: font-size 0.5s, top 0.5s;
       top: 20%;
       position: relative;
-      color: #5a5a5a
+      color: $textSecondary;
     }
     ^ .label-up {
       font-weight: unset;
@@ -115,7 +115,7 @@ foam.CLASS({
 
     ^ .value {
       flex-grow: 1;
-      border-bottom: 2px solid #888;
+      border-bottom: 2px solid $borderDefault;
       position: absolute;
       bottom: 0;
       width: 92%;
