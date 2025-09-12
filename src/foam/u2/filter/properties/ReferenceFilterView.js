@@ -30,14 +30,14 @@ foam.CLASS({
 
     ^container-search {
       padding: 24px 16px;
-      border-bottom: solid 1px #cbcfd4;
+      border-bottom: solid 1px $borderLight;
     }
 
     ^ .foam-u2-TextField {
       width: 100%;
       height: 36px;
       border-radius: 3px;
-      border: solid 1px #cbcfd4;
+      border: solid 1px $borderLight;
       background-color: $backgroundDefault;
       background-image: url(images/ic-search.svg);
       background-repeat: no-repeat;
@@ -58,12 +58,12 @@ foam.CLASS({
 
     ^label-section {
       padding: 0 16px;
-      color: #1e1f21;
+      color: $textDefault;
     }
 
     ^label-loading {
       padding: 0 16px;
-      color: #1e1f21;
+      color: $textDefault;
       text-align: center;
     }
 
@@ -75,7 +75,7 @@ foam.CLASS({
 
     ^container-option:hover {
       cursor: pointer;
-      background-color: #f5f7fa;
+      background-color: $backgroundTertiary;
     }
 
     ^container-option .foam-u2-md-CheckBox-label {
@@ -84,12 +84,12 @@ foam.CLASS({
     }
 
     ^container-option .foam-u2-md-CheckBox {
-      border-color: #9ba1a6;
+      border-color: $borderDefault;
     }
 
     ^container-option .foam-u2-md-CheckBox:checked {
-      background-color: #406dea;
-      border-color: #406dea;
+      background-color: $blue300;
+      border-color: $blue400;
     }
   `,
 

@@ -64,7 +64,6 @@ https://web-toolbox.dev/en/tools/color-converter - hsla
       list.add("/webroot");
 
       // TODO: Lower priority
-      list.add("src/foam/u2/filter/properties");
       list.add("src/foam/support");
 
       // TODO: TBD
