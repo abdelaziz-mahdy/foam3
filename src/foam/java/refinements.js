@@ -2127,7 +2127,8 @@ foam.CLASS({
         visibility: 'public',
         type: this.of.id,
         args: [ { name: 'x', type: 'foam.lang.X' } ],
-        body: `return (${this.of.id})((foam.dao.DAO) x.get("${this.unauthorizedTargetDAOKey || this.targetDAOKey}")).find_(x, (Object) get${foam.String.capitalize(this.name)}());`
+        body: `if ( ! ${this.name}IsSet_ ) return null;
+return (${this.of.id})((foam.dao.DAO) x.get("${this.unauthorizedTargetDAOKey || this.targetDAOKey}")).find_(x, (Object) get${foam.String.capitalize(this.name)}());`
       });
     }
   ]
