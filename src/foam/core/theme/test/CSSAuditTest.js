@@ -49,6 +49,27 @@ https://web-toolbox.dev/en/tools/color-converter - hsla
     'java.util.stream.Stream'
   ],
 
+  properties: [
+    {
+      name: 'skipFoamDirectoryNames',
+      class: 'List',
+      javaFactory: `
+      List list = new ArrayList();
+      list.add("foamframework");
+      list.add("google");
+      return list;
+      `
+    },
+    {
+      documentation: 'Refine this model in your application and add directories to skip/ignore.',
+      name: 'skipAppDirectoryNames',
+      class: 'List',
+      javaFactory: `
+      return new ArrayList();
+      `
+    }
+  ],
+
   methods: [
     {
       name: 'runTest',
@@ -72,12 +93,13 @@ https://web-toolbox.dev/en/tools/color-converter - hsla
     if ( name.equals("build") ||
          name.equals("demos") ||
          name.equals("documents") ||
-         name.equals("foamframework") ||
-         name.equals("google") ||
          name.equals("node_modules") ||
          name.equals("tools") ||
          name.startsWith("iso") ||
-         name.startsWith(".") ) {
+         name.startsWith(".") ||
+         getSkipFoamDirectoryNames().contains(name) ||
+         getSkipAppDirectoryNames().contains(name) )
+    {
       logger.info("skip", path.toString());
       return FileVisitResult.SKIP_SUBTREE;
     }
@@ -141,6 +163,7 @@ https://web-toolbox.dev/en/tools/color-converter - hsla
           } else if ( "font-weight".equals(property) ) {
             if ( value.contains("bold") ||
                  value.contains("normal") ||
+                 value.contains("px") ||
                  value.contains("unset") ) {
               logger.info("ignoring", property, value);
               continue;
