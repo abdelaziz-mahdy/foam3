@@ -300,7 +300,7 @@ foam.CLASS({
       },
       code: function() {
         if ( this.data.value.name ) {
-          this.data.eval_(`save ${this.data.value.name}`);
+          return this.data.eval_(`save ${this.data.value.name}`);
         } else {
           // Using error message instead of disabling the save button to provide users feedback on why it’s not working.
           this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
@@ -1397,7 +1397,7 @@ foam.CLASS({
       this.generateScript();
       flow.version++;
       this.mementoMgr.clear();
-      flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
+      return flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
     },
 
     function setSelectedIndex(i) {

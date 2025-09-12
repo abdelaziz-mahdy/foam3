@@ -17,6 +17,8 @@ foam.CLASS({
     'foam.dao.DAO',
     'foam.time.TimeZone',
     'foam.util.SafetyUtil',
+    'java.text.ParseException',
+    'java.text.SimpleDateFormat',
     'java.time.LocalDate',
     'java.time.LocalDateTime',
     'java.time.ZoneId',
@@ -30,89 +32,61 @@ foam.CLASS({
   ],
 
   javaCode: `
+    public static final Date MAX_DATE = new Date(Long.MAX_VALUE);
+
     /*
      supported formats:
-     YYYY/MM/DD, DD/MM/YYYY, YY/MM/DD, DD/MM/YY
-     YYYY-MM-DD, DD-MM-YYYY, YY-MM-DD, DD-MM-YY
-     MM/YY, MM/YYYY, MM-YY, MM-YYYY
+     YYYY/MM/DD, MM/DD/YYYY, YY/MM/DD
+     YYYY-MM-DD, MM-DD-YYYY, YY-MM-DD
     */
     public static Date parseDateString(String d) throws RuntimeException {
-      d = d.trim();
-      String[] ds = d.split("[/-]");
-      int day, month, year;
-      if ( ds.length == 2 ) {
-        month = Integer.parseInt(ds[0]);
-        year = Integer.parseInt(ds[1]);
-        day = 0;
-      } else if ( ds.length == 3 ) {
-        month = Integer.parseInt(ds[1]);
-        if ( ds[0].length() == 4 ) {
-          year = Integer.parseInt(ds[0]);
-          day = Integer.parseInt(ds[2]);
-        } else if ( ds[2].length() == 4 ) {
-          year = Integer.parseInt(ds[2]);
-          day = Integer.parseInt(ds[0]);
+      SimpleDateFormat format;
+      Date date;
+      try {
+        if ( d.matches("^\\\\d{4}[-/]?\\\\d{2}[-/]?\\\\d{2}\\\\b.*") ) { // yyyyMMdd
+          format = new SimpleDateFormat("yyyyMMdd");
+          format.setLenient(false);
+          date = format.parse(d.replaceAll("[-/]", ""));
+        } else if ( d.matches("^\\\\d{2}[-/]?\\\\d{2}[-/]?\\\\d{4}\\\\b.*") ) { // MMddyyyy
+          format = new SimpleDateFormat("MMddyyyy");
+          format.setLenient(false);
+          date = format.parse(d.replaceAll("[-/]", ""));
+        } else if ( d.matches("^\\\\d{2}[-/]?\\\\d{2}[-/]?\\\\d{2}\\\\b.*") ) { // yyMMdd
+          format = new SimpleDateFormat("yyMMdd");
+          format.setLenient(false);
+          date = format.parse(d.replaceAll("[-/]", ""));
         } else {
-          // since ddMMyy seems to be the more common format
-          // first try to parse as ddMMyy and only try yyMMdd in the case that it fails
-          day = Integer.parseInt(ds[0]);
-          year = Integer.parseInt(ds[2]);
-          try {
-            return validateAndGetLocalDate(year, month, day);
-          } catch (RuntimeException e ) {
-            day = Integer.parseInt(ds[2]);
-            year = Integer.parseInt(ds[0]);
-          }
+          throw new RuntimeException("Unsupported Date format: " + d);
         }
-      } else throw new RuntimeException(INVALID_FORMAT);
-      return validateAndGetLocalDate(year, month, day);
-    }
-
-    private static Date validateAndGetLocalDate(int year, int month, int day) throws RuntimeException {
-      // validate and set date
-      var cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT"));
-      int currentYear = cal.get(Calendar.YEAR);
-
-      if ( year > 100 && year < 1000 ) throw new RuntimeException(INVALID_FORMAT);
-      // case 2 digit year
-      // if year + 2000 is within 10 years of current year, then use 2000, otherwise use 1900 ?
-      if ( year < 100) year += ( year + 2000 <= currentYear + 10 ) ? 2000 : 1900;
-      cal.set(Calendar.YEAR, year);
-      
-      if ( month < 1 || month > 12 ) throw new RuntimeException(INVALID_FORMAT);
-      cal.set(Calendar.MONTH, month - 1);
-
-      var lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-      if ( day == 0 ) day = lastDayOfMonth;
-      if ( day < 1 || day > lastDayOfMonth ) throw new RuntimeException(INVALID_FORMAT);
-      cal.set(Calendar.DAY_OF_MONTH, day);
-
-      cal.set(java.util.Calendar.HOUR_OF_DAY, 12);
-      cal.set(java.util.Calendar.MINUTE, 0);
-      cal.set(java.util.Calendar.SECOND, 0);
-
-      return cal.getTime();
+      } catch ( ParseException e ) {
+        throw new RuntimeException("Cannot parse invalid date: " + d);
+      }
+      return date;
     }
 
     public static Date adapt(Object o) {
       try {
         if ( o != null ) {
+          Date date;
           if ( o instanceof Number ) {
-            return new java.util.Date(((Number) o).longValue());
+            date = new java.util.Date(((Number) o).longValue());
+          } else if ( o instanceof String ) {
+            date = parseDateString((String) o);
+          } else {
+            date = (java.util.Date) o;  
           }
-          if ( o instanceof String ) {
-            // o = (java.util.Date) fromString((String) o);
-          }
-          // convert the Date to be Noon time in GMT
+          // convert the Date to be noon in GMT
           var cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT"));
-          cal.setTime((java.util.Date) o);
+          cal.setTime(date);
           cal.set(java.util.Calendar.HOUR_OF_DAY, 12);
           cal.set(java.util.Calendar.MINUTE, 0);
+          cal.set(java.util.Calendar.SECOND, 0);
           return cal.getTime();
         }
         return (java.util.Date) o;
       } catch ( Throwable t ) {
-        throw new RuntimeException(t);
+        System.err.println("Cannot adapt date:" + o + "; assuming " + MAX_DATE.toString());
+        return MAX_DATE;
       }
     }
 
