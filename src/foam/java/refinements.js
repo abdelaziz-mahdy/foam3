@@ -2722,8 +2722,8 @@ foam.CLASS({
 
   methods: [
     function buildJavaClass(cls) {
-      // Call parent implementation first
-      this.SUPER(cls);
+      // Call parent implementation first ? 
+      // this.SUPER(cls);
       
       // Only apply recursion prevention if explicitly enabled
       if ( ! this.preventRecursion ) return;
