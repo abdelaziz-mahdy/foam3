@@ -233,8 +233,7 @@ foam.CLASS({
             d.getDate(),
             12));
         }
-
-        if ( isNaN(d.getTime()) ) {
+        if ( ! d || isNaN(d.getTime()) ) {
           console.warn("Invalid date: " + originalDate + "; assuming " + foam.Date.MAX_DATE.toISOString() + ".");
           d = foam.Date.MAX_DATE;
         }
