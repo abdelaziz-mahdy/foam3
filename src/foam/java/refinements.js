@@ -2702,3 +2702,83 @@ foam.CLASS({
     }
   ]
 });
+
+
+// Generic refinement for Reference properties to prevent infinite recursion
+foam.CLASS({
+  package: 'foam.java',
+  name: 'SafeReferenceJavaRefinement',
+  refines: 'foam.lang.Reference',
+  flags: [ 'java' ],
+
+  properties: [
+    {
+      name: 'preventRecursion',
+      class: 'Boolean',
+      value: false,
+      documentation: 'When true, generates thread-safe find methods that prevent infinite recursion'
+    }
+  ],
+
+  methods: [
+    function buildJavaClass(cls) {
+      // Call parent implementation first
+      this.SUPER(cls);
+      
+      // Only apply recursion prevention if explicitly enabled
+      if ( ! this.preventRecursion ) return;
+      
+      // Override the generated find method with thread-safe version
+      var methodName = `find${foam.String.capitalize(this.name)}`;
+      var contextKey = `${cls.package}.${cls.name}.${this.name}.processingIds`;
+      
+      // Remove the existing method if it exists
+      cls.methods = cls.methods.filter(m => m.name !== methodName);
+      
+      // Add our thread-safe version
+      cls.method({
+        name: methodName,
+        visibility: 'public',
+        type: this.of.id,
+        args: [ { name: 'x', type: 'foam.lang.X' } ],
+        body: `
+          // ThreadLocal to track objects currently being processed to prevent infinite recursion
+          String contextKey = "${contextKey}";
+          ThreadLocal<java.util.Set<Object>> processingIds = (ThreadLocal<java.util.Set<Object>>) x.get(contextKey);
+          if ( processingIds == null ) {
+            processingIds = ThreadLocal.withInitial(() -> new java.util.HashSet<>());
+            x = x.put(contextKey, processingIds);
+          }
+          
+          java.util.Set<Object> currentlyProcessing = processingIds.get();
+          Object refId = get${foam.String.capitalize(this.name)}();
+          
+          // Check if we're already processing this reference ID
+          if ( refId != null && currentlyProcessing.contains(refId) ) {
+            // Return null to break the cycle
+            return null;
+          }
+          
+          if ( refId == null ) {
+            return null;
+          }
+          
+          try {
+            // Mark this ID as being processed
+            currentlyProcessing.add(refId);
+            
+            // Perform the actual find operation
+            return (${this.of.id})((foam.dao.DAO) x.get("${this.unauthorizedTargetDAOKey || this.targetDAOKey}")).find_(x, refId);
+          } finally {
+            // Clean up: remove this ID from the processing set
+            currentlyProcessing.remove(refId);
+            if ( currentlyProcessing.isEmpty() ) {
+              // Clean up the ThreadLocal when done to prevent memory leaks
+              processingIds.remove();
+            }
+          }
+        `
+      });
+    }
+  ]
+});
