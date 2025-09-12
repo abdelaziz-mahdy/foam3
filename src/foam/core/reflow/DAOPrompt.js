@@ -19,7 +19,7 @@ foam.CLASS({
   `,
 
   properties: [
-    { class: 'Long', name: 'version' },
+    { class: 'Long',    name: 'version' },
     { class: 'Boolean', name: 'loading' }
   ],
 
@@ -292,14 +292,14 @@ foam.CLASS({
           viewa: { class: 'foam.u2.IntView' },
           viewb: { class: 'foam.u2.RangeView', minValue: 0, maxValue$: X.data.rowCount$.map(c => c-1), onKey: true }
         };
-      },
+      }/*,
       visibility: function(select) {
         // Show skip/limit only for sink agents (agents with getSink method like CSVDAOAgent, JSONDAOAgent)
         // Hide for non-sink agents (agents without getSink method like TableDAOAgent)
         if ( ! select ) return foam.u2.DisplayMode.HIDDEN;
         var isSinkAgent = foam.core.reflow.AbstractSinkDAOAgent.isInstance(select);
         return isSinkAgent ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
-      }
+      }*/
     },
     {
       class: 'Int',
@@ -307,14 +307,14 @@ foam.CLASS({
       section: 'scroll',
       value: 100,
       placeholder: '',
-      displayWidth: 8,
+      displayWidth: 8/*,
       visibility: function(select) {
         // Show skip/limit only for sink agents (agents with getSink method like CSVDAOAgent, JSONDAOAgent)
         // Hide for non-sink agents (agents without getSink method like TableDAOAgent)
         if ( ! select ) return foam.u2.DisplayMode.HIDDEN;
         var isSinkAgent = foam.core.reflow.AbstractSinkDAOAgent.isInstance(select);
         return isSinkAgent ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
-      }
+      }*/
     },
     {
       class: 'String',

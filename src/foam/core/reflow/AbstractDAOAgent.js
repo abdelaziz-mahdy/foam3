@@ -430,7 +430,7 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'generatedRowLabel', 
+      name: 'generatedRowLabel',
       label: 'Generated Row Label',
       documentation: 'Label for the generated row property in the model created by genModel().'
     },
@@ -861,7 +861,7 @@ foam.CLASS({
       var location = this.window.location.origin;
       var dao      = this.block.value.filteredDAO;
       var daoKey   = dao.cmd('serviceName?').substring(8);
-      var url      = `${location}/service/dig?dao=${daoKey}&cmd=select&sessionId=${this.sessionID}`;
+      var url      = `${location}/service/dig?dao=${daoKey}&cmd=select&sessionId=${this.sessionID}&limit=${this.block.value.limit}`;
 
       // We can't just use the DAOPrompt.where because if the DAO is decorated with
       // something like ProgramAwareDAO, then the query added there won't appear.
