@@ -92,16 +92,31 @@ foam.CLASS({
 
     function formatNumber(val) {
       val = (val || 0).toFixed(this.precision);
-      return this.trimZeros ? Number(val).toString() : val;
+      
+      // Add comma formatting
+      let parts = val.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      let formatted = parts.join('.');
+      
+      if ( this.trimZeros ) {
+        // Remove trailing zeros and unnecessary decimal point
+        formatted = formatted.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
+      }
+      
+      return formatted;
     },
 
     function dataToText(val) {
-      return foam.Undefined.isInstance(this.precision) ?
-        '' + val :
-        this.formatNumber(val) ;
+      if ( foam.Undefined.isInstance(this.precision) ) {
+        // For undefined precision, use toLocaleString for comma formatting
+        return Number(val).toLocaleString('en-US', { maximumFractionDigits: 20 });
+      }
+      return this.formatNumber(val);
     },
 
     function textToData(text) {
+      // Remove commas and any whitespace before parsing
+      text = String(text).replace(/,/g, '').trim();
       return parseFloat(text) || 0;
     },
 
