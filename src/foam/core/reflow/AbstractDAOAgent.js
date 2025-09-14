@@ -39,7 +39,7 @@ foam.CLASS({
         } else {
           this.block.value = this.value(s);
         }
-//        s = s.clone({columnStorage: sink.__context__.columnStorage});
+        // s = s.clone({columnStorage: sink.__context__.columnStorage});
 
         e.startContext({dao: this.dao/*, columnStorage: sink.__context__.columnStorage*/})
           .start()
@@ -306,9 +306,10 @@ foam.CLASS({
       };
 
       if ( this.columns.length ) {
-        var cs = JSON.parse(this.columnStorage.getItem(this.of.id));
-        if ( cs )
-          config.selectedColumnNames = cs;
+//        var cs = JSON.parse(this.columnStorage.getItem(this.of.id));
+//        if ( cs )
+        //          config.selectedColumnNames = cs;
+        config.selectedColumnNames$ = this.columns$;
       }
 
       e.startContext({click: self.click}).

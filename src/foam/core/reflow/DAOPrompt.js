@@ -343,7 +343,8 @@ foam.CLASS({
         };
       },
       postSet: function(_, n) {
-        this.updateColumnStorage(n);
+        // ???: KGR: I think this isn't needed because daoPrompt.columns is used to store columns, not the actual column storage
+//        this.updateColumnStorage(n);
       }
     },
     {
@@ -425,6 +426,8 @@ foam.CLASS({
       return JSON.parse(json)?.map(a => a[0]).join(',');
     },
 
+    /*
+      KGR: Not needed because real columns are stored in 'columns'?
     function updateColumnStorage(columns) {
       if ( ! this.dao ) return;
       if ( columns === this.getColumnNamesFromStorage(this.columnStorage.getItem(this.dao.of.id)) )
@@ -439,9 +442,11 @@ foam.CLASS({
         defaultCols;
         this.columnStorage[this.dao.of.id] = JSON.stringify(cols);
     },
+        */
 
     function init() {
       this.SUPER();
+
       if ( ! this.columns ) {
         this.columns = this.getColumnNamesFromStorage(localStorage.getItem(this.dao.of.id));
       }
@@ -460,6 +465,16 @@ foam.CLASS({
 
     function onLoad() {
       return this.readyLatch_;
+    },
+
+    function copyFrom(o) {
+      // TODO: fix
+      // This is very hackish. On reload the DAOPrompt is created from the command
+      // but then we do a copyFrom() the DAOPrompt stored in the script and then
+      // the columnStorage gets swapped.
+      var old = this.columnStorage;
+      this.SUPER(o);
+      this.columnStorage = old;
     },
 
     function waitForRun() {
