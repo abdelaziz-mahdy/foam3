@@ -16,15 +16,14 @@ replacement at runtime.
 
 general format:
   messages: [
-    { name: 'MSG_CONSTANT1', message: 'Message text with one \${templateKey1} or more \${templateKey2} template keys' },
-    { name: 'MSG_CONSTANT2', message: '\${this.MSG_CONSTANT1} or \${this.propertyName}' },
+    { name: 'MSG_CONSTANT1', message: 'Message text with one \${templateKey1} or more \${templateKey2} template keys', template: true },
+    { name: 'MSG_CONSTANT2', message: '\${this.MSG_CONSTANT1} or \${this.propertyName}', template: true },
 
 templateKey is resolved as follows:
 1. value is explicitly provided during rendering of the message:
   this.E().... .add(this.MSG_CONSTANT1({ templateKey1: this.data...}))
-2. if preceeded with 'this', attempt match against messages Constants.
-3. if preceeded with 'this', attempt match this.data[key]. Also supports
-dot notation for FObject properties.
+2. if preceeded with 'this', attempt match this[key] (can use class constants like other messages or instance values). 
+Also supports dot notation for FObject properties.
   `,
 
   properties: [
