@@ -107,7 +107,7 @@ foam.CLASS({
       this.data.createEnabled = true;
       this.data.selectEnabled = false;
       this.data.editEnabled   = false;
-      this.data.exportEnabled = false;
+      this.data.exportEnabled = true;
 
       var filterView = foam.u2.ViewSpec.createView(this.FilterView, {
         dao$:  this.data.data$,

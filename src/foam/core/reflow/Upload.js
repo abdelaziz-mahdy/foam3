@@ -794,27 +794,30 @@ foam.CLASS({
     },
 
     async function processCSV(sink) {
-      var a = this.input.split('\n');
-      if ( ! a ) { this.rows = 0; return; }
-
-      this.rows = a.length-1;
+      let input = this.input;
+      if ( ! input ) { this.rows = 0; return; }
 
       try {
+        var j = input.indexOf('\n');
+        var header = input.substring(0, j);
+        input = input.substring(j+1);
+
         // Parse CSV headers using existing CSVParser
         var parser        = this.CSVParser.create({delimiter: this.delimiter});
-        var parsedHeaders = parser.parseString(a[0], this.delimiter); // delimiter not used
+        var parsedHeaders = parser.parseString(header, this.delimiter); // delimiter not used
         var fileHeaders   = parsedHeaders.map(h => h.value);
 
         // Set file headers - this will trigger mapping generation if headers changed
         this.fileHeaders = fileHeaders;
 
-        this.rows = a.length-1;
+        var a = parser.parseFile(input, this.delimiter);
 
-        for ( var i = 1 ; i < a.length ; i++ ) {
-          var row = a[i];
-          if ( ! row ) continue;
+        this.rows = a.length;
+
+        for ( var i = 0 ; i < a.length ; i++ ) {
+          if ( ! agent ) agent = this.UploadAgent.create();
+          var csv = a[i];
           var obj = this.of.create(null, this);
-          var csv = parser.parseString(row, this.delimiter);
 
           // Convert CSV array to a rowData object using file headers
           var rowData = {};

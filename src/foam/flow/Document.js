@@ -15,7 +15,7 @@ foam.CLASS({
       max-width: 1000px;
       margin: auto;
       padding: 20px;
-      font-weight: 500;
+      font-weight: $font-regular;
       -webkit-font-smoothing: antialiased;
     }
     .foam-flow-Document h1,
@@ -36,7 +36,7 @@ foam.CLASS({
       padding: 20px;
     }
     .foam-flow-Document a {
-      color: rgb(0, 153, 229);
+      color: $blue200;
       text-decoration-line: none;
     }
   `,

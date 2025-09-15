@@ -43,7 +43,7 @@ foam.CLASS({
 
     ^selected {
       background: $backgroundTertiary;
-      font-weight: 500;
+      font-weight: $font-regular;
     }
     ^left-header {
       display: flex;
@@ -72,7 +72,7 @@ foam.CLASS({
       color: $textBrand;
     }
     td^moveTarget {
-      background: rgba(0,0,0,0);
+      background: $backgroundDefault;
       border: none!important;
       width: 100%;
       height: 8px;
@@ -80,7 +80,7 @@ foam.CLASS({
       margin: 0!important;
     }
     ^activeTarget {
-      background: lightblue!important;
+      background: $blue100!important;
     }
   `,
 

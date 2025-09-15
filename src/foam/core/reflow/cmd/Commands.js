@@ -300,7 +300,7 @@ foam.CLASS({
   ],
 
   actions: [
-    function save() { this.daoCreate.save(); }
+    function save() { return this.daoCreate.save(); }
   ]
 });
 
@@ -646,7 +646,7 @@ foam.CLASS({
   name: 'Save',
   extends: 'foam.core.reflow.cmd.Command',
 
-  imports: [  'flow', 'flowDAO', 'save' ],
+  imports: [  'flow', 'flowDAO', 'save', 'notify' ],
 
   properties: [
     [ 'description', 'Save the current flow to a specified name' ]
@@ -661,10 +661,13 @@ foam.CLASS({
       // Don't save the 'save' command
       this.currentBlock.del();
 
-      if ( ! this.save() ) {
-        this.out.add('Please provide a name for the flow');
-        return;
-      }
+      return this.save().then(() => {
+        this.notify('Flow saved');
+      }).catch(err => {
+        this.notify('Error saving flow: ' + err.message);
+      });
+      
+      
     }
   ]
 });
@@ -739,8 +742,8 @@ foam.CLASS({
   requires: [ 'foam.core.reflow.Prompt' ],
 
   methods: [
-    function execute(prompt) {
-      var p = this.Prompt.create();
+    function execute(prompt, type) {
+      var p = this.Prompt.create({ type: type });
 
       if ( prompt ) p.label = prompt;
 

@@ -16,7 +16,7 @@ foam.CLASS({
     function parse(ps, obj) {
       var ret = '';
       while ( true ) {
-        if ( ! ps.valid || ps.head === this.delimiter ) {
+        if ( ! ps.valid || ps.head === this.delimiter || ps.head === '\n' ) {
           return ret === '' ? undefined : ps.setValue(ret);
         }
 
@@ -62,6 +62,10 @@ foam.CLASS({
             return {
               START: seq1(1, sym('ws'), repeat(sym('field'), self.delimiter), sym('ws')),
 
+              file: repeat(sym('START'), '\n'),
+
+              line: seq1(0, sym('START'), alt('\r\n', '\r', '\n')),
+
               field: alt(sym('quotedText'), sym('unquotedText'), ''),
 
               unquotedText: foam.lib.csv.RepeatUntil.create({delimiter:self.delimiter}),
@@ -70,7 +74,7 @@ foam.CLASS({
 
               escapedQuote: '""',
 
-              white: alt(' ', '\t', '\r', '\n'),
+              white: alt(' ', '\t'),
 
               // 0 or more whitespace characters.
               ws: repeat0(sym('white'))
@@ -108,7 +112,7 @@ foam.CLASS({
 
               escapedSeperator: literal(self.nestedObjectSeperator + self.nestedObjectSeperator),
 
-              white: alt(' ', '\t', '\r', '\n'),
+              white: alt(' ', '\t', '\r'),
 
               // 0 or more whitespace characters.
               ws: repeat0(sym('white'))
@@ -126,6 +130,16 @@ foam.CLASS({
   ],
 
   methods: [
+    function parseFile(str, delimiter) {
+      if ( ! this.delimiter )
+        this.delimiter = delimiter;
+
+      const ps = foam.parse.StringPStream.create({str: str});
+      const p  = this.stringParser.getSymParser('file');
+      var result = p.parse(ps);
+      return result && result.value;
+    },
+
     function parseString(str, delimiter) {
       if ( ! this.delimiter )
         this.delimiter = delimiter;

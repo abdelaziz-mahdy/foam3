@@ -14,6 +14,13 @@ foam.CLASS({
   Depends on System property project.home set by the build.
 
   run with --log-level:INFO to report what is being ignored/skipped.
+
+  Java Regex Testing
+https://www.regexplanet.com/advanced/java/index.html
+
+  Colour converters
+https://www.myfixguide.com/color-converter/ - hex,rgb,hsl, rgba, argb
+https://web-toolbox.dev/en/tools/color-converter - hsla
   `,
 
   javaImports: [
@@ -37,9 +44,43 @@ foam.CLASS({
     'java.nio.file.attribute.BasicFileAttributes',
     'java.util.ArrayList',
     'java.util.List',
+    'java.util.concurrent.atomic.AtomicInteger',
     'java.util.regex.Matcher',
     'java.util.regex.Pattern',
     'java.util.stream.Stream'
+  ],
+
+  properties: [
+    {
+      name: 'skipFoamPaths',
+      class: 'List',
+      javaFactory: `
+      List list = new ArrayList();
+      list.add("/build");
+      list.add("/demos");
+      list.add("/doc");
+      list.add("/node_modules");
+      list.add("/tools");
+      list.add("/webroot");
+
+      // TODO: Lower priority
+      list.add("src/foam/support");
+
+      // TODO: TBD
+      list.add("src/com/foamframework");
+      list.add("src/com/google");
+      list.add("src/foam/graphics");
+      return list;
+      `
+    },
+    {
+      documentation: 'Refine this model in your application and add directories to skip/ignore.',
+      name: 'skipAppPaths',
+      class: 'List',
+      javaFactory: `
+      return new ArrayList();
+      `
+    }
   ],
 
   methods: [
@@ -47,10 +88,14 @@ foam.CLASS({
       name: 'runTest',
       javaCode: `
     Logger logger = new PrefixLogger(new Object[] { "CSSAuditTest"}, (Logger) x.get("logger"));
-    Pattern pattern = Pattern.compile(".*?(color|font):\\s([a-z#][^\\s]*)");
-
+    Pattern pattern = Pattern.compile(".*?([;']?)(color|font|border|font-weight):\\s*([a-zA-Z0-9#\\s.(]*)");
     String projectHome = System.getProperty("project.home");
-    test ( ! SafetyUtil.isEmpty(projectHome), "project.home found "+projectHome );
+    if ( SafetyUtil.isEmpty(projectHome) ) {
+      test ( false, "project.home found "+projectHome );
+      throw new RuntimeException("project.home not found");
+    }
+
+    final AtomicInteger processed = new AtomicInteger();
 
     try {
       Path start = Paths.get(projectHome);
@@ -61,13 +106,32 @@ foam.CLASS({
     throws IOException {
 
     File file = path.toFile();
+    String parent = file.getParent();
+    if ( file.isDirectory() ) {
+      parent = path.toString();
+    }
+    parent = parent.substring(projectHome.length());
     String name = file.getName();
-    if ( name.equals("documents") ||
-         name.equals("tools") ||
-         name.equals("build") ||
-         name.equals("node_modules") ||
+    // logger.info("preVisit,relative", parent, name);
+    boolean skip = false;
+    for ( String p : (List<String>) getSkipFoamPaths() ) {
+      if ( parent.contains(p) ) {
+        skip = true;
+        break;
+      }
+    }
+    if ( ! skip ) {
+      for ( String p : (List<String>) getSkipAppPaths() ) {
+        if ( parent.contains(p) ) {
+          skip = true;
+          break;
+        }
+      }
+    }
+    if ( skip || 
          name.startsWith("iso") ||
-         name.startsWith(".") ) {
+         name.startsWith(".") ) 
+    {
       logger.info("skip", path.toString());
       return FileVisitResult.SKIP_SUBTREE;
     }
@@ -80,7 +144,7 @@ foam.CLASS({
 
     if ( ! path.toString().endsWith(".js") )
       return FileVisitResult.CONTINUE;
-
+    processed.incrementAndGet();
     String relativePath = path.toString().substring(projectHome.length()+1);
     logger.info("processing", relativePath);
 
@@ -99,9 +163,19 @@ foam.CLASS({
             logger.info("ignoring", line);
             continue;
           }
-
-          String property = matcher.group(1);
-          String value = matcher.group(2);
+          String embedded = matcher.group(1);
+          if ( ! SafetyUtil.isEmpty(embedded) ) {
+            // style lines, console.log with color, ... 
+            logger.info("ignoring", line);
+            continue;
+          }
+          String property = matcher.group(2);
+          String value = matcher.group(3);
+          if ( SafetyUtil.isEmpty(value) ) {
+            // no match - line is correct
+            // logger.info("ignoring", line);
+            continue;
+          }
           if ( "color".equals(property) ) {
             if ( value.contains("currentColor") ||
                  value.contains("inherit") ||
@@ -119,6 +193,49 @@ foam.CLASS({
             }
           } else if ( "font".equals(property) ) {
             if ( value.contains("inherit") ) {
+              logger.info("ignoring", property, value);
+              continue;
+            }
+            if ( value.contains(".") ) {
+              // enum
+              logger.info("ignoring", property, value);
+              continue;
+            }
+          } else if ( "font-weight".equals(property) ) {
+            if ( value.contains("bold") ||
+                 value.contains("normal") ||
+                 value.contains("px") ||
+                 value.contains("unset") ) {
+              logger.info("ignoring", property, value);
+              continue;
+            }
+            if ( value.contains(".") ) {
+              // enum
+              logger.info("ignoring", property, value);
+              continue;
+            }
+          } else if ( "background".equals(property) ) {
+            if ( value.contains("none") ||
+                 value.contains("transparent") ||
+                 value.contains("linear-gradient") ||
+                 value.contains("unset") ||
+                 value.contains("url(") ) {
+              logger.info("ignoring", property, value);
+              continue;
+            }
+            if ( value.contains(".") ) {
+              // enum
+              logger.info("ignoring", property, value);
+              continue;
+            }
+          } else if ( "border".equals(property) ) {
+            if ( value.contains("none") ||
+                 value.contains("dashed") ||
+                 value.contains("inherit") ||
+                 value.contains("pt") ||
+                 value.contains("px") ||
+                 value.contains("solid") ||
+                 value.contains("transparent") ) {
               logger.info("ignoring", property, value);
               continue;
             }
@@ -156,6 +273,10 @@ foam.CLASS({
 );
     } catch ( IOException e ) {
       logger.error(e);
+    } finally {
+      if ( getFailed() == 0 ) {
+        test(true, "procesed "+processed.intValue()+ " .js files");
+      }
     }
     `
     }

@@ -101,7 +101,7 @@ foam.CLASS({
       width: 100%;
     }
     ^background {
-      background-color: #000;
+      background-color: $backgroundInverse;
       bottom: 0;
       left: 0;
       opacity: 0.4;

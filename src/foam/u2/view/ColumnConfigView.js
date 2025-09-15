@@ -536,7 +536,7 @@ foam.CLASS({
 
   css: `
   ^selected {
-    background: #cfdbff;
+    background: $blue50;
   }
   ^some-padding {
     text-align: left;

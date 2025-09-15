@@ -42,7 +42,7 @@ foam.CLASS({
 
     ^label {
       font-size: 14px;
-      font-weight: 500;
+      font-weight: $font-regular;
       line-height: 1.2;
     }
 

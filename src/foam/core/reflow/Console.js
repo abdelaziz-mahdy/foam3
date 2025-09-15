@@ -240,6 +240,7 @@ foam.CLASS({
       themeIcon: 'boldHome',
       size: 'SMALL',
       code: function(X) {
+        this.showNav = true;
         X.routeTo('flows');
       }
     },
@@ -300,7 +301,7 @@ foam.CLASS({
       },
       code: function() {
         if ( this.data.value.name ) {
-          this.data.eval_(`save ${this.data.value.name}`);
+          return this.data.eval_(`save ${this.data.value.name}`);
         } else {
           // Using error message instead of disabling the save button to provide users feedback on why it’s not working.
           this.notify(this.PROVIDE_NAME, '', this.LogLevel.ERROR, true);
@@ -441,6 +442,12 @@ foam.CLASS({
     }
     ^toolbar {
       padding: 16px;
+    }
+    ^content:has(> .foam-u2-Element-hidden) {
+      display: none;
+    }
+    ^hidePrompts:has(> ^content > .foam-u2-Element-hidden) {
+      display: none;
     }
   `,
 
@@ -1398,7 +1405,7 @@ foam.CLASS({
       this.generateScript();
       flow.version++;
       this.mementoMgr.clear();
-      flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
+      return flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
     },
 
     function setSelectedIndex(i) {

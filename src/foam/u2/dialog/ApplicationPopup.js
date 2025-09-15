@@ -149,7 +149,7 @@ foam.CLASS({
     ^footer-center a:link,
     ^footer-center a:visited,
     ^footer-center a:active {
-      color: /*%BLACK%*/ #1E1F21;
+      color: $textDefault;
       text-decoration: none;
     }
     ^footer-center a:hover {
@@ -166,11 +166,11 @@ foam.CLASS({
     }
     
     ^footer.p-legal-light {
-      color: #6F6F6F;
+      color: $textTertiary;
     }
 
     ^info-text {
-      color: /*%BLACK%*/ #1e1f21;
+      color: $textDefault;
     }
 
     ^footer-center img {
