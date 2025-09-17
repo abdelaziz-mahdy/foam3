@@ -127,7 +127,7 @@ boolean foam.core.auth.AuthService.check(X x, String permission)
 
 ### Permission Management
 - **PermissionMatrix** - Primary permission management interface [9](#1-8)
-- **Security Principle:** Users cannot grant permissions they don't possess (implicit security constraint)
+- **Security Principle:** Users cannot grant permissions they don't possess (implicitly or explicitly)
 
 ## Notes
 
