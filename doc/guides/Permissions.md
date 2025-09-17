@@ -63,7 +63,7 @@ boolean foam.core.auth.AuthService.check(X x, String permission)
 - **Pattern:** `service.run.<serviceName>`
 - **Examples:** `service.run.Health`, `service.run.uptime`
 - **Implementer:** NanoRouter.java
-- **Note:** Separate from service access (possibly redundant design)
+- **Note:** Separate from service access (probably a mistake)
 
 ### 3. DAO Object Operations
 - **Pattern:** `<permissionPrefix>.<operation>.<id>`
