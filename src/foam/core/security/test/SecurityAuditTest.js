@@ -74,6 +74,14 @@ foam.CLASS({
         if ( spec.getName().indexOf("DAO") == -1 )
           continue;
 
+        if ( spec.getService() == null &&
+             SafetyUtil.isEmpty(spec.getServiceClass()) &&
+             SafetyUtil.isEmpty(spec.getServiceScript()) &&
+             SafetyUtil.isEmpty(spec.getBoxClass()) ) {
+          // client-side only
+          continue;
+        }
+
         DAO dao = (DAO) x.get(spec.getName());
         var authorizer   = "";
         try {
@@ -124,7 +132,9 @@ foam.CLASS({
           test ( false, "DAO misconfigured "+spec.getName()+" - no authorizer && implies && not readOnlyDAO && not nullDAO && no auth notes");
         }
       }
-
+      if ( getFailed() == 0 ) {
+        test(true, "processed " + cspecs.size() + " CSpecs");
+      }
       teardown(x);
       `
     },

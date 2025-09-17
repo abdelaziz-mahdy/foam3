@@ -112,7 +112,7 @@ foam.CLASS({
             .startContext({ memento_: mem})
             .start(this.TableView, {
               data$: this.slot(function(rowsToDisplay) {return data.limit(rowsToDisplay)}),
-              editColumnsEnabled: false,
+              // editColumnsEnabled: false,
               multiSelectEnabled: false,
               showPagination: false
             })
