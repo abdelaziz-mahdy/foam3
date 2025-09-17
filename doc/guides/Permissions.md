@@ -15,7 +15,7 @@ Permissions in FOAM represent access to system resources and follow Java's hiera
 
 **Examples:**
 - `*` - Ability to do anything, granted to 'admin' group
-- `userDAO.read.*` - Ability to read all Users from the UserDAO
+- `user.read.*` - Ability to read all Users from the UserDAO
 - `themeDAO.write.acme` - Ability to write only the 'acme' Theme from the ThemeDAO
 
 ## Permission Checking
@@ -293,7 +293,7 @@ Permissions (from Java):
 
 Examples:
   *                   - ability to do anything, granted to 'admin'
-  userDAO.read.*      - ability to read all Users from the UserDAO
+  user.read.*         - ability to read all Users from the UserDAO
   themeDAO.write.acme - ability to write only the 'acme' Theme from the ThemeDAO
 
 See:
