@@ -129,6 +129,7 @@ Ex.: `"OpsRole", "ReflowRole"`
 | `<model>.rw.<property>` | Write property |
 | `<model>.column.<property>` | View table column |
 | **No standard pattern** | Execute actions |
+| `@<RoleName>` | Grant all Role permissions |
 
 ## User Interface
 
