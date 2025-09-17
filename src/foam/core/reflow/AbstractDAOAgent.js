@@ -484,9 +484,9 @@ foam.CLASS({
     {
       name: 'browseEnabled',
       value: true,
-      // hidden: true,
+      hidden: true,
       // Only enable Browse action if this is the top-level DAOAgent
-      // factory: function() { return this.block.value.select === this; }
+      factory: function() { return this.block.value.select === this; }
     }
   ],
 
@@ -926,8 +926,16 @@ foam.CLASS({
       name: 'label',
       documentation: 'Label to identify this sink result for retrieval in genModel',
       validateObj: function(label) {
+        /// has to be valid css class name
+        /// start with letter or _
+        if ( ! label.match(/^[a-zA-Z_]/) ) return 'Label must start with a letter or underscore';
+        /// then only letters, numbers, - or _
+        if ( ! label.match(/^[a-zA-Z0-9_-]+$/) ) return 'Label can only contain letters, numbers, underscores or dashes';
+        
+        
         /// dont allow spaces
         if ( label.indexOf(' ') !== -1 ) return 'Label cannot contain spaces';
+
       }
     },
     {
