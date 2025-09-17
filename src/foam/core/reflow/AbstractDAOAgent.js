@@ -483,7 +483,6 @@ foam.CLASS({
     },
     {
       name: 'browseEnabled',
-      value: true,
       hidden: true,
       // Only enable Browse action if this is the top-level DAOAgent
       factory: function() { return this.block.value.select === this; }
