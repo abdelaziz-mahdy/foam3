@@ -181,11 +181,35 @@ foam.CLASS({
       }
       // default fonts
       if ( headConfig == null || ! headConfig.containsKey("customFonts") || customFontsFailed ) {
-        out.println("<link rel=\\"preconnect\\" href=\\"https://fonts.gstatic.com/\\">");
-        out.println("<link href=\\"https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap\\" rel=\\"preload\\" as=\\"style\\" crossorigin=\\"anonymous\\">");
-        out.println("<link href=\\"https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap\\" rel=\\"stylesheet\\" crossorigin=\\"anonymous\\">");
+        out.println("""
+          <link rel="preconnect" href="https://fonts.gstatic.com/">
+          <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap" rel="preload" as="style" crossorigin="anonymous">
+          <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous">""");
       }
-      `
+
+      // Loading screen styles
+      out.println("""
+        <style>
+        #loading-container {
+          background: black;
+          color: white;
+          text-align: center;
+          height: 100%;
+          display: flex;
+          vertical-align: middle;
+          width: 100%;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+        #loading-logo {
+          max-width: 400px;
+        }
+        #loading-text {
+          font-family: system-ui, sans-serif;
+        }
+        </style>""");
+      `,
     },
     {
       name: 'service',
@@ -251,11 +275,11 @@ foam.CLASS({
         out.print(theme.getAppName());
         out.println("\\" bootservices=\\"" + getBootservices() + "\\">");
 
-        out.print("<div style=\\" background: black; color:white;text-align:center;height:100%;display: flex;vertical-align:middle;width: 100%;flex-direction: column;justify-content: center;align-items: center; \\">");
-        out.print("<img style=\\" max-width: 400px; \\" src=\\"");
+        out.print("<div id=\\"loading-container\\">");
+        out.print("<img id=\\"loading-logo\\" src=\\"");
         out.print(theme.getLargeLogo());
         out.println("\\"></img>");
-        out.print("<h3 style=\\"font-family: system-ui, sans-serif; \\">Loading....</h3>");
+        out.print("<h3 id=\\"loading-text\\">Loading....</h3>");
         out.println("</div>");
         out.println("</foam>");
 
