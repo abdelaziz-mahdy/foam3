@@ -232,6 +232,7 @@ foam.POM({
     { name: "foam/u2/RowFormatter",                                   flags: "web" },
     { name: "foam/u2/WeakMap",                                        flags: "web" },
     { name: "foam/u2/JsLib",                                          flags: "web" },
+    { name: "foam/u2/ModuleLib",                                      flags: "web" },
     { name: "foam/u2/ControllerMode",                                 flags: "web" },
     { name: "foam/u2/DisplayMode",                                    flags: "web" },
     { name: "foam/u2/CSS",                                            flags: "web" },
