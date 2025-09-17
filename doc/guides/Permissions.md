@@ -8,15 +8,15 @@ Permissions in FOAM represent access to system resources and follow Java's hiera
 
 **Valid wildcard patterns:**
 - `*` - Global permission (ability to do anything)
-- `java.*` - Hierarchical wildcard
+- `foo.*` - Hierarchical wildcard
 
 **Invalid patterns:**
-- `*java`, `a*b`, `java*` - Asterisk not at end or not preceded by dot
+- `*foo`, `a*b`, `foo*` - Asterisk not at end or not preceded by dot
 
 **Examples:**
 - `*` - Ability to do anything, granted to 'admin' group
 - `user.read.*` - Ability to read all Users from the UserDAO
-- `themeDAO.write.acme` - Ability to write only the 'acme' Theme from the ThemeDAO
+- `theme.write.acme` - Ability to write only the 'acme' Theme from the ThemeDAO
 
 ## Permission Checking
 
