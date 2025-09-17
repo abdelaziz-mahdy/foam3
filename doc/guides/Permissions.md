@@ -68,7 +68,7 @@ boolean foam.core.auth.AuthService.check(X x, String permission)
 ### 3. DAO Object Operations
 - **Pattern:** `<permissionPrefix>.<operation>.<id>`
   - `permissionPrefix = toLowerCase(model.name)`
-  - Operations: `read`, `remove`, `create`
+  - Operations: `read`, `remove`, `create`, `update`
 - **Examples:** `menu.read.settings`, `email.create`, `notificationsetting.remove.*`
 - **Implementer:** `foam.core.auth.AuthorizationDAO`, `foam.core.auth.StandardAuthorizer` [7](#1-6)
 - **Notes:**
