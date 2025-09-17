@@ -109,6 +109,12 @@ boolean foam.core.auth.AuthService.check(X x, String permission)
 - **Configuration:** `columnPermissionRequired: true`
 - **Note:** Distinct from general property access permissions; controls table/grid view visibility only
 
+### 8. Role Permissions
+Permissions of the form `@<GroupName>` grant all permissions owned by the `<GroupName>` group.
+This is typically used to create "Role" Groups which don't have any direct users but are just used
+to create collections of Permissions. These types of Groups are prefixed by "Role" by convention.
+Ex.: `"OpsRole", "ReflowRole"`
+
 ## Permission Pattern Summary
 
 | Pattern | Purpose |
