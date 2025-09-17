@@ -1,4 +1,4 @@
-# FOAM Permissions System Documentation
+# FOAM Permissions
 
 ## Overview
 
