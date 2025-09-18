@@ -493,9 +493,11 @@ foam.CLASS({
       isFramed: true,
       code: function() {
         var limit = ( this.data && this.data.limit_ ) || undefined;
+        this.daoLoading = true;
         return this.data$proxy.select(this.Count.create()).then(s => {
           this.daoCount = limit && limit < s.value ? limit : s.value;
           this.refresh();
+          this.daoLoading = false;
         });
       }
     },
@@ -527,9 +529,12 @@ foam.CLASS({
             var dao  = this.data.limit(this.pageSize_).skip(skip);
             promiseArr.push(this.getPage(dao, page));
           }
-          Promise.all(promiseArr).then(()=>{
-            this.daoLoading = false;
-          })
+          // If there is nothing to load, we should not set daoLoading to false
+          if ( promiseArr.length !== 0 ){
+            Promise.all(promiseArr).then(()=>{
+              this.daoLoading = false;
+            });
+          }
         }
       }
     },

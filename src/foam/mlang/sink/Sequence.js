@@ -67,11 +67,57 @@ foam.CLASS({
     },
 
     function toProperties() {
-      return this.args.map(a => a.toProperties ? a.toProperties() : a.VALUE ).flat();
+      var allProps = this.args.map(a => a.toProperties ? a.toProperties() : a.VALUE ).flat();
+      var nameCount = {};
+      var renamedProps = [];
+
+      // Track name usage and rename duplicates
+      allProps.forEach(prop => {
+        if ( ! prop || ! prop.name ) {
+          renamedProps.push(prop);
+          return;
+        }
+
+        var originalName = prop.name;
+        if ( nameCount[originalName] ) {
+          // This name already exists, create a unique version
+          nameCount[originalName]++;
+          var newProp = prop.clone ? prop.clone() : foam.util.clone(prop);
+          newProp.name = originalName + '_' + nameCount[originalName];
+          newProp.label = foam.String.labelize(newProp.name);
+          renamedProps.push(newProp);
+        } else {
+          // First occurrence of this name
+          nameCount[originalName] = 1;
+          renamedProps.push(prop);
+        }
+      });
+
+      return renamedProps;
     },
     function setPropertyValues(o, sink, ps) {
-      for ( var i = 0 ; i < this.args.length ; i++ )
-        ps[i].set(o, sink.args[i].value);
+      // Map through properties and set values from corresponding sink args
+      var propIndex = 0;
+      for ( var i = 0 ; i < this.args.length ; i++ ) {
+        var arg = this.args[i];
+        var argProps = arg.toProperties ? arg.toProperties() : [{ name: 'value' }];
+
+        if ( argProps && Array.isArray(argProps) ) {
+          // Each arg might contribute multiple properties
+          for ( var j = 0 ; j < argProps.length ; j++ ) {
+            if ( propIndex < ps.length ) {
+              ps[propIndex].set(o, arg.value);
+              propIndex++;
+            }
+          }
+        } else {
+          // Single property from this arg
+          if ( propIndex < ps.length ) {
+            ps[propIndex].set(o, arg.value);
+            propIndex++;
+          }
+        }
+      }
     }
   ]
 });

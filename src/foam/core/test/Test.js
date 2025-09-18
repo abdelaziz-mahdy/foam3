@@ -306,8 +306,10 @@ foam.CLASS({
               } else {
                 this.failed += 1;
               }
-              this.output += ( condition ? 'SUCCESS: ' : 'FAILURE: ' ) +
-                message + '\n';
+              if ( ! this.onlyReportFailed || ! condition ) {
+                this.output += ( condition ? 'SUCCESS: ' : 'FAILURE: ' ) +
+                  message + '\n';
+              }
 
             };
             var expect = (value, expectedValue, message) => {

@@ -135,7 +135,7 @@ Ex.: `"OpsRole", "ReflowRole"`
 
 ### Permission Management
 - **PermissionMatrix** - Primary permission management interface [9](#1-8)
-- **Security Audit** - run the "Security Audit" FLOW to get a report of all DAO security configurations
+- **Security Audit** - run the "Security Audit" FLOW to get a report of all DAO security configurations. The Security Audit is also part of the FOAM test suite.
 - **Security Principle:** Users cannot grant permissions they don't possess (implicitly or explicitly)
 
 ## Notes

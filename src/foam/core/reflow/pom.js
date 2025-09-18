@@ -71,6 +71,7 @@ foam.POM({
     { name: 'control/CollectionsControl', flags: 'js' },
     { name: 'control/FlowsControl',     flags: 'js' },
     { name: 'control/ComponentsControl', flags: 'js' },
-    { name: 'FlowBrowserView',         flags: 'js' }
+    { name: 'FlowBrowserView',         flags: 'js' },
+    { name: 'FilteredDAOAgent',        flags: 'js' }
   ]
 });
