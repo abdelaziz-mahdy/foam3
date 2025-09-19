@@ -300,7 +300,20 @@ foam.CLASS({
     },
     {
       name: 'selection', hidden: true
-    }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.lang.Property',
+      generateJava: false,
+      name: 'groupBy',
+      view: function(_, X) {
+        return { 
+          class: 'foam.core.reflow.PropertyChoiceView', 
+          forCls: X.dao ? X.dao.of : X.of,
+          allowClearingSelection: true
+        };
+      }
+    },
   ],
 
   methods: [
@@ -317,7 +330,8 @@ foam.CLASS({
         config: self.DAOControllerConfig.create({
           dao: self.unlimitedDAO,
           disableSelection: false
-        })
+        }),
+        groupBy$: self.groupBy$.map(v => v || null)
       };
 
       if ( this.columns.length ) {
@@ -328,9 +342,17 @@ foam.CLASS({
       }
 
       e.startContext({click: self.click}).
-        start(self.TableView.create({}, this.__subContext__), config).
+        start(self.TableView, config).
           style({height: '600px'});
 
+    },
+    function addToE(e) {
+      var self = this;
+      e.startContext({data: this})
+        .start()
+          .style({paddingLeft: '12px'})
+        .tag(this.GROUP_BY.__, { data: this })
+        .end();
     }
   ],
 
