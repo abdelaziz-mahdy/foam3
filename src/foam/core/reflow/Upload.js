@@ -115,12 +115,11 @@ foam.CLASS({
 
   requires: [
     'foam.dao.MDAO',
-    'foam.lang.CountingSemaphore',
     'foam.lib.csv.CSVParser',
     'foam.core.reflow.ColumnParser',
     'foam.core.reflow.DAOHolder',
     'foam.core.reflow.Mapping',
-    'foam.core.reflow.UploadAgent',
+    'foam.core.reflow.UploadSink',
     'foam.parse.QueryParser',
     'foam.core.fs.fileDropZone.FileDropZone',
     'foam.core.fs.File'
@@ -496,97 +495,6 @@ foam.CLASS({
       return mapping;
     },
 
-    function processAllMappings(obj, rowData) {
-      if ( ! this.mappings || this.mappings.length === 0 ) return;
-
-      var hasValidationErrors = false;
-
-      this.mappings.forEach(mapping => {
-        try {
-          mapping.process(obj, undefined, rowData);
-
-          // Check for NaN/invalid values after processing
-          this.validateProcessedValue(obj, mapping.property);
-        } catch (x) {
-          hasValidationErrors = true;
-          this.trackValidationError(x, { mapping: mapping, rowData: rowData });
-        }
-      });
-
-    },
-
-    function validateProcessedValue(obj, propertyName) {
-      var value = obj[propertyName];
-
-      // Check for NaN in numeric fields
-      if ( typeof value === 'number' && (isNaN(value) || !isFinite(value)) ) {
-        throw new Error(`Invalid number (NaN/Infinity/null) in field '${propertyName}'`);
-      }
-
-      // Check for invalid dates
-      if ( value instanceof Date && isNaN(value.getTime()) ) {
-        throw new Error(`Invalid date in field '${propertyName}'`);
-      }
-    },
-
-    function trackValidationError(errorSource, contextInfo) {
-      var errorMsg = '';
-      var errorKey = '';
-      var field = '';
-      var errorText = '';
-
-      // Handle different error types
-      if ( Array.isArray(errorSource) ) {
-        // Handle o.errors_ array format: [fieldAxiom, errorMessage]
-        errorMsg = errorSource.map(e => e[0].name + ' ' + e[1]).join(', ');
-        errorKey = `multiple:${errorMsg.substring(0, 80)}`;
-        field = 'multiple';
-        errorText = errorMsg;
-
-        console.error('Validation errors:', {
-          errors: errorSource,
-          context: contextInfo
-        });
-      } else if ( errorSource && errorSource.message ) {
-        // Handle mapping validation errors
-        var mapping = contextInfo.mapping || {};
-        field = mapping.property || 'unknown';
-        errorText = errorSource.message.substring(0, 80);
-        errorMsg = `error: ${field}': ${errorSource.message}`;
-        errorKey = `${field}:${errorText}`;
-
-        console.error(errorMsg, {
-          mapping: mapping,
-          expression: mapping.dynamicExpression,
-          rowData: contextInfo.rowData,
-          error: errorSource
-        });
-      } else {
-        // Handle generic error format
-        field = contextInfo.field || 'unknown';
-        errorText = String(errorSource).substring(0, 80);
-        errorMsg = `error: ${field}: ${errorText}`;
-        errorKey = `${field}:${errorText}`;
-
-        console.error(errorMsg, {
-          error: errorSource,
-          context: contextInfo
-        });
-      }
-
-      // Track validation error in map for efficient counting
-      if ( ! this.validationErrorMap[errorKey] ) {
-        this.validationErrorMap[errorKey] = {
-          field: field,
-          error: errorText,
-          count: 0
-        };
-      }
-      this.validationErrorMap[errorKey].count++;
-
-      // Add error to output for user visibility
-      this.output += `<span style="color:red">${errorMsg}</span><br>`;
-    },
 
 
     async function processUploadedFiles() {
@@ -647,144 +555,61 @@ foam.CLASS({
       this.validationErrorMap = {};
       this.clear();
       console.time('upload');
-      var totalRows = 0;
-      var matchedRows = 0;
-      var agent;
-      var filter = self.parseFilter();
-      var semaphore = this.CountingSemaphore.create({limit: 4});
 
-      function updateStatus() {
-        self.processing  = totalRows;
-        self.progress    = self.rows ? Math.max(self.progress, Math.floor(100 * totalRows / self.rows)) : 0;
-        self.matchedRows = matchedRows;
+      var filter = self.parseFilter();
+
+      function updateStatus(sink) {
+        self.processing  = sink.totalRows;
+        self.progress    = self.rows ? Math.max(self.progress, Math.floor(100 * sink.totalRows / self.rows)) : sink.progress;
+        self.matchedRows = sink.matchedRows;
+        // Copy validation errors and output from sink
+        self.validationErrorMap = sink.validationErrorMap;
+        if ( sink.output ) {
+          self.output += sink.output;
+        }
       }
 
-      var sink = this.bulkUpload ? {
-        put: async function(o) {
-          // Apply object adaptation callback
-          try {
-            self.adaptObject(o);
-          } catch (e) {
-            console.warn('Object adaptation callback failed:', e);
-          }
+      // Create UploadSink with proper configuration
+      var sink = this.UploadSink.create({
+        dao: this.dao,
+        previewDAO: this.data,
+        isRealUpload: real,
+        bulkUpload: this.bulkUpload,
+        filter: filter,
+        mappings: this.mappings,
+        adaptObject: this.adaptObject,
+        progressCallback: function(processing, progress) {
+          self.processing = processing;
+          self.progress = progress;
+        }
+      });
 
-          totalRows++;
-          // TODO: handle errors more efficiently because errors_ is a dynamic slot
-          // and we only need one-time validation here
-          var errors = o.errors_;
-          if ( errors ) {
-            self.trackValidationError(errors, { row: totalRows });
-          }
-          /*
-          var errors = o.validateObject();
-          if ( errors ) {
-            self.trackValidationError(errors, { row: totalRows });
-          }*/
-
-          // Apply filter for both preview and real uploads
-          if ( filter ) {
-            try {
-              var matches = await filter.f(o);
-              if ( ! matches ) {
-                return; // Skip this object
-              }
-            } catch (e) {
-              console.warn('Filter error:', e);
-              // If filter fails, include the object
-            }
-          }
-
-          // Object passed filter or no filter exists
-          matchedRows++;
+      // Override sink's eof to handle Upload-specific logic
+      var originalEof = sink.eof.bind(sink);
+      sink.eof = async function() {
+        try {
+          await originalEof();
+          updateStatus(sink);
+          self.progress = 100;
+          self.uploading = false;
+          console.timeEnd('upload');
 
           if ( ! real ) {
-            // Preview mode: just store in data
-            if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
-
-
-            await self.data.put(o);
-          } else {
-            // Real upload mode
-            if ( Object.keys(self.validationErrorMap).length > 0 ) {
-              // Validation errors exist - store in preview data for review, don't upload
-              if ( foam.lang.Long.isInstance(o.ID) && ! o.id ) o.id = matchedRows;
-              await self.data.put(o);
-            } else {
-              // No validation errors - proceed with actual upload
-              if ( ! agent ) agent = self.UploadAgent.create();
-              agent.data.push(o);
-              if ( matchedRows && matchedRows % 2000 === 0 ) {
-                var oldAgent = agent;
-                agent = undefined;
-                await new Promise(r => self.setTimeout(r, 0));
-                // Only allow a fixed number of outstanding cmd() calls
-                await semaphore;
-                self.dao.cmd(oldAgent).then(() => semaphore.decr());
-              }
-            }
+            var block = self.block;
+            // Data is already filtered during put operations
+            self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
+            var block2 = self.currentBlock;
+            block2.flowName = block.flowName + 'data';
+            block2.obj.dao = self.data;
+            block2.obj.limit = 10;
           }
-          // pause periodially to avoid blocking the UI
-          if ( totalRows % 2000 === 0 ) {
-            updateStatus();
-            await new Promise(r => self.setTimeout(r, 0));
-          }
-        },
-        eof: async function() {
-          try {
-            // Only send agent command if no validation errors
-            if ( agent && Object.keys(self.validationErrorMap).length === 0 ) {
-              await self.dao.cmd(agent);
-            }
-            updateStatus();
-            self.progress = 100;
-            self.uploading = false;
-            console.timeEnd('upload');
 
-            // Show validation error summary if there were any errors
-            if ( Object.keys(self.validationErrorMap).length > 0 ) {
-              self.output += '<br><div style="border: 1px solid #ff9800; padding: 10px; background: #fff3e0; border-radius: 4px;">';
-              self.output += '<h3 style="color: #e65100; margin-top: 0;">Validation Error Summary</h3>';
-              self.output += '<p style="color: #333;">Total rows processed: ' + totalRows + '</p>';
-              self.output += '<p style="color: #333;">Rows with errors: ' + (totalRows - self.matchedRows) + '</p>';
-
-              // Group and display errors
-              self.output += '<h4 style="color: #e65100;">Error Details:</h4>';
-              self.output += '<ul style="color: #333;">';
-
-              var sortedErrors = Object.values(self.validationErrorMap).sort((a, b) => b.count - a.count);
-              for ( var i = 0; i < sortedErrors.length; i++ ) {
-                var errorInfo = sortedErrors[i];
-                self.output += '<li><strong>' + errorInfo.field + '</strong>: ' + errorInfo.error + ' (' + errorInfo.count + ' occurrences)</li>';
-              }
-
-              self.output += '</ul>';
-              self.output += '</div><br>';
-            }
-
-            if ( ! real ) {
-              var block = self.block;
-              // Data is already filtered during put operations
-              self.eval_(`dao(${block.flowName}.preview, '${block.flowName}.preview')`);
-              var block2 = self.currentBlock;
-              block2.flowName = block.flowName + 'data';
-              block2.obj.dao = self.data;
-              block2.obj.limit = 10;
-            }
-
-            latch.resolve('eof');
-          } catch (e) {
-            console.error('Upload eof error:', e);
-            var errorMessage = e.message || 'Unknown error during upload completion';
-            self.output += '<span style="color:red">ERROR: ' + errorMessage + '</span><br>';
-            latch.reject(e);
-          }
-        }
-      } : {
-        put: self.dao.put.bind(self.dao),
-        eof: function() {
-          updateStatus();
-          console.timeEnd('upload');
           latch.resolve('eof');
+        } catch (e) {
+          console.error('Upload eof error:', e);
+          var errorMessage = e.message || 'Unknown error during upload completion';
+          self.output += '<span style="color:red">ERROR: ' + errorMessage + '</span><br>';
+          latch.reject(e);
         }
       };
 
@@ -847,7 +672,7 @@ foam.CLASS({
       }
     },
 
-    function objectifyXML(doc) {
+    function objectifyXML(doc, sink) {
       var obj      = this.of.create();
       var children = doc.children;
       var rowData  = {}; // Create rowData object for XML attributes/elements
@@ -866,8 +691,10 @@ foam.CLASS({
         }
       }
 
-      // Process ALL mappings using universal method
-      this.processAllMappings(obj, rowData);
+      // Process ALL mappings using UploadSink method
+      
+      sink.processAllMappings(obj, rowData);
+      
 
       return obj;
     },
@@ -893,6 +720,7 @@ foam.CLASS({
       for ( var i = 0 ; i < a.length ; i++ ) {
         var sourceObj = a[i];
         var targetObj = this.of.create();
+        
         // Create rowData from source object properties
         var rowData = {};
         for ( var prop in sourceObj.instance_ ) {
@@ -901,8 +729,10 @@ foam.CLASS({
           }
         }
 
-        // Process ALL mappings using universal method
-        this.processAllMappings(targetObj, rowData);
+        // Apply mappings directly using rowData
+        
+        sink.processAllMappings(targetObj, rowData);
+        
 
         await sink.put(targetObj);
       }
@@ -935,7 +765,28 @@ foam.CLASS({
       for ( var i = 0 ; i < children.length ; i++ ) {
         var node = children[i];
         if ( this.tagName && node.tagName !== this.tagName ) continue;
-        await sink.put(this.objectifyXML(node));
+        
+        var obj = this.objectifyXML(node);
+        
+        // Extract rowData from XML node for mapping
+        var rowData = {};
+        var nodeAttrs = node.getAttributeNames();
+        for ( var j = 0; j < node.children.length; j++ ) {
+          var childNode = node.children[j];
+          if ( childNode.firstChild ) {
+            rowData[childNode.tagName] = childNode.firstChild.nodeValue;
+          }
+          for ( var k = 0; k < nodeAttrs.length; k++ ) {
+            var attrName = nodeAttrs[k];
+            rowData[childNode.tagName + '.' + attrName] = node.getAttribute(attrName);
+          }
+        }
+
+        // Apply mappings directly using rowData
+        sink.processAllMappings(obj, rowData);
+        
+
+        await sink.put(obj);
       }
 
       sink.eof();
@@ -954,7 +805,6 @@ foam.CLASS({
         var parser        = this.CSVParser.create({delimiter: this.delimiter});
         var parsedHeaders = parser.parseString(header, this.delimiter); // delimiter not used
         var fileHeaders   = parsedHeaders.map(h => h.value);
-        var agent;
 
         // Set file headers - this will trigger mapping generation if headers changed
         this.fileHeaders = fileHeaders;
@@ -976,8 +826,10 @@ foam.CLASS({
             }
           });
 
-          // Process ALL mappings using universal method
-          this.processAllMappings(obj, rowData);
+          // Apply mappings directly using rowData (handles spaces in column names)
+          sink.processAllMappings(obj, rowData);
+          
+
           await sink.put(obj);
           /*
           if ( ids[obj.id] ) {

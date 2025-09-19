@@ -30,7 +30,10 @@ foam.CLASS({
       class: 'Function',
       name: 'fromCSV',
       value: function(str) {
-        return this.fromString(str?.replace(/,/g, ''));
+        if (typeof str === 'string' && str.includes(',')) {
+          str = str.replace(/,/g, '');
+        }
+        return this.fromString(str);
       }
     }
   ]
