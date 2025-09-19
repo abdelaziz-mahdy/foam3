@@ -440,9 +440,6 @@ foam.CLASS({
     ^.expanded > ^toolbar {
       padding: 0 0 0.8rem 16px;
     }
-    ^toolbar {
-      padding: 16px;
-    }
     ^content:has(> .foam-u2-Element-hidden) {
       display: none;
     }
@@ -1545,6 +1542,7 @@ foam.CLASS({
           this.selected = ( currentBlockName == this.flowName ) ?
             this :
             ( this.findFlowChildByName(currentBlockName) || this );
+          this.value.loadComplete.pub();
         } finally {
           this.feedback_ = false;
         }
