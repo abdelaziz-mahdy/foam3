@@ -1057,8 +1057,8 @@ foam.CLASS({
       var ctx = parent?.__subContext__ || this.__subContext__;
       if ( ! script ) return;
       var cs = skipParse ?
-      script :
-      foam.json.parseString(script, ctx);
+        script :
+        foam.json.parseString(script, ctx);
 
       for ( var i = 0 ; i < cs.length ; i++ ) {
         var c = cs[i];
@@ -1073,7 +1073,7 @@ foam.CLASS({
         this.currentBlock.copyFrom(args);
 
         if ( this.currentBlock.value && c.value ) {
-          if ( c.value.clone ) c.value = c.value.clone(ctx);
+          // if ( c.value.clone ) c.value = c.value.clone(ctx);
           this.currentBlock.value.copyFrom(c.value);
         }
 
@@ -1426,6 +1426,7 @@ foam.CLASS({
       });
 
       this.value.script = json.stringify(this.flowChildren);
+      // console.log('******************** script', this.value.script);
     },
 
     function maybeRegenScript() {
