@@ -80,9 +80,13 @@ public class FObjectParser
                 try {
                   c = Class.forName(className);
                   if ( c != c.getMethod("getOwnClassInfo").getDeclaringClass() ) {
-                    // Update ClassInfo to match
-                    ci.setId(c.getName());
-                    ci.setObjClass(c);
+                    ClassInfo nuci = new foam.lang.ClassInfoImpl();
+                    for ( Axiom a : (java.util.List<Axiom>) ci.getAxioms() ) {
+                      nuci.addAxiom(a);
+                    }
+                    nuci.setId(c.getName());
+                    nuci.setObjClass(c);
+                    ci = nuci;
                   }
                 } catch (java.lang.Exception e) {
                 }
