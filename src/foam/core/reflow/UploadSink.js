@@ -113,6 +113,16 @@ foam.CLASS({
       name: 'output',
       value: '',
       documentation: 'HTML output for errors and status'
+    },
+    {
+      name: 'sortByProperty',
+      documentation: 'Property expression to sort by before processing'
+    },
+    {
+      class: 'String',
+      name: 'sortDirection',
+      documentation: 'Sort direction: ASC or DESC',
+      value: 'ASC'
     }
   ],
   
@@ -191,7 +201,12 @@ foam.CLASS({
         } else {
           // No validation errors - proceed with actual upload
           if ( this.bulkUpload ) {
-            if ( ! this.agent_ ) this.agent_ = this.UploadAgent.create();
+            if ( ! this.agent_ ) {
+              this.agent_ = this.UploadAgent.create({
+                sortByProperty: this.sortByProperty,
+                sortDirection: this.sortDirection
+              });
+            }
             this.agent_.data.push(o);
             
             if ( this.matchedRows && this.matchedRows % 2000 === 0 ) {

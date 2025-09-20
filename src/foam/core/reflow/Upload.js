@@ -305,6 +305,34 @@ foam.CLASS({
       }
     },
     {
+      class: 'foam.mlang.ExprProperty',
+      name: 'sortByProperty',
+      label: 'Sort By',
+      documentation: 'Property to sort the uploaded data by before processing',
+      view: function(_, X) {
+        return { class: 'foam.core.reflow.PropertyChoiceView', forCls: X.data.of };
+      },
+      visibility: function(of) {
+        return of ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
+      class: 'String',
+      name: 'sortDirection',
+      label: 'Sort Direction',
+      value: 'ASC',
+      view: {
+        class: 'foam.u2.view.ChoiceView',
+        choices: [
+          ['ASC', 'Ascending'],
+          ['DESC', 'Descending']
+        ]
+      },
+      visibility: function(sortByProperty) {
+        return sortByProperty ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
+    },
+    {
       class: 'String',
       name: 'output',
       label: 'Errors',
@@ -577,6 +605,8 @@ foam.CLASS({
         bulkUpload: this.bulkUpload,
         filter: filter,
         mappings: this.mappings,
+        sortByProperty: this.sortByProperty,
+        sortDirection: this.sortDirection,
         adaptObject: this.adaptObject,
         progressCallback: function(processing, progress) {
           self.processing = processing;

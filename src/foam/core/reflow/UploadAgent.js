@@ -20,6 +20,18 @@ foam.CLASS({
 
   properties: [
     {
+      class: 'foam.mlang.ExprProperty',
+
+      name: 'sortByProperty',
+      documentation: 'Property expression to sort by before processing'
+    },
+    {
+      class: 'String',
+      name: 'sortDirection',
+      documentation: 'Sort direction: ASC or DESC',
+      value: 'ASC'
+    },
+    {
       class: 'FObjectArray',
       of: 'foam.lang.FObject',
       transient: true,
@@ -136,6 +148,47 @@ foam.CLASS({
       javaCode: `
         DAO dao = ((DAO) x.get("AGENTDAO"));
         foam.lang.FObject[] data = getData(); // This will trigger decompression via javaFactory
+
+        // Sort the data if sortByProperty is specified
+        if ( getSortByProperty() != null ) {
+          try {
+            final foam.mlang.Expr sortExpr = (foam.mlang.Expr) getSortByProperty();
+            final boolean descending = "DESC".equalsIgnoreCase(getSortDirection());
+
+            java.util.Arrays.sort(data, new java.util.Comparator<foam.lang.FObject>() {
+              public int compare(foam.lang.FObject o1, foam.lang.FObject o2) {
+                try {
+                  // Use the expression to evaluate the property value
+                  Object v1 = sortExpr.f(o1);
+                  Object v2 = sortExpr.f(o2);
+
+                  // Handle null values
+                  if ( v1 == null && v2 == null ) return 0;
+                  if ( v1 == null ) return descending ? 1 : -1;
+                  if ( v2 == null ) return descending ? -1 : 1;
+
+                  // Compare based on type
+                  int result;
+                  if ( v1 instanceof Comparable ) {
+                    result = ((Comparable) v1).compareTo(v2);
+                  } else {
+                    result = v1.toString().compareTo(v2.toString());
+                  }
+
+                  return descending ? -result : result;
+                } catch (Exception e) {
+                  System.err.println("Error comparing using expression: " + e.getMessage());
+                  return 0;
+                }
+              }
+            });
+            System.out.println("Sorted " + data.length + " records by expression (" + getSortDirection() + ")");
+          } catch (Exception e) {
+            System.err.println("Failed to sort data: " + e.getMessage());
+            // Continue without sorting
+          }
+        }
+
         for ( int i = 0 ; i < data.length ; i++ ) {
           var d = data[i];
           dao.put(d);
