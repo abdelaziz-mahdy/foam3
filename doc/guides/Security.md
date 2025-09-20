@@ -1,0 +1,116 @@
+# FOAM Application Security
+
+FOAM application security centers around services and permissions to those services.
+
+Services are known as CORE Services and their access configuration is modelled under the name **CSpec** (CORE Service Specification).  The CSpec controls how a service is exposed to the rest of the system. 
+
+CSpecs are deployed in `services.jrl` journals and can also be created and minpulated at runtime (TODO).
+
+- See `foam/src/services.jrl` for many examples.
+- See `Services.md` for documenation regarding Services themselves.
+- See `Permissions.md` for documentation regarding Permissions themselves.
+
+TODO: CSpec
+service, serviceClass, boxClass, ... 
+
+Services, by default, are only accessible within the server application. They can be exposed to clients with CSpec property `serve: true`.
+
+Services which are served, are authenticated. Authentication is enabled by default via CSpec property `authenticate: true`.
+
+Autenticated services require the client to have permission `service.read.<cspec-name><cspec.name>` or `service.<cspec-name>` (legacy).
+
+Unauthenticated services are open to all clients for reading.
+
+A client's permissions are those of the *user* that is associated with the *session* of the client connection.
+
+Once a client connects to a service, security managing data manipulation is controlled at the model level (discussed below).
+
+## Model Security
+
+Model security applies to both client and server operations. It is idependent of the service's accessibility.
+
+Model security is implemented via permissions. The permissins are imposed at two levels, the model itself controlling instance visibility and manipulation, and model properties controlling visibility and manipulation of individtual properties.
+
+### Model Level
+
+Model level authentication is imposed via `AuthorizationDAO`, verifying user has appropriate permissions for each CRUD operation.
+
+Two interfaces control how the AuthorizationDAO is configured for each service:
+
+1. Authorizable
+    - implemented by the model itself. AuthorizationDAO is configured with the `AuthorizableAuthorizer`which delegates to the model for permission checking.
+    - A model would implement `Authorizable` when requiring behaviour different from the `StandardAuthorizer`.
+1. Authorizer - implemented as a stand alone class. FOAM provides implementations for common scenarios that can be applied to most models.
+    1. StandardAuthorizer (default)
+        - verifies user has permission for each CRUD operation.
+        - permission format (all lowercase):
+            - modelname.read.id
+            - modelname.create
+            - modelname.update.id
+            - modelname.remove.id
+    1. Global Authorizers:
+        - Global authorizers extend StandardAuthorizer and make particular CRUD operations unauthenticated.
+            - GlobalReadAuthorizer: permission not required to read all DAO entries.
+            - GlobalFindAuthorizer: permission not required to find all DAO entries.
+            - GlobalPutAuthorizer: permission not required to create or update DAO entries.
+            - GlobalCreateAuthorizer: permission not require to create new DAO entries.
+            - GlobalFindOrPutAuthorizer: permission not required to find or put DAO entries.
+
+#### EasyDAO
+
+Typically the `AuthorizationDAO` is configured by `EasyDAO`.
+
+EasyDAO is a support model designed to hide the complexities of, correctly and securely, configuring DAO decoration for a service (DAO stack).
+
+EasyDAO properties relevant to Model level authentication:
+- authorize: enabled by default, EasyDAO configures AuthorizationDAO with the StandardAuthorizer
+- authorizer: when specified EasyDAO configures AuthorizationDAO with this authorizer.
+
+### Model Property Level (incomplete)
+
+Model property authentication allows for fine grained per-property permissioning.  It is imposed by `PermissionedPropertyDAO`.
+
+Model property permissioning affects both client and server.
+
+Typically, PermissionedPropertyDAO is configured by EasyDAO, with property `permissioned: true`.
+
+EasyDAO properties relevant to Model level authentication:
+
+- permissioned: When not explicitly set to true or false, EasyDAO will inspect the model for properties configured with any of the following flags and if found decorate the service with PermissionedPropertyDAO.
+    - writePermissionRequired
+        - when true, permission modelName.rw.propertyName is required
+        - on the server
+            - `put`s replace the incomming value with the previous value, nullify any change.
+    - readPermissionedRequired
+        - when true, permission modelName.ro.propertyName is required
+        - on the server
+            - `find`s replace the current property value with it's default.
+            - `put`s replace the incomming value with the previous value, nullify any change.
+        - on the client
+            - without the permission, the property is hidden
+    - updatePermissionRequired
+        - unused?
+- permissionPrefix: by default the permissionPrefix is the model name in lowercase.
+
+## Q & A
+
+1. What does setting `authenticate` on the cspec do? Is it safe to set it false?
+    - `authenticate` comes into play when a CSpec is served (`serve:true`). A served service is exposed to clients and by default is authenticated. Authentication requires the user to have permission `service.<model>DAO` for some model.  An unauthenticated service (`authenticate:false`), will be visible to all clients. 
+    ... the security of a service/model is at the model level ... service.modelDAO is of lesser importance than model level authentication as it is the model level authentication which determines visibility of the data itself and how it can be manipulated. 
+    
+2. Do I need to set both service.somethingDAO and something.read.* permissions?
+3. What do I need to make my object Authorizable? Does it just work by deafult?
+4. How do the something.read.* permissions come into play if my object is authorizable
+5. What is the "global read permission" in the standardauthorizer class for?
+6. how is the context configured in the authorizable callback for an Authorizable service? Does it have permissions scoped to the user making the request or system permissions or what? If I want to check something in a different dao that the user doesn't have permission for which context do i use? Can I sudo?
+7. Also feature request: some sort of debugging mode or debugging flag i can put on my requests so I can check why i'm not seeing object I expected in a DAO. Debugging failed permission check is a bit of a black box.
+
+## Other Security Topics (TODO)
+
+- Security Audit  - readOnly, authNotes, nullify (other EasyDAO settings)
+- Multi-Tenancy - SPID
+- IP filtering - CIDR
+- API  - DIG and SUGAR Authentication - #flowdoc/api-doc-authentication
+- KeyPair - SSL Certificates
+- How-to section
+- Other questions (weave into above)
