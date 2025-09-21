@@ -1072,11 +1072,12 @@ foam.CLASS({
       return this[name + '$'];
     },
 
-    function deepSub(listener, opt_prop) {
+    function deepSub(listener, opt_props) {
       var cleanup = foam.lang.FObject.create();
       var visited = new Set(); // Prevent infinite recursion
 
       function listener_() {
+        debugger;
         listener.apply(null, arguments);
       }
 
@@ -1094,25 +1095,28 @@ foam.CLASS({
         }
       }
 
-      function sub_(o, path = [], opt_props) {
+      function sub_(o, path, opt_props) {
         if ( ! o || ! o.cls_ || visited.has(o) ) return;
 
         visited.add(o);
 
         var props = opt_props || o.cls_.getAxiomsByClass(foam.lang.Property);
 
-        cleanup.onDetach(o.propertyChange.sub(listener_));
+        if ( ! opt_props ) cleanup.onDetach(o.propertyChange.sub(listener_));
 
         for ( let prop of props ) {
-          if ( o.hasOwnProperty(prop.name) ) {
+          if ( ! prop.transient && o.hasOwnProperty(prop.name) ) {
             var value = prop.get(o);
 
+            if ( opt_props ) {
+              cleanup.onDetach(o.sub('propertyChange', prop.name, listener_));
+            }
             updateSub_(null, value, [...path, prop.name]);
           }
         }
       }
 
-      sub_(this, opt_prop);
+      sub_(this, [], opt_props);
       return cleanup; // Return detachable subscription
     }
   ]
