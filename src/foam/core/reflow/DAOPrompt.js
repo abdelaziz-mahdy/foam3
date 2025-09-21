@@ -4,17 +4,15 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-// TODO:
-// MQL help
-// orderBy, property help
-
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'DAOPromptView',
   extends: 'foam.u2.View',
+
   requires: [
     'foam.u2.LoadingSpinner',
   ],
+
   css: `
   `,
 
@@ -27,9 +25,7 @@ foam.CLASS({
     function render() {
       var self = this;
 
-      // TODO: Temporary while detailview is hidden (or make into a Controller instead)
       this.data.where$.sub(this.rerun);
-
       this.data.skip$.sub(this.onUpdate);
       this.data.version$.sub(this.onUpdate);
 
@@ -40,12 +36,10 @@ foam.CLASS({
           add(self.data.label$).
         end().
         start().show(self.loading$).tag(self.LoadingSpinner, {size: '32px'} ).end().
-          add(self.dynamic(async function(/*data,*/ version) {
-            // if ( ! data ) return;
+          add(self.dynamic(async function(data, version) {
+            if ( ! data ) { debugger; return; }
             var startTime = Date.now();
-            // Clone is needed in case the select was loaded from a DAO and doesnt' have correct context.
-            // TODO: fix JSON parsing should setup context correctly
-            var select    = self.data.select.clone(self.data.__subContext__);
+            var select    = self.data.select;
             self.data.select = select;
             self.loading = true;
             await self.data.select.execute(this);
