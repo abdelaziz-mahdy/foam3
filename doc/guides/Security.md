@@ -4,7 +4,7 @@ FOAM application security centers around services and permissions to those servi
 
 Services are known as CORE Services and their access configuration is modelled under the name **CSpec** (CORE Service Specification).  The CSpec controls how a service is exposed to the rest of the system. 
 
-CSpecs are deployed in `services.jrl` journals and can also be created and minpulated at runtime (TODO).
+CSpecs are deployed in `services.jrl` journals and can also be created and manipulated at runtime.
 
 - See `foam/src/services.jrl` for many examples.
 - See `Services.md` for documenation regarding Services themselves.
@@ -18,24 +18,29 @@ Autenticated services require the client to have permission `service.read.<cspec
 
 Unauthenticated services are open to all clients for reading.
 
-A client's permissions are those of the *user* that is associated with the *session* of the client connection.
+***A client's permissions are those of the *user* that is associated with the *session* of the client connection.***
 
 Once a client connects to a service, security managing data manipulation is controlled at the model level (discussed below in Model Security).
 
 The `service` that the CSpec describes is specified by one of the following properties, which resolve to a modelled class. 
 
-    - service: { class: "foam...Foo", property: value, ...}
-    - serviceClass: "foam...FooServiceServer"
-    - serviceScript: " return new EasyDAO().... "
+    - service
+        - { class: "foam...Foo", property: value, ...}
+    - serviceClass
+        - "foam...FooServiceServer"
+    - serviceScript
+        - " return new EasyDAO().... "
 
 When the service is served, then the `client` must be configured.
 
-    - client: { "of": "foam...Foo", cache: false, ... }
-    - client: { "class": "foam...ClientFooService", "delegate": ... }
+    - client
+        - { "of": "foam...Foo", cache: false, ... } // DAO service
+        - { "class": "foam...ClientFooService", "delegate": ... }
 
 Additionally if the service is modelled as an `INTERFACE`, then `boxClass` must also be provided. See (/#flowdoc/Boxes.flow)
 
-    - boxClass: "foam...FooServiceSkeleton"
+    - boxClass
+        - "foam...FooServiceSkeleton"
 
 When the service is a DAO, then typically, a serviceScript is used to describe the DAO stack with `EasyDAO` (discussed below). 
 
@@ -43,7 +48,7 @@ When the service is a DAO, then typically, a serviceScript is used to describe t
 
 Model security applies to both client and server operations. It is idependent of the service's accessibility.
 
-Model security is implemented via permissions. The permissins are imposed at two levels, the model itself controlling instance visibility and manipulation, and model properties controlling visibility and manipulation of individtual properties.
+Model security is implemented via permissions. The permissins are imposed at two levels, the model itself controlling instance visibility and manipulation, and model properties controlling visibility and manipulation of individual properties.
 
 ### Model Level
 
@@ -77,8 +82,9 @@ Typically the `AuthorizationDAO` is configured by `EasyDAO`.
 EasyDAO is a support model designed to hide the complexities of, correctly and securely, configuring DAO decoration for a service (DAO stack).
 
 EasyDAO properties relevant to Model level authentication:
-- authorize: enabled by default, EasyDAO configures AuthorizationDAO with the StandardAuthorizer
-- authorizer: when specified EasyDAO configures AuthorizationDAO with this authorizer.
+
+    - authorize: enabled by default, EasyDAO configures AuthorizationDAO with the StandardAuthorizer
+    - authorizer: when specified EasyDAO configures AuthorizationDAO with this authorizer.
 
 ### Model Property Level (incomplete)
 
@@ -90,21 +96,21 @@ Typically, PermissionedPropertyDAO is configured by EasyDAO, with property `perm
 
 EasyDAO properties relevant to Model level authentication:
 
-- permissioned: When not explicitly set to true or false, EasyDAO will inspect the model for properties configured with any of the following flags and if found decorate the service with PermissionedPropertyDAO.
-    - writePermissionRequired
-        - when true, permission modelName.rw.propertyName is required
-        - on the server
-            - `put`s replace the incomming value with the previous value, nullify any change.
-    - readPermissionedRequired
-        - when true, permission modelName.ro.propertyName is required
-        - on the server
-            - `find`s replace the current property value with it's default.
-            - `put`s replace the incomming value with the previous value, nullify any change.
-        - on the client
-            - without the permission, the property is hidden
-    - updatePermissionRequired
-        - unused?
-- permissionPrefix: by default the permissionPrefix is the model name in lowercase.
+    - permissioned: When not explicitly set to true or false, EasyDAO will inspect the model for properties configured with any of the following flags and if found decorate the service with PermissionedPropertyDAO.
+        - writePermissionRequired
+            - when true, permission modelName.rw.propertyName is required
+            - on the server
+                - `put`s replace the incomming value with the previous value, nullify any change.
+        - readPermissionedRequired
+            - when true, permission modelName.ro.propertyName is required
+            - on the server
+                - `find`s replace the current property value with it's default.
+                - `put`s replace the incomming value with the previous value, nullify any change.
+            - on the client
+                - without the permission, the property is hidden
+        - updatePermissionRequired
+            - unused?
+    - permissionPrefix: by default the permissionPrefix is the model name in lowercase.
 
 ## Q & A (incomplete)
 
@@ -115,9 +121,10 @@ EasyDAO properties relevant to Model level authentication:
     - If the CSpec is for a non-DAO service, then authenticate:false, makes the service accessible to all clients. 
 
 2. Do I need to set both service.somethingDAO and something.read.* permissions?
+
     - If your model is using the default EasyDAO authorization, then both permissions `service.<modelDAO>` and `model.read.*` are required.  If EasyDAO authorizer is configured with the GlobalReadAuthoriizer, then all clients can read all objects, but permissions to create, update, delete (ex. `model.update.*`) are required.
 
-3. What do I need to make my object Authorizable? Does it just work by deafult?
+3. What do I need to make my object Authorizable? Does it just work by default?
 
     - EasyDAO, by default, will decorate your model's DAO with an AuthorizationDAO which will enforce permissions for each CRUD operation (read, create, update, and delete).  If you require permission check behaviour different from the StandardAuthorizer, then have your model implement `foam.core.auth.Authorizable` and implement each of the `authorizeOn...` methods.
 
@@ -130,7 +137,8 @@ EasyDAO properties relevant to Model level authentication:
 
 6. How is the context configured in the authorizable callback for an Authorizable service? Does it have permissions scoped to the user making the request or system permissions or what? If I want to check something in a different dao that the user doesn't have permission for which context do i use? Can I sudo?
 
-    - TODO: Discussion of Auth.sudo
+    - Every client request is performed with the context scoped to the user. If server logic requires access the user does not have then generally it can use the context of this.getX(). The service instance context is set at creation time and is that of the system. 
+    - `Auth.sudo` is used when logic requires reduced scoped or scope of another user (other than system).  For example, Approvals, approved by an operator but when `put`, the context of the user that the Approval affects is used so that rules of the post approval flow execute in the user's scope. 
 
 7. Also feature request: some sort of debugging mode or debugging flag i can put on my requests so I can check why i'm not seeing object I expected in a DAO. Debugging failed permission check is a bit of a black box.
 
@@ -146,3 +154,4 @@ EasyDAO properties relevant to Model level authentication:
 - Public/Private Key Pairs
 - SSL Certificates - Sockets, HTTPS
 - Long term session tokens (API Bearer tokens)
+- CSpec creation and manipulation at runtime.
