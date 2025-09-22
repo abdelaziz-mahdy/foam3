@@ -10,9 +10,6 @@ CSpecs are deployed in `services.jrl` journals and can also be created and minpu
 - See `Services.md` for documenation regarding Services themselves.
 - See `Permissions.md` for documentation regarding Permissions themselves.
 
-TODO: CSpec
-service, serviceClass, boxClass, ... 
-
 Services, by default, are only accessible within the server application. They can be exposed to clients with CSpec property `serve: true`.
 
 Services which are served, are authenticated. Authentication is enabled by default via CSpec property `authenticate: true`.
@@ -23,7 +20,24 @@ Unauthenticated services are open to all clients for reading.
 
 A client's permissions are those of the *user* that is associated with the *session* of the client connection.
 
-Once a client connects to a service, security managing data manipulation is controlled at the model level (discussed below).
+Once a client connects to a service, security managing data manipulation is controlled at the model level (discussed below in Model Security).
+
+The `service` that the CSpec describes is specified by one of the following properties, which resolve to a modelled class. 
+
+    - service: { class: "foam...Foo", property: value, ...}
+    - serviceClass: "foam...FooServiceServer"
+    - serviceScript: " return new EasyDAO().... "
+
+When the service is served, then the `client` must be configured.
+
+    - client: { "of": "foam...Foo", cache: false, ... }
+    - client: { "class": "foam...ClientFooService", "delegate": ... }
+
+Additionally if the service is modelled as an `INTERFACE`, then `boxClass` must also be provided. See (/#flowdoc/Boxes.flow)
+
+    - boxClass: "foam...FooServiceSkeleton"
+
+When the service is a DAO, then typically, a serviceScript is used to describe the DAO stack with `EasyDAO` (discussed below). 
 
 ## Model Security
 
@@ -92,25 +106,43 @@ EasyDAO properties relevant to Model level authentication:
         - unused?
 - permissionPrefix: by default the permissionPrefix is the model name in lowercase.
 
-## Q & A
+## Q & A (incomplete)
 
 1. What does setting `authenticate` on the cspec do? Is it safe to set it false?
-    - `authenticate` comes into play when a CSpec is served (`serve:true`). A served service is exposed to clients and by default is authenticated. Authentication requires the user to have permission `service.<model>DAO` for some model.  An unauthenticated service (`authenticate:false`), will be visible to all clients. 
-    ... the security of a service/model is at the model level ... service.modelDAO is of lesser importance than model level authentication as it is the model level authentication which determines visibility of the data itself and how it can be manipulated. 
-    
+
+    - `authenticate` comes into play when a CSpec is served (`serve:true`). A served service is exposed to clients and by default is authenticated. Authentication requires the user to have permission `service.<CSpec.name>`.  An unauthenticated service (`authenticate:false`), will be visible to all clients. 
+    - If the CSpec is for a DAO, then security shifts to the model level (described elsewhere).  It is unwise, without careful review, to have both CSpec authenticate:false and EasyDAO.authorize:false.
+    - If the CSpec is for a non-DAO service, then authenticate:false, makes the service accessible to all clients. 
+
 2. Do I need to set both service.somethingDAO and something.read.* permissions?
+    - If your model is using the default EasyDAO authorization, then both permissions `service.<modelDAO>` and `model.read.*` are required.  If EasyDAO authorizer is configured with the GlobalReadAuthoriizer, then all clients can read all objects, but permissions to create, update, delete (ex. `model.update.*`) are required.
+
 3. What do I need to make my object Authorizable? Does it just work by deafult?
+
+    - EasyDAO, by default, will decorate your model's DAO with an AuthorizationDAO which will enforce permissions for each CRUD operation (read, create, update, and delete).  If you require permission check behaviour different from the StandardAuthorizer, then have your model implement `foam.core.auth.Authorizable` and implement each of the `authorizeOn...` methods.
+
 4. How do the something.read.* permissions come into play if my object is authorizable
+    - if a model implements `foam.core.auth.Authorizable` or, for a DAO, `EasyDAO.authorize` is enabled (which it is by default), then any `read` request by a client must have permission `<modelname>.read.*` or one or more `<modelname>.read.id` for each `id` of interest. 
+
 5. What is the "global read permission" in the standardauthorizer class for?
-6. how is the context configured in the authorizable callback for an Authorizable service? Does it have permissions scoped to the user making the request or system permissions or what? If I want to check something in a different dao that the user doesn't have permission for which context do i use? Can I sudo?
+
+    - The global read permission `model.read.*` is a wildcard permission which allows a user to see all ids (all instances) of the model in question.  By default a user is restricted to only see instances they have been given explicit access to via a permission of the form `model.read.id`. 
+
+6. How is the context configured in the authorizable callback for an Authorizable service? Does it have permissions scoped to the user making the request or system permissions or what? If I want to check something in a different dao that the user doesn't have permission for which context do i use? Can I sudo?
+
+    - TODO: Discussion of Auth.sudo
+
 7. Also feature request: some sort of debugging mode or debugging flag i can put on my requests so I can check why i'm not seeing object I expected in a DAO. Debugging failed permission check is a bit of a black box.
+
+    - uncomment `src/foam/java/Skeleton.js:157`
+    - TODO: implement support for this.
 
 ## Other Security Topics (TODO)
 
 - Security Audit  - readOnly, authNotes, nullify (other EasyDAO settings)
 - Multi-Tenancy - SPID
 - IP filtering - CIDR
-- API  - DIG and SUGAR Authentication - #flowdoc/api-doc-authentication
-- KeyPair - SSL Certificates
-- How-to section
-- Other questions (weave into above)
+- API - DIG and SUGAR Authentication - #flowdoc/api-doc-authentication
+- Public/Private Key Pairs
+- SSL Certificates - Sockets, HTTPS
+- Long term session tokens (API Bearer tokens)
