@@ -304,6 +304,10 @@ foam.CLASS({
       name: 'selection', hidden: true
     },
     {
+      class: 'Map',
+      name: 'selectedObjects'
+    },
+    {
       class: 'FObjectProperty',
       of: 'foam.lang.Property',
       generateJava: false,
@@ -315,7 +319,7 @@ foam.CLASS({
           allowClearingSelection: true
         };
       }
-    },
+    }
   ],
 
   methods: [
@@ -342,6 +346,12 @@ foam.CLASS({
         //          config.selectedColumnNames = cs;
         config.selectedColumnNames$ = this.columns$;
       }
+
+      if ( this.of.MULTI_SELECT ) {
+        config.multiSelectEnabled = true;
+        config.selectedObjects$ = this.selectedObjects$;
+      }
+
 
       e.startContext({click: self.click}).
         start(self.TableView, config).
