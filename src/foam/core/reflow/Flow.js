@@ -23,7 +23,6 @@ foam.CLASS({
     'foam.core.auth.Subject',
     'foam.core.auth.User',
     'foam.lang.X',
-    'foam.core.auth.AuthService',
     'java.util.Arrays'
   ],
 
