@@ -189,7 +189,7 @@ foam.CLASS({
 
       // Loading screen styles
       out.println("""
-        <style>
+        <style nonce="123455443210000">
         #loading-container {
           background: black;
           color: white;
