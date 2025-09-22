@@ -1108,7 +1108,7 @@ foam.CLASS({
 
       this.value.script$.sub(this.onScriptChange);
 
-      this.flowChildren$.sub(this.onFlowChildrenChange);
+      this.deepSub(this.onFlowChildrenChange, [this.FLOW_CHILDREN, this.VALUE]);
 
       var layout = this.start(this.Layout);
 
@@ -1360,7 +1360,6 @@ foam.CLASS({
       console.log('inserting', i);
       children.splice(i, 0, child);
       this.flowChildren = children;
-      this.onFlowChildrenChange();
       this.generateScript();
     },
 
@@ -1525,42 +1524,10 @@ foam.CLASS({
     {
       name: 'onFlowChildrenChange',
       isMerged: true,
-      delay: 250,
+      delay: 500,
       code: function() {
-// if ( this.feedback_ ) return;
-        if ( this.flowChildrenSub_ ) this.flowChildrenSub_.detach();
-        this.flowChildrenSub_ = foam.lang.FObject.create();
-        let subFn = c => {
-          var prev;
-          if ( c.value ) {
-            if ( c.value.sub )
-              this.flowChildrenSub_.onDetach(c.value.sub(this.onFlowChildChange));
-
-            // TODO: this is a little hackish, it would be better if DAOPrompt tracked
-            // that itself and updated its own hidden revision property
-            if ( foam.core.reflow.DAOPrompt.isInstance(c.value) ) {
-              this.flowChildrenSub_.onDetach(c.value.select$.sub(() => {
-                prev?.detach();
-                this.flowChildrenSub_.onDetach(c.value.select.sub(this.onFlowChildChange));
-              }));
-            }
-          }
-          c.flowChildren?.forEach(subFn);
-          this.flowChildrenSub_.onDetach(c.flowChildren$.sub(this.onFlowChildrenChange));
-          this.flowChildrenSub_.onDetach(c.flowUpdated.sub(this.onFlowChildChange));
-        };
-        this.flowChildren.forEach(subFn);
-
+        console.log("**** FLOW CHILDREN CHANGE", arguments);
         this.maybeRegenScript();
-      }
-    },
-    {
-      name: 'onFlowChildChange',
-      isIdled: true,
-      delay: 2000,
-      code: function() {
-// if ( this.feedback_ ) return;
-       this.maybeRegenScript();
       }
     }
   ]
