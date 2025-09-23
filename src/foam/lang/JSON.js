@@ -791,65 +791,72 @@ foam.LIB({
               });
             }
 
-            try {
-              /**
-                 This code is very tricky and specific!
+            /**
+               This code is very tricky and specific!
 
-                 We initialize the object in two passes:
-                 1. We extra all of the simple non-object/non-array parameters and store them
-                 in the simpleArgs map.
-                 2. We create() the object passing simpleArgs and the opt_ctx.
-                 3. We then call the setters on the created object for all of the non-simple parameters.
+               We initialize the object carefully to handle two competing requirements:
+               1. Some properties need to be passed to create() for Multitons and pseudo-classes
+                  like __PROPERTY__ to determine the actual class to create.
+               2. Nested FObject properties need to be created in the sub-context of their parent.
 
-                 We do this because some simple parameters need to be passed to create() if the class
-                 is a Multiton which uses those parameters to determine the actual class to create or
-                 for psedo-Classes like __PROPETY__ which use the arguments to determine which Property
-                 constant to use.
+               Solution:
+               - Process all properties first to maintain insertion order
+               - Defer only FObject properties that need parent context
+               - Create the object with ALL properties (including raw values for deferred ones)
+               - Then update only the deferred properties with correct context
 
-                 However, nested FObject properties need to be created in the sub-context of their parent,
-                 so we need to wait until after the object is created to create those objects.
+               This preserves object creation atomicity (fixing menu ordering issues) while
+               still ensuring nested objects get the right context.
 
-                 However, we make an exception for properties named 'delegate' because they shouldn't be
-                 in the sub-context of the parent, since this is merely a reference, not a composition.
+               Exception: 'delegate' properties don't need parent context as they're references,
+               not compositions.
 
-                 TODO: Maybe Add a property to FObjectProperty to control if nested objects are parsed
-                 in their parent's context or not, or find out where this is an issue and fix those instances.
-               **/
-              var simpleArgs = {};
+               TODO: Maybe add a property to FObjectProperty to control if nested objects are parsed
+               in their parent's context or not, or find out where this is an issue and fix those instances.
+             **/
+            // Process all properties first, preserving order
+            var processedJson = {};
+            var deferredProps = [];
 
-              function isSimple(key, o) {
-                return ! foam.Object.isInstance(o) && ! foam.Array.isInstance(o) || key === 'delegate';
-              }
+            for ( var key in json ) {
+              var prop = pMap[key];
+              if ( prop ) {
+                // Check if this is a nested FObject that needs parent context
+                var needsParentContext = prop.of &&
+                                        foam.Object.isInstance(json[key]) &&
+                                        key !== 'delegate';
 
-              // Pass1: handle simple non-Object values
-              for ( var key in json ) {
-                if ( ! isSimple(key, json[key]) ) continue;
-                var prop = pMap[key];
-                if ( prop ) {
+                if ( needsParentContext ) {
+                  // Defer complex objects that need parent context
+                  deferredProps.push({ key: key, prop: prop, value: json[key] });
+                  // Still include the raw value for object creation
+                  processedJson[prop.name] = json[key];
+                } else {
+                  // Process normally
                   var js = prop.fromJSON(json[key], opt_ctx, prop, this);
                   if ( js == null && json[key] != 'null' ) {
                     console.warn('Unable to parse property "' + key + '"', 'in', json);
                   } else {
-                    simpleArgs[prop.name] = js;
+                    processedJson[prop.name] = js;
                   }
-                } else {
-                  simpleArgs[key] = json[key];
                 }
+              } else {
+                processedJson[key] = json[key];
               }
+            }
 
-              var o = c.create(simpleArgs, opt_ctx);
+            try {
+              // Create object with all properties (maintains order)
+              var o = c.create(processedJson, opt_ctx);
 
-              // Pass1: handle non-simple values
-              for ( var key in json ) {
-                if ( isSimple(key, json[key]) ) continue;
-                var prop = pMap[key];
-                if ( prop ) {
-                  var js = prop.fromJSON(json[key], o.__subContext__, prop, this);
-                  if ( js == null && json[key] != 'null' ) {
-                    console.warn('Unable to parse property "' + key + '"', 'in', json);
-                  } else {
-                    o[prop.name] = js;
-                  }
+              // Now handle deferred properties that need parent context
+              for ( var i = 0; i < deferredProps.length; i++ ) {
+                var deferred = deferredProps[i];
+                var js = deferred.prop.fromJSON(deferred.value, o.__subContext__, deferred.prop, this);
+                if ( js == null && deferred.value != 'null' ) {
+                  console.warn('Unable to parse property "' + deferred.key + '"', 'in', json);
+                } else {
+                  o[deferred.prop.name] = js;
                 }
               }
 
