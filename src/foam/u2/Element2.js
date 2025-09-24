@@ -2071,6 +2071,24 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.u2',
+  name: 'CurrencyCodeViewRefinement',
+  refines: 'foam.lang.CurrencyCode',
+
+  properties: [
+    {
+      name: 'view',
+      value: {
+        class: 'foam.u2.view.ModeAltView',
+        writeView: { class: 'foam.u2.view.StringView' },
+        readView:  { class: 'foam.u2.view.ReadReferenceView' }
+      }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.u2',
   name: 'EnumViewRefinement',
   refines: 'foam.lang.Enum',
 
