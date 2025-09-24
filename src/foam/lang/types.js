@@ -1324,6 +1324,7 @@ foam.CLASS({
   package: 'foam.lang',
   name: 'CurrencyCode',
   extends: 'Reference',
+  implements: [ 'foam.mlang.Expressions' ],
 
   properties: [
     {
@@ -1349,13 +1350,10 @@ foam.CLASS({
       value: function(_, n, prop) {
         var self = this;
         if ( typeof n === 'string' && Number.isNaN(Number(n)) ) return;
-        var e = foam.mlang.Expressions.create();
-        x.currencyDAO.where(e.EQ(foam.lang.Currency.NUMERIC_CODE, Number(n)))
-          .limit(1)
-          .select()
+        x.currencyDAO.find(prop.EQ(foam.lang.Currency.NUMERIC_CODE, Number(n)))
           .then(ret => {
-            if ( ret?.array[0] ) {
-              self[prop.name] = ret.array[0].id;
+            if ( ret ) {
+              self[prop.name] = ret.id;
             }
           });
       }
