@@ -142,6 +142,7 @@ to run the unit tests.
 - [Porting](doc/guides/Porting.md)
 - [Services](doc/guides/Services.md)
 - [Security/Authentication](doc/guides/Security.md)
+- [Tessting API](doc/guides/APITesting.md)
 
 ## Cheatsheets
 - [Short Form](https://docs.google.com/document/d/1SWgtXtEjdiz12FimPKcTY0dsJ06hxGtCViZXn98PoyY/edit?usp=sharing)
