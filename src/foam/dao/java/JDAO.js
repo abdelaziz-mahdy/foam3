@@ -241,13 +241,14 @@ In this current implementation setDelegate must be called last.`,
       `
     },
     {
+      documentation: 'compare versions, disregard build timestamp',
       name: 'isCurrentVersionNewer',
       args: 'String last, String current',
       type: 'Boolean',
       javaCode: `
         if ( SafetyUtil.isEmpty(current) ) return false;
-        String[] lastArr = last.split("\\\\.");
-        String[] currentArr = current.split("\\\\.");
+        String[] lastArr = last.split("-")[0].split("\\\\.");
+        String[] currentArr = current.split("-")[0].split("\\\\.");
         for ( int i = 0; i < Math.max(lastArr.length, currentArr.length); i++ ) {
           int last_i = i < lastArr.length ? Integer.parseInt(lastArr[i]) : 0;
           int current_i = i < currentArr.length ? Integer.parseInt(currentArr[i]) : 0;
