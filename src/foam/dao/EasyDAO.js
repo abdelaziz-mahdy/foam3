@@ -740,7 +740,7 @@ foam.CLASS({
             delegate: box
           });
         }
-        // return box;
+
         return this.SessionClientBox.create({
           delegate: box,
           refreshSessionTimer: this.refreshSessionTimer
