@@ -54,6 +54,7 @@ See [INSTALL.md](INSTALL.md) for more detailed installation notes.
     ./build.sh -Jdemo
 
 * visit: http://localhost:8080
+* login with username `admin` and password `admin`
 
 `    ./build.sh`
 
@@ -164,8 +165,11 @@ Launch FOAM
 
 ## CORE
 To run CORE, the FOAM Java Application Server, run:
-`./build.sh -Jdemo`
-then connect to http://localhost:8080
+
+    ./build.sh -Jdemo
+
+- visit: http://localhost:8080
+- login with username `admin` and password `admin`
 
 ## Example FOAM Projects
 - An [Example FOAM Project](https://github.com/adamvy/example-foam-project) which shows how to consume/use FOAM from an external repository.
