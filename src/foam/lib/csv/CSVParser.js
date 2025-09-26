@@ -62,14 +62,9 @@ foam.CLASS({
             return {
               START: seq1(1, sym('ws'), repeat(sym('field'), self.delimiter), sym('ws')),
 
-              file: repeat(sym('line'), ''),
+              file: repeat(sym('START'), '\n'),
 
-              line: alt(
-                seq1(0, sym('START'), alt('\r\n', '\r', '\n')),
-                sym('emptyLine')
-              ),
-
-              emptyLine: seq1(0, repeat0(sym('white')), alt('\r\n', '\r', '\n')),
+              line: seq1(0, sym('START'), alt('\r\n', '\r', '\n')),
 
               field: alt(sym('quotedText'), sym('unquotedText'), ''),
 
@@ -94,9 +89,7 @@ foam.CLASS({
             return { node: 'quotedText', value: a.join('') };
           },
 
-          escapedQuote: function() { return '"'; },
-
-          emptyLine: function() { return null; }
+          escapedQuote: function() { return '"'; }
         });
       }
     },
@@ -138,46 +131,24 @@ foam.CLASS({
 
   methods: [
     function parseFile(str, delimiter) {
-      console.log('[CSVParser.parseFile] Input string:', JSON.stringify(str));
-      console.log('[CSVParser.parseFile] Delimiter:', delimiter);
-
       if ( ! this.delimiter )
         this.delimiter = delimiter;
 
       const ps = foam.parse.StringPStream.create({str: str});
       const p  = this.stringParser.getSymParser('file');
       var result = p.parse(ps);
-
-      console.log('[CSVParser.parseFile] Raw parse result:', result);
-
-      // Filter out null values (empty lines) from the result
-      if ( result && result.value ) {
-        console.log('[CSVParser.parseFile] Before filtering:', result.value);
-        result.value = result.value.filter(line => line !== null);
-        console.log('[CSVParser.parseFile] After filtering:', result.value);
-      }
-
-      console.log('[CSVParser.parseFile] Final return value:', result && result.value);
       return result && result.value;
     },
 
     function parseString(str, delimiter) {
-      console.log('[CSVParser.parseString] Input string:', JSON.stringify(str));
-      console.log('[CSVParser.parseString] Delimiter:', delimiter);
-
       if ( ! this.delimiter )
         this.delimiter = delimiter;
 
       // Short circuit if no quoted strings
-      if ( str.indexOf('"') == -1 ) {
-        var result = str.split(this.delimiter).map(s => s ? { node: 'unquotedText', value: s } : '');
-        console.log('[CSVParser.parseString] Short circuit result:', result);
-        return result;
-      }
+      if ( str.indexOf('"') == -1 )
+        return str.split(this.delimiter).map(s => s ? { node: 'unquotedText', value: s } : '');
 
-      var result = this.stringParser.parseString(str);
-      console.log('[CSVParser.parseString] Full parse result:', result);
-      return result;
+      return this.stringParser.parseString(str);
     },
 
     function parseHeader(str, nestedObjectSeperator) {
