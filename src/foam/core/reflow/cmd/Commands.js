@@ -206,7 +206,7 @@ foam.CLASS({
   name: 'Cells',
   extends: 'foam.core.reflow.cmd.Command',
 
-  requires: [ 'foam.demos.sevenguis.Cells' ],
+  requires: [ 'foam.core.reflow.cells.Cells' ],
 
   properties: [
     [ 'description', 'Embed spreadsheet' ]
@@ -570,7 +570,7 @@ foam.CLASS({
   extends: 'foam.core.reflow.cmd.Command',
 
   requires: [
-    'foam.demos.sevenguis.Cells'
+    'foam.core.reflow.cells.Cells'
   ],
 
   imports: [ ],

@@ -30,7 +30,7 @@ foam.POM({
     bootScriptAux: ['', 'boot-script-aux', 'BOOT_SCRIPT_AUX', 'Additional boot script to execute after the main bootScript. This bootscript is how Test cases are run. TODO: elaborate.  bootScriptAux:testRunnerScript','', arg => BOOT_SCRIPT_AUX = arg ],
     buildOnly: [ 'o', 'build-only', 'BUILD_ONLY', "Only execute java generation and java compilation build steps, don't start CORE server.", false, function(arg) { BUILD_ONLY = arg ? this.bool(arg) : true; } ],
     debug: [ 'd', 'debug', 'DEBUG', 'Launch JVM with JDPA debugging enabled. Default port 8000.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; } ],
-    debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, args => DEBUG_PORT = args],
+    debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, function(arg) { DEBUG_PORT = arg; DEBUG = true; }],
     deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals.', false, function(arg) { DELETE_RUNTIME_JOURNALS = arg ? this.bool(arg) : true; } ],
     javacParameters: ['', 'javac-parameters', 'JAVAC_PARAMETERS', 'Parameters passed to Java Compiler','-proc:none', arg => JAVAC_PARAMETERS = arg ],
     javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '21', args => JAVA_RELEASE = args],
