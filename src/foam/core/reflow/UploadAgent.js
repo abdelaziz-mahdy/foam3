@@ -67,7 +67,7 @@ foam.CLASS({
             }
           } catch ( Exception e ) {
             // Re-throw parsing errors instead of returning empty array
-            throw new RuntimeException("Failed to decompress or parse data: " + e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
           }
         }
         return new foam.lang.FObject[0];
