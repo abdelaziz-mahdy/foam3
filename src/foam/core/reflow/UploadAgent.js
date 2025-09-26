@@ -50,20 +50,27 @@ foam.CLASS({
             String decompressedJson = new String(baos.toByteArray(), "UTF-8");
             foam.lib.json.JSONParser parser = new foam.lib.json.JSONParser();
             parser.setX(getX());
-            Object[] arrayResult = parser.parseStringForArray(decompressedJson, null);
 
-            if ( arrayResult != null && arrayResult.length > 0 ) {
-              // Convert Object[] to foam.lang.FObject[] since each object is an FObject
-              foam.lang.FObject[] fObjectArray = new foam.lang.FObject[arrayResult.length];
-              for ( int i = 0; i < arrayResult.length; i++ ) {
-                if ( arrayResult[i] instanceof foam.lang.FObject ) {
-                  fObjectArray[i] = (foam.lang.FObject) arrayResult[i];
+            try {
+              Object[] arrayResult = parser.parseStringForArrayWithError(decompressedJson, null);
+
+              if ( arrayResult != null && arrayResult.length > 0 ) {
+                // Convert Object[] to foam.lang.FObject[] since each object is an FObject
+                foam.lang.FObject[] fObjectArray = new foam.lang.FObject[arrayResult.length];
+                for ( int i = 0; i < arrayResult.length; i++ ) {
+                  if ( arrayResult[i] instanceof foam.lang.FObject ) {
+                    fObjectArray[i] = (foam.lang.FObject) arrayResult[i];
+                  }
                 }
-              }
 
-              return fObjectArray;
-            } else {
-              System.err.println("Failed to parse decompressed data or array is empty.");
+                return fObjectArray;
+              } else {
+                System.err.println("Failed to parse decompressed data or array is empty.");
+                return new foam.lang.FObject[0];
+              }
+            } catch ( Exception parseException ) {
+              System.err.println("JSON parsing error: " + parseException.getMessage());
+              parseException.printStackTrace();
               return new foam.lang.FObject[0];
             }
           } catch ( Exception e ) {

@@ -25,31 +25,39 @@ foam.CLASS({
     protected StringPStream stringps = new StringPStream();
 
     public FObject parseString(String data, Class defaultClass) {
-      StringPStream ps = stringps;
-
-      ps.setString(data);
-      ParserContext x = new ParserContextImpl();
-      x.set("X", getX());
       try {
-        ps = (StringPStream) ps.apply(defaultClass == null ? parser : ExprParser.create(defaultClass), x);
-        return ps == null ? null : (FObject) ps.value();
-      } catch ( Throwable t ) {
+        return parseStringWithError(data, defaultClass);
+      } catch ( Exception e ) {
         return null;
       }
     }
 
+    public FObject parseStringWithError(String data, Class defaultClass) throws Exception {
+      StringPStream ps = stringps;
+
+      ps.setString(data);
+      ParserContext x = new ParserContextImpl();
+      x.set("X", getX());
+      ps = (StringPStream) ps.apply(defaultClass == null ? parser : ExprParser.create(defaultClass), x);
+      return ps == null ? null : (FObject) ps.value();
+    }
+
     public Object[] parseStringForArray(String data, Class defaultClass) {
+      try {
+        return parseStringForArrayWithError(data, defaultClass);
+      } catch ( Exception e ) {
+        return null;
+      }
+    }
+
+    public Object[] parseStringForArrayWithError(String data, Class defaultClass) throws Exception {
       StringPStream ps = stringps;
       ps.setString(data);
       ParserContext x = new ParserContextImpl();
       x.set("X", getX());
 
-      try {
-        ps = (StringPStream) ps.apply(FObjectArrayParser.create(defaultClass), x);
-        return ps == null ? null : (Object[]) ps.value();
-      } catch ( Throwable t ) {
-        return null;
-      }
+      ps = (StringPStream) ps.apply(FObjectArrayParser.create(defaultClass), x);
+      return ps == null ? null : (Object[]) ps.value();
     }
  `,
 
