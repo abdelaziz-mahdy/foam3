@@ -2702,3 +2702,29 @@ foam.CLASS({
     }
   ]
 });
+
+
+foam.CLASS({
+  package: 'foam.java',
+  name: 'CurrencyCodeJavaRefinement',
+  refines: 'foam.lang.CurrencyCode',
+  extends: 'foam.lang.Reference',
+  flags: [ 'java' ],
+
+  properties: [
+    {
+      name: 'javaAdapt',
+      value: `
+        try {
+          var numericCode = Long.parseLong(val);
+          var curr = (foam.lang.Currency) ((foam.dao.DAO) getX().get("currencyDAO"))
+            .find(foam.mlang.MLang.EQ(foam.lang.Currency.NUMERIC_CODE, val));
+          if ( curr != null )
+            val = curr.getId();
+          else
+            foam.core.logger.Loggers.logger(getX(), this).error("Cannot adapt CurrencyCode numeric value", val);
+        } catch (NumberFormatException e) { /* assume string id */ }
+      `
+    }
+  ]
+});

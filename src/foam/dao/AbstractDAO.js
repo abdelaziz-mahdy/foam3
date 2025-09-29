@@ -617,8 +617,16 @@ if ( order != null ) {
     innerSink = ((ProxySink) innerSink).getDelegate();
   }
 
-  if ( ! ( innerSink instanceof foam.mlang.sink.Count ) ) {
+  if ( ! (
+    innerSink instanceof foam.mlang.sink.Count ||
+    innerSink instanceof foam.mlang.sink.Sum   ||
+    innerSink instanceof foam.mlang.sink.Min   ||
+    innerSink instanceof foam.mlang.sink.Max   ||
+    innerSink instanceof foam.mlang.sink.Average
+  ) ) {
     sink = new OrderedSink(order, null, sink);
+  } else {
+//    System.err.println("***************************************** SKIPPING ORDER SINK " + sink.getClass());
   }
 }
 
