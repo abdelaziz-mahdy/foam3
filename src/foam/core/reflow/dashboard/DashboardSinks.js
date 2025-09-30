@@ -1165,7 +1165,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'countOnClick',
-      reactive: false,
+      reactive: true,
       visibility: function(showCount) {
         return showCount ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       },
