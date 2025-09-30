@@ -1308,7 +1308,6 @@ foam.CLASS({
 
         // Count - show how many records were processed
         if ( self.showCount && metric.count !== null ) {
-          this.callIfElse(self.countOnClick, function() {
             this.start('a')
               .style({
                 fontSize: self.countFontSize$,
@@ -1317,20 +1316,13 @@ foam.CLASS({
                 textDecoration: 'underline',
                 fontWeight: self.countFontWeight$
               })
-              .on('click', self.onCountClick)
+              .callIf(self.countOnClick, function() {
+                this
+                  .on('click', self.onCountClick)
+                  .style({ textDecoration: 'underline' })
+               })
               .add(self.countSuffix$.map(v => metric.count.toLocaleString() + (v ? ' ' + v : '')))
             .end();
-          }, function() {
-            this.start('div')
-              .style({
-                fontSize: self.countFontSize$,
-                marginTop: '8px',
-                color: self.countColor$,
-                fontWeight: self.countFontWeight$
-              })
-              .add(self.countSuffix$.map(v => metric.count.toLocaleString() + (v ? ' ' + v : '')))
-            .end();
-          });
         }
       }));
     },
