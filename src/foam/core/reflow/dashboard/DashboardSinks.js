@@ -58,6 +58,7 @@ foam.CLASS({
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { class: 'Boolean', name: 'animate', value: true },
     { class: 'Int', name: 'animationDuration', value: 1000 },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.MetricAlignment', name: 'alignment', value: 'CENTER' },
     {
       name: 'chart_',
       transient: true,
@@ -207,7 +208,17 @@ foam.CLASS({
       return x.E().add(this.chart_$);
     },
     function addToE(e) { 
-      e.style({ 'min-height': this.height$, height: this.height$ }).add(this.chart_$);
+      e
+        .style({
+          width: '100%',
+          display: 'flex',
+          justifyContent: this.alignment$.map(function(a) { return a.alignmentStyle; }),
+          textAlign: this.alignment$.map(function(a) { return a.textAlign; })
+        })
+        .start('div')
+          .style({ 'min-height': this.height$, height: this.height$ })
+          .add(this.chart_$)
+        .end();
     }
   ]
 });
@@ -257,6 +268,7 @@ foam.CLASS({
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { class: 'Boolean', name: 'animate', value: true },
     { class: 'Int', name: 'animationDuration', value: 1000 },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.MetricAlignment', name: 'alignment', value: 'CENTER' },
     {
       name: 'chart_',
       transient: true,
@@ -401,7 +413,17 @@ foam.CLASS({
       return x.E().add(this.chart_$);
     },
     function addToE(e) { 
-      e.style({ 'min-height': this.height$, height: this.height$ }).add(this.chart_$);
+      e
+        .style({
+          width: '100%',
+          display: 'flex',
+          justifyContent: this.alignment$.map(function(a) { return a.alignmentStyle; }),
+          textAlign: this.alignment$.map(function(a) { return a.textAlign; })
+        })
+        .start('div')
+          .style({ 'min-height': this.height$, height: this.height$ })
+          .add(this.chart_$)
+        .end();
     }
   ]
 });
@@ -442,6 +464,7 @@ foam.CLASS({
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { class: 'Boolean', name: 'animate', value: true },
     { class: 'Int', name: 'animationDuration', value: 1000 },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.MetricAlignment', name: 'alignment', value: 'CENTER' },
     {
       name: 'chart_',
       transient: true,
@@ -633,7 +656,17 @@ foam.CLASS({
       return x.E().add(this.chart_$);
     },
     function addToE(e) { 
-      e.style({ 'min-height': this.height$, height: this.height$ }).add(this.chart_$);
+      e
+        .style({
+          width: '100%',
+          display: 'flex',
+          justifyContent: this.alignment$.map(function(a) { return a.alignmentStyle; }),
+          textAlign: this.alignment$.map(function(a) { return a.textAlign; })
+        })
+        .start('div')
+          .style({ 'min-height': this.height$, height: this.height$ })
+          .add(this.chart_$)
+        .end();
     }
   ]
 });
@@ -673,7 +706,8 @@ foam.CLASS({
     { class: 'Boolean', name: 'showTooltips', value: true },
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer (for multiple lines)' },
     { class: 'Boolean', name: 'animate', value: true },
-    { class: 'Int', name: 'animationDuration', value: 1000 }
+    { class: 'Int', name: 'animationDuration', value: 1000 },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.MetricAlignment', name: 'alignment', value: 'CENTER' }
   ],
   
   methods: [
@@ -751,7 +785,17 @@ foam.CLASS({
     },
     
     function addToE(e) { 
-      e.style({ 'min-height': this.height$, height: this.height$ }).add(this.chart_$);
+      e
+        .style({
+          width: '100%',
+          display: 'flex',
+          justifyContent: this.alignment$.map(function(a) { return a.alignmentStyle; }),
+          textAlign: this.alignment$.map(function(a) { return a.textAlign; })
+        })
+        .start('div')
+          .style({ 'min-height': this.height$, height: this.height$ })
+          .add(this.chart_$)
+        .end();
     }
   ]
 });
