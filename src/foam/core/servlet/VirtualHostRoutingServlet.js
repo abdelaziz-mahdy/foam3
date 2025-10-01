@@ -68,6 +68,12 @@ foam.CLASS({
     {
       class: 'Map',
       name: 'headerParameters'
+    },
+    {
+      class: 'String',
+      name: 'cspNonce',
+      documentation: 'Content Security Policy nonce value for inline styles and scripts. Must match the nonce in CSP headers.',
+      value: '123455432100000' // random default value, to be overriden in Application code for CSP
     }
   ],
 
@@ -188,8 +194,9 @@ foam.CLASS({
       }
 
       // Loading screen styles
+      out.println("<meta name=\\"csp-nonce\\" content=\\"" + getCspNonce() + "\\">");
+      out.println("<style nonce=\\"" + getCspNonce() + "\\">");
       out.println("""
-        <style nonce="123455443210000">
         body {
           margin: 0;
         }
