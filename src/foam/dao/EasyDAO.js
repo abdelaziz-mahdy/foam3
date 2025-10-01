@@ -569,12 +569,16 @@ foam.CLASS({
       value: true
     },
     {
-      documentation: `deprecated.  CSpec DAO loading is now a
+      documentation: `REMOVED.  CSpec DAO loading is now a
 compbination of 'synchronous' replay along with 'asynchronous' non-lazy
 dao loading, which improves overall startup time.`,
       class: 'Boolean',
       name: 'syncReplay',
-      value: true
+      value: true,
+      javaSetter: `
+        if ( ! val )
+          foam.core.logger.StdoutLogger.instance().warning("EasyDAO.syncReplay:false support has been removed.");
+      `
     },
     {
       documentation: `Enable NDiff in JDAO. Enable per DAO with this property or globally via JVM Parameter 'UseNDiff'`,
