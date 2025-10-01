@@ -68,6 +68,11 @@ foam.CLASS({
     {
       class: 'Map',
       name: 'headerParameters'
+    },
+    {
+      class: 'String',
+      name: 'cspNonce',
+      documentation: 'Content Security Policy nonce value for inline styles and scripts. Must match the nonce in CSP headers. When null, no nonce is applied.'
     }
   ],
 
@@ -188,8 +193,14 @@ foam.CLASS({
       }
 
       // Loading screen styles
+      String nonce = getCspNonce();
+      if ( ! SafetyUtil.isEmpty(nonce) ) {
+        out.println("<meta name=\\"csp-nonce\\" content=\\"" + nonce + "\\">");
+        out.println("<style nonce=\\"" + nonce + "\\">");
+      } else {
+        out.println("<style>");
+      }
       out.println("""
-        <style>
         body {
           margin: 0;
         }
