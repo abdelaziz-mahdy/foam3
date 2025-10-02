@@ -1224,6 +1224,7 @@ foam.CLASS({
     {
       name: 'metric_',
       hidden: true,
+      transient: true,
       expression: function(sink, countSink, showCount, countOnClick, decimalPlaces, convertToLocalString, postfix, prefix) {
         var value = this.getComputedValue();
         var count = countSink ? countSink.value : null;
@@ -1370,10 +1371,6 @@ foam.CLASS({
       }));
     },
 
-    function eof() {
-      // No action needed for simple sink
-    },
-
     function reset(sub) {
       if ( this.sink && this.sink.reset ) {
         this.sink.reset(sub);
@@ -1384,6 +1381,9 @@ foam.CLASS({
     },
     function toString() {
       return 'DashboardMetricSink(' + this.sink.toString() + ')';
+    },
+    async function onLoad() {
+      this.updateSink();
     }
   ],
   listeners: [
