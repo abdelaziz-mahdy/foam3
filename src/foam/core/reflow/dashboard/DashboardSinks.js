@@ -1077,12 +1077,11 @@ foam.CLASS({
       help: 'Theme icon name to display above the metric value (e.g., "chart", "users", "dollar")'
     },
     {
-      class: 'Color',
+      class: 'String',
       name: 'iconColor',
       help: 'Color for the icon (CSS color or token)',
-      view: 'foam.u2.view.TokenColorEditView',
-      value: '$primary500',
-      view: 'foam.u2.view.ColorEditView'
+      view: 'foam.u2.view.ColorEditView',
+      value: '$primary500'
     },
     {
       class: 'Enum',
@@ -1101,9 +1100,10 @@ foam.CLASS({
       }
     },
     {
-      class: 'Color',
+      class: 'String',
       name: 'valueColor',
       help: 'Color for the metric value',
+      view: 'foam.u2.view.ColorEditView',
       value: '$primary500'
     },
     {
@@ -1144,9 +1144,10 @@ foam.CLASS({
       value: 'medium'
     },
     {
-      class: 'Color',
+      class: 'String',
       name: 'labelColor',
       help: 'Color for the display label (CSS color or token)',
+      view: 'foam.u2.view.ColorEditView',
       value: '$textSecondary'
     },
     // Count font controls
@@ -1165,16 +1166,18 @@ foam.CLASS({
     {
       class: 'String',
       name: 'countOnClick',
+      label: 'OnClick Script',
       reactive: true,
       visibility: function(showCount) {
         return showCount ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       },
-      help: 'An onClick function to be called when the count is clicked'
+      help: 'Script to execute when the count is clicked'
     },
     {
-      class: 'Color',
+      class: 'String',
       name: 'countColor',
       help: 'Color for the count text (CSS color or token)',
+      view: 'foam.u2.view.ColorEditView',
       value: '$textSecondary'
     },
     {
@@ -1233,6 +1236,10 @@ foam.CLASS({
         getCountSink().put(obj, sub);
       `
     },
+
+    function getColorFromToken(token) {
+      return foam.CSS.returnTokenValue(token, this.cls_, this.__context__);
+    },
     
     function getComputedValue() {
       return this.sink && this.sink.value !== undefined ? this.sink.value : 0;
@@ -1247,56 +1254,64 @@ foam.CLASS({
     
     function addToE(e) {
       var self = this;
-      e.style({
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: self.alignment$.map(function(alignment) { return alignment.alignmentStyle }),
-        textAlign: self.alignment$.map(function(alignment) { return alignment.textAlign }),
-        width: '100%'
-      });
-      if ( self.icon ) {
-        e.start('div')
-          .style({
-            marginBottom: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          })
-          .start(self.Image, {
-            role: 'presentation',
-            ...(
-              self.theme && self.theme.glyphs && self.theme.glyphs[self.icon] ? 
-              { glyph: self.theme.glyphs[self.icon] } : 
-              { data: self.icon, embedSVG: true }
-            )
-          })
-          .style({
-            width: this.iconSize$,
-            height: this.iconSize$,
-            color: this.iconColor$
-          })
-          .end()
+      e.add(self.dynamic(function(metric_, iconColor, labelColor, countColor, valueColor) {
+
+        const metric = metric_;
+        const iconColorToken = self.getColorFromToken(iconColor);
+        const labelColorToken = self.getColorFromToken(labelColor);
+        const valueColorToken = self.getColorFromToken(valueColor);
+        const countColorToken = self.getColorFromToken(countColor);
+
+        e.style({
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: self.alignment$.map(function(alignment) { return alignment.alignmentStyle }),
+          textAlign: self.alignment$.map(function(alignment) { return alignment.textAlign }),
+          width: '100%'
+        });
+
+        if ( self.icon ) {
+          this.start('div')
+            .style({
+              marginBottom: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            })
+            .start(self.Image, {
+              role: 'presentation',
+              ...(
+                self.theme && self.theme.glyphs && self.theme.glyphs[self.icon] ? 
+                { glyph: self.theme.glyphs[self.icon] } : 
+                { data: self.icon, embedSVG: true }
+              )
+            })
+            .style({
+              width: self.iconSize$,
+              height: self.iconSize$,
+              color: iconColorToken
+            })
+            .end()
+          .end();
+          }
+        this.start('div')
+            .style({
+              fontSize: self.labelFontSize$,
+              color: labelColorToken,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              fontWeight: self.labelFontWeight$,
+              marginBottom: '8px'
+            })
+            .add(self.label$)
         .end();
-      }
-      e.start('div')
-          .style({
-            fontSize: this.labelFontSize$,
-            color: this.labelColor$,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            fontWeight: this.labelFontWeight$,
-            marginBottom: '8px'
-          })
-          .add(this.label$)
-      .end();
-      e.add(this.dynamic(function(metric_) {
-        var metric = metric_;
+
         // Value
         this.start('div')
           .style({
             fontSize: '3rem',
             fontWeight: 'bold',
-            color: self.valueColor$,
+            color: valueColorToken,
             lineHeight: '1'
           })
           .callIfElse(foam.lang.Property.isInstance(self.sink.arg1) && self.lastEncounteredObj_, function() {
@@ -1308,20 +1323,20 @@ foam.CLASS({
 
         // Count - show how many records were processed
         if ( self.showCount && metric.count !== null ) {
-            this.start('a')
-              .style({
-                fontSize: self.countFontSize$,
-                marginTop: '8px',
-                color: self.countColor$,
-                fontWeight: self.countFontWeight$
+          this.start('a')
+            .style({
+              fontSize: self.countFontSize$,
+              marginTop: '8px',
+              color: countColorToken,
+              fontWeight: self.countFontWeight$
+            })
+            .callIf(self.countOnClick, function() {
+              this
+                .on('click', self.onCountClick)
+                .style({ textDecoration: 'underline' })
               })
-              .callIf(self.countOnClick, function() {
-                this
-                  .on('click', self.onCountClick)
-                  .style({ textDecoration: 'underline' })
-               })
-              .add(self.countSuffix$.map(v => metric.count.toLocaleString() + (v ? ' ' + v : '')))
-            .end();
+            .add(self.countSuffix$.map(v => metric.count.toLocaleString() + (v ? ' ' + v : '')))
+          .end();
         }
       }));
     },
