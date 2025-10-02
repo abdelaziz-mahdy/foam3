@@ -306,8 +306,7 @@ foam.CLASS({
         // If a Date-valued field is set to a single number, it expands into a
         // range spanning that whole year.
         var maybeConvertYearToDateRange = function(prop, num) {
-          var isDateField = foam.lang.Date.isInstance(prop) ||
-            foam.lang.Date.isInstance(prop);
+          var isDateField = foam.lang.Date.isInstance(prop);
           var isDateRange = Array.isArray(num) && num[0] instanceof Date;
 
           if ( isDateField && ! isDateRange ) {
