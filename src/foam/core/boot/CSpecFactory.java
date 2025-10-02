@@ -202,6 +202,7 @@ public class CSpecFactory
         ns_ = null;
         spec_ = spec;
         if ( ! spec_.getLazy() ) {
+          logger.info("Invalidate create non-Lazy Service", spec_.getName());
           create(x_);
         }
       }

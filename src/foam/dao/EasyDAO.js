@@ -569,9 +569,16 @@ foam.CLASS({
       value: true
     },
     {
-      documentation: 'See JDAO and F3FileJournal.  Default journal replay is asynchronous. Some models with business logic that reference self can cause deadlock when parsed out of order.  If journal processing hangs, set syncReplay to true to replay synchronously.',
+      documentation: `REMOVED.  CSpec DAO loading is now a
+compbination of 'synchronous' replay along with 'asynchronous' non-lazy
+dao loading, which improves overall startup time.`,
       class: 'Boolean',
-      name: 'syncReplay'
+      name: 'syncReplay',
+      value: true,
+      javaSetter: `
+        if ( ! val )
+          foam.core.logger.StdoutLogger.instance().warning("EasyDAO.syncReplay:false support has been removed.");
+      `
     },
     {
       documentation: `Enable NDiff in JDAO. Enable per DAO with this property or globally via JVM Parameter 'UseNDiff'`,
@@ -708,12 +715,6 @@ foam.CLASS({
       generateJava: false,
     },
     {
-      class: 'Boolean',
-      name: 'refreshSessionTimer',
-      value: true,
-      generateJava: false,
-    },
-    {
       name: 'crunchBoxEnabled',
       generateJava: false,
       value: true
@@ -741,10 +742,7 @@ foam.CLASS({
           });
         }
 
-        return this.SessionClientBox.create({
-          delegate: box,
-          refreshSessionTimer: this.refreshSessionTimer
-        });
+        return this.SessionClientBox.create({delegate: box});
       }
     },
     {
@@ -963,7 +961,6 @@ foam.CLASS({
             jdao.setFilename(getJournalName());
             jdao.setCluster(getCluster() && !getSaf());
             jdao.setWaitReplay(getWaitReplay());
-            jdao.setSyncReplay(getSyncReplay());
             jdao.setNdiff(getNdiff());
             // Setting of delegate must be last as it triggers replay
             jdao.setDelegate(delegate);
@@ -1003,6 +1000,7 @@ foam.CLASS({
         <p>This process is transparent to the developer, and you can use your
         EasyDAO like any other DAO.</p>
       */
+      this.SUPER.apply(this, arguments);
 
       var daoType = typeof this.daoType === 'string' ?
         this.ALIASES[this.daoType] || this.daoType :
