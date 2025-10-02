@@ -569,16 +569,9 @@ foam.CLASS({
       value: true
     },
     {
-      documentation: `REMOVED.  CSpec DAO loading is now a
-compbination of 'synchronous' replay along with 'asynchronous' non-lazy
-dao loading, which improves overall startup time.`,
+      documentation: 'See JDAO and F3FileJournal.  Default journal replay is asynchronous. Some models with business logic that reference self can cause deadlock when parsed out of order.  If journal processing hangs, set syncReplay to true to replay synchronously.',
       class: 'Boolean',
-      name: 'syncReplay',
-      value: true,
-      javaSetter: `
-        if ( ! val )
-          foam.core.logger.StdoutLogger.instance().warning("EasyDAO.syncReplay:false support has been removed.");
-      `
+      name: 'syncReplay'
     },
     {
       documentation: `Enable NDiff in JDAO. Enable per DAO with this property or globally via JVM Parameter 'UseNDiff'`,
@@ -970,6 +963,7 @@ dao loading, which improves overall startup time.`,
             jdao.setFilename(getJournalName());
             jdao.setCluster(getCluster() && !getSaf());
             jdao.setWaitReplay(getWaitReplay());
+            jdao.setSyncReplay(getSyncReplay());
             jdao.setNdiff(getNdiff());
             // Setting of delegate must be last as it triggers replay
             jdao.setDelegate(delegate);
