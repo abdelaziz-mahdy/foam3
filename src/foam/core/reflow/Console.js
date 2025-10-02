@@ -1139,8 +1139,9 @@ foam.CLASS({
 
       this.deepSub(this.onFlowChildrenChange, [this.FLOW_CHILDREN, this.VALUE]);
 
-      // Check for autosaved script on page load
-      this.checkForAutosavedScript();
+      // Check for autosaved script on page load AFTER subscriptions are set up
+      // Use setTimeout to ensure UI is fully rendered before loading
+      this.setTimeout(() => this.checkForAutosavedScript(), 100);
 
       var layout = this.start(this.Layout);
 
@@ -1441,15 +1442,24 @@ foam.CLASS({
     },
 
     function checkForAutosavedScript() {
-      var autosavedScript = this.window.localStorage[this.AUTOSAVED_SCRIPT];
-      if ( autosavedScript && autosavedScript !== this.value.script ) {
-        var shouldLoad = this.window.confirm('There are unsaved changes. Do you want to load them? Click OK to load, Cancel to discard.');
-        if ( shouldLoad ) {
-          this.value.script = autosavedScript;
-        } else {
-          // Discard by removing from localStorage
-          this.window.localStorage.removeItem(this.AUTOSAVED_SCRIPT);
+      var autosavedDataStr = this.window.localStorage[this.AUTOSAVED_SCRIPT];
+      if ( ! autosavedDataStr ) return;
+
+      try {
+        var autosaveData = JSON.parse(autosavedDataStr);
+        if ( autosaveData.script && autosaveData.script !== this.value.script ) {
+          var shouldLoad = this.window.confirm('There are unsaved changes. Do you want to load them? Click OK to load, Cancel to discard.');
+          if ( shouldLoad ) {
+            this.value.script = autosaveData.script;
+            if ( autosaveData.name ) {
+              this.value.name = autosaveData.name;
+            }
+          } else {
+            this.window.localStorage.removeItem(this.AUTOSAVED_SCRIPT);
+          }
         }
+      } catch (e) {
+        this.window.localStorage.removeItem(this.AUTOSAVED_SCRIPT);
       }
     }
   ],
@@ -1571,16 +1581,20 @@ foam.CLASS({
       delay: 500,
       code: function() {
         this.maybeRegenScript();
+        this.saveScriptToLocalStorage();
       }
     },
     {
       name: 'saveScriptToLocalStorage',
       isMerged: true,
       mergeDelay: 1000,
-      on: ['this.propertyChange.value.script'],
       code: function() {
         if ( this.value && this.value.script ) {
-          this.window.localStorage[this.AUTOSAVED_SCRIPT] = this.value.script;
+          var autosaveData = {
+            script: this.value.script,
+            name: this.value.name
+          };
+          this.window.localStorage[this.AUTOSAVED_SCRIPT] = JSON.stringify(autosaveData);
         }
       }
     }
