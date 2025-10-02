@@ -201,22 +201,13 @@ public class Boot {
       }
     }
 
-    Agency agency = (Agency) root_.get("threadPool");
     serviceDAO_.where(EQ(CSpec.LAZY, false)).select(new AbstractSink() {
       @Override
       public void put(Object obj, Detachable sub) {
         CSpec sp = (CSpec) obj;
-        if ( agency == null ) {
-          logger.info("Invoking Service", sp.getName());
-          root_.get(sp.getName());
-        } else {
-          agency.submit(root_, new ContextAgent() {
-              public void execute(X x) {
-                logger.info("Invoking Service", sp.getName());
-                x.get(sp.getName());
-              }
-            }, sp.getName());
-        }
+
+        logger.info("Invoking Service", sp.getName());
+        root_.get(sp.getName());
       }
     });
   }
