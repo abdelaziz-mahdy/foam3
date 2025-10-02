@@ -113,7 +113,7 @@ public class CSpecFactory
         if ( ns instanceof COREService )  {
           Agency agency = (Agency) nx.get("threadPool");
           if ( agency == null ||
-               spec_.getLazy() /* already in agency */ ||
+               ! spec_.getLazy() /* already in agency */ ||
                spec_.getName().toLowerCase().contains("pool") ||
                spec_.getClass().getName().toLowerCase().contains("agency") ) {
             logger.info("Starting Service", spec_.getName(), ns.getClass().getName());
