@@ -1164,10 +1164,6 @@ foam.CLASS({
 
       this.deepSub(this.onFlowChildrenChange, [this.FLOW_CHILDREN, this.VALUE]);
 
-      // Check for autosaved script on page load AFTER subscriptions are set up
-      // Use setTimeout to ensure UI is fully rendered before loading
-      this.setTimeout(() => this.checkForAutosavedScript(), 100);
-
       var layout = this.start(this.Layout);
 
       layout.showLeft$  = this.showPrompts$;
@@ -1182,7 +1178,14 @@ foam.CLASS({
       }));
 
       await this.eval_('preLoad', null, true);
-      if ( this.route ) this.ROUTE.postSet.call(this, '', this.route);
+
+      if ( this.route ) {
+        await this.ROUTE.postSet.call(this, '', this.route);
+      }
+
+      // Check for autosaved script AFTER route is loaded and name is set
+      // Use setTimeout to ensure everything is fully initialized
+      this.setTimeout(() => this.checkForAutosavedScript(), 100);
     },
 
     function renderSelf(self) {
@@ -1472,20 +1475,38 @@ foam.CLASS({
       }
     },
 
-    function checkForAutosavedScript() {
+    async function checkForAutosavedScript() {
       var autosaveData = this.loadAutosaveData();
-      if ( ! autosaveData ) return;
+      if ( ! autosaveData || ! autosaveData.script ) return;
 
-      if ( autosaveData.script && autosaveData.script !== this.value.script ) {
-        var shouldLoad = this.window.confirm('There are unsaved changes. Do you want to load them? Click OK to load, Cancel to discard.');
-        if ( shouldLoad ) {
-          this.value.script = autosaveData.script;
-          if ( autosaveData.name ) {
-            this.value.name = autosaveData.name;
-          }
-        } else {
-          this.clearAutosave();
+      // Check if autosave differs from current script
+      if ( autosaveData.script === this.value.script ) {
+        // Autosave matches current - no need to prompt
+        return;
+      }
+
+      // Check if we have a saved version in the database
+      var savedFlow = null;
+      if ( this.value.name ) {
+        try {
+          savedFlow = await this.flowDAO.find(this.value.name);
+        } catch (e) {
+          // Flow doesn't exist in database yet
         }
+      }
+
+      // If autosave matches the saved version, no need to prompt
+      if ( savedFlow && autosaveData.script === savedFlow.script ) {
+        this.clearAutosave();
+        return;
+      }
+
+      // Autosave is different from both current and saved - prompt user
+      var shouldLoad = this.window.confirm('There are unsaved changes. Do you want to load them? Click OK to load, Cancel to discard.');
+      if ( shouldLoad ) {
+        this.value.script = autosaveData.script;
+      } else {
+        this.clearAutosave();
       }
     }
   ],
@@ -1565,36 +1586,35 @@ foam.CLASS({
     {
       name: 'onScriptNameChange',
       isMerged: true,
-      mergeDelay: 500,
-      code: function(_, oldName, newName) {
-        // When script name changes, migrate autosave data to new key
-        if ( oldName === newName ) return;
+      delay: 500,
+      code: function(_, __, ___, evt) {
+        // evt contains: { instance_, obj, prop, oldValue }
+        var oldValue = evt.oldValue;
+        var newValue = this.value.name;
 
-        var oldData = this.loadAutosaveData(oldName);
-        var existingData = this.loadAutosaveData(newName);
+        // When script name changes, check if there's existing autosave for new name
+        if ( oldValue === newValue ) return;
 
-        if ( oldData ) {
-          if ( existingData ) {
-            // There's already autosaved data for the new name - ask user what to do
-            var shouldOverwrite = this.window.confirm(
-              'The script name "' + newName + '" already has unsaved changes. ' +
-              'Click OK to keep your current changes, or Cancel to load the existing unsaved changes for "' + newName + '".'
-            );
+        // Check if the new name has existing autosave data that differs from current
+        var existingData = this.loadAutosaveData(newValue);
 
-            if ( shouldOverwrite ) {
-              // Overwrite with current script's autosave data
-              this.window.localStorage[this.getAutosaveKey(newName)] = JSON.stringify(oldData);
-            } else {
-              // Load the existing autosave data for the new name
-              if ( existingData.script ) {
-                this.value.script = existingData.script;
-              }
-            }
-          } else {
-            // No conflict - just move the data
-            this.window.localStorage[this.getAutosaveKey(newName)] = JSON.stringify(oldData);
+        if ( existingData && existingData.script !== this.value.script ) {
+          // There's already autosaved data for the new name that differs from current
+          var shouldLoad = this.window.confirm(
+            'The script name "' + newValue + '" already has different unsaved changes. ' +
+            'Click OK to load those changes, or Cancel to keep your current changes and overwrite.'
+          );
+
+          if ( shouldLoad ) {
+            // Load the existing autosave data for the new name
+            this.value.script = existingData.script;
           }
-          this.clearAutosave(oldName);
+          // else: Keep current changes - autosave will naturally update with current script
+        }
+
+        // Clean up old autosave entries (from intermediate typing states)
+        if ( oldValue ) {
+          this.clearAutosave(oldValue);
         }
       }
     },
@@ -1649,15 +1669,14 @@ foam.CLASS({
     {
       name: 'saveScriptToLocalStorage',
       isMerged: true,
-      mergeDelay: 1000,
+      delay: 500,
       code: function() {
         if ( ! this.value || ! this.value.script ) return;
 
         // Only autosave if there are unsaved changes (revision > 0)
         if ( this.value.revision > 0 ) {
           var autosaveData = {
-            script: this.value.script,
-            name: this.value.name
+            script: this.value.script
           };
           this.window.localStorage[this.getAutosaveKey()] = JSON.stringify(autosaveData);
         } else {
