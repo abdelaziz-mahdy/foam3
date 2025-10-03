@@ -851,7 +851,7 @@ foam.CLASS({
   constants: [
     {
       type: 'String',
-      name: 'AUTOSAVED_SCRIPT',
+      name: 'AUTOSAVED_SCRIPT_PREFIX',
       value: 'foam.reflow.autosavedscript'
     }
   ],
@@ -1032,6 +1032,30 @@ foam.CLASS({
   ],
 
   methods: [
+    function getAutosaveKey(scriptName) {
+      // Include script name in the key to prevent tabs from overwriting each other
+      // Handle unnamed scripts with a separate key
+      scriptName = scriptName || this.value.name || '_unnamed';
+      return this.AUTOSAVED_SCRIPT_PREFIX + ':' + scriptName;
+    },
+
+    function clearAutosave(scriptName) {
+      this.window.localStorage.removeItem(this.getAutosaveKey(scriptName));
+    },
+
+    function loadAutosaveData(scriptName) {
+      var key = this.getAutosaveKey(scriptName);
+      var dataStr = this.window.localStorage[key];
+      if ( ! dataStr ) return null;
+
+      try {
+        return JSON.parse(dataStr);
+      } catch (e) {
+        this.clearAutosave(scriptName);
+        return null;
+      }
+    },
+
     async function copyChild(childName) {
       // Make a copy of a flow child
       var c = this.findFlowChildByName(childName);
@@ -1109,6 +1133,7 @@ foam.CLASS({
       this.SUPER();
 
       var self = this;
+      this.value.name$.sub(this.onScriptNameChange);
       this.value.name$.sub(() => this.route = this.value.name);
 
       // Does this ever happen?
@@ -1406,7 +1431,13 @@ foam.CLASS({
       this.generateScript();
       flow.version++;
       this.mementoMgr.clear();
-      return flow.flowDAO.put(this.value).then(ret => this.value.copyFrom(ret));
+
+      // Clear autosave after successful save since changes are now persisted
+      return flow.flowDAO.put(this.value).then(ret => {
+        this.value.copyFrom(ret);
+        this.clearAutosave();
+        return ret;
+      });
     },
 
     function setSelectedIndex(i) {
@@ -1442,24 +1473,19 @@ foam.CLASS({
     },
 
     function checkForAutosavedScript() {
-      var autosavedDataStr = this.window.localStorage[this.AUTOSAVED_SCRIPT];
-      if ( ! autosavedDataStr ) return;
+      var autosaveData = this.loadAutosaveData();
+      if ( ! autosaveData ) return;
 
-      try {
-        var autosaveData = JSON.parse(autosavedDataStr);
-        if ( autosaveData.script && autosaveData.script !== this.value.script ) {
-          var shouldLoad = this.window.confirm('There are unsaved changes. Do you want to load them? Click OK to load, Cancel to discard.');
-          if ( shouldLoad ) {
-            this.value.script = autosaveData.script;
-            if ( autosaveData.name ) {
-              this.value.name = autosaveData.name;
-            }
-          } else {
-            this.window.localStorage.removeItem(this.AUTOSAVED_SCRIPT);
+      if ( autosaveData.script && autosaveData.script !== this.value.script ) {
+        var shouldLoad = this.window.confirm('There are unsaved changes. Do you want to load them? Click OK to load, Cancel to discard.');
+        if ( shouldLoad ) {
+          this.value.script = autosaveData.script;
+          if ( autosaveData.name ) {
+            this.value.name = autosaveData.name;
           }
+        } else {
+          this.clearAutosave();
         }
-      } catch (e) {
-        this.window.localStorage.removeItem(this.AUTOSAVED_SCRIPT);
       }
     }
   ],
@@ -1537,6 +1563,42 @@ foam.CLASS({
 
   listeners: [
     {
+      name: 'onScriptNameChange',
+      isMerged: true,
+      mergeDelay: 500,
+      code: function(_, oldName, newName) {
+        // When script name changes, migrate autosave data to new key
+        if ( oldName === newName ) return;
+
+        var oldData = this.loadAutosaveData(oldName);
+        var existingData = this.loadAutosaveData(newName);
+
+        if ( oldData ) {
+          if ( existingData ) {
+            // There's already autosaved data for the new name - ask user what to do
+            var shouldOverwrite = this.window.confirm(
+              'The script name "' + newName + '" already has unsaved changes. ' +
+              'Click OK to keep your current changes, or Cancel to load the existing unsaved changes for "' + newName + '".'
+            );
+
+            if ( shouldOverwrite ) {
+              // Overwrite with current script's autosave data
+              this.window.localStorage[this.getAutosaveKey(newName)] = JSON.stringify(oldData);
+            } else {
+              // Load the existing autosave data for the new name
+              if ( existingData.script ) {
+                this.value.script = existingData.script;
+              }
+            }
+          } else {
+            // No conflict - just move the data
+            this.window.localStorage[this.getAutosaveKey(newName)] = JSON.stringify(oldData);
+          }
+          this.clearAutosave(oldName);
+        }
+      }
+    },
+    {
       name: 'onInput',
       code: function() {
         var input = this.input;
@@ -1589,12 +1651,18 @@ foam.CLASS({
       isMerged: true,
       mergeDelay: 1000,
       code: function() {
-        if ( this.value && this.value.script ) {
+        if ( ! this.value || ! this.value.script ) return;
+
+        // Only autosave if there are unsaved changes (revision > 0)
+        if ( this.value.revision > 0 ) {
           var autosaveData = {
             script: this.value.script,
             name: this.value.name
           };
-          this.window.localStorage[this.AUTOSAVED_SCRIPT] = JSON.stringify(autosaveData);
+          this.window.localStorage[this.getAutosaveKey()] = JSON.stringify(autosaveData);
+        } else {
+          // No unsaved changes - clear autosave
+          this.clearAutosave();
         }
       }
     }
