@@ -57,7 +57,7 @@ foam.CLASS({
     'foam.mlang.predicate.True'
   ],
 
-  imports: [ 'block', 'scope' ],
+  imports: [ 'block', 'scope', 'eval_' ],
 
   exports: [ 'dao', 'filteredDAO', 'searchColumns' ],
 
@@ -164,6 +164,18 @@ foam.CLASS({
   methods: [
     async function addToE(e) {
       e.tag(this.DAOFilterPromptView, {data: this, label: this.label});
+    }
+  ],
+
+  actions: [
+    {
+      name: 'viewFilteredDAO',
+      label: 'View Filtered Data',
+      documentation: 'View the filtered data based on current filter criteria',
+      buttonStyle: 'PRIMARY',
+      code: function() {
+        this.eval_(`dao("${this.block.flowName}.filteredDAO")`);
+      }
     }
   ]
 });

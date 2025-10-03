@@ -262,6 +262,10 @@ foam.POM({
       if ( ! JAVAC_PARAMETERS.includes('--release') ) {
         JAVAC_PARAMETERS += ' --release '+JAVA_RELEASE;
       }
+      if ( Number(JAVA_RELEASE) >= 25 ) {
+        // javax.security.auth.AuthPermission
+        JAVAC_PARAMETERS += ' -Xlint:-deprecation -Xlint:-removal';
+      }
     }],
 
     clientTests: ['client-tests', 'Run all or specified client side test cases. ex: clientTests[:Test1,Test2]', [], function(args) {
@@ -467,8 +471,10 @@ foam.POM({
       this.log('\nRunning Java Test Cases:');
       this.log('  ./build.sh --run-tests');
       this.log('    Run all test cases.');
-      this.log('  ./build.sh --server-tests:SequenceNumberDAO,MapDAOTest');
+      this.log('  ./build.sh --server-tests:SequenceNumberDAOTest,MapDAOTest');
       this.log('    Run specified server side (Java) test cases.');
+      this.log('  ./build.sh --server-tests:-SequenceNumberDAOTest,-MapDAOTest');
+      this.log('    Exclude specified server side (Java) test cases.');
       this.log('  ./build.sh --client-tests');
       this.log('    Run all client side (Javascript) test cases.');
       this.log('  ./build.sh --client-tests --test-headed');

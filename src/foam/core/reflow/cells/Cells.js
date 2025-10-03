@@ -240,8 +240,7 @@ foam.CLASS({
 
   css: `
     ^ tr, ^ td, ^ th, ^ input {
-      color: #333;
-      font: 13px roboto, arial, sans-serif;
+      color: $grey700;
     }
     ^ tr { height: 26px; }
     ^cell { display: block; min-width: 82px; }
@@ -252,8 +251,8 @@ foam.CLASS({
       border-bottom: none;
     }
     ^ th {
-      background: #eee;
-      color: #333;
+      background: $backgroundTertiary;
+      color: $grey700;
       padding: 2px 18px;
     }
     ^ {

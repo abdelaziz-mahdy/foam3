@@ -850,7 +850,6 @@ foam.CLASS({
 
   exports: [
     'addToScope',
-    'block',
     'clearFlow',
     'copyChild',
     'createFlowChildName',
