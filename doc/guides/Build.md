@@ -14,9 +14,10 @@ The build manages **options** and **tasks**:
 There are two types of POMs
 
 1. **Tooling** - poms which configure the Build environment itself.
-    - **options** and **tasks** add support for build specific command line options and methods to process the source code. 
-    - *For example*, **JavaTooling** adds **options** to allow the configuration of the Java target version, and provide command line arguments to control creating a JAR file or start the JVM with JDPA enabled.  And adds **tasks** for building and starting from JAR file locally or building a TAR file for remote deployment.  
-
+    - **options** and **tasks** add support for build specific command line options and methods to process the source code.
+    - *For example*, **JavaTooling** adds **options** to allow the configuration of the Java target version, and provide command line arguments to control creating a JAR file or start the JVM with JDPA enabled.  And adds **tasks** for building and starting from JAR file locally or building a TAR file for remote deployment.
+    - Multiple *Tooling* POMs can define the same task name; All will be executed in the order encountered during tooling setup.
+    - The build defaults to *Tooling* **task** `all` when no tasks are specified on the command line. (see `JavaTooling`)
 1. **Build** - poms which declare build inputs.
     * Such as code and deployment configuration to include.
     * *For example*, specifying the models to generate Java from and specifying the configuration to include in a JAR file.
@@ -24,8 +25,11 @@ There are two types of POMs
 There are **three** distinct build **phases**:
 
 1. **Tooling** - the build loads Tooling POMs which add **options** for command line control, and build **tasks** specific to the type of code generation, compilation, and deployment to be supported.
-
-2. **Environment and Registration** - the build processes the Build POMs to: 1) set environment variable values for **options** added during the Tooling phase (i.e., Java target release = 21), and 2) register Build POM **tasks** to be run when same-named Tooling **tasks** are run (i.e., **buildJavaOpts** JAVA_OPTS=-Dxyz before the JVM is started).
+2. **Environment and Registration** - the build processes the Build POMs to: 
+    1. set environment variable values for **options** added during the Tooling phase 
+        * (i.e., Java target release = 21)
+    2. register Build POM **tasks** to be run when same-named Tooling **tasks** are run
+        * (i.e., **buildJavaOpts** JAVA_OPTS=-Dxyz before the JVM is started).
     ```
     foam.POM({
       ...
@@ -150,6 +154,8 @@ For example, **Custom** tooling located in tools/CustomTooling.pom can be added 
 
     -T+Custom
 
+*NOTE* The tooling directive `-T` must proceed all other build arguments.
+
 ## Creating a POM Environment Variable
 TODO
 
@@ -165,7 +171,7 @@ Option **--flags:test** will include all source and configuration flagged as `te
 
 # Options and Tasks of interest
 
-- **--nop:options** - The No-Op option takes a comman seperated list of task names not to execute. For example if you are dealing with pure .java files, then issuing --nop:genJS will speed your build times.
+- **--nop:option** - The No-Op option takes a comman seperated list of task names not to execute. For example if you are dealing with pure .java files, then issuing --nop:genJS will speed your build times.
 
 # Additional Tooling
 
