@@ -3,8 +3,7 @@ foam.POM({
   excludes: [ '*' ],
   projects: [
     { name: 'foam3/pom'},
-    { name: 'src/{packagePath}/pom'},
-    { name: '{journalDir}/pom' }
+    { name: 'src/{packagePath}/pom'}
   ],
   licenses: `
     // Add your license header here
