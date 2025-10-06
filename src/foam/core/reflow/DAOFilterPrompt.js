@@ -24,23 +24,24 @@ foam.CLASS({
     function render() {
       var self = this;
 
-      this.
-        addClass().
-        show(this.data.visible$).
-        start('h3').
-          add(self.data.label$).
-        end().
-        br().
-        start().
-          show(self.data.showSearch$).
-          add(self.data.filterView$).
-        end().
-        start().
-          addClass(self.myClass('filters-container')).
-          tag(self.data.filterView$.map(function(fv) {
+      this
+        .addClass()
+        .show(this.data.visible$)
+        .start('h3')
+          .show(this.data.labelVisible$)
+          .add(self.data.label$)
+        .end()
+        .br()
+        .start()
+          .show(self.data.showSearch$)
+          .add(self.data.filterView$)
+        .end()
+        .start()
+          .addClass(self.myClass('filters-container'))
+          .tag(self.data.filterView$.map(function(fv) {
             return fv ? fv.filtersContainer$ : null;
-          })).
-        end();
+          }))
+        .end();
     }
   ]
 });
@@ -68,6 +69,14 @@ foam.CLASS({
       factory: function() {
         return this.dao ? this.dao.of.model_.plural + ' Filter' : 'DAO Filter';
       }
+    },
+    {
+      class: 'Boolean',
+      name: 'labelVisible',
+      section: 'general',
+      label: 'Show Name',
+      value: true,
+      view: { class: 'foam.u2.Switch' }
     },
     {
       class: 'Boolean',
