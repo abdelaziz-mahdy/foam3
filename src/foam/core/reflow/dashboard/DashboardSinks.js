@@ -6,15 +6,180 @@
 
 /**
  * Dashboard Sink Classes for FLOW Integration
- * 
+ *
  * These sinks follow the same pattern as foam.u2.mlang.Pie - they extend
  * GroupBy/GridBy and render charts using expression properties and toE/addToE methods.
  */
 
 foam.CLASS({
   package: 'foam.core.reflow.dashboard',
+  name: 'TimeSeriesGapFillingSinkMixin',
+
+  documentation: 'Mixin for sinks that provides time series gap filling functionality',
+
+  properties: [
+    { class: 'Boolean', name: 'fillTimeGaps', value: false, help: 'Fill missing time periods with zero values (for date properties only)' },
+    {
+      class: 'Int',
+      name: 'fillGapPeriods',
+      value: 12,
+      help: 'Number of periods to fill back from today (e.g., 12 months, 52 weeks, 4 quarters)'
+    }
+  ],
+
+  methods: [
+    function fillTimeGapKeys(existingKeys, groups, periods, prop) {
+      // Detect time granularity from the property expression
+      var granularity = null;
+
+      // Check if prop is a date transformation expression
+      if ( prop && prop.delegate && foam.lang.Date.isInstance(prop.delegate) ) {
+        if ( foam.mlang.expr.DateToWeekExpr.isInstance(prop) ) {
+          granularity = 'week';
+        } else if ( foam.mlang.expr.DateToQuarterExpr.isInstance(prop) ) {
+          granularity = 'quarter';
+        } else if ( foam.mlang.expr.DateToDayOfYearExpr.isInstance(prop) ) {
+          granularity = 'day';
+        } else if ( foam.mlang.expr.DateToYYYYMMExpr.isInstance(prop) ) {
+          granularity = 'month';
+        } else if ( foam.mlang.expr.DateToYYYYExpr.isInstance(prop) ) {
+          granularity = 'year';
+        } else if ( foam.mlang.expr.DateToYYYYMMDDExpr.isInstance(prop) ) {
+          granularity = 'date';
+        }
+      }
+
+      if ( ! granularity ) return existingKeys; // Not a supported time expression
+
+      // Calculate range based on periods (e.g., last 12 months from today)
+      var now = new Date();
+      var minDate = new Date(now);
+      var maxDate = new Date(now);
+
+      // Calculate start date based on granularity and periods
+      if ( granularity === 'week' ) {
+        minDate.setDate(minDate.getDate() - (periods * 7));
+      } else if ( granularity === 'quarter' ) {
+        minDate.setMonth(minDate.getMonth() - (periods * 3));
+      } else if ( granularity === 'month' ) {
+        minDate.setMonth(minDate.getMonth() - periods);
+      } else if ( granularity === 'year' ) {
+        minDate.setFullYear(minDate.getFullYear() - periods);
+      } else if ( granularity === 'date' || granularity === 'day' ) {
+        minDate.setDate(minDate.getDate() - periods);
+      }
+
+      // Generate keys using the property expression
+      var minKey = prop.f({ [prop.delegate.name]: minDate });
+      var maxKey = prop.f({ [prop.delegate.name]: maxDate });
+
+      // Generate all keys between min and max based on granularity
+      var allKeys = [];
+
+      if ( granularity === 'week' ) {
+        // Format: YYYY-W##
+        var match = minKey.match(/^(\d{4})-W(\d{2})$/);
+        var minYear = parseInt(match[1]);
+        var minWeek = parseInt(match[2]);
+        match = maxKey.match(/^(\d{4})-W(\d{2})$/);
+        var maxYear = parseInt(match[1]);
+        var maxWeek = parseInt(match[2]);
+
+        for ( var y = minYear; y <= maxYear; y++ ) {
+          var startWeek = (y === minYear) ? minWeek : 1;
+          var endWeek = (y === maxYear) ? maxWeek : 52;
+          for ( var w = startWeek; w <= endWeek; w++ ) {
+            allKeys.push(y + '-W' + String(w).padStart(2, '0'));
+          }
+        }
+      } else if ( granularity === 'quarter' ) {
+        // Format: YYYY-Q#
+        var match = minKey.match(/^(\d{4})-Q(\d)$/);
+        var minYear = parseInt(match[1]);
+        var minQ = parseInt(match[2]);
+        match = maxKey.match(/^(\d{4})-Q(\d)$/);
+        var maxYear = parseInt(match[1]);
+        var maxQ = parseInt(match[2]);
+
+        for ( var y = minYear; y <= maxYear; y++ ) {
+          var startQ = (y === minYear) ? minQ : 1;
+          var endQ = (y === maxYear) ? maxQ : 4;
+          for ( var q = startQ; q <= endQ; q++ ) {
+            allKeys.push(y + '-Q' + q);
+          }
+        }
+      } else if ( granularity === 'month' ) {
+        // Format: YYYY/MM
+        var parts = minKey.split('/');
+        var minYear = parseInt(parts[0]);
+        var minMonth = parseInt(parts[1]);
+        parts = maxKey.split('/');
+        var maxYear = parseInt(parts[0]);
+        var maxMonth = parseInt(parts[1]);
+
+        for ( var y = minYear; y <= maxYear; y++ ) {
+          var startM = (y === minYear) ? minMonth : 1;
+          var endM = (y === maxYear) ? maxMonth : 12;
+          for ( var m = startM; m <= endM; m++ ) {
+            allKeys.push(y + '/' + String(m).padStart(2, '0'));
+          }
+        }
+      } else if ( granularity === 'year' ) {
+        // Format: YYYY
+        var minYear = parseInt(minKey);
+        var maxYear = parseInt(maxKey);
+        for ( var y = minYear; y <= maxYear; y++ ) {
+          allKeys.push(String(y));
+        }
+      } else if ( granularity === 'date' || granularity === 'day' ) {
+        // Format: YYYY/MM/DD or YYYY-###
+        if ( granularity === 'day' ) {
+          // Day of year: YYYY-###
+          var match = minKey.match(/^(\d{4})-(\d{3})$/);
+          var minYear = parseInt(match[1]);
+          var minDay = parseInt(match[2]);
+          match = maxKey.match(/^(\d{4})-(\d{3})$/);
+          var maxYear = parseInt(match[1]);
+          var maxDay = parseInt(match[2]);
+
+          for ( var y = minYear; y <= maxYear; y++ ) {
+            var daysInYear = (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 366 : 365;
+            var startD = (y === minYear) ? minDay : 1;
+            var endD = (y === maxYear) ? maxDay : daysInYear;
+            for ( var d = startD; d <= endD; d++ ) {
+              allKeys.push(y + '-' + String(d).padStart(3, '0'));
+            }
+          }
+        } else {
+          // Full date: YYYY/MM/DD
+          var parts = minKey.split('/');
+          var minDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          parts = maxKey.split('/');
+          var maxDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+
+          var currentDate = new Date(minDate);
+          while ( currentDate <= maxDate ) {
+            var y = currentDate.getFullYear();
+            var m = String(currentDate.getMonth() + 1).padStart(2, '0');
+            var d = String(currentDate.getDate()).padStart(2, '0');
+            allKeys.push(y + '/' + m + '/' + d);
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+        }
+      }
+
+      return allKeys;
+    }
+  ]
+});
+
+foam.CLASS({
+  package: 'foam.core.reflow.dashboard',
   name: 'DashboardBarSink',
   extends: 'foam.mlang.sink.TopNGroupBy',
+  mixins: [
+    'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
+  ],
   
   requires: [
     'org.chartjs.Bar2'
@@ -30,12 +195,12 @@ foam.CLASS({
     // Chart-specific properties
     {
       class: 'StringArray',
-      name: 'colors',   
+      name: 'colors',
     },
-    { 
+    {
       class: 'Enum',
-      of: 'foam.core.reflow.dashboard.TimeUnit', 
-      name: 'timeUnit' 
+      of: 'foam.core.reflow.dashboard.TimeUnit',
+      name: 'timeUnit'
     },
     { class: 'Boolean', name: 'horizontal', value: false },
     { class: 'Int', name: 'barThickness' },
@@ -43,13 +208,14 @@ foam.CLASS({
     { class: 'String', name: 'xAxisLabel' },
     { class: 'String', name: 'yAxisLabel' },
     { class: 'Boolean', name: 'showGridLines', value: true },
+    // fillTimeGaps and fillGapPeriods inherited from TimeSeriesGapFillingSinkMixin
     // Display properties
     { class: 'Boolean', name: 'responsive', value: true },
     { class: 'Boolean', name: 'maintainAspectRatio', value: false },
     { class: 'Int', name: 'height', value: 300 },
-    { 
+    {
       class: 'Int',
-      name: 'width', 
+      name: 'width',
       value: 400
     },
     { class: 'Boolean', name: 'showLegend', value: false },  // Bar charts typically don't need legend for single dataset
@@ -62,31 +228,39 @@ foam.CLASS({
     {
       name: 'chart_',
       transient: true,
-      expression: function(groups, colors, timeUnit, horizontal, barThickness, datasetLabel, xAxisLabel, yAxisLabel, 
-                          showGridLines, responsive, maintainAspectRatio, showLegend, 
-                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration) {
-        
+      expression: function(groups, colors, timeUnit, horizontal, barThickness, datasetLabel, xAxisLabel, yAxisLabel,
+                          showGridLines, responsive, maintainAspectRatio, showLegend,
+                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration, fillTimeGaps, fillGapPeriods) {
+
         var labels = [];
         var data = [];
         var backgroundColors = [];
-        
+
         // Check if we're dealing with dates using the groupBy property
         var isDateAxis = this.arg1 && (foam.lang.Date.isInstance(this.arg1) || foam.lang.DateTime.isInstance(this.arg1));
-        
+
         // If topN > 0, use groupKeys to preserve backend order (JavaScript reorders numeric keys)
         // Otherwise, use sortedKeys() for proper sorting
-        var sortedKeys = this.topN > 0 ? (this.groupKeys || Object.keys(groups)) : 
+        var sortedKeys = this.topN > 0 ? (this.groupKeys || Object.keys(groups)) :
                         (this.sortedKeys ? this.sortedKeys() : Object.keys(groups));
-        
+
+        // Fill time gaps if enabled and this is a date/time axis
+        if ( fillTimeGaps && isDateAxis ) {
+          sortedKeys = this.fillTimeGapKeys(sortedKeys, groups, fillGapPeriods, this.arg1);
+        }
+
         var index = 0;
         for ( var i = 0; i < sortedKeys.length; i++ ) {
           var key = sortedKeys[i];
           // Use chartJsFormatter if available, otherwise use the key as-is
-          var label = this.arg1 && this.arg1.chartJsFormatter ? 
+          var label = this.arg1 && this.arg1.chartJsFormatter ?
                       this.arg1.chartJsFormatter(key) : key;
           labels.push(label);
-          data.push(groups[key].value);
-          
+
+          // Use value from groups if exists, otherwise use 0 for filled gaps
+          var value = groups[key] ? groups[key].value : 0;
+          data.push(value);
+
           // Only handle colors if they are defined
           if ( colors && colors.length > 0 ) {
             var color = colors[index % colors.length];
@@ -202,12 +376,12 @@ foam.CLASS({
       }
     }
   ],
-  
+
   methods: [
-    function toE(_, x) { 
+    function toE(_, x) {
       return x.E().add(this.chart_$);
     },
-    function addToE(e) { 
+    function addToE(e) {
       e
         .style({
           width: '100%',
@@ -433,7 +607,11 @@ foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardStackedBarSink',
   extends: 'foam.core.reflow.GridBy',
-  
+
+  mixins: [
+    'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
+  ],
+
   requires: [
     'org.chartjs.StackedBar2'
   ],
@@ -470,7 +648,8 @@ foam.CLASS({
       transient: true,
       expression: function(cols, rows, colors, timeUnit, horizontal, xAxisLabel, yAxisLabel,
                           showGridLines, responsive, maintainAspectRatio,
-                          showLegend, legendPosition, showTooltips, showTooltipSum, animate, animationDuration) {
+                          showLegend, legendPosition, showTooltips, showTooltipSum, animate, animationDuration,
+                          fillTimeGaps, fillGapPeriods) {
         var colGroups = cols && cols.groups ? cols.groups : {};
         var rowGroups = rows && rows.groups ? rows.groups : {};
         
@@ -496,7 +675,12 @@ foam.CLASS({
         } else {
           sortedColKeys = Object.keys(colGroups);
         }
-        
+
+        // Fill time gaps if enabled and x-axis is a date
+        if ( fillTimeGaps && isDateAxis ) {
+          sortedColKeys = this.fillTimeGapKeys(sortedColKeys, colGroups, fillGapPeriods, this.xFunc);
+        }
+
         // Extract labels from sorted columns (x-axis categories)
         for ( var i = 0; i < sortedColKeys.length; i++ ) {
           var col = sortedColKeys[i];
@@ -804,7 +988,10 @@ foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardLineSink',
   extends: 'foam.mlang.sink.GroupBy',
-  mixins: ['foam.core.reflow.dashboard.LineChartMixin'],
+  mixins: [
+    'foam.core.reflow.dashboard.LineChartMixin',
+    'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
+  ],
   
   properties: [
     // Map GroupBy properties directly
@@ -824,12 +1011,21 @@ foam.CLASS({
     expression: function(groups, arg1, arg2, timeUnit, colors, borderColors, xAxisLabel, yAxisLabel,
                         fill, tension, stepped, showPoints, pointRadius, showGridLines,
                         responsive, maintainAspectRatio, showLegend, legendPosition,
-                        showTooltips, showTooltipSum, animate, animationDuration) {
+                        showTooltips, showTooltipSum, animate, animationDuration,
+                        fillTimeGaps, fillGapPeriods) {
 
       if ( !arg1 || !arg2 ) return null;
 
       var data = [];
       var sortedKeys = this.sortedKeys ? this.sortedKeys() : Object.keys(groups);
+
+      // Check if arg1 is a date property for gap filling
+      var isDateAxis = arg1 && (foam.lang.Date.isInstance(arg1) || foam.lang.DateTime.isInstance(arg1));
+
+      // Fill time gaps if enabled and x-axis is a date
+      if ( fillTimeGaps && isDateAxis ) {
+        sortedKeys = this.fillTimeGapKeys(sortedKeys, groups, fillGapPeriods, arg1);
+      }
 
       // Process GroupBy results to Chart.js format
       for ( var i = 0; i < sortedKeys.length; i++ ) {
@@ -903,7 +1099,10 @@ foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardMultiLineSink',
   extends: 'foam.core.reflow.GridBy',
-  mixins: ['foam.core.reflow.dashboard.LineChartMixin'],
+  mixins: [
+    'foam.core.reflow.dashboard.LineChartMixin',
+    'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
+  ],
   
   properties: [
     // Map GridBy properties directly  
@@ -928,7 +1127,8 @@ foam.CLASS({
     expression: function(cols, rows, xFunc, yFunc, acc, timeUnit, colors, borderColors, xAxisLabel, yAxisLabel,
                         fill, tension, stepped, showPoints, pointRadius, showGridLines,
                         responsive, maintainAspectRatio, showLegend, legendPosition,
-                        showTooltips, showTooltipSum, animate, animationDuration) {
+                        showTooltips, showTooltipSum, animate, animationDuration,
+                        fillTimeGaps, fillGapPeriods) {
 
       if ( !xFunc || !yFunc || !acc ) return null;
 
@@ -940,6 +1140,14 @@ foam.CLASS({
 
       var sortedColKeys = cols && cols.sortedKeys ? cols.sortedKeys() : Object.keys(colGroups);
       var sortedRowKeys = rows && rows.sortedKeys ? rows.sortedKeys() : Object.keys(rowGroups);
+
+      // Check if xFunc is a date property for gap filling
+      var isDateAxis = xFunc && (foam.lang.Date.isInstance(xFunc) || foam.lang.DateTime.isInstance(xFunc));
+
+      // Fill time gaps if enabled and x-axis is a date
+      if ( fillTimeGaps && isDateAxis ) {
+        sortedColKeys = this.fillTimeGapKeys(sortedColKeys, colGroups, fillGapPeriods, xFunc);
+      }
 
       // Create a dataset for each line (row group)
       for ( var j = 0; j < sortedRowKeys.length; j++ ) {
