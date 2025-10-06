@@ -1474,6 +1474,9 @@ foam.CLASS({
     },
 
     async function checkForAutosavedScript(scriptName) {
+      // Don't retrieve autosave for unnamed flows
+      if ( ! scriptName ) return;
+
       var autosaveData = this.loadAutosaveData(scriptName);
       if ( ! autosaveData || ! autosaveData.script ) return;
 
@@ -1672,6 +1675,9 @@ foam.CLASS({
       delay: 500,
       code: function() {
         if ( ! this.value || ! this.value.script ) return;
+
+        // Don't save unnamed flows to local storage
+        if ( ! this.value.name ) return;
 
         // Only autosave if there are unsaved changes (revision > 0)
         if ( this.value.revision > 0 ) {
