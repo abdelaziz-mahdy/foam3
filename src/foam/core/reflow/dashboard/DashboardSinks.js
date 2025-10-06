@@ -1292,6 +1292,9 @@ foam.CLASS({
     
     function addToE(e) {
       var self = this;
+      /// force re-evaluation of metric_ on render
+      this.propertyChange.pub('sink', this.sink$)
+
       e.style({
         display: 'flex',
         flexDirection: 'column',
