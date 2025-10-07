@@ -129,6 +129,7 @@ return getGroupKeys();`
 `foam.dao.Sink group = (foam.dao.Sink) getGroups().get(key);
  if ( group == null ) {
    group = (foam.dao.Sink) (((foam.lang.FObject)getArg2()).fclone());
+   ((foam.lang.FObject)group).setX(getX());
    getGroups().put(key, group);
    clearGroupKeys();
  }
