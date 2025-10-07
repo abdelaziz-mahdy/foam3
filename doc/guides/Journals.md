@@ -49,7 +49,7 @@ For example, building with `-Jhttps` will process the following `services.jrl` f
 
 ## Feature Flags and Conditional Complilation
 
-The [Build][./Build.md) determines source and journals to process based on the POMs it has been instructed to process. By default this is the project root `pom.js` file. Additional POMs can be specified with `-P` and `-J`.  The build reads these POMs and then traverses child POMs listed in `projects`.  The build only processes diretories which contain a POM file or child directories without a POM of a parent with a POM.
+The [Build](./Build.md) determines source and journals to process based on the POMs it has been instructed to process. By default this is the project root `pom.js` file. Additional POMs can be specified with `-P` and `-J`.  The build reads these POMs and then traverses child POMs listed in `projects`.  The build only processes diretories which contain a POM file or child directories without a POM of a parent with a POM.
 
 Using this behaviour, feature inclusion can be conditionally controlled.
 
