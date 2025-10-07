@@ -209,7 +209,7 @@ foam.CLASS({
     { class: 'String', name: 'xAxisLabel' },
     { class: 'String', name: 'yAxisLabel' },
     { class: 'Boolean', name: 'showGridLines', value: true },
-    // fillTimeGaps and fillGapPeriods inherited from TimeSeriesGapFillingSinkMixin
+    // periodCount inherited from TimeSeriesGapFillingSinkMixin
     // Display properties
     { class: 'Boolean', name: 'responsive', value: true },
     { class: 'Boolean', name: 'maintainAspectRatio', value: false },
