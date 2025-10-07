@@ -490,7 +490,7 @@ foam.LIB({
       var as = [];
       for ( var i in { ...foam.USED, ...foam.UNUSED } ) {
         try {
-          m = foam.maybeLookup(i);
+          let m = foam.maybeLookup(i);
           if ( m ) {
             m.getAxiomsByClass(cls).forEach(a => {
               if ( ! opt_f || opt_f(a, m, i) ) {
