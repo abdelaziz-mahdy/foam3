@@ -143,7 +143,7 @@ foam.CLASS({
     {
       name: 'updateValue',
       isIdled: true,
-      delay: 300,
+      delay: 500,
       code: function() {
         var value = this.searchData = this.view.data;
         if ( ! value ) {
@@ -162,7 +162,7 @@ foam.CLASS({
           } else {
             this.predicate = this.KEYWORD(value);
           }
-        } else if ( this.checkStrictEquality) {
+        } else if ( this.checkStrictEquality ) {
           this.predicate = this.EQ(this.property, value);
         } else if ( this.searchMode === this.SearchMode.SIMPLE ) {
           this.predicate = this.CONTAINS_IC(this.property, value);

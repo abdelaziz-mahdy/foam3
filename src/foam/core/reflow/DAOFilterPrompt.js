@@ -144,10 +144,12 @@ foam.CLASS({
         if ( ! dao ) return null;
         var fv = this.FilterView.create({
           dao: dao,
+          searchMode: foam.comics.SearchMode.SIMPLE,
           data$: this.predicate$,
           isOpen: ! showSearch  // When search is hidden, filters should be open
         }, this.__subContext__.createSubContext({
-          controllerMode: foam.u2.ControllerMode.EDIT
+          controllerMode: foam.u2.ControllerMode.EDIT,
+          config: { searchMode: foam.comics.SearchMode.MQL }
         }));
 
         // Store reference to filtersContainer
