@@ -245,8 +245,6 @@ foam.CLASS({
     {
       name: 'onCreate',
       on: [
-        //obj.topic
-        'data.action',
         'data.create'
       ],
       code: function() {
