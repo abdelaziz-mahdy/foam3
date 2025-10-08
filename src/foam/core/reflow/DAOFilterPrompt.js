@@ -174,7 +174,7 @@ foam.CLASS({
   ],
 
   methods: [
-    async function addToE(e) {
+    function addToE(e) {
       e.tag(this.DAOFilterPromptView, {data: this, label: this.label});
     }
   ],
