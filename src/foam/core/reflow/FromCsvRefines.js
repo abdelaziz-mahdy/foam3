@@ -29,8 +29,61 @@ foam.CLASS({
     {
       class: 'Function',
       name: 'fromCSV',
-      value: function(str) {
-        if (typeof str === 'string' && str.includes(',')) {
+      documentation: `
+        Parses integer values from CSV with optional locale support.
+        Parameters:
+        - str: The string to parse
+        - opt_parser: Optional NumberParser instance for locale-aware parsing
+      `,
+      value: function(str, opt_parser) {
+        if ( ! str || typeof str !== 'string' ) {
+          return this.fromString(str);
+        }
+
+        // If a NumberParser is provided, use it for locale-aware parsing
+        if ( opt_parser && opt_parser.parse ) {
+          var parsed = opt_parser.parse(str);
+          return isNaN(parsed) ? this.fromString(str) : Math.floor(parsed);
+        }
+
+        // Default behavior: remove commas (US format) then parse
+        if ( str.includes(',') ) {
+          str = str.replace(/,/g, '');
+        }
+        return this.fromString(str);
+      }
+    }
+  ]
+});
+
+
+foam.CLASS({
+  name: 'FloatFromCSVRefines',
+  refines: 'foam.lang.Float',
+
+  properties: [
+    {
+      class: 'Function',
+      name: 'fromCSV',
+      documentation: `
+        Parses float values from CSV with optional locale support.
+        Parameters:
+        - str: The string to parse
+        - opt_parser: Optional NumberParser instance for locale-aware parsing
+      `,
+      value: function(str, opt_parser) {
+        if ( ! str || typeof str !== 'string' ) {
+          return this.fromString(str);
+        }
+
+        // If a NumberParser is provided, use it for locale-aware parsing
+        if ( opt_parser && opt_parser.parse ) {
+          var parsed = opt_parser.parse(str);
+          return isNaN(parsed) ? this.fromString(str) : parsed;
+        }
+
+        // Default behavior: remove commas (US format) then parse
+        if ( str.includes(',') ) {
           str = str.replace(/,/g, '');
         }
         return this.fromString(str);

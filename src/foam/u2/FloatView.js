@@ -23,6 +23,10 @@ foam.CLASS({
 
   documentation: 'View for editing Float Properties.',
 
+  requires: [
+    'foam.util.NumberParser'
+  ],
+
   properties: [
     ['type', 'text'],
     { class: 'Float', name: 'data' },
@@ -37,7 +41,33 @@ foam.CLASS({
           when the arrow buttons in the input are clicked.`,
       value: 0.01
     },
-    'preventFeedback'
+    'preventFeedback',
+    {
+      class: 'String',
+      name: 'locale',
+      documentation: 'Locale for number parsing (e.g., "en-US", "fr-FR", "de-DE"). If not set, uses browser default.',
+      factory: function() {
+        // Default to browser locale
+        return typeof Intl !== 'undefined' ?
+          Intl.NumberFormat().resolvedOptions().locale :
+          'en-US';
+      },
+      postSet: function(old, nu) {
+        if ( old !== nu && this.parser ) {
+          this.parser.locale = nu;
+          this.parser.initSeparators();
+        }
+      }
+    },
+    {
+      name: 'parser',
+      documentation: 'NumberParser instance for locale-aware number parsing',
+      hidden: true,
+      transient: true,
+      factory: function() {
+        return this.NumberParser.create({ locale: this.locale });
+      }
+    }
   ],
 
   methods: [
@@ -96,12 +126,33 @@ foam.CLASS({
     },
 
     function dataToText(val) {
+      // Use NumberParser for locale-aware formatting if locale is specified
+      if ( this.locale && this.parser ) {
+        if ( foam.Undefined.isInstance(this.precision) ) {
+          return this.parser.format(val);
+        } else {
+          // Format with precision
+          var options = {
+            minimumFractionDigits: this.precision,
+            maximumFractionDigits: this.precision
+          };
+          var formatted = this.parser.format(val, options);
+          return this.trimZeros ? this.parser.format(Number(val), options) : formatted;
+        }
+      }
+
+      // Fallback to default formatting
       return foam.Undefined.isInstance(this.precision) ?
         '' + val :
-        this.formatNumber(val) ;
+        this.formatNumber(val);
     },
 
     function textToData(text) {
+      // Use NumberParser if locale is specified
+      if ( this.locale ) {
+        var parsed = this.parser.parse(text);
+        return isNaN(parsed) ? 0 : parsed;
+      }
       return parseFloat(text) || 0;
     },
 
