@@ -1489,9 +1489,9 @@ foam.CLASS({
 
       // Check if we have a saved version in the database
       var savedFlow = null;
-      if ( this.value.name ) {
+      if ( scriptName ) {
         try {
-          savedFlow = await this.flowDAO.find(this.value.name);
+          savedFlow = await this.flowDAO.find(scriptName);
         } catch (e) {
           // Flow doesn't exist in database yet
         }
