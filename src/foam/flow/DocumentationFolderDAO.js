@@ -125,6 +125,10 @@ foam.CLASS({
             if ( content != null ) {
               if ( content.startsWith("<title>") && content.indexOf("</title>") != -1 ) {
                 doc.setTitle(content.substring(7, content.indexOf("</title>")));
+              } else if ( content.startsWith("<h1>") && content.indexOf("</h1>") != -1 ) {
+                doc.setTitle(content.substring(4, content.indexOf("</h1>")));
+              } else if ( content.startsWith("<h2>") && content.indexOf("</h2>") != -1 ) {
+                doc.setTitle(content.substring(4, content.indexOf("</h2>")));
               }
               doc.setMarkup(content);
               if ( doc.getType().equals("md") ||
