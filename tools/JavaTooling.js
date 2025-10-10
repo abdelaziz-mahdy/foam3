@@ -174,6 +174,7 @@ foam.POM({
       this.info('Runtime journals deleted.');
       this.emptyDir(JOURNAL_HOME);
       this.emptyDir(SAF_HOME);
+      this.emptyDir(DOCUMENT_HOME);
     }],
 
     genImages: ['gen-images', 'Prepare images from inclusion in jar.', [], function() {
