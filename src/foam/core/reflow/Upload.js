@@ -699,9 +699,9 @@ foam.CLASS({
       }
 
       // Process ALL mappings using UploadSink method
-      
+
       sink.processAllMappings(obj, rowData);
-      
+
 
       return obj;
     },
@@ -727,7 +727,7 @@ foam.CLASS({
       for ( var i = 0 ; i < a.length ; i++ ) {
         var sourceObj = a[i];
         var targetObj = this.of.create();
-        
+
         // Create rowData from source object properties
         var rowData = {};
         for ( var prop in sourceObj.instance_ ) {
@@ -737,9 +737,9 @@ foam.CLASS({
         }
 
         // Apply mappings directly using rowData
-        
+
         sink.processAllMappings(targetObj, rowData);
-        
+
 
         await sink.put(targetObj);
       }
@@ -772,18 +772,18 @@ foam.CLASS({
       for ( var i = 0 ; i < children.length ; i++ ) {
         var node = children[i];
         if ( this.tagName && node.tagName !== this.tagName ) continue;
-        
+
         var obj = this.objectifyXML(node);
-        
+
         // Extract rowData from XML node for mapping
         var rowData = {};
         var nodeAttrs = node.getAttributeNames();
-        for ( var j = 0; j < node.children.length; j++ ) {
+        for ( var j = 0 ; j < node.children.length ; j++ ) {
           var childNode = node.children[j];
           if ( childNode.firstChild ) {
             rowData[childNode.tagName] = childNode.firstChild.nodeValue;
           }
-          for ( var k = 0; k < nodeAttrs.length; k++ ) {
+          for ( var k = 0 ; k < nodeAttrs.length ; k++ ) {
             var attrName = nodeAttrs[k];
             rowData[childNode.tagName + '.' + attrName] = node.getAttribute(attrName);
           }
@@ -791,7 +791,7 @@ foam.CLASS({
 
         // Apply mappings directly using rowData
         sink.processAllMappings(obj, rowData);
-        
+
 
         await sink.put(obj);
       }
@@ -834,7 +834,7 @@ foam.CLASS({
 
           // Apply mappings directly using rowData (handles spaces in column names)
           sink.processAllMappings(obj, rowData);
-          
+
 
           await sink.put(obj);
           /*
