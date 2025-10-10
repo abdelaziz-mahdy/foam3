@@ -27,7 +27,7 @@ public class CSVEscapeStringParser implements Parser {
   }
 
   public PStream parse(PStream ps, ParserContext x) {
-    if ( ps == null ) return null;
+    if ( ps == null || ! ps.valid() ) return null;
     char head = ps.head();
     if ( head != ESCAPE ) return null;
 

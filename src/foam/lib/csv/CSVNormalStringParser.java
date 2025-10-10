@@ -54,10 +54,7 @@ public class CSVNormalStringParser implements Parser {
       ps = ps.tail();
     }
 
-    if ( ! ps.valid() && sb.toString().equals("") ) {
-      return null;
-    }
-
+    // Empty fields are valid in CSV (e.g., consecutive commas: ,,)
     return ps.setValue(sb.toString());
   }
 
