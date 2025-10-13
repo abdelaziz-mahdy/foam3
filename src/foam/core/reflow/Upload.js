@@ -206,8 +206,8 @@ foam.CLASS({
       name: 'daoKey',
       label: 'DAO',
       adapt: function(o, n) {
-        if ( this.__context__[n] ) return n;
         if ( this.__context__[n + 'DAO'] ) return n + 'DAO';
+        if ( this.__context__[n] ) return n;
         if ( n.endsWith('s') ) return n.substring(0, n.length-1) + 'DAO';
         return n;
       }
@@ -329,7 +329,7 @@ foam.CLASS({
       },
       hidden: true
     },
-    { name: 'block', hidden: true, postSet: function(o, n) { if ( ! n ) debugger; } },
+    { name: 'block', hidden: true },
     {
       name: 'of',
       transient: true,
@@ -420,6 +420,16 @@ foam.CLASS({
   ],
 
   methods: [
+    function init() {
+      this.SUPER();
+
+      if ( this.currentBlock ) {
+        this.block        = this.currentBlock;
+        this.block.upload = this;
+        this.block.value  = this.DAOHolder.create({preview: this.data});
+      }
+    },
+
     function onFilesChanged(files) {
       var foamFiles = [];
       for ( var i = 0 ; i < files.length ; i++ ) {
@@ -437,16 +447,6 @@ foam.CLASS({
         }
       }
       this.uploadedFiles = foamFiles;
-    },
-
-    function init() {
-      this.SUPER();
-
-      if ( this.currentBlock ) {
-        this.block        = this.currentBlock;
-        this.block.upload = this;
-        this.block.value  = this.DAOHolder.create({preview: this.data});
-      }
     },
 
     function parseFilter() {
