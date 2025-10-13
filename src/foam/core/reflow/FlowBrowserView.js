@@ -123,7 +123,10 @@ foam.CLASS({
         .start().addClass(this.myClass())
           .start('span')
             .addClass(this.myClass('button-span'))
-            .show(this.mode$.map(function(m) { return m == foam.u2.DisplayMode.RW; }))
+            .show(self.slot(function(mode, data$selectedObjects) {
+              return mode === foam.u2.DisplayMode.RW &&
+                data$selectedObjects && Object.keys(data$selectedObjects)?.length > 0;
+            }))
             .add(multiSelectActions)
           .end()
           .start().addClass(this.myClass('top-bar'))

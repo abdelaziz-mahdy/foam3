@@ -360,6 +360,7 @@ foam.CLASS({
         callIf(config.multiSelectEnabled, function() {
           this.startContext({data: self})
             .start()
+              .show(self.selectedObjects$.map(o => Object.keys(o).length > 0 ))
               .style({
                 'display':'flex',
                 'justify-content':'flex-end',
