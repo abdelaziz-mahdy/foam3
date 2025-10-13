@@ -183,7 +183,8 @@ foam.CLASS({
   ],
   
   requires: [
-    'org.chartjs.Bar2'
+    'org.chartjs.Bar2',
+    'foam.u2.layout.ContainerWidth'
   ],
   
   properties: [
@@ -382,8 +383,8 @@ foam.CLASS({
         var barChart = this.Bar2.create({
           data: chartData,
           chartJSOptions: chartJSOptions,
-          width: this.width,
-          height: this.height
+          width$: this.width$,
+          height$: this.height$
         });
         
         
@@ -397,6 +398,13 @@ foam.CLASS({
       return x.E().add(this.chart_$);
     },
     function addToE(e) {
+      // Bind chart width to container width using ResizeObserver
+      var self = this;
+      var cw = this.ContainerWidth.create();
+      cw.initContainer(e);
+      this.onDetach(cw.inlineSize$.sub(function() { self.width = cw.inlineSize; }));
+      if ( cw.inlineSize ) this.width = cw.inlineSize;
+
       e
         .style({
           width: '100%',
@@ -418,7 +426,8 @@ foam.CLASS({
   extends: 'foam.mlang.sink.TopNGroupBy',
   
   requires: [
-    'org.chartjs.Pie2'
+    'org.chartjs.Pie2',
+    'foam.u2.layout.ContainerWidth'
   ],
   
   properties: [
@@ -590,8 +599,8 @@ foam.CLASS({
         return this.Pie2.create({
           data: chartData,
           chartJSOptions: options,
-          width: this.width,
-          height: this.height
+          width$: this.width$,
+          height$: this.height$
         });
       }
     }
@@ -602,6 +611,13 @@ foam.CLASS({
       return x.E().add(this.chart_$);
     },
     function addToE(e) { 
+      // Bind chart width to container width using ResizeObserver
+      var self = this;
+      var cw = this.ContainerWidth.create();
+      cw.initContainer(e);
+      this.onDetach(cw.inlineSize$.sub(function() { self.width = cw.inlineSize; }));
+      if ( cw.inlineSize ) this.width = cw.inlineSize;
+
       e
         .style({
           width: '100%',
@@ -628,7 +644,8 @@ foam.CLASS({
   ],
 
   requires: [
-    'org.chartjs.StackedBar2'
+    'org.chartjs.StackedBar2',
+    'foam.u2.layout.ContainerWidth'
   ],
   
   properties: [
@@ -851,8 +868,8 @@ foam.CLASS({
             datasets: datasets
           },
           chartJSOptions: chartJSOptions,
-          width: this.width,
-          height: this.height
+          width$: this.width$,
+          height$: this.height$
         });
       }
     }
@@ -863,6 +880,13 @@ foam.CLASS({
       return x.E().add(this.chart_$);
     },
     function addToE(e) { 
+      // Bind chart width to container width using ResizeObserver
+      var self = this;
+      var cw = this.ContainerWidth.create();
+      cw.initContainer(e);
+      this.onDetach(cw.inlineSize$.sub(function() { self.width = cw.inlineSize; }));
+      if ( cw.inlineSize ) this.width = cw.inlineSize;
+
       e
         .style({
           width: '100%',
@@ -883,7 +907,8 @@ foam.CLASS({
   name: 'LineChartMixin',
   
   requires: [
-    'org.chartjs.Line2'
+    'org.chartjs.Line2',
+    'foam.u2.layout.ContainerWidth'
   ],
   
   properties: [
@@ -986,12 +1011,19 @@ foam.CLASS({
       return this.Line2.create({
         data: { datasets: datasets },
         options: chartJSOptions,
-        width: this.width,
-        height: this.height
+        width$: this.width$,
+        height$: this.height$
       });
     },
     
     function addToE(e) { 
+      // Bind chart width to container width using ResizeObserver
+      var self = this;
+      var cw = this.ContainerWidth.create();
+      cw.initContainer(e);
+      this.onDetach(cw.inlineSize$.sub(function() { self.width = cw.inlineSize; }));
+      if ( cw.inlineSize ) this.width = cw.inlineSize;
+
       e
         .style({
           width: '100%',
@@ -1554,30 +1586,33 @@ foam.CLASS({
         textAlign: self.alignment$.map(function(alignment) { return alignment.textAlign }),
         width: '100%'
       });
-      if ( self.icon ) {
-        e.start('div')
-          .style({
-            marginBottom: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          })
-          .start(self.Image, {
-            role: 'presentation',
-            ...(
-              self.theme && self.theme.glyphs && self.theme.glyphs[self.icon] ? 
-              { glyph: self.theme.glyphs[self.icon] } : 
-              { data: self.icon, embedSVG: true }
-            )
-          })
-          .style({
-            width: this.iconSize$,
-            height: this.iconSize$,
-            color: this.iconColor$.map(v => self.getColorFromToken(v))
-          })
-          .end()
-        .end();
-      }
+
+      e.add(this.dynamic(function(icon) {
+        if ( icon ) {
+          this.start('div')
+            .style({
+              marginBottom: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            })
+            .start(self.Image, {
+              role: 'presentation',
+              ...(
+                self.theme && self.theme.glyphs && self.theme.glyphs[icon] ?
+                { glyph: self.theme.glyphs[icon] } :
+                { data: icon, embedSVG: true }
+              )
+            })
+            .style({
+              width: self.iconSize$,
+              height: self.iconSize$,
+              color: self.iconColor$.map(v => self.getColorFromToken(v))
+            })
+            .end()
+          .end();
+        }
+      }));
       e.start('div')
           .style({
             fontSize: this.labelFontSize$,
