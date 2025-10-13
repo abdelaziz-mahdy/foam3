@@ -2260,6 +2260,7 @@ foam.CLASS({
       class: 'Enum',
       of: 'foam.u2.DisplayMode',
       name: 'mode',
+      hidden: true,
       attribute: true,
       postSet: function(_, mode) { this.updateMode_(mode); },
       expression: function(controllerMode) {
