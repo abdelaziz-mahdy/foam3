@@ -299,7 +299,10 @@ foam.CLASS({
   properties: [
     {
       class: 'StringArray',
-      name: 'columns'
+      name: 'columns',
+      postSet: function(o, n) {
+        this.columnStorage.setItem('key', n);
+      }
     },
     {
       name: 'selection', hidden: true

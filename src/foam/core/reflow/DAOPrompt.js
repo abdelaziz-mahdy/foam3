@@ -386,7 +386,7 @@ foam.CLASS({
           setItem: function(k, v) {
             this[k] = v;
             // save column updates from tableview
-            self.columns = self.getColumnNamesFromStorage(v);
+            self.columns = v;
           },
           removeItem: function(k) {
             delete this[k];
