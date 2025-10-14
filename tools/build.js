@@ -398,6 +398,10 @@ globalThis['ENVS'] = ENVS;
 buildEnv(ENVS);
 
 // Export functions for Tooling and Build POM tasks
+// Useful absolute paths for tooling regardless of CWD
+const FOAM3_TOOLS_DIR = __dirname;                 // .../foam3/tools
+const FOAM3_DIR       = join(__dirname, '..');     // .../foam3
+
 EXPORTS = Object.assign(EXPORTS, {
   adaptOrCreateArgs,
   addJournal,
@@ -414,6 +418,8 @@ EXPORTS = Object.assign(EXPORTS, {
   execute,
   execSync,
   existsSync,
+  FOAM3_DIR,
+  FOAM3_TOOLS_DIR,
   findOption,
   findTask,
   flag,
@@ -511,17 +517,28 @@ OPTIONS = addOptions({
 
 // explicitly add journal to POM list, intented to be called
 // after pom() has setup the initial list
-function addJournal(name) {
-  let fn = name && `${PROJECT_HOME}/deployment/${name}/pom`;
-  if ( ! existsSync(fn + '.js') ) {
-    let fn2 = `${PROJECT_HOME}/foam3/deployment/${name}/pom`;
-    if ( ! existsSync(fn2 + '.js') ) {
-      error('POM not found ' + fn + '.js');
-      fn = null;
-    } else {
-      fn = fn2;
+function addJournal(name, where) {
+  let fn = null;
+
+  // Explicit source selection when provided
+  if ( where === 'foam3' ) {
+    fn = `${FOAM3_DIR}/deployment/${name}/pom`;
+  } else if ( where === 'project' ) {
+    fn = `${PROJECT_HOME}/deployment/${name}/pom`;
+  } else {
+    // Default behaviour: prefer project, then fall back to foam3
+    fn = name && `${PROJECT_HOME}/deployment/${name}/pom`;
+    if ( ! existsSync(fn + '.js') ) {
+      let fn2 = `${FOAM3_DIR}/deployment/${name}/pom`;
+      if ( ! existsSync(fn2 + '.js') ) {
+        error('POM not found ' + fn + '.js');
+        fn = null;
+      } else {
+        fn = fn2;
+      }
     }
   }
+
   if ( fn )
     POMS = comma(POMS, fn);
 }
