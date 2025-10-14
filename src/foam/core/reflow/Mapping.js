@@ -42,6 +42,11 @@ foam.ENUM({
       name: 'DDMMYYYY',
       label: 'dd/mm/yyyy',
       documentation: 'Day-Month-Year format (dd/mm/yyyy, dd-mm-yyyy, ddmmyyyy, dd/mm/yy, dd-mm-yy, ddmmyy)'
+    },
+    {
+      name: 'YYYYDDMM',
+      label: 'yyyy/dd/mm',
+      documentation: 'Year-Day-Month format (yyyy/dd/mm, yyyy-dd-mm, yyyyddmm, yy/dd/mm, yy-dd-mm, yyddmm)'
     }
   ]
 });
@@ -135,7 +140,7 @@ foam.CLASS({
       name: 'dateFormat',
       label: '',
       value: 'STANDARD',
-      help: 'Standard formats support: yyyy-mm-dd, yyyy/mm/dd, yyyymmdd, mm/dd/yyyy, mm-dd-yyyy, mmddyyyy. Select dd/mm/yyyy if your dates are in Day-Month-Year format (supports both 2-digit and 4-digit years).',
+      help: 'Standard format supports most common date formats (yyyy-mm-dd, mm/dd/yyyy, etc.). If your dates don\'t parse correctly, select a different format option.',
       documentation: 'Date format for this field (only applies to Date/DateTime properties)',
       visibility: function(type, prop) {
         // Only show for Date/DateTime properties that use FIELD or CONSTANT mapping
@@ -213,6 +218,11 @@ foam.CLASS({
       // Only convert if explicitly set to DDMMYYYY format
       if ( this.dateFormat === this.DateFormat.DDMMYYYY ) {
         return this.convertDayFirstFormat(dateStr);
+      }
+
+      // Convert if explicitly set to YYYYDDMM format
+      if ( this.dateFormat === this.DateFormat.YYYYDDMM ) {
+        return this.convertYearDayMonthFormat(dateStr);
       }
 
       // Otherwise return as-is for standard format handling
@@ -332,6 +342,57 @@ foam.CLASS({
       }
 
       return fullYear.toString();
+    },
+
+    function convertYearDayMonthFormat(dateStr) {
+      /**
+       * Converts year-day-month date formats to yyyy-mm-dd format.
+       *
+       * Handles delimited formats:
+       *   - yyyy/dd/mm or yyyy-dd-mm (with 4-digit year)
+       *   - yy/dd/mm or yy-dd-mm (with 2-digit year)
+       *
+       * Handles compact formats:
+       *   - yyyyddmm (8 digits with 4-digit year)
+       *   - yyddmm (6 digits with 2-digit year)
+       *
+       * 2-digit years are expanded to 4-digit years using sliding window logic.
+       *
+       * @param {string} dateStr - Date string to convert
+       * @returns {string} Normalized date in yyyy-mm-dd format, or original if cannot parse
+       */
+      if ( ! dateStr ) return dateStr;
+
+      // Try delimited format with 4-digit year: yyyy/dd/mm or yyyy-dd-mm
+      var match = dateStr.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+      if ( match ) {
+        // Format is yyyy/dd/mm, so match[1] is year, match[2] is day, match[3] is month
+        return this.formatDateParts(match[2], match[3], match[1]);
+      }
+
+      // Try delimited format with 2-digit year: yy/dd/mm or yy-dd-mm
+      match = dateStr.match(/^(\d{2})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+      if ( match ) {
+        var fullYear = this.expandTwoDigitYear(match[1]);
+        return this.formatDateParts(match[2], match[3], fullYear);
+      }
+
+      // Try compact format with 4-digit year: yyyyddmm (8 digits)
+      match = dateStr.match(/^(\d{4})(\d{2})(\d{2})$/);
+      if ( match ) {
+        // Format is yyyyddmm, so match[1] is year, match[2] is day, match[3] is month
+        return this.formatDateParts(match[2], match[3], match[1]);
+      }
+
+      // Try compact format with 2-digit year: yyddmm (6 digits)
+      match = dateStr.match(/^(\d{2})(\d{2})(\d{2})$/);
+      if ( match ) {
+        var fullYear = this.expandTwoDigitYear(match[1]);
+        return this.formatDateParts(match[2], match[3], fullYear);
+      }
+
+      // Couldn't parse, return as-is and let foam.lang.Date.adapt handle it
+      return dateStr;
     },
 
     function formatDateParts(day, month, year) {
