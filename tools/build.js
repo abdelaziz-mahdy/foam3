@@ -715,6 +715,15 @@ task('tooling', 'Prepare build environment', [], function tooling() {
       // TODO: look in other directories
       // **/tools/
     }
+    // Last option: look under PROJECT_HOME/tools for shared project-level tooling
+    if ( ! found ) {
+      let fn3 = join(PROJECT_HOME, `tools/${name}Tooling`);
+      fn = fn3;
+      if ( existsSync(fn + '.js') ) {
+        tps = comma(tps, fn);
+        found = true;
+      }
+    }
     if ( ! found ) {
       error(`[build] tooling ${name} not found in ${fn1} or ${fn2}`);
     }
