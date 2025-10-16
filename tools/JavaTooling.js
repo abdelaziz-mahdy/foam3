@@ -151,7 +151,7 @@ foam.POM({
       this.ensureDir(this.join(BUILD_DIR, 'package'));
       // Notice that the argument to the second -C is relative to the directory from the first -C, since -C
       this.log(`buildTar TARBALL_PATH:${TARBALL_PATH}`);
-      const toolsDeploy = this.join(this.FOAM3_TOOLS_DIR, 'deploy');
+      const toolsDeploy = this.join(FOAM_TOOLS_DIR, 'deploy');
       this.execSync(`tar -a -cf ${TARBALL_PATH} -C ${toolsDeploy} bin etc -C${require('path').resolve(BUILD_DIR)} lib`, { stdio: VERBOSE ? 'inherit' : 'ignore' });
     }],
 
@@ -198,9 +198,9 @@ foam.POM({
 
     deployBin: ['deploy-bin', 'Copy bash files to deployment', [], function() {
       this.ensureDir(this.join(APP_HOME, 'bin'));
-      this.copyDir(this.join(this.FOAM3_TOOLS_DIR, 'deploy', 'bin'), this.join(APP_HOME, 'bin'));
+      this.copyDir(this.join(FOAM_TOOLS_DIR, 'deploy', 'bin'), this.join(APP_HOME, 'bin'));
       this.ensureDir(this.join(APP_HOME, 'etc'));
-      this.copyDir(this.join(this.FOAM3_TOOLS_DIR, 'deploy', 'etc'), this.join(APP_HOME, 'etc'));
+      this.copyDir(this.join(FOAM_TOOLS_DIR, 'deploy', 'etc'), this.join(APP_HOME, 'etc'));
     }],
 
     deployDocuments: ['deploy-documents', 'Deploy documents from DOCUMENT_OUT to DOCUMENT_HOME.', ['setupDirs'], function() {

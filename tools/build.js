@@ -397,11 +397,6 @@ globalThis['ENVS'] = ENVS;
 // Configure build variables
 buildEnv(ENVS);
 
-// Export functions for Tooling and Build POM tasks
-// Useful absolute paths for tooling regardless of CWD
-const FOAM3_TOOLS_DIR = __dirname;                 // .../foam3/tools
-const FOAM3_DIR       = join(__dirname, '..');     // .../foam3
-
 EXPORTS = Object.assign(EXPORTS, {
   adaptOrCreateArgs,
   addJournal,
@@ -418,8 +413,6 @@ EXPORTS = Object.assign(EXPORTS, {
   execute,
   execSync,
   existsSync,
-  FOAM3_DIR,
-  FOAM3_TOOLS_DIR,
   findOption,
   findTask,
   flag,
@@ -490,6 +483,8 @@ OPTIONS = addOptions({
           }
         ],
   flags: ['f', 'flags', 'FLAGS', 'Flags passed to pmake. Explicitly set with --flags:test, for example.', '', arg => FLAGS = arg ],
+  foamDir: ['', 'foam-dir', 'FOAM_DIR', 'For a FOAM application, the FOAM repository is installed under foam3/, relative to application. To simplify build logic, FOAM itself relies on a soft link foam3 pointing to itself ../foam3.', () => join(__dirname, '..'), arg => FOAM_DIR = arg ],
+  foamToolsDir: ['', 'foam3-tools-dir', 'FOAM_TOOLS_DIR', 'FOAM tools directory. Defaults to where build.js is found.', () => __dirname, arg => FOAM_TOOLS_DIR = arg ],
   help: [ 'h', 'help', 'HELP', 'Print usage information for environment variables (envs), options, and tasks.  Narrow output with --help:tasks, for example. Or show help for a particular topic with --help:foo where foo is the name of an option or task.', '', arg => {
     HELP = true;
     TOPIC_HELP = arg;
@@ -522,14 +517,14 @@ function addJournal(name, where) {
 
   // Explicit source selection when provided
   if ( where === 'foam3' ) {
-    fn = `${FOAM3_DIR}/deployment/${name}/pom`;
+    fn = `${FOAM_DIR}/deployment/${name}/pom`;
   } else if ( where === 'project' ) {
     fn = `${PROJECT_HOME}/deployment/${name}/pom`;
   } else {
     // Default behaviour: prefer project, then fall back to foam3
     fn = name && `${PROJECT_HOME}/deployment/${name}/pom`;
     if ( ! existsSync(fn + '.js') ) {
-      let fn2 = `${FOAM3_DIR}/deployment/${name}/pom`;
+      let fn2 = `${FOAM_DIR}/deployment/${name}/pom`;
       if ( ! existsSync(fn2 + '.js') ) {
         error('POM not found ' + fn + '.js');
         fn = null;
