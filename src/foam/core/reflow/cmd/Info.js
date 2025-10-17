@@ -39,11 +39,13 @@ Application:     ${health.appName}
 Version:         ${health.version}
 Address:         ${window.location.origin}
 Port:            ${health.port}
+User Agent:      ${navigator.userAgent}
+Projects:        ${appConfig.pom}
 Flags:           ${appConfig.flags}
-POM:             ${appConfig.pom}
-User             (${user.id}) ${user.toSummary()}
-RealUser         (${realUser.id}) ${realUser.toSummary()}
+Effective User   (${user.id}) ${user.toSummary()}
+Real User        (${realUser.id}) ${realUser.toSummary()}
 Group:           ${group.toSummary()}
+SPID:            ${user.spid}
 Theme:           ${theme.id}
 Timezone:        ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 Locale:          ${foam.locale}
@@ -51,12 +53,13 @@ Status:          ${foam.core.app.HealthStatus.forOrdinal(health.status).label}
 Mode:            ${foam.core.app.Mode.forOrdinal(health.mode).label}
 Current Time:    ${new Date().toISOString()}
 Boot Time:       ${new Date(health.bootTime).toISOString()}
-Uptime:          ${Math.floor(health.upTime / 1000 / 60)} minutes
+Uptime:          ${foam.lang.Duration.duration(health.upTime, 3)}
 Memory Max:      ${(health.memoryMax / 1024 / 1024).toFixed(1)} MB
 Memory Total:    ${(health.memoryTotal / 1024 / 1024).toFixed(1)} MB
 Memory Free:     ${(health.memoryFree / 1024 / 1024).toFixed(1)} MB
 Memory Used:     ${(health.memoryUsed / 1024 / 1024).toFixed(1)} MB
-Memory Used %:   ${health.memoryUsedPercent.toFixed(1)}%
+Memory Used:     ${health.memoryUsedPercent.toFixed(1)}%
+Client Memory:   ${navigator.deviceMemory} GB
 Active Alarms:   ${health.alarms}
       `).end();
     }
