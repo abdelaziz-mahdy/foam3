@@ -28,7 +28,7 @@ falling back to the CONTENT_SECURITY_POLICY defined in CSpec "http".
     'foam.util.SafetyUtil',
     'jakarta.servlet.*',
     'jakarta.servlet.http.HttpServletResponse',
-    'java.util.HashMap',
+    'java.util.concurrent.ConcurrentHashMap',
     'java.util.Map'
   ],
 
@@ -41,7 +41,7 @@ falling back to the CONTENT_SECURITY_POLICY defined in CSpec "http".
     {
       name: 'cache',
       class: 'Map',
-      javaFactory: 'return new HashMap();',
+      javaFactory: 'return new ConcurrentHashMap();',
       visibility: 'HIDDEN'
     }
   ],
