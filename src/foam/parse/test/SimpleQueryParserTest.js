@@ -165,7 +165,7 @@ foam.CLASS({
             x.test(this.isValid(" loginEnabled IS FALSE", "EQ(foam.core.auth.User.loginEnabled, false)"), "Boolean Test2: The enabled is false");
 
             // Parentheses tests
-            x.test(this.isValid("( id = 6 )", "EQ(foam.core.auth.User.id, 6)"), "Test1: The id equal to the value with parentheses");
+            x.test(this.isValid("( id = 6 )", "EQ(foam.core.auth.User.id, 6)"), "Parentheses Test1: The id equal to the value with parentheses");
             x.test(this.isValid(" (id=17 AND id<9) ", "AND(EQ(foam.core.auth.User.id, 17),LT(foam.core.auth.User.id, 9))"), "Parentheses Test2: The id equal to the value and less than another value with parentheses");
             x.test(this.isValid(" (id=18 OR id<10) ", 'OR(EQ(foam.core.auth.User.id, 18),LT(foam.core.auth.User.id, 10))'), "Parentheses Test3: The id equal to the value or less than another value with parentheses");
   

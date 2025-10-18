@@ -18,8 +18,6 @@ foam.CLASS({
     foam.pattern.Multiton.create({property: 'of'})
   ],
 
-  // TODO(braden): Support KEYWORD predicates and queries on them.
-
   requires: [
     'foam.mlang.Constant',
     'foam.mlang.predicate.And',
@@ -105,7 +103,7 @@ foam.CLASS({
             sym('rangePropPredicates')
           ),
 
-          // opening bracket consumed by propPredicates
+          // opening parentheses consumed by propPredicates
           paren: seq1(3, sym('ws'), '(', sym('ws'), sym('query'), sym('ws'), ')'),
 
           ws: repeat0(' '),
@@ -355,7 +353,7 @@ foam.CLASS({
           compareDate: function(v) {
             return {
               operator: v[0],
-              value: v[1]? {start: v[1][0], end: v[1][1]} : null // date range, expect for EMPTY operators
+              value: v[1]? {start: v[1][0], end: v[1][1]} : null // date range, except for EMPTY operators
             };
           },
 
@@ -374,10 +372,8 @@ foam.CLASS({
           // objects: [start, end]. The start is inclusive and the end exclusive.
           // Using these objects, both ranges (date:2014, date:2014-05..2014-06)
           // and open-ended ranges (date > 2014-01-01) can be computed higher up.
-          // Date formats:
-          // YYYY-MM-DDTHH:MM, YYYY-MM-DDTHH, YYYY-MM-DD, YYYY-MM, YY/MM/DD, YYYY
           'literal date': function(v) {
-            let defaults = [0, 1, 1, 12, 0, 0, 0]; // default values for missing date parts
+            let defaults = [0, 1, 1, 12]; // default values for missing date parts since we want the dates to default to noon UTC
             let values = v.filter((x, i) => i % 2 === 0); // remove separators
             let i = values.length;
             while (values.length < 4) {
@@ -386,7 +382,7 @@ foam.CLASS({
             values[0] = values[0] < 100 ? values[0] + 2000 : values[0], // convert 2-digit year to 4-digit
             values[1] -= 1; // month is zero-based
             let start = new Date(Date.UTC.apply(null, values));
-            values[i - 1]++; // bump last value for end of range
+            values[i - 1]++; // bump last given value for end of range
             let end  = new Date(Date.UTC.apply(null, values))
             return [ start, end ];
           },
