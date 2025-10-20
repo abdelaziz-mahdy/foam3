@@ -36,9 +36,9 @@ foam.CLASS({
             var method = current[methodName];
             if ( typeof method === 'function' ) {
               current = method.call(current);
-            } else {
-              current = null;
+              continue;
             }
+            current = null;
           } else {
             current = current[part];
           }
@@ -46,12 +46,10 @@ foam.CLASS({
         }
 
         // If we successfully resolved the dotted path, use it
-        if ( current ) {
-          return current;
-        } else {
-          console.error('Could not resolve dotted DAO path:', daoKey);
-          return null;
-        }
+        if ( current ) return current;
+
+        console.error('Could not resolve dotted DAO path:', daoKey);
+        return null;
       }
 
       // Enhanced resolution logic from DAOPrompt
@@ -59,23 +57,20 @@ foam.CLASS({
         // Try plural+DAO first (preserves exact name), then fallback to singular+DAO
         if ( this.scope && this.scope[daoKey + 'DAO'] ) {
           return this.scope[daoKey + 'DAO'];
-        } else if ( this.__context__[daoKey + 'DAO'] ) {
+        }
+        if ( this.__context__[daoKey + 'DAO'] ) {
           // Return the string key for context resolution
           return daoKey + 'DAO';
-        } else {
-          // Try singular version
-          var singular = daoKey.substring(0, daoKey.length-1) + 'DAO';
-          if ( this.__context__[singular] ) {
-            return singular;
-          }
         }
-      } else if ( this.__context__[daoKey + 'DAO'] ) {
-        return daoKey + 'DAO';
-      } else if ( this.scope && this.scope[daoKey + 'DAO'] ) {
-        return this.scope[daoKey + 'DAO'];
-      } else if ( this.scope && this.scope[daoKey] ) {
-        return this.scope[daoKey];
+        // Try singular version
+        var singular = daoKey.substring(0, daoKey.length-1) + 'DAO';
+        if ( this.__context__[singular] ) {
+          return singular;
+        }
       }
+      if ( this.__context__[daoKey + 'DAO'] ) return daoKey + 'DAO';
+      if ( this.scope && this.scope[daoKey + 'DAO'] ) return this.scope[daoKey + 'DAO'];
+      if ( this.scope && this.scope[daoKey] ) return this.scope[daoKey];
 
       // Try exact key first in scope
       if ( this.scope && this.scope[daoKey] ) return this.scope[daoKey];
@@ -97,22 +92,17 @@ foam.CLASS({
       // Handle plural ending with 's'
       if ( daoKey.endsWith('s') ) {
         // Try plural+DAO first
-        if ( this.scope && this.scope[daoKey + 'DAO'] ) {
-          return daoKey + 'DAO';
-        } else if ( this.__context__[daoKey + 'DAO'] ) {
-          return daoKey + 'DAO';
-        } else {
-          // Try singular version
-          var singular = daoKey.substring(0, daoKey.length-1) + 'DAO';
-          if ( this.__context__[singular] ) {
-            return singular;
-          }
-        }
-      } else {
-        // Try with DAO suffix
-        if ( this.__context__[daoKey + 'DAO'] ) return daoKey + 'DAO';
         if ( this.scope && this.scope[daoKey + 'DAO'] ) return daoKey + 'DAO';
+        if ( this.__context__[daoKey + 'DAO'] ) return daoKey + 'DAO';
+
+        // Try singular version
+        var singular = daoKey.substring(0, daoKey.length-1) + 'DAO';
+        if ( this.__context__[singular] ) return singular;
       }
+
+      // Try with DAO suffix
+      if ( this.__context__[daoKey + 'DAO'] ) return daoKey + 'DAO';
+      if ( this.scope && this.scope[daoKey + 'DAO'] ) return daoKey + 'DAO';
 
       return daoKey;
     },
