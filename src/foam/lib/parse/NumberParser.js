@@ -5,7 +5,7 @@
  */
 
 foam.CLASS({
-  package: 'foam.util',
+  package: 'foam.lib.parse',
   name: 'NumberParser',
 
   documentation: `
@@ -26,27 +26,27 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'initializedLocale_',
+      name: 'initializedLocale',
       documentation: 'Tracks which locale was last initialized to support lazy initialization',
       hidden: true,
       transient: true
     },
     {
       class: 'String',
-      name: 'groupSeparator_',
+      name: 'groupSeparator',
       documentation: 'Thousands grouping separator character detected from locale (e.g., "," for en-US, "." for de-DE, " " for fr-FR)',
       hidden: true,
       transient: true
     },
     {
       class: 'String',
-      name: 'decimalSeparator_',
+      name: 'decimalSeparator',
       documentation: 'Decimal separator character detected from locale (e.g., "." for en-US, "," for de-DE and fr-FR)',
       hidden: true,
       transient: true
     },
     {
-      name: 'numeralMap_',
+      name: 'numeralMap',
       documentation: 'Function that maps locale-specific numeral characters to standard digits (for non-Arabic numeral locales)',
       hidden: true,
       transient: true,
@@ -60,10 +60,10 @@ foam.CLASS({
       code: function() {
         if ( typeof Intl === 'undefined' ) {
           // Fallback for environments without Intl
-          this.groupSeparator_ = ',';
-          this.decimalSeparator_ = '.';
-          this.numeralMap_ = null;
-          this.initializedLocale_ = this.locale;
+          this.groupSeparator = ',';
+          this.decimalSeparator = '.';
+          this.numeralMap = null;
+          this.initializedLocale = this.locale;
           return;
         }
 
@@ -75,22 +75,22 @@ foam.CLASS({
           var groupPart = parts.find(d => d.type === 'group');
           var decimalPart = parts.find(d => d.type === 'decimal');
 
-          this.groupSeparator_ = groupPart ? groupPart.value : ',';
-          this.decimalSeparator_ = decimalPart ? decimalPart.value : '.';
+          this.groupSeparator = groupPart ? groupPart.value : ',';
+          this.decimalSeparator = decimalPart ? decimalPart.value : '.';
 
           // Create numeral map for locales with non-Arabic numerals
           var numerals = [...new Intl.NumberFormat(this.locale, {useGrouping: false}).format(9876543210)].reverse();
           var index = new Map(numerals.map((d, i) => [d, i]));
-          this.numeralMap_ = d => index.get(d);
+          this.numeralMap = d => index.get(d);
 
           // Mark this locale as initialized
-          this.initializedLocale_ = this.locale;
+          this.initializedLocale = this.locale;
         } catch (e) {
           // Fallback if locale is invalid
-          this.groupSeparator_ = ',';
-          this.decimalSeparator_ = '.';
-          this.numeralMap_ = null;
-          this.initializedLocale_ = this.locale;
+          this.groupSeparator = ',';
+          this.decimalSeparator = '.';
+          this.numeralMap = null;
+          this.initializedLocale = this.locale;
         }
       },
       javaCode: `
@@ -98,14 +98,14 @@ foam.CLASS({
           java.util.Locale javaLocale = parseLocaleString(getLocale());
           java.text.DecimalFormatSymbols symbols = new java.text.DecimalFormatSymbols(javaLocale);
 
-          setGroupSeparator_(String.valueOf(symbols.getGroupingSeparator()));
-          setDecimalSeparator_(String.valueOf(symbols.getDecimalSeparator()));
-          setInitializedLocale_(getLocale());
+          setGroupSeparator(String.valueOf(symbols.getGroupingSeparator()));
+          setDecimalSeparator(String.valueOf(symbols.getDecimalSeparator()));
+          setInitializedLocale(getLocale());
         } catch (Exception e) {
           // Fallback to US format
-          setGroupSeparator_(",");
-          setDecimalSeparator_(".");
-          setInitializedLocale_(getLocale());
+          setGroupSeparator(",");
+          setDecimalSeparator(".");
+          setInitializedLocale(getLocale());
         }
       `
     },
@@ -126,7 +126,7 @@ foam.CLASS({
         if ( str === '' ) return NaN;
 
         // Ensure separators are initialized for current locale (lazy initialization)
-        if ( this.initializedLocale_ !== this.locale ) {
+        if ( this.initializedLocale !== this.locale ) {
           this.initSeparators();
         }
 
@@ -134,14 +134,14 @@ foam.CLASS({
         str = str.replace(/[\u00A0 ]/g, '');
 
         // Remove other grouping separators (comma, period, etc.) - but not if it's a space (already removed)
-        var groupSep = this.groupSeparator_;
+        var groupSep = this.groupSeparator;
         if ( groupSep && groupSep !== ' ' && groupSep !== '\u00A0' ) {
           var groupRegex = new RegExp('[' + this.escapeRegex(groupSep) + ']', 'g');
           str = str.replace(groupRegex, '');
         }
 
         // Count decimal separators - should be at most one
-        var decimalSep = this.decimalSeparator_;
+        var decimalSep = this.decimalSeparator;
         var decimalEscaped = this.escapeRegex(decimalSep);
         var decimalCount = (str.match(new RegExp(decimalEscaped, 'g')) || []).length;
         if ( decimalCount > 1 ) return NaN;
@@ -151,9 +151,9 @@ foam.CLASS({
         str = str.replace(decimalRegex, '.');
 
         // Map numerals if needed (for non-Arabic numeral locales)
-        if ( this.numeralMap_ ) {
+        if ( this.numeralMap ) {
           var numeralRegex = new RegExp('[' + this.getNumeralPattern() + ']', 'g');
-          str = str.replace(numeralRegex, this.numeralMap_);
+          str = str.replace(numeralRegex, this.numeralMap);
         }
 
         var result = parseFloat(str);
@@ -171,7 +171,7 @@ foam.CLASS({
 
         try {
           // Ensure separators are initialized for current locale (lazy initialization)
-          if ( getInitializedLocale_() == null || ! getInitializedLocale_().equals(getLocale()) ) {
+          if ( getInitializedLocale() == null || ! getInitializedLocale().equals(getLocale()) ) {
             initSeparators();
           }
 
@@ -180,7 +180,7 @@ foam.CLASS({
           str = str.replace(String.valueOf((char)160), "").replace(" ", "");
 
           // Remove other grouping separators (comma, period, etc.) - but not if it's a space (already removed)
-          String groupSep = getGroupSeparator_();
+          String groupSep = getGroupSeparator();
           boolean isSpace = groupSep != null && groupSep.length() == 1 &&
                            (groupSep.charAt(0) == 32 || groupSep.charAt(0) == 160);
           if ( groupSep != null && !groupSep.isEmpty() && !isSpace ) {
@@ -188,7 +188,7 @@ foam.CLASS({
           }
 
           // Count decimal separators - should be at most one
-          String decimalSep = getDecimalSeparator_();
+          String decimalSep = getDecimalSeparator();
           if ( decimalSep != null && !decimalSep.isEmpty() ) {
             int decimalCount = 0;
             for ( int i = 0; i < str.length(); i++ ) {
@@ -302,7 +302,7 @@ foam.CLASS({
         @return String of all numeral characters
       `,
       code: function() {
-        if ( ! this.numeralMap_ || typeof Intl === 'undefined' ) return '';
+        if ( ! this.numeralMap || typeof Intl === 'undefined' ) return '';
         return [...new Intl.NumberFormat(this.locale, {useGrouping: false}).format(9876543210)].join('');
       },
       javaCode: `

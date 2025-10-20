@@ -24,7 +24,7 @@ foam.CLASS({
   documentation: 'View for editing Float Properties.',
 
   requires: [
-    'foam.util.NumberParser'
+    'foam.lib.parse.NumberParser'
   ],
 
   properties: [

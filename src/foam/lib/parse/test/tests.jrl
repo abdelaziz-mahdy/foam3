@@ -1,0 +1,2 @@
+p({"class":"foam.lib.parse.test.NumberParserTest","id":"NumberParserTest","description":"NumberParser tests"})
+p({"class":"foam.lib.parse.test.NumberParserJSTest","id":"NumberParserJSTest","description":"NumberParser JS tests"})

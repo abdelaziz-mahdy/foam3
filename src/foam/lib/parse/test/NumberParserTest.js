@@ -5,7 +5,7 @@
  */
 
 foam.CLASS({
-  package: 'foam.util.test',
+  package: 'foam.lib.parse.test',
   name: 'NumberParserTest',
   extends: 'foam.core.test.Test',
 
@@ -33,7 +33,7 @@ foam.CLASS({
       name: 'NumberParserTest_parse_USLocale',
       javaCode: `
         // US locale uses comma for grouping, period for decimal
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         float num = parser.parse("1,234.56");
         test(Math.abs(num - 1234.56f) < 0.001f, "US locale - parses 1,234.56 correctly");
 
@@ -45,7 +45,7 @@ foam.CLASS({
       name: 'NumberParserTest_parse_FrenchLocale',
       javaCode: `
         // French locale uses space for grouping, comma for decimal
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("fr-FR").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("fr-FR").build();
         float num = parser.parse("1 234,56");
         test(Math.abs(num - 1234.56f) < 0.001f, "French locale - parses 1 234,56 correctly");
 
@@ -57,7 +57,7 @@ foam.CLASS({
       name: 'NumberParserTest_parse_GermanLocale',
       javaCode: `
         // German locale uses period for grouping, comma for decimal
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("de-DE").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("de-DE").build();
         float num = parser.parse("1.234,56");
         test(Math.abs(num - 1234.56f) < 0.001f, "German locale - parses 1.234,56 correctly");
 
@@ -68,7 +68,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_parse_InvalidStrings',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         float num1 = parser.parse("abc");
         test(Float.isNaN(num1), "Invalid string 'abc' returns NaN");
 
@@ -82,7 +82,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_parse_EmptyAndNull',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         float num1 = parser.parse(null);
         test(Float.isNaN(num1), "null returns NaN");
 
@@ -96,15 +96,15 @@ foam.CLASS({
     {
       name: 'NumberParserTest_parse_WithoutGroupingSeparator',
       javaCode: `
-        foam.util.NumberParser parser1 = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser1 = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         float num1 = parser1.parse("123.45");
         test(Math.abs(num1 - 123.45f) < 0.001f, "US locale - parses 123.45 without grouping");
 
-        foam.util.NumberParser parser2 = new foam.util.NumberParser.Builder(null).setLocale("fr-FR").build();
+        foam.lib.parse.NumberParser parser2 = new foam.lib.parse.NumberParser.Builder(null).setLocale("fr-FR").build();
         float num2 = parser2.parse("123,45");
         test(Math.abs(num2 - 123.45f) < 0.001f, "French locale - parses 123,45 without grouping");
 
-        foam.util.NumberParser parser3 = new foam.util.NumberParser.Builder(null).setLocale("de-DE").build();
+        foam.lib.parse.NumberParser parser3 = new foam.lib.parse.NumberParser.Builder(null).setLocale("de-DE").build();
         float num3 = parser3.parse("123,45");
         test(Math.abs(num3 - 123.45f) < 0.001f, "German locale - parses 123,45 without grouping");
       `
@@ -112,15 +112,15 @@ foam.CLASS({
     {
       name: 'NumberParserTest_parse_NegativeNumbers',
       javaCode: `
-        foam.util.NumberParser parser1 = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser1 = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         float num1 = parser1.parse("-1,234.56");
         test(Math.abs(num1 - (-1234.56f)) < 0.001f, "US locale - parses negative -1,234.56");
 
-        foam.util.NumberParser parser2 = new foam.util.NumberParser.Builder(null).setLocale("fr-FR").build();
+        foam.lib.parse.NumberParser parser2 = new foam.lib.parse.NumberParser.Builder(null).setLocale("fr-FR").build();
         float num2 = parser2.parse("-1 234,56");
         test(Math.abs(num2 - (-1234.56f)) < 0.001f, "French locale - parses negative -1 234,56");
 
-        foam.util.NumberParser parser3 = new foam.util.NumberParser.Builder(null).setLocale("de-DE").build();
+        foam.lib.parse.NumberParser parser3 = new foam.lib.parse.NumberParser.Builder(null).setLocale("de-DE").build();
         float num3 = parser3.parse("-1.234,56");
         test(Math.abs(num3 - (-1234.56f)) < 0.001f, "German locale - parses negative -1.234,56");
       `
@@ -128,7 +128,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_format_USLocale',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         String formatted = parser.format(1234.56f, null);
         test(formatted.equals("1,234.56"), "US locale - formats 1234.56 as '1,234.56'");
       `
@@ -136,7 +136,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_format_FrenchLocale',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("fr-FR").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("fr-FR").build();
         String formatted = parser.format(1234.56f, null);
         // French locale may use non-breaking space (\\u00A0) or regular space
         test(formatted.contains("234") && formatted.contains("56"), "French locale - formats 1234.56 correctly");
@@ -145,7 +145,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_format_GermanLocale',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("de-DE").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("de-DE").build();
         String formatted = parser.format(1234.56f, null);
         test(formatted.contains("234") && formatted.contains("56"), "German locale - formats 1234.56 correctly");
       `
@@ -153,7 +153,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_format_WithPrecision',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
 
         java.util.Map options1 = new java.util.HashMap();
         options1.put("minimumFractionDigits", 2);
@@ -177,7 +177,7 @@ foam.CLASS({
     {
       name: 'NumberParserTest_format_InvalidNumbers',
       javaCode: `
-        foam.util.NumberParser parser = new foam.util.NumberParser.Builder(null).setLocale("en-US").build();
+        foam.lib.parse.NumberParser parser = new foam.lib.parse.NumberParser.Builder(null).setLocale("en-US").build();
         String formatted1 = parser.format(null, null);
         test(formatted1.equals(""), "null returns empty string");
 

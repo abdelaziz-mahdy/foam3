@@ -5,7 +5,7 @@
  */
 
 foam.CLASS({
-  package: 'foam.util.test',
+  package: 'foam.lib.parse.test',
   name: 'NumberParserJSTest',
   extends: 'foam.core.test.JSTest',
 
@@ -29,7 +29,7 @@ foam.CLASS({
     },
 
     async function testParse_USLocale(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
 
       var num = parser.parse('1,234.56');
       x.test(Math.abs(num - 1234.56) < 0.001, 'US locale - parses 1,234.56 correctly');
@@ -39,7 +39,7 @@ foam.CLASS({
     },
 
     async function testParse_FrenchLocale(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'fr-FR' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'fr-FR' });
 
       // French uses space (or non-breaking space) for grouping, comma for decimal
       var num = parser.parse('1 234,56');
@@ -50,7 +50,7 @@ foam.CLASS({
     },
 
     async function testParse_GermanLocale(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'de-DE' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'de-DE' });
 
       // German uses period for grouping, comma for decimal
       var num = parser.parse('1.234,56');
@@ -61,7 +61,7 @@ foam.CLASS({
     },
 
     async function testParse_InvalidStrings(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
 
       var num1 = parser.parse('abc');
       x.test(isNaN(num1), 'Invalid string "abc" returns NaN');
@@ -74,7 +74,7 @@ foam.CLASS({
     },
 
     async function testParse_EmptyAndNull(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
 
       var num1 = parser.parse(null);
       x.test(isNaN(num1), 'null returns NaN');
@@ -87,54 +87,54 @@ foam.CLASS({
     },
 
     async function testParse_WithoutGroupingSeparator(x) {
-      var parser1 = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser1 = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
       var num1 = parser1.parse('123.45');
       x.test(Math.abs(num1 - 123.45) < 0.001, 'US locale - parses 123.45 without grouping');
 
-      var parser2 = foam.util.NumberParser.create({ locale: 'fr-FR' });
+      var parser2 = foam.lib.parse.NumberParser.create({ locale: 'fr-FR' });
       var num2 = parser2.parse('123,45');
       x.test(Math.abs(num2 - 123.45) < 0.001, 'French locale - parses 123,45 without grouping');
 
-      var parser3 = foam.util.NumberParser.create({ locale: 'de-DE' });
+      var parser3 = foam.lib.parse.NumberParser.create({ locale: 'de-DE' });
       var num3 = parser3.parse('123,45');
       x.test(Math.abs(num3 - 123.45) < 0.001, 'German locale - parses 123,45 without grouping');
     },
 
     async function testParse_NegativeNumbers(x) {
-      var parser1 = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser1 = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
       var num1 = parser1.parse('-1,234.56');
       x.test(Math.abs(num1 - (-1234.56)) < 0.001, 'US locale - parses negative -1,234.56');
 
-      var parser2 = foam.util.NumberParser.create({ locale: 'fr-FR' });
+      var parser2 = foam.lib.parse.NumberParser.create({ locale: 'fr-FR' });
       var num2 = parser2.parse('-1 234,56');
       x.test(Math.abs(num2 - (-1234.56)) < 0.001, 'French locale - parses negative -1 234,56');
 
-      var parser3 = foam.util.NumberParser.create({ locale: 'de-DE' });
+      var parser3 = foam.lib.parse.NumberParser.create({ locale: 'de-DE' });
       var num3 = parser3.parse('-1.234,56');
       x.test(Math.abs(num3 - (-1234.56)) < 0.001, 'German locale - parses negative -1.234,56');
     },
 
     async function testFormat_USLocale(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
       var formatted = parser.format(1234.56);
       x.test(formatted === '1,234.56', 'US locale - formats 1234.56 as "1,234.56"');
     },
 
     async function testFormat_FrenchLocale(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'fr-FR' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'fr-FR' });
       var formatted = parser.format(1234.56);
       // French locale may use non-breaking space (\u00A0) or regular space
       x.test(formatted.includes('234') && formatted.includes('56'), 'French locale - formats 1234.56 correctly');
     },
 
     async function testFormat_GermanLocale(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'de-DE' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'de-DE' });
       var formatted = parser.format(1234.56);
       x.test(formatted.includes('234') && formatted.includes('56'), 'German locale - formats 1234.56 correctly');
     },
 
     async function testFormat_WithPrecision(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
 
       var formatted1 = parser.format(1234.5, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       x.test(formatted1 === '1,234.50', 'US locale - formats 1234.5 with precision 2 as "1,234.50"');
@@ -147,7 +147,7 @@ foam.CLASS({
     },
 
     async function testFormat_InvalidNumbers(x) {
-      var parser = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parser = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
 
       var formatted1 = parser.format(null);
       x.test(formatted1 === '', 'null returns empty string');
@@ -158,19 +158,19 @@ foam.CLASS({
 
     async function testSeparatorDetection(x) {
       // Test that separators are correctly detected
-      var parserUS = foam.util.NumberParser.create({ locale: 'en-US' });
+      var parserUS = foam.lib.parse.NumberParser.create({ locale: 'en-US' });
       parserUS.initSeparators(); // Initialize separators
-      x.test(parserUS.groupSeparator_ === ',', 'US locale - group separator is comma');
-      x.test(parserUS.decimalSeparator_ === '.', 'US locale - decimal separator is period');
+      x.test(parserUS.groupSeparator === ',', 'US locale - group separator is comma');
+      x.test(parserUS.decimalSeparator === '.', 'US locale - decimal separator is period');
 
-      var parserFR = foam.util.NumberParser.create({ locale: 'fr-FR' });
+      var parserFR = foam.lib.parse.NumberParser.create({ locale: 'fr-FR' });
       parserFR.initSeparators(); // Initialize separators
-      x.test(parserFR.decimalSeparator_ === ',', 'French locale - decimal separator is comma');
+      x.test(parserFR.decimalSeparator === ',', 'French locale - decimal separator is comma');
 
-      var parserDE = foam.util.NumberParser.create({ locale: 'de-DE' });
+      var parserDE = foam.lib.parse.NumberParser.create({ locale: 'de-DE' });
       parserDE.initSeparators(); // Initialize separators
-      x.test(parserDE.groupSeparator_ === '.', 'German locale - group separator is period');
-      x.test(parserDE.decimalSeparator_ === ',', 'German locale - decimal separator is comma');
+      x.test(parserDE.groupSeparator === '.', 'German locale - group separator is period');
+      x.test(parserDE.decimalSeparator === ',', 'German locale - decimal separator is comma');
     }
   ]
 });
