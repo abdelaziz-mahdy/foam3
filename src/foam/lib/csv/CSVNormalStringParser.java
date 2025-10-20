@@ -20,14 +20,14 @@ import foam.lib.parse.*;
 public class CSVNormalStringParser implements Parser {
 
   private static Parser newlineParser = new CSVNewlineParser();
-  private char delimiter;
+  private char delimiter_;
 
   public CSVNormalStringParser() {
     this(',');
   }
 
   public CSVNormalStringParser(char delimiter) {
-    this.delimiter = delimiter;
+    this.delimiter_ = delimiter;
   }
 
   public PStream parse(PStream ps, ParserContext x) {
@@ -36,7 +36,7 @@ public class CSVNormalStringParser implements Parser {
     }
 
     // Check if delimiter is set in context, use it if available
-    char activeDelimiter = delimiter;
+    char activeDelimiter = delimiter_;
     if ( x != null && x.get("csvDelimiter") != null ) {
       activeDelimiter = (Character) x.get("csvDelimiter");
     }

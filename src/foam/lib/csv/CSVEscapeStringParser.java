@@ -22,14 +22,14 @@ import foam.lib.parse.*;
 public class CSVEscapeStringParser implements Parser {
   public final static char ESCAPE = '"';
   private static Parser newlineParser = new CSVNewlineParser();
-  private char delimiter;
+  private char delimiter_;
 
   public CSVEscapeStringParser() {
     this(',');
   }
 
   public CSVEscapeStringParser(char delimiter) {
-    this.delimiter = delimiter;
+    this.delimiter_ = delimiter;
   }
 
   public PStream parse(PStream ps, ParserContext x) {
@@ -38,7 +38,7 @@ public class CSVEscapeStringParser implements Parser {
     if ( head != ESCAPE ) return null;
 
     // Check if delimiter is set in context, use it if available
-    char activeDelimiter = delimiter;
+    char activeDelimiter = delimiter_;
     if ( x != null && x.get("csvDelimiter") != null ) {
       activeDelimiter = (Character) x.get("csvDelimiter");
     }
