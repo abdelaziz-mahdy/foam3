@@ -851,6 +851,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ObjectSelectDAOAgent',

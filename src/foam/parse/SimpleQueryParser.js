@@ -32,7 +32,6 @@ foam.CLASS({
     'foam.mlang.predicate.InIC',
     'foam.mlang.predicate.Lt',
     'foam.mlang.predicate.Lte',
-   // 'foam.mlang.predicate.MQLExpr',
     'foam.mlang.predicate.Not',
     'foam.mlang.predicate.Or',
     'foam.mlang.predicate.True',
@@ -93,8 +92,8 @@ foam.CLASS({
             1),
 
           and: repeat(
-              sym('expr'),
-              seq(' ', seq1(1, sym('ws'), sug(alt(literalIC('AND'), literal('&')), {text: 'AND'}))),
+            sym('expr'),
+            seq(' ', seq1(1, sym('ws'), sug(alt(literalIC('AND'), literal('&')), {text: 'AND'}))),
             1),
 
           expr: alt(
@@ -110,30 +109,32 @@ foam.CLASS({
 
           floats: repeat(sym('float'), ',', 2),
 
-          'range float': seq1(1, sym('ws'), sym('floats'), sym('ws'), ')'),      
-          
+          'range float': seq1(1, sym('ws'), sym('floats'), sym('ws'), ')'),
+
           digits: str(repeat(range('0', '9'), null, 1)),
 
-          // TODO replace '.' with an internationalized decimal point, or have the input preprocessed            
+          // TODO replace '.' with an internationalized decimal point, or have the input preprocessed
           float: seq1(1, sym('ws'), str(seq(optional('-'), sym('digits'), optional(str(seq('.', optional(sym('digits')))))))),
 
-          compareFloat: alt(seq(operator('>='), sym('float')),
-                    seq(operator('>'), sym('float')),
-                    seq(operator('<='), sym('float')),
-                    seq(operator('<'), sym('float')),
-                    seq(operator('!='), sym('float')),
-                    seq(operator('='), sym('float')),
-                    seq(operatorIn('IN RANGE'), sym('range float')),
-                    seq(operatorIn('NOT IN RANGE'), sym('range float'))),
+          compareFloat: alt(
+            seq(operator('>='), sym('float')),
+            seq(operator('>'), sym('float')),
+            seq(operator('<='), sym('float')),
+            seq(operator('<'), sym('float')),
+            seq(operator('!='), sym('float')),
+            seq(operator('='), sym('float')),
+            seq(operatorIn('IN RANGE'), sym('range float')),
+            seq(operatorIn('NOT IN RANGE'), sym('range float'))),
 
-          compareNumber: alt(seq(operator('>='), sym('number')),
-                             seq(operator('>'), sym('number')),
-                             seq(operator('<='), sym('number')),
-                             seq(operator('<'), sym('number')),
-                             seq(operator('!='), sym('number')),
-                             seq(operator('='), sym('number')),
-                             seq(operatorIn('IN'), sym('numberArray')),
-                             seq(operatorIn('NOT IN'), sym('numberArray'))),
+          compareNumber: alt(
+            seq(operator('>='), sym('number')),
+            seq(operator('>'), sym('number')),
+            seq(operator('<='), sym('number')),
+            seq(operator('<'), sym('number')),
+            seq(operator('!='), sym('number')),
+            seq(operator('='), sym('number')),
+            seq(operatorIn('IN'), sym('numberArray')),
+            seq(operatorIn('NOT IN'), sym('numberArray'))),
 
           numberArray: seq1(1, sym('ws'), sym('numbers'), sym('ws'), ')'),
 
@@ -157,7 +158,7 @@ foam.CLASS({
             sug(seq(sym('digits'), anyChar('-/'), sym('digits'), anyChar('-/'), sym('digits'), 'T',
                 sym('digits'), ':', sym('digits'),  ':', sym('digits'),  '.', sym('digits'), 'Z'),
                 {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmmZ'}),
-            // YYYY-MM-DDTHH:MM:SS.mmm (or YY)    
+            // YYYY-MM-DDTHH:MM:SS.mmm (or YY)
                 sug(seq(sym('digits'), anyChar('-/'), sym('digits'), anyChar('-/'), sym('digits'), 'T',
                 sym('digits'), ':', sym('digits'),  ':', sym('digits'),  '.', sym('digits')),
                 {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmm'}),
@@ -191,18 +192,19 @@ foam.CLASS({
 
           'range date': seq1(1, sym('ws'), sym('dates'), sym('ws'), ')'),
 
-          compareDate: alt(seq(operator('>='), sym('date')),
-                    seq(operator('>'), sym('date')),
-                    seq(operator('<='), sym('date')),
-                    seq(operator('<'), sym('date')),
-                    seq(operator('!='), sym('date')),
-                    seq(operator('='), sym('date')),
-                    seq(operatorIn('IN RANGE'), sym('range date')),
-                    seq(operatorIn('NOT IN RANGE'), sym('range date')),
-                    seq(operator('IS EMPTY')),
-                    seq(operator('IS NOT EMPTY'))),
+          compareDate: alt(
+            seq(operator('>='), sym('date')),
+            seq(operator('>'), sym('date')),
+            seq(operator('<='), sym('date')),
+            seq(operator('<'), sym('date')),
+            seq(operator('!='), sym('date')),
+            seq(operator('='), sym('date')),
+            seq(operatorIn('IN RANGE'), sym('range date')),
+            seq(operatorIn('NOT IN RANGE'), sym('range date')),
+            seq(operator('IS EMPTY')),
+            seq(operator('IS NOT EMPTY'))),
 
-          
+
           string: seq1(1, sym('ws'), alt(sym('word'), sym('quoted string'))),
 
           'quoted string': str(seq1(1, '"',
@@ -216,22 +218,23 @@ foam.CLASS({
 
           stringArray: seq1(1, sym('ws'), sym('strings'), sym('ws'), ')'),
 
-          strings: repeat(sym('string'), ',', 1),  
+          strings: repeat(sym('string'), ',', 1),
 
-          compareString: alt(seq(operator('>='), sym('string')),
-                    seq(operator('>'), sym('string')),
-                    seq(operator('>='), sym('string')),
-                    seq(operator('<='), sym('string')),
-                    seq(operator('<'), sym('string')),
-                    seq(operator('!='), sym('string')),
-                    seq(operator('='), sym('string')),
-                    seq(operator(':'), sym('string')),
-                    seq(operator('~'), sym('string')),
-                    seq(operator('CONTAINS'), sym('string')),
-                    seq(operatorIn('IN'), sym('stringArray')),
-                    seq(operatorIn('NOT IN'), sym('stringArray')),
-                    seq(operator('IS EMPTY')),
-                    seq(operator('IS NOT EMPTY'))),         
+          compareString: alt(
+            seq(operator('>='), sym('string')),
+            seq(operator('>'), sym('string')),
+            seq(operator('>='), sym('string')),
+            seq(operator('<='), sym('string')),
+            seq(operator('<'), sym('string')),
+            seq(operator('!='), sym('string')),
+            seq(operator('='), sym('string')),
+            seq(operator(':'), sym('string')),
+            seq(operator('~'), sym('string')),
+            seq(operator('CONTAINS'), sym('string')),
+            seq(operatorIn('IN'), sym('stringArray')),
+            seq(operatorIn('NOT IN'), sym('stringArray')),
+            seq(operator('IS EMPTY')),
+            seq(operator('IS NOT EMPTY'))),
         };
       }
     },
@@ -240,58 +243,67 @@ foam.CLASS({
       value: function(action, alt, nyChar, eof, join, literal, literalIC, not, notChars, optional, range,
         repeat, repeat0, seq, seq1, str, sug, sym, until) {
 
-        let cls    = this.of;
-        let propPredicates = [];
+        let cls                 = this.of;
+        let propPredicates      = [];
         let rangePropPredicates = [];
-        let props = cls.getAxiomsByClass(foam.lang.Property);
-        let operator = this.operator;
-        let operatorIn = this.operatorIn;
-        let property = (prop) => seq1(1, sym('ws'),  sug(literal(prop.name, prop), {text: prop.name, label: prop.label}));
+        let props               = cls.getAxiomsByClass(foam.lang.Property);
+        let operator            = this.operator;
+        let operatorIn          = this.operatorIn;
+        let property            = (prop) => seq1(1, sym('ws'),  sug(literal(prop.name, prop), {text: prop.name, label: prop.label}));
 
         for ( var i = 0 ; i < props.length ; i++ ) {
-
           let prop = props[i];
 
           if ( ! prop.searchable ) continue;
 
-          if (foam.lang.Int.isInstance(prop)) {
+          // Property or Referenced Property, the effective type of the Property
+          let refProp = prop;
 
+          // TODO: It would be better to handle references with a custom view:
+          // which auto-completes based on DAO searches.
+          if ( foam.lang.Reference.isInstance(prop) ) {
+            refProp = prop.of.ID;
+            if ( foam.lang.IDAlias.isInstance(refProp) ) {
+              refProp = prop.of.getAxiomByName(refProp.propName);
+            }
+          }
+
+          if ( foam.lang.Int.isInstance(refProp) ) {
             propPredicates.push(seq(property(prop), sym('compareNumber')));
-          } else if (foam.lang.Boolean.isInstance(prop)) {
-
+          }
+          else if (foam.lang.Boolean.isInstance(refProp)) {
             propPredicates.push(seq(property(prop), sym('compareBoolean')));
           }
-          else if ( foam.lang.Enum.isInstance(prop) ) {
-
+          else if ( foam.lang.Enum.isInstance(refProp) ) {
             let value = (v) => seq1(1, sym('ws'),  sug(literal(v), {text: v}));
             let enumValue  = alt.apply(null, prop.of.VALUES.map(v => value(v.name)));
             let enumArray  = seq1(0, repeat(seq1(0, enumValue, sym('ws')), ',', 1), sym('ws'),')');
 
             let compareEnum = action(
-                                    alt(seq(operator('='), enumValue),
-                                        seq(operator('!='), enumValue),
-                                        seq(operatorIn('IN'), enumArray),
-                                        seq(operatorIn('NOT IN'), enumArray)),
-                                    function(v) {
-                                        return {
-                                          operator: v[0],
-                                          value: v[1]
-                                        };
-                                    });
+              alt(seq(operator('='), enumValue),
+                  seq(operator('!='), enumValue),
+                  seq(operatorIn('IN'), enumArray),
+                  seq(operatorIn('NOT IN'), enumArray)),
+              function(v) {
+                return {
+                  operator: v[0],
+                  value: v[1]
+                };
+              });
 
             propPredicates.push(seq(property(prop), compareEnum));
           }
-          else if (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop)) {
+          else if ( foam.lang.Date.isInstance(refProp) || foam.lang.DateTime.isInstance(refProp) ) {
             rangePropPredicates.push(seq(property(prop), sym('compareDate')));
           }
-          else if (foam.lang.Float.isInstance(prop)) {
-
+          else if ( foam.lang.Float.isInstance(refProp) ) {
             propPredicates.push(seq(property(prop), sym('compareFloat')));
           }
-          else if (foam.lang.String.isInstance(prop)) {
+          else if ( foam.lang.String.isInstance(refProp) ) {
             propPredicates.push(seq(property(prop), sym('compareString')));
           }
         }
+
         // return the properties grammar map
         return {propPredicates: alt.apply(null, propPredicates), rangePropPredicates: alt.apply(null, rangePropPredicates)};
       }
@@ -299,20 +311,15 @@ foam.CLASS({
     {
       name: 'grammar_',
       factory: function() {
-
-
-        let base = foam.Function.withArgs(this.baseGrammar_, this.Parsers.create(), this);
+        let base       = foam.Function.withArgs(this.baseGrammar_,       this.Parsers.create(), this);
         let properties = foam.Function.withArgs(this.propertiesGrammar_, this.Parsers.create(), this);
-
-        let grammar = {
+        let grammar    = {
           __proto__: base,
           propPredicates: properties.propPredicates,
           rangePropPredicates: properties.rangePropPredicates
         };
-
-        let self = this;
-        let actions = {
-
+        let self       = this;
+        let actions    = {
           or: function(v) {
             return self.Or.create({ args: v });
           },
@@ -361,7 +368,7 @@ foam.CLASS({
             return v; // Pass through the already parsed date
           },
 
-          compareString: function(v) {    
+          compareString: function(v) {
             return {
               operator: v[0],
               value: v[1]
@@ -409,7 +416,7 @@ foam.CLASS({
           'range float': function(v) {
             return [ v[0][0], v[1][1] ]; // [start of first, end of second]
           },
-      
+
           propPredicates: function(v) {
             let prop   = v[0];
             let operator = v[1].operator;
@@ -437,7 +444,7 @@ foam.CLASS({
               case 'CONTAINS':
               case ':':
               case '~':
-                return self.ContainsIC.create({ arg1: prop, arg2: value });    
+                return self.ContainsIC.create({ arg1: prop, arg2: value });
               case 'IS EMPTY':
                 return self.Not.create({arg1: self.Has.create({ arg1: prop })});
               case 'IS NOT EMPTY':
@@ -445,9 +452,9 @@ foam.CLASS({
 
             }
           },
-          rangePropPredicates: function(v) {
 
-            let prop   = v[0];
+          rangePropPredicates: function(v) {
+            let prop     = v[0];
             let operator = v[1].operator;
             let value    = v[1].value;
 

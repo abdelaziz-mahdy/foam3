@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
 foam.CLASS({
   package: 'foam.parse.auto',
   name: 'AutoCompleter',
@@ -100,18 +106,20 @@ foam.CLASS({
       this.suggestions         = {};
       this.normalizedQuery     = '';
     },
+
     function toString() {
       return Object.keys(this.suggestions).join(' | ');
     },
+
     function addToE(e) {
       function containsIC(str, sub) {
         return str.toLowerCase().indexOf(sub.toLowerCase()) != -1;
       }
       var self = this;
       e.add(this.dynamic(function(autoQuery) {; // re-render when query changes
-        let keys   = Object.keys(self.suggestions);
-        let delta  = autoQuery.substring(self.maxPos);
-        let ss     = keys.sort();
+        let keys  = Object.keys(self.suggestions);
+        let delta = autoQuery.substring(self.maxPos);
+        let ss    = keys.sort();
 
         if ( delta ) ss = ss.filter(k => containsIC(k, delta));
         if ( ! ss.length ) return;
@@ -138,4 +146,3 @@ foam.CLASS({
     }
   ]
 });
-

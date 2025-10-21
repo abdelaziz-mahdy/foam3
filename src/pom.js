@@ -412,6 +412,7 @@ foam.POM({
     { name: "foam/parse/QueryParser",                                 flags: "js" },
     { name: "foam/parse/SimpleQueryParser",                           flags: "js" },
     { name: "foam/parse/auto/AutoCompleter",                          flags: "web" },
+    { name: "foam/parse/auto/SearchView",                             flags: "web" },
     { name: "foam/parse/FScriptParser",                               flags: "js" },
     { name: "foam/parse/test/FScriptParserTestUser",                  flags: "js&test|java&test" },
     { name: "foam/parse/test/FScriptParserTest",                      flags: "js&test|java&test" },
