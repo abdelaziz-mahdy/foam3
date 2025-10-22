@@ -411,6 +411,7 @@ try {
       write_(sb.get()
         .append(prefix)
         .append(OP_REMOVE)
+        .append(OP_OPEN)
         .append(record)
         .append(OP_CLOSE));
       getWriter().newLine();

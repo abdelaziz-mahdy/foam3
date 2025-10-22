@@ -203,6 +203,16 @@ foam.CLASS({
         languageDAO.setDelegate(new foam.dao.MDAO(foam.core.auth.Language.getOwnClassInfo()));
         c = (Count) languageDAO.select(COUNT());
         test ( c.getValue() == 2, "Language replay count 2 "+c);
+
+        // Remove 
+        languageDAO.remove(language);
+        languageDAO = new foam.dao.java.JDAO();
+        languageDAO.setX(x);
+        languageDAO.setFilename("languageJournal");
+        languageDAO.setDelegate(new foam.dao.MDAO(foam.core.auth.Language.getOwnClassInfo()));
+        c = (Count) languageDAO.select(COUNT());
+        test ( c.getValue() == 1, "Language replay count 1 after remove "+c);
+
       `
     },
     {
