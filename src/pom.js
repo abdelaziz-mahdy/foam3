@@ -1118,6 +1118,7 @@ foam.POM({
     { name: "foam/dao/WriteOnlyF3FileJournal",                        flags: "js|java" },
     { name: "foam/dao/test/ArrayDAOTest",                             flags: "js&test|java&test" },
     { name: "foam/dao/test/FileRollCmdTest",                          flags: "js&test|java&test" },
+    { name: "foam/dao/test/F3FileJournalTest",                        flags: "js&test|java&test" },
     { name: "foam/dao/test/OrDAOTest",                                flags: "js&test|java&test" },
     { name: "foam/lib/ExternalPropertyPredicate",                     flags: "js|java" },
     { name: "foam/lib/StorageTransientPropertyPredicate",             flags: "js|java" },
