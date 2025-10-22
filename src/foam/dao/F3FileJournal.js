@@ -86,7 +86,7 @@ foam.CLASS({
               final char operation = entry.charAt(0);
               final String strEntry = entry.subSequence(2, length - 1).toString();
 
-              if ( operation == 'v' ) {
+              if ( operation == OP_VERSION ) {
                 JSONObject obj = new JSONObject(strEntry);
                 lastVersion = (String) obj.get("version");
                 continue;
@@ -106,16 +106,16 @@ foam.CLASS({
                     return;
                   }
                   switch ( operation ) {
-                    case 'c':
+                    case OP_CREATE:
                       dao.put(obj);
                       break;
 
-                    case 'p':
+                    case OP_PUT:
                       foam.lang.FObject old = dao.find(obj.getProperty("id"));
                       dao.put(old != null ? mergeFObject(old.fclone(), obj) : obj);
                       break;
 
-                    case 'r':
+                    case OP_REMOVE:
                       dao.remove(obj);
                       break;
                   }

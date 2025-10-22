@@ -70,6 +70,7 @@ foam.CLASS({
         JSONFObjectFormatter b = new JSONFObjectFormatter();
         b.setPropertyPredicate(new StoragePropertyPredicate());
         b.setOutputShortNames(true);
+        b.setOutputDefaultClassNames(false);
         return b;
       }
       @Override
@@ -119,6 +120,11 @@ foam.CLASS({
       p.setX(x);
       return p;
     }
+
+    final static public char OP_CREATE  = 'c';
+    final static public char OP_PUT     = 'p';
+    final static public char OP_REMOVE  = 'r';
+    final static public char OP_VERSION = 'v';
   `,
 
   constants: [
@@ -126,11 +132,6 @@ foam.CLASS({
       name: 'MODIFIED_BY',
       type: 'String',
       value: '// Modified by '
-    },
-    {
-      name: 'OP_CREATE',
-      type: 'String',
-      value: 'c('
     },
     {
       name: 'OPEN_CREATE',
@@ -143,19 +144,9 @@ foam.CLASS({
       value: 'p({'
     },
     {
-      name: 'OP_PUT',
-      type: 'String',
-      value: 'p('
-    },
-    {
       name: 'OPEN_REMOVE',
       type: 'String',
       value: 'r({'
-    },
-    {
-      name: 'OP_REMOVE',
-      type: 'String',
-      value: 'r('
     },
     {
       name: 'OPEN_VERSION',
@@ -166,6 +157,11 @@ foam.CLASS({
       name: 'CLOSE',
       type: 'String',
       value: '})'
+    },
+    {
+      name: 'OP_OPEN',
+      type: 'String',
+      value: '('
     },
     {
       name: 'OP_CLOSE',
@@ -351,6 +347,7 @@ try {
         writer.write(OP_CREATE);
       else
         writer.write(OP_PUT);
+      writer.write(OP_OPEN);
       writer.append(record);
       writer.write(OP_CLOSE);
       writer.write(c);
