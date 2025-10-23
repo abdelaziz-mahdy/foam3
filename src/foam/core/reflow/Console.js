@@ -28,7 +28,6 @@ foam.CLASS({
     {
       class: 'String',
       name: 'flowName',
-      onKey: true
     },
     {
       class: 'Array',
@@ -203,7 +202,7 @@ foam.CLASS({
                 class: 'foam.u2.TextField',
                 data$: this.data.value.name$,
                 placeholder: 'Unnamed',
-                onKey: true
+                onKey: false
               })
                 .addClass(this.myClass('name'))
               .end()
@@ -938,6 +937,13 @@ foam.CLASS({
       }
     },
     {
+      class: 'Enum',
+      of: 'foam.core.reflow.FlowMode',
+      name: 'flowMode',
+      value: 'CONSOLE',
+      memorable: true
+    },
+    {
       class: 'String',
       name: 'route',
       memorable: true,
@@ -976,13 +982,6 @@ foam.CLASS({
     'input_', // Element pointer
     {
       name: 'out'
-    },
-    {
-      class: 'Enum',
-      of: 'foam.core.reflow.FlowMode',
-      name: 'flowMode',
-      value: 'CONSOLE',
-      memorable: true
     },
     {
       // class: 'Boolean',
@@ -1031,10 +1030,19 @@ foam.CLASS({
     },
     'currentBlock',
     {
+      class: 'Boolean',
+      name: 'isLoading_',
+      hidden: true,
+      transient: true,
+      value: false
+    },
+    {
       name: 'selected',
       postSet: function(o, n) {
         if ( o === n ) return;
-        if (n && n.element_) {
+        // Block scroll during loading to prevent jumping while content is being built
+        if ( this.isLoading_ ) return;
+        if ( n && n.element_ ) {
           n.element_.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       },
@@ -1653,6 +1661,7 @@ foam.CLASS({
 
         // When script name changes, check if there's existing autosave for new name
         if ( oldValue === newValue ) return;
+        if ( this.flowMode == this.FlowMode.PRESENTATION_ONLY ) return;
 
         // Check if the new name has existing autosave data that differs from current
         var existingData = this.loadAutosaveData(newValue);
@@ -1713,6 +1722,7 @@ foam.CLASS({
       code: async function() {
         if ( this.feedback_ ) return;
         this.feedback_ = true;
+        this.isLoading_ = true;
         try {
           var currentBlockName = (this.selected || this).flowName;
 
@@ -1727,6 +1737,7 @@ foam.CLASS({
           this.value.loadComplete.pub();
         } finally {
           this.feedback_ = false;
+          this.isLoading_ = false;
         }
       }
     },

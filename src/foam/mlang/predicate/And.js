@@ -87,7 +87,7 @@ return stmt.toString();`
           }
         }
 
-        this.reduce_(newArgs, TRUE, 'reduceAnd');
+        this.reduce_(newArgs, TRUE, 'reduceOr');
 
         if ( newArgs.length === 0 ) return TRUE;
         if ( newArgs.length === 1 ) return newArgs[0];
