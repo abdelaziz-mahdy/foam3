@@ -1530,7 +1530,7 @@ foam.CLASS({
     ['javaAdapt',
      `
       // convert the Date to be noon in GMT
-      val = new java.util.Date(val.getTime() / 86400000l * 86400000l + 43200000l);
+      val = val != null ? new java.util.Date(val.getTime() / 86400000l * 86400000l + 43200000l) : null;
      `
     ]
   ],
