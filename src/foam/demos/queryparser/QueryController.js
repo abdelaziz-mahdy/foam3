@@ -1,12 +1,17 @@
+/**
+ * @license
+ * Copyright 2025 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
 
 foam.CLASS({
   package: 'foam.demos.queryparser',
   name: 'QueryController',
   extends: 'foam.u2.Controller',
 
-  requires: [ 
-    'foam.parse.SimpleQueryParser', 
-    'foam.parse.auto.AutoCompleter' 
+  requires: [
+    'foam.parse.SimpleQueryParser',
+    'foam.parse.auto.AutoCompleter'
   ],
 
   properties: [
@@ -15,14 +20,14 @@ foam.CLASS({
       factory: function() {
         let qc = this.AutoCompleter.create({normalize: true});
           this.query$.follow(qc.autoQuery$);
-        return qc
-
+        return qc;
       }
     },
     {
       class: 'String',
       name: 'query',
       onKey: true,
+      width: 100,
       view: function(_, X) {
         let view = foam.u2.TextField.create();
         X.data.query$.sub(()=>view.focus());
@@ -48,6 +53,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'result',
+      width: 100,
       expression: function(predicate) {
         return predicate ? predicate.toString() : '';
       }
@@ -60,10 +66,9 @@ foam.CLASS({
 
   methods: [
     function render() {
-      this.add(this.QUERY.__); 
+      this.add(this.QUERY.__);
       this.autoCompleter.addToE(this);
       this.br().add(this.RESULT.__);
     }
   ]
-
 });
