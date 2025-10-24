@@ -596,8 +596,9 @@ foam.CLASS({
       code: function() {
         if ( ! this.WrapperNode.isInstance(this.out) ) return;
         let el = this.borderClass.create({...(this.border || {})}, this);
+        this.borderEl_.parentNode.add(el);
         this.out.moveTo(el);
-        el.replaceElement_(this.borderEl_);
+        this.borderEl_.remove();
         this.borderEl_ = el;
       }
     },
@@ -1131,10 +1132,7 @@ foam.CLASS({
         }
 
         await this.currentBlock.value?.onLoad?.();
-
-        // CRITICAL: Refresh scope after value is fully set to ensure next command can access it
-        this.refreshFlowScope();
-
+        
         if ( c.flowChildren ) {
           await this.includeScript(c.flowChildren, this.currentBlock, true);
         }
