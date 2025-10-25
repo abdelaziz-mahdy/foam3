@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [SimpleQueryParser Syntax Guide](#simplequeryparser-syntax-guide)
-  - [Basic Syntax](#basic-syntax)
+  - [Basic AQL Syntax](#basic-aql-syntax)
   - [Logical Operators](#logical-operators)
     - [AND](#and)
     - [NOT](#not)
@@ -22,15 +22,16 @@
       - [Date and DateTime Examples](#date-and-datetime-examples)
     - [Enum Expressions](#enum-expressions)
       - [Enum Examples](#enum-examples)
-    - [StringArrays](#stringarrays)
+    - [StringArray Expressions](#stringarray-expressions)
       - [StringArray Examples](#stringarray-examples)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # SimpleQueryParser Syntax Guide
 
-## Basic Syntax
-SimpleQueryParser supports property-based queries with various operators and logical combinations. All queries are case-insensitive.
+## Basic AQL Syntax
+SimpleQueryParser supports property-based queries with various operators and logical combinations. This parser is meant to work together with the 
+<code>foam.parse.auto.AutoCompleter</code> component, providing suggestions to the user as they type and it is referred to as <code>AQL</code>.
 
 ## Logical Operators
 
@@ -252,7 +253,7 @@ lifecycleState IN (ACTIVE, REJECTED)
 lifecycleState NOT IN (ACTIVE, REJECTED)
 ```
 
-### StringArrays  
+### StringArray Expressions 
 
 The expressions that are supported for StringArray properties are:
 
