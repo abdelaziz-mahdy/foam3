@@ -51,7 +51,8 @@ foam.CLASS({
             x.test(this.isValid("disabledTopics IN (tag1,tag2,tag3)", 'IN(foam.core.auth.User.disabledTopics, ["tag1", "tag2", "tag3"])'), "StringArray Test1: The disabledTopics exactly matches any of the listed values");
             x.test(this.isValid('disabledTopics NOT IN (tag1,tag2,tag3)', 'NOT(IN(foam.core.auth.User.disabledTopics, ["tag1", "tag2", "tag3"]))'), 'StringArray Test2: The disabledTopics does not exactly match any of the listed values');
             x.test(this.isValid("disabledTopics = tag1", 'IN(foam.core.auth.User.disabledTopics, "tag1")'), "StringArray Test3: The disabledTopics exactly matches one value");
-            x.test(this.isValid('disabledTopics != tag1', 'NOT(IN(foam.core.auth.User.disabledTopics, "tag1"))'), 'StringArray Test4: The disabledTopics does not exactly match one value');
+            x.test(this.isValid("disabledTopics HAS tag1", 'IN(foam.core.auth.User.disabledTopics, "tag1")'), "StringArray Test4: The disabledTopics exactly matches one value");
+            x.test(this.isValid('disabledTopics != tag1', 'NOT(IN(foam.core.auth.User.disabledTopics, "tag1"))'), 'StringArray Test5: The disabledTopics does not exactly match one value');
 
             // Float symbol tests
             x.test(this.isValidSymbol('float', "1.107", "1.107", true), "Float Test1: The float is 1.107");

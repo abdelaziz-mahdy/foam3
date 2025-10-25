@@ -254,9 +254,23 @@ lifecycleState NOT IN (ACTIVE, REJECTED)
 
 ### StringArrays  
 
-Pending ...
+The expressions that are supported for StringArray properties are:
+
+| StringArray Expression | Description |
+|-----------------------|-------------|
+| _property_ = _value_ | _property_ has _value_ as an element |
+| _property_ HAS _value_ | _property_ has _value_ as an element |
+| _property_ != _value_| _property_ does not have _value_ as an element |
+| _property_ IN (_value1_,_value2_,...) | _property_ has any of the listed values (alias of HAS ANY) |
+| _property_ NOT IN (_value1_,_value2_,...) |  _property_ has none of the listed values (alias of DOES NOT HAVE ANY) |
+
 
 #### StringArray Examples
 
-Pending ...
+```
+disabledTopics IN (topicName1,topicName2,topicName3)
+disabledTopics NOT IN (topicName1,topicName2,topicName3)
+disabledTopics = topicName
+disabledTopics != topicName
+```
 

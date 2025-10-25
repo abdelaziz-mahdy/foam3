@@ -240,6 +240,7 @@ foam.CLASS({
                     
           compareStringArray: alt(
             seq(operator('='), sym('string')),
+            seq(operator('HAS'), sym('string')),
             seq(operator('!='), sym('string')),
             seq(operatorIn('IN'), sym('stringArray')),
             seq(operatorIn('NOT IN'), sym('stringArray'))
@@ -448,6 +449,7 @@ foam.CLASS({
 
             switch (operator) {
               case '=':
+              case 'HAS':  
               if (foam.lang.StringArray.isInstance(prop)) {
                   return self.In.create({arg1: prop, arg2: value});
                 }
