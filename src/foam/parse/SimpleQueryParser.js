@@ -225,19 +225,28 @@ foam.CLASS({
           strings: repeat(sym('string'), ',', 1),
 
           compareString: alt(seq(operator('>='), sym('string')),
-                    seq(operator('>'), sym('string')),
-                    seq(operator('<='), sym('string')),
-                    seq(operator('<'), sym('string')),
-                    seq(operator('!='), sym('string')),
-                    seq(operator('='), sym('string')),
-                    seq(operator(':'), sym('string')),
-                    seq(operator('~'), sym('string')),
-                    seq(operator('CONTAINS'), sym('string')),
-                    seq(operatorIn('IN'), sym('stringArray')),
-                    seq(operatorIn('NOT IN'), sym('stringArray')),
-                    seq(operator('IS EMPTY')),
-                    seq(operator('IS NOT EMPTY'))),         
+            seq(operator('>'), sym('string')),
+            seq(operator('<='), sym('string')),
+            seq(operator('<'), sym('string')),
+            seq(operator('!='), sym('string')),
+            seq(operator('='), sym('string')),
+            seq(operator(':'), sym('string')),
+            seq(operator('~'), sym('string')),
+            seq(operator('CONTAINS'), sym('string')),
+            seq(operatorIn('IN'), sym('stringArray')),
+            seq(operatorIn('NOT IN'), sym('stringArray')),
+            seq(operator('IS EMPTY')),
+            seq(operator('IS NOT EMPTY'))),  
+                    
+          compareStringArray: alt(
+            seq(operator('='), sym('string')),
+            seq(operator('HAS'), sym('string')),
+            seq(operator('!='), sym('string')),
+            seq(operatorIn('IN'), sym('stringArray')),
+            seq(operatorIn('NOT IN'), sym('stringArray'))
+          )
         };
+
       }
     },
     {
@@ -252,31 +261,35 @@ foam.CLASS({
         let operator            = this.operator;
         let operatorIn          = this.operatorIn;
         let property            = (prop) => seq1(1, sym('ws'),  sug(literal(prop.name, prop), {text: prop.name, label: prop.label}));
+        let innerProperty       = (prop, innerProp) => { 
+              let name = prop.name + '.' + innerProp.name;
+              let expr = foam.mlang.predicate.DotF.create({arg1: prop, arg2: innerProp});
+              return seq1(1, sym('ws'), sug(literal(name, expr), {text: name}));
+        };
 
-        for ( var i = 0 ; i < props.length ; i++ ) {
-          let prop = props[i];
-
-          if ( ! prop.searchable ) continue;
+        // process a property and add its predicates to the grammar   
+        function processProp(prop, propertyParser) {
+          if ( ! prop.searchable ) return;
 
           // Property or Referenced Property, the effective type of the Property
-          let refProp = prop;
+          let type = prop;
 
           // TODO: It would be better to handle references with a custom view:
           // which auto-completes based on DAO searches.
           if ( foam.lang.Reference.isInstance(prop) ) {
-            refProp = prop.of.ID;
-            if ( foam.lang.IDAlias.isInstance(refProp) ) {
-              refProp = prop.of.getAxiomByName(refProp.propName);
+            type = prop.of.ID;
+            if ( foam.lang.IDAlias.isInstance(type) ) {
+              type = prop.of.getAxiomByName(type.propName);
             }
           }
 
-          if ( foam.lang.Int.isInstance(refProp) ) {
-            propPredicates.push(seq(property(prop), sym('compareNumber')));
+          if ( foam.lang.Int.isInstance(type) ) {
+            propPredicates.push(seq(propertyParser, sym('compareNumber')));
           }
-          else if (foam.lang.Boolean.isInstance(refProp)) {
-            propPredicates.push(seq(property(prop), sym('compareBoolean')));
+          else if (foam.lang.Boolean.isInstance(type)) {
+            propPredicates.push(seq(propertyParser, sym('compareBoolean')));
           }
-          else if ( foam.lang.Enum.isInstance(refProp) ) {
+          else if ( foam.lang.Enum.isInstance(type) ) {
             let value = (v) => seq1(1, sym('ws'),  sug(literal(v), {text: v}));
             let enumValue  = alt.apply(null, prop.of.VALUES.map(v => value(v.name)));
             let enumArray  = seq1(0, repeat(seq1(0, enumValue, sym('ws')), ',', 1), sym('ws'),')');
@@ -293,17 +306,31 @@ foam.CLASS({
                 };
               });
 
-            propPredicates.push(seq(property(prop), compareEnum));
+            propPredicates.push(seq(propertyParser, compareEnum));
           }
-          else if ( foam.lang.Date.isInstance(refProp) || foam.lang.DateTime.isInstance(refProp) ) {
-            rangePropPredicates.push(seq(property(prop), sym('compareDate')));
+          else if ( foam.lang.Date.isInstance(type)) { // all date-like properties
+            rangePropPredicates.push(seq(propertyParser, sym('compareDate')));
           }
-          else if ( foam.lang.Float.isInstance(refProp) ) {
-            propPredicates.push(seq(property(prop), sym('compareFloat')));
+          else if ( foam.lang.Float.isInstance(type) ) {
+            propPredicates.push(seq(propertyParser, sym('compareFloat')));
           }
-          else if ( foam.lang.String.isInstance(refProp) ) {
-            propPredicates.push(seq(property(prop), sym('compareString')));
+          else if ( foam.lang.String.isInstance(type) ) {
+            propPredicates.push(seq(propertyParser, sym('compareString')));
           }
+          else if ( foam.lang.StringArray.isInstance(type) ) {
+            propPredicates.push(seq(propertyParser, sym('compareStringArray')));
+          } else if ( foam.lang.FObjectProperty.isInstance(type) && prop.name !== 'language' && prop.name !== 'next' ) {
+            let innerProps = prop.of.getAxiomsByClass(foam.lang.Property);
+            for ( let i = 0 ; i < innerProps.length ; i++ ) {
+              let innerProp = innerProps[i];
+              processProp(innerProp, innerProperty(prop, innerProp));
+            }
+          }
+        }
+
+        for ( let i = 0 ; i < props.length ; i++ ) {
+          let prop = props[i];
+          processProp(prop, property(prop));
         }
 
         // return the properties grammar map
@@ -381,6 +408,13 @@ foam.CLASS({
             };
           },
 
+          compareStringArray: function(v) {
+            return {
+              operator: v[0],
+              value: v[1]
+            };
+          },
+
           // All dates are actually treated as ranges. These are arrays of Date
           // objects: [start, end]. The start is inclusive and the end exclusive.
           // Using these objects, both ranges (date:2014, date:2014-05..2014-06)
@@ -430,8 +464,15 @@ foam.CLASS({
 
             switch (operator) {
               case '=':
+              case 'HAS':  
+              if (foam.lang.StringArray.isInstance(prop)) {
+                  return self.In.create({arg1: prop, arg2: value});
+                }
                 return self.Eq.create({ arg1: prop, arg2: value});
               case '!=':
+                if (foam.lang.StringArray.isInstance(prop)) {
+                  return self.Not.create({arg1: self.In.create({arg1: prop, arg2: value})});
+                }
                 return self.Neq.create({arg1: prop, arg2: value});
               case '>=':
                 return self.Gte.create({arg1: prop, arg2: value});
