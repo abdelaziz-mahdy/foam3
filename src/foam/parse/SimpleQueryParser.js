@@ -268,24 +268,24 @@ foam.CLASS({
           if ( ! prop.searchable ) continue;
 
           // Property or Referenced Property, the effective type of the Property
-          let refProp = prop;
+          let type = prop;
 
           // TODO: It would be better to handle references with a custom view:
           // which auto-completes based on DAO searches.
           if ( foam.lang.Reference.isInstance(prop) ) {
-            refProp = prop.of.ID;
-            if ( foam.lang.IDAlias.isInstance(refProp) ) {
-              refProp = prop.of.getAxiomByName(refProp.propName);
+            type = prop.of.ID;
+            if ( foam.lang.IDAlias.isInstance(type) ) {
+              type = prop.of.getAxiomByName(type.propName);
             }
           }
 
-          if ( foam.lang.Int.isInstance(refProp) ) {
+          if ( foam.lang.Int.isInstance(type) ) {
             propPredicates.push(seq(property(prop), sym('compareNumber')));
           }
-          else if (foam.lang.Boolean.isInstance(refProp)) {
+          else if (foam.lang.Boolean.isInstance(type)) {
             propPredicates.push(seq(property(prop), sym('compareBoolean')));
           }
-          else if ( foam.lang.Enum.isInstance(refProp) ) {
+          else if ( foam.lang.Enum.isInstance(type) ) {
             let value = (v) => seq1(1, sym('ws'),  sug(literal(v), {text: v}));
             let enumValue  = alt.apply(null, prop.of.VALUES.map(v => value(v.name)));
             let enumArray  = seq1(0, repeat(seq1(0, enumValue, sym('ws')), ',', 1), sym('ws'),')');
@@ -304,16 +304,16 @@ foam.CLASS({
 
             propPredicates.push(seq(property(prop), compareEnum));
           }
-          else if ( foam.lang.Date.isInstance(refProp) || foam.lang.DateTime.isInstance(refProp) ) {
+          else if ( foam.lang.Date.isInstance(type)) { // all date-like properties
             rangePropPredicates.push(seq(property(prop), sym('compareDate')));
           }
-          else if ( foam.lang.Float.isInstance(refProp) ) {
+          else if ( foam.lang.Float.isInstance(type) ) {
             propPredicates.push(seq(property(prop), sym('compareFloat')));
           }
-          else if ( foam.lang.String.isInstance(refProp) ) {
+          else if ( foam.lang.String.isInstance(type) ) {
             propPredicates.push(seq(property(prop), sym('compareString')));
           }
-          else if (foam.lang.StringArray.isInstance(refProp)) {
+          else if (foam.lang.StringArray.isInstance(type)) {
             propPredicates.push(seq(property(prop), sym('compareStringArray')));
           }
         }
