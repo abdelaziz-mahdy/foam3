@@ -59,6 +59,21 @@ foam.CLASS({
             x.test(this.isValidSymbol('float', "-100.6", "-100.6", true), "Float Test2: The numbers -100.600");
             x.test(this.isValidSymbol('float', "113", "113.000", true), "Float Test3: The negative number is 113.000");
             x.test(this.isValidSymbol('float', "-1130", "-1130.000", true), "Float Test4: The negative number is -1130.000");
+  
+            // Float properties tests
+            x.test(this.isValid("min = 6.5", "AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5))", true), "Float Test5: The min equal to the value");
+            x.test(this.isValid("min!=6.5", "AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5))", true), "Float Test6: The min not equal to the value");
+            x.test(this.isValid("min>6.5", " GT(foam.core.analytics.Candlestick.min, 6.5)", true), "Float Test7: The min greater than the value");
+            x.test(this.isValid("min>=6.5", "GTE(foam.core.analytics.Candlestick.min, 6.5)", true), "Float Test8: The min greater than or equal to the value"); 
+            x.test(this.isValid("max<6.5", "LT(foam.core.analytics.Candlestick.max, 6.5)", true), "Float Test9: The max less than the value");
+            x.test(this.isValid("max<=6.5", "LTE(foam.core.analytics.Candlestick.max, 6.5)", true), "Float Test10: The max less than or equal to the value");
+            x.test(this.isValid("max IN RANGE (6.5, 8.5)", "AND(GTE(foam.core.analytics.Candlestick.max, 6.5),LT(foam.core.analytics.Candlestick.max, 8.5))", true), "Float Test11: The max is within range 6.5 to 8.5");
+            x.test(this.isValid('max NOT IN RANGE (6.5, 8.5)', 'AND(GTE(foam.core.analytics.Candlestick.max, 8.5),LT(foam.core.analytics.Candlestick.max, 6.5))', true), 'Float Test12: The max is not within range 6.5 to 8.5');
+
+            // Float combined properties tests
+            x.test(this.isValid("min=6.5 AND max<8.5", "AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.max, 8.5))", true), "Float Test13: The min equals 6.5 and max less than 8.5");
+            x.test(this.isValid("min>6.5 AND max<=9.5", "AND(GT(foam.core.analytics.Candlestick.min, 6.5),LTE(foam.core.analytics.Candlestick.max, 9.5))", true), "Float Test14: The min greater than 6.5 and max less than or equal to 9.5");
+            x.test(this.isValid("min=6.5 OR max>8.5", "OR(AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5)),GT(foam.core.analytics.Candlestick.max, 8.5))", true), "Float Test15: The min equals 6.5 or max greater than 8.5");
 
             // Date format tests
             x.test(this.isValidSymbol('date', '2025-01-01', [testDate([2025, 0, 1, 12]), testDate([2025, 0, 2, 12])].toString()), 'Date Test1: ISO date YYYY-MM-DD');
@@ -185,9 +200,15 @@ foam.CLASS({
 
 
         },
-        function buildPredicate(query) {
+        function buildPredicate(query, isFloat=false) {
             // Assuming foam.parse.SimpleQueryParser.parse returns a predicate object
-            let parser = this.SimpleQueryParser.create({of: foam.core.auth.User});
+            let parser = null;
+            if (isFloat) {
+              parser = this.SimpleQueryParser.create({of: foam.core.analytics.Candlestick});
+            }  
+            else {
+              parser = this.SimpleQueryParser.create({of: foam.core.auth.User});
+            }
             let predicate = parser.parseString(query);
             return predicate || null;
         },
@@ -206,8 +227,8 @@ foam.CLASS({
             console.log("Result: " + result.toString() + ", Expected: " + expectedOutput);
             return result.toString().trim().toLowerCase() === expectedOutput.toString().trim().toLowerCase();
         } ,
-        function isValid(query, statement) {
-            let result = this.buildPredicate(query);
+        function isValid(query, statement, isFloat=false) {
+            let result = this.buildPredicate(query, isFloat);
             if (result == null) return false;
             console.log("Result: " + result.toString() + ", Expected: " + statement);
             // Assuming result.partialEval() returns a simplified predicate
