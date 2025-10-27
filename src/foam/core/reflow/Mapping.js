@@ -47,6 +47,11 @@ foam.ENUM({
       name: 'YYYYDDMM',
       label: 'yyyy/dd/mm',
       documentation: 'Year-Day-Month format (yyyy/dd/mm, yyyy-dd-mm, yyyyddmm, yy/dd/mm, yy-dd-mm, yyddmm)'
+    },
+    {
+      name: 'DDMMMYYYY',
+      label: 'dd-mmm-yyyy',
+      documentation: 'Day-MonthName-Year format (31-JAN-2025, 03-FEB-2025, 31JAN2025, 03FEB2025)'
     }
   ]
 });
@@ -168,6 +173,8 @@ foam.CLASS({
           return 'ddmmyyyy';
         case 'YYYYDDMM':
           return 'yyyyddmm';
+        case 'DDMMMYYYY':
+          return 'ddmmmyyyy';
         case 'STANDARD':
         default:
           return 'START';

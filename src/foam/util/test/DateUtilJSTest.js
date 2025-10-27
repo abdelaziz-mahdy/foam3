@@ -19,6 +19,7 @@ foam.CLASS({
       this.testParseDateString_MM_DD_YYYY(x);
       this.testParseDateString_YYMMDD(x);
       this.testParseDateString_YY_MM_DD(x);
+      this.testParseDateString_DDMMMYYYY(x);
       this.testParseDateString_InvalidDate(x);
       this.testParseDateString_UnsupportedFormat(x);
       this.testParseDateString_LeapYear(x);
@@ -185,6 +186,52 @@ foam.CLASS({
       }
 
       x.test(year2 === expectedYear85, `YY-MM-DD format - year is ${expectedYear85} (expected ${expectedYear85}, got ${year2})`);
+    },
+
+    function testParseDateString_DDMMMYYYY(x) {
+      // Test DDMMMYYYY format with separators (31-JAN-2025, 03-FEB-2025)
+      var date1 = foam.util.DateUtil.parseDateString('31-JAN-2025', 'ddmmmyyyy');
+      var year1 = date1.getFullYear();
+      var month1 = date1.getMonth();
+      var day1 = date1.getDate();
+      x.test(year1 === 2025, `DDMMMYYYY format (31-JAN-2025) - year is 2025 (expected 2025, got ${year1})`);
+      x.test(month1 === 0, `DDMMMYYYY format (31-JAN-2025) - month is January (0) (expected 0, got ${month1})`);
+      x.test(day1 === 31, `DDMMMYYYY format (31-JAN-2025) - day is 31 (expected 31, got ${day1})`);
+
+      var date2 = foam.util.DateUtil.parseDateString('03-FEB-2025', 'ddmmmyyyy');
+      var year2 = date2.getFullYear();
+      var month2 = date2.getMonth();
+      var day2 = date2.getDate();
+      x.test(year2 === 2025, `DDMMMYYYY format (03-FEB-2025) - year is 2025 (expected 2025, got ${year2})`);
+      x.test(month2 === 1, `DDMMMYYYY format (03-FEB-2025) - month is February (1) (expected 1, got ${month2})`);
+      x.test(day2 === 3, `DDMMMYYYY format (03-FEB-2025) - day is 3 (expected 3, got ${day2})`);
+
+      // Test with slash separator
+      var date3 = foam.util.DateUtil.parseDateString('15/MAR/2024', 'ddmmmyyyy');
+      var year3 = date3.getFullYear();
+      var month3 = date3.getMonth();
+      var day3 = date3.getDate();
+      x.test(year3 === 2024, `DDMMMYYYY format (15/MAR/2024) - year is 2024 (expected 2024, got ${year3})`);
+      x.test(month3 === 2, `DDMMMYYYY format (15/MAR/2024) - month is March (2) (expected 2, got ${month3})`);
+      x.test(day3 === 15, `DDMMMYYYY format (15/MAR/2024) - day is 15 (expected 15, got ${day3})`);
+
+      // Test compact format (no separators)
+      var date4 = foam.util.DateUtil.parseDateString('31JAN2025', 'ddmmmyyyy');
+      var year4 = date4.getFullYear();
+      var month4 = date4.getMonth();
+      var day4 = date4.getDate();
+      x.test(year4 === 2025, `DDMMMYYYY compact (31JAN2025) - year is 2025 (expected 2025, got ${year4})`);
+      x.test(month4 === 0, `DDMMMYYYY compact (31JAN2025) - month is January (0) (expected 0, got ${month4})`);
+      x.test(day4 === 31, `DDMMMYYYY compact (31JAN2025) - day is 31 (expected 31, got ${day4})`);
+
+      // Test case insensitivity
+      var date5 = foam.util.DateUtil.parseDateString('15-jun-2025', 'ddmmmyyyy');
+      var month5 = date5.getMonth();
+      x.test(month5 === 5, `DDMMMYYYY lowercase (15-jun-2025) - month is June (5) (expected 5, got ${month5})`);
+
+      var date6 = foam.util.DateUtil.parseDateString('10-Jul-2025', 'ddmmmyyyy');
+      var month6 = date6.getMonth();
+      x.test(month6 === 6, `DDMMMYYYY mixed case (10-Jul-2025) - month is July (6) (expected 6, got ${month6})`);
     },
 
     function testParseDateString_InvalidDate(x) {

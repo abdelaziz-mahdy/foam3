@@ -266,7 +266,16 @@ foam.CLASS({
               let expr = foam.mlang.predicate.DotF.create({arg1: prop, arg2: innerProp});
               return seq1(1, sym('ws'), sug(literal(name, expr), {text: name}));
         };
-
+        
+        /* TODO fix suggestions for inner properties to suggest inner property names only after the dot
+        let innerProperty       = (prop, innerProp) => {
+          console.log('innerProperty', prop.name, innerProp.name); 
+              let expr = foam.mlang.predicate.DotF.create({arg1: prop, arg2: innerProp});
+              return seq1(1, 
+                sug(seq(sym('ws'), literal(prop.name + '.')), {text: prop.name + '.', label: prop.label}),
+                sug(literal(innerProp.name, expr), {text: innerProp.name, label: innerProp.label}));
+        };
+        */
         // process a property and add its predicates to the grammar   
         function processProp(prop, propertyParser) {
           if ( ! prop.searchable ) return;
@@ -283,7 +292,10 @@ foam.CLASS({
             }
           }
 
-          if ( foam.lang.Int.isInstance(type) ) {
+          if ( foam.lang.Float.isInstance(type) ) { // this must be before Number check
+            rangePropPredicates.push(seq(propertyParser, sym('compareFloat')));
+          }
+          else if ( foam.lang.Int.isInstance(type) ) {
             propPredicates.push(seq(propertyParser, sym('compareNumber')));
           }
           else if (foam.lang.Boolean.isInstance(type)) {
@@ -310,9 +322,6 @@ foam.CLASS({
           }
           else if ( foam.lang.Date.isInstance(type)) { // all date-like properties
             rangePropPredicates.push(seq(propertyParser, sym('compareDate')));
-          }
-          else if ( foam.lang.Float.isInstance(type) ) {
-            propPredicates.push(seq(propertyParser, sym('compareFloat')));
           }
           else if ( foam.lang.String.isInstance(type) ) {
             propPredicates.push(seq(propertyParser, sym('compareString')));
@@ -397,8 +406,11 @@ foam.CLASS({
             };
           },
 
-          date: function(v) {
-            return v; // Pass through the already parsed date
+          compareFloat: function(v) {
+            return {
+              operator: v[0],
+              value: {start: v[1][0], end: v[1][1]} // float range
+            };
           },
 
           compareString: function(v) {
@@ -413,6 +425,10 @@ foam.CLASS({
               operator: v[0],
               value: v[1]
             };
+          },
+
+          date: function(v) {
+            return v; // Pass through the already parsed date
           },
 
           // All dates are actually treated as ranges. These are arrays of Date

@@ -33,7 +33,7 @@ foam.CLASS({
   properties: [
     {
       name: 'baseGrammar_',
-      value: function(alt, anyChar, chars, optional, range, repeat, seq, str, sym) {
+      value: function(alt, anyChar, chars, literalIC, optional, range, repeat, seq, str, sym) {
         return {
           START: sym('dateOrDatetime'),
 
@@ -291,6 +291,23 @@ foam.CLASS({
           // YYDDMM compact: 6 digits
           'yyddmm-compact': str(repeat(range('0', '9'), null, 6)),
 
+          // DDMMMYYYY - NOT in main dateOrDatetime, accessible via opt_name only
+          // Covers: DD-MMM-YYYY, DD/MMM/YYYY, DDMMMYYYY (31-JAN-2025, 03-FEB-2025, 31JAN2025)
+          ddmmmyyyy: alt(
+            sym('ddmmmyyyy-sep'),
+            sym('ddmmmyyyy-compact')
+          ),
+
+          // DDMMMYYYY with separators: DD-MMM-YYYY, DD/MMM/YYYY
+          'ddmmmyyyy-sep': seq(
+            sym('day2'), chars('-/'), sym('month3alpha'), chars('-/'), sym('year4')
+          ),
+
+          // DDMMMYYYY compact: DDMMMYYYY (no separators, like 31JAN2025)
+          'ddmmmyyyy-compact': seq(
+            sym('day2'), sym('month3alpha'), sym('year4')
+          ),
+
           // Component parsers
           year4: str(repeat(range('0', '9'), null, 4)),
           year4_1900_2999: str(alt(
@@ -299,6 +316,20 @@ foam.CLASS({
           )),
           year2: str(seq(range('0', '9'), range('0', '9'))),
           month2: str(seq(range('0', '1'), range('0', '9'))),
+          month3alpha: alt(
+            literalIC('JAN'),
+            literalIC('FEB'),
+            literalIC('MAR'),
+            literalIC('APR'),
+            literalIC('MAY'),
+            literalIC('JUN'),
+            literalIC('JUL'),
+            literalIC('AUG'),
+            literalIC('SEP'),
+            literalIC('OCT'),
+            literalIC('NOV'),
+            literalIC('DEC')
+          ),
           day2: str(seq(range('0', '3'), range('0', '9'))),
           hour2: str(seq(range('0', '2'), range('0', '9'))),
           minute2: str(seq(range('0', '5'), range('0', '9'))),
@@ -586,6 +617,26 @@ foam.CLASS({
               month: parseInt(v.substring(4, 6)) - 1,
               day: parseInt(v.substring(2, 4))
             };
+          },
+
+          // DDMMMYYYY with separators: DD-MMM-YYYY, DD/MMM/YYYY
+          // v = [DD, sep, MMM, sep, YYYY]
+          'ddmmmyyyy-sep': function(v) {
+            return {
+              year: parseInt(v[4]),
+              month: self.parseMonthName(v[2]),
+              day: parseInt(v[0])
+            };
+          },
+
+          // DDMMMYYYY compact: DDMMMYYYY "31JAN2025"
+          // v = [DD, MMM, YYYY]
+          'ddmmmyyyy-compact': function(v) {
+            return {
+              year: parseInt(v[2]),
+              month: self.parseMonthName(v[1]),
+              day: parseInt(v[0])
+            };
           }
         };
 
@@ -693,6 +744,21 @@ foam.CLASS({
           return 2000 + twoDigitYear;
         }
         return 1900 + twoDigitYear;
+      }
+    },
+
+    {
+      name: 'parseMonthName',
+      documentation: 'Converts 3-letter month abbreviation to 0-based month index (JAN→0, FEB→1, etc.)',
+      code: function(monthName) {
+        // Convert to uppercase for case-insensitive matching
+        var month = monthName.toUpperCase();
+        var months = {
+          'JAN': 0, 'FEB': 1, 'MAR': 2, 'APR': 3,
+          'MAY': 4, 'JUN': 5, 'JUL': 6, 'AUG': 7,
+          'SEP': 8, 'OCT': 9, 'NOV': 10, 'DEC': 11
+        };
+        return months[month] !== undefined ? months[month] : 0;
       }
     },
 
