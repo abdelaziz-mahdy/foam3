@@ -21,6 +21,7 @@ foam.CLASS({
       this.testYYMMDDFormats(x);
       this.testDDMMYYYYFormats(x);
       this.testYYYYDDMMFormats(x);
+      this.testDDMMMYYYYFormats(x);
       this.testDateTimeFormats(x);
       this.testParseDateString(x);
       this.testParseDateTime(x);
@@ -362,6 +363,90 @@ foam.CLASS({
           x.test(pass, `YYDDMM-Compact Test${i + 1}: ${testCase.input} (opt_name='yyyyddmm')`);
         } catch (e) {
           x.test(false, `YYDDMM-Compact Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
+    },
+
+    function testDDMMMYYYYFormats(x) {
+      let parser = this.DateParser.create();
+
+      // Test DDMMMYYYY with separators - requires opt_name='ddmmmyyyy'
+      let ddmmmyyyySep = [
+        { input: '31-JAN-2025', year: 2025, month: 0, day: 31 },
+        { input: '03-FEB-2025', year: 2025, month: 1, day: 3 },
+        { input: '15/MAR/2024', year: 2024, month: 2, day: 15 },
+        { input: '25-DEC-2025', year: 2025, month: 11, day: 25 },
+        { input: '01-JAN-2000', year: 2000, month: 0, day: 1 },
+        { input: '29-FEB-2024', year: 2024, month: 1, day: 29 }, // Leap year
+        { input: '15/jun/2025', year: 2025, month: 5, day: 15 }, // Lowercase
+        { input: '10-Jul-2025', year: 2025, month: 6, day: 10 }  // Mixed case
+      ];
+
+      ddmmmyyyySep.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input, 'ddmmmyyyy');
+          let pass = result &&
+                     result.getUTCFullYear() === testCase.year &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === testCase.day &&
+                     result.getUTCHours() === 12;
+          x.test(pass, `DDMMMYYYY-Sep Test${i + 1}: ${testCase.input} (opt_name='ddmmmyyyy')`);
+        } catch (e) {
+          x.test(false, `DDMMMYYYY-Sep Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
+
+      // Test DDMMMYYYY compact (no separators) - requires opt_name='ddmmmyyyy'
+      let ddmmmyyyyCompact = [
+        { input: '31JAN2025', year: 2025, month: 0, day: 31 },
+        { input: '03FEB2025', year: 2025, month: 1, day: 3 },
+        { input: '15MAR2024', year: 2024, month: 2, day: 15 },
+        { input: '25DEC2025', year: 2025, month: 11, day: 25 },
+        { input: '29FEB2024', year: 2024, month: 1, day: 29 }, // Leap year
+        { input: '15jun2025', year: 2025, month: 5, day: 15 }, // Lowercase
+        { input: '10Jul2025', year: 2025, month: 6, day: 10 }  // Mixed case
+      ];
+
+      ddmmmyyyyCompact.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input, 'ddmmmyyyy');
+          let pass = result &&
+                     result.getUTCFullYear() === testCase.year &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === testCase.day &&
+                     result.getUTCHours() === 12;
+          x.test(pass, `DDMMMYYYY-Compact Test${i + 1}: ${testCase.input} (opt_name='ddmmmyyyy')`);
+        } catch (e) {
+          x.test(false, `DDMMMYYYY-Compact Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
+
+      // Test all months
+      let allMonths = [
+        { input: '15-JAN-2025', month: 0 },
+        { input: '15-FEB-2025', month: 1 },
+        { input: '15-MAR-2025', month: 2 },
+        { input: '15-APR-2025', month: 3 },
+        { input: '15-MAY-2025', month: 4 },
+        { input: '15-JUN-2025', month: 5 },
+        { input: '15-JUL-2025', month: 6 },
+        { input: '15-AUG-2025', month: 7 },
+        { input: '15-SEP-2025', month: 8 },
+        { input: '15-OCT-2025', month: 9 },
+        { input: '15-NOV-2025', month: 10 },
+        { input: '15-DEC-2025', month: 11 }
+      ];
+
+      allMonths.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input, 'ddmmmyyyy');
+          let pass = result &&
+                     result.getUTCFullYear() === 2025 &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === 15;
+          x.test(pass, `DDMMMYYYY All Months Test${i + 1}: ${testCase.input} should parse to month ${testCase.month}`);
+        } catch (e) {
+          x.test(false, `DDMMMYYYY All Months Test${i + 1}: ${testCase.input} - ${e.message}`);
         }
       });
     },
