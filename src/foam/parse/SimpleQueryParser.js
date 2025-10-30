@@ -159,32 +159,32 @@ foam.CLASS({
           // IMPORTANT: order matters, put more complex first
           'literal date': alt(
             // YYYY-MM-DDTHH:MM:SS.mmmZ (or YY)
-            sug(alt(), {view: 'foam.parse.auto.DateSuggester'}),
+            sug(alt(), {view: 'foam.parse.auto.DateSuggester'}), // tmp hack using an empty alt(), need a noOp() parser instead
             sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits'), 'T',
                 sym('digits'), ':', sym('digits'),  ':', sym('digits'),  '.', sym('digits'), 'Z'),
-                {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmmZ', category: 'value'}),
+                {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmmZ', category: 'format'}),
             // YYYY-MM-DDTHH:MM:SS.mmm (or YY)
                 sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits'), 'T',
                 sym('digits'), ':', sym('digits'),  ':', sym('digits'),  '.', sym('digits')),
-                {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmm', category: 'value'}),
+                {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmm', category: 'format'}),
             // YYYY-MM-DDTHH:MM:SS (or YY)
             sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits'), 'T',
                 sym('digits'), ':', sym('digits'),  ':', sym('digits')),
-                {tooltip: 'YYYY/MM/DDTHH:MM:SS', category: 'value'}),
+                {tooltip: 'YYYY/MM/DDTHH:MM:SS', category: 'format'}),
             // YYYY-MM-DDTHH:MM (or YY)
             sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits'), 'T', sym('digits'), ':', sym('digits')),
-                {tooltip: 'YYYY/MM/DDTHH:MM', category: 'value'}),
+                {tooltip: 'YYYY/MM/DDTHH:MM', category: 'format'}),
             // YYYY-MM-DDTHH (or YY)
             sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits'), 'T', sym('digits')),
-                {tooltip: 'YYYY/MM/DDTHH', category: 'value'}),
+                {tooltip: 'YYYY/MM/DDTHH', category: 'format'}),
             // YYYY-MM-DD (or YY)
             sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits')),
-                {tooltip: 'YYYY/MM/DD', category: 'value'}),
+                {tooltip: 'YYYY/MM/DD', category: 'format'}),
             // YYYY-MM (or YY)
             sug(seq(sym('digits'), chars('-/'), sym('digits')),
-                {tooltip: 'YYYY/MM', category: 'value'}),
+                {tooltip: 'YYYY/MM', category: 'format'}),
             // YYYY (or YY)
-            sug(seq(sym('digits')), {tooltip: 'YYYY', category: 'value'}),
+            sug(seq(sym('digits')), {tooltip: 'YYYY', category: 'format'}),
           ),
 
           // TODAY[±n]

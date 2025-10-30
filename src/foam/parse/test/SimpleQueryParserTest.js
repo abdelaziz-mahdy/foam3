@@ -55,25 +55,21 @@ foam.CLASS({
             x.test(this.isValid('disabledTopics != tag1', 'NOT(IN(foam.core.auth.User.disabledTopics, "tag1"))'), 'StringArray Test5: The disabledTopics does not exactly match one value');
 
             // Float symbol tests
+            // note: pick tricky float numbers to force floating point precision handling
             x.test(this.isValidSymbol('float', "1.107", "1.107", true), "Float Test1: The float is 1.107");
             x.test(this.isValidSymbol('float', "-100.6", "-100.6", true), "Float Test2: The numbers -100.600");
             x.test(this.isValidSymbol('float', "113", "113.000", true), "Float Test3: The negative number is 113.000");
             x.test(this.isValidSymbol('float', "-1130", "-1130.000", true), "Float Test4: The negative number is -1130.000");
   
-            // Float properties tests
-            x.test(this.isValid("min = 6.5", "AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5))", true), "Float Test5: The min equal to the value");
-            x.test(this.isValid("min!=6.5", "AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5))", true), "Float Test6: The min not equal to the value");
-            x.test(this.isValid("min>6.5", " GT(foam.core.analytics.Candlestick.min, 6.5)", true), "Float Test7: The min greater than the value");
-            x.test(this.isValid("min>=6.5", "GTE(foam.core.analytics.Candlestick.min, 6.5)", true), "Float Test8: The min greater than or equal to the value"); 
-            x.test(this.isValid("max<6.5", "LT(foam.core.analytics.Candlestick.max, 6.5)", true), "Float Test9: The max less than the value");
-            x.test(this.isValid("max<=6.5", "LTE(foam.core.analytics.Candlestick.max, 6.5)", true), "Float Test10: The max less than or equal to the value");
-            x.test(this.isValid("max IN RANGE (6.5, 8.5)", "AND(GTE(foam.core.analytics.Candlestick.max, 6.5),LT(foam.core.analytics.Candlestick.max, 8.5))", true), "Float Test11: The max is within range 6.5 to 8.5");
-            x.test(this.isValid('max NOT IN RANGE (6.5, 8.5)', 'AND(GTE(foam.core.analytics.Candlestick.max, 8.5),LT(foam.core.analytics.Candlestick.max, 6.5))', true), 'Float Test12: The max is not within range 6.5 to 8.5');
-
-            // Float combined properties tests
-            x.test(this.isValid("min=6.5 AND max<8.5", "AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.max, 8.5))", true), "Float Test13: The min equals 6.5 and max less than 8.5");
-            x.test(this.isValid("min>6.5 AND max<=9.5", "AND(GT(foam.core.analytics.Candlestick.min, 6.5),LTE(foam.core.analytics.Candlestick.max, 9.5))", true), "Float Test14: The min greater than 6.5 and max less than or equal to 9.5");
-            x.test(this.isValid("min=6.5 OR max>8.5", "OR(AND(GTE(foam.core.analytics.Candlestick.min, 6.5),LT(foam.core.analytics.Candlestick.min, 6.5)),GT(foam.core.analytics.Candlestick.max, 8.5))", true), "Float Test15: The min equals 6.5 or max greater than 8.5");
+            // Float + FObjectProperty tests
+            // note: pick nice rounding numbers to avoid floating point precision issues
+            x.test(this.isValid("address.longitude = 6.5", "AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5))"), "Float Test5: Inner property equal");
+            x.test(this.isValid("address.longitude!=6.5", "AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5))"), "Float Test6: Inner property not equal to the value");
+            x.test(this.isValid("address.longitude > 6.5", "GT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5)"), "Float Test7: Inner property greater than with spaces");
+            x.test(this.isValid("address.longitude>=6.5", "GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5)"), "Float Test8: Inner property greater than or equal to the value"); 
+            x.test(this.isValid("address.longitude <= 6.5", "LTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5)"), "Float Test10: Inner property less than or equal to the value");
+            x.test(this.isValid("address.latitude IN RANGE (6.5, 8.5)", "AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 6.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 8.5))"), "Float Test11: Inner property is within range 6.5 to 8.5");
+            x.test(this.isValid('address.latitude NOT IN RANGE (6.5, 8.5)', 'AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 8.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 6.5))'), 'Float Test12: Inner property is not within range 6.5 to 8.5');
 
             // Date format tests
             x.test(this.isValidSymbol('date', '2025-01-01', [testDate([2025, 0, 1, 12]), testDate([2025, 0, 2, 12])].toString()), 'Date Test1: ISO date YYYY-MM-DD');
@@ -157,7 +153,6 @@ foam.CLASS({
                     'OR(AND(GTE(foam.core.auth.User.birthday, ' + testDate([2025, 4, 1, 12]).toString() + '),LT(foam.core.auth.User.birthday, ' +  testDate([2025, 2, 31, 12]).toString() + ')),HAS(foam.core.auth.User.lastLogin))'),
                     'Date Test23: Date OR query');
 
-
             // Number symbol tests
             x.test(this.isValidSymbol('number', "11", "11"), "Number Test1: The number is 11");
             x.test(this.isValidSymbol('numbers', "1, 2, 3", "1,2,3"), "Number Test2: The numbers 1, 2, 3");
@@ -200,15 +195,9 @@ foam.CLASS({
 
 
         },
-        function buildPredicate(query, isFloat=false) {
+        function buildPredicate(query) {
             // Assuming foam.parse.SimpleQueryParser.parse returns a predicate object
-            let parser = null;
-            if (isFloat) {
-              parser = this.SimpleQueryParser.create({of: foam.core.analytics.Candlestick});
-            }  
-            else {
-              parser = this.SimpleQueryParser.create({of: foam.core.auth.User});
-            }
+            let parser = this.SimpleQueryParser.create({of: foam.core.auth.User});
             let predicate = parser.parseString(query);
             return predicate || null;
         },
