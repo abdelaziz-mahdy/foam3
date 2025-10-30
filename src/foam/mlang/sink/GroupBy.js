@@ -252,18 +252,27 @@ for (Object key : getGroups().keySet()) {
       // Determine property class by traversing expressions to find underlying property
       var exprClass = 'String';
       var expr = this.arg1;
+      var sourceClass = 'Unknown';
       while ( expr ) {
         if ( foam.lang.Property.isInstance(expr) ) {
           exprClass = expr.cls_?.id || 'String';
+          // Get the source class name from the property's forClass_
+          sourceClass = expr.forClass_ || sourceClass;
           break;
         }
         // Try delegate, then arg1, then stop
         expr = expr.delegate || expr.arg1;
       }
 
+      // Generate deterministic name based on source class, property name, and sink type
+      // This prevents conflicts in chained GroupBy operations
+      var sinkName = this.arg2.cls_?.name || 'Count';
+      var sourceClassName = sourceClass.split('.').pop(); // Get last part of class name
+      var modelName = 'GroupBy_' + sourceClassName + '_' + exprName + '_' + sinkName;
+
       const model = {
         package: 'foam.tmp',
-        name: 'GroupBy' + foam.next$UID(),
+        name: modelName,
         ids: [ 'row' ],
         properties: [
           { class: 'Long', name: 'row' },
