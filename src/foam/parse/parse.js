@@ -1078,6 +1078,11 @@ foam.CLASS({
       });
     },
 
+    function nop() {
+      // A parser which always fails
+      return this.alt();
+    },
+
     function sym(name) {
       return this.Symbol.create({ name: name });
     },

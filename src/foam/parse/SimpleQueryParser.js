@@ -64,7 +64,7 @@ foam.CLASS({
     },
     {
       name: 'baseGrammar_',
-      value: function(alt, anyChar, chars, literal, literalIC, notChars, optional, range, repeat, repeat0, seq, seq1, str, sug, sym) {
+      value: function(alt, anyChar, chars, literal, literalIC, nop, notChars, optional, range, repeat, repeat0, seq, seq1, str, sug, sym) {
 
         // helper to create an operator parser that ignores operators case and surrounding whitespace and provides a suggestion
         let operator = (str) => {
@@ -159,7 +159,7 @@ foam.CLASS({
           // IMPORTANT: order matters, put more complex first
           'literal date': alt(
             // YYYY-MM-DDTHH:MM:SS.mmmZ (or YY)
-            sug(alt(), {view: 'foam.parse.auto.DateSuggester'}), // tmp hack using an empty alt(), need a noOp() parser instead
+            sug(nop(), {view: 'foam.parse.auto.DateSuggester'}), // tmp hack using an empty alt(), need a noOp() parser instead
             sug(seq(sym('digits'), chars('-/'), sym('digits'), chars('-/'), sym('digits'), 'T',
                 sym('digits'), ':', sym('digits'),  ':', sym('digits'),  '.', sym('digits'), 'Z'),
                 {tooltip: 'YYYY/MM/DDTHH:MM:SS.mmmZ', category: 'format'}),
