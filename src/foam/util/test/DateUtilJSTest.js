@@ -261,10 +261,13 @@ foam.CLASS({
     },
 
     function testParseDateString_UnsupportedFormat(x) {
-      // Unsupported format should return MAX_DATE
-      var date = foam.util.DateUtil.parseDateString('March 15, 2024');
-      var maxDate = foam.util.DateUtil.MAX_DATE;
-      x.test(date.getTime() === maxDate.getTime(), 'Unsupported format returns MAX_DATE');
+      // Unsupported format should throw exception
+      try {
+        var date = foam.util.DateUtil.parseDateString('March 15, 2024');
+        x.test(false, 'Unsupported format should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported Date format'), 'Unsupported format throws correct error message');
+      }
     },
 
     function testAdapt_Number(x) {
@@ -327,9 +330,13 @@ foam.CLASS({
     },
 
     function testAdapt_InvalidString(x) {
-      var date = foam.util.DateUtil.parseDateString('invalid date string');
-      var maxDate = foam.util.DateUtil.MAX_DATE;
-      x.test(date.getTime() === maxDate.getTime(), 'parseDateString(invalid string) returns MAX_DATE');
+      // Invalid/unsupported format should throw exception
+      try {
+        var date = foam.util.DateUtil.parseDateString('invalid date string');
+        x.test(false, 'parseDateString(invalid string) should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported Date format'), 'Invalid string throws correct error message');
+      }
     },
 
     function testParseDateString_LeapYear(x) {
@@ -487,9 +494,7 @@ foam.CLASS({
     },
 
     function testParseDateString_InvalidFormats(x) {
-      var maxDate = foam.util.DateUtil.MAX_DATE;
-
-      // Test various invalid formats (don't match any pattern)
+      // Test various invalid formats (don't match any pattern) - should throw exceptions
       var unsupportedFormats = [
         '2024.03.15',      // dots instead of dashes/slashes
         '2024,03,15',      // commas

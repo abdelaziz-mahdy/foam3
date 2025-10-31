@@ -739,41 +739,10 @@ foam.CLASS({
       }
     },
 
-    {
-      name: 'validateDate',
-      documentation: 'Validates a date object (local time) and returns MAX_DATE for invalid dates',
-      code: function(date, str) {
-        // Check if date is NaN
-        if ( isNaN(date.getTime()) ) {
-          date = foam.Date.MAX_DATE;
-          console.warn("Invalid date: " + str + "; assuming " + date.toISOString() + ".");
-          return date;
-        }
-
-        // Allow JavaScript's native date normalization (e.g., 2025-13-01 → 2026-01-01)
-        return date;
-      }
-    },
-
-    {
-      name: 'validateDateUTC',
-      documentation: 'Validates a date object (UTC time) and returns MAX_DATE for invalid dates',
-      code: function(date, str) {
-        // Check if date is NaN
-        if ( isNaN(date.getTime()) ) {
-          date = foam.Date.MAX_DATE;
-          console.warn("Invalid date: " + str + "; assuming " + date.toISOString() + ".");
-          return date;
-        }
-
-        // Allow JavaScript's native date normalization (e.g., 2025-13-01 → 2026-01-01)
-        return date;
-      }
-    },
 
     {
       name: 'convertTwoDigitYear',
-      documentation: 'Converts 2-digit year using fixed pivot: 00-49 → 2000-2049, 50-99 → 1950-1999',
+      documentation: 'Converts 2-digit year using fixed pivot at 50: 00-49 → 2000-2049, 50-99 → 1950-1999',
       code: function(twoDigitYear) {
         // Fixed pivot at 50:
         // Years 00-49 map to 2000-2049
@@ -802,16 +771,20 @@ foam.CLASS({
 
     {
       name: 'parseString',
-      documentation: 'Parse a date/datetime string and return a Date object. Auto-detects format and handles time if present. Returns MAX_DATE for invalid dates.',
+      documentation: 'Parse a date/datetime string and return a Date object. Auto-detects format and handles time if present. Throws exception for unsupported formats.',
       code: function(str, opt_name) {
+        if ( ! str || str.trim() === '' ) {
+          throw new Error('Unsupported Date format: empty or null string');
+        }
+
         let result = this.grammar_.parseString(str, opt_name || 'START');
 
         if ( ! result ) {
-          // Unparseable format - return MAX_DATE
-          return this.validateDate(this.INVALID_DATE, str);
+          throw new Error('Unsupported Date format: ' + str);
         }
 
         // Determine if this is a datetime or date-only result based on presence of time components
+        // Let JavaScript Date normalize invalid dates (e.g., Feb 30 → Mar 2)
         let ret;
         if ( result.hour !== undefined || result.minute !== undefined || result.second !== undefined ) {
           // Datetime format - use local time
@@ -829,72 +802,63 @@ foam.CLASS({
           ret = new Date(Date.UTC(result.year, result.month, result.day, 12, 0, 0, 0));
         }
 
-        return this.validateDate(ret, str);
+        if ( isNaN(ret.getTime()) ) {
+          throw new Error('Cannot parse invalid date: ' + str);
+        }
+
+        return ret;
       }
     },
 
     {
       name: 'parseDateString',
-      documentation: 'Parse a date string - ignores any time component and returns date at noon local time. Returns MAX_DATE for invalid dates.',
+      documentation: 'Parse a date string - ignores any time component and returns date at noon UTC. Throws exception for unsupported formats.',
       code: function(str, opt_name) {
+        if ( ! str || str.trim() === '' ) {
+          throw new Error('Unsupported Date format: empty or null string');
+        }
+
         let result = this.grammar_.parseString(str, opt_name || 'START');
 
         if ( ! result ) {
-          // Unparseable format - return MAX_DATE
-          return this.validateDate(this.INVALID_DATE, str);
+          throw new Error('Unsupported Date format: ' + str);
         }
 
         // Always return date at noon UTC, ignoring time even if present
+        // Let JavaScript Date normalize invalid dates (e.g., Feb 30 → Mar 2)
         let ret = new Date(Date.UTC(result.year, result.month, result.day, 12, 0, 0, 0));
 
-        return this.validateDate(ret, str);
+        if ( isNaN(ret.getTime()) ) {
+          throw new Error('Cannot parse invalid date: ' + str);
+        }
+
+        return ret;
       }
     },
 
     {
       name: 'parseDateTime',
-      documentation: 'Parse a datetime string using local time - uses time if present, otherwise sets to noon. If timezone is present, converts to UTC. Returns MAX_DATE for invalid dates.',
+      documentation: 'Parse a datetime string using local time - uses time if present, otherwise sets to noon. If timezone is present, converts to UTC. Throws exception for unsupported formats.',
       code: function(str, opt_name) {
+        if ( ! str || str.trim() === '' ) {
+          throw new Error('Unsupported DateTime format: empty or null string');
+        }
+
         // Trim input to remove leading/trailing whitespace
-        str = str ? str.trim() : str;
+        str = str.trim();
 
         // Use parse() instead of parseString() to get position information
         this.grammar_.ps.setString(str);
         let start = this.grammar_.getSymbol(opt_name || 'START');
         let parseResult = this.grammar_.ps.apply(start, this.grammar_);
 
-        if ( ! parseResult ) {
-          // Unparseable format - return MAX_DATE
-          return this.validateDate(this.INVALID_DATE, str);
-        }
-
-        // Check if entire string was consumed
-        if ( parseResult.pos < str.length ) {
-          // Partial parse - remaining characters indicate invalid format
-          console.warn('DateParser: Partial parse detected. Input:', str, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
-          return this.validateDate(this.INVALID_DATE, str);
+        if ( ! parseResult || ! parseResult.value ) {
+          throw new Error('Unsupported DateTime format: ' + str);
         }
 
         let result = parseResult.value;
 
-        if ( ! result ) {
-          // Unparseable format - return MAX_DATE
-          return this.validateDate(this.INVALID_DATE, str);
-        }
-
-        // Validate time components if present
-        // Note: Grammar already enforces valid ranges (hour2: 00-23, minute2/second2: 00-59)
-        // but we keep these checks as a safety measure
-        if ( result.hour !== undefined && (result.hour < 0 || result.hour > 23) ) {
-          return this.validateDate(this.INVALID_DATE, str);
-        }
-        if ( result.minute !== undefined && (result.minute < 0 || result.minute > 59) ) {
-          return this.validateDate(this.INVALID_DATE, str);
-        }
-        if ( result.second !== undefined && (result.second < 0 || result.second > 59) ) {
-          return this.validateDate(this.INVALID_DATE, str);
-        }
-
+        // Let JavaScript Date normalize invalid dates/times (e.g., Feb 30 → Mar 2, hour 25 → next day)
         let ret;
         if ( result.timezone ) {
           // Timezone present - convert to UTC
@@ -911,8 +875,6 @@ foam.CLASS({
           // Subtract offset to convert to UTC (if timezone is +05:00, we subtract 5 hours)
           utcTime -= offset * 60000;
           ret = new Date(utcTime);
-          // Don't validate date parts - timezone conversion is expected to change the date
-          return this.validateDate(ret, str);
         } else {
           // No timezone - use local time
           ret = new Date(
@@ -924,55 +886,39 @@ foam.CLASS({
             result.second !== undefined ? result.second : 0,
             result.millisecond !== undefined ? result.millisecond : 0
           );
-          return this.validateDate(ret, str);
         }
+
+        if ( isNaN(ret.getTime()) ) {
+          throw new Error('Cannot parse invalid datetime: ' + str);
+        }
+
+        return ret;
       }
     },
 
     {
       name: 'parseDateTimeUTC',
-      documentation: 'Parse a datetime string using UTC time - uses time if present, otherwise sets to midnight. If timezone is present, converts to UTC. Returns MAX_DATE for invalid dates.',
+      documentation: 'Parse a datetime string using UTC time - uses time if present, otherwise sets to midnight. If timezone is present, converts to UTC. Throws exception for unsupported formats.',
       code: function(str, opt_name) {
+        if ( ! str || str.trim() === '' ) {
+          throw new Error('Unsupported DateTime format: empty or null string');
+        }
+
         // Trim input to remove leading/trailing whitespace
-        str = str ? str.trim() : str;
+        str = str.trim();
 
         // Use parse() instead of parseString() to get position information
         this.grammar_.ps.setString(str);
         let start = this.grammar_.getSymbol(opt_name || 'START');
         let parseResult = this.grammar_.ps.apply(start, this.grammar_);
 
-        if ( ! parseResult ) {
-          // Unparseable format - return MAX_DATE
-          return this.validateDateUTC(this.INVALID_DATE, str);
-        }
-
-        // Check if entire string was consumed
-        if ( parseResult.pos < str.length ) {
-          // Partial parse - remaining characters indicate invalid format
-          console.warn('DateParser: Partial parse detected for UTC. Input:', str, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
-          return this.validateDateUTC(this.INVALID_DATE, str);
+        if ( ! parseResult || ! parseResult.value ) {
+          throw new Error('Unsupported DateTime format: ' + str);
         }
 
         let result = parseResult.value;
 
-        if ( ! result ) {
-          // Unparseable format - return MAX_DATE
-          return this.validateDateUTC(this.INVALID_DATE, str);
-        }
-
-        // Validate time components if present
-        // Note: Grammar already enforces valid ranges (hour2: 00-23, minute2/second2: 00-59)
-        // but we keep these checks as a safety measure
-        if ( result.hour !== undefined && (result.hour < 0 || result.hour > 23) ) {
-          return this.validateDateUTC(this.INVALID_DATE, str);
-        }
-        if ( result.minute !== undefined && (result.minute < 0 || result.minute > 59) ) {
-          return this.validateDateUTC(this.INVALID_DATE, str);
-        }
-        if ( result.second !== undefined && (result.second < 0 || result.second > 59) ) {
-          return this.validateDateUTC(this.INVALID_DATE, str);
-        }
-
+        // Let JavaScript Date normalize invalid dates/times (e.g., Feb 30 → Mar 2, hour 25 → next day)
         let ret;
         if ( result.timezone ) {
           // Timezone present - convert to UTC
@@ -989,8 +935,6 @@ foam.CLASS({
           // Subtract offset to convert to UTC (if timezone is +05:00, we subtract 5 hours)
           utcTime -= offset * 60000;
           ret = new Date(utcTime);
-          // Don't validate date parts - timezone conversion is expected to change the date
-          return this.validateDateUTC(ret, str);
         } else {
           // No timezone - use UTC time as-is
           ret = new Date(Date.UTC(
@@ -1002,8 +946,13 @@ foam.CLASS({
             result.second !== undefined ? result.second : 0,
             result.millisecond !== undefined ? result.millisecond : 0
           ));
-          return this.validateDateUTC(ret, str);
         }
+
+        if ( isNaN(ret.getTime()) ) {
+          throw new Error('Cannot parse invalid datetime: ' + str);
+        }
+
+        return ret;
       }
     }
   ]
