@@ -48,10 +48,14 @@ foam.CLASS({
       line-height: 1.71;
       margin: 0;
     }
+    ^text {
+      color: $textSecondary;
+    }
 
     ^property { color: $green400; }
     ^operator { color: $red400; }
     ^value    { color: $blue400; }
+    ^format    { color: $orange400; }
   `,
 
   properties: [
@@ -76,7 +80,6 @@ foam.CLASS({
                 style({cursor: 'pointer'}).
                 add(data.label || data.text);
               self.on('click', () => self.suggestText(data.text));
-
             }
           ).
           callIf(data.category,
@@ -88,6 +91,7 @@ foam.CLASS({
 
       if ( data.label !== data.text ) {
         this.start().
+          addClass(this.myClass('text')).
           add(data.text).
         end();
       }
@@ -98,7 +102,7 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.parse.auto',
-  name: 'SearchView',
+  name: 'SearchView', // TODO: rename GrammarView or SyntaxView
   extends: 'foam.u2.View',
 
   documentation: `
@@ -113,6 +117,22 @@ foam.CLASS({
     'foam.u2.TextField'
   ],
 
+  css: `
+    ^suggestions {
+      background: $backgroundDefault;
+      border-radius: $inputBorderRadius;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.16);
+      margin-top: 4px;
+      max-height: min(400px, 40vh);
+      overflow-y: auto;
+      padding: 6px;
+      padding-top: 0;
+      position: absolute;
+      width: 250px;
+      z-index: 1000;
+    }
+  `,
+
   properties: [
     [ 'type', 'search' ],
     {
@@ -123,7 +143,6 @@ foam.CLASS({
     {
       name: 'parser'
     },
-
     {
       class: 'Boolean',
       name: 'normalize',
@@ -139,6 +158,7 @@ foam.CLASS({
       factory: function() { return {}; },
       documentation: 'Current suggestions as a map of string keys to Suggestion objects.'
     },
+    'field',
     {
       name: 'apply',
       factory: function() {
@@ -200,19 +220,22 @@ foam.CLASS({
         .addClass()
         .start(this.TextField, {
           data$: this.data$,
-          // onKey: true,
-          autocomplete: false
-        }).
+          autocomplete: false,
+          autocorrect: false
+        }, this.field$).
+          on('blur', this.onBlur).
           call(function() {
             // The 'preview' Property is always bound like its onKey mode
             this.attrSlot(null, 'input').linkFrom(self.preview$);
           }).
           on('keydown', this.onKeyPress).
-          on('blur', this.onBlur).
         end().
-        add(function (suggestions) {
-          self.populateSuggestions(this, suggestions);
-        });
+        start().
+          addClass(this.myClass('suggestions')).
+          add(this.dynamic(function (suggestions) {
+            self.populateSuggestions(this, suggestions);
+          })).
+        end();
     },
 
     function containsIC(str, sub) {
@@ -237,10 +260,15 @@ foam.CLASS({
       let ss      = keys.sort(compare); // Sort by section then (label or text)
 
       if ( delta ) ss = ss.filter(k => this.containsIC(k, delta));
-      if ( ! ss.length ) return;
+
+      let parent = e.parentNode;
+
+      if ( ! ss.length ) { parent.show(false); return; }
+      parent.show(true);
+
+//      self.setPosition(parent);
 
       e.start().
-        style({width: '240px', maxHeight: '500px', border: '1px solid gray', overflowY: 'auto'}).
         forEach(ss, function(s, i, a) {
           let sug = self.suggestions[s];
 
@@ -256,6 +284,32 @@ foam.CLASS({
         });
     },
 
+    function setPosition(e) {
+      var screenWidth  = this.window.innerWidth;
+      var domRect      = this.parentEl.getBoundingClientRect();
+      var screenHeight = this.window.innerHeight;
+      var scrollY      = this.window.scrollY;
+      var parentCheck  = this.parentEdgePadding > -1;
+      if ( domRect.top - scrollY < screenHeight / 2 ) {
+        this.top = parentCheck ? domRect.bottom + this.parentEdgePadding : this.y;
+        this.bottom = 'auto';
+      } else {
+        this.top = 'auto';
+        this.bottom = parentCheck ?
+          screenHeight - domRect.top + this.parentEdgePadding : screenHeight - this.y;
+      }
+      if ( domRect.left > 3 * (screenWidth / 4) ) {
+        this.left = 'auto';
+        this.right = parentCheck ? screenWidth - domRect.right : screenWidth - this.x + 10;
+      } else if (domRect.left < 75) {
+        this.left = parentCheck ? domRect.left : this.x + 10;
+        this.right = 'auto';
+      } else {
+        this.left = parentCheck ? domRect.left : this.x - 75;
+        this.right = 'auto';
+      }
+    },
+
     function reset() {
       this.maxPos          = 0;
       this.suggestions     = {};
@@ -266,6 +320,7 @@ foam.CLASS({
       let str = this.preview.substring(0, this.maxPos).trim();
       if ( ! str.endsWith('.') ) str += ' ';
       this.preview = ( str + txt ).trimStart();
+      this.field.focus();
     }
   ],
 
@@ -295,7 +350,7 @@ foam.CLASS({
       delay: 250,
       code: function() {
         // Close the selections list when the user leaves the field (and descendents)
-        if ( ! this.element_.contains(document.activeElement) ) {
+        if ( ! this.element_.parentNode.contains(document.activeElement) ) {
           this.reset();
         }
       }
