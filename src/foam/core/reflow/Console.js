@@ -367,9 +367,9 @@ foam.CLASS({
         return data$flowMode != this.FlowMode.PRESENTATION_ONLY;
       },
       code: function() {
-        if (this.data.flowMode == this.FlowMode.CONSOLE) {
+        if ( this.data.flowMode == this.FlowMode.CONSOLE ) {
           this.data.flowMode = this.FlowMode.PRESENTATION;
-        } else if (this.data.flowMode == this.FlowMode.PRESENTATION) {
+        } else if ( this.data.flowMode == this.FlowMode.PRESENTATION ) {
           this.data.flowMode = this.FlowMode.CONSOLE;
         }
       }
@@ -1132,7 +1132,7 @@ foam.CLASS({
         }
 
         await this.currentBlock.value?.onLoad?.();
-        
+
         if ( c.flowChildren ) {
           await this.includeScript(c.flowChildren, this.currentBlock, true);
         }
