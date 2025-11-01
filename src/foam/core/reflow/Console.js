@@ -1676,7 +1676,7 @@ foam.CLASS({
       isAvailable: function(flowMode, input_) {
         return this.flowMode == this.FlowMode.CONSOLE && input_.element_ === document.activeElement;
       },
-      code: function() { this.help(); },
+      code: function() { this.eval_('help'); },
       keyboardShortcuts: [ 'f1' ]
     },
     {
@@ -1694,6 +1694,15 @@ foam.CLASS({
         this.flowMode = this.flowMode == this.FlowMode.CONSOLE ?
           this.FlowMode.PRESENTATION :
           this.FlowMode.CONSOLE ;
+
+        // After toggleMode is executed the app may no longer have focus so thee
+        // keyboard shortcut won't work. Set focus to something so if you user presses escape again
+        // they can toggle back.
+        setTimeout(() => {
+          var focusable = this.el_().querySelectorAll('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          var firstFocusable = focusable[1];
+          firstFocusable.focus();
+        }, 16);
       },
       keyboardShortcuts: [ 'escape' ]
     },
