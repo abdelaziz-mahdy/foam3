@@ -81,51 +81,51 @@ foam.CLASS({
             // Date symbol tests with different time components
             // 1. Add hours
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-01-01T15',
               [testDate([2025, 0, 1, 15]), testDate([2025, 0, 1, 16])].toString()
             ), 'Date Test6: ISO date with hours');
 
             // 2. Add hours and minutes
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '25/10/01T16:30',
               [testDate([2025, 9, 1, 16, 30]), testDate([2025, 9, 1, 16, 31])].toString()
             ), 'Date Test7: ISO date with hours and minutes');
 
             // 3. Add hours, minutes, and seconds
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-06-01T17:45:30',
               [testDate([2025, 5, 1, 17, 45, 30]), testDate([2025, 5, 1, 17, 45, 31])].toString()
             ), 'Date Test8: ISO date with hours, minutes and seconds');
 
             // 4. Add hours, minutes, seconds and milliseconds
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-06-01T18:45:30.123',
               [testDate([2025, 5, 1, 18, 45, 30, 123]), testDate([2025, 5, 1, 18, 45, 30, 124])].toString()
             ), 'Date Test9: ISO date with hours, minutes, seconds and milliseconds');
 
             // 5. Add hours, minutes, seconds, milliseconds and the UTC timezone
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-05-30T07:15:30.123Z',
               [testDate([2025, 4, 30, 7, 15, 30, 123]), testDate([2025, 4, 30, 7, 15, 30, 124])].toString()
             ), 'Date Test10: ISO date with hours, minutes, seconds, milliseconds and the UTC timezone');
 
             // Date comparison tests
             x.test(this.isValid('created=2025-01-01',
-                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 0, 1, 12]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 0, 2, 12]).toString() + '))'),
+                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 0, 1, 0]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 0, 2, 0]).toString() + '))'),
                     'Date Test11: Date equality');
             x.test(this.isValid('created = 2025-05-31',
-                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 4, 31, 12]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 5, 1, 12]).toString() + '))'),
+                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 4, 31, 0]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 5, 1, 0]).toString() + '))'),
                     'Date Test12: Date equality without spaces');
-            x.test(this.isValid('lastModified > TODAY-7',
-                    'GT(foam.core.auth.User.lastModified, ' + testToday(-6).toString() + ')'),
+            x.test(this.isValid('birthday > TODAY-7',
+                    'GT(foam.core.auth.User.birthday, ' + testToday(-6).toString() + ')'),
                     'Date Test13: Relative date comparison less than');
-            x.test(this.isValid('passwordExpiry <= TODAY+30',
-                    'LTE(foam.core.auth.User.passwordExpiry, ' + testToday(+31).toString() + ')'),
+            x.test(this.isValid('birthday <= TODAY+30',
+                    'LTE(foam.core.auth.User.birthday, ' + testToday(+31).toString() + ')'),
                     'Date Test14: Relative date comparison grater than or equal');
              x.test(this.isValid('birthday IN RANGE (2025-03-31, 2025-04-30)',
                     'AND(GTE(foam.core.auth.User.birthday, ' + testDate([2025, 2, 31, 12]).toString() + '),LT(foam.core.auth.User.birthday, ' +  testDate([2025, 4, 1, 12]).toString() + '))'),
