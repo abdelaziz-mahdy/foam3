@@ -350,8 +350,8 @@ foam.CLASS({
           ),
           day2: str(seq(range('0', '3'), range('0', '9'))),
           hour2: str(seq(range('0', '2'), range('0', '9'))),
-          minute2: str(seq(range('0', '5'), range('0', '9'))),
-          second2: str(seq(range('0', '5'), range('0', '9'))),
+          minute2: str(seq(range('0', '9'), range('0', '9'))),  // Allow 00-99 for normalization
+          second2: str(seq(range('0', '9'), range('0', '9'))),  // Allow 00-99 for normalization
           millisecond3: str(repeat(range('0', '9'), null, 3, 3))
         };
       }
@@ -847,6 +847,9 @@ foam.CLASS({
         // Trim input to remove leading/trailing whitespace
         str = str.trim();
 
+        // Conditional logging for debugging specific test cases (minute 60 or hour 25)
+        var debugLog = str.indexOf('15:60:') >= 0 || str.indexOf('25:') >= 0;
+
         // Use parse() instead of parseString() to get position information
         this.grammar_.ps.setString(str);
         let start = this.grammar_.getSymbol(opt_name || 'START');
@@ -857,6 +860,11 @@ foam.CLASS({
         }
 
         let result = parseResult.value;
+
+        if ( debugLog ) {
+          console.log('[DateParser.parseDateTime] Input:', str);
+          console.log('[DateParser.parseDateTime] Parsed result:', JSON.stringify(result));
+        }
 
         // Let JavaScript Date normalize invalid dates/times (e.g., Feb 30 → Mar 2, hour 25 → next day)
         let ret;
@@ -875,8 +883,18 @@ foam.CLASS({
           // Subtract offset to convert to UTC (if timezone is +05:00, we subtract 5 hours)
           utcTime -= offset * 60000;
           ret = new Date(utcTime);
+          if ( debugLog ) {
+            console.log('[DateParser.parseDateTime] Created UTC date, offset:', offset, 'minutes');
+          }
         } else {
           // No timezone - use local time
+          if ( debugLog ) {
+            console.log('[DateParser.parseDateTime] Creating local time date with:');
+            console.log('  year:', result.year, 'month:', result.month, 'day:', result.day);
+            console.log('  hour:', result.hour !== undefined ? result.hour : 12);
+            console.log('  minute:', result.minute !== undefined ? result.minute : 0);
+            console.log('  second:', result.second !== undefined ? result.second : 0);
+          }
           ret = new Date(
             result.year,
             result.month,
@@ -886,6 +904,12 @@ foam.CLASS({
             result.second !== undefined ? result.second : 0,
             result.millisecond !== undefined ? result.millisecond : 0
           );
+          if ( debugLog ) {
+            console.log('[DateParser.parseDateTime] Result date:');
+            console.log('  getHours():', ret.getHours(), 'getMinutes():', ret.getMinutes());
+            console.log('  getUTCHours():', ret.getUTCHours(), 'getUTCMinutes():', ret.getUTCMinutes());
+            console.log('  toString():', ret.toString());
+          }
         }
 
         if ( isNaN(ret.getTime()) ) {

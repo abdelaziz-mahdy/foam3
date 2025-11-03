@@ -508,8 +508,12 @@ foam.CLASS({
       ];
 
       unsupportedFormats.forEach(function(format) {
-        var date = foam.util.DateUtil.parseDateString(format);
-        x.test(date.getTime() === maxDate.getTime(), `Unsupported format "${format}" returns MAX_DATE`);
+        try {
+          var date = foam.util.DateUtil.parseDateString(format);
+          x.test(false, `Unsupported format "${format}" should throw exception`);
+        } catch (e) {
+          x.test(e.message.includes('Unsupported Date format'), `Format "${format}" throws correct error`);
+        }
       });
 
       // Test formats that match a pattern but have invalid date values
@@ -532,25 +536,41 @@ foam.CLASS({
     },
 
     function testParseDateString_EmptyAndWhitespace(x) {
-      var maxDate = foam.util.DateUtil.MAX_DATE;
+      // Empty string should throw exception
+      try {
+        var emptyDate = foam.util.DateUtil.parseDateString('');
+        x.test(false, 'Empty string should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported Date format'), 'Empty string throws correct error');
+      }
 
-      var emptyDate = foam.util.DateUtil.parseDateString('');
-      x.test(emptyDate.getTime() === maxDate.getTime(), 'Empty string returns MAX_DATE');
-
-      var wsDate = foam.util.DateUtil.parseDateString('   ');
-      x.test(wsDate.getTime() === maxDate.getTime(), 'Whitespace returns MAX_DATE');
+      // Whitespace should throw exception
+      try {
+        var wsDate = foam.util.DateUtil.parseDateString('   ');
+        x.test(false, 'Whitespace should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported Date format'), 'Whitespace throws correct error');
+      }
     },
 
     function testAdapt_EmptyString(x) {
-      var date = foam.util.DateUtil.parseDateString('');
-      var maxDate = foam.util.DateUtil.MAX_DATE;
-      x.test(date.getTime() === maxDate.getTime(), 'parseDateString(empty string) returns MAX_DATE');
+      // Empty string should throw exception
+      try {
+        var date = foam.util.DateUtil.parseDateString('');
+        x.test(false, 'parseDateString(empty string) should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported Date format'), 'Empty string throws correct error');
+      }
     },
 
     function testAdapt_WhitespaceString(x) {
-      var date = foam.util.DateUtil.parseDateString('   ');
-      var maxDate = foam.util.DateUtil.MAX_DATE;
-      x.test(date.getTime() === maxDate.getTime(), 'parseDateString(whitespace) returns MAX_DATE');
+      // Whitespace should throw exception
+      try {
+        var date = foam.util.DateUtil.parseDateString('   ');
+        x.test(false, 'parseDateString(whitespace) should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported Date format'), 'Whitespace throws correct error');
+      }
     },
 
     function testAdapt_AllFormats(x) {
@@ -716,16 +736,25 @@ foam.CLASS({
       var expectedDate = new Date(2024, 2, 1, 15, 30, 45, 0); // March 1, 2024 15:30:45 local time
       x.test(invalidDate.getTime() === expectedDate.getTime(), 'Invalid datetime (Feb 30) normalizes to March 1');
 
-      // Invalid hour 25 - DateParser validation should catch this before normalization
+      // Invalid hour 25 - JavaScript Date normalizes (hour 25 = next day, hour 1)
       var invalidHour = foam.util.DateUtil.parseDateTime('2024-03-15 25:30:45');
-      var maxDate = foam.util.DateUtil.MAX_DATE;
-      x.test(invalidHour.getTime() === maxDate.getTime(), 'Invalid hour (25) returns MAX_DATE');
+      var expectedHour = new Date(2024, 2, 16, 1, 30, 45, 0); // March 16, 2024 01:30:45 local time
+      x.test(invalidHour.getTime() === expectedHour.getTime(), 'Invalid hour (25) normalizes to next day, hour 1');
 
+      // Invalid minute 60 - JavaScript Date normalizes (minute 60 = next hour, minute 0)
       var invalidMinute = foam.util.DateUtil.parseDateTime('2024-03-15 15:60:45');
-      x.test(invalidMinute.getTime() === maxDate.getTime(), 'Invalid minute (60) returns MAX_DATE');
+      var hours = invalidMinute.getHours();
+      var minutes = invalidMinute.getMinutes();
+      x.test(hours === 16, `Invalid minute (60) normalizes to hour 16 (got ${hours})`);
+      x.test(minutes === 0, `Invalid minute (60) normalizes to minute 0 (got ${minutes})`);
 
-      var unsupportedFormat = foam.util.DateUtil.parseDateTime('March 15, 2024 3:30 PM');
-      x.test(unsupportedFormat.getTime() === maxDate.getTime(), 'Unsupported format returns MAX_DATE');
+      // Unsupported format should throw exception
+      try {
+        var unsupportedFormat = foam.util.DateUtil.parseDateTime('March 15, 2024 3:30 PM');
+        x.test(false, 'Unsupported format should throw exception');
+      } catch (e) {
+        x.test(e.message.includes('Unsupported DateTime format'), 'Unsupported format throws correct exception');
+      }
     },
 
     function testParseDateTime_PreservesTime(x) {

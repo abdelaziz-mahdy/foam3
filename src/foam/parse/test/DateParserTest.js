@@ -623,7 +623,7 @@ foam.CLASS({
     function testValidation(x) {
       let parser = this.DateParser.create();
 
-      // Test that parser returns MAX_DATE for truly unparseable inputs
+      // Test that parser throws exceptions for truly unparseable inputs
       let invalidInputs = [
         'invalid-date',
         '99/99/99',
@@ -634,10 +634,9 @@ foam.CLASS({
       invalidInputs.forEach((input, i) => {
         try {
           let result = parser.parseString(input);
-          let isMaxDate = result && result.getTime() === foam.Date.MAX_DATE.getTime();
-          x.test(isMaxDate, `Validation Test${i + 1}: "${input}" should return MAX_DATE (invalid)`);
+          x.test(false, `Validation Test${i + 1}: "${input}" should throw exception (got result instead)`);
         } catch (e) {
-          x.test(false, `Validation Test${i + 1}: "${input}" - ${e.message}`);
+          x.test(e.message.includes('Unsupported Date format'), `Validation Test${i + 1}: "${input}" throws correct exception`);
         }
       });
 

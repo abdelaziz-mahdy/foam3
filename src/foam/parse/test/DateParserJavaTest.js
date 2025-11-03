@@ -644,20 +644,31 @@ foam.CLASS({
       javaCode: `
         DateParser parser = new DateParser();
 
-        // Invalid dates should return MAX_DATE
-        Date maxDate = DateParser.MAX_DATE;
+        // Invalid/unsupported formats should throw exceptions
 
         // Test invalid format
-        Date date1 = parser.parseString("not-a-date");
-        test(date1.equals(maxDate), "Invalid format should return MAX_DATE");
+        try {
+          Date date1 = parser.parseString("not-a-date");
+          test(false, "Invalid format should throw exception");
+        } catch (RuntimeException e) {
+          test(e.getMessage().contains("Unsupported Date format"), "Invalid format throws correct exception");
+        }
 
         // Test empty string
-        Date date2 = parser.parseString("");
-        test(date2.equals(maxDate), "Empty string should return MAX_DATE");
+        try {
+          Date date2 = parser.parseString("");
+          test(false, "Empty string should throw exception");
+        } catch (RuntimeException e) {
+          test(e.getMessage().contains("Unsupported Date format"), "Empty string throws correct exception");
+        }
 
         // Test null
-        Date date3 = parser.parseString(null);
-        test(date3.equals(maxDate), "Null should return MAX_DATE");
+        try {
+          Date date3 = parser.parseString(null);
+          test(false, "Null should throw exception");
+        } catch (RuntimeException e) {
+          test(e.getMessage().contains("Unsupported Date format"), "Null throws correct exception");
+        }
       `
     },
 
@@ -666,12 +677,17 @@ foam.CLASS({
       javaCode: `
         DateParser parser = new DateParser();
 
-        // Partial parses should be detected and rejected
-        Date maxDate = DateParser.MAX_DATE;
-
+        // Trailing text is allowed - parser should extract date and ignore trailing text
         // Test with trailing text
         Date date1 = parser.parseDateTimeUTC("2025-01-15T14:30:45Z extra text");
-        test(date1.equals(maxDate), "Partial parse with trailing text should return MAX_DATE");
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal1.setTime(date1);
+        test(cal1.get(Calendar.YEAR) == 2025, "Trailing text allowed: year is 2025");
+        test(cal1.get(Calendar.MONTH) == 0, "Trailing text allowed: month is January (0)");
+        test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "Trailing text allowed: day is 15");
+        test(cal1.get(Calendar.HOUR_OF_DAY) == 14, "Trailing text allowed: hour is 14 UTC");
+        test(cal1.get(Calendar.MINUTE) == 30, "Trailing text allowed: minute is 30");
+        test(cal1.get(Calendar.SECOND) == 45, "Trailing text allowed: second is 45");
       `
     }
   ]

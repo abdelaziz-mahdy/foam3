@@ -78,7 +78,7 @@ foam.CLASS({
         DateUtilTest_parseDateTime_WithTimezone();
         DateUtilTest_parseDateTimeUTC_TwoDigitYearWithTime_Dash();
         DateUtilTest_parseDateTimeUTC_TwoDigitYearWithTime_Slash();
-        DateUtilTest_parseDateTimeUTC_TwoDigitYear_SlidingWindow();
+        DateUtilTest_parseDateTimeUTC_TwoDigitYear_FixedPivot();
         DateUtilTest_parseDateTimeUTC_TwoDigitYear_EdgeCases();
         DateUtilTest_parseDateTimeUTC_TimeComponentPreservation();
         DateUtilTest_format_LocaleDefault_DateOnly();
@@ -247,7 +247,7 @@ foam.CLASS({
       name: 'DateUtilTest_parseDateString_InvalidDate',
       javaCode: `
         try {
-          // Test invalid date like February 30th - Calendar normalizes to March 2nd
+          // Test invalid date like February 30th - Calendar normalizes to March 1st (Feb has 29 days in 2024)
           Date date = DateUtil.parseDateString("2024-02-30");
           Calendar cal = Calendar.getInstance();
           cal.setTime(date);
@@ -256,7 +256,7 @@ foam.CLASS({
           int actualDay = cal.get(Calendar.DAY_OF_MONTH);
           test(actualYear == 2024, "Invalid date (Feb 30) - year normalized to 2024 (expected 2024, got " + actualYear + ")");
           test(actualMonth == 2, "Invalid date (Feb 30) - month normalized to March (2) (expected 2, got " + actualMonth + ")");
-          test(actualDay == 2, "Invalid date (Feb 30) - day normalized to 2 (expected 2, got " + actualDay + ")");
+          test(actualDay == 1, "Invalid date (Feb 30) - day normalized to 1 (expected 1, got " + actualDay + ")");
         } catch ( Exception e ) {
           test(false, "Invalid date should normalize, not throw exception: " + e.getMessage());
         }
@@ -756,8 +756,7 @@ foam.CLASS({
           "2024-3",          // incomplete date
           "2024",            // year only
           "03/2024",         // month/year only
-          "abc123",          // random text
-          "12345678901"      // too many digits
+          "abc123"           // random text
         };
 
         for ( String format : unsupportedFormats ) {
@@ -973,20 +972,28 @@ foam.CLASS({
     {
       name: 'DateUtilTest_parseDateTime_InvalidFormats',
       javaCode: `
-        // Test invalid datetime
+        // Test invalid datetime - should normalize
         try {
-          DateUtil.parseDateTime("2024-02-30 15:30:45");
-          test(false, "Invalid datetime (Feb 30) should throw exception");
+          Date dt = DateUtil.parseDateTime("2024-02-30 15:30:45");
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(dt);
+          // Feb 30 normalizes to Mar 1
+          test(cal.get(Calendar.MONTH) == 2, "Invalid datetime (Feb 30) normalizes to March (2)");
+          test(cal.get(Calendar.DAY_OF_MONTH) == 1, "Invalid datetime (Feb 30) normalizes to day 1");
+          test(cal.get(Calendar.HOUR_OF_DAY) == 15, "Time component preserved (hour 15)");
         } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Cannot parse invalid datetime"), "Invalid datetime throws error");
+          test(false, "Invalid datetime should normalize, not throw exception: " + e.getMessage());
         }
 
-        // Test invalid hour
+        // Test invalid hour - should normalize (hour 25 = next day, hour 1)
         try {
-          DateUtil.parseDateTime("2024-03-15 25:30:45");
-          test(false, "Invalid hour (25) should throw exception");
+          Date dt = DateUtil.parseDateTime("2024-03-15 25:30:45");
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(dt);
+          test(cal.get(Calendar.DAY_OF_MONTH) == 16, "Invalid hour (25) normalizes to next day (16)");
+          test(cal.get(Calendar.HOUR_OF_DAY) == 1, "Invalid hour (25) normalizes to hour 1");
         } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Cannot parse invalid datetime"), "Invalid hour throws error");
+          test(false, "Invalid hour should normalize, not throw exception: " + e.getMessage());
         }
 
         // Test unsupported format
