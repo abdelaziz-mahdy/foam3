@@ -76,9 +76,9 @@ foam.CLASS({
     }
 
     ^property { color: $green400; }
-    ^operator { color: orange; }
+    ^operator { color: $orange400; }
     ^value    { color: $blue400; }
-    ^format   { color: gray; }
+    ^format   { color: $grey400; }
   `,
 
   properties: [
