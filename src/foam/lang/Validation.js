@@ -591,7 +591,7 @@ foam.CLASS({
 
   messages: [
     { name: 'PHONE_NUMBER_REQUIRED', message: 'Required' },
-    { name: 'INVALID_PHONE_NUMBER',  message: 'Please enter a valid phone number using digits only.' },
+    { name: 'INVALID_PHONE_NUMBER',  message: 'Enter a valid phone number using digits only.' },
     { name: 'INVALID_CHARACTER',     message: 'Phone Number can only contain numbers' }
   ],
 
