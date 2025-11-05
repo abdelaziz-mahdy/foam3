@@ -591,15 +591,15 @@ foam.CLASS({
 
   messages: [
     { name: 'PHONE_NUMBER_REQUIRED', message: 'Required' },
-    { name: 'INVALID_PHONE_NUMBER',  message: 'Enter a valid phone number using digits only.' },
+    { name: 'INVALID_PHONE_NUMBER',  message: 'Valid phone number required' },
     { name: 'INVALID_CHARACTER',     message: 'Phone Number can only contain numbers' }
   ],
 
   constants: [
     {
       name: 'ALPHA_CHAR_CHECK',
-      factory: () => /^[\d+-]*$/,
-      javaFactory: '  return "^[\\d+-]*$";'
+      factory: () => /^\+?\d+(?:-\d+)?$/,
+      javaFactory: '  return "^\\+?\\d+(?:-\\d+)?$";'
     }
   ],
 
