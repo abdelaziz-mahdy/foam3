@@ -9,8 +9,6 @@ foam.CLASS({
   name: 'DateSuggester',
   extends: 'foam.u2.View',
 
-//  imports: [ 'suggestText' ],
-
   properties: [
     'suggestText',
     {
@@ -25,6 +23,31 @@ foam.CLASS({
       this.startContext({data: this}).add(this.DATE);
       this.date$.sub(() => {
         this.suggestText(this.date.toISOString().substring(0,10) + ' ');
+      });
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.parse.auto',
+  name: 'DateTimeSuggester',
+  extends: 'foam.u2.View',
+
+  properties: [
+    'suggestText',
+    {
+      class: 'DateTime',
+      name: 'date',
+      onKey: true
+    }
+  ],
+
+  methods: [
+    function render() {
+      this.startContext({data: this}).add(this.DATE);
+      this.date$.sub(() => {
+        this.suggestText(this.date.toISOString() + ' ');
       });
     }
   ]
@@ -48,10 +71,14 @@ foam.CLASS({
       line-height: 1.71;
       margin: 0;
     }
+    ^text {
+      color: $textSecondary;
+    }
 
     ^property { color: $green400; }
-    ^operator { color: $red400; }
+    ^operator { color: $orange400; }
     ^value    { color: $blue400; }
+    ^format   { color: $grey400; }
   `,
 
   properties: [
@@ -76,7 +103,6 @@ foam.CLASS({
                 style({cursor: 'pointer'}).
                 add(data.label || data.text);
               self.on('click', () => self.suggestText(data.text));
-
             }
           ).
           callIf(data.category,
@@ -88,6 +114,7 @@ foam.CLASS({
 
       if ( data.label !== data.text ) {
         this.start().
+          addClass(this.myClass('text')).
           add(data.text).
         end();
       }
@@ -98,11 +125,11 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.parse.auto',
-  name: 'SearchView',
+  name: 'SmartView', // TODO: rename GrammarView or SyntaxView
   extends: 'foam.u2.View',
 
   documentation: `
-    A Search TextField which provides AutoComplete support.
+    A TextField which provides AutoComplete support.
     Works with any FOAM parser which makes suggestions.
     parser: must be supplied
   `,
@@ -112,6 +139,25 @@ foam.CLASS({
     'foam.parse.auto.SuggestionView',
     'foam.u2.TextField'
   ],
+
+  imports: [
+    'window'
+  ],
+
+  css: `
+    ^suggestions {
+      background: $backgroundDefault;
+      border-radius: $inputBorderRadius;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.16);
+      margin-top: 4px;
+      overflow-y: auto;
+      position: absolute;
+      padding: 6px;
+      padding-top: 0;
+      position: fixed;
+      z-index: 1000;
+    }
+  `,
 
   properties: [
     [ 'type', 'search' ],
@@ -123,7 +169,6 @@ foam.CLASS({
     {
       name: 'parser'
     },
-
     {
       class: 'Boolean',
       name: 'normalize',
@@ -139,6 +184,7 @@ foam.CLASS({
       factory: function() { return {}; },
       documentation: 'Current suggestions as a map of string keys to Suggestion objects.'
     },
+    'field',
     {
       name: 'apply',
       factory: function() {
@@ -200,19 +246,24 @@ foam.CLASS({
         .addClass()
         .start(this.TextField, {
           data$: this.data$,
-          // onKey: true,
-          autocomplete: false
-        }).
+          autocomplete: false,
+          autocorrect: false
+        }, this.field$).
+          on('blur', this.onBlur).
           call(function() {
             // The 'preview' Property is always bound like its onKey mode
             this.attrSlot(null, 'input').linkFrom(self.preview$);
           }).
-          on('keydown', this.onKeyPress).
-          on('blur', this.onBlur).
+        on('keydown', this.onKeyPress, true).
         end().
-        add(function (suggestions) {
-          self.populateSuggestions(this, suggestions);
-        });
+        start().
+          addClass(this.myClass('suggestions')).
+          add(this.dynamic(function (suggestions) {
+            self.populateSuggestions(this, suggestions);
+          })).
+        end();
+
+      this.field.on('focus', this.onPreviewChange);
     },
 
     function containsIC(str, sub) {
@@ -237,15 +288,18 @@ foam.CLASS({
       let ss      = keys.sort(compare); // Sort by section then (label or text)
 
       if ( delta ) ss = ss.filter(k => this.containsIC(k, delta));
-      if ( ! ss.length ) return;
+
+      let parent = e.parentNode;
+
+      if ( ! ss.length ) { parent.show(false); return; }
+      parent.show(true);
 
       e.start().
-        style({width: '240px', maxHeight: '500px', border: '1px solid gray', overflowY: 'auto'}).
         forEach(ss, function(s, i, a) {
           let sug = self.suggestions[s];
 
           this.start('div').
-            style({margin: '6px', fontSize: '0.7em'}).
+            style({margin: '6px'}).
             tag(sug.view || self.SuggestionView, {
               data: sug,
               suggestText: self.suggestText.bind(self)
@@ -254,6 +308,44 @@ foam.CLASS({
           if ( i != a.length-1 )
             this.start('hr').style({marginBottom: '-6px'});
         });
+
+
+      setTimeout(() => self.setPosition(parent), 0);
+   },
+
+    function setPosition(e) {
+      let screenWidth  = this.window.innerWidth;
+      let domRect      = this.parentNode.el_().getBoundingClientRect();
+      let screenHeight = this.window.innerHeight;
+      let scrollY      = this.window.scrollY;
+      let rectT        = this.field.el_().getBoundingClientRect();
+      // var parentCheck  = this.parentEdgePadding > -1;
+
+//      console.log('screenWidth:',screenWidth,'domRect:',domRect,'screenHeight:',screenHeight,'scrollY:',scrollY,'parentCheck:',parentCheck);
+      if ( domRect.top - scrollY < screenHeight / 2 ) {
+        e.style({maxHeight: (screenHeight-domRect.y-domRect.height-20) + 'px'});
+      } else {
+        e.style({maxHeight: (domRect.y-20-scrollY) + 'px'});
+        let rect = e.el_().getBoundingClientRect();
+        let rectT = this.field.el_().getBoundingClientRect();
+        e.style({top: (domRect.y - rect.height - 10)+ 'px'});
+      }
+
+      e.style({width: rectT.width});
+
+      // TODO: shift left if too close to the right edge
+      /*
+      if ( domRect.left > 3 * (screenWidth / 4) ) {
+        this.left = 'auto';
+        this.right = parentCheck ? screenWidth - domRect.right : screenWidth - this.x + 10;
+      } else if (domRect.left < 75) {
+        this.left = parentCheck ? domRect.left : this.x + 10;
+        this.right = 'auto';
+      } else {
+        this.left = parentCheck ? domRect.left : this.x - 75;
+        this.right = 'auto';
+        }
+      */
     },
 
     function reset() {
@@ -266,6 +358,7 @@ foam.CLASS({
       let str = this.preview.substring(0, this.maxPos).trim();
       if ( ! str.endsWith('.') ) str += ' ';
       this.preview = ( str + txt ).trimStart();
+      this.field.focus();
     }
   ],
 
@@ -273,6 +366,12 @@ foam.CLASS({
     {
       name: 'onKeyPress',
       code: function(e) {
+        if ( e.key === 'Escape' && Object.keys(this.suggestions).length ) {
+          e.stopPropagation();
+          e.preventDefault();
+          this.reset();
+          return;
+        }
         if ( e.key !== 'Tab' ) return;
 
         let keys  = Object.keys(this.suggestions);
@@ -295,7 +394,7 @@ foam.CLASS({
       delay: 250,
       code: function() {
         // Close the selections list when the user leaves the field (and descendents)
-        if ( ! this.element_.contains(document.activeElement) ) {
+        if ( ! this.element_.parentNode.contains(document.activeElement) ) {
           this.reset();
         }
       }
@@ -314,16 +413,6 @@ foam.CLASS({
           this.apply);
 
         return ps || null;
-      }
-    }
-  ],
-
-  actions: [
-    {
-      name: 'closeSuggestions',
-      keyboardShortcuts: [ 'escape' ],
-      code: function() {
-        this.reset();
       }
     }
   ]

@@ -21,7 +21,7 @@ foam.CLASS({
       width: 100,
       view: function(_, X) {
         return {
-          class: 'foam.parse.auto.SearchView',
+          class: 'foam.parse.auto.SmartView',
           parser: X.data.parser
         };
       }

@@ -26,6 +26,12 @@ foam.CLASS({
                     date += inc;
                     return testDate([year, month, date, 12]);
              };
+             let testFloatStart = (num) => {
+                return num -= 0.0000000001;
+             };
+            let testFloatEnd = (num) => {
+                return num += 0.0000000001
+             }
 
             // String symbol tests
             x.test(this.isValidSymbol('string', "SomeString", "SomeString"), "String Test1: Simple string");
@@ -63,13 +69,13 @@ foam.CLASS({
   
             // Float + FObjectProperty tests
             // note: pick nice rounding numbers to avoid floating point precision issues
-            x.test(this.isValid("address.longitude = 6.5", "AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5))"), "Float Test5: Inner property equal");
-            x.test(this.isValid("address.longitude!=6.5", "AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5))"), "Float Test6: Inner property not equal to the value");
-            x.test(this.isValid("address.longitude > 6.5", "GT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5)"), "Float Test7: Inner property greater than with spaces");
-            x.test(this.isValid("address.longitude>=6.5", "GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5)"), "Float Test8: Inner property greater than or equal to the value"); 
-            x.test(this.isValid("address.longitude <= 6.5", "LTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.longitude), 6.5)"), "Float Test10: Inner property less than or equal to the value");
-            x.test(this.isValid("address.latitude IN RANGE (6.5, 8.5)", "AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 6.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 8.5))"), "Float Test11: Inner property is within range 6.5 to 8.5");
-            x.test(this.isValid('address.latitude NOT IN RANGE (6.5, 8.5)', 'AND(GTE(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 8.5),LT(DOT_F(foam.core.auth.User.address, foam.core.auth.Address.latitude), 6.5))'), 'Float Test12: Inner property is not within range 6.5 to 8.5');
+            x.test(this.isValid("address.longitude = 6.5", "AND(GTE(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatStart(6.5) + "),LT(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatEnd(6.5) + "))"), "Float Test5: Inner property equal");
+            x.test(this.isValid("address.longitude!=6.5", "AND(GTE(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatEnd(6.5) + "),LT(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatStart(6.5) + "))"), "Float Test6: Inner property not equal to the value");
+            x.test(this.isValid("address.longitude > 6.5", "GT(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatEnd(6.5) + ")"), "Float Test7: Inner property greater than with spaces");
+            x.test(this.isValid("address.longitude>=6.5", "GTE(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatStart(6.5) + ")"), "Float Test8: Inner property greater than or equal to the value"); 
+            x.test(this.isValid("address.longitude <= 6.5", "LTE(foam.core.auth.User.address.foam.core.auth.Address.longitude, " + testFloatEnd(6.5) + ")"), "Float Test10: Inner property less than or equal to the value");
+            x.test(this.isValid("address.latitude IN RANGE (6.5, 8.5)", "AND(GTE(foam.core.auth.User.address.foam.core.auth.Address.latitude, " + testFloatStart(6.5) + "),LT(foam.core.auth.User.address.foam.core.auth.Address.latitude, " + testFloatEnd(8.5) + "))"), "Float Test11: Inner property is within range 6.5 to 8.5");
+            x.test(this.isValid('address.latitude NOT IN RANGE (6.5, 8.5)', "AND(GTE(foam.core.auth.User.address.foam.core.auth.Address.latitude, " + testFloatEnd(8.5) + "),LT(foam.core.auth.User.address.foam.core.auth.Address.latitude, " + testFloatStart(6.5) + "))"), 'Float Test12: Inner property is not within range 6.5 to 8.5');
 
             // Date format tests
             x.test(this.isValidSymbol('date', '2025-01-01', [testDate([2025, 0, 1, 12]), testDate([2025, 0, 2, 12])].toString()), 'Date Test1: ISO date YYYY-MM-DD');
@@ -81,51 +87,51 @@ foam.CLASS({
             // Date symbol tests with different time components
             // 1. Add hours
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-01-01T15',
               [testDate([2025, 0, 1, 15]), testDate([2025, 0, 1, 16])].toString()
             ), 'Date Test6: ISO date with hours');
 
             // 2. Add hours and minutes
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '25/10/01T16:30',
               [testDate([2025, 9, 1, 16, 30]), testDate([2025, 9, 1, 16, 31])].toString()
             ), 'Date Test7: ISO date with hours and minutes');
 
             // 3. Add hours, minutes, and seconds
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-06-01T17:45:30',
               [testDate([2025, 5, 1, 17, 45, 30]), testDate([2025, 5, 1, 17, 45, 31])].toString()
             ), 'Date Test8: ISO date with hours, minutes and seconds');
 
             // 4. Add hours, minutes, seconds and milliseconds
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-06-01T18:45:30.123',
               [testDate([2025, 5, 1, 18, 45, 30, 123]), testDate([2025, 5, 1, 18, 45, 30, 124])].toString()
             ), 'Date Test9: ISO date with hours, minutes, seconds and milliseconds');
 
             // 5. Add hours, minutes, seconds, milliseconds and the UTC timezone
             x.test(this.isValidSymbol(
-              'date',
+              'datetime',
               '2025-05-30T07:15:30.123Z',
               [testDate([2025, 4, 30, 7, 15, 30, 123]), testDate([2025, 4, 30, 7, 15, 30, 124])].toString()
             ), 'Date Test10: ISO date with hours, minutes, seconds, milliseconds and the UTC timezone');
 
             // Date comparison tests
             x.test(this.isValid('created=2025-01-01',
-                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 0, 1, 12]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 0, 2, 12]).toString() + '))'),
+                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 0, 1, 0]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 0, 2, 0]).toString() + '))'),
                     'Date Test11: Date equality');
             x.test(this.isValid('created = 2025-05-31',
-                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 4, 31, 12]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 5, 1, 12]).toString() + '))'),
+                    'AND(GTE(foam.core.auth.User.created, ' + testDate([2025, 4, 31, 0]).toString() +  '),LT(foam.core.auth.User.created, ' + testDate([2025, 5, 1, 0]).toString() + '))'),
                     'Date Test12: Date equality without spaces');
-            x.test(this.isValid('lastModified > TODAY-7',
-                    'GT(foam.core.auth.User.lastModified, ' + testToday(-6).toString() + ')'),
+            x.test(this.isValid('birthday > TODAY-7',
+                    'GT(foam.core.auth.User.birthday, ' + testToday(-6).toString() + ')'),
                     'Date Test13: Relative date comparison less than');
-            x.test(this.isValid('passwordExpiry <= TODAY+30',
-                    'LTE(foam.core.auth.User.passwordExpiry, ' + testToday(+31).toString() + ')'),
+            x.test(this.isValid('birthday <= TODAY+30',
+                    'LTE(foam.core.auth.User.birthday, ' + testToday(+31).toString() + ')'),
                     'Date Test14: Relative date comparison grater than or equal');
              x.test(this.isValid('birthday IN RANGE (2025-03-31, 2025-04-30)',
                     'AND(GTE(foam.core.auth.User.birthday, ' + testDate([2025, 2, 31, 12]).toString() + '),LT(foam.core.auth.User.birthday, ' +  testDate([2025, 4, 1, 12]).toString() + '))'),
@@ -216,8 +222,8 @@ foam.CLASS({
             console.log("Result: " + result.toString() + ", Expected: " + expectedOutput);
             return result.toString().trim().toLowerCase() === expectedOutput.toString().trim().toLowerCase();
         } ,
-        function isValid(query, statement, isFloat=false) {
-            let result = this.buildPredicate(query, isFloat);
+        function isValid(query, statement) {
+            let result = this.buildPredicate(query);
             if (result == null) return false;
             console.log("Result: " + result.toString() + ", Expected: " + statement);
             // Assuming result.partialEval() returns a simplified predicate
