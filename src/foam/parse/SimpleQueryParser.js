@@ -454,8 +454,9 @@ foam.CLASS({
           float: function(v) {
             let start = end = parseFloat(v.trim());
             // account for float's precision inconsistencies
-            start -= Number.EPSILON;
-            end += Number.EPSILON;
+            let EPSILON = 0.0000000001; // the built in Number.EPSILON is too small to be useful here
+            start -= EPSILON;
+            end += EPSILON;
             return [ start, end ];
           },
 
