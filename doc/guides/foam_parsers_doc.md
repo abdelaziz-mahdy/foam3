@@ -706,7 +706,11 @@ With FOAM's grammar-based parsers, you can tackle parsing challenges that would 
 
 ## Live Examples
 
-FOAM comes with the demo examples that you can run in browsers and test interactively. To explore FOAM parser examples make sure that you have a running FOAM application. For more info on how to build FOAM go to [FOAM Installation ReadMe][FOAM].
+FOAM comes with the demo examples that you can run in browsers and test interactively. 
+
+> [!IMPORTANT]
+> To explore FOAM parser examples make sure that you have a running FOAM application. For more info on how to build FOAM go to [FOAM Installation ReadMe][FOAM].
+
 
 Once you have a running FOAM application go to [FOAM Parsers Demo Interactive Page][Live-Examples] in your browser. All code blocks are editable and will execute upon focus change.
 
