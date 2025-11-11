@@ -1046,6 +1046,11 @@ foam.CLASS({
       });
     },
 
+    function cut(n) {
+      // TODO: make a Cut parser which does the same but more efficiently
+      return this.str(this.repeat(this.anyChar(), null, n, n));
+    },
+
     function rep(p, delim, min, max = Number.MAX_SAFE_INTEGER) {
       return this.Repeat.create({
         p:         p,
