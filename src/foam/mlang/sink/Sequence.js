@@ -111,7 +111,7 @@ foam.CLASS({
       return renamedProps;
     },
 
-    function setPropertyValues(o, sink, ps) {
+    function setPropertyValues(o, sink, ps, outputRows) {
       // Map through properties and set values from corresponding sink args
       var propIndex = 0;
       for ( var i = 0 ; i < this.args.length ; i++ ) {
@@ -134,9 +134,14 @@ foam.CLASS({
           }
         }
 
-        // Delegate to child's setPropertyValues if it has one
-        if ( arg.setPropertyValues ) {
-          arg.setPropertyValues(o, sink.args[i], propsForArg);
+        // Check if this arg generates multiple rows (like GroupBy)
+        if ( arg.generateRows && outputRows ) {
+          // Multi-row generator: use generateRows directly
+          var rows = arg.generateRows(o, propsForArg);
+          outputRows.push(...rows);
+        } else if ( arg.setPropertyValues ) {
+          // Delegate to child's setPropertyValues
+          arg.setPropertyValues(o, sink.args[i], propsForArg, outputRows);
         } else {
           // Otherwise, set values the normal way
           for ( var k = 0 ; k < propsForArg.length ; k++ ) {

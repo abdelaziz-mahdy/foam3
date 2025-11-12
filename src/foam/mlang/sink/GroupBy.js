@@ -306,70 +306,57 @@ for (Object key : getGroups().keySet()) {
       return this.genModel().properties.slice(1);
     },
 
-    function setPropertyValues(o, sink, ps) {
-      // When a GroupBy is used as a nested sink in a Sequence,
-      // this method is called to populate its properties.
-      // The first property is the grouping key - set it to comma-separated keys
-      // Remaining properties are aggregated across all groups using reduce
-
-      if ( ps.length === 0 ) return;
-
-      var keyProp = ps[0];
-      var remainingProps = ps.slice(1);
-
-      // Get the group keys (the values that were grouped by)
+    function generateRows(proto, props) {
+      // Generate multiple row objects from grouped data
+      // Each group becomes a separate row
+      var rows = [];
+      var keyProp = props[0];
+      var remainingProps = props.slice(1);
       var groupKeys = this.groupKeys || Object.keys(this.groups);
 
-      // Set the key property as comma-separated string (for compatibility with existing scripts)
-      keyProp.set(o, groupKeys.join(','));
+      groupKeys.forEach(key => {
+        var rowObj = proto.clone();
 
-      // For remaining properties, aggregate across all groups using reduce
-      if ( remainingProps.length > 0 && this.arg2 ) {
-        // Create a clone of the first group to accumulate into
-        var firstKey = groupKeys[0];
-        var reduced = this.groups[firstKey];
+        // Set the grouping key value
+        keyProp.set(rowObj, key);
 
-        // If there are multiple groups, reduce them together
-        if ( groupKeys.length > 1 ) {
-          // Clone the first group as the starting point
-          reduced = foam.util.clone(this.groups[firstKey]);
-
-          // Reduce all other groups into the clone
-          for ( var i = 1; i < groupKeys.length; i++ ) {
-            var group = this.groups[groupKeys[i]];
-            if ( reduced.reduce && group ) {
-              reduced.reduce(group);
-            }
+        // Set the aggregated values for this group
+        var group = this.groups[key];
+        if ( this.arg2.setPropertyValues ) {
+          this.arg2.setPropertyValues(rowObj, group, remainingProps);
+        } else {
+          // Fallback for simple value sinks
+          if ( remainingProps.length > 0 ) {
+            remainingProps[0].set(rowObj, group.value);
           }
         }
 
-        // Now use setPropertyValues on the reduced sink
-        if ( this.arg2.setPropertyValues ) {
-          this.arg2.setPropertyValues(o, reduced, remainingProps);
-        }
+        rows.push(rowObj);
+      });
+
+      return rows;
+    },
+
+    function setPropertyValues(o, sink, ps, outputRows) {
+      // When a GroupBy is used in a Sequence, generate multiple rows
+      if ( ps.length === 0 ) return;
+
+      // Generate one row per group
+      var rows = this.generateRows(o, ps);
+
+      // Add all rows to the output array
+      if ( outputRows ) {
+        outputRows.push(...rows);
       }
     },
 
     function processGroupValue(dao, proto, props) {
-      var groups = this.groups;
-      var ID = props[0];
-      props = props.slice(1);
+      // Use the new generateRows approach
+      var outputRows = [];
+      this.setPropertyValues(proto, this, props, outputRows);
 
-      this.groupKeys.forEach(k => {
-        var group = groups[k];
-        var o = proto.clone();
-        ID.set(o, k);
-
-        if ( group.processGroupValue ) {
-          group.processGroupValue(dao, o, props);
-        } else if ( this.arg2.setPropertyValues ) {
-          this.arg2.setPropertyValues(o, groups[k], props);
-          dao.put(o);
-        } else {
-          o.value = groups[k].value;
-          dao.put(o);
-        }
-      });
+      // Put all generated rows into the DAO
+      outputRows.forEach(row => dao.put(row));
     }
   ]
 });
