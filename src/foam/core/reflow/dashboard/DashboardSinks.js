@@ -1555,7 +1555,7 @@ foam.CLASS({
       title: 'Display Options',
       order: 2,
       collapsable: true,
-      properties: ['icon', 'iconColor', 'iconSize', 'alignment', 'valueColor']
+      properties: ['icon', 'iconColor', 'iconSize', 'alignment', 'valueColor', 'valueFontSize']
     },
     {
       name: 'labelFont',
@@ -1650,6 +1650,12 @@ foam.CLASS({
       help: 'Color for the metric value',
       view: 'foam.u2.view.ColorEditView',
       value: '$primary500'
+    },
+    {
+      class: 'String',
+      name: 'valueFontSize',
+      help: 'Font size for the metric value (e.g., "3rem", "24px")',
+      value: '3rem'
     },
     {
       class: 'String',
@@ -1853,7 +1859,7 @@ foam.CLASS({
         // Value
         this.start('div')
           .style({
-            fontSize: '3rem',
+            fontSize: self.valueFontSize$,
             fontWeight: 'bold',
             color: self.valueColor$.map(v => self.getColorFromToken(v)),
             lineHeight: '1'

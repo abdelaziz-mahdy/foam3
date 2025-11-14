@@ -929,6 +929,29 @@ foam.CLASS({
   ]
 });
 
+/*
+  not used
+foam.CLASS({
+  package: 'foam.parse',
+  name: 'Peek',
+  extends: 'foam.parse.ParserDecorator',
+
+  documentation: "A parser which peeks ahead and succeeds if the delgate parses, but doesn't consume the input.",
+
+  methods: [
+    function parse(ps, obj) {
+      return ps.apply(this.p, obj) ?
+        ps   :
+        null ;
+    },
+
+    function toString() {
+      return 'peek(' + this.SUPER() + ')';
+    }
+  ]
+});
+  */
+
 
 foam.CLASS({
   package: 'foam.parse',
@@ -981,7 +1004,9 @@ foam.CLASS({
         console.error('No symbol found for', this.name);
         return undefined;
       }
-      return ps.apply(p, grammar);
+      const ret = ps.apply(p, grammar);
+      // console.log(this.toString(), ret?.result);
+      return ret;
     },
 
     function toString() { return 'sym("' + this.name + '")'; }
@@ -1003,6 +1028,7 @@ foam.CLASS({
     'foam.parse.Not',
     'foam.parse.NotChars',
     'foam.parse.Optional',
+//    'foam.parse.Peek',
     'foam.parse.Plus',
     'foam.parse.Range',
     'foam.parse.Repeat',
@@ -1038,10 +1064,32 @@ foam.CLASS({
       });
     },
 
+    function cut(p) {
+      // A parser decorator which destroys the input PStream if the delegate
+      // succeeds. This is used so that memory can be freed, thus making parsing
+      // long strings possible. The name comes from:
+      // https://en.wikipedia.org/wiki/Cut_(logic_programming)
+      return {
+        parse: function(ps, obj) {
+          var ret = p.parse(ps, obj);
+          if ( ret ) {
+            // TODO: there should be a detach() method on the PStream interface
+            ps.instance_ = ps.apply = ps.str = ps.pos = undefined;
+          }
+          return ret;
+        }
+      };
+    },
+
     function seq() {
       return this.Sequence.create({
         args: Array.from(arguments)
       });
+    },
+
+    function nChars(n) {
+      // TODO: make a fixed size parser which does the same but more efficiently
+      return this.str(this.repeat(this.anyChar(), null, n, n));
     },
 
     function rep(p, delim, min, max = Number.MAX_SAFE_INTEGER) {
@@ -1169,6 +1217,14 @@ foam.CLASS({
         else: opt_else
       });
     },
+
+    /* not used
+    function peek(p) {
+      return this.Peek.create({
+        p: p
+      });
+    },
+      */
 
     function opt(p, opt_default) {
       return this.Optional.create({
@@ -1310,16 +1366,13 @@ foam.CLASS({
     function parseString(str, opt_name, opt_apply) {
       opt_name = opt_name || 'START';
 
-      let ps = this.StringPStream.create();
-      ps.apply = opt_apply;
-      ps.setString(str);
-
       var start = this.getSymbol(opt_name);
       foam.assert(start, 'No symbol found for', opt_name);
 
       this.lastStart = start;
 
-      var result = ps.apply(start, this);
+//      var result = this.StringPStream.create({apply:opt_apply, str: str}).apply(start, this);
+      var result = start.parse(this.StringPStream.create({apply: opt_apply, str: str}), this);
       return result && result.value;
     },
 

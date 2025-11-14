@@ -283,9 +283,7 @@ foam.CLASS({
           stringArray: seq1(1, sym('ws'), sym('strings'), sym('ws'), ')'),
 
           strings: repeat(sym('string'), ',', 1)
-
         };
-
       }
     },
     {
@@ -588,7 +586,7 @@ foam.CLASS({
                   });
               case '!=':
               case 'NOT IN RANGE':
-                return self.And.create({
+                return self.Or.create({
                   args: [
                     self.Gte.create({ arg1: prop, arg2: value.end }),
                     self.Lt.create({ arg1: prop, arg2: value.start })]
