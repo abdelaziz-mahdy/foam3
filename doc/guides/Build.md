@@ -92,6 +92,14 @@ Help will output partial matches when an exact match for the help topic is not f
 
 Option **--show-envs** will cause the build to output the final value of all **options** at the point of exit on error, or just before start CORE.
 
+## Deploying multiple instances of the same application locally.
+
+Multiple instances of the same application can be deployed locally to test networking between applications.  The following build directives override any `pom` directives and provided uniqueness to avoid deployment and runtime conflicts:
+
+- app-name `-N` :: set deployment directory to /opt/**uniqueName**. ex: -Ndemo or --app-name:demo
+- web-port `-W` :: set the listening port of the HTTP server. ex: -W8300 or --web-port:8300
+- debug-port `-D` :: set the listening port of JVM debugger. ex: -D8305 or ---debug-port:8305
+
 # POMs (*Incomplete*)
 
 POMs are hierarchical and a POM is responsible for the files in it's directory and child directories which themselves do not contain a POM.
