@@ -223,6 +223,9 @@ foam.CLASS({
 
   javaCode: `
   public static CSSToken get(foam.lang.X x, String name) {
+    return get(x, name, null);
+  }
+  public static CSSToken get(foam.lang.X x, String name, String cls) {
     String cnst = foam.util.StringUtil.constantize(name);
     try {
       java.lang.reflect.Field field = CSSTokens.getOwnClassInfo().getObjClass().getDeclaredField(cnst);

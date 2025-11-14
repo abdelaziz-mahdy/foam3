@@ -44,9 +44,7 @@ foam.CLASS({
       });
       var a = foam.u2.CSS.create({ code: this.cls_.model_.css  }, x);
       tokenService.sub('cacheUpdated', () => {
-        var expanded = a.expandCSS(this.cls_, a.code, x);
-        console.log('CSSTokensTest a.expandCSS (cache)', expanded);
-        x.installCSS(expanded);
+        console.log('CSSTokensTest a.expandCSS (cache)', a.expandCSS(this.cls_, a.code, x));
       });
       var expanded = a.expandCSS(this.cls_, a.code, x);
       x.test(expanded.includes("background: /*$test1*/ #E93F48;"), "color $red300");
