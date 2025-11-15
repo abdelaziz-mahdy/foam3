@@ -44,9 +44,9 @@ foam.POM({
       console.log('  ./build.sh -cj');
       console.log('    Remove previously generated code and runtime journals, before rebuilding.');
       console.log('  ./build.sh --cleanAll,all');
-      console.log('    Perform an extra deep clean before building normally.');
+      console.log('    Remove entire build/ diretory, including third-party java libraries, before building normally.');
       console.log('  ./build.sh --topic:foo');
-      console.log('    Print usage for \'topic\'. Ex: ./build.sh --topic:cleanAll  or  ./xobuild.sh -Ha');
+      console.log('    Print usage for \'topic\'. Ex: ./build.sh --topic:cleanAll or ./build.sh --help:foo');
     }]
   }
 });

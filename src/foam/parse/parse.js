@@ -98,6 +98,12 @@ foam.CLASS({
     },
     { name: 'view',
       class: 'foam.u2.ViewSpec'
+    },
+    {
+      class: 'Boolean',
+      name: 'prependSpaceOnSelect',
+      documentation: 'Adds a whitespace before appending suggestion.',
+      value: true
     }
   ]
 });
@@ -1379,6 +1385,7 @@ foam.CLASS({
       // Let's you access individual symbol parsers as stand-alone parsers
       return {
         parse: ps => ps.apply(this.getSymbol(name), this),
+        parseString: (str, __,opt_apply) => this.parseString(str, name, opt_apply),
         toString: () => name
       };
     },
