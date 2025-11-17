@@ -84,7 +84,7 @@ public class StringUtil {
   }
 
   public static String constantize(String s) {
-    // switches from from camelCase to CAMEL_CASE
+    // convert from from fooBar to FOO_BAR
     return s.replaceAll("-","_").replaceAll("([a-z])([^0-9a-z_])", "$1_$2").replaceAll("\\s","").toUpperCase();
   }
 

@@ -9,21 +9,26 @@ foam.CLASS({
   name: 'EmailTemplateEngine',
 
   javaImports: [
-    'foam.lang.Agency',
-    'foam.lang.ContextAgent',
-    'foam.lang.X',
-    'foam.dao.DAO',
-    'foam.lib.json.*',
-    'foam.lib.parse.*',
     'foam.core.logger.Logger',
-    'foam.lang.FObject',
     'foam.core.logger.Loggers',
     'foam.core.logger.PrefixLogger',
     'foam.core.notification.email.EmailTemplateSupport',
-    'java.util.Map',
+    'foam.core.theme.Theme',
+    'foam.core.theme.Themes',
+    'foam.core.theme.customisation.CSSTokenOverride',
+    'foam.dao.DAO',
+    'foam.lang.Agency',
+    'foam.lang.ContextAgent',
+    'foam.lang.FObject',
+    'foam.lang.X',
+    'foam.lib.json.*',
+    'foam.lib.parse.*',
     'foam.mlang.predicate.NamedProperty',
     'foam.mlang.expr.Dot',
-    'foam.mlang.Expr'
+    'foam.mlang.Expr',
+    'foam.u2.CSSToken',
+    'foam.u2.CSSTokens',
+    'java.util.Map'
   ],
 
   properties: [
@@ -101,17 +106,9 @@ foam.CLASS({
 
         grammar.addSymbol("CSS_TOKEN", new Seq1(2, Literal.create("{$"), Whitespace.instance(), grammar.sym("WORD"), Whitespace.instance(), Literal.create("$}")));
         grammar.addAction("CSS_TOKEN", (val, x) -> {
-          String v = compactToString(val);
-          foam.u2.CSSToken token = foam.u2.CSSTokens.get(getUserX(x), v);
-          String value = "";
-          if ( token != null )
-            value = String.valueOf(token.getValue());
-          else
-            foam.core.logger.StdoutLogger.instance().warning("EmailTemplateEngine, CSS_TOKEN not found",v);
-          ((StringBuilder) x.get("sb")).append(value);
+          ((StringBuilder) x.get("sb")).append(replaceCSSTokens(getUserX(x), compactToString(val)));
           return val;
         });
-
 
         /* IF_ELSE syntax: "qwerty {% if var_name_provided_in_map %} qwer {{ possible_simple_value }} erty
         {% else %} qwerty {% endif %}" */
@@ -449,6 +446,33 @@ foam.CLASS({
       if ( ! (Boolean) parserX.get("isNextTemplateExtending") ) return sbJoin;
 
       return joinTemplates(x, sbJoin);
+      `
+    },
+    {
+      name: 'replaceCSSTokens',
+      args: 'Context x, String text',
+      type: 'String',
+      javaCode: `
+      String[] tokens = text.split("$");
+      Theme theme = (Theme) ((Themes) x.get("themes")).findTheme(x);
+      DAO overrideDAO = (DAO) x.get("cssTokenOverrideDAO");
+      CSSTokenOverride override = new CSSTokenOverride();
+      override.setTheme(theme.getId());
+      for ( int i = 0; i < tokens.length; i++ ) {
+        String token = tokens[i].trim();
+        override.setSource(token);
+        CSSTokenOverride replacement = (CSSTokenOverride) overrideDAO.find(override);
+        if ( replacement != null ) {
+          tokens[i] = replacement.getTarget();
+        }
+        CSSToken cssToken = CSSTokens.get(x, tokens[i]);
+        if ( cssToken != null ) {
+          tokens[i] = String.valueOf(cssToken.getValue());
+        } else {
+          tokens[i] = "/* Token not found */";
+        }
+      }
+      return String.join(" ", tokens);
       `
     }
   ],

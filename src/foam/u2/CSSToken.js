@@ -57,7 +57,7 @@ foam.CLASS({
 
         A token can only respond to one of the keys in activeVariants and this is denoted by the token's variantKey property.
         FOAM already provides a 'color' and a 'size' key but more can be added or the existing ones can be modified.
-        
+
         The limitation for one variantKey exists to make it easy to configure CSSTokens. If more complex responsive behaviour is required using
         multiple activeVariants, it's always possible to slot on the property in U2 and write custom logic to handle that case.
       `

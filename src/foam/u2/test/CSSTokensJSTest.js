@@ -31,6 +31,8 @@ foam.CLASS({
 
   methods: [
     async function runTest(x) {
+
+      // test override service
       var tokenDAO =  foam.dao.EasyDAO.create({
         of: foam.core.theme.customisation.CSSTokenOverride,
         daoType: 'MDAO'
@@ -43,16 +45,16 @@ foam.CLASS({
         'cssTokenOverrideService': tokenService
       });
       var a = foam.u2.CSS.create({ code: this.cls_.model_.css  }, x);
-      tokenService.sub('cacheUpdated', () => {
-        console.log('CSSTokensTest a.expandCSS (cache)', a.expandCSS(this.cls_, a.code, x));
-      });
+      // tokenService.sub('cacheUpdated', () => {
+      //   console.log('CSSTokensTest a.expandCSS (cache)', a.expandCSS(this.cls_, a.code, x));
+      // });
       var expanded = a.expandCSS(this.cls_, a.code, x);
       x.test(expanded.includes("background: /*$test1*/ #E93F48;"), "color $red300");
-      console.log('CSSTokensTest a.expandCSS (initial)', expanded);
+      // console.log('CSSTokensTest a.expandCSS (initial)', expanded);
       x.installCSS(expanded);
       var color = "$green300"; // #59D374
       var result = await tokenDAO.put(foam.core.theme.customisation.CSSTokenOverride.create({ theme: '', source: 'test1', target: color }, x));
-      console.log('CSSTokensTest override.put', result);
+      /// console.log('CSSTokensTest override.put', result);
 
       // None of the following is necessary if CSSTokenOverrideService subscribes to
       // CSSTokenOverrideDAO updates and calls reload
@@ -68,7 +70,7 @@ foam.CLASS({
 
       expanded = a.expandCSS(this.cls_, a.code, x);
       x.test(expanded.includes("background: /*$test1*/ #59D374;"), "color $green300");
-      console.log('CSSTokensTest a.expandCSS (outer)', expanded);
+      // console.log('CSSTokensTest a.expandCSS (outer)', expanded);
     }
   ]
 });
