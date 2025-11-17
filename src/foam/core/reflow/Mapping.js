@@ -50,40 +50,20 @@ foam.ENUM({
     }
   ],
 
+  properties: [
+    {
+      // Add an 'id' property that returns the ordinal for DAO compatibility
+      name: 'id',
+      getter: function() { return this.ordinal; }
+    }
+  ],
+
   methods: [
     function toSummary() {
       return this.label;
     }
   ]
 });
-
-
-foam.CLASS({
-  package: 'foam.core.reflow',
-  name: 'DateFormatOption',
-
-  documentation: 'Wrapper object for DateFormat enum values to use with RichChoiceView',
-
-  properties: [
-    {
-      class: 'String',
-      name: 'id',
-      documentation: 'The enum value name (e.g., STANDARD, DDMMYYYY)'
-    },
-    {
-      class: 'String',
-      name: 'label',
-      documentation: 'Display label (e.g., "Standard", "dd/mm/yyyy")'
-    },
-    {
-      class: 'String',
-      name: 'documentation',
-      documentation: 'Full documentation with supported formats'
-    }
-  ]
-});
-
-
 
 
 
@@ -176,30 +156,8 @@ foam.CLASS({
       label: '',
       value: 'STANDARD',
       documentation: 'Date format for this field (only applies to Date/DateTime properties)',
-      view: function(_, X) {
-        // Create wrapper objects for each enum value
-        var dateFormatOptions = foam.core.reflow.DateFormat.VALUES.map(function(enumValue) {
-          return foam.core.reflow.DateFormatOption.create({
-            id: enumValue.name,
-            label: enumValue.label,
-            documentation: enumValue.documentation
-          });
-        });
-
-        return {
-          class: 'foam.u2.view.RichChoiceView',
-          selectionView: { class: 'foam.core.reflow.DateFormatSelectionView' },
-          rowView: { class: 'foam.core.reflow.DateFormatCitationView' },
-          idProperty: 'id',
-          sections: [
-            {
-              dao: foam.dao.ArrayDAO.create({
-                of: foam.core.reflow.DateFormatOption,
-                array: dateFormatOptions
-              })
-            }
-          ]
-        };
+      view: {
+        class: 'foam.core.reflow.DateFormatRichChoiceView'
       },
       visibility: function(type, prop) {
         // Only show for Date/DateTime properties that use FIELD or CONSTANT mapping
