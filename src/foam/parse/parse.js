@@ -1005,8 +1005,7 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
-      name: 'debug',
-      value: true
+      name: 'debug'
     }
   ],
 
