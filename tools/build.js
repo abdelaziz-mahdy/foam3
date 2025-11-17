@@ -61,6 +61,7 @@ const { join }                                    = require('path');
 const pmake                                       = require('./pmake');
 
 const TASK_SEPERATOR                              = ' ';
+const ALL                                         = 'all';
 
 process.on('unhandledRejection', e => {
   error("ERROR: Unhandled promise rejection ", e);
@@ -119,7 +120,14 @@ function task() {
   };
 
   let toolingTasks = TOOLING_TASKS[name] || [];
-  toolingTasks.push(toolingTask);
+  // Special treatment of ALL
+  // - only allow one
+  // - last encountered is used.
+  if ( name === ALL ) {
+    toolingTasks = [toolingTask];
+  } else {
+    toolingTasks.push(toolingTask);
+  }
   TOOLING_TASKS[name] = toolingTasks;
 
   var rec   = [];
@@ -184,11 +192,11 @@ function task() {
       });
 
       // execute tasks
-      if ( ! DRY_RUN || name === 'pomEvns' || name === 'all' ) {
+      if ( ! DRY_RUN || name === 'pomEvns' || name === ALL ) {
         task.f && task.f.apply(Object.assign({ SUPER }, EXPORTS), args);
       }
-      // only run first 'all'
-      return name !== 'all';
+      // only run first ALL
+      return name !== ALL;
     });
 
     running[name] -= 1;
@@ -494,14 +502,14 @@ OPTIONS = addOptions({
   poms: [ 'P', 'poms', 'POMS', "comma seperated list of pom files. Defaults to 'pom' at the root of the project.", '', arg => POMS = arg ],
   projectHome: ['', 'project-home', 'PROJECT_HOME', 'Project directory', process.cwd(), arg => PROJECT_HOME = arg ],
   showEnvs: [ '', 'show-envs', 'SHOW_ENVS', 'Output environment variable values.', false, function(arg) { SHOW_ENVS = arg ? bool(arg) : true; }],
-  tasks: [ 'X', 'tasks', 'TASKS', 'Register task for execution during the build phase. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9. NOTE: only the first \'all\' task is processed.', 'all',
+  tasks: [ 'X', 'tasks', 'TASKS', 'Register task for execution during the build phase. Comma seperated list of task names. Parameters to each demarcated with : symbol. Ex: -XcheckDeps:9. NOTE: only the first \'all\' task is processed.', ALL,
            arg => {
              var t = arg;
              // cli will pass tasks as --task1,task2 or -Xtask1,task2 or --task1:arg1,arg2
              if ( ! arg.includes(':') ) {
                t = arg.replaceAll(',', TASK_SEPERATOR);
              }
-             if ( TASKS === 'all' )
+             if ( TASKS === ALL )
                TASKS = '';
              TASKS = TASKS ? TASKS + TASK_SEPERATOR + t : t;
            } ],
