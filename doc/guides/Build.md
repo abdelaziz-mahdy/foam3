@@ -194,7 +194,7 @@ Option **--flags:test** will include all source and configuration flagged as `te
   ./build.sh -ckJhttps
 
   # deploy to remote host
-  ./build.sh -TStandard,RemoteInstall,Java --user:foam user-id:3636 --backup:false --remote-hostname:moosehead
+  ./build.sh -TStandard,Java,RemoteInstall --user:foam user-id:3636 --backup:false --remote-hostname:moosehead
     ```
 - **ESLint** Linting support
     - see `eslint.md`
