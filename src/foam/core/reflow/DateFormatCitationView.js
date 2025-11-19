@@ -19,7 +19,7 @@ foam.CLASS({
     }
 
     ^label {
-      font-weight: 500;
+      font-weight: $font-regular;
       color: $textDefault;
       font-size: 14px;
     }
