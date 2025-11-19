@@ -66,6 +66,7 @@ foam.CLASS({
         start('th').add('Property').end().
         start('th').add('Type').end().
         start('th').add('Value').end().
+        start('th').add('Sample').end().
         start('th').add('Date Format').end().
         start('th').add('Required').end().
       end().
@@ -89,6 +90,11 @@ foam.CLASS({
                 add(mapping.CONSTANT_VALUE.__).
                 add(mapping.FIELD_NAME.__).
                 add(mapping.DYNAMIC_EXPRESSION.__).
+              end().
+              start('td').
+                style({ 'max-width': '150px', 'overflow': 'hidden', 'text-overflow': 'ellipsis', 'white-space': 'nowrap' }).
+                attr('title', mapping.sampleValue || '').
+                add(mapping.sampleValue || '').
               end().
               start('td').
                 callIf(isDateProp, function() {
@@ -819,6 +825,24 @@ foam.CLASS({
         var a = parser.parseFile(input, this.delimiter);
 
         this.rows = a.length;
+
+        // Extract sample values from first row if available
+        if ( a.length > 0 && this.mappings && this.mappings.length > 0 ) {
+          var firstRow = a[0];
+          var sampleRowData = {};
+          firstRow.forEach((cell, index) => {
+            if ( index < fileHeaders.length ) {
+              sampleRowData[fileHeaders[index]] = cell.value;
+            }
+          });
+
+          // Set sample values on mappings
+          this.mappings.forEach(mapping => {
+            if ( mapping.fieldName && sampleRowData[mapping.fieldName] !== undefined ) {
+              mapping.sampleValue = sampleRowData[mapping.fieldName];
+            }
+          });
+        }
 
         for ( var i = 0 ; i < a.length ; i++ ) {
           var csv = a[i];

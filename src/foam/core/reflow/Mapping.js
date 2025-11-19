@@ -167,6 +167,13 @@ foam.CLASS({
         var isDateProp = foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop);
         return isDateProp ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
+    },
+    {
+      class: 'String',
+      name: 'sampleValue',
+      label: 'Sample',
+      documentation: 'Sample value from the first data row for this column',
+      visibility: 'RO'
     }
   ],
 
