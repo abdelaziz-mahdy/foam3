@@ -162,7 +162,21 @@ foam.CLASS({
           return null;
         }
 
-        var props = fileHeaders.map(h => ({ class: 'String', name: h }));
+        // Create mapping of original headers to normalized names
+        var headerMap = {};
+        var props = [];
+
+        for ( var i = 0; i < fileHeaders.length; i++ ) {
+          var original = fileHeaders[i];
+          var normalized = original.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[0-9]+/, '');
+          headerMap[normalized] = original;
+
+          props.push({
+            class: 'String',
+            name: normalized,
+            label: original
+          });
+        }
 
         // Check if model already exists, if so, reuse it
         var modelName = 'DynamicExpressionModel';
@@ -179,7 +193,10 @@ foam.CLASS({
           TempModel = foam.lookup(fullName);
         }
 
-        return this.SimpleJavaScriptParser.create({ of: TempModel });
+        return this.SimpleJavaScriptParser.create({
+          of: TempModel,
+          headerMap: headerMap
+        });
       }
     },
     {
@@ -336,10 +353,17 @@ foam.CLASS({
       if ( ! expression || ! rowData ) return '';
 
       try {
-        // Simple evaluation with rowData in scope
-        // This allows expressions like: firstName + " " + lastName
+        // Normalize rowData keys to valid JavaScript identifiers
+        var normalizedData = {};
+        for ( var key in rowData ) {
+          var normalizedKey = key.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[0-9]+/, '');
+          normalizedData[normalizedKey] = rowData[key];
+        }
+
+        // Simple evaluation with normalized rowData in scope
+        // This allows expressions like: Account_Type + " " + Status
         var result;
-        with ( rowData ) {
+        with ( normalizedData ) {
           result = eval(expression);
         }
         return result;
@@ -348,6 +372,7 @@ foam.CLASS({
         console.error('Expression evaluation error:', {
           expression: expression,
           rowData: rowData,
+          normalizedData: normalizedData,
           error: x.message
         });
         throw x;
