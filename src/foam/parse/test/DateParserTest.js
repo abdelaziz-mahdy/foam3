@@ -810,6 +810,116 @@ foam.CLASS({
           x.test(false, `YYYYDDMMM Test${i + 1}: ${testCase.input} - ${e.message}`);
         }
       });
+
+      // Test MMM dd yyyy format with spaces (e.g., "Jan 02 2025")
+      let mmmddyyyySpace = [
+        { input: 'JAN 31 2025', year: 2025, month: 0, day: 31 },
+        { input: 'FEB 03 2025', year: 2025, month: 1, day: 3 },
+        { input: 'MAR 15 2024', year: 2024, month: 2, day: 15 },
+        { input: 'DEC 25 2025', year: 2025, month: 11, day: 25 },
+        { input: 'JAN 01 2000', year: 2000, month: 0, day: 1 },
+        { input: 'FEB 29 2024', year: 2024, month: 1, day: 29 }, // Leap year
+        { input: 'jun 15 2025', year: 2025, month: 5, day: 15 }, // Lowercase
+        { input: 'Jul 10 2025', year: 2025, month: 6, day: 10 }  // Mixed case
+      ];
+
+      mmmddyyyySpace.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input);  // No opt_name!
+          let pass = result &&
+                     result.getUTCFullYear() === testCase.year &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === testCase.day &&
+                     result.getUTCHours() === 12;
+          x.test(pass, `MMM dd yyyy Space Test${i + 1}: ${testCase.input} (STANDARD format)`);
+        } catch (e) {
+          x.test(false, `MMM dd yyyy Space Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
+
+      // Test all months with MMM dd yyyy format
+      let mmmDdYyyyAllMonths = [
+        { input: 'JAN 15 2025', month: 0 },
+        { input: 'FEB 15 2025', month: 1 },
+        { input: 'MAR 15 2025', month: 2 },
+        { input: 'APR 15 2025', month: 3 },
+        { input: 'MAY 15 2025', month: 4 },
+        { input: 'JUN 15 2025', month: 5 },
+        { input: 'JUL 15 2025', month: 6 },
+        { input: 'AUG 15 2025', month: 7 },
+        { input: 'SEP 15 2025', month: 8 },
+        { input: 'OCT 15 2025', month: 9 },
+        { input: 'NOV 15 2025', month: 10 },
+        { input: 'DEC 15 2025', month: 11 }
+      ];
+
+      mmmDdYyyyAllMonths.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input);  // No opt_name!
+          let pass = result &&
+                     result.getUTCFullYear() === 2025 &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === 15;
+          x.test(pass, `MMM dd yyyy All Months Test${i + 1}: ${testCase.input} should parse to month ${testCase.month} (STANDARD format)`);
+        } catch (e) {
+          x.test(false, `MMM dd yyyy All Months Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
+
+      // Test DD MMM YYYY format with spaces (e.g., "15 JAN 2025")
+      let ddmmmyyyySpace = [
+        { input: '31 JAN 2025', year: 2025, month: 0, day: 31 },
+        { input: '03 FEB 2025', year: 2025, month: 1, day: 3 },
+        { input: '15 MAR 2024', year: 2024, month: 2, day: 15 },
+        { input: '25 DEC 2025', year: 2025, month: 11, day: 25 },
+        { input: '01 JAN 2000', year: 2000, month: 0, day: 1 },
+        { input: '29 FEB 2024', year: 2024, month: 1, day: 29 }, // Leap year
+        { input: '15 jun 2025', year: 2025, month: 5, day: 15 }, // Lowercase
+        { input: '10 Jul 2025', year: 2025, month: 6, day: 10 }  // Mixed case
+      ];
+
+      ddmmmyyyySpace.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input);  // No opt_name!
+          let pass = result &&
+                     result.getUTCFullYear() === testCase.year &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === testCase.day &&
+                     result.getUTCHours() === 12;
+          x.test(pass, `DD MMM YYYY Space Test${i + 1}: ${testCase.input} (STANDARD format)`);
+        } catch (e) {
+          x.test(false, `DD MMM YYYY Space Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
+
+      // Test all months with DD MMM YYYY format
+      let ddMmmYyyyAllMonths = [
+        { input: '15 JAN 2025', month: 0 },
+        { input: '15 FEB 2025', month: 1 },
+        { input: '15 MAR 2025', month: 2 },
+        { input: '15 APR 2025', month: 3 },
+        { input: '15 MAY 2025', month: 4 },
+        { input: '15 JUN 2025', month: 5 },
+        { input: '15 JUL 2025', month: 6 },
+        { input: '15 AUG 2025', month: 7 },
+        { input: '15 SEP 2025', month: 8 },
+        { input: '15 OCT 2025', month: 9 },
+        { input: '15 NOV 2025', month: 10 },
+        { input: '15 DEC 2025', month: 11 }
+      ];
+
+      ddMmmYyyyAllMonths.forEach((testCase, i) => {
+        try {
+          let result = parser.parseString(testCase.input);  // No opt_name!
+          let pass = result &&
+                     result.getUTCFullYear() === 2025 &&
+                     result.getUTCMonth() === testCase.month &&
+                     result.getUTCDate() === 15;
+          x.test(pass, `DD MMM YYYY All Months Test${i + 1}: ${testCase.input} should parse to month ${testCase.month} (STANDARD format)`);
+        } catch (e) {
+          x.test(false, `DD MMM YYYY All Months Test${i + 1}: ${testCase.input} - ${e.message}`);
+        }
+      });
     },
 
     function testDateTimeFormats(x) {

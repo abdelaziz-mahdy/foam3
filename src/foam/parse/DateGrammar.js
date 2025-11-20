@@ -41,10 +41,13 @@ foam.CLASS({
 
         // Date with month names - ALL completely unambiguous (contain letters!)
         // DD-MMM-YYYY, DD/MMM/YYYY, DDMMMYYYY, YYYY-DD-MMM, YYYY/DD/MMM, YYYYDDMMM
+        // DD MMM YYYY (with spaces)
         // NOTE: yyyyddmmmcompact must come BEFORE ddmmmyyyycompact to match correctly
         datemonthname: alt(
           // Support: MMM dd yyyy (e.g., Jan 02 2025)
           sym('mmmddyyyyspace'),
+          // Support: DD MMM YYYY (e.g., 15 JAN 2025)
+          sym('ddmmmyyyyspace'),
           sym('ddmmmyyyysep'),
           sym('yyyyddmmmsep'),
           sym('yyyyddmmmcompact'),  // Try this before ddmmmyyyycompact
@@ -468,6 +471,11 @@ foam.CLASS({
         // MMM dd yyyy with spaces: "Jan 02 2025"
         mmmddyyyyspace: seq(
           sym('month3alpha'), ' ', sym('day2'), ' ', sym('year4')
+        ),
+
+        // DD MMM YYYY with spaces: "15 JAN 2025"
+        ddmmmyyyyspace: seq(
+          sym('day2'), ' ', sym('month3alpha'), ' ', sym('year4')
         ),
 
         // Component parsers

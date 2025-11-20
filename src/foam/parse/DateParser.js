@@ -572,6 +572,16 @@ foam.CLASS({
       };
     },
 
+    // DD MMM YYYY with spaces: "15 JAN 2025"
+    // v = [DD, ' ', MMM, ' ', YYYY]
+    function ddmmmyyyyspaceAction(v) {
+      return {
+        year: parseInt(v[4]),
+        month: this.parseMonthName(v[2]),
+        day: parseInt(v[0])
+      };
+    },
+
     // YYYYDDMMM with separators: YYYY-DD-MMM, YYYY/DD/MMM
     // v = [YYYY, sep, DD, sep, MMM]
     function yyyyddmmmsepAction(v) {
