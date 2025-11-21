@@ -494,7 +494,12 @@ foam.CLASS({
       value: 0,
       help: 'Keep top N groups by value (0 = disabled). Remaining groups can be merged into "Others".',
       visibility: function(sink) {
-        return sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -504,7 +509,12 @@ foam.CLASS({
       value: true,
       help: 'Include "Others" group for remaining items when using Top N',
       visibility: function(topN, sink) {
-        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( topN <= 0 || ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -515,7 +525,12 @@ foam.CLASS({
       value: 'DESC',
       help: 'Sort order for value-based limiting',
       visibility: function(topN, sink) {
-        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( topN <= 0 || ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -525,7 +540,12 @@ foam.CLASS({
       value: 'Others',
       help: 'Label for the aggregated "Others" category',
       visibility: function(topN, sink) {
-        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( topN <= 0 || ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
