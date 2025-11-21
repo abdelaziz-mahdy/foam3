@@ -29,8 +29,8 @@
 # AutoQueryParser Syntax Guide
 
 ## Basic AQL Syntax
-SimpleQueryParser supports property-based queries with various operators and logical combinations. This parser is meant to work together with the 
-`foam.parse.auto.AutoCompleter` component, providing suggestions to the user as they type and it is referred to as `AQL`.
+The AQL Query Language supports property-based queries with various operators and logical combinations. This parser is meant to work together with the 
+`foam.parse.auto.SmartView` component, providing suggestions to the user as they type and it is referred to as `AQL`.
 
 ## Logical Operators
 
