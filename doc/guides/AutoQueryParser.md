@@ -30,7 +30,7 @@
 
 ## Basic AQL Syntax
 SimpleQueryParser supports property-based queries with various operators and logical combinations. This parser is meant to work together with the 
-<code>foam.parse.auto.AutoCompleter</code> component, providing suggestions to the user as they type and it is referred to as <code>AQL</code>.
+`foam.parse.auto.AutoCompleter` component, providing suggestions to the user as they type and it is referred to as `AQL`.
 
 ## Logical Operators
 
