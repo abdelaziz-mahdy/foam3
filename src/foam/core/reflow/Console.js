@@ -1260,7 +1260,13 @@ foam.CLASS({
           this.currentBlock.value.copyFrom(c.value);
         }
 
-        await this.currentBlock.value?.onLoad?.();
+        // Wrap onLoad in try-catch to prevent errors in one block from stopping other blocks
+        try {
+          await this.currentBlock.value?.onLoad?.();
+        } catch (error) {
+          console.error('Error loading block:', this.currentBlock.flowName, error);
+          // Continue processing other blocks even if this one failed
+        }
 
         if ( c.flowChildren ) {
           await this.includeScript(c.flowChildren, this.currentBlock, true);

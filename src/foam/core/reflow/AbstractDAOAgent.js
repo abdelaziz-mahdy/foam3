@@ -12,7 +12,10 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
-  requires: [ 'foam.dao.ArraySink' ],
+  requires: [
+    'foam.dao.ArraySink',
+    'foam.core.reflow.ErrorView'
+  ],
 
   imports: [ 'block', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
 
@@ -51,6 +54,10 @@ foam.CLASS({
             })
           .end()
         .endContext();
+      }).catch(error => {
+        console.error('AbstractDAOAgent execution error:', error);
+        e.tag(self.ErrorView, { error: error });
+        // Don't re-throw the error to allow other blocks to continue loading
       });
     },
     function addSinkToE(e, s) {
