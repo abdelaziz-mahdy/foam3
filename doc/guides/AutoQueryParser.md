@@ -142,7 +142,7 @@ The expressions that are supported for all numbers are:
 | _property_ <= _value_ | _property_ is less than or equal to _value_ |
 | _property_ < _value_ | _property_ is less than _value_ |
 | _property_ != _value_ | _property_ is not equal to _value_ |
-| _property_ = _value_ | _property_ equals _value_ | 
+| _property_ = _value_ | _property_ equals _value_ |
 
 Additional expressions that are supported for floating point numbers only:
 
