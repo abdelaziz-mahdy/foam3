@@ -98,6 +98,8 @@ foam.CLASS({
 
   mixins: [ 'foam.core.reflow.DAOResolverMixin' ],
 
+  /*
+    UI is cleaner without the sections
   sections: [
     {
       name: 'output',
@@ -119,6 +121,7 @@ foam.CLASS({
       title: ''
     }
   ],
+  */
 
   implements: [
     'foam.mlang.Expressions'
@@ -142,6 +145,27 @@ foam.CLASS({
   ],
 
   properties: [
+    {
+      name: 'select',
+      view: function(_, X) {
+        return foam.core.reflow.SinkView.create({
+          sinksOnly: false,
+          choice: 'foam.core.reflow.TableDAOAgent',
+          dao: X.data.dao}, X.data);
+      },
+      preSet: function(o, n) {
+        // Temporary fix to recontextualize the object after load.
+        // TODO: remove once JSON parsing/loading is fixed
+        if ( n && n.__context__ != this.__subContext__ ) {
+          return n.clone(this.__subContext__);
+        }
+        return n;
+      },
+      reactive: false,
+      section: 'output',
+      label: '',
+      factory: function() { return this.TableDAOAgent.create(); }
+    },
     {
       class: 'String',
       name: 'label',
@@ -274,6 +298,21 @@ foam.CLASS({
       factory: function() { return this.ProxyDAO.create({delegate$: this.filteredDAO_$}); }
     },
     {
+      class: 'String',
+      name: 'aql',
+      label: 'Where',
+      section: 'filter',
+      displayWidth: 60,
+      visibility: function(enableAQL_) { return enableAQL_ ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
+      view: function(_, X) {
+        var data = X.data;
+        return {
+          class: 'foam.parse.auto.SmartView',
+          parser: data.SimpleQueryParser.create({of: data.dao.of})
+        };
+      }
+    },
+    {
       class: 'Int',
       name: 'skip',
       label: 'Skip',
@@ -323,21 +362,6 @@ foam.CLASS({
       transient: true,
       hidden: true,
       documentation: 'Temporary flag to determine if AQL is available.'
-    },
-    {
-      class: 'String',
-      name: 'aql',
-      label: 'Where (Auto-Complete)',
-      section: 'filter',
-      displayWidth: 60,
-      visibility: function(enableAQL_) { return enableAQL_ ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
-      view: function(_, X) {
-        var data = X.data;
-        return {
-          class: 'foam.parse.auto.SmartView',
-          parser: data.SimpleQueryParser.create({of: data.dao.of})
-        };
-      }
     },
     {
       class: 'String',
@@ -404,27 +428,6 @@ foam.CLASS({
           }
         });
       }
-    },
-    {
-      name: 'select',
-      view: function(_, X) {
-        return foam.core.reflow.SinkView.create({
-          sinksOnly: false,
-          choice: 'foam.core.reflow.TableDAOAgent',
-          dao: X.data.dao}, X.data);
-      },
-      preSet: function(o, n) {
-        // Temporary fix to recontextualize the object after load.
-        // TODO: remove once JSON parsing/loading is fixed
-        if ( n && n.__context__ != this.__subContext__ ) {
-          return n.clone(this.__subContext__);
-        }
-        return n;
-      },
-      reactive: false,
-      section: 'output',
-      label: '',
-      factory: function() { return this.TableDAOAgent.create(); }
     },
     { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO', transient: true },
     { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
