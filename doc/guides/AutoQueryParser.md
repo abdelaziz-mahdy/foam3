@@ -8,7 +8,6 @@
     - [AND](#and)
     - [NOT](#not)
     - [OR](#or)
-    - [OR](#or-1)
   - [Grouping](#grouping)
   - [Property Values](#property-values)
   - [Expressions](#expressions)
@@ -46,13 +45,6 @@ expression1 & expression2
 Negate expressions with NOT:
 ```
 NOT expression
-```
-
-### OR
-Combine expressions with OR or pipe:
-```
-expression1 OR expression2
-expression1 | expression2
 ```
 
 ### OR
