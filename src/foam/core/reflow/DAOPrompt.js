@@ -13,6 +13,7 @@ foam.CLASS({
 
   requires: [
     'foam.u2.LoadingSpinner',
+    'foam.core.reflow.ErrorView'
   ],
 
   properties: [
@@ -46,10 +47,18 @@ foam.CLASS({
             var select    = self.data.select;
             self.data.select = select;
             self.loading = true;
-            await self.data.select.execute(this);
-            self.loading = false;
-            self.data.readyLatch_.resolve();
-            self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+            try {
+              await self.data.select.execute(this);
+              self.data.readyLatch_.resolve();
+              self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+            } catch (error) {
+              console.error('DAOPrompt execution error:', error);
+              self.data.readyLatch_.reject(error);
+              self.data.hasError = true;
+              this.tag(self.ErrorView, { error: error });
+            } finally {
+              self.loading = false;
+            }
           }));
     }
   ],
@@ -420,6 +429,7 @@ foam.CLASS({
     { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO', transient: true },
     { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Int',        hidden: true,  name: 'version', transient: true },
+    { class: 'Boolean',    hidden: true,  name: 'hasError', value: false, transient: true },
     { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' },
     {
       name: 'readyLatch_',

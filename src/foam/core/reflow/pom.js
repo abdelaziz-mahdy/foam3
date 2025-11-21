@@ -21,6 +21,7 @@ foam.POM({
     { name: 'DocumentReadWriteView',   flags: 'js' },
     { name: 'DuplicateSink',           flags: 'js|java' },
     { name: 'EditSink',                flags: 'js|java' },
+    { name: 'ErrorView',               flags: 'js' },
     { name: 'FlowableTree',            flags: 'js' },
     { name: 'FlowAccess',              flags: 'js|java' },
     { name: 'RoleFlowAccess',          flags: 'js|java' },
