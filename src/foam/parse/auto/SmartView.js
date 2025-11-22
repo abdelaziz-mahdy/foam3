@@ -194,6 +194,7 @@ foam.CLASS({
   ],
 
   imports: [
+    'setTimeout',
     'window'
   ],
 
@@ -342,7 +343,10 @@ foam.CLASS({
         on('keydown', this.onKeyPress, true).
         end();
 
-      this.field.on('focus', this.onPreviewChange);
+      // Search fields have a 'x' icon on the right which clears the field, but for
+      // some reason if onPreviewChange runs too quickly then this doesn't work for
+      // some unknown reason.
+      this.field.on('focus', () => this.setTimeout(this.onPreviewChange, 300));
       self.overlay_.parentEl = this.field.el_();
       self.overlay_.write();
       self.overlay_
@@ -461,7 +465,7 @@ foam.CLASS({
       name: 'onPreviewChange',
       isFramed: true,
       code: function() {
-        // Parse the preview text with our 'apply' callback so we can rebuilud
+        // Parse the preview text with our 'apply' callback so we can rebuild
         // the suggestions map.
         this.reset();
 
@@ -469,8 +473,6 @@ foam.CLASS({
           this.preview + String.fromCharCode(26) /* EOF */,
           undefined,
           this.apply);
-
-        return ps || null;
       }
     }
   ]
