@@ -539,6 +539,7 @@ foam.POM({
     { name: "foam/u2/DetailView",                                     flags: "web" },
     { name: "foam/u2/ContextSensitiveDetailView",                     flags: "web" },
     { name: "foam/u2/tag/Image",                                      flags: "web" },
+    { name: "foam/u2/tag/Foam",                                       flags: "web" }, // Maybe move into reflow POM
     { name: "foam/u2/tag/Input",                                      flags: "web" },
     { name: "foam/u2/tag/TextArea",                                   flags: "web" },
     { name: "foam/u2/tag/Button",                                     flags: "web" },
