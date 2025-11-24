@@ -431,7 +431,7 @@ foam.CLASS({
         let keys  = Object.keys(this.suggestions);
         let delta = this.preview.substring(this.maxPos);
 
-        if ( delta ) keys = keys.filter(k => this.containsIC(k, delta));
+        if ( delta ) keys = keys.filter(k => this.suggestions[k].matches(delta));
 
         if ( keys.length == 1 ) {
           this.preview = this.preview.substring(0, this.maxPos) + keys[0];
