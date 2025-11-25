@@ -36,8 +36,27 @@ foam.CLASS({
       var offset, utcTime;
       switch ( mode ) {
         case 'DATE':
+          // Always noon GMT - for parseDateString
           return new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
+        case 'STRING':
+          // For parseString: date-only → noon GMT, with time → local time
+          if ( hour < 0 && minute < 0 && second < 0 ) {
+            // No time components - return noon GMT
+            return new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
+          }
+          // Has time - return local time
+          if ( tz ) {
+            offset = this.parseTimezone(tz);
+            utcTime = Date.UTC(year, month, day,
+              hour >= 0 ? hour : 0, minute >= 0 ? minute : 0,
+              second >= 0 ? second : 0, ms >= 0 ? ms : 0);
+            return new Date(utcTime - offset * 60000);
+          }
+          return new Date(year, month, day,
+            hour >= 0 ? hour : 0, minute >= 0 ? minute : 0,
+            second >= 0 ? second : 0, ms >= 0 ? ms : 0);
         case 'DATETIME':
+          // Always local time with default hour 12 - for parseDateTime
           if ( tz ) {
             offset = this.parseTimezone(tz);
             utcTime = Date.UTC(year, month, day,
@@ -49,6 +68,7 @@ foam.CLASS({
             hour >= 0 ? hour : 12, minute >= 0 ? minute : 0,
             second >= 0 ? second : 0, ms >= 0 ? ms : 0);
         case 'DATETIME_UTC':
+          // Always UTC - for parseDateTimeUTC
           utcTime = Date.UTC(year, month, day,
             hour >= 0 ? hour : 0, minute >= 0 ? minute : 0,
             second >= 0 ? second : 0, ms >= 0 ? ms : 0);
@@ -578,19 +598,19 @@ foam.CLASS({
 
     function parseString(str, opt_name) {
       if ( ! str || str.trim() === '' ) {
-        return this.validateDate(this.INVALID_DATE, str);
+        throw new Error('Unsupported Date format: empty or null string');
       }
       str = str.trim();
 
-      // For parseString, detect mode based on result - use DATETIME as default
-      this.dateParseMode = 'DATETIME';
+      // STRING mode: date-only → noon GMT, with time → local time
+      this.dateParseMode = 'STRING';
 
       this.ps.setString(str);
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
-      if ( ! parseResult ) {
-        return this.validateDate(this.INVALID_DATE, str);
+      if ( ! parseResult || ! parseResult.value ) {
+        throw new Error('Unsupported Date format: ' + str);
       }
 
       if ( parseResult.pos < str.length ) {
@@ -602,7 +622,7 @@ foam.CLASS({
 
     function parseDateString(str, opt_name) {
       if ( ! str || str.trim() === '' ) {
-        return this.validateDate(this.INVALID_DATE, str);
+        throw new Error('Unsupported Date format: empty or null string');
       }
       str = str.trim();
       this.dateParseMode = 'DATE';
@@ -611,8 +631,8 @@ foam.CLASS({
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
-      if ( ! parseResult ) {
-        return this.validateDate(this.INVALID_DATE, str);
+      if ( ! parseResult || ! parseResult.value ) {
+        throw new Error('Unsupported Date format: ' + str);
       }
 
       return parseResult.value;
@@ -620,7 +640,7 @@ foam.CLASS({
 
     function parseDateTime(str, opt_name) {
       if ( ! str || str.trim() === '' ) {
-        return this.validateDate(this.INVALID_DATE, str);
+        throw new Error('Unsupported DateTime format: empty or null string');
       }
       str = str.trim();
       this.dateParseMode = 'DATETIME';
@@ -629,13 +649,13 @@ foam.CLASS({
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
-      if ( ! parseResult ) {
-        return this.validateDate(this.INVALID_DATE, str);
+      if ( ! parseResult || ! parseResult.value ) {
+        throw new Error('Unsupported DateTime format: ' + str);
       }
 
       if ( parseResult.pos < str.length ) {
         console.warn('DateParser: Partial parse in parseDateTime. Input:', str);
-        return this.validateDate(this.INVALID_DATE, str);
+        throw new Error('Unsupported DateTime format: ' + str);
       }
 
       return parseResult.value;
@@ -643,7 +663,7 @@ foam.CLASS({
 
     function parseDateTimeUTC(str, opt_name) {
       if ( ! str || str.trim() === '' ) {
-        return this.validateDateUTC(this.INVALID_DATE, str);
+        throw new Error('Unsupported DateTime format: empty or null string');
       }
       str = str.trim();
       this.dateParseMode = 'DATETIME_UTC';
@@ -652,13 +672,12 @@ foam.CLASS({
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
-      if ( ! parseResult ) {
-        return this.validateDateUTC(this.INVALID_DATE, str);
+      if ( ! parseResult || ! parseResult.value ) {
+        throw new Error('Unsupported DateTime format: ' + str);
       }
 
       if ( parseResult.pos < str.length ) {
-        console.warn('DateParser: Partial parse in parseDateTimeUTC. Input:', str);
-        return this.validateDateUTC(this.INVALID_DATE, str);
+        throw new Error('Unsupported DateTime format: ' + str);
       }
 
       return parseResult.value;

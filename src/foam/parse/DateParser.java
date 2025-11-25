@@ -34,7 +34,7 @@ import java.util.*;
  */
 public class DateParser {
 
-  public enum DateParseMode { DATE, DATETIME, DATETIME_UTC }
+  public enum DateParseMode { DATE, STRING, DATETIME, DATETIME_UTC }
 
   private Grammar grammar_;
 
@@ -98,7 +98,7 @@ public class DateParser {
     str = str.trim();
     StringPStream sps = new StringPStream(str);
     ParserContext x = new ParserContextImpl();
-    x.set("dateParseMode", DateParseMode.DATE);
+    x.set("dateParseMode", DateParseMode.STRING);  // STRING mode: date-only → noon GMT, with time → local time
 
     PStream parseResult = grammar_.parse(sps, x, opt_name);
     if ( parseResult == null || parseResult.value() == null ) {
@@ -315,11 +315,39 @@ public class DateParser {
     Calendar cal;
     switch (mode) {
       case DATE:
+        // Always noon GMT - for parseDateString
         cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal.clear();
         cal.set(year, month, day, 12, 0, 0);
         return cal.getTime();
+      case STRING:
+        // For parseString: date-only → noon GMT, with time → local time
+        if ( hour < 0 && minute < 0 && second < 0 ) {
+          // No time components - return noon GMT
+          cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          cal.clear();
+          cal.set(year, month, day, 12, 0, 0);
+          return cal.getTime();
+        }
+        // Has time - return local time
+        if ( tz != null ) {
+          int offset = parseTimezone(tz);
+          cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          cal.clear();
+          cal.set(year, month, day, hour >= 0 ? hour : 0,
+                  minute >= 0 ? minute : 0, second >= 0 ? second : 0);
+          if ( ms >= 0 ) cal.set(Calendar.MILLISECOND, ms);
+          cal.add(Calendar.MINUTE, -offset);
+          return cal.getTime();
+        }
+        cal = Calendar.getInstance();
+        cal.clear();
+        cal.set(year, month, day, hour >= 0 ? hour : 0,
+                minute >= 0 ? minute : 0, second >= 0 ? second : 0);
+        if ( ms >= 0 ) cal.set(Calendar.MILLISECOND, ms);
+        return cal.getTime();
       case DATETIME:
+        // Always local time with default hour 12 - for parseDateTime
         if ( tz != null ) {
           int offset = parseTimezone(tz);
           cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
@@ -337,6 +365,7 @@ public class DateParser {
         if ( ms >= 0 ) cal.set(Calendar.MILLISECOND, ms);
         return cal.getTime();
       case DATETIME_UTC:
+        // Always UTC - for parseDateTimeUTC
         cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal.clear();
         cal.set(year, month, day, hour >= 0 ? hour : 0,
