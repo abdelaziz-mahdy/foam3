@@ -17,7 +17,7 @@ foam.CLASS({
 
   css: `
     ^codeBlock {
-      background: #efefef;
+      background: $backgroundTertiary;
       border-radius: 6px;
       padding: 16px;
     }
@@ -380,7 +380,7 @@ foam.CLASS({
           });
 
           return function render(el) {
-            this.start('table').attrs({border: 1, cellspacing: 0, cellpadding: 8}).start('thead')
+            this.start('table').attrs({border: '1px', cellspacing: 0, cellpadding: 8}).start('thead')
               .start('tr')
                 .forEach(headers, function(h, i) {
                   this.start('th').style(alignments[i]).add(h.trim()).end();
