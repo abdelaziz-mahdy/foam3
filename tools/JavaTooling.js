@@ -172,6 +172,34 @@ foam.POM({
     }],
 
     deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals.', [], function() {
+      // Confirmation check to protect against accidental journal deletion
+      const { spawnSync } = require('child_process');
+
+      console.log('\x1b[0;33m⚠️  WARNING: You are about to delete runtime journals!\x1b[0;0m');
+      console.log(`   JOURNAL_HOME: ${JOURNAL_HOME}`);
+      console.log(`   SAF_HOME: ${SAF_HOME}`);
+      console.log(`   DOCUMENT_HOME: ${DOCUMENT_HOME}`);
+
+      // Use bash read command for synchronous input with proper signal handling
+      const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/N): " answer && echo "$answer"'], {
+        stdio: ['inherit', 'pipe', 'inherit'],
+        encoding: 'utf8'
+      });
+
+      // Check if interrupted (Ctrl+C)
+      if ( result.signal === 'SIGINT' || result.status === 130 ) {
+        console.log('\n\x1b[0;31mOperation cancelled.\x1b[0;0m');
+        process.exit(130);
+      }
+
+      const answer = (result.stdout || '').trim().toLowerCase();
+      const confirmed = answer === 'y' || answer === 'yes';
+
+      if ( ! confirmed ) {
+        console.log('\x1b[0;31mOperation cancelled. Runtime journals were NOT deleted.\x1b[0;0m');
+        process.exit(0);
+      }
+
       this.info('Runtime journals deleted.');
       this.emptyDir(JOURNAL_HOME);
       this.emptyDir(SAF_HOME);
