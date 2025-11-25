@@ -34,6 +34,8 @@ import java.util.*;
  */
 public class DateParser {
 
+  public enum DateParseMode { DATE, DATETIME, DATETIME_UTC }
+
   private Grammar grammar_;
 
   /**
@@ -63,8 +65,7 @@ public class DateParser {
 
     try {
       ParserContext x = new ParserContextImpl();
-      StringPStream ps = new StringPStream();
-      ps.setString(str);
+      StringPStream ps = new StringPStream(str);
 
       Parser startSymbol = grammar_.sym(opt_name != null && !opt_name.isEmpty() ? opt_name : "START");
       PStream parseResult = ps.apply(startSymbol, x);
@@ -94,55 +95,17 @@ public class DateParser {
       throw new RuntimeException("Unsupported Date format: empty or null string");
     }
 
-    try {
-      StringPStream sps = new StringPStream();
-      sps.setString(str);
-      PStream ps = sps;
-      ParserContext x = new ParserContextImpl();
+    str = str.trim();
+    StringPStream sps = new StringPStream(str);
+    ParserContext x = new ParserContextImpl();
+    x.set("dateParseMode", DateParseMode.DATE);
 
-      PStream parseResult = grammar_.parse(ps, x, opt_name);
-
-      if ( parseResult == null || parseResult.value() == null ) {
-        throw new RuntimeException("Unsupported Date format: " + str);
-      }
-
-      @SuppressWarnings("unchecked")
-      Map<String, Object> resultMap = (Map<String, Object>) parseResult.value();
-
-      // Determine if this is a datetime or date-only result
-      if ( resultMap.containsKey("hour") || resultMap.containsKey("minute") || resultMap.containsKey("second") ) {
-        // Datetime format - use local time, let Calendar normalize
-        Calendar cal = Calendar.getInstance();
-        cal.clear();
-        cal.set(
-          (Integer) resultMap.get("year"),
-          (Integer) resultMap.get("month"),
-          (Integer) resultMap.get("day"),
-          resultMap.containsKey("hour") ? (Integer) resultMap.get("hour") : 0,
-          resultMap.containsKey("minute") ? (Integer) resultMap.get("minute") : 0,
-          resultMap.containsKey("second") ? (Integer) resultMap.get("second") : 0
-        );
-        if ( resultMap.containsKey("millisecond") ) {
-          cal.set(Calendar.MILLISECOND, (Integer) resultMap.get("millisecond"));
-        }
-        return cal.getTime();
-      } else {
-        // Date-only format - use noon GMT, let Calendar normalize
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        cal.clear();
-        cal.set(
-          (Integer) resultMap.get("year"),
-          (Integer) resultMap.get("month"),
-          (Integer) resultMap.get("day"),
-          12, 0, 0
-        );
-        return cal.getTime();
-      }
-    } catch (RuntimeException e) {
-      throw e; // Re-throw RuntimeException as-is
-    } catch (Exception e) {
-      throw new RuntimeException("Unsupported Date format: " + str, e);
+    PStream parseResult = grammar_.parse(sps, x, opt_name);
+    if ( parseResult == null || parseResult.value() == null ) {
+      throw new RuntimeException("Unsupported Date format: " + str);
     }
+
+    return (Date) parseResult.value();
   }
 
   /**
@@ -165,38 +128,17 @@ public class DateParser {
       throw new RuntimeException("Unsupported Date format: empty or null string");
     }
 
-    try {
-      StringPStream sps = new StringPStream();
-      sps.setString(str);
-      PStream ps = sps;
-      ParserContext x = new ParserContextImpl();
+    str = str.trim();
+    StringPStream sps = new StringPStream(str);
+    ParserContext x = new ParserContextImpl();
+    x.set("dateParseMode", DateParseMode.DATE);
 
-      PStream parseResult = grammar_.parse(ps, x, opt_name);
-
-      // Check if we got a result - value() being non-null means parsing succeeded
-      if ( parseResult == null || parseResult.value() == null ) {
-        throw new RuntimeException("Unsupported Date format: " + str);
-      }
-
-      @SuppressWarnings("unchecked")
-      Map<String, Object> resultMap = (Map<String, Object>) parseResult.value();
-
-      int year = (Integer) resultMap.get("year");
-      int month = (Integer) resultMap.get("month");
-      int day = (Integer) resultMap.get("day");
-
-      // Always return date at noon GMT, ignoring time even if present
-      // Let Java Calendar normalize invalid dates (e.g., Feb 30 → Mar 2)
-      Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-      cal.clear();
-      cal.set(year, month, day, 12, 0, 0);
-
-      return cal.getTime();
-    } catch (RuntimeException e) {
-      throw e; // Re-throw RuntimeException as-is
-    } catch (Exception e) {
-      throw new RuntimeException("Unsupported Date format: " + str, e);
+    PStream parseResult = grammar_.parse(sps, x, opt_name);
+    if ( parseResult == null || parseResult.value() == null ) {
+      throw new RuntimeException("Unsupported Date format: " + str);
     }
+
+    return (Date) parseResult.value();
   }
 
   /**
@@ -222,64 +164,16 @@ public class DateParser {
     }
 
     str = str.trim();
+    StringPStream sps = new StringPStream(str);
+    ParserContext x = new ParserContextImpl();
+    x.set("dateParseMode", DateParseMode.DATETIME);
 
-    try {
-      // Use parse() to get position information for partial parse detection
-      StringPStream sps = new StringPStream();
-      sps.setString(str);
-      PStream ps = sps;
-      ParserContext x = new ParserContextImpl();
-
-      PStream parseResult = grammar_.parse(ps, x, opt_name);
-
-      // Check if we got a result - value() being non-null means parsing succeeded
-      if ( parseResult == null || parseResult.value() == null ) {
-        throw new RuntimeException("Unsupported DateTime format: " + str);
-      }
-
-      @SuppressWarnings("unchecked")
-      Map<String, Object> result = (Map<String, Object>) parseResult.value();
-
-      if ( result == null ) {
-        throw new RuntimeException("Unsupported DateTime format: " + str);
-      }
-
-      // Extract date/time components - let Calendar normalize invalid dates
-      int year = (Integer) result.get("year");
-      int month = (Integer) result.get("month");
-      int day = (Integer) result.get("day");
-      int hour = result.containsKey("hour") ? (Integer) result.get("hour") : 12;
-      int minute = result.containsKey("minute") ? (Integer) result.get("minute") : 0;
-      int second = result.containsKey("second") ? (Integer) result.get("second") : 0;
-
-      if ( result.containsKey("timezone") ) {
-        // Timezone present - convert to UTC
-        int offset = parseTimezone((String) result.get("timezone"));
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        cal.clear();
-        cal.set(year, month, day, hour, minute, second);
-        if ( result.containsKey("millisecond") ) {
-          cal.set(Calendar.MILLISECOND, (Integer) result.get("millisecond"));
-        }
-
-        // Subtract offset to convert to UTC
-        cal.add(Calendar.MINUTE, -offset);
-        return cal.getTime();
-      } else {
-        // No timezone - use local time
-        Calendar cal = Calendar.getInstance();
-        cal.clear();
-        cal.set(year, month, day, hour, minute, second);
-        if ( result.containsKey("millisecond") ) {
-          cal.set(Calendar.MILLISECOND, (Integer) result.get("millisecond"));
-        }
-        return cal.getTime();
-      }
-    } catch (RuntimeException e) {
-      throw e; // Re-throw RuntimeException as-is
-    } catch (Exception e) {
-      throw new RuntimeException("Unsupported DateTime format: " + str, e);
+    PStream parseResult = grammar_.parse(sps, x, opt_name);
+    if ( parseResult == null || parseResult.value() == null ) {
+      throw new RuntimeException("Unsupported DateTime format: " + str);
     }
+
+    return (Date) parseResult.value();
   }
 
   /**
@@ -305,62 +199,16 @@ public class DateParser {
     }
 
     str = str.trim();
+    StringPStream sps = new StringPStream(str);
+    ParserContext x = new ParserContextImpl();
+    x.set("dateParseMode", DateParseMode.DATETIME_UTC);
 
-    try {
-      // Use parse() to get position information
-      StringPStream sps = new StringPStream();
-      sps.setString(str);
-      PStream ps = sps;
-      ParserContext x = new ParserContextImpl();
-
-      PStream parseResult = grammar_.parse(ps, x, opt_name);
-
-      // Check if we got a result - value() being non-null means parsing succeeded
-      if ( parseResult == null || parseResult.value() == null ) {
-        throw new RuntimeException("Unsupported DateTime format: " + str);
-      }
-
-      @SuppressWarnings("unchecked")
-      Map<String, Object> result = (Map<String, Object>) parseResult.value();
-
-      if ( result == null ) {
-        throw new RuntimeException("Unsupported DateTime format: " + str);
-      }
-
-      // Extract components - let Calendar normalize invalid dates/times
-      int year = (Integer) result.get("year");
-      int month = (Integer) result.get("month");
-      int day = (Integer) result.get("day");
-      int hour = result.containsKey("hour") ? (Integer) result.get("hour") : 0;
-      int minute = result.containsKey("minute") ? (Integer) result.get("minute") : 0;
-      int second = result.containsKey("second") ? (Integer) result.get("second") : 0;
-
-      Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-      cal.clear();
-
-      if ( result.containsKey("timezone") ) {
-        // Timezone present - convert to UTC
-        int offset = parseTimezone((String) result.get("timezone"));
-        cal.set(year, month, day, hour, minute, second);
-        if ( result.containsKey("millisecond") ) {
-          cal.set(Calendar.MILLISECOND, (Integer) result.get("millisecond"));
-        }
-        // Subtract offset
-        cal.add(Calendar.MINUTE, -offset);
-      } else {
-        // No timezone - use UTC as-is
-        cal.set(year, month, day, hour, minute, second);
-        if ( result.containsKey("millisecond") ) {
-          cal.set(Calendar.MILLISECOND, (Integer) result.get("millisecond"));
-        }
-      }
-
-      return cal.getTime();
-    } catch (RuntimeException e) {
-      throw e; // Re-throw RuntimeException as-is
-    } catch (Exception e) {
-      throw new RuntimeException("Unsupported DateTime format: " + str, e);
+    PStream parseResult = grammar_.parse(sps, x, opt_name);
+    if ( parseResult == null || parseResult.value() == null ) {
+      throw new RuntimeException("Unsupported DateTime format: " + str);
     }
+
+    return (Date) parseResult.value();
   }
 
   /**
@@ -457,6 +305,68 @@ public class DateParser {
       case "DEC": return 11;
       default: return 0;
     }
+  }
+
+  /**
+   * Build a Date object from parsed components based on mode
+   */
+  private Date buildDate(DateParseMode mode, int year, int month, int day,
+                         int hour, int minute, int second, int ms, String tz) {
+    Calendar cal;
+    switch (mode) {
+      case DATE:
+        cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.clear();
+        cal.set(year, month, day, 12, 0, 0);
+        return cal.getTime();
+      case DATETIME:
+        if ( tz != null ) {
+          int offset = parseTimezone(tz);
+          cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          cal.clear();
+          cal.set(year, month, day, hour >= 0 ? hour : 12,
+                  minute >= 0 ? minute : 0, second >= 0 ? second : 0);
+          if ( ms >= 0 ) cal.set(Calendar.MILLISECOND, ms);
+          cal.add(Calendar.MINUTE, -offset);
+          return cal.getTime();
+        }
+        cal = Calendar.getInstance();
+        cal.clear();
+        cal.set(year, month, day, hour >= 0 ? hour : 12,
+                minute >= 0 ? minute : 0, second >= 0 ? second : 0);
+        if ( ms >= 0 ) cal.set(Calendar.MILLISECOND, ms);
+        return cal.getTime();
+      case DATETIME_UTC:
+        cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal.clear();
+        cal.set(year, month, day, hour >= 0 ? hour : 0,
+                minute >= 0 ? minute : 0, second >= 0 ? second : 0);
+        if ( ms >= 0 ) cal.set(Calendar.MILLISECOND, ms);
+        if ( tz != null ) cal.add(Calendar.MINUTE, -parseTimezone(tz));
+        return cal.getTime();
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Parse integer from array or return default value
+   */
+  private int parseIntOrDefault(Object[] v, int idx, int defaultVal) {
+    if ( v.length <= idx || v[idx] == null ) return defaultVal;
+    return Integer.parseInt((String) v[idx]);
+  }
+
+  /**
+   * Extract timezone from parsed value array
+   */
+  private String extractTimezone(Object[] v) {
+    if ( v.length == 0 ) return null;
+    Object last = v[v.length - 1];
+    if ( last == null ) return null;
+    if ( "Z".equals(last) ) return "Z";
+    if ( !(last instanceof String) ) return flattenTimezone(last);
+    return null;
   }
 
 
@@ -778,7 +688,7 @@ public class DateParser {
   }
 
   /**
-   * Add action handlers to convert parsed arrays to result maps
+   * Add action handlers to convert parsed arrays to Date objects
    */
   private void addActions(Grammar grammar) {
     final DateParser self = this;
@@ -786,294 +696,247 @@ public class DateParser {
     // YYYYMMDD-Sep action: [YYYY, sep, MM, sep, DD] or with time
     grammar.addAction("yyyymmdd-sep", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[0]));
-      result.put("month", Integer.parseInt((String) v[2]) - 1);  // 0-indexed
-      result.put("day", Integer.parseInt((String) v[4]));
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        if ( v[8] != null ) result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-        if ( v.length > 12 && v[12] != null ) result.put("millisecond", Integer.parseInt((String) v[12]));
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[0]),
+        Integer.parseInt((String) v[2]) - 1,
+        Integer.parseInt((String) v[4]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        self.parseIntOrDefault(v, 12, -1),
+        self.extractTimezone(v));
     });
 
     // YYYYMMDD-Compact action: "20250115"
     grammar.addAction("yyyymmdd-compact", (val, x) -> {
       String v = (String) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt(v.substring(0, 4)));
-      result.put("month", Integer.parseInt(v.substring(4, 6)) - 1);
-      result.put("day", Integer.parseInt(v.substring(6, 8)));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt(v.substring(0, 4)),
+        Integer.parseInt(v.substring(4, 6)) - 1,
+        Integer.parseInt(v.substring(6, 8)),
+        -1, -1, -1, -1, null);
     });
 
     // YYYYMMDDHHMMSS-Compact action: [year, month, day, hour, minute, second]
     grammar.addAction("yyyymmddhhmmss-compact", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[0]));
-      result.put("month", Integer.parseInt((String) v[1]) - 1);
-      result.put("day", Integer.parseInt((String) v[2]));
-      result.put("hour", Integer.parseInt((String) v[3]));
-      result.put("minute", Integer.parseInt((String) v[4]));
-      result.put("second", Integer.parseInt((String) v[5]));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[0]),
+        Integer.parseInt((String) v[1]) - 1,
+        Integer.parseInt((String) v[2]),
+        Integer.parseInt((String) v[3]),
+        Integer.parseInt((String) v[4]),
+        Integer.parseInt((String) v[5]),
+        -1, null);
     });
 
     // MMDDYYYY-Sep action
     grammar.addAction("mmddyyyy-sep", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[4]));
-      result.put("month", Integer.parseInt((String) v[0]) - 1);
-      result.put("day", Integer.parseInt((String) v[2]));
-
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        if ( v[8] != null ) result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[4]),
+        Integer.parseInt((String) v[0]) - 1,
+        Integer.parseInt((String) v[2]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        -1,
+        self.extractTimezone(v));
     });
 
     // MMDDYYYY-Compact action: "01152025"
     grammar.addAction("mmddyyyy-compact", (val, x) -> {
       String v = (String) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt(v.substring(4, 8)));
-      result.put("month", Integer.parseInt(v.substring(0, 2)) - 1);
-      result.put("day", Integer.parseInt(v.substring(2, 4)));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt(v.substring(4, 8)),
+        Integer.parseInt(v.substring(0, 2)) - 1,
+        Integer.parseInt(v.substring(2, 4)),
+        -1, -1, -1, -1, null);
     });
 
     // YYMMDD-Sep action
     grammar.addAction("yymmdd-sep", (val, x) -> {
       Object[] v = (Object[]) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
       int twoDigitYear = Integer.parseInt((String) v[0]);
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", self.convertTwoDigitYear(twoDigitYear));
-      result.put("month", Integer.parseInt((String) v[2]) - 1);
-      result.put("day", Integer.parseInt((String) v[4]));
-
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      return self.buildDate(mode,
+        self.convertTwoDigitYear(twoDigitYear),
+        Integer.parseInt((String) v[2]) - 1,
+        Integer.parseInt((String) v[4]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        -1,
+        self.extractTimezone(v));
     });
 
     // YYMMDD-Compact action: "250115"
     grammar.addAction("yymmdd-compact", (val, x) -> {
       String v = (String) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
       int twoDigitYear = Integer.parseInt(v.substring(0, 2));
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", self.convertTwoDigitYear(twoDigitYear));
-      result.put("month", Integer.parseInt(v.substring(2, 4)) - 1);
-      result.put("day", Integer.parseInt(v.substring(4, 6)));
-      return result;
+      return self.buildDate(mode,
+        self.convertTwoDigitYear(twoDigitYear),
+        Integer.parseInt(v.substring(2, 4)) - 1,
+        Integer.parseInt(v.substring(4, 6)),
+        -1, -1, -1, -1, null);
     });
 
     // DDMMYYYY-Sep action
     grammar.addAction("ddmmyyyy-sep", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[4]));
-      result.put("month", Integer.parseInt((String) v[2]) - 1);
-      result.put("day", Integer.parseInt((String) v[0]));
-
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        if ( v[8] != null ) result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[4]),
+        Integer.parseInt((String) v[2]) - 1,
+        Integer.parseInt((String) v[0]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        -1,
+        self.extractTimezone(v));
     });
 
     // DDMMYYYY-Compact action: "15012025"
     grammar.addAction("ddmmyyyy-compact", (val, x) -> {
       String v = (String) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt(v.substring(4, 8)));
-      result.put("month", Integer.parseInt(v.substring(2, 4)) - 1);
-      result.put("day", Integer.parseInt(v.substring(0, 2)));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt(v.substring(4, 8)),
+        Integer.parseInt(v.substring(2, 4)) - 1,
+        Integer.parseInt(v.substring(0, 2)),
+        -1, -1, -1, -1, null);
     });
 
     // DDMMYY-Sep action
     grammar.addAction("ddmmyy-sep", (val, x) -> {
       Object[] v = (Object[]) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
       int twoDigitYear = Integer.parseInt((String) v[4]);
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", self.convertTwoDigitYear(twoDigitYear));
-      result.put("month", Integer.parseInt((String) v[2]) - 1);
-      result.put("day", Integer.parseInt((String) v[0]));
-
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        if ( v[8] != null ) result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      return self.buildDate(mode,
+        self.convertTwoDigitYear(twoDigitYear),
+        Integer.parseInt((String) v[2]) - 1,
+        Integer.parseInt((String) v[0]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        -1,
+        self.extractTimezone(v));
     });
 
     // DDMMYY-Compact action: "150125"
     grammar.addAction("ddmmyy-compact", (val, x) -> {
       String v = (String) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
       int twoDigitYear = Integer.parseInt(v.substring(4, 6));
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", self.convertTwoDigitYear(twoDigitYear));
-      result.put("month", Integer.parseInt(v.substring(2, 4)) - 1);
-      result.put("day", Integer.parseInt(v.substring(0, 2)));
-      return result;
+      return self.buildDate(mode,
+        self.convertTwoDigitYear(twoDigitYear),
+        Integer.parseInt(v.substring(2, 4)) - 1,
+        Integer.parseInt(v.substring(0, 2)),
+        -1, -1, -1, -1, null);
     });
 
     // YYYYDDMM-Sep action
     grammar.addAction("yyyyddmm-sep", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[0]));
-      result.put("month", Integer.parseInt((String) v[4]) - 1);
-      result.put("day", Integer.parseInt((String) v[2]));
-
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        if ( v[8] != null ) result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[0]),
+        Integer.parseInt((String) v[4]) - 1,
+        Integer.parseInt((String) v[2]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        -1,
+        self.extractTimezone(v));
     });
 
     // YYYYDDMM-Compact action: "20251501"
     grammar.addAction("yyyyddmm-compact", (val, x) -> {
       String v = (String) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt(v.substring(0, 4)));
-      result.put("month", Integer.parseInt(v.substring(6, 8)) - 1);
-      result.put("day", Integer.parseInt(v.substring(4, 6)));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt(v.substring(0, 4)),
+        Integer.parseInt(v.substring(6, 8)) - 1,
+        Integer.parseInt(v.substring(4, 6)),
+        -1, -1, -1, -1, null);
     });
 
     // YYDDMM-Sep action
     grammar.addAction("yyddmm-sep", (val, x) -> {
       Object[] v = (Object[]) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
       int twoDigitYear = Integer.parseInt((String) v[0]);
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", self.convertTwoDigitYear(twoDigitYear));
-      result.put("month", Integer.parseInt((String) v[4]) - 1);
-      result.put("day", Integer.parseInt((String) v[2]));
-
-      if ( v.length > 5 && v[6] != null ) {
-        result.put("hour", Integer.parseInt((String) v[6]));
-        if ( v[8] != null ) result.put("minute", Integer.parseInt((String) v[8]));
-        if ( v.length > 10 && v[10] != null ) result.put("second", Integer.parseInt((String) v[10]));
-
-        if ( v[v.length - 1] != null && !(v[v.length - 1] instanceof String) ) {
-          result.put("timezone", self.flattenTimezone(v[v.length - 1]));
-        } else if ( "Z".equals(v[v.length - 1]) ) {
-          result.put("timezone", "Z");
-        }
-      }
-
-      return result;
+      return self.buildDate(mode,
+        self.convertTwoDigitYear(twoDigitYear),
+        Integer.parseInt((String) v[4]) - 1,
+        Integer.parseInt((String) v[2]),
+        self.parseIntOrDefault(v, 6, -1),
+        self.parseIntOrDefault(v, 8, -1),
+        self.parseIntOrDefault(v, 10, -1),
+        -1,
+        self.extractTimezone(v));
     });
 
     // YYDDMM-Compact action: "251501"
     grammar.addAction("yyddmm-compact", (val, x) -> {
       String v = (String) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
       int twoDigitYear = Integer.parseInt(v.substring(0, 2));
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", self.convertTwoDigitYear(twoDigitYear));
-      result.put("month", Integer.parseInt(v.substring(4, 6)) - 1);
-      result.put("day", Integer.parseInt(v.substring(2, 4)));
-      return result;
+      return self.buildDate(mode,
+        self.convertTwoDigitYear(twoDigitYear),
+        Integer.parseInt(v.substring(4, 6)) - 1,
+        Integer.parseInt(v.substring(2, 4)),
+        -1, -1, -1, -1, null);
     });
 
     // DDMMMYYYY-Sep action: [DD, sep, MMM, sep, YYYY]
     grammar.addAction("ddmmmyyyy-sep", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[4]));
-      result.put("month", self.parseMonthName((String) v[2]));
-      result.put("day", Integer.parseInt((String) v[0]));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[4]),
+        self.parseMonthName((String) v[2]),
+        Integer.parseInt((String) v[0]),
+        -1, -1, -1, -1, null);
     });
 
     // DDMMMYYYY-Compact action: [DD, MMM, YYYY]
     grammar.addAction("ddmmmyyyy-compact", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[2]));
-      result.put("month", self.parseMonthName((String) v[1]));
-      result.put("day", Integer.parseInt((String) v[0]));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[2]),
+        self.parseMonthName((String) v[1]),
+        Integer.parseInt((String) v[0]),
+        -1, -1, -1, -1, null);
     });
 
     // YYYYDDMMM-Sep action: [YYYY, sep, DD, sep, MMM]
     grammar.addAction("yyyyddmmm-sep", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[0]));
-      result.put("month", self.parseMonthName((String) v[4]));
-      result.put("day", Integer.parseInt((String) v[2]));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[0]),
+        self.parseMonthName((String) v[4]),
+        Integer.parseInt((String) v[2]),
+        -1, -1, -1, -1, null);
     });
 
     // YYYYDDMMM-Compact action: [YYYY, DD, MMM]
     grammar.addAction("yyyyddmmm-compact", (val, x) -> {
       Object[] v = (Object[]) val;
-      Map<String, Object> result = new HashMap<>();
-      result.put("year", Integer.parseInt((String) v[0]));
-      result.put("month", self.parseMonthName((String) v[2]));
-      result.put("day", Integer.parseInt((String) v[1]));
-      return result;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[0]),
+        self.parseMonthName((String) v[2]),
+        Integer.parseInt((String) v[1]),
+        -1, -1, -1, -1, null);
     });
   }
 }

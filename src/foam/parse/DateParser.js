@@ -24,582 +24,469 @@ foam.CLASS({
     INVALID_DATE: new Date(NaN)
   },
 
+  properties: [
+    {
+      name: 'dateParseMode',
+      value: 'DATETIME'
+    }
+  ],
+
   methods: [
+    function buildDate(mode, year, month, day, hour, minute, second, ms, tz) {
+      var offset, utcTime;
+      switch ( mode ) {
+        case 'DATE':
+          return new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
+        case 'DATETIME':
+          if ( tz ) {
+            offset = this.parseTimezone(tz);
+            utcTime = Date.UTC(year, month, day,
+              hour >= 0 ? hour : 12, minute >= 0 ? minute : 0,
+              second >= 0 ? second : 0, ms >= 0 ? ms : 0);
+            return new Date(utcTime - offset * 60000);
+          }
+          return new Date(year, month, day,
+            hour >= 0 ? hour : 12, minute >= 0 ? minute : 0,
+            second >= 0 ? second : 0, ms >= 0 ? ms : 0);
+        case 'DATETIME_UTC':
+          utcTime = Date.UTC(year, month, day,
+            hour >= 0 ? hour : 0, minute >= 0 ? minute : 0,
+            second >= 0 ? second : 0, ms >= 0 ? ms : 0);
+          if ( tz ) utcTime -= this.parseTimezone(tz) * 60000;
+          return new Date(utcTime);
+        default:
+          return new Date(NaN);
+      }
+    },
+
+    function parseIntOrDefault(v, idx, defaultVal) {
+      if ( ! v || v.length <= idx || v[idx] === undefined || v[idx] === null ) return defaultVal;
+      return parseInt(v[idx]);
+    },
+
+    function extractTimezone(v) {
+      if ( ! v || v.length === 0 ) return null;
+      var last = v[v.length - 1];
+      if ( last === undefined || last === null ) return null;
+      if ( last === 'Z' ) return 'Z';
+      if ( typeof last !== 'string' ) return this.flattenTimezone(last);
+      return null;
+    },
     // YYYYMMDD with separators: YYYY-MM-DD, YYYY/MM/DD with optional time
     // v = [YYYY, sep, MM, sep, DD] or [YYYY, sep, MM, sep, DD, T/space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function yyyymmddsepAction(v) {
-      var result = {
-        year: parseInt(v[0]),
-        month: parseInt(v[2]) - 1,
-        day: parseInt(v[4])
-      };
-
-      // Check if time components exist (length > 5 means time is present)
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          // If less than 3 digits, pad with zeros; if more than 3, truncate to milliseconds
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[0]),
+        parseInt(v[2]) - 1,
+        parseInt(v[4]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // YYYYMMDD compact: 8 digits "20250115" or "20250115 143045" or "20250115 14:30" or "20250115 14:30:45"
     // v = "20250115" OR v = ["20250115", sep, HH, MM, SS] (compact time) OR v = ["20250115", sep, HH, :, MM, optional([:, SS]), optional(timezone)] (time with colons)
     function yyyymmddcompactAction(v) {
       var dateStr = typeof v === 'string' ? v : v[0];
-      var result = {
-        year: parseInt(dateStr.substring(0, 4)),
-        month: parseInt(dateStr.substring(4, 6)) - 1,
-        day: parseInt(dateStr.substring(6, 8))
-      };
+      var hour = -1, minute = -1, second = -1, tz = null;
 
-      // Check if time is present (array format)
       if ( Array.isArray(v) && v.length > 2 ) {
-        // Check if this is compact time format (HHMMSS - no colons)
-        // v = ["20250115", sep, HH, MM, SS] where v[3] is a 2-digit string (not ':')
         if ( v[3] && v[3] !== ':' ) {
-          // Compact time format: HHMMSS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[3]);
-          result.second = parseInt(v[4]);
+          hour = parseInt(v[2]);
+          minute = parseInt(v[3]);
+          second = parseInt(v[4]);
         } else {
-          // Time with colons format: HH:MM or HH:MM:SS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[4]);
-
-          // Check for seconds (v[5] is optional array [: SS])
+          hour = parseInt(v[2]);
+          minute = parseInt(v[4]);
           if ( v[5] && Array.isArray(v[5]) ) {
-            result.second = parseInt(v[5][1]);
+            second = parseInt(v[5][1]);
           }
-
-          // Check for timezone (last element if present)
-          var lastIdx = v.length - 1;
-          if ( v[lastIdx] !== undefined && typeof v[lastIdx] !== 'string' ) {
-            result.timezone = this.flattenTimezone(v[lastIdx]);
-          } else if ( v[lastIdx] === 'Z' ) {
-            result.timezone = 'Z';
-          }
+          tz = this.extractTimezone(v);
         }
       }
 
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(dateStr.substring(0, 4)),
+        parseInt(dateStr.substring(4, 6)) - 1,
+        parseInt(dateStr.substring(6, 8)),
+        hour, minute, second, -1, tz);
     },
 
     // YYYYMMDDHHMMSS compact: 14 digits with time
     // v = [year, month, day, hour, minute, second]
     function yyyymmddhhmmsscompactAction(v) {
-      return {
-        year: parseInt(v[0]),
-        month: parseInt(v[1]) - 1,
-        day: parseInt(v[2]),
-        hour: parseInt(v[3]),
-        minute: parseInt(v[4]),
-        second: parseInt(v[5])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[0]),
+        parseInt(v[1]) - 1,
+        parseInt(v[2]),
+        parseInt(v[3]),
+        parseInt(v[4]),
+        parseInt(v[5]),
+        -1, null);
     },
 
     // MMDDYYYY with separators: MM-DD-YYYY, MM/DD/YYYY with optional time
     // v = [MM, sep, DD, sep, YYYY] or [MM, sep, DD, sep, YYYY, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function mmddyyyysepAction(v) {
-      var result = {
-        year: parseInt(v[4]),
-        month: parseInt(v[0]) - 1,
-        day: parseInt(v[2])
-      };
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[4]),
+        parseInt(v[0]) - 1,
+        parseInt(v[2]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // MMDDYYYY compact: 8 digits "01152025" or "01152025 143045" or "01152025 14:30" or "01152025 14:30:45"
     // v = "01152025" OR v = ["01152025", sep, HH, MM, SS] (compact time) OR v = ["01152025", sep, HH, :, MM, optional([:, SS]), optional(timezone)] (time with colons)
     function mmddyyyycompactAction(v) {
       var dateStr = typeof v === 'string' ? v : v[0];
-      var result = {
-        year: parseInt(dateStr.substring(4, 8)),
-        month: parseInt(dateStr.substring(0, 2)) - 1,
-        day: parseInt(dateStr.substring(2, 4))
-      };
+      var hour = -1, minute = -1, second = -1, tz = null;
 
-      // Check if time is present (array format)
       if ( Array.isArray(v) && v.length > 2 ) {
-        // Check if this is compact time format (HHMMSS - no colons)
         if ( v[3] && v[3] !== ':' ) {
-          // Compact time format: HHMMSS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[3]);
-          result.second = parseInt(v[4]);
+          hour = parseInt(v[2]);
+          minute = parseInt(v[3]);
+          second = parseInt(v[4]);
         } else {
-          // Time with colons format: HH:MM or HH:MM:SS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[4]);
-
-          // Check for seconds (v[5] is optional array [: SS])
+          hour = parseInt(v[2]);
+          minute = parseInt(v[4]);
           if ( v[5] && Array.isArray(v[5]) ) {
-            result.second = parseInt(v[5][1]);
+            second = parseInt(v[5][1]);
           }
-
-          // Check for timezone (last element if present)
-          var lastIdx = v.length - 1;
-          if ( v[lastIdx] !== undefined && typeof v[lastIdx] !== 'string' ) {
-            result.timezone = this.flattenTimezone(v[lastIdx]);
-          } else if ( v[lastIdx] === 'Z' ) {
-            result.timezone = 'Z';
-          }
+          tz = this.extractTimezone(v);
         }
       }
 
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(dateStr.substring(4, 8)),
+        parseInt(dateStr.substring(0, 2)) - 1,
+        parseInt(dateStr.substring(2, 4)),
+        hour, minute, second, -1, tz);
     },
 
     // YYMMDD with separators: YY-MM-DD, YY/MM/DD with optional time and timezone
     // v = [YY, sep, MM, sep, DD] or [YY, sep, MM, sep, DD, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function yymmddsepAction(v) {
       var twoDigitYear = parseInt(v[0]);
-      var result = {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v[2]) - 1,
-        day: parseInt(v[4])
-      };
-
-      // Check if time components are present
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        result.minute = parseInt(v[8]);
-
-        // Check if seconds are present (v[10] exists and is not timezone)
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v[2]) - 1,
+        parseInt(v[4]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // YYMMDD compact: 6 digits "250115"
     // v = "250115"
     function yymmddcompactAction(v) {
       var twoDigitYear = parseInt(v.substring(0, 2));
-      return {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v.substring(2, 4)) - 1,
-        day: parseInt(v.substring(4, 6))
-      };
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v.substring(2, 4)) - 1,
+        parseInt(v.substring(4, 6)),
+        -1, -1, -1, -1, null);
     },
 
     // MMDDYY with separators: MM-DD-YY, MM/DD/YY with optional time
     // v = [MM, sep, DD, sep, YY] or [MM, sep, DD, sep, YY, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function mmddyysepAction(v) {
       var twoDigitYear = parseInt(v[4]);
-      var result = {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v[0]) - 1,
-        day: parseInt(v[2])
-      };
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v[0]) - 1,
+        parseInt(v[2]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // MMDDYY compact: 6 digits "011525"
     // v = "011525"
     function mmddyycompactAction(v) {
       var twoDigitYear = parseInt(v.substring(4, 6));
-      return {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v.substring(0, 2)) - 1,
-        day: parseInt(v.substring(2, 4))
-      };
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v.substring(0, 2)) - 1,
+        parseInt(v.substring(2, 4)),
+        -1, -1, -1, -1, null);
     },
 
     // DDMMYYYY with separators: DD-MM-YYYY, DD/MM/YYYY with optional time
     // v = [DD, sep, MM, sep, YYYY] or [DD, sep, MM, sep, YYYY, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function ddmmyyyysepAction(v) {
-      var result = {
-        year: parseInt(v[4]),
-        month: parseInt(v[2]) - 1,
-        day: parseInt(v[0])
-      };
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[4]),
+        parseInt(v[2]) - 1,
+        parseInt(v[0]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // DDMMYYYY compact: 8 digits "15012025" or "15012025 143045" or "15012025 14:30" or "15012025 14:30:45"
     // v = "15012025" OR v = ["15012025", sep, HH, MM, SS] (compact time) OR v = ["15012025", sep, HH, :, MM, optional([:, SS]), optional(timezone)] (time with colons)
     function ddmmyyyycompactAction(v) {
       var dateStr = typeof v === 'string' ? v : v[0];
-      var result = {
-        year: parseInt(dateStr.substring(4, 8)),
-        month: parseInt(dateStr.substring(2, 4)) - 1,
-        day: parseInt(dateStr.substring(0, 2))
-      };
+      var hour = -1, minute = -1, second = -1, tz = null;
 
-      // Check if time is present (array format)
       if ( Array.isArray(v) && v.length > 2 ) {
-        // Check if this is compact time format (HHMMSS - no colons)
         if ( v[3] && v[3] !== ':' ) {
-          // Compact time format: HHMMSS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[3]);
-          result.second = parseInt(v[4]);
+          hour = parseInt(v[2]);
+          minute = parseInt(v[3]);
+          second = parseInt(v[4]);
         } else {
-          // Time with colons format: HH:MM or HH:MM:SS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[4]);
-
-          // Check for seconds (v[5] is optional array [: SS])
+          hour = parseInt(v[2]);
+          minute = parseInt(v[4]);
           if ( v[5] && Array.isArray(v[5]) ) {
-            result.second = parseInt(v[5][1]);
+            second = parseInt(v[5][1]);
           }
-
-          // Check for timezone (last element if present)
-          var lastIdx = v.length - 1;
-          if ( v[lastIdx] !== undefined && typeof v[lastIdx] !== 'string' ) {
-            result.timezone = this.flattenTimezone(v[lastIdx]);
-          } else if ( v[lastIdx] === 'Z' ) {
-            result.timezone = 'Z';
-          }
+          tz = this.extractTimezone(v);
         }
       }
 
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(dateStr.substring(4, 8)),
+        parseInt(dateStr.substring(2, 4)) - 1,
+        parseInt(dateStr.substring(0, 2)),
+        hour, minute, second, -1, tz);
     },
 
     // DDMMYY with separators: DD-MM-YY, DD/MM/YY with optional time
     // v = [DD, sep, MM, sep, YY] or [DD, sep, MM, sep, YY, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function ddmmyysepAction(v) {
       var twoDigitYear = parseInt(v[4]);
-      var result = {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v[2]) - 1,
-        day: parseInt(v[0])
-      };
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v[2]) - 1,
+        parseInt(v[0]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // DDMMYY compact: 6 digits "150125"
     // v = "150125"
     function ddmmyycompactAction(v) {
       var twoDigitYear = parseInt(v.substring(4, 6));
-      return {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v.substring(2, 4)) - 1,
-        day: parseInt(v.substring(0, 2))
-      };
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v.substring(2, 4)) - 1,
+        parseInt(v.substring(0, 2)),
+        -1, -1, -1, -1, null);
     },
 
     // YYYYDDMM with separators: YYYY-DD-MM, YYYY/DD/MM with optional time
     // v = [YYYY, sep, DD, sep, MM] or [YYYY, sep, DD, sep, MM, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function yyyyddmmsepAction(v) {
-      var result = {
-        year: parseInt(v[0]),
-        month: parseInt(v[4]) - 1,
-        day: parseInt(v[2])
-      };
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[0]),
+        parseInt(v[4]) - 1,
+        parseInt(v[2]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // YYYYDDMM compact: 8 digits "20251501" or "20251501 143045" or "20251501 14:30" or "20251501 14:30:45"
     // v = "20251501" OR v = ["20251501", sep, HH, MM, SS] (compact time) OR v = ["20251501", sep, HH, :, MM, optional([:, SS]), optional(timezone)] (time with colons)
     function yyyyddmmcompactAction(v) {
       var dateStr = typeof v === 'string' ? v : v[0];
-      var result = {
-        year: parseInt(dateStr.substring(0, 4)),
-        month: parseInt(dateStr.substring(6, 8)) - 1,
-        day: parseInt(dateStr.substring(4, 6))
-      };
+      var hour = -1, minute = -1, second = -1, tz = null;
 
-      // Check if time is present (array format)
       if ( Array.isArray(v) && v.length > 2 ) {
-        // Check if this is compact time format (HHMMSS - no colons)
         if ( v[3] && v[3] !== ':' ) {
-          // Compact time format: HHMMSS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[3]);
-          result.second = parseInt(v[4]);
+          hour = parseInt(v[2]);
+          minute = parseInt(v[3]);
+          second = parseInt(v[4]);
         } else {
-          // Time with colons format: HH:MM or HH:MM:SS
-          result.hour = parseInt(v[2]);
-          result.minute = parseInt(v[4]);
-
-          // Check for seconds (v[5] is optional array [: SS])
+          hour = parseInt(v[2]);
+          minute = parseInt(v[4]);
           if ( v[5] && Array.isArray(v[5]) ) {
-            result.second = parseInt(v[5][1]);
+            second = parseInt(v[5][1]);
           }
-
-          // Check for timezone (last element if present)
-          var lastIdx = v.length - 1;
-          if ( v[lastIdx] !== undefined && typeof v[lastIdx] !== 'string' ) {
-            result.timezone = this.flattenTimezone(v[lastIdx]);
-          } else if ( v[lastIdx] === 'Z' ) {
-            result.timezone = 'Z';
-          }
+          tz = this.extractTimezone(v);
         }
       }
 
-      return result;
+      return this.buildDate(this.dateParseMode,
+        parseInt(dateStr.substring(0, 4)),
+        parseInt(dateStr.substring(6, 8)) - 1,
+        parseInt(dateStr.substring(4, 6)),
+        hour, minute, second, -1, tz);
     },
 
     // YYDDMM with separators: YY-DD-MM, YY/DD/MM with optional time
     // v = [YY, sep, DD, sep, MM] or [YY, sep, DD, sep, MM, space, HH, :, MM, :, SS, ., fractionalSecs, timezone]
     function yyddmmsepAction(v) {
       var twoDigitYear = parseInt(v[0]);
-      var result = {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v[4]) - 1,
-        day: parseInt(v[2])
-      };
-
-      // Check if time components exist
-      if ( v.length > 5 && v[6] !== undefined ) {
-        result.hour = parseInt(v[6]);
-        if ( v[8] !== undefined ) result.minute = parseInt(v[8]);
-        if ( v[10] !== undefined ) result.second = parseInt(v[10]);
-
-        // Handle fractional seconds (1-6 digits) - normalize to milliseconds (3 digits)
-        if ( v[12] !== undefined ) {
-          var fracStr = v[12];
-          if ( fracStr.length <= 3 ) {
-            result.millisecond = parseInt(fracStr.padEnd(3, '0'));
-          } else {
-            result.millisecond = parseInt(fracStr.substring(0, 3));
-          }
-        }
-
-        // Check for timezone (last element if present)
-        if ( v[v.length - 1] !== undefined && typeof v[v.length - 1] !== 'string' ) {
-          result.timezone = this.flattenTimezone(v[v.length - 1]);
-        } else if ( v[v.length - 1] === 'Z' ) {
-          result.timezone = 'Z';
+      var ms = -1;
+      if ( v[12] !== undefined ) {
+        var fracStr = v[12];
+        if ( fracStr.length <= 3 ) {
+          ms = parseInt(fracStr.padEnd(3, '0'));
+        } else {
+          ms = parseInt(fracStr.substring(0, 3));
         }
       }
-
-      return result;
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v[4]) - 1,
+        parseInt(v[2]),
+        this.parseIntOrDefault(v, 6, -1),
+        this.parseIntOrDefault(v, 8, -1),
+        this.parseIntOrDefault(v, 10, -1),
+        ms,
+        this.extractTimezone(v));
     },
 
     // YYDDMM compact: 6 digits "251501"
     // v = "251501"
     function yyddmmcompactAction(v) {
       var twoDigitYear = parseInt(v.substring(0, 2));
-      return {
-        year: this.convertTwoDigitYear(twoDigitYear),
-        month: parseInt(v.substring(4, 6)) - 1,
-        day: parseInt(v.substring(2, 4))
-      };
+      return this.buildDate(this.dateParseMode,
+        this.convertTwoDigitYear(twoDigitYear),
+        parseInt(v.substring(4, 6)) - 1,
+        parseInt(v.substring(2, 4)),
+        -1, -1, -1, -1, null);
     },
 
     // DDMMMYYYY with separators: DD-MMM-YYYY, DD/MMM/YYYY
     // v = [DD, sep, MMM, sep, YYYY]
     function ddmmmyyyysepAction(v) {
-      return {
-        year: parseInt(v[4]),
-        month: this.parseMonthName(v[2]),
-        day: parseInt(v[0])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[4]),
+        this.parseMonthName(v[2]),
+        parseInt(v[0]),
+        -1, -1, -1, -1, null);
     },
 
     // DDMMMYYYY compact: DDMMMYYYY "31JAN2025"
     // v = [DD, MMM, YYYY]
     function ddmmmyyyycompactAction(v) {
-      return {
-        year: parseInt(v[2]),
-        month: this.parseMonthName(v[1]),
-        day: parseInt(v[0])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[2]),
+        this.parseMonthName(v[1]),
+        parseInt(v[0]),
+        -1, -1, -1, -1, null);
     },
 
     // MMM dd yyyy with spaces: "Jan 02 2025"
     // v = [MMM, ' ', DD, ' ', YYYY]
     function mmmddyyyyspaceAction(v) {
-      return {
-        year: parseInt(v[4]),
-        month: this.parseMonthName(v[0]),
-        day: parseInt(v[2])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[4]),
+        this.parseMonthName(v[0]),
+        parseInt(v[2]),
+        -1, -1, -1, -1, null);
     },
 
     // DD MMM YYYY with spaces: "15 JAN 2025"
     // v = [DD, ' ', MMM, ' ', YYYY]
     function ddmmmyyyyspaceAction(v) {
-      return {
-        year: parseInt(v[4]),
-        month: this.parseMonthName(v[2]),
-        day: parseInt(v[0])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[4]),
+        this.parseMonthName(v[2]),
+        parseInt(v[0]),
+        -1, -1, -1, -1, null);
     },
 
     // YYYYDDMMM with separators: YYYY-DD-MMM, YYYY/DD/MMM
     // v = [YYYY, sep, DD, sep, MMM]
     function yyyyddmmmsepAction(v) {
-      return {
-        year: parseInt(v[0]),
-        month: this.parseMonthName(v[4]),
-        day: parseInt(v[2])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[0]),
+        this.parseMonthName(v[4]),
+        parseInt(v[2]),
+        -1, -1, -1, -1, null);
     },
 
     // YYYYDDMMM compact: YYYYDDMMM "202531JAN"
     // v = [YYYY, DD, MMM]
     function yyyyddmmmcompactAction(v) {
-      return {
-        year: parseInt(v[0]),
-        month: this.parseMonthName(v[2]),
-        day: parseInt(v[1])
-      };
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[0]),
+        this.parseMonthName(v[2]),
+        parseInt(v[1]),
+        -1, -1, -1, -1, null);
     },
 
     function flattenTimezone(tzArray) {
@@ -690,250 +577,91 @@ foam.CLASS({
     },
 
     function parseString(str, opt_name) {
-      // Handle null, undefined, or empty string
       if ( ! str || str.trim() === '' ) {
         return this.validateDate(this.INVALID_DATE, str);
       }
-
-      // Trim input to remove leading/trailing whitespace
       str = str.trim();
 
-      // Use parse() to get position information
+      // For parseString, detect mode based on result - use DATETIME as default
+      this.dateParseMode = 'DATETIME';
+
       this.ps.setString(str);
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
       if ( ! parseResult ) {
-        // Unparseable format - return MAX_DATE
         return this.validateDate(this.INVALID_DATE, str);
       }
 
-      // Check if entire string was consumed - warn but still return parsed value
       if ( parseResult.pos < str.length ) {
-        console.warn('DateParser: Partial parse in parseString. Input:', str, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
+        console.warn('DateParser: Partial parse in parseString. Input:', str);
       }
 
-      var result = parseResult.value;
-
-      if ( ! result ) {
-        // Unparseable format - return MAX_DATE
-        return this.validateDate(this.INVALID_DATE, str);
-      }
-
-      // Determine if this is a datetime or date-only result based on presence of time components
-      var ret;
-      if ( result.hour !== undefined || result.minute !== undefined || result.second !== undefined ) {
-        // Datetime format - use local time
-        ret = new Date(
-          result.year,
-          result.month,
-          result.day,
-          result.hour !== undefined ? result.hour : 0,
-          result.minute !== undefined ? result.minute : 0,
-          result.second !== undefined ? result.second : 0,
-          result.millisecond !== undefined ? result.millisecond : 0
-        );
-      } else {
-        // Date-only format - use noon GMT (matches DateUtil behavior)
-        ret = new Date(Date.UTC(result.year, result.month, result.day, 12, 0, 0, 0));
-      }
-
-      return this.validateDate(ret, str);
+      return parseResult.value;
     },
 
     function parseDateString(str, opt_name) {
-      // Handle null, undefined, or empty string
       if ( ! str || str.trim() === '' ) {
         return this.validateDate(this.INVALID_DATE, str);
       }
-
-      // Trim input to remove leading/trailing whitespace
       str = str.trim();
+      this.dateParseMode = 'DATE';
 
-      // Use parse() to get position information
       this.ps.setString(str);
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
       if ( ! parseResult ) {
-        // Unparseable format - return MAX_DATE
         return this.validateDate(this.INVALID_DATE, str);
       }
 
-      // Check if entire string was consumed - warn but still return parsed value
-      if ( parseResult.pos < str.length ) {
-        console.warn('DateParser: Partial parse in parseDateString. Input:', str, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
-      }
-
-      var result = parseResult.value;
-
-      if ( ! result ) {
-        // Unparseable format - return MAX_DATE
-        return this.validateDate(this.INVALID_DATE, str);
-      }
-
-      // Always return date at noon UTC, ignoring time even if present
-      var ret = new Date(Date.UTC(result.year, result.month, result.day, 12, 0, 0, 0));
-
-      return this.validateDate(ret, str);
+      return parseResult.value;
     },
 
     function parseDateTime(str, opt_name) {
-      // Handle null, undefined, or empty string
       if ( ! str || str.trim() === '' ) {
         return this.validateDate(this.INVALID_DATE, str);
       }
-
-      // Trim input to remove leading/trailing whitespace
       str = str.trim();
+      this.dateParseMode = 'DATETIME';
 
-      // Use parse() instead of parseString() to get position information
       this.ps.setString(str);
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
       if ( ! parseResult ) {
-        // Unparseable format - return MAX_DATE
         return this.validateDate(this.INVALID_DATE, str);
       }
 
-      // Check if entire string was consumed
       if ( parseResult.pos < str.length ) {
-        // Partial parse - remaining characters indicate invalid format
-        console.warn('DateParser: Partial parse detected. Input:', str,'opt_name:', opt_name, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
+        console.warn('DateParser: Partial parse in parseDateTime. Input:', str);
         return this.validateDate(this.INVALID_DATE, str);
       }
 
-      var result = parseResult.value;
-
-      if ( ! result ) {
-        // Unparseable format - return MAX_DATE
-        return this.validateDate(this.INVALID_DATE, str);
-      }
-
-      // Validate time components if present
-      // Note: Grammar already enforces valid ranges (hour2: 00-23, minute2/second2: 00-59)
-      // but we keep these checks as a safety measure
-      if ( result.hour !== undefined && (result.hour < 0 || result.hour > 23) ) {
-        return this.validateDate(this.INVALID_DATE, str);
-      }
-      if ( result.minute !== undefined && (result.minute < 0 || result.minute > 59) ) {
-        return this.validateDate(this.INVALID_DATE, str);
-      }
-      if ( result.second !== undefined && (result.second < 0 || result.second > 59) ) {
-        return this.validateDate(this.INVALID_DATE, str);
-      }
-
-      var ret;
-      if ( result.timezone ) {
-        // Timezone present - convert to UTC
-        var offset = this.parseTimezone(result.timezone);
-        var utcTime = Date.UTC(
-          result.year,
-          result.month,
-          result.day,
-          result.hour !== undefined ? result.hour : 12,
-          result.minute !== undefined ? result.minute : 0,
-          result.second !== undefined ? result.second : 0,
-          result.millisecond !== undefined ? result.millisecond : 0
-        );
-        // Subtract offset to convert to UTC (if timezone is +05:00, we subtract 5 hours)
-        utcTime -= offset * 60000;
-        ret = new Date(utcTime);
-        // Don't validate date parts - timezone conversion is expected to change the date
-        return this.validateDate(ret, str);
-      } else {
-        // No timezone - use local time
-        ret = new Date(
-          result.year,
-          result.month,
-          result.day,
-          result.hour !== undefined ? result.hour : 12,
-          result.minute !== undefined ? result.minute : 0,
-          result.second !== undefined ? result.second : 0,
-          result.millisecond !== undefined ? result.millisecond : 0
-        );
-        return this.validateDate(ret, str);
-      }
+      return parseResult.value;
     },
 
     function parseDateTimeUTC(str, opt_name) {
-      // Handle null, undefined, or empty string
       if ( ! str || str.trim() === '' ) {
         return this.validateDateUTC(this.INVALID_DATE, str);
       }
-
-      // Trim input to remove leading/trailing whitespace
       str = str.trim();
+      this.dateParseMode = 'DATETIME_UTC';
 
-      // Use parse() instead of parseString() to get position information
       this.ps.setString(str);
       var start = this.getSymbol(opt_name || 'START');
       var parseResult = this.ps.apply(start, this);
 
       if ( ! parseResult ) {
-        // Unparseable format - return MAX_DATE
         return this.validateDateUTC(this.INVALID_DATE, str);
       }
 
-      // Check if entire string was consumed
       if ( parseResult.pos < str.length ) {
-        // Partial parse - remaining characters indicate invalid format
-        console.warn('DateParser: Partial parse detected for UTC. Input:', str, 'opt_name:', opt_name, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
+        console.warn('DateParser: Partial parse in parseDateTimeUTC. Input:', str);
         return this.validateDateUTC(this.INVALID_DATE, str);
       }
 
-      var result = parseResult.value;
-
-      if ( ! result ) {
-        // Unparseable format - return MAX_DATE
-        return this.validateDateUTC(this.INVALID_DATE, str);
-      }
-
-      // Validate time components if present
-      // Note: Grammar already enforces valid ranges (hour2: 00-23, minute2/second2: 00-59)
-      // but we keep these checks as a safety measure
-      if ( result.hour !== undefined && (result.hour < 0 || result.hour > 23) ) {
-        return this.validateDateUTC(this.INVALID_DATE, str);
-      }
-      if ( result.minute !== undefined && (result.minute < 0 || result.minute > 59) ) {
-        return this.validateDateUTC(this.INVALID_DATE, str);
-      }
-      if ( result.second !== undefined && (result.second < 0 || result.second > 59) ) {
-        return this.validateDateUTC(this.INVALID_DATE, str);
-      }
-
-      var ret;
-      if ( result.timezone ) {
-        // Timezone present - convert to UTC
-        var offset = this.parseTimezone(result.timezone);
-        var utcTime = Date.UTC(
-          result.year,
-          result.month,
-          result.day,
-          result.hour !== undefined ? result.hour : 0,
-          result.minute !== undefined ? result.minute : 0,
-          result.second !== undefined ? result.second : 0,
-          result.millisecond !== undefined ? result.millisecond : 0
-        );
-        // Subtract offset to convert to UTC (if timezone is +05:00, we subtract 5 hours)
-        utcTime -= offset * 60000;
-        ret = new Date(utcTime);
-        // Don't validate date parts - timezone conversion is expected to change the date
-        return this.validateDateUTC(ret, str);
-      } else {
-        // No timezone - use UTC time as-is
-        ret = new Date(Date.UTC(
-          result.year,
-          result.month,
-          result.day,
-          result.hour !== undefined ? result.hour : 0,
-          result.minute !== undefined ? result.minute : 0,
-          result.second !== undefined ? result.second : 0,
-          result.millisecond !== undefined ? result.millisecond : 0
-        ));
-        return this.validateDateUTC(ret, str);
-      }
+      return parseResult.value;
     }
   ]
 });
