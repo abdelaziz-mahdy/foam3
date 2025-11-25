@@ -9,12 +9,12 @@ foam.CLASS({
   name: 'DAOPromptView',
   extends: 'foam.u2.View',
 
+  imports: ['block'],
+
   requires: [
     'foam.u2.LoadingSpinner',
+    'foam.core.reflow.ErrorView'
   ],
-
-  css: `
-  `,
 
   properties: [
     { class: 'Long',    name: 'version' },
@@ -25,16 +25,21 @@ foam.CLASS({
     function render() {
       var self = this;
 
+      if ( this.block?.borderEl_?.title$ ) {
+        this.block.borderEl_.title$.relateTo(this.data.label$, function(title) {
+          return title;
+        }, function(label) {
+          self.block?.setTitle(label);
+          return label;
+        })
+      }
+
       this.data.where$.sub(this.rerun);
       this.data.skip$.sub(this.onUpdate);
       this.data.version$.sub(this.onUpdate);
 
       this.
         addClass().
-        start('h3').
-          show(this.data.labelVisible$).
-          add(self.data.label$).
-        end().
         start().show(self.loading$).tag(self.LoadingSpinner, {size: '32px'} ).end().
           add(self.dynamic(async function(data, version) {
             if ( ! data ) { debugger; return; }
@@ -42,10 +47,18 @@ foam.CLASS({
             var select    = self.data.select;
             self.data.select = select;
             self.loading = true;
-            await self.data.select.execute(this);
-            self.loading = false;
-            self.data.readyLatch_.resolve();
-            self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+            try {
+              await self.data.select.execute(this);
+              self.data.readyLatch_.resolve();
+              self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+            } catch (error) {
+              console.error('DAOPrompt execution error:', error);
+              self.data.readyLatch_.reject(error);
+              self.data.hasError = true;
+              this.tag(self.ErrorView, { error: error });
+            } finally {
+              self.loading = false;
+            }
           }));
     }
   ],
@@ -85,11 +98,9 @@ foam.CLASS({
 
   mixins: [ 'foam.core.reflow.DAOResolverMixin' ],
 
+  /*
+    UI is cleaner without the sections
   sections: [
-    {
-      name: 'general',
-      title: 'General'
-    },
     {
       name: 'output',
       title: 'Output',
@@ -110,6 +121,7 @@ foam.CLASS({
       title: ''
     }
   ],
+  */
 
   implements: [
     'foam.mlang.Expressions'
@@ -134,10 +146,32 @@ foam.CLASS({
 
   properties: [
     {
+      name: 'select',
+      view: function(_, X) {
+        return foam.core.reflow.SinkView.create({
+          sinksOnly: false,
+          choice: 'foam.core.reflow.TableDAOAgent',
+          dao: X.data.dao}, X.data);
+      },
+      preSet: function(o, n) {
+        // Temporary fix to recontextualize the object after load.
+        // TODO: remove once JSON parsing/loading is fixed
+        if ( n && n.__context__ != this.__subContext__ ) {
+          return n.clone(this.__subContext__);
+        }
+        return n;
+      },
+      reactive: false,
+      section: 'output',
+      label: '',
+      factory: function() { return this.TableDAOAgent.create(); }
+    },
+    {
       class: 'String',
       name: 'label',
       label: 'Name',
       section: 'general',
+      hidden: true,
       onKey: true,
       expression: function(dao) {
         return dao.of.model_.plural;
@@ -163,17 +197,6 @@ foam.CLASS({
       expression: function(daoKey) {
         return this.resolveDAOFromKey(daoKey);
       }
-    },
-    {
-      class: 'String',
-      name: 'label',
-      section: 'general',
-      label: 'Name',
-      onKey: true,
-      expression: function(dao) {
-        return dao.of.model_.plural;
-      },
-      displayWidth: 60
     },
     {
       class: 'foam.dao.DAOProperty',
@@ -275,6 +298,21 @@ foam.CLASS({
       factory: function() { return this.ProxyDAO.create({delegate$: this.filteredDAO_$}); }
     },
     {
+      class: 'String',
+      name: 'aql',
+      label: 'Where',
+      section: 'filter',
+      displayWidth: 60,
+      visibility: function(enableAQL_) { return enableAQL_ ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
+      view: function(_, X) {
+        var data = X.data;
+        return {
+          class: 'foam.parse.auto.SmartView',
+          parser: data.SimpleQueryParser.create({of: data.dao.of})
+        };
+      }
+    },
+    {
       class: 'Int',
       name: 'skip',
       label: 'Skip',
@@ -327,23 +365,9 @@ foam.CLASS({
     },
     {
       class: 'String',
-      name: 'aql',
-      label: 'Where (Auto-Complete)',
-      section: 'filter',
-      displayWidth: 60,
-      visibility: function(enableAQL_) { return enableAQL_ ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
-      view: function(_, X) {
-        var data = X.data;
-        return {
-          class: 'foam.parse.auto.SearchView',
-          parser: data.SimpleQueryParser.create({of: data.dao.of})
-        };
-      }
-    },
-    {
-      class: 'String',
       name: 'order',
       section: 'filter',
+      onKey: true,
       displayWidth: 60,
       view: { class: 'foam.core.reflow.ComparatorSuggestedField' }
     },
@@ -352,17 +376,25 @@ foam.CLASS({
       name: 'columns',
       section: 'filter',
       displayWidth: 60,
+      onKey: false,
       view: function(_, X) {
         return {
           class: 'foam.core.reflow.PropertySuggestedField'
         };
       },
-      validateObj: function(columns) {
-        var a = columns.trim().split(',').map(c => c.trim());
+      xxxvalidateObj: function(columns) {
+        let a = columns.trim().split(',').map(c => c.trim());
 
         for ( let i = 0 ; i < a.length ; i++ ) {
-          let p = this.dao.of.getAxiomByName(a[i]);
-          if ( ! p ) return 'Unknown Property: ' + a[i];
+          let of = this.dao.of;
+          let names = a[i].split('.');
+          for ( let j = 0 ; j < names.length ; j++ ) {
+            let name = names[j];
+            if ( ! of ) return 'Inner Property on Non Object: ' + name;
+            let p = of.getAxiomByName(name);
+            if ( ! p ) return 'Unknown Property: ' + name;
+            of = p.of;
+          }
         }
       }
     },
@@ -397,30 +429,10 @@ foam.CLASS({
         });
       }
     },
-    {
-      name: 'select',
-      view: function(_, X) {
-        return foam.core.reflow.SinkView.create({
-          sinksOnly: false,
-          choice: 'foam.core.reflow.TableDAOAgent',
-          dao: X.data.dao}, X.data);
-      },
-      preSet: function(o, n) {
-        // Temporary fix to recontextualize the object after load.
-        // TODO: remove once JSON parsing/loading is fixed
-        if ( n && n.__context__ != this.__subContext__ ) {
-          return n.clone(this.__subContext__);
-        }
-        return n;
-      },
-      reactive: false,
-      section: 'output',
-      label: '',
-      factory: function() { return this.TableDAOAgent.create(); }
-    },
     { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO', transient: true },
     { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Int',        hidden: true,  name: 'version', transient: true },
+    { class: 'Boolean',    hidden: true,  name: 'hasError', value: false, transient: true },
     { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' },
     {
       name: 'readyLatch_',
@@ -429,15 +441,6 @@ foam.CLASS({
       factory: function() {
         return foam.lang.Latch.create();
       }
-    },
-    // since the label is calculated by the expression when we try to hide it by making it empty that gets rendered
-    {
-      class: 'Boolean',
-      name: 'labelVisible',
-      section: 'general',
-      label: 'Show Name',
-      value: true,
-      view: { class: 'foam.u2.Switch' }
     },
     { class: 'Boolean',    section: 'general',   name: 'autoRun', view: { class: 'foam.u2.Switch' } }
   ],
@@ -469,9 +472,9 @@ foam.CLASS({
     function init() {
       this.SUPER();
 
-//      x.auth.check(x, 'reflow.aql').then(enabled => {
-//        this.enableAQL_ = enabled;
-//      });
+      x.auth.check(x, 'reflow.aql').then(enabled => {
+        this.enableAQL_ = enabled;
+      });
 
       if ( ! this.dao || ! this.dao.of ) return;
 
@@ -545,7 +548,7 @@ foam.CLASS({
         await this.waitForRun();
 
         var name = this.block.flowName;
-        this.eval_(`test(${name}.value,'Test output of ${name}')`);
+        this.eval_(`test(${name}.value, 'Test output of ${name}')`);
       }
     }
   ],

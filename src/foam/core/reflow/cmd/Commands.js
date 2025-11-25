@@ -255,10 +255,11 @@ foam.CLASS({
 
   methods: [
     function execute(dao, opt_label) {
-      var p = this.DAOPrompt.create({dao: dao, label: opt_label});
+      let p     = this.DAOPrompt.create({dao: dao, label: opt_label});
+      let label = p.dao.of.model_.plural;
 
       p.addToE(this.out);
-      this.currentBlock.flowName = this.createFlowChildName(p.label.replaceAll(' ', '').toLowerCase());
+      this.currentBlock.flowName = opt_label || this.createFlowChildName(label.replaceAll(' ', '').toLowerCase());
       this.currentBlock.obj    = p; // ???: Needed
       this.currentBlock.value  = p;
     }
@@ -672,8 +673,8 @@ foam.CLASS({
       }).catch(err => {
         this.notify('Error saving flow: ' + err.message);
       });
-      
-      
+
+
     }
   ]
 });

@@ -202,25 +202,7 @@ foam.CLASS({
           d = new Date(d);
 
         if ( typeof d === 'string' ) {
-          var match = d.match(/^(\d{4})[-\/]?(\d{2})[-\/]?(\d{2})$/);
-
-          if ( match ) {
-            // Parse yyyy-mm-dd, yyyy/mm/dd, or yyyymmdd formats
-            // T00:00:00 is required to force local timezone interpretation
-            // Without it, new Date("2024-03-15") is parsed as UTC midnight
-            // which displays as previous day in negative UTC offset timezones
-            d = new Date(match[1] + '-' + match[2] + '-' + match[3] + 'T00:00:00');
-          } else {
-            // Parse mm/dd/yyyy
-            match = d.match(/^(\d{2})[-\/]?(\d{2})[-\/]?(\d{4})$/);
-            if ( match ) {
-              //           yyyy             mm               dd
-              d = new Date(match[3] + '-' + match[1] + '-' + match[2] + 'T00:00:00');
-            } else {
-              // Fallback to default Date constructor
-              d = new Date(d);
-            }
-          }
+          d = foam.util.DateUtil.parseDateString(d);
         }
 
         if ( d == foam.Date.MAX_DATE || d == foam.Date.MIN_DATE )
@@ -277,14 +259,7 @@ foam.CLASS({
       value: function (_, d) {
         if ( typeof d === 'number' ) return new Date(d);
         if ( typeof d === 'string' ) {
-          var ret = new Date(d);
-
-          if ( isNaN(ret.getTime()) ) {
-            ret = foam.Date.MAX_DATE;
-            console.warn("Invalid date: " + d + "; assuming " + ret.toISOString() + ".");
-          }
-
-          return ret;
+          return foam.util.DateUtil.parseDateTime(d);
         }
         return d;
       }
@@ -293,6 +268,12 @@ foam.CLASS({
       name: 'format',
       value: function(val, timeFirst = false) {
         return foam.Date.formatDate(val, timeFirst);
+      }
+    },
+    {
+      name: 'formatLocale',
+      value: function(val) {
+        return foam.util.DateUtil.format(val);
       }
     }
   ]
@@ -344,6 +325,12 @@ foam.CLASS({
         // Use DateUtil.formatWithTimeControl with timeFirst parameter and UTC timezone
         var result = foam.util.DateUtil.formatWithTimeControl(val, timeFirst, 'UTC');
         return result;
+      }
+    },
+    {
+      name: 'formatLocale',
+      value: function(val) {
+        return foam.util.DateUtil.format(val, 'UTC');
       }
     }
   ]
@@ -601,6 +588,10 @@ foam.CLASS({
       value: 'String',
       documentation: 'The FOAM sub-type of this property.'
     },
+    [
+      'isDefaultValue',
+      function(v) { return ! v || ! v.length; }
+    ],
     [ 'type', 'String[]' ],
     [
       'factory',
