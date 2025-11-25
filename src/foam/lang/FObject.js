@@ -805,10 +805,12 @@ foam.CLASS({
 
     async function normalizeObj() {
       /** Normalize all properties that provide a normalize function. **/
-      this.cls_.getAxiomsByClass(foam.lang.Property).forEach(p => {
+      let a = this.cls_.getAxiomsByClass(foam.lang.Property);
+      for ( let i = 0 ; i < a.length ; i++ ) {
+        let p = a[i];
         if ( p.normalize && ! p.hasDefaultValue(this) )
           p.set(this, await p.normalize(p.get(this), p));
-      });
+      }
     },
 
     /************************************************
