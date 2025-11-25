@@ -803,11 +803,11 @@ foam.CLASS({
       return slot;
     },
 
-    function normalizeObj() {
+    async function normalizeObj() {
       /** Normalize all properties that provide a normalize function. **/
       this.cls_.getAxiomsByClass(foam.lang.Property).forEach(p => {
         if ( p.normalize && ! p.hasDefaultValue(this) )
-          p.set(this, p.normalize(p.get(this), p));
+          p.set(this, await p.normalize(p.get(this), p));
       });
     },
 
