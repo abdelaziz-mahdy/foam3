@@ -32,7 +32,12 @@ foam.POM({
     buildOnly: [ 'o', 'build-only', 'BUILD_ONLY', "Only execute java generation and java compilation build steps, don't start CORE server.", false, function(arg) { BUILD_ONLY = arg ? this.bool(arg) : true; } ],
     debug: [ 'd', 'debug', 'DEBUG', 'Launch JVM with JDPA debugging enabled. Default port 8000.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; } ],
     debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, function(arg) { DEBUG_PORT = arg; DEBUG = true; }],
-    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals.', false, function(arg) { DELETE_RUNTIME_JOURNALS = arg ? this.bool(arg) : true; } ],
+    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals. See option \'-N\' for naming and retaining journal sets.', false, function(arg) {
+      DELETE_RUNTIME_JOURNALS = true;
+      if ( arg === 'y' ) {
+        AUTO_CONFIRM = true;
+      }
+    } ],
     javacParameters: ['', 'javac-parameters', 'JAVAC_PARAMETERS', 'Parameters passed to Java Compiler','-proc:none', arg => JAVAC_PARAMETERS = arg ],
     javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '21', args => JAVA_RELEASE = args],
     journals: [ 'J', 'journals', 'JOURNALS', 'Comma seperated list of additional journal directories, relative to deployment/ from the root project.', '', function(args) { JOURNALS = this.comma(JOURNALS, args); } ],
@@ -172,34 +177,35 @@ foam.POM({
     }],
 
     deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals.', [], function() {
-      // Confirmation check to protect against accidental journal deletion
-      const { spawnSync } = require('child_process');
+      if ( ! AUTO_CONFIRM ) {
+        // Confirmation check to protect against accidental journal deletion
+        const { spawnSync } = require('child_process');
 
-      console.log('\x1b[0;33m⚠️  WARNING: You are about to delete runtime journals!\x1b[0;0m');
-      console.log(`   JOURNAL_HOME: ${JOURNAL_HOME}`);
-      console.log(`   SAF_HOME: ${SAF_HOME}`);
-      console.log(`   DOCUMENT_HOME: ${DOCUMENT_HOME}`);
+        console.log('\x1b[0;33m⚠️  WARNING: You are about to delete runtime journals!\x1b[0;0m');
+        console.log(`   JOURNAL_HOME: ${JOURNAL_HOME}`);
+        console.log(`   SAF_HOME: ${SAF_HOME}`);
+        console.log(`   DOCUMENT_HOME: ${DOCUMENT_HOME}`);
 
-      // Use bash read command for synchronous input with proper signal handling
-      const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/N): " answer && echo "$answer"'], {
-        stdio: ['inherit', 'pipe', 'inherit'],
-        encoding: 'utf8'
-      });
+        // Use bash read command for synchronous input with proper signal handling
+        const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/N): " answer && echo "$answer"'], {
+          stdio: ['inherit', 'pipe', 'inherit'],
+          encoding: 'utf8'
+        });
 
-      // Check if interrupted (Ctrl+C)
-      if ( result.signal === 'SIGINT' || result.status === 130 ) {
-        console.log('\n\x1b[0;31mOperation cancelled.\x1b[0;0m');
-        process.exit(130);
+        // Check if interrupted (Ctrl+C)
+        if ( result.signal === 'SIGINT' || result.status === 130 ) {
+          console.log('\n\x1b[0;31mOperation cancelled.\x1b[0;0m');
+          process.exit(130);
+        }
+
+        const answer = (result.stdout || '').trim().toLowerCase();
+        const confirmed = answer === 'y' || answer === 'yes';
+
+        if ( ! confirmed ) {
+          console.log('\x1b[0;31mOperation cancelled. Runtime journals were NOT deleted.\x1b[0;0m');
+          process.exit(0);
+        }
       }
-
-      const answer = (result.stdout || '').trim().toLowerCase();
-      const confirmed = answer === 'y' || answer === 'yes';
-
-      if ( ! confirmed ) {
-        console.log('\x1b[0;31mOperation cancelled. Runtime journals were NOT deleted.\x1b[0;0m');
-        process.exit(0);
-      }
-
       this.info('Runtime journals deleted.');
       this.emptyDir(JOURNAL_HOME);
       this.emptyDir(SAF_HOME);
@@ -500,6 +506,10 @@ foam.POM({
       this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
       this.log('  ./build.sh -EAPP_NAME:demo,WEB_PORT:8300,JAR:true,JOURNALS:https');
       this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
+      this.log('  ./build.sh -j');
+      this.log('    Build and delete previous runtime journals before deployment. You will be prompted for confirmation.');
+      this.log('  ./build.sh -jy');
+      this.log('    Build and delete previous runtime journals before deployment, without confirmation.');
       this.log('\nRunning Java Test Cases:');
       this.log('  ./build.sh --run-tests');
       this.log('    Run all test cases.');
