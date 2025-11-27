@@ -42,8 +42,6 @@ foam.POM({
       this.log('CLI examples:');
       this.log('  ./build.sh -c');
       this.log('    Remove previously generated code, before rebuilding.');
-      this.log('  ./build.sh -cj');
-      this.log('    Remove previously generated code and runtime journals, before rebuilding. Add \'-y\' to suppress confirmation prompt.');
       this.log('  ./build.sh -Ntestset1');
       this.log('    Build and deploy into a unique deployment directory. Use this to name and retain journal test sets for later selection.');
       this.log('  ./build.sh --cleanAll,all');

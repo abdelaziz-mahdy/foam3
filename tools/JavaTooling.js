@@ -32,12 +32,9 @@ foam.POM({
     buildOnly: [ 'o', 'build-only', 'BUILD_ONLY', "Only execute java generation and java compilation build steps, don't start CORE server.", false, function(arg) { BUILD_ONLY = arg ? this.bool(arg) : true; } ],
     debug: [ 'd', 'debug', 'DEBUG', 'Launch JVM with JDPA debugging enabled. Default port 8000.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; } ],
     debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, function(arg) { DEBUG_PORT = arg; DEBUG = true; }],
-    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals. See option \'-N\' for naming and retaining journal sets.', false, function(arg) {
-      DELETE_RUNTIME_JOURNALS = true;
-      if ( arg === 'y' ) {
-        AUTO_CONFIRM = true;
-      }
-    } ],
+    backupRuntimeJournalsDirSuffix: [ '', 'backup-runtime-journals-dir-suffic', 'BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX', 'Backup runtime journals directory suffix. Defaults to a timestamp.', TIMESTAMP, function(arg) { BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg; BACKUP_RUNTIME_JOURNALS = true; }],
+    backupRuntimeJournals: [ 'b', 'backup-runtime-journals', 'BACKUP_RUNTIME_JOURNALS', 'Backup runtime journals. By default journals are copied to journals_\'timestamp\'. The timestamp suffix can be overridden by provide an argument to this options. Also see \'backupRuntimeJournalsDirSuffix\'.  See option \'-N\' for naming and retaining journal sets.', false, function(arg) { BACKUP_RUNTIME_JOURNALS = true; BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg ? arg : TIMESTAMP; }],
+    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals. See option \'-N\' for naming and retaining journal sets.', false, function(arg) { DELETE_RUNTIME_JOURNALS = true; AUTO_CONFIRM = arg ? this.bool(arg) : false; }],
     javacParameters: ['', 'javac-parameters', 'JAVAC_PARAMETERS', 'Parameters passed to Java Compiler','-proc:none', arg => JAVAC_PARAMETERS = arg ],
     javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '21', args => JAVA_RELEASE = args],
     journals: [ 'J', 'journals', 'JOURNALS', 'Comma seperated list of additional journal directories, relative to deployment/ from the root project.', '', function(args) { JOURNALS = this.comma(JOURNALS, args); } ],
@@ -74,6 +71,9 @@ foam.POM({
           this.execute('cleanAll');
         } else if ( CLEAN ) {
           this.execute('clean');
+        }
+        if ( BACKUP_RUNTIME_JOURNALS ) {
+          this.execute('backupRuntimeJournals');
         }
         if ( DELETE_RUNTIME_JOURNALS ) {
           this.execute('deleteRuntimeJournals');
@@ -176,8 +176,24 @@ foam.POM({
       this.emptyDir(APP_HOME);
     }],
 
-    deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals.', [], function() {
-      if ( ! AUTO_CONFIRM ) {
+    backupRuntimeJournals: ['backup-runtime-journals', 'Backup runtime journals.', [], function() {
+      const JOURNAL_BACKUP_DIR = `${JOURNAL_HOME}_${BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX}`;
+      this.ensureDir(JOURNAL_BACKUP_DIR);
+      this.copyDir(JOURNAL_HOME, JOURNAL_BACKUP_DIR);
+
+      const SAF_BACKUP_DIR = `${SAF_HOME}_${BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX}`;
+      this.ensureDir(SAF_BACKUP_DIR);
+      this.copyDir(SAF_HOME, SAF_BACKUP_DIR);
+
+      const DOCUMENT_BACKUP_DIR = `${DOCUMENT_HOME}_${BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX}`;
+      this.ensureDir(DOCUMENT_BACKUP_DIR);
+      this.copyDir(DOCUMENT_HOME, DOCUMENT_BACKUP_DIR);
+
+      this.info(`Runtime journals backed up to ${JOURNAL_BACKUP_DIR}`);
+    }],
+
+    deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals. When propted press \'y\' to proceed, \'b\' to backup before deleting. Any other key will cancel.' , [], function() {
+      if ( ! AUTO_CONFIRM && ! BACKUP_RUNTIME_JOURNALS ) {
         // Confirmation check to protect against accidental journal deletion
         const { spawnSync } = require('child_process');
 
@@ -187,7 +203,7 @@ foam.POM({
         console.log(`   DOCUMENT_HOME: ${DOCUMENT_HOME}`);
 
         // Use bash read command for synchronous input with proper signal handling
-        const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/N): " answer && echo "$answer"'], {
+        const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/N/b): " answer && echo "$answer"'], {
           stdio: ['inherit', 'pipe', 'inherit'],
           encoding: 'utf8'
         });
@@ -199,11 +215,14 @@ foam.POM({
         }
 
         const answer = (result.stdout || '').trim().toLowerCase();
-        const confirmed = answer === 'y' || answer === 'yes';
-
+        const confirmed = answer === 'y' || answer === 'yes' || answer == 'b';
+        const backup = answer === 'b';
         if ( ! confirmed ) {
           console.log('\x1b[0;31mOperation cancelled. Runtime journals were NOT deleted.\x1b[0;0m');
           process.exit(0);
+        }
+        if ( backup ) {
+          this.execute("backupRuntimeJournals");
         }
       }
       this.info('Runtime journals deleted.');
@@ -507,9 +526,13 @@ foam.POM({
       this.log('  ./build.sh -EAPP_NAME:demo,WEB_PORT:8300,JAR:true,JOURNALS:https');
       this.log('    Build into a unique path \'demo\', launch from JAR, start HTTPS web server on port \'8300\'.');
       this.log('  ./build.sh -j');
-      this.log('    Build and delete previous runtime journals before deployment. You will be prompted for confirmation.');
+      this.log('    Build and delete runtime journals, with confirmation.');
       this.log('  ./build.sh -jy');
-      this.log('    Build and delete previous runtime journals before deployment, without confirmation.');
+      this.log('    Build and delete runtime journals, without confirmation.');
+      this.log('  ./build.sh -jb');
+      this.log('    Build, backup runtime journals before deleting, without confirmation.');
+      this.log('  ./build.sh --backupRuntimeJournals:scenario1');
+      this.log('    Build, backup runtime journals to journals_scenario1 before deleting, without confirmation.');
       this.log('\nRunning Java Test Cases:');
       this.log('  ./build.sh --run-tests');
       this.log('    Run all test cases.');
