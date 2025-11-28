@@ -32,7 +32,7 @@ foam.POM({
     buildOnly: [ 'o', 'build-only', 'BUILD_ONLY', "Only execute java generation and java compilation build steps, don't start CORE server.", false, function(arg) { BUILD_ONLY = arg ? this.bool(arg) : true; } ],
     debug: [ 'd', 'debug', 'DEBUG', 'Launch JVM with JDPA debugging enabled. Default port 8000.', false, function(arg) { DEBUG = arg ? this.bool(arg) : true; } ],
     debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, function(arg) { DEBUG_PORT = arg; DEBUG = true; }],
-    backupRuntimeJournalsDirSuffix: [ '', 'backup-runtime-journals-dir-suffic', 'BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX', 'Backup runtime journals directory suffix. Defaults to a timestamp.', TIMESTAMP, function(arg) { BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg; BACKUP_RUNTIME_JOURNALS = true; }],
+    backupRuntimeJournalsDirSuffix: [ 'S', 'backup-runtime-journals-dir-suffic', 'BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX', 'Backup runtime journals directory suffix. Defaults to a timestamp.', TIMESTAMP, function(arg) { BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg ? arg : TIMESTAMP; BACKUP_RUNTIME_JOURNALS = true; }],
     backupRuntimeJournals: [ 'b', 'backup-runtime-journals', 'BACKUP_RUNTIME_JOURNALS', 'Backup runtime journals. By default journals are copied to journals_\'timestamp\'. The timestamp suffix can be overridden by provide an argument to this options. Also see \'backupRuntimeJournalsDirSuffix\'.  See option \'-N\' for naming and retaining journal sets.', false, function(arg) { BACKUP_RUNTIME_JOURNALS = true; BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg ? arg : TIMESTAMP; }],
     deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals. See option \'-N\' for naming and retaining journal sets.', false, function(arg) { DELETE_RUNTIME_JOURNALS = true; AUTO_CONFIRM = arg ? this.bool(arg) : false; }],
     javacParameters: ['', 'javac-parameters', 'JAVAC_PARAMETERS', 'Parameters passed to Java Compiler','-proc:none', arg => JAVAC_PARAMETERS = arg ],
@@ -531,7 +531,9 @@ foam.POM({
       this.log('    Build and delete runtime journals, without confirmation.');
       this.log('  ./build.sh -jb');
       this.log('    Build, backup runtime journals before deleting, without confirmation.');
-      this.log('  ./build.sh --backupRuntimeJournals:scenario1');
+      this.log('  ./build.sh -j --backupRuntimeJournals:scenario1');
+      this.log('    Build, backup runtime journals to journals_scenario1 before deleting, without confirmation.');
+      this.log('  ./build.sh -jSscenario1');
       this.log('    Build, backup runtime journals to journals_scenario1 before deleting, without confirmation.');
       this.log('\nRunning Java Test Cases:');
       this.log('  ./build.sh --run-tests');
