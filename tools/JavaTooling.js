@@ -192,7 +192,7 @@ foam.POM({
       this.info(`Runtime journals backed up to ${JOURNAL_BACKUP_DIR}`);
     }],
 
-    deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals. When propted press \'y\' to proceed, \'b\' to backup before deleting. Any other key will cancel.' , [], function() {
+    deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals. When propted press \'y\' to proceed, \'b\' to backup before deleting, \'b:scenario1\' to backup to named directory before deleting.  Any other key will cancel.' , [], function() {
       if ( ! AUTO_CONFIRM && ! BACKUP_RUNTIME_JOURNALS ) {
         // Confirmation check to protect against accidental journal deletion
         const { spawnSync } = require('child_process');
@@ -215,8 +215,13 @@ foam.POM({
         }
 
         const answer = (result.stdout || '').trim().toLowerCase();
-        const confirmed = answer === 'y' || answer === 'yes' || answer == 'b';
-        const backup = answer === 'b';
+        var confirmed = answer === 'y' || answer === 'yes' || answer === 'b';
+        var backup = answer === 'b';
+        if ( answer.startsWith('b:') ) {
+          confirmed = true;
+          backup = true;
+          BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = answer.split(':')[1];
+        }
         if ( ! confirmed ) {
           console.log('\x1b[0;31mOperation cancelled. Runtime journals were NOT deleted.\x1b[0;0m');
           process.exit(0);
