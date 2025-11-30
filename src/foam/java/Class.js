@@ -186,8 +186,8 @@ foam.CLASS({
         });
 
         o.out('\n');
-
       } else {
+        o.out('\n');
         o.indent();
       }
 
@@ -206,7 +206,7 @@ foam.CLASS({
       }
 
       if ( ! this.anonymous ) {
-        o.out(this.visibility, ' ', this.static ? 'static ' : '');
+        o.out(this.visibility ? this.visibility + ' ' : '', this.static ? 'static ' : '');
 
         o.out(this.final    ? 'final '    : '');
         o.out(this.abstract ? 'abstract ' : '');
@@ -248,7 +248,7 @@ foam.CLASS({
       var extendedCls = self.SUPER_CLASSES[self.extends];
       this.fields.sort(function(o1, o2) {
         return foam.Number.compare(o1.order, o2.order);
-      }).forEach(function(f) { if ( ! self.isEnum || ! f.static )  o.out(f, '\n'); });
+      }).forEach(function(f) { if ( ! self.isEnum || ! f.static ) o.out(f, '\n'); });
 
       var self = this;
 
@@ -267,11 +267,11 @@ foam.CLASS({
           if ( f.body.data != '' || f.type == '' || f.abstract ) o.out(f, '\n');
         }
       });
-      this.classes.forEach(function(c) { o.out(c, '\n'); });
       this.extras.forEach(function(c)  { o.out(c, '\n'); });
+      this.classes.forEach(function(c) { o.out(c, '\n'); });
       o.decreaseIndent();
       o.indent();
-      o.out('};');
+      o.out('}\n');
     },
 
     function toJavaSource() {
