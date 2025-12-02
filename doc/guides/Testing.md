@@ -1,17 +1,21 @@
 # Testing
 
-FOAM provides a testing harness for implementing Unit Test Cases, and in conjunction with the Build, provides for test case execution and reporting. 
-Test cases can be modeled FOAM classes, or _scripts_. 
+FOAM provides a testing harness for implementing Unit Test Cases, and in conjunction with the Build, provides for test case execution and reporting.
+
+Test cases can be modeled FOAM classes, or _scripts_.
+
 Both _modeled_ and _script_ tests can target Java and Javascript.
-Java tests are executed server side in the JVM, while Javascript, 'client',  tests are executed from a browser (headless).  
-Java _script_ tests can run in Beanshell or JShell. 
+
+Java tests are executed server side in the JVM, while Javascript, 'client',  tests are executed from a browser (headless).
+
+Java _script_ tests can run in Beanshell or JShell.
 
 ## Running Test Cases from the Build
  
 1. `./build.sh run-tests`: Execute all client and server tests cases
 1. `./build.sh server-tests`: Execute all server test cases
 1. `./build.sh client-tests`: Execute all client test cases (by default this is via a headless browser)
-1. `./build.sh client-tests --test-headed`: Execute all client tests via headed browser - the application and browser is left running so you can inspect the results. 
+1. `./build.sh client-tests --test-headed`: Execute all client tests via headed browser - the application and browser is left running so you can inspect the results.
 
 ### Running Specific Tests 
 

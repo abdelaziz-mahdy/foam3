@@ -137,13 +137,6 @@ foam.CLASS({
           try {
             self.status = 'Testing: ' + t.id;
 
-            // NOTE t.run vs t.runScript
-            // t.run sets the status to SCHEDULED, puts, then polls
-            // until it is completed. It does not return a promise.
-            // t.runScript directly runs the sript and returns a promise.
-            // with t.run, Neither sink operation is garanteed to get
-            // correct results.
-
             // When running a lot of unit tests at once, we don't want to get flooded
             // with notifications, so turn them off in this context
             t = t.clone(t.__context__.createSubContext({
@@ -152,7 +145,6 @@ foam.CLASS({
             }));
 
             t.run();
-            //            t.runScript();
             t.copyFrom(await dao.put(t));
             self.passed += t.passed;
             self.failed += t.failed;
