@@ -84,17 +84,14 @@ foam.CLASS({
       return `name: ${this.name}, value: ${this.value}, fallback: ${this.fallback}`;
     },
     function installInClass(cls) {
+      var axiom = this;
+      axiom.sourceCls_ = cls;
       Object.defineProperty(
         cls,
         foam.String.constantize(this.name),
         {
-          value: {
-            name: this.name,
-            value: this.value,
-            variants: this.variants,
-            variantKey: this.variantKey
-          },
-          configurable: false
+          get: function() { return axiom; },
+          configurable: true
         }
       );
     },

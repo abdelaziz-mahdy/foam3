@@ -54,10 +54,12 @@ foam.CLASS({
           cls,
           foam.String.constantize(n),
           {
-            value: {
-              name: n,
-              value: function(e) { return e.LIGHTEN(e.TOKEN('$' + ax.name), ax[`${a}Modifier`]); },
-              fallback: ax.fallback
+            get: function() {
+              return foam.u2.CSSToken.create({
+                name: n,
+                value: function(e) { return e.LIGHTEN(e.TOKEN('$' + ax.name), ax[`${a}Modifier`]); },
+                fallback: ax.fallback
+              });
             }
           }
         );
@@ -68,9 +70,11 @@ foam.CLASS({
           cls,
           foam.String.constantize(n),
           {
-            value: {
-              name: n,
-              value: function(e) { return e.FOREGROUND(e.TOKEN(a ? `$${ax.name}$${a}` : '$' + ax.name), e.TOKEN(ax.onLight), e.TOKEN(ax.onDark)); }
+            get: function() {
+              return foam.u2.CSSToken.create({
+                name: n,
+                value: function(e) { return e.FOREGROUND(e.TOKEN(a ? `$${ax.name}$${a}` : '$' + ax.name), e.TOKEN(ax.onLight), e.TOKEN(ax.onDark)); }
+              });
             }
           }
         );
