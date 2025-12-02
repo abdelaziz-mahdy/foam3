@@ -8,12 +8,12 @@ foam.CLASS({
   package: 'foam.core.notification.push',
   name: 'PushNotificationClickAgent',
 
-  documentation: `Client-side CSpec which is called by the serviceWorker and 
-  ios app when a user clicks on the notification. Uses the notification's extra 
+  documentation: `Client-side CSpec which is called by the serviceWorker and
+  ios app when a user clicks on the notification. Uses the notification's extra
   as it's arguments.
-  
+
   HOW TO USE:
-    - Refine in your own project repo to add to the returnFunctionMapping 
+    - Refine in your own project repo to add to the returnFunctionMapping
     - Extend this service to provide extra functionality such as adding support for more listeners
   `,
 
@@ -25,7 +25,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'pushEventName',
-      documentation: `Event name pubbed to when a user clicks on a notification by 
+      documentation: `Event name pubbed to when a user clicks on a notification by
       both the service worker for web/android notifications and the ios app`,
       value: 'push-click'
     }
@@ -33,6 +33,7 @@ foam.CLASS({
 
   methods: [
     function init() {
+      return;
       // This agent runs in two phases:
       // 1. if a notification is clicked while the app is closed, the app is opened with the notification data in the URL search params
       // 2. if the app is already open, the notification click event is dispatched by the service worker or ios app
@@ -71,8 +72,8 @@ foam.CLASS({
         }
       })
     },
-    /* 
-     * When the notification is carrying a key which matches the a key in the reutrned map, 
+    /*
+     * When the notification is carrying a key which matches the a key in the reutrned map,
      * the corresponding function will be executed. See the default behaviour for an example.
      * The value of the key from the notification is passed to the function.
      */
