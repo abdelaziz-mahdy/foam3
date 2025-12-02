@@ -56,16 +56,6 @@ foam.CLASS({
       var result = await tokenDAO.put(foam.core.theme.customisation.CSSTokenOverride.create({ theme: '', source: 'test1', target: color }, x));
       /// console.log('CSSTokensTest override.put', result);
 
-      // None of the following is necessary if CSSTokenOverrideService subscribes to
-      // CSSTokenOverrideDAO updates and calls reload
-      // await tokenService.maybeReload(); // doesn't update as theme hasn't changed, also affects onDAOUpdate listener
-      // await tokenService.reload(); 
-      // tokenService.initLatch = this.Latch.create();
-      // tokenService.clearProperty('tokenCache');
-      // tokenService.clearProperty('cached_');
-      // tokenService.loadTokenCache();
-      // await tokenService.initLatch;
-
       await new Promise(res => setTimeout(res, 200)); // wait for reload after dao update
 
       expanded = a.expandCSS(this.cls_, a.code, x);
