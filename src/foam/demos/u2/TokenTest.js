@@ -10,8 +10,6 @@ foam.CLASS({
 
   imports: ['ctrl?'],
 
-  requires: ['foam.lang.Latch'],
-
   exports: [
     'tokenDAO as cssTokenOverrideDAO',
     'tokenService as cssTokenOverrideService'
@@ -114,13 +112,6 @@ foam.CLASS({
       code: async function(X) {
         await X.cssTokenOverrideDAO.put(foam.core.theme.customisation.CSSTokenOverride.create({ theme: '', source: 'buttonPrimaryColor', target: this.color }, this));
         var result = await X.cssTokenOverrideDAO.put(foam.core.theme.customisation.CSSTokenOverride.create({ theme: '', source: 'buttonSecondaryColor', target: this.color2 }, this));
-      // None of this is required if overide service reloads on override dao updates.
-      //   // await X.cssTokenOverrideService.reload();
-      //   X.cssTokenOverrideService.initLatch = this.Latch.create();
-      //   X.cssTokenOverrideService.clearProperty('tokenCache');
-      //   X.cssTokenOverrideService.clearProperty('cached_');
-      //   X.cssTokenOverrideService.loadTokenCache();
-      //   await X.cssTokenOverrideService.initLatch;
       }
     }
   ]
