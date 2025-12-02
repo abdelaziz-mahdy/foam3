@@ -10,7 +10,7 @@ Deployment builds generate a tar ball:
 
 Once a tar ball is prepared, it can be uploaded and the application installed
 
-    ./build.sh -TStandard,RemoteInstall,Java -Jyour_deployment_directories --remote-hostname:hostname
+    ./build.sh -TStandard,Java,RemoteInstall -Jyour_deployment_directories --remote-hostname:hostname
 
 ## Additional (most common) installation flags:
 

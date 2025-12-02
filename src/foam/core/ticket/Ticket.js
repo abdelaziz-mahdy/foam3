@@ -250,10 +250,11 @@ foam.CLASS({
       createVisibility: 'HIDDEN',
       readVisibility: 'HIDDEN',
       updateVisibility: 'RW',
+      // Do not require commnent on closing a ticket. Check here required as validation will fail otherwise
       validationPredicates: [
         {
           args: ['id', 'comment', 'externalComment'],
-          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))',
+          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))||status=="CLOSED"',
           errorString: 'Please provide a comment.'
         }
       ],
@@ -473,10 +474,12 @@ foam.CLASS({
       storageTransient: true,
       section: 'infoSection',
       readVisibility: 'HIDDEN',
+      view: 'foam.u2.tag.TextArea',
+      // Do not require commnent on closing a ticket. Check here required as validation will fail otherwise
       validationPredicates: [
         {
           args: ['id', 'comment', 'externalComment'],
-          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))',
+          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))||status=="CLOSED"',
           errorString: 'Please provide a comment.'
         }
       ],
@@ -622,7 +625,7 @@ foam.CLASS({
 
         // The assignee of the ticket can update
         Ticket oldTicket = (Ticket) ((DAO) x.get("localTicketDAO")).find(this.getId());
-        if ( user.getId() == this.getAssignedTo() || user.getId() == oldTicket.getAssignedTo() ) return;
+        if ( user.getId() == oldTicket.getAssignedTo() ) return;
 
         // Group with update permission can update
         if ( auth.check(x, "ticket.update." + this.getId()) ) return;
@@ -637,7 +640,10 @@ foam.CLASS({
       ],
       javaThrows: ['AuthorizationException'],
       javaCode: `
-        // The checkGlobalRemove has checked the permission for deleting the ticket already.
+        AuthService auth = (AuthService) x.get("auth");
+        if ( ! auth.check(x, "ticket.remove." + getId()) ) {
+          throw new AuthorizationException();
+        }
       `
     }
   ],

@@ -453,14 +453,27 @@ ${isSet} = false;`
       }
 
       if ( ! foam.java.Interface.isInstance(cls) ) {
-        cls.field({
-          name: constantize,
-          visibility: 'public',
-          static: true,
-          final: true,
-          type: 'foam.lang.PropertyInfo',
-          initializer: this.createJavaPropertyInfo_(cls)
-        });
+        let clsName = capitalized + 'PropertyInfo';
+        let pi = this.createJavaPropertyInfo_(cls);
+        pi.name = clsName;
+        pi.anonymous = false;
+        pi.innerClass = true;
+        pi.visibility = '';
+        pi.static = true;
+
+        cls.classes.push(pi);
+
+        // Generate PropertyInfo
+        cls.
+//          innerClass(pi/*{ name: clsName }*/).
+          field({
+            name: constantize,
+            visibility: 'public',
+            static: true,
+            final: true,
+            type: 'foam.lang.PropertyInfo',
+            initializer: 'new ' + clsName + '();' //this.createJavaPropertyInfo_(cls)
+          });
       }
 
       var info = cls.getField('classInfo_');
@@ -1680,6 +1693,7 @@ foam.CLASS({
   methods: [
     function createJavaPropertyInfo_(cls) {
       var info = this.SUPER(cls);
+
       info.method({
         name: 'getFormatted',
         visibility: 'public',
@@ -1690,6 +1704,7 @@ foam.CLASS({
         documentation: 'Returns a formatted version of this property',
         body: this.formatter.buildJavaGetFormatted(cls.name, this.name)
       });
+
       return info;
     }
   ]

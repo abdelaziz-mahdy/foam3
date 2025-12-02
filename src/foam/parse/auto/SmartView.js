@@ -53,6 +53,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.parse.auto',
   name: 'ColorSuggester',
@@ -79,6 +80,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.parse.auto',
   name: 'CSSTokenSuggester',
@@ -104,6 +106,7 @@ foam.CLASS({
     }
   ]
 });
+
 
 foam.CLASS({
   package: 'foam.parse.auto',
@@ -193,6 +196,7 @@ foam.CLASS({
   ],
 
   imports: [
+    'setTimeout',
     'window'
   ],
 
@@ -341,9 +345,12 @@ foam.CLASS({
         on('keydown', this.onKeyPress, true).
         end();
 
-      this.field.on('focus', this.onPreviewChange);
+      // Search fields have a 'x' icon on the right which clears the field, but for
+      // some reason if onPreviewChange runs too quickly then this doesn't work for
+      // some unknown reason.
+      this.field.on('focus', () => this.setTimeout(this.onPreviewChange, 300));
       self.overlay_.parentEl = this.field.el_();
-      self.add(self.overlay_);
+      self.overlay_.write();
       self.overlay_
         .start()
           .addClass(this.myClass('suggestions'))
@@ -351,10 +358,6 @@ foam.CLASS({
             self.populateSuggestions(this, suggestions);
           }))
         .end();
-    },
-
-    function containsIC(str, sub) {
-      return str.length != sub.length && str.toLowerCase().indexOf(sub.toLowerCase()) != -1;
     },
 
     function populateSuggestions(e, suggestions) {
@@ -370,11 +373,11 @@ foam.CLASS({
       }
 
       let preview = self.preview;
-      let keys    = Object.keys(suggestions);
       let delta   = preview.substring(self.maxPos);
+      let keys    = Object.keys(suggestions);
       let ss      = keys.sort(compare); // Sort by section then (label or text)
 
-      if ( delta ) ss = ss.filter(k => this.containsIC(k, delta));
+      if ( delta ) ss = ss.filter(k => suggestions[k].matches(delta));
 
       let parent = e.parentNode;
 
@@ -382,15 +385,15 @@ foam.CLASS({
       self.overlay_.open();
 
       e.forEach(ss, function(s, i, a) {
-          if ( i !== 0 ) this.start().addClass(self.myClass('suggestionSeparator')).end();
-          let sug = self.suggestions[s];
-          this.tag(sug.view || self.SuggestionView, {
-            data: sug,
-            suggestText: (text) => {
-              self.suggestText.call(self, text, sug);
-            }
-          });
+        if ( i !== 0 ) this.start().addClass(self.myClass('suggestionSeparator')).end();
+        let sug = self.suggestions[s];
+        this.tag(sug.view || self.SuggestionView, {
+          data: sug,
+          suggestText: (text) => {
+            self.suggestText.call(self, text, sug);
+          }
         });
+      });
    },
 
     function reset() {
@@ -406,6 +409,7 @@ foam.CLASS({
       this.preview = ( str + txt ).trimStart();
       this.field.focus();
     },
+
     function fromProperty(prop) {
       this.SUPER(prop);
       this.prop = prop;
@@ -427,7 +431,7 @@ foam.CLASS({
         let keys  = Object.keys(this.suggestions);
         let delta = this.preview.substring(this.maxPos);
 
-        if ( delta ) keys = keys.filter(k => this.containsIC(k, delta));
+        if ( delta ) keys = keys.filter(k => this.suggestions[k].matches(delta));
 
         if ( keys.length == 1 ) {
           this.preview = this.preview.substring(0, this.maxPos) + keys[0];
@@ -443,10 +447,11 @@ foam.CLASS({
       isMerged: true,
       delay: 250,
       code: function() {
+        let overlay = this?.overlay_;
         // Close the selections list when the user leaves the field (and descendents)
-        if ( ! this.element_.parentNode.contains(document.activeElement) ) {
+        if ( ! this.element_.parentNode.contains(document.activeElement) && ! ( overlay && overlay.el_().contains(document.activeElement) ) ) {
           this.reset();
-          // Fire a manaual change event since this will not have fired if the user
+          // Fire a manual change event since this will not have fired if the user
           // never changed the text field value and only used the completer.
           let el = this.field.el_();
           let event = new Event('change', { bubbles: true });
@@ -458,7 +463,7 @@ foam.CLASS({
       name: 'onPreviewChange',
       isFramed: true,
       code: function() {
-        // Parse the preview text with our 'apply' callback so we can rebuilud
+        // Parse the preview text with our 'apply' callback so we can rebuild
         // the suggestions map.
         this.reset();
 
@@ -466,8 +471,6 @@ foam.CLASS({
           this.preview + String.fromCharCode(26) /* EOF */,
           undefined,
           this.apply);
-
-        return ps || null;
       }
     }
   ]

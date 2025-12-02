@@ -123,7 +123,7 @@ function task() {
   // Special treatment of ALL
   // - only allow one
   // - last encountered is used.
-  if ( name === ALL ) {
+  if ( name == ALL ) {
     toolingTasks = [toolingTask];
   } else {
     toolingTasks.push(toolingTask);
@@ -192,11 +192,11 @@ function task() {
       });
 
       // execute tasks
-      if ( ! DRY_RUN || name === 'pomEvns' || name === ALL ) {
+      if ( ! DRY_RUN || name === 'pomEvns' || name == ALL ) {
         task.f && task.f.apply(Object.assign({ SUPER }, EXPORTS), args);
       }
       // only run first ALL
-      return name !== ALL;
+      return name != ALL;
     });
 
     running[name] -= 1;
@@ -450,7 +450,7 @@ TOOLING_OPTIONS = addOptions({
   homeDir: ['', 'home-dir', 'HOME_DIR', 'Home directory of user executing build', () => homedir(), arg => HOME_DIR = arg ],
   platform: ['', 'platform', 'PLATFORM', 'Operation System Type. One of: darwin (MacOS), freebsd, linux, win32', () => platform(), arg => PLATFORM = arg ],
   silent: ['', 'silent', 'SILENT', "Suppress all 'info' and 'warning' log messages.", false, function(arg) { SILENT = arg ? bool(arg) : true; }],
-  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'.  To \'add\' tooling to default list, prefix name with +.',
+  toolingPoms: [ 'T', 'tooling-poms', 'TOOLING_POMS', 'Comma separated list of tooling poms. When not specified, build will look for tools/defaultTooling file, and it not found, default to \'Standard,Npm,Maven,Git,JS,Java\'.  To \'add\' tooling to default list, prefix name with +.  NOTE: order is significant for tasks such as \'all\' where only the last encountered is executed.',
                  function() {
                    var poms;
                    var fn = join(process.cwd(),`tools/defaultTooling`);
@@ -509,7 +509,7 @@ OPTIONS = addOptions({
              if ( ! arg.includes(':') ) {
                t = arg.replaceAll(',', TASK_SEPERATOR);
              }
-             if ( TASKS === ALL )
+             if ( TASKS == ALL )
                TASKS = '';
              TASKS = TASKS ? TASKS + TASK_SEPERATOR + t : t;
            } ],
@@ -633,22 +633,22 @@ function outputHelp(arg, msg) {
         }
         let desc = option.desc;
         log('(OPTION)', ''.padStart(0), opts+':', '\x1b[0;35m', def,'\x1b[0;0m', desc);
+
+        // if arg was 'opt' convert to name to output task and env help,
+        // as 'opt' only exists on option.
+        arg = option.name;
       }
-      if ( ! found ) {
-        let t = findTask(TOOLING_TASKS, arg); // first will do
-        if ( t ) {
-          found = true;
-          var m = arg;
-          if ( arg !== t.name ) m += ' '+t.name;
-          log('(TASK)', m, t.desc);
-        }
+      let t = findTask(TOOLING_TASKS, arg); // first will do
+      if ( t ) {
+        found = true;
+        var m = arg;
+        if ( arg !== t.name ) m += ' '+t.name;
+        log('(TASK)', m, t.desc);
       }
-      if ( ! found ) {
-        let e = ENVS[arg];
-        if ( e ) {
-          found = true;
-          log('(ENV)', arg,': ',e[0]);
-        }
+      let e = ENVS[arg];
+      if ( e ) {
+        found = true;
+        log('(ENV)', arg,': ',e[0]);
       }
     }
   }

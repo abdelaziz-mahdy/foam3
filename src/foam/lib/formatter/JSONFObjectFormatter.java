@@ -403,6 +403,8 @@ public class JSONFObjectFormatter
       outputKey("class");
       append(':');
       output(newInfo.getId());
+      if ( size > 0 )
+        append(',');
     }
 
     for ( int i = 0 ; i < size ; i++ ) {
@@ -410,7 +412,7 @@ public class JSONFObjectFormatter
       if ( prop.includeInID() || compare(prop, oldFObject, newFObject) != 0 ) {
         if ( parentProp == null && prop.includeInID() ) {
           // IDs only relevant on root objects
-          append(',');
+          if ( i > 0 ) append(',');
           addInnerNewline();
           outputProperty(newFObject, prop);
           ids += 1;
@@ -425,7 +427,7 @@ public class JSONFObjectFormatter
               }
             }
           } else {
-            append(',');
+            if ( i > 0 ) append(',');
             addInnerNewline();
             outputProperty(newFObject, prop);
             delta += 1;
@@ -496,7 +498,7 @@ public class JSONFObjectFormatter
     int       props = 0;
     ClassInfo info  = o.getClassInfo();
 
-    boolean outputClass = outputClassNames_ || ( outputDefaultClassNames_ && info != defaultClass );
+    boolean outputClass = outputClassNames_ && ( outputDefaultClassNames_ || info != defaultClass );
 
     append('{');
     addInnerNewline();
