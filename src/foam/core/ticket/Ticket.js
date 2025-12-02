@@ -250,10 +250,11 @@ foam.CLASS({
       createVisibility: 'HIDDEN',
       readVisibility: 'HIDDEN',
       updateVisibility: 'RW',
+      // Do not require commnent on closing a ticket. Check here required as validation will fail otherwise
       validationPredicates: [
         {
           args: ['id', 'comment', 'externalComment'],
-          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))',
+          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))||status=="CLOSED"',
           errorString: 'Please provide a comment.'
         }
       ],
@@ -474,10 +475,11 @@ foam.CLASS({
       section: 'infoSection',
       readVisibility: 'HIDDEN',
       view: 'foam.u2.tag.TextArea',
+      // Do not require commnent on closing a ticket. Check here required as validation will fail otherwise
       validationPredicates: [
         {
           args: ['id', 'comment', 'externalComment'],
-          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))',
+          query: 'id==""||(id!=""&&(comment!=""||externalComment!=""))||status=="CLOSED"',
           errorString: 'Please provide a comment.'
         }
       ],
@@ -638,8 +640,10 @@ foam.CLASS({
       ],
       javaThrows: ['AuthorizationException'],
       javaCode: `
-      // Is this wrong?? No checkGlobalRemove occurs before this method is called.
-        // The checkGlobalRemove has checked the permission for deleting the ticket already.
+        AuthService auth = (AuthService) x.get("auth");
+        if ( ! auth.check(x, "ticket.remove." + getId()) ) {
+          throw new AuthorizationException();
+        }
       `
     }
   ],
