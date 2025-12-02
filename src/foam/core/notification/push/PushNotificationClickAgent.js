@@ -33,7 +33,6 @@ foam.CLASS({
 
   methods: [
     function init() {
-      return;
       // This agent runs in two phases:
       // 1. if a notification is clicked while the app is closed, the app is opened with the notification data in the URL search params
       // 2. if the app is already open, the notification click event is dispatched by the service worker or ios app
