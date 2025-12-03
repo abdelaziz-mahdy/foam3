@@ -407,15 +407,17 @@ public class JSONFObjectFormatter
         append(',');
     }
 
+    boolean outputComma = false;
     for ( int i = 0 ; i < size ; i++ ) {
       PropertyInfo prop = (PropertyInfo) axioms.get(i);
       if ( prop.includeInID() || compare(prop, oldFObject, newFObject) != 0 ) {
         if ( parentProp == null && prop.includeInID() ) {
           // IDs only relevant on root objects
-          if ( i > 0 ) append(',');
+          if ( outputComma ) append(',');
           addInnerNewline();
           outputProperty(newFObject, prop);
           ids += 1;
+          outputComma = true;
         } else {
           if ( calculateDeltaForNestedFObjects_ &&
                prop.get(newFObject) != null && prop.get(oldFObject) != null &&
@@ -427,13 +429,14 @@ public class JSONFObjectFormatter
               }
             }
           } else {
-            if ( i > 0 ) append(',');
+            if ( outputComma ) append(',');
             addInnerNewline();
             outputProperty(newFObject, prop);
             delta += 1;
             if ( optionalPredicate_.propertyPredicateCheck(getX(), of, prop) ) {
               optional += 1;
             }
+            outputComma = true;
           }
         }
       }
