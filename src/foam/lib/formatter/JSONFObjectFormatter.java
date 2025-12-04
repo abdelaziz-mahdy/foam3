@@ -152,7 +152,7 @@ public class JSONFObjectFormatter
     append('[');
     for ( int i = 0 ; i < array.length ; i++ ) {
       output(array[i]);
-      if ( i < array.length - 1 ) append(',');
+      if ( i < array.length - 1 ) append(COMMA);
     }
     append(']');
   }
@@ -164,7 +164,7 @@ public class JSONFObjectFormatter
     if ( array != null ) {
       for ( int i = 0 ; i < array.length ; i++ ) {
         output(array[i]);
-        if ( i < array.length - 1 ) append(',');
+        if ( i < array.length - 1 ) append(COMMA);
       }
     }
     append(']');
@@ -185,7 +185,7 @@ public class JSONFObjectFormatter
       output(key == null ? "" : key.toString());
       append(':');
       output(value);
-      if ( keys.hasNext() ) append(',');
+      if ( keys.hasNext() ) append(COMMA);
     }
     append('}');
   }
@@ -197,7 +197,7 @@ public class JSONFObjectFormatter
     Iterator iter = list.iterator();
     while ( iter.hasNext() ) {
       output(iter.next());
-      if ( iter.hasNext() ) append(',');
+      if ( iter.hasNext() ) append(COMMA);
     }
     append(']');
   }
@@ -217,7 +217,7 @@ public class JSONFObjectFormatter
 
   protected void outputFObjectPropertyHeader(PropertyInfo prop) {
     if ( prop == null ) return;
-    append(',');
+    append(COMMA);
     addInnerNewline();
     outputKey(getPropertyName(prop));
     append(':');
@@ -237,7 +237,7 @@ public class JSONFObjectFormatter
       return maybeOutputDelta(((FObject) prop.get(oldFObject)), ((FObject) prop.get(newFObject)), prop, null);
     }
 
-    append(',');
+    maybeAppendComma();
     addInnerNewline();
     outputProperty(newFObject, prop);
     return true;
@@ -268,7 +268,7 @@ public class JSONFObjectFormatter
     outputKey("class");
     append(':');
     output(value.getClass().getName());
-    append(',');
+    append(COMMA);
     outputKey("ordinal");
     append(':');
     outputNumber(value.getOrdinal());
@@ -371,7 +371,7 @@ public class JSONFObjectFormatter
       return false;
     }
 
-    if ( includeComma ) append(',');
+    if ( includeComma ) append(COMMA);
     if ( multiLineOutput_ ) addInnerNewline();
     outputProperty(fo, prop);
     return true;
@@ -404,7 +404,7 @@ public class JSONFObjectFormatter
       append(':');
       output(newInfo.getId());
       if ( size > 0 )
-        append(',');
+        append(COMMA);
     }
 
     boolean outputComma = false;
@@ -413,7 +413,7 @@ public class JSONFObjectFormatter
       if ( prop.includeInID() || compare(prop, oldFObject, newFObject) != 0 ) {
         if ( parentProp == null && prop.includeInID() ) {
           // IDs only relevant on root objects
-          if ( outputComma ) append(',');
+          if ( outputComma ) append(COMMA);
           addInnerNewline();
           outputProperty(newFObject, prop);
           ids += 1;
@@ -427,9 +427,10 @@ public class JSONFObjectFormatter
               if ( optionalPredicate_.propertyPredicateCheck(getX(), of, prop) ) {
                 optional += 1;
               }
+              outputComma = true;
             }
           } else {
-            if ( outputComma ) append(',');
+            if ( outputComma ) append(COMMA);
             addInnerNewline();
             outputProperty(newFObject, prop);
             delta += 1;
@@ -451,7 +452,7 @@ public class JSONFObjectFormatter
 
     // Return false when either no delta or the delta are from ids and storage
     // optional properties
-    builder().setLength(len);
+    setLength(len);
     return false;
   }
 
@@ -473,7 +474,7 @@ public class JSONFObjectFormatter
     append('[');
     for ( int i = 0 ; i < arr.length ; i++ ) {
       output(arr[i], defaultClass, parentProp);
-      if ( i < arr.length - 1 ) append(',');
+      if ( i < arr.length - 1 ) append(COMMA);
     }
     append(']');
   }
@@ -525,7 +526,7 @@ public class JSONFObjectFormatter
       append('}');
     } else {
       // skip outputting just class:
-      builder().setLength(len);
+      setLength(len);
     }
   }
 
@@ -534,11 +535,11 @@ public class JSONFObjectFormatter
     outputKey("class");
     append(':');
     output("__Property__");
-    append(',');
+    append(COMMA);
     outputKey("forClass_");
     append(':');
     output(prop.getClassInfo().getId());
-    append(',');
+    append(COMMA);
     outputKey("name");
     append(':');
     output(prop.getName());
