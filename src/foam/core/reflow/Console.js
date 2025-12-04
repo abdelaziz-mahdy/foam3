@@ -1509,7 +1509,7 @@ foam.CLASS({
             if ( m ) block.flowName = m[1];
           }
           // Make sure we aren't duplicating an existing name;
-          block.flowName = this.createFlowChildName(block.flowName);
+          block.flowName = this.createFlowChildName(block.flowName || 'a');
         } catch (x) {
           var i = cmd.indexOf(' ');
           if ( i != -1 ) {
