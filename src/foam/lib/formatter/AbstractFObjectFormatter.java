@@ -58,7 +58,7 @@ public abstract class AbstractFObjectFormatter
   // When in doubt, use this method.
   public StringBuilder maybeAppendComma() {
     String last = b_.substring(b_.length() -1);
-    if ( COMMA == last.charAt(0) )
+    if ( COMMA == last.charAt(0) ) {
       return b_;
     }
     return append(COMMA);
