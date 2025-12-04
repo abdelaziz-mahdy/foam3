@@ -311,7 +311,8 @@ foam.CLASS({
       updateVisibility: 'RO',
       includeInDigest: true,
       projectionSafe: false,
-      section: 'metaSection'
+      section: 'metaSection',
+      writePermissionRequired: true
     },
     {
       class: 'Reference',
@@ -322,6 +323,7 @@ foam.CLASS({
       includeInDigest: true,
       projectionSafe: false,
       section: 'metaSection',
+      writePermissionRequired: true
     },
     {
       class: 'DateTime',
