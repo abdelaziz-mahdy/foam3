@@ -638,7 +638,6 @@ foam.CLASS({
       name: 'onClick',
       code: function(e) {
         this.selected = this;
-        e.preventDefault();
         e.stopPropagation();
       }
     }
