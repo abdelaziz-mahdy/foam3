@@ -169,7 +169,15 @@ Steps for adding a Script Test Case
 The FOAM repository runs all Java/Server tests on each PR update.  Equivalent to:
 `./build.sh server-tests`
 
+# Headless Browser Configuration
+Presently only the Chrome Browser is supported. 
+See 
+- `src/foam/core/browser/BrowserConfig.js` 
+- `src/foam/core/browser/browserconfig.jrl`
+
+The `BrowserAgent` has property `type` for specifying the `BrowserConfig`, but `TestRunnerScript` and the `Build` do not provide for setting it (_future work_).
+
 # TODO
 - Flow Tests
-- github commit hook
+
 

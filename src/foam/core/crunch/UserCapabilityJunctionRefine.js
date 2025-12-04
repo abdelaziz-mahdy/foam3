@@ -273,6 +273,15 @@ foam.CLASS({
       writePermissionRequired: true,
       storageTransient: true,
       networkTransient: true
+    },
+    {
+      class: 'Reference',
+      name: 'capability',
+      of: 'foam.core.crunch.Capability',
+      javaGetter: 'return getTargetId();',
+      documentation: 'Shadow to targetId for UserCapabilityJunction validation. See. CapabilityJunctionPayload mixin.',
+      transient: true,
+      visibility: 'HIDDEN'
     }
   ],
 

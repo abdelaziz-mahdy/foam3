@@ -1361,6 +1361,19 @@ foam.CLASS({
       });
 
       info.method({
+        name: 'forLabel',
+        visibility: 'public',
+        type: this.of.id,
+        args: [
+          {
+            name: 'label',
+            type: 'String'
+          }
+        ],
+        body: `return ${this.of.id}.forLabel(label);`
+      });
+
+      info.method({
         name: 'toJSON',
         visibility: 'public',
         type: 'void',
@@ -1527,8 +1540,6 @@ foam.CLASS({
     }
   ]
 });
-
-
 
 
 foam.CLASS({
@@ -2727,7 +2738,6 @@ foam.CLASS({
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.java',
