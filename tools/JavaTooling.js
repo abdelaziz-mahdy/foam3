@@ -34,7 +34,7 @@ foam.POM({
     debugPort: [ 'D', 'debug-port', 'DEBUG_PORT', 'Port JVM will listen on for debuggers (JDPA) connections.',8000, function(arg) { DEBUG_PORT = arg; DEBUG = true; }],
     backupRuntimeJournalsDirSuffix: [ 'S', 'backup-runtime-journals-dir-suffix', 'BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX', 'Backup runtime journals directory suffix. Defaults to a timestamp.', TIMESTAMP, function(arg) { BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg ? arg : TIMESTAMP; BACKUP_RUNTIME_JOURNALS = true; }],
     backupRuntimeJournals: [ 'b', 'backup-runtime-journals', 'BACKUP_RUNTIME_JOURNALS', 'Backup runtime journals. By default journals are copied to journals_\'timestamp\'. The timestamp suffix can be overridden by provide an argument to this options. Also see \'backupRuntimeJournalsDirSuffix\'.  See option \'-N\' for naming and retaining journal sets.', false, function(arg) { BACKUP_RUNTIME_JOURNALS = true; BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = arg ? arg : TIMESTAMP; }],
-    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals. See option \'-N\' for naming and retaining journal sets.', false, function(arg) { DELETE_RUNTIME_JOURNALS = true; AUTO_CONFIRM = arg ? this.bool(arg) : false; }],
+    deleteRuntimeJournals: [ 'j', 'delete-runtime-journals', 'DELETE_RUNTIME_JOURNALS', 'Delete runtime journals. See option \'-N\' for naming and retaining journal sets.', false, function(arg) { DELETE_RUNTIME_JOURNALS = true; AUTO_CONFIRM = arg ? this.bool(arg) : AUTO_CONFIRM; }],
     javacParameters: ['', 'javac-parameters', 'JAVAC_PARAMETERS', 'Parameters passed to Java Compiler','-proc:none', arg => JAVAC_PARAMETERS = arg ],
     javaRelease: ['', 'java-release', 'JAVA_RELEASE', 'Java target version. Can also be set in root pom. ex: java: \'11\'', '21', args => JAVA_RELEASE = args],
     journals: [ 'J', 'journals', 'JOURNALS', 'Comma seperated list of additional journal directories, relative to deployment/ from the root project.', '', function(args) { JOURNALS = this.comma(JOURNALS, args); } ],
@@ -193,6 +193,7 @@ foam.POM({
     }],
 
     deleteRuntimeJournals: ['delete-runtime-journals', 'Delete runtime journals. When propted press \'y\' to proceed, \'b\' to backup before deleting, \'b:scenario1\' to backup to named directory before deleting.  Any other key will cancel.' , [], function() {
+      var confirmed = false;
       if ( ! AUTO_CONFIRM && ! BACKUP_RUNTIME_JOURNALS ) {
         // Confirmation check to protect against accidental journal deletion
         const { spawnSync } = require('child_process');
@@ -203,7 +204,7 @@ foam.POM({
         console.log(`   DOCUMENT_HOME: ${DOCUMENT_HOME}`);
 
         // Use bash read command for synchronous input with proper signal handling
-        const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/N/b): " answer && echo "$answer"'], {
+        const result = spawnSync('bash', ['-c', 'read -p "Are you sure you want to proceed? (y/n/b): " answer && echo "$answer"'], {
           stdio: ['inherit', 'pipe', 'inherit'],
           encoding: 'utf8'
         });
@@ -215,25 +216,31 @@ foam.POM({
         }
 
         const answer = (result.stdout || '').trim().toLowerCase();
-        var confirmed = answer === 'y' || answer === 'yes' || answer === 'b';
+        confirmed = answer === 'y' || answer === 'yes' || answer === 'b';
+        var noDelete = answer === 'n' || answer === 'no';
         var backup = answer === 'b';
         if ( answer.startsWith('b:') ) {
           confirmed = true;
           backup = true;
           BACKUP_RUNTIME_JOURNALS_DIR_SUFFIX = answer.split(':')[1];
         }
-        if ( ! confirmed ) {
+        if ( ! confirmed && ! noDelete && ! backup ) {
           console.log('\x1b[0;31mOperation cancelled. Runtime journals were NOT deleted.\x1b[0;0m');
-          process.exit(0);
+          process.exit(1);
+        }
+        if ( ! confirmed && noDelete ) {
+          this.warning('Runtime journals NOT deleted.');
         }
         if ( backup ) {
           this.execute("backupRuntimeJournals");
         }
       }
-      this.info('Runtime journals deleted.');
-      this.emptyDir(JOURNAL_HOME);
-      this.emptyDir(SAF_HOME);
-      this.emptyDir(DOCUMENT_HOME);
+      if ( AUTO_CONFIRM || confirmed ) {
+        this.info('Runtime journals deleted.');
+        this.emptyDir(JOURNAL_HOME);
+        this.emptyDir(SAF_HOME);
+        this.emptyDir(DOCUMENT_HOME);
+      }
     }],
 
     genImages: ['gen-images', 'Prepare images from inclusion in jar.', [], function() {
