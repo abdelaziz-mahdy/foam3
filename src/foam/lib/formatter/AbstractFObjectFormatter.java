@@ -57,8 +57,8 @@ public abstract class AbstractFObjectFormatter
   // Determining when to output and not output commas is becoming non trivial.
   // When in doubt, use this method.
   public StringBuilder maybeAppendComma() {
-    String last = b_.substring(b_.length() -1);
-    if ( COMMA == last.charAt(0) ) {
+    if ( b_.length() > 0 &&
+         COMMA == b_.charAt(b_.length() -1) ) {
       return b_;
     }
     return append(COMMA);
