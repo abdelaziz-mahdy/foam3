@@ -131,6 +131,16 @@ foam.CLASS({
       var startTime = Date.now();
       var count     = (await dao.select(this.Count.create())).value;
       var visited   = 0;
+      var testRun   = null;
+      if ( this.testRunId ) {
+        testRun = await this.testRunDAO.find(this.testRunId);
+        if ( ! testRun ) {
+          testRun = this.TestRun.create({id: this.testRunId});
+          testRun.server = false;
+        } else {
+          testRun.completed = false;
+        }
+      }
 
       dao.select({
         put: async function(t) {
@@ -147,22 +157,21 @@ foam.CLASS({
             t.run();
             t.copyFrom(await dao.put(t));
             self.passed += t.passed;
-            self.failed += t.failed;
+            if ( t.failed ) {
+              self.failed += t.failed;
+              if ( testRun ) {
+                // TODO: capture individual tests failures on the test,
+                // so they can be added here.
+                testRun.failures.push(t.id);
+              }
+            }
           } catch (e) {
             console.error('Test failed', t.id, e);
             self.failed += 1;
           } finally {
             visited += 1;
             if ( visited == count ) {
-              if ( self.testRunId ) {
-                // NOTE: This is here rather than eof as eof is called
-                // before the scripts are run (or complete).
-                var testRun = await self.testRunDAO.find(self.testRunId);
-                if ( ! testRun ||
-                     testRun.completed ) {
-                  testRun = self.TestRun.create({id: self.testRunId});
-                }
-                testRun.server    = false;
+              if ( testRun ) {
                 testRun.cases     = self.total;
                 testRun.passed    = self.passed;
                 testRun.failed    = self.failed;
