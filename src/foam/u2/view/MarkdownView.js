@@ -6,7 +6,6 @@
 
 // TODO:
 //   TOC?
-//   Example
 
 foam.CLASS({
   package: 'foam.u2.view',
@@ -25,9 +24,16 @@ foam.CLASS({
       font-size: 1.25em;
     }
     ^ h4 {
-      font-size: 1.25em;
+      font-size: 1.2em;
     }
-  `,
+    ^ h5 {
+      font-size: 1.15em;
+    }
+    ^ h6 {
+      font-size: 1.15em;
+      font-weight: normal;
+    }
+    `,
 
   grammars: [
     {
@@ -39,8 +45,6 @@ foam.CLASS({
           START: repeat(sym('element'), '\n'),
 
           element: alt(
-            sym('htmlComment'),
-            sym('htmlBlock'),
             sym('codeBlock'),
             sym('heading'),
             sym('horizontalRule'),
@@ -131,6 +135,7 @@ foam.CLASS({
             str(repeat(range('0', '9'), null, 1)),
             '. ',
             sym('inlineContent'),
+            optional(sym('nestedContent'))
           ), '\n', 1),
 
           nestedContent: repeat(seq1(1, '\n    ', str(repeat(notChars('\n')))), null, 1),
@@ -176,7 +181,9 @@ foam.CLASS({
           inlineContent: repeat(sym('inline'), null, 1),
 
           inline: alt(
-            sym('htmlInline'),
+            sym('htmlComment'),
+            sym('htmlBlock'),
+//            sym('htmlInline'), // allow inner markdown
             sym('image'),
             sym('link'),
             sym('strikethrough'),
@@ -281,16 +288,13 @@ foam.CLASS({
             } else {
               // Tag with content
               let content = closing[1];
-              /*
-              if ( tagName === 'foam' ) {
-                console.log('****attributes', v, attributes);
-              }*/
               this.start(tagName, attributes).call(content);
             }
           };
         },
 
         function htmlInline(v) {
+          let self       = this;
           let tagName    = v[1];
           let attributes = v[2];
           let closing    = v[3];
@@ -301,7 +305,7 @@ foam.CLASS({
               this.add('<' + tagName + attributes + '/>');
             } else {
               // Tag with content
-              let content = this.markdownGrammar.parseString(closing[1]);
+              let content = self.markdownGrammar.parseString(closing[1]);
               this.add('<' + tagName + attributes + '>' + content + '</' + tagName + '>');
             }
           };
@@ -360,12 +364,30 @@ foam.CLASS({
         function orderedList(v) {
           var items = v.map(function(item) { return item[2]; });
           var start = parseInt(v[0][0]) || 1;
+
+          debugger;
+          return function() {
+            this.start('ol').attrs({start: start}).forEach(v, function(item) {
+              let title = item[2], nestedContent = item[3];
+              this.start('li').call(title).callIf(nestedContent, function() {
+                this.start().style({marginLeft: '20px'}).call(nestedContent);
+              });
+            });
+          };
+        },
+
+        /*
+        function orderedList(v) {
+          var items = v.map(function(item) { return item[2]; });
+          var start = parseInt(v[0][0]) || 1;
           return function() {
             this.start('ol').attrs({start: start}).forEach(items, function(item) {
               this.start('li').call(item);
             });
           };
-        },
+          },
+          */
+
 
         function table(v) {
           let headers = v[0], rows = v[2];
