@@ -40,26 +40,25 @@ foam.CLASS({
 
       this.
         addClass().
-        start().show(self.loading$).tag(self.LoadingSpinner, {size: '32px'} ).end().
-          add(self.dynamic(async function(data, version) {
-            if ( ! data ) { debugger; return; }
-            var startTime = Date.now();
-            var select    = self.data.select;
-            self.data.select = select;
-            self.loading = true;
-            try {
-              await self.data.select.execute(this);
-              self.data.readyLatch_.resolve();
-              self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
-            } catch (error) {
-              console.error('DAOPrompt execution error:', error);
-              self.data.readyLatch_.reject(error);
-              self.data.hasError = true;
-              this.tag(self.ErrorView, { error: error });
-            } finally {
-              self.loading = false;
-            }
-          }));
+        tag(self.LoadingSpinner, {size: '32px', isHidden$: self.loading$.not()} ).
+        add(self.dynamic(async function(data, version) {
+          var startTime = Date.now();
+          var select    = self.data.select;
+          self.data.select = select;
+          self.loading = true;
+          try {
+            await self.data.select.execute(this);
+            self.data.readyLatch_.resolve();
+            self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+          } catch (error) {
+            console.error('DAOPrompt execution error:', error);
+            self.data.readyLatch_.reject(error);
+            self.data.hasError = true;
+            this.tag(self.ErrorView, { error: error });
+          } finally {
+            self.loading = false;
+          }
+        }));
     }
   ],
 
