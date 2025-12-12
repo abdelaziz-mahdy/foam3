@@ -146,6 +146,8 @@ foam.CLASS({
         // console.log('******** QUERYCACHE*** HAS MISSING DATA ***: predicte: ' + predicate + ' startIdx: ' + startIdx + ' endIdx: ' + endIdx);
         let self = this;
         return this.delegate.select_(x, sink, startIdx, endIdx - startIdx, order, predicate).then(function(result) {
+          if ( ! self.cache[key] ) self.cache[key] = [];
+
           if ( foam.dao.ArraySink.isInstance(sink) ) {
             // ArraySink
             // Update cache with missing data
