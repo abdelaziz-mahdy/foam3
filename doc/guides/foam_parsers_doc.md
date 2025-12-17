@@ -328,6 +328,153 @@ var comment = P.seq0('/*', P.until0('*/'));
 // Efficiently skips comment content
 ```
 
+### cut(parser)
+
+Memory optimization parser that **destroys the input PStream after a successful parse**. This allows the JavaScript garbage collector to reclaim memory, enabling parsing of very large files that would otherwise cause heap exhaustion.
+
+```javascript
+var parser = P.cut(P.seq('a', 'b', 'c'));
+// After successful parse, input PStream memory is released
+```
+
+**Why cut() is needed:**
+
+FOAM's PStream is immutable - each `tail` operation creates a new PStream object. For large files (millions of characters), this creates millions of intermediate objects that can exhaust heap memory. Without `cut()`, a 60MB file might require 7+ GB of heap memory (116x the file size). With `cut()`, the same file needs only ~400MB (6x the file size).
+
+**Memory usage comparison:**
+
+| Approach | Memory Ratio | 60MB File Needs |
+|----------|--------------|-----------------|
+| Without cut | ~116x | 7+ GB |
+| With cut | ~6x | ~400 MB |
+
+**Important usage patterns:**
+
+`cut()` must be used carefully because it destroys the input PStream. There are two valid approaches for collecting results when using `cut()`:
+
+**Approach 1: Using `repeat` with actions that return values**
+
+Actions return values directly, and `repeat()` collects them into an array:
+
+```javascript
+foam.CLASS({
+  name: 'LargeFileParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(alt, cut, eof, not, repeat, seq, seq0, sym) {
+      return {
+        // repeat() collects values returned by actions
+        START: repeat(not(eof(), sym('line'))),
+
+        // cut() wraps the entire line alternatives
+        line: cut(alt(
+          sym('header'),
+          sym('dataLine'),
+          sym('ignored')
+        )),
+
+        // Each rule must consume its own terminator (newline)
+        header: seq0(sym('headerContent'), sym('nl')),
+        ignored: seq0(sym('ignoredContent'), sym('nl')),
+        dataLine: seq(sym('field1'), ',', sym('field2'), sym('nl')),
+
+        nl: alt('\r\n', '\n', '\r')
+      };
+    },
+
+    // Action returns the record - repeat() collects these
+    function dataLineAction(v) {
+      return {
+        field1: v[0],
+        field2: v[2]
+      };
+    },
+
+    // Header and ignored lines return null (filtered out or kept as null)
+    function headerAction(v) { return null; },
+    function ignoredAction(v) { return null; }
+  ]
+});
+```
+
+**Approach 2: Using `repeat0` with external collection**
+
+When you don't need `repeat()` to collect values, use `repeat0()` and push to an external array:
+
+```javascript
+foam.CLASS({
+  name: 'LargeFileParser',
+  extends: 'foam.parse.Grammar',
+
+  properties: [
+    {
+      name: 'records_',
+      factory: function() { return []; }
+    }
+  ],
+
+  methods: [
+    function grammar(alt, cut, eof, not, repeat0, seq, seq0, sym) {
+      return {
+        // repeat0() doesn't collect values
+        START: repeat0(not(eof(), sym('line'))),
+
+        line: cut(alt(
+          sym('header'),
+          sym('dataLine'),
+          sym('ignored')
+        )),
+
+        header: seq0(sym('headerContent'), sym('nl')),
+        ignored: seq0(sym('ignoredContent'), sym('nl')),
+        dataLine: seq(sym('field1'), ',', sym('field2'), sym('nl')),
+
+        nl: alt('\r\n', '\n', '\r')
+      };
+    },
+
+    // Action pushes to external array
+    function dataLineAction(v) {
+      this.records_.push({
+        field1: v[0],
+        field2: v[2]
+      });
+      return null;
+    },
+
+    function STARTAction(v) {
+      return this.records_;
+    },
+
+    function parseString(str) {
+      this.records_ = []; // Reset for fresh parse
+      this.SUPER(str);
+      return this.records_;
+    }
+  ]
+});
+```
+
+**Key rules for using cut():**
+
+1. **Wrap the main `alt` with `cut()`** - not individual rules inside
+2. **Each rule must consume its own terminator** - include newline in each line rule
+3. **Choose `repeat` vs `repeat0` based on your needs** - use `repeat()` to collect action return values, use `repeat0()` when you don't need results collected
+
+**When to use cut():**
+
+- Parsing files larger than 10MB
+- Processing files with hundreds of thousands of lines
+- When you encounter "JavaScript heap out of memory" errors
+- When memory usage is critical
+
+**When NOT to use cut():**
+
+- Small files (<10MB) - overhead not worth it
+- When you need backtracking after a match
+- Simple parsers that don't process large amounts of data
+
 ---
 
 ## Value Transformation Parsers
