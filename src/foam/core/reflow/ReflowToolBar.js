@@ -11,7 +11,8 @@ foam.CLASS({
   extends: 'foam.u2.View',
 
   requires: [
-    'foam.core.reflow.ToolbarControl'
+    'foam.core.reflow.ToolbarControl',
+    'foam.mlang.sink.Count'
   ],
 
   imports: ['showPrompts','toolbarControlDAO', 'data as importedData'],
@@ -56,15 +57,20 @@ foam.CLASS({
         class: 'foam.u2.view.ChoiceView',
         choices: ['Standard', 'Advanced']
       }
+    },
+    {
+      class: 'Boolean',
+      name: 'hasControls'
     }
   ],
 
   methods: [
     function render() {
       let self = this;
+      this.onDetach(this.showPrompts$.sub(this.updateHasControls));
       this.
         addClass().
-        show(this.showPrompts$).
+        show(this.hasControls$).
         start().
         addClass(this.myClass('input-field-container')).
         add(this.dynamic(function(promptMode) {
@@ -82,6 +88,20 @@ foam.CLASS({
         startContext({ data: this }).
         add(this.PROMPT_MODE).
         endContext();
+    }
+  ],
+
+  listeners: [
+    {
+      name: 'updateHasControls',
+      isMerged: true,
+      code: function() {
+        console.log(`@updateHasControls : this.showPrompts ${this.showPrompts}`)
+        this.toolbarControlDAO
+          .where(this.EQ(this.ToolbarControl.TOOLBAR, this.promptMode))
+          .select(this.Count.create())
+          .then(count => { this.hasControls = this.showPrompts && count.value > 0; });
+      }
     }
   ]
 });
