@@ -220,9 +220,9 @@ foam.CLASS({
       if ( ! messageIsSet_ ) {
         if ( val instanceof Exception ) {
           setMessage(((Exception) val).getMessage());
-       } else {
+        } else {
           setMessage(String.valueOf(val));
-       }
+        }
       }
       `
     },

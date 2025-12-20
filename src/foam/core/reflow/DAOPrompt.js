@@ -485,6 +485,7 @@ foam.CLASS({
     },
 
     async function addToE(e) {
+      this.onDetach(this.dao.listen(this.rerun));
       this.onDetach(this.filteredDAO.listen(this.updateRowCount));
       this.updateRowCount_();
 
@@ -557,6 +558,14 @@ foam.CLASS({
       name: 'updateRowCount',
       isFramed: true,
       code: function() { this.updateRowCount_(); }
+    },
+    {
+      name: 'rerun',
+      isMerged: true,
+      delay: 100,
+      code: function() {
+        this.run();
+      }
     },
     {
       name: 'maybeAutoRun',
