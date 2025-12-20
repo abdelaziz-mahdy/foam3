@@ -469,6 +469,8 @@ foam.CLASS({
     'translationService?'
   ],
 
+  // TODO: this is relatively expensive for how little it is used
+  // Try to find a cheaper way.
   exports: [
     'namespace'
   ],
