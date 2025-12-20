@@ -480,6 +480,59 @@ foam.CLASS({
 });
 
 
+/**
+ * Parser decorator that attaches a message config to a parser.
+ * When the wrapped parser succeeds, the message config can be collected
+ * by a MessageCollector via the apply callback.
+ *
+ * Similar to foam.parse.Suggest for suggestions.
+ *
+ * Usage in grammar:
+ *   emptyFile: msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File is empty'})
+ */
+foam.CLASS({
+  package: 'foam.parse',
+  name: 'Msg',
+  extends: 'foam.parse.ParserDecorator',
+
+  documentation: `
+    Parser decorator that attaches a message config to a parser.
+    When the wrapped parser matches successfully, the message config
+    is available via the msg() method.
+
+    The message property stores a simple config object {type, code, text, count?, data?}.
+    The consuming parser (e.g., MessageCollector in ptv3) is responsible for
+    converting this config into the appropriate message object.
+
+    Usage in grammar:
+      emptyFile: msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File is empty'})
+  `,
+
+  properties: [
+    {
+      name: 'message',
+      documentation: 'Message config object {type, code, text, count?, data?}'
+    }
+  ],
+
+  methods: [
+    function parse(ps, obj) {
+      // Delegate to wrapped parser
+      return ps.apply(this.p, obj);
+    },
+
+    function msg() {
+      // Return the message config (called by apply callback when parse succeeds)
+      return this.message;
+    },
+
+    function toString() {
+      return 'msg(' + this.SUPER() + ')';
+    }
+  ]
+});
+
+
 foam.CLASS({
   package: 'foam.parse',
   name: 'String',
@@ -1090,6 +1143,7 @@ foam.CLASS({
     'foam.parse.Literal',
     'foam.parse.LiteralIC',
     'foam.parse.EOF',
+    'foam.parse.Msg',
     'foam.parse.Not',
     'foam.parse.NotChars',
     'foam.parse.Optional',
@@ -1218,6 +1272,22 @@ foam.CLASS({
         p: p,
         suggestion: s
       });
+    },
+
+    /**
+     * Create a parser that attaches a message config.
+     * Message config is collected when the parser succeeds (via apply callback).
+     *
+     * @param {Parser} p - The parser to wrap
+     * @param {Object} m - Message config {type, code, text, count?, data?}
+     * @returns {Msg} Parser decorator with message config
+     *
+     * Usage in grammar:
+     *   msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File is empty'})
+     *   msg(sym('emptyLine'), {type: 'INFO', code: 'EMPTY_LINE', text: 'Empty line skipped'})
+     */
+    function msg(p, m) {
+      return this.Msg.create({ p: p, message: m });
     },
 
     function until(p) {
