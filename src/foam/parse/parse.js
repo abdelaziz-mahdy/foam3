@@ -481,14 +481,15 @@ foam.CLASS({
 
 
 /**
- * Parser decorator that attaches a message config to a parser.
- * When the wrapped parser succeeds, the message config can be collected
- * by a MessageCollector via the apply callback.
+ * Parser decorator that attaches a message to a parser.
+ * When the wrapped parser succeeds, the message can be collected
+ * via the apply callback (similar to foam.parse.Suggest for suggestions).
  *
- * Similar to foam.parse.Suggest for suggestions.
+ * The message is untyped - can be string, object, array, etc.
  *
  * Usage in grammar:
- *   emptyFile: msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File is empty'})
+ *   emptyFile: msg(eof(), 'File is empty')
+ *   warning: msg(sym('old'), { warning: 'Deprecated format' })
  */
 foam.CLASS({
   package: 'foam.parse',
@@ -496,22 +497,23 @@ foam.CLASS({
   extends: 'foam.parse.ParserDecorator',
 
   documentation: `
-    Parser decorator that attaches a message config to a parser.
-    When the wrapped parser matches successfully, the message config
+    Parser decorator that attaches a message to a parser.
+    When the wrapped parser matches successfully, the message
     is available via the msg() method.
 
-    The message property stores a simple config object {type, code, text, count?, data?}.
-    The consuming parser (e.g., MessageCollector in ptv3) is responsible for
-    converting this config into the appropriate message object.
+    The message property is untyped - it can store any value
+    (string, object, array, etc.). The consuming code is responsible
+    for interpreting the message format.
 
     Usage in grammar:
-      emptyFile: msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File is empty'})
+      emptyFile: msg(eof(), 'File is empty')
+      warning: msg(sym('old'), { warning: 'Deprecated format' })
   `,
 
   properties: [
     {
       name: 'message',
-      documentation: 'Message config object {type, code, text, count?, data?}'
+      documentation: 'Message to attach - can be any value (string, object, etc.)'
     }
   ],
 
@@ -1275,16 +1277,16 @@ foam.CLASS({
     },
 
     /**
-     * Create a parser that attaches a message config.
-     * Message config is collected when the parser succeeds (via apply callback).
+     * Create a parser that attaches a message.
+     * Message is collected when the parser succeeds (via apply callback).
      *
      * @param {Parser} p - The parser to wrap
-     * @param {Object} m - Message config {type, code, text, count?, data?}
-     * @returns {Msg} Parser decorator with message config
+     * @param {*} m - Message to attach (can be any value - string, object, etc.)
+     * @returns {Msg} Parser decorator with message
      *
      * Usage in grammar:
-     *   msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File is empty'})
-     *   msg(sym('emptyLine'), {type: 'INFO', code: 'EMPTY_LINE', text: 'Empty line skipped'})
+     *   msg(eof(), 'File is empty')
+     *   msg(sym('old'), { warning: 'Deprecated format' })
      */
     function msg(p, m) {
       return this.Msg.create({ p: p, message: m });

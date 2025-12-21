@@ -56,6 +56,11 @@
     - [How Suggestion Collection Works](#how-suggestion-collection-works)
     - [Building Dynamic Property Suggestions](#building-dynamic-property-suggestions)
     - [Nested Property Suggestions](#nested-property-suggestions)
+  - [Parser Messages](#parser-messages)
+    - [Creating Messages with msg()](#creating-messages-with-msg)
+    - [Message Properties](#message-properties)
+    - [Example: Empty File Detection](#example-empty-file-detection)
+    - [Collecting Messages](#collecting-messages)
   - [Best Practices](#best-practices)
   - [Complete Example: Email Address Parser](#complete-example-email-address-parser)
   - [Live Examples](#live-examples)
@@ -1048,6 +1053,140 @@ let innerProperty = (prop, innerProp) => {
   );
 };
 ```
+
+---
+
+## Parser Messages
+
+FOAM parsers support attaching messages to parsers through the `msg()` decorator. This enables parsers to communicate status information, warnings, or metadata back to the calling code when specific patterns are matched.
+
+### Creating Messages with msg()
+
+Use the `msg(parser, messageConfig)` combinator to attach a message to a parser:
+
+```javascript
+var P = foam.parse.Parsers.create();
+
+// Basic message for empty file detection
+msg(eof(), {type: 'EMPTY', code: 'NO_DATA', text: 'File contains no data'})
+
+// Warning message for deprecated format
+msg(sym('oldFormat'), {type: 'WARNING', code: 'DEPRECATED_FORMAT', text: 'This format is deprecated'})
+
+// Message with additional data
+msg(sym('emptySection'), {
+  type: 'EMPTY',
+  code: 'NO_TRANSACTIONS',
+  text: 'File contains no rejected transactions for this day',
+  data: { section: 'transactions' }
+})
+```
+
+### Message Properties
+
+The `message` property in FOAM's `Msg` class is **untyped** - it can store any value (string, object, array, etc.). The structure is determined by your application.
+
+**Example convention** (for file processing systems):
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | String | Message type (e.g., 'EMPTY', 'WARNING') |
+| `code` | String | Unique code identifier (e.g., 'NO_DATA', 'DEPRECATED_FORMAT') |
+| `text` | String | Human-readable message text |
+
+**Alternative uses:**
+
+```javascript
+// Simple string message
+msg(sym('rule'), 'Parsing completed')
+
+// Custom object structure
+msg(sym('rule'), { severity: 'low', category: 'validation', details: {...} })
+
+// Array of messages
+msg(sym('rule'), ['Message 1', 'Message 2'])
+```
+
+The consuming code is responsible for interpreting the message format.
+
+### Example: Parser with Messages
+
+Messages can be attached to any parser rule to communicate status back to the caller:
+
+```javascript
+foam.CLASS({
+  name: 'DataFileParser',
+  extends: 'foam.parse.Grammar',
+
+  methods: [
+    function grammar(alt, sym, seq, msg, eof, literal, repeat) {
+      return {
+        START: alt(
+          sym('dataFile'),
+          sym('emptyFile')
+        ),
+
+        // Normal file with data
+        dataFile: seq(sym('header'), sym('records'), sym('footer')),
+
+        // Empty file - valid structure but no data
+        emptyFile: msg(
+          seq(sym('header'), sym('emptyMarker'), sym('footer')),
+          'File contains no data'  // Simple string message
+        ),
+
+        // Deprecated format warning
+        oldHeader: msg(
+          sym('legacyHeaderFormat'),
+          { warning: 'Deprecated header format detected' }
+        ),
+
+        // Record with validation note
+        specialRecord: msg(
+          sym('recordWithFlag'),
+          { note: 'Special processing applied', flag: 'SPECIAL' }
+        )
+      };
+    }
+  ]
+});
+```
+
+### Collecting Messages
+
+Messages are collected via the `apply` callback mechanism, following the same pattern as `foam.parse.auto.SmartView` uses for suggestions:
+
+```javascript
+var messages = [];
+
+// Create an apply function that collects messages
+function createApply() {
+  return function(p, grammar) {
+    // 'this' is the PStream
+    var result = p.parse(this, grammar);
+
+    // If parse succeeded and parser has a message, collect it
+    if ( result && p.msg ) {
+      var m = p.msg();
+      if ( m ) messages.push(m);
+    }
+
+    return result;
+  };
+}
+
+// Pass apply function to parseString
+var result = grammar.parseString(inputText, null, createApply());
+
+// messages array now contains collected messages
+```
+
+**Common use cases:**
+
+- Display status messages to users
+- Log warnings or notes during processing
+- Flag special conditions (empty files, deprecated formats)
+- Collect metadata about parsed content
 
 ---
 
