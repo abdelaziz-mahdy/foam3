@@ -56,10 +56,6 @@ foam.CLASS({
     'window'
   ],
 
-  constants: {
-    SEMAPHORE: foam.lang.CountingSemaphore.create({limit: 30})
-  },
-
   messages: [
     {
       name: 'FETCH_ERROR',
@@ -180,20 +176,17 @@ foam.CLASS({
 
     {
       name: 'send',
-      code: async function(envelope) {
+      code: function(envelope) {
         var payload = this.outputter.stringify(foam.box.Envelope.create({
           message: envelope.message,
           replyBox: this.getReplyBox()
         }));
-
+        
         var headers = {
           'Content-Type': 'application/json; charset=utf-8',
           'Origin': this.origin
         };
 
-        this.SEMAPHORE.then(() => { return new Promise(resolve0 => {
-          function resolve() { /* console.log('resolved'); */ resolve0(); }
-          // console.log('***** SEMAPHORE', this.SEMAPHORE.count_, this.SEMAPHORE.limit, this.SEMAPHORE.queue_.length);
         var req = this.HTTPRequest.create({
           url:     this.prepareURL(this.url),
           method:  this.method,
@@ -206,7 +199,6 @@ foam.CLASS({
         }).then((p) => {
           return this.parser.aparse(p);
         }).then((response) => {
-          resolve();
           envelope.replyBox?.send(response);
         }, function(r) {
           var msg;
@@ -229,7 +221,6 @@ foam.CLASS({
             message: foam.box.HTTPException.create({ response: r, message: msg })
           }));
         });
-        })});
       },
       swiftCode: `
 let msg = msg!
