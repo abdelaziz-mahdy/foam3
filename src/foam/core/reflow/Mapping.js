@@ -193,18 +193,37 @@ foam.CLASS({
     },
 
     function process(obj, value, rowData) {
-      if ( ! this.property ) return;
+      /**
+       * Process a mapping and set the value on the target object.
+       *
+       * Returns an object with info about what happened:
+       * - sourceWasEmpty: true if the source value was empty/null/undefined
+       * - valueWasSet: true if a value was actually set on the object
+       * - property: the property name
+       *
+       * This info is used by UploadSink to track empty source fields for
+       * accurate required field validation.
+       */
+      if ( ! this.property ) return { sourceWasEmpty: false, valueWasSet: false, property: null };
 
       var fieldName = this.fieldName;
+      var sourceWasEmpty = false;
 
       switch ( this.type ) {
         case this.MappingType.FIELD:
           if ( rowData && fieldName ) {
-            value = rowData[fieldName] !== undefined ? rowData[fieldName] : value;
+            var sourceValue = rowData[fieldName];
+            // Track if source was empty BEFORE any transformation
+            sourceWasEmpty = this.isEmptyValue(sourceValue);
+            value = sourceValue !== undefined ? sourceValue : value;
+          } else {
+            sourceWasEmpty = true;
           }
           break;
         case this.MappingType.CONSTANT:
           value = this.constantValue;
+          // Check if constant value is empty (user left the field blank)
+          sourceWasEmpty = this.isEmptyValue(value);
           break;
         case this.MappingType.DYNAMIC:
           if ( this.dynamicExpression && rowData ) {
@@ -217,12 +236,16 @@ foam.CLASS({
           } else {
             value = this.dynamicExpression || '';
           }
+          // Check if dynamic result is empty
+          sourceWasEmpty = this.isEmptyValue(value);
           break;
       }
 
       if ( foam.String.isInstance(value) ) {
         value = value.trim();
       }
+
+      var valueWasSet = false;
 
       // Set property value using fromCSV, passing format hint for date fields
       if ( value !== '' && value != null && value !== undefined ) {
@@ -234,7 +257,30 @@ foam.CLASS({
         } else {
           this.prop.set(obj, this.prop.fromCSV(value));
         }
+        valueWasSet = true;
       }
+
+      return {
+        sourceWasEmpty: sourceWasEmpty,
+        valueWasSet: valueWasSet,
+        property: this.property
+      };
+    },
+
+    function isEmptyValue(value) {
+      /**
+       * Check if a source value should be considered "empty" for required field validation.
+       *
+       * Empty means: null, undefined, or empty string (after trim).
+       * NOT empty: 0, false, "0", " 0 " (has content after trim).
+       *
+       * This distinction is important for required field validation:
+       * - Empty source → field has no user-provided data → fail required validation
+       * - Non-empty source (even "0") → user provided data → pass required validation
+       */
+      if ( value === null || value === undefined ) return true;
+      if ( foam.String.isInstance(value) && value.trim() === '' ) return true;
+      return false;
     },
     function evaluateExpression(expression, rowData) {
       /**
