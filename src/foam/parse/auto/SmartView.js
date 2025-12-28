@@ -181,6 +181,8 @@ foam.CLASS({
 });
 
 
+// TODO: Would be better if the input field was replaced by a contenteditable=true <div> so that errors
+// could be displayed in-line in real-time
 foam.CLASS({
   package: 'foam.parse.auto',
   name: 'SmartView', // TODO: rename GrammarView or SyntaxView
@@ -424,7 +426,7 @@ foam.CLASS({
     function suggestText(txt, sug) {
       let str = this.preview.substring(0, this.maxPos);
       // This causes issues when suggesting units like 'px' after numbers
-      if ( sug.prependSpaceOnSelect ) str += ' ';
+      if ( sug.prependSpaceOnSelect ) str = str.trim() + ' ';
       this.preview = ( str + txt ).trimStart();
       this.field.focus();
     },
@@ -475,6 +477,7 @@ foam.CLASS({
           let el = this.field.el_();
           let event = new Event('change', { bubbles: true });
           el.dispatchEvent(event);
+          // this.onDataChange();
         }
       }
     },
