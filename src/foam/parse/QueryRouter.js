@@ -54,7 +54,7 @@ foam.CLASS({
       let enableQuery = this.searchMode === this.SearchMode.FULL || this.searchMode === this.SearchMode.MQL;
 
       function key(s, label) {
-        return sug(literalIC(s), {text: s + ' ', label: label, category: 'keyword'});
+        return sug(s, {text: s + ' ', label: label, category: 'keyword'});
       }
 
       return {
@@ -79,7 +79,7 @@ foam.CLASS({
 //          mql: seq1(1, key('MQL:', 'Legacy MQL Support'), this.mql)
         } : {}),
 
-        text: seq1(1, key('TEXT:', 'Full-Text Search'), str(repeat(anyChar(), null, 1)))
+        text: seq1(1, key(alt(literalIC('TEXT:'), ':'), 'Full-Text Search'), str(repeat(anyChar(), null, 1)))
       };
     },
 
