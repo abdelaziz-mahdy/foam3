@@ -288,7 +288,16 @@ foam.CLASS({
             } else {
               // Tag with content
               let content = closing[1];
-              this.start(tagName, attributes).call(content);
+              let e = this.start(tagName, attributes).call(content);
+              // TODO: Use foam.u2.parse.CSSParser to allow for CSS tokens
+              if ( attributes.style ) {
+                let style = {};
+                attributes.style.split(';').forEach(s => {
+                  let p = s.split(':');
+                  style[p[0]] = p[1];
+                });
+                e.style(style);
+              }
             }
           };
         },
