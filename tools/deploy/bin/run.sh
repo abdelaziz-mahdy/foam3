@@ -109,7 +109,7 @@ BIN_JAR=$(ls ${APP_HOME}/lib/${APP_NAME}-${VERSION}.jar 2>/dev/null | awk '{prin
 RES_JAR=$(ls ${APP_HOME}/lib/${APP_NAME}-resources-${VERSION}.jar 2>/dev/null | awk '{print $1}')
 
 # Set RES_JAR_HOME to point to the resources JAR for ResourceStorage
-export RES_JAR_HOME="${RES_JAR}"
+JAVA_OPTS="${JAVA_OPTS} -DRES_JAR_HOME=${RES_JAR}"
 
 export JAVA_TOOL_OPTIONS="${JAVA_OPTS}"
 echo ${JAVA_OPTS} > ${APP_HOME}/logs/opts.txt
