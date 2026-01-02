@@ -50,6 +50,18 @@ foam.CLASS({
   ],
 
   methods: [
+    function detachFlowChild(c) {
+      // Helper function to properly detach a flow child
+      // Detach the block's value first (e.g., Script, etc.)
+      if ( c.value && c.value.detach ) {
+        c.value.detach();
+      }
+      // Then detach the block wrapper itself
+      if ( c.detach ) {
+        c.detach();
+      }
+    },
+
     function toSummary() {
       return this.flowName;
     },
@@ -99,7 +111,10 @@ foam.CLASS({
     },
 
     function removeAllFlowChildren() {
-      this.removeFlowChild_ && this.flowChildren.forEach(c => this.removeFlowChild_(c));
+        this.flowChildren.forEach(c => {
+          this.removeFlowChild_(c);
+          this.detachFlowChild(c);
+        });
       this.flowChildren = [];
     }
   ]
@@ -1308,7 +1323,11 @@ foam.CLASS({
 
       let oldShowNav = this.showNav;
       this.showNav = false;
-      this.onDetach(() => { this.showNav = oldShowNav;});
+      this.onDetach(() => {
+        this.showNav = oldShowNav;
+        // Detach all flow children when closing the flow page
+        this.flowChildren.forEach(c => this.detachFlowChild(c));
+      });
       this.SUPER();
 
       var self = this;
@@ -1596,6 +1615,7 @@ foam.CLASS({
     },
 
     function removeFlowChild_(c) {
+      this.detachFlowChild(c);
       c.remove();
     },
 
