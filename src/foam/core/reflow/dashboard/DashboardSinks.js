@@ -1970,8 +1970,9 @@ foam.CLASS({
     function put(obj) {
       let d = this.dateProp.f(obj);
       let c = this.categoryProp ? this.categoryProp.f(obj) : 'default';
-      if (!d || !c) return;
-      let key = new Date(d).toISOString().slice(0, 10);
+      if ( ! d || ! c ) return;
+      // Use d directly - it's either a Date or already a formatted string from transformation
+      let key = d instanceof Date ? d.toISOString().slice(0, 10) : String(d);
       if (!this.map_[key]) this.map_[key] = {};
       let v = 1;
       if (this.valueSink && this.valueSink.put) {
