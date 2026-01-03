@@ -535,13 +535,20 @@ foam.POM({
       // Build classpath with binary and resources JARs
       var CLASSPATH = `${JAR_OUT}:${JAR_RES_OUT}:${BUILD_DIR}/lib/*`;
 
+      var testError = null;
+
       try {
         this.execSync(`java -cp "${CLASSPATH}" ${JAVA_MAIN_CLASS}`, { stdio: 'inherit' });
       } catch ( e ) {
         if ( mode !== 'test' )
           throw e;
+        testError = e;
       }
       if ( mode === 'test' ) {
+        if ( testError ) {
+          this.error('Tests failed. Exiting with status 1.');
+          process.exit(testError.status ? testError.status : 1);
+        }
         process.exit(0);
       }
     }],
