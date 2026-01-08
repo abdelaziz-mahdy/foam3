@@ -1398,16 +1398,23 @@ foam.CLASS({
       }
     },
     {
-      name: 'postSet',
-      value: function(_, n, prop) {
-        var self = this;
-        if ( typeof n === 'string' && Number.isNaN(Number(n)) ) return;
-        x.currencyDAO.find(prop.EQ(foam.lang.Currency.NUMERIC_CODE, Number(n)))
-          .then(ret => {
-            if ( ret ) {
-              self[prop.name] = ret.id;
-            }
-          });
+      name: 'normalize',
+      value: async function(value, prop) {
+        /**
+         * If the currencyCode is entered as a numeric code rather than string code, then adapt to the string code
+         * so that all currency codes are in the same format.
+         * This is done in 'normalize' rather than 'adapt' because it needs to be async because it performs a DAO
+         * operation, which is itself async.
+         **/
+        if ( foam.String.isInstance(value) && Number.isNaN(Number(value)) ) return value;
+
+        var currency = await this.__context__[prop.targetDAOKey].find(prop.EQ(foam.lang.Currency.NUMERIC_CODE, Number(value)));
+
+        if ( currency ) {
+          return currency.id;
+        }
+
+        return value;
       }
     }
   ]

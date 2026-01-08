@@ -23,25 +23,11 @@ foam.CLASS({
     'foam.parse.StringPStream'
   ],
 
+  axioms: [
+    foam.pattern.Singleton.create()
+  ],
+
   properties: [
-    {
-      class: 'Class',
-      name: 'of'
-    },
-    /** An optional input. If this is defined, 'me' is a keyword in the search
-     * and can be used for queries like <tt>owner:me</tt>. Note that since
-     * there is exactly one parser instance per 'of' value, the value of 'me' is
-     * also shared.
-     */
-    {
-      class: 'String',
-      name: 'me' //TODO: Implement 'me' support.
-    },
-    {
-      class: 'Boolean',
-      name: 'allowShortNames',
-      value: false // TODO: Implement short names support.
-    },
     {
       name: 'baseGrammar_',
       value: function(alt, anyChar, not, opt, range, repeat, repeat0, seq, seq1, str, sug, sym) {
@@ -240,7 +226,7 @@ foam.CLASS({
           //     return foam.u2.CSSToken.create({ name: v, value: map[v] });
           //   })
           // }
-      } 
+      }
     },
     {
       name: 'grammar_',
@@ -255,7 +241,7 @@ foam.CLASS({
         let g = this.Grammar.create({
           symbols: grammar
         });
-        
+
         // let actions    = {
         //   'colorPropertyValue': function (a) {
         //   }

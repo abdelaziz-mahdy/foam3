@@ -219,5 +219,20 @@ foam.CLASS({
     { name: 'header-xs', value: '1.6rem' },
     { name: 'header-xxs', value: '1.4rem' },
     { name: 'header-xxxs', value: '1.2rem' }
-  ])
+  ]),
+
+  javaCode: `
+  public static CSSToken get(foam.lang.X x, String name) {
+    String cnst = foam.util.StringUtil.constantize(name);
+    try {
+      java.lang.reflect.Field field = CSSTokens.getOwnClassInfo().getObjClass().getDeclaredField(cnst);
+      return (CSSToken) field.get(null);
+    } catch ( NoSuchFieldException e ) {
+      foam.core.logger.StdoutLogger.instance().error("CSSTokens, Token not found", name, cnst);
+    } catch ( IllegalAccessException e ) {
+      foam.core.logger.StdoutLogger.instance().error("CSSTokens", e);
+    }
+    return null;
+  }
+  `
 });

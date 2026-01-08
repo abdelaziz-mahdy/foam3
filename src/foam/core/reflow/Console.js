@@ -50,6 +50,18 @@ foam.CLASS({
   ],
 
   methods: [
+    function detachFlowChild(c) {
+      // Helper function to properly detach a flow child
+      // Detach the block's value first (e.g., Script, etc.)
+      if ( c.value && c.value.detach ) {
+        c.value.detach();
+      }
+      // Then detach the block wrapper itself
+      if ( c.detach ) {
+        c.detach();
+      }
+    },
+
     function toSummary() {
       return this.flowName;
     },
@@ -99,7 +111,10 @@ foam.CLASS({
     },
 
     function removeAllFlowChildren() {
-      this.removeFlowChild_ && this.flowChildren.forEach(c => this.removeFlowChild_(c));
+        this.flowChildren.forEach(c => {
+          this.removeFlowChild_(c);
+          this.detachFlowChild(c);
+        });
       this.flowChildren = [];
     }
   ]
@@ -294,8 +309,8 @@ foam.CLASS({
       label: 'Save',
       buttonStyle: foam.u2.ButtonStyle.PRIMARY,
       size: 'SMALL',
-      isEnabled: function(data$flowErrors_) {
-        return ! data$flowErrors_;
+      isEnabled: function(data$flowErrors_, data$isLoading_) {
+        return ! data$flowErrors_ && ! data$isLoading_;
       },
       isAvailable: function(showPrompts) {
         return showPrompts;
@@ -573,7 +588,7 @@ foam.CLASS({
     },
 
     function outputJSON(json) {
-      json.outputFObject_(this, this.cls_, [ 
+      json.outputFObject_(this, this.cls_, [
         this.FLOW_NAME, this.CMD, this.VALUE, this.FLOW_CHILDREN, this.REACTIONS_, this.BORDER,
         this.SHOWN, ...foam.u2.StyleConfigurator.getAxiomsByClass(foam.lang.Property).filter(p => ! p.hidden && ! p.transient)
       ]);
@@ -596,7 +611,7 @@ foam.CLASS({
 
   listeners: [
     function maybeMigrate() {
-      // Legacy support 
+      // Legacy support
       if ( this.borderClass && this.borderClass !== foam.u2.borders.TitleBorder ) {
         switch ( this.borderClass ) {
           case foam.u2.borders.CardBorder:
@@ -1260,7 +1275,13 @@ foam.CLASS({
           this.currentBlock.value.copyFrom(c.value);
         }
 
-        await this.currentBlock.value?.onLoad?.();
+        // Wrap onLoad in try-catch to prevent errors in one block from stopping other blocks
+        try {
+          await this.currentBlock.value?.onLoad?.();
+        } catch (error) {
+          console.error('Error loading block:', this.currentBlock.flowName, error);
+          // Continue processing other blocks even if this one failed
+        }
 
         if ( c.flowChildren ) {
           await this.includeScript(c.flowChildren, this.currentBlock, true);
@@ -1302,7 +1323,11 @@ foam.CLASS({
 
       let oldShowNav = this.showNav;
       this.showNav = false;
-      this.onDetach(() => { this.showNav = oldShowNav;});
+      this.onDetach(() => {
+        this.showNav = oldShowNav;
+        // Detach all flow children when closing the flow page
+        this.flowChildren.forEach(c => this.detachFlowChild(c));
+      });
       this.SUPER();
 
       var self = this;
@@ -1334,17 +1359,30 @@ foam.CLASS({
       //   update this.value.script
 
       this.value.script$.sub(this.onScriptChange);
-
-      this.deepSub(this.onFlowChildrenChange, [this.FLOW_CHILDREN, this.VALUE]);
-
+      this.onScriptChange();
       var layout = this.start(this.Layout);
 
-      layout.showLeft$  = this.showPrompts$;
-      layout.showRight$ = this.showPrompts$;
+      layout.showLeft$   = this.showPrompts$;
+      layout.showRight$  = this.showPrompts$;
       layout.showHeader$ = this.flowMode$.map(m => m != this.FlowMode.PRESENTATION_ONLY);
-      layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
       layout.middle.call(this.renderSelf, [this]);
-      layout.right.tag(this.ReflowConfigView, { data$: this.selected$});
+
+      let setupEditMode = () => {
+        this.deepSub(this.onFlowChildrenChange, [this.FLOW_CHILDREN, this.VALUE]);
+        layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
+        layout.right.tag(this.ReflowConfigView, { data$: this.selected$});
+      };
+
+      if ( this.showPrompts ) {
+        setupEditMode();
+      } else {
+        let sub = this.showPrompts$.sub(() => {
+          if ( this.showPrompts ) {
+            sub.detach();
+            setupEditMode();
+          }
+        });
+      }
 
       layout.header.add(this.dynamic(function(showPrompts) {
         this.tag(self.ReflowHeader, {data: self, showPrompts: showPrompts, resetFlow: self.clearFlow});
@@ -1500,7 +1538,9 @@ foam.CLASS({
           if ( ! block.flowName ) {
             // For commands like 'cells(2,3)' pickout 'cells' as the block name
             var m = cmd.match(/^\s*([a-zA-Z][a-zA-Z0-9_\$]*)\(/);
-            if ( m ) block.flowName = this.createFlowChildName(m[1]);
+            block.flowName = m ? m[1] : 'a';
+            // Make sure we aren't duplicating an existing name;
+            block.flowName = this.createFlowChildName(block.flowName);
           }
         } catch (x) {
           var i = cmd.indexOf(' ');
@@ -1575,6 +1615,7 @@ foam.CLASS({
     },
 
     function removeFlowChild_(c) {
+      this.detachFlowChild(c);
       c.remove();
     },
 
