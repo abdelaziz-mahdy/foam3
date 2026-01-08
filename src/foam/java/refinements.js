@@ -1421,6 +1421,11 @@ foam.CLASS({
           cls.values     = this.VALUES;
           cls.implements = [ 'foam.lang.FEnum' ];
 
+          // TODO: temporary work-around, to be moved to FSM specific refinement
+          if ( cls.model_.cls_.id === 'foam.lang.StateMachineModel' ) {
+            cls.implements = [ 'foam.lang.StateMachineEnum' ];
+          }
+
           // TODO: needed for now because Enums don't extend FObject
           // but a better solution would be to remove setters from
           // Enums and not call asserNotFrozen in first place. KGR
