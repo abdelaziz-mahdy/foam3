@@ -72,6 +72,7 @@ foam.POM({
     { name: 'lib',                     flags: 'js' },
     { name: 'Mapping',                 flags: 'js|java' },
     { name: 'DateFormatCitationView',  flags: 'js' },
+    { name: 'NumberFormatCitationView', flags: 'js' },
     { name: 'FromCsvRefines',          flags: 'js' },
     { name: 'ToolbarControl',          flags: 'js|java' },
     { name: 'control/HelpControl',     flags: 'js' },

@@ -195,6 +195,9 @@ foam.CLASS({
       value: 'STANDARD',
       help: 'Standard format uses comma for thousands and period for decimal (1,000.00). European format uses period for thousands and comma for decimal (1.000,00).',
       documentation: 'Number format for this field (only applies to numeric properties)',
+      view: {
+        class: 'foam.core.reflow.NumberFormatRichChoiceView'
+      },
       visibility: function(type, prop) {
         // Only show for numeric properties that use FIELD or CONSTANT mapping
         if ( type === foam.core.reflow.MappingType.DYNAMIC ) return foam.u2.DisplayMode.HIDDEN;
@@ -262,109 +265,45 @@ foam.CLASS({
         value = value.trim();
       }
 
-      // Preprocess formats based on property type
+      // Set property value using fromCSV, passing format hint for date/number fields
       if ( value !== '' && value != null && value !== undefined ) {
         if ( this.prop ) {
           if ( foam.lang.Date.isInstance(this.prop) || foam.lang.DateTime.isInstance(this.prop) ) {
             // For date/datetime properties, pass format to fromCSV
-            var formatName = this.formatToParserName();
-            this.prop.set(obj, this.prop.fromCSV(value, formatName));
+            var dateFormatName = this.formatToParserName();
+            this.prop.set(obj, this.prop.fromCSV(value, dateFormatName));
             return;
           } else if ( foam.lang.Int.isInstance(this.prop) ||
                       foam.lang.Long.isInstance(this.prop) ||
                       foam.lang.Float.isInstance(this.prop) ||
                       foam.lang.Double.isInstance(this.prop) ) {
-            value = this.preprocessNumberFormat(value);
+            // For numeric properties, pass format to fromCSV
+            var numberFormatName = this.numberFormatToParserName();
+            this.prop.set(obj, this.prop.fromCSV(value, numberFormatName));
+            return;
           }
         }
         this.prop.set(obj, this.prop.fromCSV(value));
       }
     },
 
-    function preprocessDateFormat(value) {
+    function numberFormatToParserName() {
       /**
-       * Convert date strings from DD/MM/YYYY format to supported formats.
-       * Standard formats already supported by foam.lang.Date adapt:
-       *   - yyyy-mm-dd, yyyy/mm/dd, yyyymmdd
-       *   - mm/dd/yyyy, mm-dd-yyyy, mmddyyyy
+       * Maps NumberFormat enum to NumberParser grammar symbol name.
+       * This is used when calling fromCSV with format hints.
        *
-       * Convert when dateFormat is DDMMYYYY:
-       *   - dd/mm/yyyy, dd-mm-yyyy, ddmmyyyy -> yyyy-mm-dd
+       * @returns {string} Parser grammar symbol name (undefined for standard, 'european' for European)
        */
-      if ( ! value || typeof value !== 'string' ) return value;
+      if ( ! this.numberFormat ) return undefined;
 
-      var dateStr = value.trim();
-      if ( ! dateStr ) return value;
-
-      // Only convert if explicitly set to DDMMYYYY format
-      if ( this.dateFormat === this.DateFormat.DDMMYYYY ) {
-        return this.convertDDMMYYYY(dateStr);
+      // Map enum values to parser symbol names
+      switch ( this.numberFormat.name ) {
+        case 'EUROPEAN':
+          return 'european';
+        case 'STANDARD':
+        default:
+          return undefined;
       }
-
-      // Otherwise return as-is for standard format handling
-      return value;
-    },
-
-    function convertDDMMYYYY(dateStr) {
-      /**
-       * Convert DD/MM/YYYY, DD-MM-YYYY, or DDMMYYYY to yyyy-mm-dd format
-       */
-      // Try delimited format: dd/mm/yyyy or dd-mm-yyyy
-      var match = dateStr.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
-      if ( match ) {
-        var day = match[1].padStart(2, '0');
-        var month = match[2].padStart(2, '0');
-        var year = match[3];
-        return year + '-' + month + '-' + day;
-      }
-
-      // Try compact format: ddmmyyyy
-      match = dateStr.match(/^(\d{2})(\d{2})(\d{4})$/);
-      if ( match ) {
-        return match[3] + '-' + match[2] + '-' + match[1]; // yyyy-mm-dd
-      }
-
-      // Couldn't parse, return as-is and let foam.lang.Date.adapt handle it
-      return dateStr;
-    },
-
-    function preprocessNumberFormat(value) {
-      /**
-       * Convert number strings from European format to standard format.
-       * Standard format (US/UK): comma for thousands, period for decimal (1,000.00)
-       * European format (DE/FR): period for thousands, comma for decimal (1.000,00)
-       *
-       * Convert when numberFormat is EUROPEAN:
-       *   - 1.000,00 -> 1000.00
-       */
-      if ( ! value || typeof value !== 'string' ) return value;
-
-      var numStr = value.trim();
-      if ( ! numStr ) return value;
-
-      // Only convert if explicitly set to EUROPEAN format
-      if ( this.numberFormat === this.NumberFormat.EUROPEAN ) {
-        return this.convertEuropeanNumber(numStr);
-      }
-
-      // Otherwise return as-is for standard format handling
-      return value;
-    },
-
-    function convertEuropeanNumber(numStr) {
-      /**
-       * Convert European number format (1.000,00) to standard format (1000.00)
-       * Steps:
-       * 1. Remove periods (thousands separators)
-       * 2. Replace comma with period (decimal separator)
-       */
-      // Remove all periods (thousands separators in European format)
-      numStr = numStr.replace(/\./g, '');
-
-      // Replace comma with period (decimal separator)
-      numStr = numStr.replace(/,/g, '.');
-
-      return numStr;
     },
 
     function evaluateExpression(expression, rowData) {
