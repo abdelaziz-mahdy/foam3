@@ -29,24 +29,13 @@ foam.CLASS({
     {
       class: 'Function',
       name: 'fromCSV',
-      documentation: `
-        Parses integer values from CSV with optional locale support.
-        Parameters:
-        - str: The string to parse
-        - opt_parser: Optional NumberParser instance for locale-aware parsing
-      `,
-      value: function(str, opt_parser) {
+      documentation: 'Parses integer values from CSV. Removes commas (thousands separators) before parsing.',
+      value: function(str) {
         if ( ! str || typeof str !== 'string' ) {
           return this.fromString(str);
         }
 
-        // If a NumberParser is provided, use it for locale-aware parsing
-        if ( opt_parser && opt_parser.parse ) {
-          var parsed = opt_parser.parse(str);
-          return isNaN(parsed) ? this.fromString(str) : Math.floor(parsed);
-        }
-
-        // Default behavior: remove commas (US format) then parse
+        // Remove commas (thousands separators in standard format)
         if ( str.includes(',') ) {
           str = str.replace(/,/g, '');
         }
@@ -65,24 +54,13 @@ foam.CLASS({
     {
       class: 'Function',
       name: 'fromCSV',
-      documentation: `
-        Parses float values from CSV with optional locale support.
-        Parameters:
-        - str: The string to parse
-        - opt_parser: Optional NumberParser instance for locale-aware parsing
-      `,
-      value: function(str, opt_parser) {
+      documentation: 'Parses float values from CSV. Removes commas (thousands separators) before parsing.',
+      value: function(str) {
         if ( ! str || typeof str !== 'string' ) {
           return this.fromString(str);
         }
 
-        // If a NumberParser is provided, use it for locale-aware parsing
-        if ( opt_parser && opt_parser.parse ) {
-          var parsed = opt_parser.parse(str);
-          return isNaN(parsed) ? this.fromString(str) : parsed;
-        }
-
-        // Default behavior: remove commas (US format) then parse
+        // Remove commas (thousands separators in standard format)
         if ( str.includes(',') ) {
           str = str.replace(/,/g, '');
         }

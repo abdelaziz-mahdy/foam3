@@ -47,13 +47,33 @@ foam.ENUM({
 });
 
 
+foam.ENUM({
+  package: 'foam.core.reflow',
+  name: 'NumberFormat',
+
+  values: [
+    {
+      name: 'STANDARD',
+      label: 'Standard (1,000.00)',
+      documentation: 'US/UK format: comma for thousands, period for decimal'
+    },
+    {
+      name: 'EUROPEAN',
+      label: 'European (1.000,00)',
+      documentation: 'European format: period for thousands, comma for decimal'
+    }
+  ]
+});
+
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Mapping',
 
   requires: [
     'foam.core.reflow.MappingType',
-    'foam.core.reflow.DateFormat'
+    'foam.core.reflow.DateFormat',
+    'foam.core.reflow.NumberFormat'
   ],
 
   imports: [ 'scope?' ],
@@ -144,6 +164,25 @@ foam.CLASS({
         var isDateProp = foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop);
         return isDateProp ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
+    },
+    {
+      class: 'Enum',
+      of: 'foam.core.reflow.NumberFormat',
+      name: 'numberFormat',
+      label: '',
+      value: 'STANDARD',
+      help: 'Standard format uses comma for thousands and period for decimal (1,000.00). European format uses period for thousands and comma for decimal (1.000,00).',
+      documentation: 'Number format for this field (only applies to numeric properties)',
+      visibility: function(type, prop) {
+        // Only show for numeric properties that use FIELD or CONSTANT mapping
+        if ( type === foam.core.reflow.MappingType.DYNAMIC ) return foam.u2.DisplayMode.HIDDEN;
+        if ( ! prop ) return foam.u2.DisplayMode.HIDDEN;
+        var isNumericProp = foam.lang.Int.isInstance(prop) ||
+                            foam.lang.Long.isInstance(prop) ||
+                            foam.lang.Float.isInstance(prop) ||
+                            foam.lang.Double.isInstance(prop);
+        return isNumericProp ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
     }
   ],
 
@@ -180,10 +219,17 @@ foam.CLASS({
         value = value.trim();
       }
 
-      // Preprocess date formats if this is a date field
+      // Preprocess formats based on property type
       if ( value !== '' && value != null && value !== undefined ) {
-        if ( this.prop && (foam.lang.Date.isInstance(this.prop) || foam.lang.DateTime.isInstance(this.prop)) ) {
-          value = this.preprocessDateFormat(value);
+        if ( this.prop ) {
+          if ( foam.lang.Date.isInstance(this.prop) || foam.lang.DateTime.isInstance(this.prop) ) {
+            value = this.preprocessDateFormat(value);
+          } else if ( foam.lang.Int.isInstance(this.prop) ||
+                      foam.lang.Long.isInstance(this.prop) ||
+                      foam.lang.Float.isInstance(this.prop) ||
+                      foam.lang.Double.isInstance(this.prop) ) {
+            value = this.preprocessNumberFormat(value);
+          }
         }
         this.prop.set(obj, this.prop.fromCSV(value));
       }
@@ -234,6 +280,45 @@ foam.CLASS({
 
       // Couldn't parse, return as-is and let foam.lang.Date.adapt handle it
       return dateStr;
+    },
+
+    function preprocessNumberFormat(value) {
+      /**
+       * Convert number strings from European format to standard format.
+       * Standard format (US/UK): comma for thousands, period for decimal (1,000.00)
+       * European format (DE/FR): period for thousands, comma for decimal (1.000,00)
+       *
+       * Convert when numberFormat is EUROPEAN:
+       *   - 1.000,00 -> 1000.00
+       */
+      if ( ! value || typeof value !== 'string' ) return value;
+
+      var numStr = value.trim();
+      if ( ! numStr ) return value;
+
+      // Only convert if explicitly set to EUROPEAN format
+      if ( this.numberFormat === this.NumberFormat.EUROPEAN ) {
+        return this.convertEuropeanNumber(numStr);
+      }
+
+      // Otherwise return as-is for standard format handling
+      return value;
+    },
+
+    function convertEuropeanNumber(numStr) {
+      /**
+       * Convert European number format (1.000,00) to standard format (1000.00)
+       * Steps:
+       * 1. Remove periods (thousands separators)
+       * 2. Replace comma with period (decimal separator)
+       */
+      // Remove all periods (thousands separators in European format)
+      numStr = numStr.replace(/\./g, '');
+
+      // Replace comma with period (decimal separator)
+      numStr = numStr.replace(/,/g, '.');
+
+      return numStr;
     },
 
     function evaluateExpression(expression, rowData) {

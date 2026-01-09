@@ -66,7 +66,7 @@ foam.CLASS({
         start('th').add('Property').end().
         start('th').add('Type').end().
         start('th').add('Value').end().
-        start('th').add('Date Format').end().
+        start('th').add('Format').end().
         start('th').add('Required').end().
       end().
       add(this.dynamic(function(data) {
@@ -77,6 +77,10 @@ foam.CLASS({
           var targetModel = mapping.of;
           var prop = targetModel && targetModel.getAxiomByName(mapping.property);
           var isDateProp = prop && (foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop));
+          var isNumericProp = prop && (foam.lang.Int.isInstance(prop) ||
+                                       foam.lang.Long.isInstance(prop) ||
+                                       foam.lang.Float.isInstance(prop) ||
+                                       foam.lang.Double.isInstance(prop));
 
           this.
             startContext({ data: mapping }).
@@ -93,6 +97,9 @@ foam.CLASS({
               start('td').
                 callIf(isDateProp, function() {
                   this.add(mapping.DATE_FORMAT.__);
+                }).
+                callIf(isNumericProp, function() {
+                  this.add(mapping.NUMBER_FORMAT.__);
                 }).
               end().
               start('td').add(prop ? (prop.required || false) : false).end().
