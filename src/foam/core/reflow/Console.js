@@ -556,6 +556,11 @@ foam.CLASS({
       hidden: false
     },
     {
+      class: 'Boolean',
+      name: 'allowLimitedEdit',
+      documentation: 'When true, Block configuration remains accessible in LIMIT_EDIT_CONSOLE mode.'
+    },
+    {
       class: 'foam.u2.ViewSpec',
       name: 'border',
       label: 'Border Properties',
@@ -1436,7 +1441,7 @@ foam.CLASS({
       let setupEditMode = () => {
         this.deepSub(this.onFlowChildrenChange, [this.FLOW_CHILDREN, this.VALUE]);
         layout.left.tag(this.FlowableTree, {data: this, selected$: this.selected$, isMenuOpen$: layout.isMenuOpen$});
-        layout.right.tag(this.ReflowConfigView, { data$: this.selected$});
+        layout.right.tag(this.ReflowConfigView, { data$: this.selected$, flowMode$: this.flowMode$});
       };
 
       if ( this.showPrompts ) {
