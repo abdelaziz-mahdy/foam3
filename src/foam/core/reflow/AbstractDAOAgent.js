@@ -12,7 +12,10 @@ foam.CLASS({
     'foam.mlang.Expressions'
   ],
 
-  requires: [ 'foam.dao.ArraySink' ],
+  requires: [
+    'foam.dao.ArraySink',
+    'foam.core.reflow.ErrorView'
+  ],
 
   imports: [ 'block', 'dao as referenceDAO', 'sinkDAO as dao', 'sinkUnlimitedDAO as unlimitedDAO' ],
 
@@ -39,15 +42,22 @@ foam.CLASS({
         } else {
           this.block.value = this.value(s);
         }
-        // s = s.clone({columnStorage: sink.__context__.columnStorage});
 
-        e.startContext({dao: this.dao/*, columnStorage: sink.__context__.columnStorage*/})
+        // This is needed in case the Sink traveled across the network but needs values
+        // (like 'block') from the current context.
+        s = s.clone(this.__subContext__);
+
+        e.startContext({dao: this.dao})
           .start()
             .call(function() {
               self.addSinkToE(this, s);
             })
           .end()
         .endContext();
+      }).catch(error => {
+        console.error('AbstractDAOAgent execution error:', error);
+        e.tag(self.ErrorView, { error: error });
+        // Don't re-throw the error to allow other blocks to continue loading
       });
     },
     function addSinkToE(e, s) {
@@ -180,7 +190,6 @@ foam.CLASS({
           with ( { o: o, log: this.__context__.log } ) {
             eval(this.code);
           }
-//          console.log(i);
         }
       });
     },
@@ -355,11 +364,11 @@ foam.CLASS({
         config.selectedObjects$ = this.selectedObjects$;
       }
 
-
-      e.startContext({click: self.click}).
+      e.startContext({click: self.click, columnStorage: this.columnStorage}).
         callIf(config.multiSelectEnabled, function() {
           this.startContext({data: self})
             .start()
+              .show(self.selectedObjects$.map(o => Object.keys(o).length > 0 ))
               .style({
                 'display':'flex',
                 'justify-content':'flex-end',
@@ -368,7 +377,7 @@ foam.CLASS({
               .add(multiSelectActions)
             .end()
           .endContext();
-        }).
+          }).
         start(self.TableView, config).
           style({height: '600px'});
 
@@ -492,7 +501,12 @@ foam.CLASS({
       value: 0,
       help: 'Keep top N groups by value (0 = disabled). Remaining groups can be merged into "Others".',
       visibility: function(sink) {
-        return sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -502,7 +516,12 @@ foam.CLASS({
       value: true,
       help: 'Include "Others" group for remaining items when using Top N',
       visibility: function(topN, sink) {
-        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( topN <= 0 || ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -513,7 +532,12 @@ foam.CLASS({
       value: 'DESC',
       help: 'Sort order for value-based limiting',
       visibility: function(topN, sink) {
-        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( topN <= 0 || ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -523,7 +547,12 @@ foam.CLASS({
       value: 'Others',
       help: 'Label for the aggregated "Others" category',
       visibility: function(topN, sink) {
-        return topN > 0 && sink && this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        if ( topN <= 0 || ! sink ) return foam.u2.DisplayMode.HIDDEN;
+        try {
+          return this.TopNGroupBy.isSupported(sink.createSink()) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+        } catch (e) {
+          return foam.u2.DisplayMode.HIDDEN;
+        }
       }
     },
     {
@@ -602,7 +631,7 @@ foam.CLASS({
         var cls   = block?.value?.value?.cls_;
 
         await block.value.waitForRun();
-        this.eval_(`dao(${block.flowName}.valueDAO, '${block.flowName}GroupBy')`);
+        this.eval_(`dao('${block.flowName}.valueDAO', '${block.flowName}GroupBy')`);
       }
     }
   ]
@@ -849,6 +878,7 @@ foam.CLASS({
   ]
 });
 
+
 foam.CLASS({
   package: 'foam.core.reflow',
   name: 'ObjectSelectDAOAgent',
@@ -932,26 +962,71 @@ foam.CLASS({
   name: 'DownloadView',
   extends: 'foam.u2.Controller',
 
-  // TODO: detect local DAOs and disable
-
   imports: [ 'block', 'sessionID', 'window' ],
+
+  requires: [
+    'foam.core.export.CSVTableExportDriver',
+    'foam.core.export.JSONDriver',
+    'foam.core.export.JSONJDriver',
+    'foam.core.export.XMLDriver'
+  ],
+
+  properties: [
+    {
+      name: 'formats',
+      factory: function() {
+        return [
+          { label: 'CSV',    extension: '.csv',  format: 'csv',   driver: this.CSVTableExportDriver },
+          { label: 'JSON',   extension: '.json', format: 'json',  driver: this.JSONDriver },
+          { label: 'JSON/J', extension: '.jrl',  format: 'jsonj', driver: this.JSONJDriver },
+          { label: 'XML',    extension: '.xml',  format: 'xml',   driver: this.XMLDriver }
+        ];
+      }
+    }
+  ],
 
   methods: [
     async function render() {
+      var dao         = this.block.value.filteredDAO;
+      var serviceName = dao.cmd('serviceName?');
+      var isLocal     = ! serviceName;
+
+      if ( isLocal ) {
+        this.renderLocalDownloads(dao);
+      } else {
+        await this.renderServiceDownloads(dao, serviceName);
+      }
+
+      return this;
+    },
+
+    function renderLocalDownloads(dao) {
+      var self      = this;
+      var modelName = dao.of?.name || 'data';
+
+      this.add('Download As: ');
+      this.formats.forEach((fmt, idx) => {
+        if ( idx > 0 ) this.add(', ');
+        this.start('a').
+          style({ cursor: 'pointer', color: '#0066cc', 'text-decoration': 'underline' }).
+          on('click', async function() {
+            await self.downloadLocal(dao, modelName, fmt);
+          }).
+          add(fmt.label).
+        end();
+      });
+    },
+
+    async function renderServiceDownloads(dao, serviceName) {
       var location = this.window.location.origin;
-      var dao      = this.block.value.filteredDAO;
-      var daoKey   = dao.cmd('serviceName?').substring(8);
+      var daoKey   = serviceName.substring(8);
       var url      = `${location}/service/dig?dao=${daoKey}&cmd=select&sessionId=${this.sessionID}&limit=${this.block.value.limit}`;
 
-      // We can't just use the DAOPrompt.where because if the DAO is decorated with
-      // something like ProgramAwareDAO, then the query added there won't appear.
-      // So instead we probe th DAO to find out the actual full query being used.
-
+      // Probe DAO to find the actual full query being used
       try {
         var sink = foam.dao.ArraySink.create();
         sink.setPredicate = function(p) {
-          var mql = p.toMQL();
-          url = url + '&q=' + encodeURIComponent(mql);
+          url = url + '&q=' + encodeURIComponent(p.toMQL());
           throw "just probing";
         };
         await dao.select(sink);
@@ -962,23 +1037,42 @@ foam.CLASS({
         url = url + '&columns=' + encodeURIComponent(this.block.value.columns);
       }
 
-      var addFormat = (label, extension, format) => {
-        this.start('a').
-          attrs({
-            href: url + '&format=' + format,
-            rel: 'noopener noreferrer',
-            download: daoKey + extension,
-            target: '_blank'
-          }).
-          add(label);
-        return this;
-      };
-
       this.add('Download As: ');
-      addFormat('CSV',    '.csv',  'csv'  ).add(', ');
-      addFormat('JSON',   '.json', 'json' ).add(', ');
-      addFormat('JSON/J', '.jrl',  'jsonj').add(', ');
-      addFormat('XML',    '.xml',  'xml'  );
+      this.formats.forEach((fmt, idx) => {
+        if ( idx > 0 ) this.add(', ');
+        this.
+          start('a').
+            attrs({
+              href: url + '&format=' + fmt.format,
+              rel: 'noopener noreferrer',
+              download: daoKey + fmt.extension,
+              target: '_blank'
+            }).
+            add(fmt.label).
+          end();
+      });
+    },
+
+    async function downloadLocal(dao, modelName, format) {
+      try {
+        var driver    = format.driver.create({}, this);
+        var result    = await driver.exportDAO(this.__context__, dao);
+        var blob      = new Blob([result], { type: 'text/plain' });
+        var url       = URL.createObjectURL(blob);
+        var link      = document.createElement('a');
+        var timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${modelName}_Export_${timestamp}${format.extension}`);
+        document.body.appendChild(link);
+        link.click();
+
+        URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Export failed:', error);
+        alert('Export failed: ' + error.message);
+      }
     }
   ]
 });

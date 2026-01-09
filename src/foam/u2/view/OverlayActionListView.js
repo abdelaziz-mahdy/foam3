@@ -66,7 +66,19 @@ foam.CLASS({
       class: 'Boolean',
       name: 'overlayInitialized_'
     },
-    'dao',
+    {
+      name: 'dao',
+      documentation: `Optional DAO to re-fetch the object from before passing it to actions.
+       Useful when creating action lists for incomplete objects like projections.`
+    },
+    {
+      class: 'String',
+      name: 'id',
+      documentation: `Id for the obj the actions use as data, must be provided if dao is provided.`,
+      expression: function(obj) {
+        return obj?.id;
+      }
+    },
     {
       class: 'Boolean',
       name: 'showDropdownIcon',
@@ -181,6 +193,9 @@ foam.CLASS({
     ^iconContainer {
       margin-left: auto;
     }
+    @media print {
+      ^ { display: none !important; }
+    }
   `,
 
   methods: [
@@ -241,7 +256,8 @@ foam.CLASS({
       this.overlay_.open(x, y);
 
       if ( ! this.obj && this.dao ) {
-        this.obj = await this.dao.inX(this.__context__).find(this.obj.id);
+        foam.assert(this.id, 'Id must be provided when obj needs to be fetched in OverlayActionListView');
+        this.obj = await this.dao.inX(this.__context__).find(this.id);
       }
 
       self.availabilities_$.follow(self.createAvailabilitySlotArray())
@@ -259,7 +275,7 @@ foam.CLASS({
       view$ = this.dynamic(function(availabilities_) {
         this.startContext({ data: self.obj, dropdown: self.overlay_ });
         if ( availabilities_ === false ) {
-          this.addClass('p', self.myClass('disabled')).add(this.NO_AVAILABLE);
+          this.start().addClass('p', self.myClass('disabled')).add(self.NO_AVAILABLE).end();
           spinner.remove();
         } else if ( availabilities_ === null ) {
           // this may happen when availability slots are pending promise checks

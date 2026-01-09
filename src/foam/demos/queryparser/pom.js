@@ -6,11 +6,14 @@
 
 foam.POM({
   name: "autocomplete",
+
   projects: [
     { name: '../../../../foam3/src/pom' },
     { name: '../../../../foam3/src/foam/core/pom' }
   ],
+
   files: [
-    { name: 'Controller' }
+    { name: 'FScriptQueryController' },
+    { name: 'QueryController' }
   ]
 });
