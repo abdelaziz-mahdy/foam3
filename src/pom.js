@@ -437,7 +437,7 @@ foam.POM({
     { name: "foam/parse/test/QueryParserUserTest",                    flags: "js&test|java&test" },
     { name: "foam/parse/test/SimpleQueryParserTest",                  flags: "js&test|java&test" },
     { name: "foam/parse/test/DateParserTest",                         flags: "js&test|java&test" },
-    { name: "foam/parse/test/NumberParserTest",                      flags: "js&test" },
+    { name: "foam/parse/test/NumberParserTest",                      flags: "js&test|java&test" },
     { name: "foam/physics/Physical",                                  flags: "js" },
     { name: "foam/physics/Collider",                                  flags: "js" },
     { name: "foam/physics/PhysicsEngine",                             flags: "js" },
