@@ -247,11 +247,9 @@ foam.CLASS({
                 showDropdownIcon: false,
                 horizontal: false
               })
+              .start('span').addClass(this.myClass('separator')).end()
+              .tag(this.FULL_SCREEN, { themeIcon$: self.data.flowMode$.map(c => c == self.FlowMode.CONSOLE || c == self.FlowMode.LIMIT_EDIT_CONSOLE  ? 'fullScreen' : 'minimize') })
             .endContext()
-            .callIf(! isLimitedEditConsole, function() {
-              this.start('span').addClass(self.myClass('separator')).end()
-                .tag(self.FULL_SCREEN, { themeIcon$: self.data.flowMode$.map(c => c == self.FlowMode.CONSOLE ? 'fullScreen' : 'minimize') });
-            })
             // callIf(this.data.showPrompts$, function() {
             //   this.start().addClass(self.myClass('save-text'))
             //     .add('The Flow is saved automatically')
@@ -388,8 +386,7 @@ foam.CLASS({
       isAvailable: function(data$flowMode) {
         // Hide toggle button in PRESENTATION_ONLY and limited edit modes
         return data$flowMode != this.FlowMode.PRESENTATION_ONLY &&
-               data$flowMode != this.FlowMode.LIMIT_EDIT &&
-               data$flowMode != this.FlowMode.LIMIT_EDIT_CONSOLE;
+               data$flowMode != this.FlowMode.LIMIT_EDIT;
       },
       code: function() {
         if ( this.data.flowMode == this.FlowMode.CONSOLE ) {
