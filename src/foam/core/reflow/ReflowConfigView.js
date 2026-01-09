@@ -12,7 +12,8 @@ foam.CLASS({
   requires: [
     'foam.core.reflow.ReactiveSectionedDetailView',
     'foam.core.reflow.Block',
-    'foam.core.reflow.FlowMode'
+    'foam.core.reflow.FlowMode',
+    'foam.core.reflow.Flow'
   ],
   css:` 
     ^ {
@@ -52,9 +53,10 @@ foam.CLASS({
           }));
         })
         .add(this.dynamic(function(data$configViewSpec, selectedValue, flowMode, data) {
-          var limitedBlocked = flowMode == self.FlowMode.LIMIT_EDIT_CONSOLE &&
-            self.Block.isInstance(data) &&
-            data.allowLimitedEdit !== true;
+          var limitedBlocked = flowMode == self.FlowMode.LIMIT_EDIT_CONSOLE && (
+            ( self.Block.isInstance(data) && data.allowLimitedEdit !== true ) ||
+            ( self.Flow.isInstance(selectedValue) )
+          );
 
           if ( limitedBlocked ) {
             this.add('Access Denied');
