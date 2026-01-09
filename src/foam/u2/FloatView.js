@@ -24,7 +24,7 @@ foam.CLASS({
   documentation: 'View for editing Float Properties.',
 
   requires: [
-    'foam.lib.parse.NumberParser'
+    'foam.parse.NumberParser'
   ],
 
   properties: [
@@ -44,28 +44,16 @@ foam.CLASS({
     'preventFeedback',
     {
       class: 'String',
-      name: 'locale',
-      documentation: 'Locale for number parsing (e.g., "en-US", "fr-FR", "de-DE"). If not set, uses browser default.',
-      factory: function() {
-        // Default to browser locale
-        return typeof Intl !== 'undefined' ?
-          Intl.NumberFormat().resolvedOptions().locale :
-          'en-US';
-      },
-      postSet: function(old, nu) {
-        if ( old !== nu && this.parser ) {
-          this.parser.locale = nu;
-          this.parser.initSeparators();
-        }
-      }
-    },
-    {
-      name: 'parser',
-      documentation: 'NumberParser instance for locale-aware number parsing',
+      name: 'numberFormat_',
+      documentation: 'Internal: Parser format derived from foam.locale (undefined for standard, "european" for European)',
       hidden: true,
-      transient: true,
-      factory: function() {
-        return this.NumberParser.create({ locale: this.locale });
+      getter: function() {
+        // Use foam.locale to determine number format
+        var locale = foam.locale || 'en-US';
+        var lang = locale.split('-')[0].toLowerCase();
+        // European format locales use comma as decimal separator
+        var europeanLocales = ['de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'cs', 'sk', 'hu', 'ro', 'bg', 'el', 'ru', 'uk', 'tr', 'id', 'vi'];
+        return europeanLocales.indexOf(lang) !== -1 ? 'european' : undefined;
       }
     }
   ],
@@ -126,34 +114,28 @@ foam.CLASS({
     },
 
     function dataToText(val) {
-      // Use NumberParser for locale-aware formatting if locale is specified
-      if ( this.locale && this.parser ) {
-        if ( foam.Undefined.isInstance(this.precision) ) {
-          return this.parser.format(val);
-        } else {
-          // Format with precision
-          var options = {
-            minimumFractionDigits: this.precision,
-            maximumFractionDigits: this.precision
-          };
-          var formatted = this.parser.format(val, options);
-          return this.trimZeros ? this.parser.format(Number(val), options) : formatted;
+      // Use Intl.NumberFormat with foam.locale for formatting
+      if ( typeof Intl !== 'undefined' ) {
+        var locale = foam.locale || 'en-US';
+        var options = {};
+        if ( ! foam.Undefined.isInstance(this.precision) ) {
+          options.minimumFractionDigits = this.trimZeros ? 0 : this.precision;
+          options.maximumFractionDigits = this.precision;
         }
+        return new Intl.NumberFormat(locale, options).format(val);
       }
 
       // Fallback to default formatting
-      return foam.Undefined.isInstance(this.precision) ?
-        '' + val :
-        this.formatNumber(val);
+      if ( foam.Undefined.isInstance(this.precision) ) {
+        return '' + val;
+      }
+      return this.formatNumber(val);
     },
 
     function textToData(text) {
-      // Use NumberParser if locale is specified
-      if ( this.locale ) {
-        var parsed = this.parser.parse(text);
-        return isNaN(parsed) ? 0 : parsed;
-      }
-      return parseFloat(text) || 0;
+      // Use NumberParser with locale-derived format
+      var parsed = this.NumberParser.create().parseString(text, this.numberFormat_);
+      return isNaN(parsed) ? 0 : parsed;
     },
 
     function viewListenerFn() {
