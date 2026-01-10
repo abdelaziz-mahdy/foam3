@@ -428,16 +428,25 @@ foam.CLASS({
 
   methods: [
     function render() {
+      var self = this;
       this.
         addClass().
-        start().addClass(this.myClass('container'))
-          .start('span').addClass(this.myClass('title'))
-            .add(this.data.value.name$.map(n => n || 'Unnamed'))
-          .end()
-          .startContext({ data: this })
-            .tag(this.EDIT_LIMITED)
-          .endContext()
-        .end();
+        add(this.slot(function(flow, permission) {
+          var e = self.E().start().addClass(self.myClass('container'));
+
+          if ( permission ) {
+            var action = self.EDIT_LIMITED.clone();
+            action.availablePermissions = [ permission ];
+            action.availablePermissionsSlot_ = null; // reset permission cache
+
+            e.startContext({ data: self })
+              .tag(action)
+            .endContext();
+          }
+
+          return e.end();
+        }, this.data.value$, this.data.value$.dot('limitedEditPermission')))
+        ;
     }
   ],
 
