@@ -229,9 +229,9 @@ foam.CLASS({
           .end()
 
           .start().addClass(this.myClass('header-actions'))
-            .startContext({ data: this.data.mementoMgr })
-              .tag(this.data.mementoMgr.BACK)
-              .tag(this.data.mementoMgr.FORTH)
+            .startContext({ data: this })
+              .tag(this.UNDO)
+              .tag(this.REDO)
             .endContext()
             .start('span').addClass(this.myClass('separator')).end()
             .startContext({data: this})
@@ -376,6 +376,32 @@ foam.CLASS({
         this.mementoMgr.clear();
         flow.version  = undefined;
         flow.revision = undefined;
+      }
+    },
+    {
+      name: 'undo',
+      label: '',
+      help: 'Undo',
+      buttonStyle: 'BLACK',
+      themeIcon: 'redo',
+      isEnabled: function(data$mementoMgr$stackSize_, data$isLoading_) {
+        return !! data$mementoMgr$stackSize_ && ! data$isLoading_;
+      },
+      code: function() {
+        this.data.mementoMgr.back();
+      }
+    },
+    {
+      name: 'redo',
+      label: '',
+      help: 'Redo',
+      buttonStyle: 'BLACK',
+      themeIcon: 'undo',
+      isEnabled: function(data$mementoMgr$redoSize_, data$isLoading_) {
+        return !! data$mementoMgr$redoSize_ && ! data$isLoading_;
+      },
+      code: function() {
+        this.data.mementoMgr.forth();
       }
     },
     {
