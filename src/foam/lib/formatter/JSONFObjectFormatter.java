@@ -212,19 +212,23 @@ public class JSONFObjectFormatter
       p.formatJSON(this, o);
       // If nothing was written for the value (eg: empty/default nested FObject),
       // output a minimal object carrying the class to avoid blank entries.
+      // Only do this when OutputDefaultClassNames is true, otherwise preserve
+      // original behavior (which may produce invalid JSON for edge cases).
       if ( builder().length() == valueStart ) {
         setLength(startLen);
         outputKey(getPropertyName(p));
         append(':');
-        if ( propObj instanceof FObject ) {
+        if ( propObj instanceof FObject && outputDefaultClassNames_ ) {
           append('{');
           outputKey("class");
           append(':');
           output(((FObject) propObj).getClassInfo().getId());
           append('}');
-        } else {
+        } else if ( ! ( propObj instanceof FObject ) ) {
           append("null");
         }
+        // else: FObject with OutputDefaultClassNames=false - leave empty
+        // (preserves original behavior, produces invalid JSON as expected)
       }
     } catch (Throwable t) {
       System.err.println("***************************************************** error outputting " + getPropertyName(p));
