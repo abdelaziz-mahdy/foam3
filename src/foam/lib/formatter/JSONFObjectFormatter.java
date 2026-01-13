@@ -204,9 +204,28 @@ public class JSONFObjectFormatter
 
   protected void outputProperty(FObject o, PropertyInfo p) {
     try {
+      int startLen = builder().length();
       outputKey(getPropertyName(p));
       append(':');
+      int valueStart = builder().length();
+      Object propObj = p.get(o);
       p.formatJSON(this, o);
+      // If nothing was written for the value (eg: empty/default nested FObject),
+      // output a minimal object carrying the class to avoid blank entries.
+      if ( builder().length() == valueStart ) {
+        setLength(startLen);
+        outputKey(getPropertyName(p));
+        append(':');
+        if ( propObj instanceof FObject ) {
+          append('{');
+          outputKey("class");
+          append(':');
+          output(((FObject) propObj).getClassInfo().getId());
+          append('}');
+        } else {
+          append("null");
+        }
+      }
     } catch (Throwable t) {
       System.err.println("***************************************************** error outputting " + getPropertyName(p));
       // System.err.println("" + p.get(o));
