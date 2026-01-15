@@ -52,15 +52,37 @@ foam.CLASS({
       documentation: 'Set to true when "str" is being set to prevent feedback.'
     },
     {
+      class: 'Boolean',
+      name: 'parentInitiated_',
+      documentation: 'Set to true when str is being set from parent postSet.'
+    },
+    {
       name: 'parent',
       postSet: function(_, p) {
+        // Don't overwrite an existing routed tail with an embedded/inline view.
+        // Embedded views (like foam.u2.DetailView created via FObject.toE) shouldn't
+        // affect the navigation chain. Only views with a 'route' property (routers)
+        // should be able to set themselves as tail.
+        var childHasRoute = this.obj?.cls_?.getAxiomByName?.('route')?.memorable;
+        var existingTailHasRoute = p.tail?.obj?.cls_?.getAxiomByName?.('route')?.memorable;
+
+        if ( p.tail && existingTailHasRoute && ! childHasRoute ) {
+          // Don't overwrite a router's tail with a non-router view
+          this.parentInitiated_ = true;
+          this.str = p.tailStr;
+          this.parentInitiated_ = false;
+          return;
+        }
+
         p.tail   = this;
         // Should this be done? Maybe only for something like AltView, so it
         // should do it.
         // If the child is created after the parent (which is usual), then we
         // need to keep the tailStr around until then. But if something like
         // a menu is switched, don't want to keep orphaned bindings.
+        this.parentInitiated_ = true;
         this.str = p.tailStr;
+        this.parentInitiated_ = false;
       },
       documentation: 'The parent Memento for this Memento (parent.tail == this).'
     },
@@ -110,7 +132,7 @@ foam.CLASS({
             var value = consumeBinding(p.shortName || p.name);
             // Remove the tail memento if the route changes to prevent retaining stale parameters.
             if ( ( p.name === 'route' || p.shortName === 'route' ) && this.obj[p.name] !== value && this.tail ) {
-              // this.detachTail();
+              this.detachTail();
             }
             // Even if value doesn't exist, then still set, to revert to default value
             value = value && decodeURIComponent(value);
@@ -121,6 +143,9 @@ foam.CLASS({
         } finally {
           this.feedback_ = false;
         }
+        // Trigger update to propagate changes to root (was blocked during parsing by feedback_)
+        // Don't update if str was set from parent postSet (parent chain handles that)
+        if ( ! this.parentInitiated_ ) this.update();
       }
     },
     {
@@ -151,7 +176,6 @@ foam.CLASS({
     },
 
     function detachTail() {
-      // console.log('detaching tail', this.tailStr)
       this.tail?.detach();
       this.tail = null;
       this.tailStr = '';
@@ -234,7 +258,9 @@ foam.CLASS({
         }
       });
 
-      if ( ! opt_untilObj ) this.usedStr = this.toString(ret);
+      if ( ! opt_untilObj ) {
+        this.usedStr = this.toString(ret);
+      }
 
       return ret;
     }
@@ -258,8 +284,7 @@ foam.CLASS({
       code: function(slot) {
         if ( this.feedback_ ) return;
         if ( this.parent && this.parent.tail !== this ) {
-          // console.log('***************** update() of orphaned Memento');
-          // Update received from a child
+          // Orphaned memento - parent's tail was changed to something else
           if ( slot ) {
             slot.detach();
           } else {
@@ -267,7 +292,6 @@ foam.CLASS({
           }
           return;
         }
-// console.log('*** update() objClass:', this.obj && this.obj.cls_.name, 'property:', arguments[2], 'value:', arguments[3]?.get());
         this.update_();
       }
     },
@@ -276,7 +300,6 @@ foam.CLASS({
       isMerged: true,
       mergeDelay: 32,
       code: function() {
-        // console.log('*** update_(): ', this.$UID, this.cls_.name, 'objClass:', this.obj.cls_.name, 'tail:', this.tail && (this.tail.$UID + ' ' + this.tail.usedStr), 'usedStr:', this.usedStr);
         if ( this.parent ) {
           this.parent.update();
         } else {
@@ -306,6 +329,12 @@ foam.CLASS({
       name: 'hashFeedback_',
       hidden: true
     },
+    {
+      class: 'Boolean',
+      name: 'initializing_',
+      documentation: 'True during initial URL parse to prevent premature URL updates.',
+      hidden: true
+    },
     'detacher_'
   ],
 
@@ -313,10 +342,18 @@ foam.CLASS({
     function init() {
       this.SUPER();
 
+      // Set initializing flag to prevent URL updates during initial parse
+      this.initializing_ = true;
       this.onHashChange();
       this.window.onpopstate = this.onHashChange;
       this.usedStr$.sub(this.onMementoChange);
-      this.window.history.replaceState({},'',this.window.location.href)
+      this.window.history.replaceState({},'',this.window.location.href);
+      // Clear initializing flag after merge delay (32ms) + buffer to allow chain to establish
+      // Then trigger update to sync URL with established chain
+      this.window.setTimeout(() => {
+        this.initializing_ = false;
+        this.update();
+      }, 100);
     }
   ],
 
@@ -326,7 +363,6 @@ foam.CLASS({
       // Not framed or merged so can detect hashFeedback_ properly
       documentation: 'Called when the window hash is updated, causes update to memento.',
       code: function() {
-        // console.log('onHashChange', this.hashFeedback_, this.window.location.hash);
         if ( this.hashFeedback_ ) return;
         this.str = this.window.location.hash.substring(1);
       }
@@ -335,6 +371,8 @@ foam.CLASS({
       name: 'onMementoChange',
       documentation: 'Called when the memento changes, causes update to hash.',
       code: function() {
+        // Skip URL updates during initial parse - chain not yet established
+        if ( this.initializing_ ) return;
         this.hashFeedback_ = true;
         let route    = this.usedStr.split('?')[0];
         let winRoute = this.window.location.hash.substring(1).split('?')[0];
