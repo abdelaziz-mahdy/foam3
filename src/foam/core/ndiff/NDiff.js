@@ -59,8 +59,7 @@ foam.CLASS({
       documentation: `
         The current runtime state of the object (fetched on-the-fly during select)
       `,
-      storageTransient: true,
-      networkTransient: false,
+      storageTransient: true
     },
     {
       name: 'applyOriginal',
@@ -72,8 +71,7 @@ foam.CLASS({
         the initialFObject to its respective DAO.
         The flag will then automatically be set to false.
         `,
-      storageTransient: true,
-      networkTransient: false
+      storageTransient: true
     }
   ],
 
