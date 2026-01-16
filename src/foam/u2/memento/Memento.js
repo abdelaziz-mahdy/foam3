@@ -151,7 +151,6 @@ foam.CLASS({
     },
 
     function detachTail() {
-      // console.log('detaching tail', this.tailStr)
       this.tail?.detach();
       this.tail = null;
       this.tailStr = '';
@@ -234,7 +233,9 @@ foam.CLASS({
         }
       });
 
-      if ( ! opt_untilObj ) this.usedStr = this.toString(ret);
+      if ( ! opt_untilObj ) {
+        this.usedStr = this.toString(ret);
+      }
 
       return ret;
     }
@@ -258,8 +259,7 @@ foam.CLASS({
       code: function(slot) {
         if ( this.feedback_ ) return;
         if ( this.parent && this.parent.tail !== this ) {
-          // console.log('***************** update() of orphaned Memento');
-          // Update received from a child
+          // Orphaned memento - parent's tail was changed to something else
           if ( slot ) {
             slot.detach();
           } else {
@@ -267,7 +267,6 @@ foam.CLASS({
           }
           return;
         }
-// console.log('*** update() objClass:', this.obj && this.obj.cls_.name, 'property:', arguments[2], 'value:', arguments[3]?.get());
         this.update_();
       }
     },
@@ -276,7 +275,6 @@ foam.CLASS({
       isMerged: true,
       mergeDelay: 32,
       code: function() {
-        // console.log('*** update_(): ', this.$UID, this.cls_.name, 'objClass:', this.obj.cls_.name, 'tail:', this.tail && (this.tail.$UID + ' ' + this.tail.usedStr), 'usedStr:', this.usedStr);
         if ( this.parent ) {
           this.parent.update();
         } else {
