@@ -9,8 +9,7 @@ foam.CLASS({
   name: 'NDiff',
   documentation: `Tracks changes to cSpecs. Used for debugging`,
   requires: [
-    'foam.u2.dialog.Popup',
-    'foam.core.ndiff.NDiffId'
+    'foam.u2.dialog.Popup'
   ],
 
   css: `
@@ -48,18 +47,20 @@ foam.CLASS({
       name: 'initialFObject',
       class: 'FObjectProperty',
       visibility: 'HIDDEN',
+      projectionSafe: false,
       documentation: `
         The object as it was loaded from the repo journals (".0 file")
-        `,
+        `
     },
     {
       name: 'runtimeFObject',
       class: 'FObjectProperty',
       visibility: 'HIDDEN',
+      projectionSafe: false,
+      storageTransient: true,
       documentation: `
         The current runtime state of the object (fetched on-the-fly during select)
-      `,
-      storageTransient: true
+      `
     },
     {
       name: 'applyOriginal',
@@ -84,21 +85,8 @@ foam.CLASS({
         return true;
       },
       code: async function(X) {
-        var self = this;
-
-        // Fetch full NDiff to get complete initialFObject (projection may have filtered fields)
-        var fullNdiff = await X.ndiffDAO.find(foam.core.ndiff.NDiffId.create({
-          cSpecName: self.cSpecName,
-          objectId: self.objectId
-        }));
-
-        if ( ! fullNdiff || ! fullNdiff.initialFObject ) {
-          console.warn('NDiff.apply: Could not fetch full NDiff or initialFObject');
-          return;
-        }
-
-        fullNdiff.applyOriginal = true;
-        await X.ndiffDAO.put(fullNdiff);
+        this.applyOriginal = true;
+        await X.ndiffDAO.put(this);
       }
     },
     {
@@ -108,26 +96,12 @@ foam.CLASS({
       code: async function(X) {
         var self = this;
 
-        // Fetch full NDiff to get complete initialFObject (projection may have filtered fields)
-        var fullNdiff = await X.ndiffDAO.find(foam.core.ndiff.NDiffId.create({
-          cSpecName: self.cSpecName,
-          objectId: self.objectId
-        }));
-
-        if ( ! fullNdiff || ! fullNdiff.initialFObject ) {
-          console.warn('NDiff.compare: Could not fetch full NDiff or initialFObject');
-          return;
-        }
-
-        var initialFObject = fullNdiff.initialFObject;
-
-        // Fetch runtime object from the target DAO
+        // Fetch latest runtime object from target DAO for accurate comparison
         var targetDAO = X[self.cSpecName];
         var runtimeFObject = null;
 
-        if ( targetDAO ) {
-          var id = initialFObject.id;
-          runtimeFObject = await targetDAO.find(id);
+        if ( targetDAO && self.initialFObject ) {
+          runtimeFObject = await targetDAO.find(self.initialFObject.id);
         }
 
         // Create comparison modal - ComparisonView handles all the diff logic and UI
@@ -139,7 +113,7 @@ foam.CLASS({
             .addClass('ndiff-compare-modal')
             .tag({
               class: 'foam.u2.view.ComparisonView',
-              left: initialFObject,
+              left: self.initialFObject,
               right: runtimeFObject
             })
         );
