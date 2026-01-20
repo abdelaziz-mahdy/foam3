@@ -88,6 +88,9 @@ foam.CLASS({
           });
         }
         return props;
+      } else if ( this.delegate && ! this.delegate.toProperties ) {
+        console.error('LabeledSink: delegate ' + this.delegate.cls_.id + ' does not implement toProperties(). Add toProperties() method to the delegate sink class.');
+        throw new Error('LabeledSink: delegate ' + this.delegate.cls_.id + ' does not implement toProperties()');
       }
     },
 
