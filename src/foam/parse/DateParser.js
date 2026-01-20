@@ -535,22 +535,6 @@ foam.CLASS({
       return new Date(parseInt(v, 10) * 1000);
     },
 
-    // Timestamp actions - convert timestamp strings directly to Date objects
-    // These return Date objects directly (not {year, month, day} objects) because
-    // timestamps are already a complete date representation
-
-    // 13-digit JavaScript timestamp (milliseconds since epoch)
-    // v = "1754308800000" (string)
-    function timestamp13Action(v) {
-      return new Date(parseInt(v, 10));
-    },
-
-    // 10-digit Unix timestamp (seconds since epoch)
-    // v = "1754308800" (string)
-    function timestamp10Action(v) {
-      return new Date(parseInt(v, 10) * 1000);
-    },
-
     function flattenTimezone(tzArray) {
       if ( ! tzArray ) return null;
       if ( tzArray === 'Z' ) return 'Z';
@@ -652,6 +636,7 @@ foam.CLASS({
         throw new Error('Unsupported Date format: empty or null string');
       }
       str = str.trim();
+      this.dateParseMode = 'STRING';
 
       // Use parse() to get position information
       var parseResult = this.parse(this.StringPStream.create({ str: str }), this, opt_name);

@@ -2070,62 +2070,73 @@ foam.CLASS({
 
     function testStrictValidationMode(x) {
       // Test strict validation mode - should throw errors for invalid dates
-      let strictParser = this.DateParser.create({ strictValidation: true });
+      let parser = this.DateParser.create();
 
-      // Test 1: Invalid format should throw
-      let invalidInputs = [
-        { input: 'invalid-date', desc: 'completely invalid string' },
-        { input: 'notadate', desc: 'non-date text' },
-        { input: '', desc: 'empty string' }
-      ];
+      // Enable strict validation for this test
+      parser.strictValidation = true;
 
-      invalidInputs.forEach((testCase, i) => {
+      try {
+        // Test 1: Invalid format should throw
+        let invalidInputs = [
+          { input: 'invalid-date', desc: 'completely invalid string' },
+          { input: 'notadate', desc: 'non-date text' },
+          { input: '', desc: 'empty string' }
+        ];
+
+        invalidInputs.forEach((testCase, i) => {
+          try {
+            parser.parseString(testCase.input);
+            x.test(false, `StrictMode parseString Test${i + 1}: "${testCase.input}" should throw (${testCase.desc})`);
+          } catch (e) {
+            x.test(true, `StrictMode parseString Test${i + 1}: "${testCase.input}" throws error as expected (${testCase.desc})`);
+          }
+        });
+
+        // Test 2: parseDateTime with invalid input should throw
         try {
-          strictParser.parseString(testCase.input);
-          x.test(false, `StrictMode parseString Test${i + 1}: "${testCase.input}" should throw (${testCase.desc})`);
+          parser.parseDateTime('not-a-date');
+          x.test(false, 'StrictMode parseDateTime: should throw for invalid input');
         } catch (e) {
-          x.test(true, `StrictMode parseString Test${i + 1}: "${testCase.input}" throws error as expected (${testCase.desc})`);
+          x.test(true, 'StrictMode parseDateTime: throws error for invalid input');
         }
-      });
 
-      // Test 2: parseDateTime with invalid input should throw
-      try {
-        strictParser.parseDateTime('not-a-date');
-        x.test(false, 'StrictMode parseDateTime: should throw for invalid input');
-      } catch (e) {
-        x.test(true, 'StrictMode parseDateTime: throws error for invalid input');
-      }
+        // Test 3: parseDateTimeUTC with invalid input should throw
+        try {
+          parser.parseDateTimeUTC('garbage');
+          x.test(false, 'StrictMode parseDateTimeUTC: should throw for invalid input');
+        } catch (e) {
+          x.test(true, 'StrictMode parseDateTimeUTC: throws error for invalid input');
+        }
 
-      // Test 3: parseDateTimeUTC with invalid input should throw
-      try {
-        strictParser.parseDateTimeUTC('garbage');
-        x.test(false, 'StrictMode parseDateTimeUTC: should throw for invalid input');
-      } catch (e) {
-        x.test(true, 'StrictMode parseDateTimeUTC: throws error for invalid input');
-      }
+        // Test 4: Valid dates should still work in strict mode
+        try {
+          let result = parser.parseString('2025-01-15');
+          x.test(result.getUTCFullYear() === 2025, 'StrictMode: valid date parses correctly');
+        } catch (e) {
+          x.test(false, 'StrictMode: valid date should not throw - ' + e.message);
+        }
 
-      // Test 4: Valid dates should still work in strict mode
-      try {
-        let result = strictParser.parseString('2025-01-15');
-        x.test(result.getUTCFullYear() === 2025, 'StrictMode: valid date parses correctly');
-      } catch (e) {
-        x.test(false, 'StrictMode: valid date should not throw - ' + e.message);
-      }
-
-      // Test 5: Valid datetime should work in strict mode
-      try {
-        let result = strictParser.parseDateTime('2025-01-15T14:30:45');
-        x.test(result.getFullYear() === 2025, 'StrictMode: valid datetime parses correctly');
-      } catch (e) {
-        x.test(false, 'StrictMode: valid datetime should not throw - ' + e.message);
+        // Test 5: Valid datetime should work in strict mode
+        try {
+          let result = parser.parseDateTime('2025-01-15T14:30:45');
+          x.test(result.getFullYear() === 2025, 'StrictMode: valid datetime parses correctly');
+        } catch (e) {
+          x.test(false, 'StrictMode: valid datetime should not throw - ' + e.message);
+        }
+      } finally {
+        // Reset to default
+        parser.strictValidation = false;
       }
     },
 
     function testLenientValidationMode(x) {
       // Test lenient validation mode (default) - should return MAX_DATE for invalid dates
-      let lenientParser = this.DateParser.create({ strictValidation: false });
+      let parser = this.DateParser.create();
 
-      // Test 1: Invalid format should return MAX_DATE, not throw
+      // Ensure lenient mode (default)
+      parser.strictValidation = false;
+
+      // Test 1: Invalid format throws for completely unparseable
       let invalidInputs = [
         { input: 'invalid-date', desc: 'completely invalid string' },
         { input: 'notadate', desc: 'non-date text' }
@@ -2133,7 +2144,7 @@ foam.CLASS({
 
       invalidInputs.forEach((testCase, i) => {
         try {
-          let result = lenientParser.parseString(testCase.input);
+          let result = parser.parseString(testCase.input);
           // parseString throws for completely unparseable - this is expected
           x.test(false, `LenientMode parseString Test${i + 1}: "${testCase.input}" - should throw for unparseable (${testCase.desc})`);
         } catch (e) {
@@ -2144,7 +2155,7 @@ foam.CLASS({
 
       // Test 2: Empty string behavior
       try {
-        lenientParser.parseString('');
+        parser.parseString('');
         x.test(false, 'LenientMode: empty string should throw');
       } catch (e) {
         x.test(e.message.includes('empty or null'), 'LenientMode: empty string throws correct error');
@@ -2152,26 +2163,26 @@ foam.CLASS({
 
       // Test 3: Valid dates should work in lenient mode
       try {
-        let result = lenientParser.parseString('2025-01-15');
+        let result = parser.parseString('2025-01-15');
         x.test(result.getUTCFullYear() === 2025, 'LenientMode: valid date parses correctly');
       } catch (e) {
         x.test(false, 'LenientMode: valid date should not throw - ' + e.message);
       }
 
       // Test 4: Default parser should be lenient
-      let defaultParser = this.DateParser.create();
-      x.test(defaultParser.strictValidation === false, 'Default parser has strictValidation=false');
+      x.test(parser.strictValidation === false, 'Default parser has strictValidation=false');
     },
 
     function testInvalidMonthNameValidation(x) {
       // Test invalid month name handling in both modes
       // Note: "XYZ" doesn't match the grammar's month pattern, so it fails at grammar level
       // with "Unsupported Date format" rather than reaching parseMonthName()
+      let parser = this.DateParser.create();
 
-      // Strict mode - should throw for invalid month names (either at grammar or parseMonthName level)
-      let strictParser = this.DateParser.create({ strictValidation: true });
+      // Strict mode test
+      parser.strictValidation = true;
       try {
-        strictParser.parseString('15-XYZ-2025');
+        parser.parseString('15-XYZ-2025');
         x.test(false, 'StrictMode: invalid month name "XYZ" should throw');
       } catch (e) {
         // Grammar validation happens before parseMonthName, so we may get "Unsupported Date format"
@@ -2179,10 +2190,10 @@ foam.CLASS({
         x.test(validError, 'StrictMode: invalid month name throws error');
       }
 
-      // Lenient mode - should throw for unparseable input (grammar level)
-      let lenientParser = this.DateParser.create({ strictValidation: false });
+      // Lenient mode test
+      parser.strictValidation = false;
       try {
-        let result = lenientParser.parseString('15-XYZ-2025');
+        let result = parser.parseString('15-XYZ-2025');
         // If it somehow parses, check the result
         x.test(result !== null, 'LenientMode: invalid month name handled');
       } catch (e) {
