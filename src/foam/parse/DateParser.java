@@ -40,8 +40,10 @@ public class DateParser {
 
   /**
    * If true, throws errors for invalid dates. If false, logs warnings and returns MAX_DATE.
+   * Static because DateParser is used as a singleton pattern - each call creates a new instance
+   * but the strictValidation setting should be shared across all instances (like JavaScript Singleton).
    */
-  private boolean strictValidation_ = false;
+  private static boolean strictValidation_ = false;
 
   public boolean getStrictValidation() { return strictValidation_; }
   public void setStrictValidation(boolean v) { strictValidation_ = v; }
@@ -291,6 +293,30 @@ public class DateParser {
   }
 
   /**
+   * Normalize Unix timezone format to standard format.
+   * GMT/UTC -> "Z", numeric offsets are flattened to string.
+   */
+  private String normalizeUnixTimezone(Object tz) {
+    if ( tz == null ) return null;
+
+    // Handle string values (GMT, UTC)
+    if ( tz instanceof String ) {
+      String tzUpper = ((String) tz).toUpperCase();
+      if ( tzUpper.equals("GMT") || tzUpper.equals("UTC") ) {
+        return "Z";
+      }
+      return (String) tz;
+    }
+
+    // Handle array values from Seq parser - offset format like ['+', ['0', '5', '3', '0']]
+    if ( tz instanceof Object[] ) {
+      return flattenTimezone(tz);
+    }
+
+    return null;
+  }
+
+  /**
    * Parse timezone string and return offset in minutes.
    * Z means UTC (0). +05:30 means +330 minutes.
    */
@@ -494,11 +520,13 @@ public class DateParser {
     // Main entry point - tries all formats including month names
     // NOTE: Month name formats go FIRST because they contain letters (unambiguous!)
     // Timestamps (10-13 digits) go LAST to avoid matching date formats like YYYYMMDDHH
+    // NOTE: YYMMDD is NOT in the main entry point because it's ambiguous with MMDDYY
+    //       (e.g., "25/01/15" could be YY-MM-DD or MM-DD-YY). Use opt_name='yymmdd' to parse explicitly.
     grammar.addSymbol("dateOrDatetime", new Alt(
       grammar.sym("date-monthname"),  // Month name formats first (unambiguous)
       grammar.sym("yyyymmdd"),
       grammar.sym("mmddyyyy"),
-      grammar.sym("mmddyy"),          // 2-digit year US format
+      grammar.sym("mmddyy"),          // 2-digit year US format (MM-DD-YY)
       grammar.sym("timestamp")        // Unix/JS timestamps (10-13 digits, must not match date formats)
     ));
 
@@ -512,6 +540,7 @@ public class DateParser {
 
     // Date with month names - ALL completely unambiguous (contain letters!)
     grammar.addSymbol("date-monthname", new Alt(
+      grammar.sym("unix-date-tostring"), // Unix/Java Date.toString(): "Tue Apr 01 05:17:59 GMT 2025"
       grammar.sym("mmmddyyyy-space"),    // MMM dd yyyy (e.g., Jan 02 2025)
       grammar.sym("ddmmmyyyy-space"),    // DD MMM YYYY (e.g., 15 JAN 2025)
       grammar.sym("ddmmmyyyy-sep"),
@@ -584,6 +613,35 @@ public class DateParser {
       new LiteralIC("APR"), new LiteralIC("MAY"), new LiteralIC("JUN"),
       new LiteralIC("JUL"), new LiteralIC("AUG"), new LiteralIC("SEP"),
       new LiteralIC("OCT"), new LiteralIC("NOV"), new LiteralIC("DEC")
+    ));
+
+    // day3alpha: Mon, Tue, Wed, Thu, Fri, Sat, Sun (case insensitive)
+    grammar.addSymbol("day3alpha", new Alt(
+      new LiteralIC("MON"), new LiteralIC("TUE"), new LiteralIC("WED"),
+      new LiteralIC("THU"), new LiteralIC("FRI"), new LiteralIC("SAT"), new LiteralIC("SUN")
+    ));
+
+    // timezoneAlpha: GMT, UTC (case insensitive)
+    grammar.addSymbol("timezoneAlpha", new Alt(
+      new LiteralIC("GMT"), new LiteralIC("UTC")
+    ));
+
+    // unixTimezone: GMT, UTC, or +/-HHMM or +/-HH:MM (for Unix Date.toString() format)
+    grammar.addSymbol("unixTimezone", new Alt(
+      new LiteralIC("GMT"),
+      new LiteralIC("UTC"),
+      // +HHMM or -HHMM format
+      new Seq(
+        new Chars("+-"),
+        new Repeat(Range.create('0', '9'), null, 4, 4)
+      ),
+      // +HH:MM or -HH:MM format
+      new Seq(
+        new Chars("+-"),
+        new Repeat(Range.create('0', '9'), null, 2, 2),
+        Literal.create(":"),
+        new Repeat(Range.create('0', '9'), null, 2, 2)
+      )
     ));
 
     // datetimesep: T or space (datetime separator)
@@ -1000,6 +1058,26 @@ public class DateParser {
       grammar.sym("dayFlexible"), Literal.create(" "), grammar.sym("month3alpha"), Literal.create(" "), grammar.sym("year4")
     ));
 
+    // Unix/Java Date.toString() format: "Tue Apr 01 05:17:59 GMT 2025"
+    // Format: DDD MMM DD HH:MM:SS TZ YYYY
+    grammar.addSymbol("unix-date-tostring", new Seq(
+      grammar.sym("day3alpha"),           // Day name (Tue, Wed, etc.) - ignored for date construction
+      Literal.create(" "),
+      grammar.sym("month3alpha"),         // Month name (Jan, Feb, etc.)
+      Literal.create(" "),
+      grammar.sym("dayFlexible"),         // Day of month (01-31, can be single digit)
+      Literal.create(" "),
+      grammar.sym("hour2"),               // Hour (00-23)
+      Literal.create(":"),
+      grammar.sym("minute2"),             // Minute (00-59)
+      Literal.create(":"),
+      grammar.sym("second2"),             // Second (00-59)
+      Literal.create(" "),
+      grammar.sym("unixTimezone"),        // Timezone (GMT, UTC, or +/-offset)
+      Literal.create(" "),
+      grammar.sym("year4")                // Year (4 digits)
+    ));
+
     // ========== Add Actions ==========
     addActions(grammar);
 
@@ -1293,6 +1371,24 @@ public class DateParser {
         self.parseMonthName((String) v[2]),
         Integer.parseInt((String) v[0]),
         -1, -1, -1, -1, null);
+    });
+
+    // Unix/Java Date.toString() action: [DDD, ' ', MMM, ' ', DD, ' ', HH, ':', MM, ':', SS, ' ', TZ, ' ', YYYY]
+    // Index mapping: 0=day_name, 1=' ', 2=month, 3=' ', 4=day, 5=' ', 6=hour, 7=':', 8=min, 9=':', 10=sec, 11=' ', 12=tz, 13=' ', 14=year
+    grammar.addAction("unix-date-tostring", (val, x) -> {
+      Object[] v = (Object[]) val;
+      DateParseMode mode = (DateParseMode) x.get("dateParseMode");
+      // Normalize timezone: GMT/UTC -> "Z", otherwise flatten array to string
+      String tz = self.normalizeUnixTimezone(v[12]);
+      return self.buildDate(mode,
+        Integer.parseInt((String) v[14]),   // year
+        self.parseMonthName((String) v[2]), // month
+        Integer.parseInt((String) v[4]),    // day
+        Integer.parseInt((String) v[6]),    // hour
+        Integer.parseInt((String) v[8]),    // minute
+        Integer.parseInt((String) v[10]),   // second
+        -1,                                  // ms
+        tz);
     });
 
     // MMDDYY-Sep action (2-digit year)

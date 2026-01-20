@@ -499,6 +499,49 @@ foam.CLASS({
         -1, -1, -1, -1, null);
     },
 
+    // Unix/Java Date.toString() format: DDD MMM DD HH:MM:SS TZ YYYY
+    // e.g., "Tue Apr 01 05:17:59 GMT 2025"
+    // v = [DDD, ' ', MMM, ' ', DD, ' ', HH, ':', MM, ':', SS, ' ', TZ, ' ', YYYY]
+    function unixdatetostringAction(v) {
+      // v[0] = day name (ignored)
+      // v[2] = month name
+      // v[4] = day
+      // v[6] = hour
+      // v[8] = minute
+      // v[10] = second
+      // v[12] = timezone (GMT, UTC, or +/-offset)
+      // v[14] = year
+      var tz = this.normalizeUnixTimezone(v[12]);
+      return this.buildDate(this.dateParseMode,
+        parseInt(v[14]),
+        this.parseMonthName(v[2]),
+        parseInt(v[4]),
+        parseInt(v[6]),
+        parseInt(v[8]),
+        parseInt(v[10]),
+        -1,
+        tz);
+    },
+
+    // Normalize Unix timezone format to standard format
+    // GMT/UTC -> 'Z', +0530 -> '+05:30', etc.
+    function normalizeUnixTimezone(tz) {
+      if ( ! tz ) return null;
+      // Handle string values (GMT, UTC)
+      if ( typeof tz === 'string' ) {
+        var tzUpper = tz.toUpperCase();
+        if ( tzUpper === 'GMT' || tzUpper === 'UTC' ) {
+          return 'Z';
+        }
+        return tz;
+      }
+      // Handle array values from seq() - offset format like ['+', ['0', '5', '3', '0']]
+      if ( Array.isArray(tz) ) {
+        return this.flattenTimezone(tz);
+      }
+      return null;
+    },
+
     // YYYYDDMMM with separators: YYYY-DD-MMM, YYYY/DD/MMM
     // v = [YYYY, sep, DD, sep, MMM]
     function yyyyddmmmsepAction(v) {

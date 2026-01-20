@@ -81,6 +81,9 @@ foam.CLASS({
         DateParserTest_SpaceSeparatedMonthNames();
         DateParserTest_MMDDYY_Format();
         DateParserTest_FractionalSeconds();
+
+        // Unix/Java Date.toString() format tests
+        DateParserTest_UnixDateToString();
       `
     },
 
@@ -264,8 +267,8 @@ foam.CLASS({
       javaCode: `
         DateParser parser = new DateParser();
 
-        // Test 25/01/15
-        Date date1 = parser.parseString("25/01/15");
+        // Test 25/01/15 - YYMMDD requires opt_name because it's ambiguous with MMDDYY
+        Date date1 = parser.parseString("25/01/15", "yymmdd");
         Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal1.setTime(date1);
         test(cal1.get(Calendar.YEAR) == 2025, "YYMMDD-Sep: year 2025");
@@ -273,7 +276,7 @@ foam.CLASS({
         test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "YYMMDD-Sep: day 15");
 
         // Test 00/02/29 (leap year 2000)
-        Date date2 = parser.parseString("00/02/29");
+        Date date2 = parser.parseString("00/02/29", "yymmdd");
         Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal2.setTime(date2);
         test(cal2.get(Calendar.YEAR) == 2000, "YYMMDD-Sep: year 2000");
@@ -287,8 +290,8 @@ foam.CLASS({
       javaCode: `
         DateParser parser = new DateParser();
 
-        // Test 250115
-        Date date1 = parser.parseString("250115");
+        // Test 250115 - YYMMDD requires opt_name because it's ambiguous with MMDDYY
+        Date date1 = parser.parseString("250115", "yymmdd");
         Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal1.setTime(date1);
         test(cal1.get(Calendar.YEAR) == 2025, "YYMMDD-Compact: year 2025");
@@ -296,7 +299,7 @@ foam.CLASS({
         test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "YYMMDD-Compact: day 15");
 
         // Test 000229 (leap year 2000)
-        Date date2 = parser.parseString("000229");
+        Date date2 = parser.parseString("000229", "yymmdd");
         Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal2.setTime(date2);
         test(cal2.get(Calendar.YEAR) == 2000, "YYMMDD-Compact: year 2000");
@@ -311,21 +314,22 @@ foam.CLASS({
         DateParser parser = new DateParser();
 
         // Test pivot at 50: 00-49 => 2000-2049, 50-99 => 1950-1999
+        // YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
         // Test 49/12/31 (should be 2049)
-        Date date1 = parser.parseString("49/12/31");
+        Date date1 = parser.parseString("49/12/31", "yymmdd");
         Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal1.setTime(date1);
         test(cal1.get(Calendar.YEAR) == 2049, "YYMMDD pivot: 49 => 2049");
 
         // Test 50/01/01 (should be 1950)
-        Date date2 = parser.parseString("50/01/01");
+        Date date2 = parser.parseString("50/01/01", "yymmdd");
         Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal2.setTime(date2);
         test(cal2.get(Calendar.YEAR) == 1950, "YYMMDD pivot: 50 => 1950");
 
         // Test 99/12/31 (should be 1999)
-        Date date3 = parser.parseString("99/12/31");
+        Date date3 = parser.parseString("99/12/31", "yymmdd");
         Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal3.setTime(date3);
         test(cal3.get(Calendar.YEAR) == 1999, "YYMMDD pivot: 99 => 1999");
@@ -826,8 +830,8 @@ foam.CLASS({
         DateParser parser = new DateParser();
 
         // Test 13-digit JavaScript timestamp (milliseconds since epoch)
-        // 1737043200000 = 2025-01-16T12:00:00.000Z
-        Date date1 = parser.parseString("1737043200000");
+        // 1737028800000 = 2025-01-16T12:00:00.000Z
+        Date date1 = parser.parseString("1737028800000");
         Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal1.setTime(date1);
         test(cal1.get(Calendar.YEAR) == 2025, "Timestamp13: year 2025");
@@ -836,8 +840,8 @@ foam.CLASS({
         test(cal1.get(Calendar.HOUR_OF_DAY) == 12, "Timestamp13: hour 12");
 
         // Test 10-digit Unix timestamp (seconds since epoch)
-        // 1737043200 = 2025-01-16T12:00:00Z
-        Date date2 = parser.parseString("1737043200");
+        // 1737028800 = 2025-01-16T12:00:00Z
+        Date date2 = parser.parseString("1737028800");
         Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         cal2.setTime(date2);
         test(cal2.get(Calendar.YEAR) == 2025, "Timestamp10: year 2025");
@@ -1041,6 +1045,154 @@ foam.CLASS({
         cal5.setTime(date5);
         test(cal5.get(Calendar.HOUR_OF_DAY) == 9, "Fractional with tz: hour 9 UTC (14:30 - 5:30)");
         test(cal5.get(Calendar.MILLISECOND) == 500, "Fractional with tz: ms 500");
+      `
+    },
+
+    // ========== Unix/Java Date.toString() Format Tests ==========
+
+    {
+      name: 'DateParserTest_UnixDateToString',
+      javaCode: `
+        DateParser parser = new DateParser();
+
+        // Test "Tue Apr 01 05:17:59 GMT 2025"
+        Date date1 = parser.parseDateTimeUTC("Tue Apr 01 05:17:59 GMT 2025");
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal1.setTime(date1);
+        test(cal1.get(Calendar.YEAR) == 2025, "Unix Date.toString(): year 2025");
+        test(cal1.get(Calendar.MONTH) == 3, "Unix Date.toString(): month 3 (Apr)");
+        test(cal1.get(Calendar.DAY_OF_MONTH) == 1, "Unix Date.toString(): day 1");
+        test(cal1.get(Calendar.HOUR_OF_DAY) == 5, "Unix Date.toString(): hour 5");
+        test(cal1.get(Calendar.MINUTE) == 17, "Unix Date.toString(): minute 17");
+        test(cal1.get(Calendar.SECOND) == 59, "Unix Date.toString(): second 59");
+
+        // Test "Mon Jan 15 14:30:45 GMT 2025"
+        Date date2 = parser.parseDateTimeUTC("Mon Jan 15 14:30:45 GMT 2025");
+        Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal2.setTime(date2);
+        test(cal2.get(Calendar.YEAR) == 2025, "Unix Date.toString() Mon: year 2025");
+        test(cal2.get(Calendar.MONTH) == 0, "Unix Date.toString() Mon: month 0 (Jan)");
+        test(cal2.get(Calendar.DAY_OF_MONTH) == 15, "Unix Date.toString() Mon: day 15");
+        test(cal2.get(Calendar.HOUR_OF_DAY) == 14, "Unix Date.toString() Mon: hour 14");
+        test(cal2.get(Calendar.MINUTE) == 30, "Unix Date.toString() Mon: minute 30");
+        test(cal2.get(Calendar.SECOND) == 45, "Unix Date.toString() Mon: second 45");
+
+        // Test "Wed Dec 31 23:59:59 GMT 2024"
+        Date date3 = parser.parseDateTimeUTC("Wed Dec 31 23:59:59 GMT 2024");
+        Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal3.setTime(date3);
+        test(cal3.get(Calendar.YEAR) == 2024, "Unix Date.toString() Wed: year 2024");
+        test(cal3.get(Calendar.MONTH) == 11, "Unix Date.toString() Wed: month 11 (Dec)");
+        test(cal3.get(Calendar.DAY_OF_MONTH) == 31, "Unix Date.toString() Wed: day 31");
+        test(cal3.get(Calendar.HOUR_OF_DAY) == 23, "Unix Date.toString() Wed: hour 23");
+        test(cal3.get(Calendar.MINUTE) == 59, "Unix Date.toString() Wed: minute 59");
+        test(cal3.get(Calendar.SECOND) == 59, "Unix Date.toString() Wed: second 59");
+
+        // Test "Thu Feb 29 00:00:00 GMT 2024" (leap year)
+        Date date4 = parser.parseDateTimeUTC("Thu Feb 29 00:00:00 GMT 2024");
+        Calendar cal4 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal4.setTime(date4);
+        test(cal4.get(Calendar.YEAR) == 2024, "Unix Date.toString() leap year: year 2024");
+        test(cal4.get(Calendar.MONTH) == 1, "Unix Date.toString() leap year: month 1 (Feb)");
+        test(cal4.get(Calendar.DAY_OF_MONTH) == 29, "Unix Date.toString() leap year: day 29");
+
+        // Test with UTC timezone
+        Date date5 = parser.parseDateTimeUTC("Fri Jun 15 12:00:00 UTC 2025");
+        Calendar cal5 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal5.setTime(date5);
+        test(cal5.get(Calendar.YEAR) == 2025, "Unix Date.toString() UTC: year 2025");
+        test(cal5.get(Calendar.MONTH) == 5, "Unix Date.toString() UTC: month 5 (Jun)");
+        test(cal5.get(Calendar.DAY_OF_MONTH) == 15, "Unix Date.toString() UTC: day 15");
+        test(cal5.get(Calendar.HOUR_OF_DAY) == 12, "Unix Date.toString() UTC: hour 12");
+
+        // Test case insensitivity - lowercase
+        Date date6 = parser.parseDateTimeUTC("tue apr 01 05:17:59 gmt 2025");
+        Calendar cal6 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal6.setTime(date6);
+        test(cal6.get(Calendar.YEAR) == 2025, "Unix Date.toString() lowercase: year 2025");
+        test(cal6.get(Calendar.MONTH) == 3, "Unix Date.toString() lowercase: month 3 (Apr)");
+        test(cal6.get(Calendar.DAY_OF_MONTH) == 1, "Unix Date.toString() lowercase: day 1");
+
+        // Test case insensitivity - mixed case
+        Date date7 = parser.parseDateTimeUTC("Sat Jul 04 09:30:00 Gmt 2025");
+        Calendar cal7 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal7.setTime(date7);
+        test(cal7.get(Calendar.YEAR) == 2025, "Unix Date.toString() mixed case: year 2025");
+        test(cal7.get(Calendar.MONTH) == 6, "Unix Date.toString() mixed case: month 6 (Jul)");
+        test(cal7.get(Calendar.DAY_OF_MONTH) == 4, "Unix Date.toString() mixed case: day 4");
+
+        // Test with single digit day (should work since dayFlexible is used)
+        Date date8 = parser.parseDateTimeUTC("Sun Mar 5 08:15:30 GMT 2025");
+        Calendar cal8 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal8.setTime(date8);
+        test(cal8.get(Calendar.YEAR) == 2025, "Unix Date.toString() single digit day: year 2025");
+        test(cal8.get(Calendar.MONTH) == 2, "Unix Date.toString() single digit day: month 2 (Mar)");
+        test(cal8.get(Calendar.DAY_OF_MONTH) == 5, "Unix Date.toString() single digit day: day 5");
+
+        // Test all days of week are recognized
+        Date dateMon = parser.parseDateTimeUTC("Mon Jan 01 00:00:00 GMT 2024");
+        test(dateMon != null && !dateMon.equals(DateParser.MAX_DATE), "Unix Date.toString(): Mon recognized");
+
+        Date dateTue = parser.parseDateTimeUTC("Tue Jan 02 00:00:00 GMT 2024");
+        test(dateTue != null && !dateTue.equals(DateParser.MAX_DATE), "Unix Date.toString(): Tue recognized");
+
+        Date dateWed = parser.parseDateTimeUTC("Wed Jan 03 00:00:00 GMT 2024");
+        test(dateWed != null && !dateWed.equals(DateParser.MAX_DATE), "Unix Date.toString(): Wed recognized");
+
+        Date dateThu = parser.parseDateTimeUTC("Thu Jan 04 00:00:00 GMT 2024");
+        test(dateThu != null && !dateThu.equals(DateParser.MAX_DATE), "Unix Date.toString(): Thu recognized");
+
+        Date dateFri = parser.parseDateTimeUTC("Fri Jan 05 00:00:00 GMT 2024");
+        test(dateFri != null && !dateFri.equals(DateParser.MAX_DATE), "Unix Date.toString(): Fri recognized");
+
+        Date dateSat = parser.parseDateTimeUTC("Sat Jan 06 00:00:00 GMT 2024");
+        test(dateSat != null && !dateSat.equals(DateParser.MAX_DATE), "Unix Date.toString(): Sat recognized");
+
+        Date dateSun = parser.parseDateTimeUTC("Sun Jan 07 00:00:00 GMT 2024");
+        test(dateSun != null && !dateSun.equals(DateParser.MAX_DATE), "Unix Date.toString(): Sun recognized");
+
+        // Test all months are recognized
+        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        for ( int i = 0 ; i < months.length ; i++ ) {
+          String dayPadded = String.format("%02d", (i % 28) + 1);
+          String dateStr = "Mon " + months[i] + " " + dayPadded + " 12:00:00 GMT 2025";
+          Date dateMonth = parser.parseDateTimeUTC(dateStr);
+          Calendar calMonth = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          calMonth.setTime(dateMonth);
+          test(calMonth.get(Calendar.MONTH) == i, "Unix Date.toString(): " + months[i] + " recognized as month " + i);
+        }
+
+        // Test with numeric timezone offset +HHMM
+        // "Tue Apr 01 10:17:59 +0500 2025" - 10:17:59 +05:00 = 05:17:59 UTC
+        Date dateOffset1 = parser.parseDateTimeUTC("Tue Apr 01 10:17:59 +0500 2025");
+        Calendar calOffset1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        calOffset1.setTime(dateOffset1);
+        test(calOffset1.get(Calendar.YEAR) == 2025, "Unix Date.toString() +0500: year 2025");
+        test(calOffset1.get(Calendar.MONTH) == 3, "Unix Date.toString() +0500: month 3 (Apr)");
+        test(calOffset1.get(Calendar.DAY_OF_MONTH) == 1, "Unix Date.toString() +0500: day 1");
+        test(calOffset1.get(Calendar.HOUR_OF_DAY) == 5, "Unix Date.toString() +0500: hour 5 UTC (10 - 5)");
+        test(calOffset1.get(Calendar.MINUTE) == 17, "Unix Date.toString() +0500: minute 17");
+
+        // Test with negative timezone offset
+        // "Tue Apr 01 00:17:59 -0500 2025" - 00:17:59 -05:00 = 05:17:59 UTC
+        Date dateOffset2 = parser.parseDateTimeUTC("Tue Apr 01 00:17:59 -0500 2025");
+        Calendar calOffset2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        calOffset2.setTime(dateOffset2);
+        test(calOffset2.get(Calendar.YEAR) == 2025, "Unix Date.toString() -0500: year 2025");
+        test(calOffset2.get(Calendar.HOUR_OF_DAY) == 5, "Unix Date.toString() -0500: hour 5 UTC (0 + 5)");
+        test(calOffset2.get(Calendar.MINUTE) == 17, "Unix Date.toString() -0500: minute 17");
+
+        // Test with +0000 (same as GMT)
+        Date dateOffset3 = parser.parseDateTimeUTC("Tue Apr 01 05:17:59 +0000 2025");
+        Calendar calOffset3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        calOffset3.setTime(dateOffset3);
+        test(calOffset3.get(Calendar.HOUR_OF_DAY) == 5, "Unix Date.toString() +0000: hour 5 UTC (same as GMT)");
+
+        // Test with +HH:MM format (colon separator)
+        Date dateOffset4 = parser.parseDateTimeUTC("Tue Apr 01 10:17:59 +05:00 2025");
+        Calendar calOffset4 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        calOffset4.setTime(dateOffset4);
+        test(calOffset4.get(Calendar.HOUR_OF_DAY) == 5, "Unix Date.toString() +05:00: hour 5 UTC (10 - 5)");
       `
     }
   ]

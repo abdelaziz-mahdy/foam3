@@ -195,9 +195,10 @@ foam.CLASS({
           // Test 2-digit year using fixed pivot at 50:
           // 00-49 → 2000-2049
           // 50-99 → 1950-1999
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test with year 24 → 2024
-          Date date1 = DateUtil.parseDateString("240315");
+          Date date1 = DateUtil.parseDateString("240315", "yymmdd");
           Calendar cal1 = Calendar.getInstance();
           cal1.setTime(date1);
           int actualYear1 = cal1.get(Calendar.YEAR);
@@ -208,7 +209,7 @@ foam.CLASS({
           test(actualDay1 == 15, "YYMMDD format (YY=24) - day is 15 (expected 15, got " + actualDay1 + ")");
 
           // Test with year 85 → 1985 (fixed pivot at 50)
-          Date date2 = DateUtil.parseDateString("850315");
+          Date date2 = DateUtil.parseDateString("850315", "yymmdd");
           Calendar cal2 = Calendar.getInstance();
           cal2.setTime(date2);
           int actualYear2 = cal2.get(Calendar.YEAR);
@@ -230,16 +231,17 @@ foam.CLASS({
           // Test 2-digit year using fixed pivot at 50:
           // 00-49 → 2000-2049
           // 50-99 → 1950-1999
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test with slash separator - year 24 → 2024
-          Date date1 = DateUtil.parseDateString("24/03/15");
+          Date date1 = DateUtil.parseDateString("24/03/15", "yymmdd");
           Calendar cal1 = Calendar.getInstance();
           cal1.setTime(date1);
           int actualYear1 = cal1.get(Calendar.YEAR);
           test(actualYear1 == 2024, "YY/MM/DD format - year is 2024 (expected 2024, got " + actualYear1 + ")");
 
           // Test with dash separator - year 85 → 1985 (fixed pivot at 50)
-          Date date2 = DateUtil.parseDateString("85-03-15");
+          Date date2 = DateUtil.parseDateString("85-03-15", "yymmdd");
           Calendar cal2 = Calendar.getInstance();
           cal2.setTime(date2);
           int actualYear2 = cal2.get(Calendar.YEAR);
@@ -708,30 +710,31 @@ foam.CLASS({
           // Test 2-digit year using fixed pivot at 50:
           // 00-49 → 2000-2049
           // 50-99 → 1950-1999
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test year 49 → 2049
-          Date date1 = DateUtil.parseDateString("49-12-31");
+          Date date1 = DateUtil.parseDateString("49-12-31", "yymmdd");
           Calendar cal1 = Calendar.getInstance();
           cal1.setTime(date1);
           int actualYear1 = cal1.get(Calendar.YEAR);
           test(actualYear1 == 2049, "2-digit year 49 becomes 2049 (expected 2049, got " + actualYear1 + ")");
 
           // Test year 00 → 2000
-          Date date2 = DateUtil.parseDateString("00-01-01");
+          Date date2 = DateUtil.parseDateString("00-01-01", "yymmdd");
           Calendar cal2 = Calendar.getInstance();
           cal2.setTime(date2);
           int actualYear2 = cal2.get(Calendar.YEAR);
           test(actualYear2 == 2000, "2-digit year 00 becomes 2000 (expected 2000, got " + actualYear2 + ")");
 
           // Test year 50 → 1950 (pivot point)
-          Date date3 = DateUtil.parseDateString("50-01-01");
+          Date date3 = DateUtil.parseDateString("50-01-01", "yymmdd");
           Calendar cal3 = Calendar.getInstance();
           cal3.setTime(date3);
           int actualYear3 = cal3.get(Calendar.YEAR);
           test(actualYear3 == 1950, "2-digit year 50 becomes 1950 (expected 1950, got " + actualYear3 + ")");
 
           // Test year 99 → 1999
-          Date date4 = DateUtil.parseDateString("99-12-31");
+          Date date4 = DateUtil.parseDateString("99-12-31", "yymmdd");
           Calendar cal4 = Calendar.getInstance();
           cal4.setTime(date4);
           int actualYear4 = cal4.get(Calendar.YEAR);
@@ -829,16 +832,15 @@ foam.CLASS({
     {
       name: 'DateUtilTest_adapt_AllFormats',
       javaCode: `
+        // NOTE: YYMMDD formats (24-03-15, 24/03/15, 240315) are NOT included here
+        // because they're ambiguous with MMDDYY and require explicit opt_name='yymmdd'
         String[] formats = {
           "2024-03-15",
           "2024/03/15",
           "20240315",
           "03-15-2024",
           "03/15/2024",
-          "03152024",
-          "24-03-15",
-          "24/03/15",
-          "240315"
+          "03152024"
         };
 
         for ( String format : formats ) {
@@ -1257,9 +1259,10 @@ foam.CLASS({
         try {
           // Test 2-digit year with time (dash separator)
           // Format: YY-MM-DD HH:MM:SS
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test 1: 24-03-15 14:30:45 → March 15, 2024 14:30:45 UTC
-          Date dt1 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45");
+          Date dt1 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45", "yymmdd");
           Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal1.setTime(dt1);
 
@@ -1271,7 +1274,7 @@ foam.CLASS({
           test(cal1.get(Calendar.SECOND) == 45, "YY-MM-DD HH:MM:SS - Second is 45");
 
           // Test 2: 99-03-15 14:30:45 → March 15, 1999 14:30:45 UTC (fixed pivot: 99 → 1999)
-          Date dt2 = DateUtil.parseDateTimeUTC("99-03-15 14:30:45");
+          Date dt2 = DateUtil.parseDateTimeUTC("99-03-15 14:30:45", "yymmdd");
           Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal2.setTime(dt2);
 
@@ -1283,7 +1286,7 @@ foam.CLASS({
           test(cal2.get(Calendar.SECOND) == 45, "YY-MM-DD HH:MM:SS (99) - Second is 45");
 
           // Test 3: Without seconds - 24-03-15 14:30 → March 15, 2024 14:30:00 UTC
-          Date dt3 = DateUtil.parseDateTimeUTC("24-03-15 14:30");
+          Date dt3 = DateUtil.parseDateTimeUTC("24-03-15 14:30", "yymmdd");
           Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal3.setTime(dt3);
 
@@ -1303,9 +1306,10 @@ foam.CLASS({
         try {
           // Test 2-digit year with time (slash separator)
           // Format: YY/MM/DD HH:MM:SS
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test 1: 24/03/15 08:15:30 → March 15, 2024 08:15:30 UTC
-          Date dt1 = DateUtil.parseDateTimeUTC("24/03/15 08:15:30");
+          Date dt1 = DateUtil.parseDateTimeUTC("24/03/15 08:15:30", "yymmdd");
           Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal1.setTime(dt1);
 
@@ -1317,7 +1321,7 @@ foam.CLASS({
           test(cal1.get(Calendar.SECOND) == 30, "YY/MM/DD HH:MM:SS - Second is 30");
 
           // Test 2: Without seconds - 24/03/15 08:15 → March 15, 2024 08:15:00 UTC
-          Date dt2 = DateUtil.parseDateTimeUTC("24/03/15 08:15");
+          Date dt2 = DateUtil.parseDateTimeUTC("24/03/15 08:15", "yymmdd");
           Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal2.setTime(dt2);
 
@@ -1327,7 +1331,7 @@ foam.CLASS({
           test(cal2.get(Calendar.SECOND) == 0, "YY/MM/DD HH:MM - Second defaults to 0");
 
           // Test 3: With timezone Z - 24/03/15 08:15:30Z → March 15, 2024 08:15:30 UTC
-          Date dt3 = DateUtil.parseDateTimeUTC("24/03/15 08:15:30Z");
+          Date dt3 = DateUtil.parseDateTimeUTC("24/03/15 08:15:30Z", "yymmdd");
           Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal3.setTime(dt3);
 
@@ -1349,16 +1353,17 @@ foam.CLASS({
           // Fixed pivot at 50:
           // Years 00-49 map to 2000-2049
           // Years 50-99 map to 1950-1999
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test boundary at 00 → 2000
-          Date dt00 = DateUtil.parseDateTimeUTC("00-01-01 12:00:00");
+          Date dt00 = DateUtil.parseDateTimeUTC("00-01-01 12:00:00", "yymmdd");
           Calendar cal00 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal00.setTime(dt00);
           test(cal00.get(Calendar.YEAR) == 2000, "YY=00 with time maps to 2000 (got " + cal00.get(Calendar.YEAR) + ")");
           test(cal00.get(Calendar.HOUR_OF_DAY) == 12, "YY=00 - Hour is 12");
 
           // Test year 25 → 2025 (in 2000s range)
-          Date dt25 = DateUtil.parseDateTimeUTC("25-06-15 15:30:45");
+          Date dt25 = DateUtil.parseDateTimeUTC("25-06-15 15:30:45", "yymmdd");
           Calendar cal25 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal25.setTime(dt25);
           test(cal25.get(Calendar.YEAR) == 2025, "YY=25 with time maps to 2025 (got " + cal25.get(Calendar.YEAR) + ")");
@@ -1366,7 +1371,7 @@ foam.CLASS({
           test(cal25.get(Calendar.MINUTE) == 30, "YY=25 - Minute is 30");
 
           // Test boundary at 49 → 2049 (last year in 2000s range)
-          Date dt49 = DateUtil.parseDateTimeUTC("49-12-31 23:59:59");
+          Date dt49 = DateUtil.parseDateTimeUTC("49-12-31 23:59:59", "yymmdd");
           Calendar cal49 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal49.setTime(dt49);
           test(cal49.get(Calendar.YEAR) == 2049, "YY=49 with time maps to 2049 (got " + cal49.get(Calendar.YEAR) + ")");
@@ -1374,14 +1379,14 @@ foam.CLASS({
           test(cal49.get(Calendar.SECOND) == 59, "YY=49 - Second is 59");
 
           // Test boundary at 50 → 1950 (pivot point - first year in 1900s range)
-          Date dt50 = DateUtil.parseDateTimeUTC("50-01-01 00:00:00");
+          Date dt50 = DateUtil.parseDateTimeUTC("50-01-01 00:00:00", "yymmdd");
           Calendar cal50 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal50.setTime(dt50);
           test(cal50.get(Calendar.YEAR) == 1950, "YY=50 with time maps to 1950 (got " + cal50.get(Calendar.YEAR) + ")");
           test(cal50.get(Calendar.HOUR_OF_DAY) == 0, "YY=50 - Hour is 0");
 
           // Test year 75 → 1975 (in 1900s range)
-          Date dt75 = DateUtil.parseDateTimeUTC("75-06-15 18:45:30");
+          Date dt75 = DateUtil.parseDateTimeUTC("75-06-15 18:45:30", "yymmdd");
           Calendar cal75 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal75.setTime(dt75);
           test(cal75.get(Calendar.YEAR) == 1975, "YY=75 with time maps to 1975 (got " + cal75.get(Calendar.YEAR) + ")");
@@ -1397,9 +1402,10 @@ foam.CLASS({
       javaCode: `
         try {
           // Test edge cases for 2-digit year with time and timezone
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test 1: With timezone Z
-          Date dt1 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45Z");
+          Date dt1 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45Z", "yymmdd");
           Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal1.setTime(dt1);
 
@@ -1409,7 +1415,7 @@ foam.CLASS({
 
           // Test 2: With positive timezone offset +05:30
           // 24-03-15 14:30:45+05:30 → March 15, 2024 09:00:45 UTC
-          Date dt2 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45+05:30");
+          Date dt2 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45+05:30", "yymmdd");
           Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal2.setTime(dt2);
 
@@ -1420,7 +1426,7 @@ foam.CLASS({
 
           // Test 3: With negative timezone offset -08:00
           // 24-03-15 14:30:45-08:00 → March 15, 2024 22:30:45 UTC
-          Date dt3 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45-08:00");
+          Date dt3 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45-08:00", "yymmdd");
           Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal3.setTime(dt3);
 
@@ -1430,7 +1436,7 @@ foam.CLASS({
           test(cal3.get(Calendar.SECOND) == 45, "YY-MM-DD HH:MM:SS-08:00 - Second is 45");
 
           // Test 4: Timezone offset without colon +0530
-          Date dt4 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45+0530");
+          Date dt4 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45+0530", "yymmdd");
           Calendar cal4 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal4.setTime(dt4);
 
@@ -1438,7 +1444,7 @@ foam.CLASS({
           test(cal4.get(Calendar.HOUR_OF_DAY) == 9, "YY-MM-DD HH:MM:SS+0530 - Hour is 9 UTC");
 
           // Test 5: With slash separator and timezone
-          Date dt5 = DateUtil.parseDateTimeUTC("24/03/15 14:30:45+05:30");
+          Date dt5 = DateUtil.parseDateTimeUTC("24/03/15 14:30:45+05:30", "yymmdd");
           Calendar cal5 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal5.setTime(dt5);
 
@@ -1446,7 +1452,7 @@ foam.CLASS({
           test(cal5.get(Calendar.HOUR_OF_DAY) == 9, "YY/MM/DD HH:MM:SS+05:30 - Hour is 9 UTC");
 
           // Test 6: Leap year with 2-digit year - 24-02-29 14:30:45
-          Date dt6 = DateUtil.parseDateTimeUTC("24-02-29 14:30:45");
+          Date dt6 = DateUtil.parseDateTimeUTC("24-02-29 14:30:45", "yymmdd");
           Calendar cal6 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal6.setTime(dt6);
 
@@ -1465,9 +1471,10 @@ foam.CLASS({
       javaCode: `
         try {
           // Test that time components are preserved correctly across different formats
+          // NOTE: YYMMDD requires opt_name because it's ambiguous with MMDDYY
 
           // Test 1: Midnight
-          Date dt1 = DateUtil.parseDateTimeUTC("24-03-15 00:00:00");
+          Date dt1 = DateUtil.parseDateTimeUTC("24-03-15 00:00:00", "yymmdd");
           Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal1.setTime(dt1);
           test(cal1.get(Calendar.HOUR_OF_DAY) == 0, "Midnight - Hour is 0");
@@ -1475,7 +1482,7 @@ foam.CLASS({
           test(cal1.get(Calendar.SECOND) == 0, "Midnight - Second is 0");
 
           // Test 2: Noon
-          Date dt2 = DateUtil.parseDateTimeUTC("24/03/15 12:00:00");
+          Date dt2 = DateUtil.parseDateTimeUTC("24/03/15 12:00:00", "yymmdd");
           Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal2.setTime(dt2);
           test(cal2.get(Calendar.HOUR_OF_DAY) == 12, "Noon - Hour is 12");
@@ -1483,7 +1490,7 @@ foam.CLASS({
           test(cal2.get(Calendar.SECOND) == 0, "Noon - Second is 0");
 
           // Test 3: End of day
-          Date dt3 = DateUtil.parseDateTimeUTC("24-12-31 23:59:59");
+          Date dt3 = DateUtil.parseDateTimeUTC("24-12-31 23:59:59", "yymmdd");
           Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal3.setTime(dt3);
           test(cal3.get(Calendar.HOUR_OF_DAY) == 23, "End of day - Hour is 23");
@@ -1496,7 +1503,7 @@ foam.CLASS({
 
           // Test 5: Time preservation across timezone conversion
           // Local time 14:30:45+05:30 → UTC 09:00:45
-          Date dt5 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45+05:30");
+          Date dt5 = DateUtil.parseDateTimeUTC("24-03-15 14:30:45+05:30", "yymmdd");
           Calendar cal5 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal5.setTime(dt5);
 
@@ -1507,7 +1514,7 @@ foam.CLASS({
 
           // Test 6: Date rollover due to timezone
           // 2024-03-15 23:30:00-08:00 → 2024-03-16 07:30:00 UTC (next day)
-          Date dt6 = DateUtil.parseDateTimeUTC("24-03-15 23:30:00-08:00");
+          Date dt6 = DateUtil.parseDateTimeUTC("24-03-15 23:30:00-08:00", "yymmdd");
           Calendar cal6 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
           cal6.setTime(dt6);
 

@@ -16,6 +16,7 @@ foam.CLASS({
     - MM-DD-YYYY, MM/DD/YYYY, MMDDYYYY
     - DD-MM-YYYY, DD/MM/YYYY, DDMMYYYY
     - Month name formats (DD-MMM-YYYY, MMM dd YYYY, etc.)
+    - Unix/Java Date.toString() format (DDD MMM DD HH:MM:SS TZ YYYY)
     - With or without time components
     - With or without timezones
 
@@ -54,8 +55,12 @@ foam.CLASS({
         // Date with month names - ALL completely unambiguous (contain letters!)
         // DD-MMM-YYYY, DD/MMM/YYYY, DDMMMYYYY, YYYY-DD-MMM, YYYY/DD/MMM, YYYYDDMMM
         // DD MMM YYYY (with spaces)
+        // Unix/Java Date.toString() format: DDD MMM DD HH:MM:SS TZ YYYY
         // NOTE: yyyyddmmmcompact must come BEFORE ddmmmyyyycompact to match correctly
+        // NOTE: unixdatetostring must come FIRST because it has the most specific pattern
         datemonthname: alt(
+          // Support: DDD MMM DD HH:MM:SS TZ YYYY (e.g., "Tue Apr 01 05:17:59 GMT 2025")
+          sym('unixdatetostring'),
           // Support: MMM dd yyyy (e.g., Jan 02 2025)
           sym('mmmddyyyyspace'),
           // Support: DD MMM YYYY (e.g., 15 JAN 2025)
@@ -499,6 +504,47 @@ foam.CLASS({
         // Supports single-digit days
         ddmmmyyyyspace: seq(
           sym('dayFlexible'), ' ', sym('month3alpha'), ' ', sym('year4')
+        ),
+
+        // Unix/Java Date.toString() format: DDD MMM DD HH:MM:SS TZ YYYY
+        // e.g., "Tue Apr 01 05:17:59 GMT 2025"
+        // The day name (Mon, Tue, etc.) is parsed but ignored for date construction
+        unixdatetostring: seq(
+          sym('day3alpha'), ' ',      // Day name (ignored)
+          sym('month3alpha'), ' ',    // Month name
+          sym('dayFlexible'), ' ',    // Day of month (1-31 or 01-31)
+          sym('hour2'), ':', sym('minute2'), ':', sym('second2'), ' ',  // Time HH:MM:SS
+          sym('unixTimezone'), ' ',   // Timezone (GMT, UTC, or +/-offset)
+          sym('year4')                // Year
+        ),
+
+        // 3-letter day name (case insensitive): Mon, Tue, Wed, Thu, Fri, Sat, Sun
+        day3alpha: alt(
+          literalIC('MON'),
+          literalIC('TUE'),
+          literalIC('WED'),
+          literalIC('THU'),
+          literalIC('FRI'),
+          literalIC('SAT'),
+          literalIC('SUN')
+        ),
+
+        // Unix timezone format: GMT, UTC, or +/-HHMM
+        unixTimezone: alt(
+          literalIC('GMT'),
+          literalIC('UTC'),
+          // +HHMM or -HHMM format
+          seq(
+            chars('+-'),
+            repeat(range('0', '9'), null, 4, 4)
+          ),
+          // +HH:MM or -HH:MM format
+          seq(
+            chars('+-'),
+            repeat(range('0', '9'), null, 2, 2),
+            ':',
+            repeat(range('0', '9'), null, 2, 2)
+          )
         ),
 
         // Component parsers
