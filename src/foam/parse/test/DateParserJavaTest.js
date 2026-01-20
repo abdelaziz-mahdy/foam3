@@ -649,32 +649,19 @@ foam.CLASS({
       name: 'DateParserTest_InvalidDates',
       javaCode: `
         DateParser parser = new DateParser();
+        // Default is non-strict mode - invalid formats return MAX_DATE instead of throwing
 
-        // Invalid/unsupported formats should throw exceptions
+        // Test invalid format - returns MAX_DATE in lenient mode
+        Date date1 = parser.parseString("not-a-date");
+        test(date1.equals(DateParser.MAX_DATE), "Invalid format returns MAX_DATE in lenient mode");
 
-        // Test invalid format
-        try {
-          Date date1 = parser.parseString("not-a-date");
-          test(false, "Invalid format should throw exception");
-        } catch (RuntimeException e) {
-          test(e.getMessage().contains("Unsupported Date format"), "Invalid format throws correct exception");
-        }
+        // Test empty string - returns MAX_DATE in lenient mode
+        Date date2 = parser.parseString("");
+        test(date2.equals(DateParser.MAX_DATE), "Empty string returns MAX_DATE in lenient mode");
 
-        // Test empty string
-        try {
-          Date date2 = parser.parseString("");
-          test(false, "Empty string should throw exception");
-        } catch (RuntimeException e) {
-          test(e.getMessage().contains("Unsupported Date format"), "Empty string throws correct exception");
-        }
-
-        // Test null
-        try {
-          Date date3 = parser.parseString(null);
-          test(false, "Null should throw exception");
-        } catch (RuntimeException e) {
-          test(e.getMessage().contains("Unsupported Date format"), "Null throws correct exception");
-        }
+        // Test null - returns MAX_DATE in lenient mode
+        Date date3 = parser.parseString(null);
+        test(date3.equals(DateParser.MAX_DATE), "Null returns MAX_DATE in lenient mode");
       `
     },
 

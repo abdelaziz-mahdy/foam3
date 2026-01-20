@@ -10,6 +10,7 @@ foam.CLASS({
   extends: 'foam.core.test.Test',
 
   javaImports: [
+    'foam.parse.DateParser',
     'foam.util.DateUtil',
     'java.time.LocalDate',
     'java.time.LocalDateTime',
@@ -83,6 +84,12 @@ foam.CLASS({
         DateUtilTest_parseDateTimeUTC_TimeComponentPreservation();
         DateUtilTest_format_LocaleDefault_DateOnly();
         DateUtilTest_format_LocaleDefault_WithTimezone();
+
+        // Strict Validation Mode Tests
+        DateUtilTest_StrictValidation_ThrowsForInvalid();
+        DateUtilTest_StrictValidation_ValidDatesWork();
+        DateUtilTest_LenientValidation_ReturnsMaxDate();
+        DateUtilTest_LenientValidation_ValidDatesWork();
       `
     },
     {
@@ -265,14 +272,9 @@ foam.CLASS({
     {
       name: 'DateUtilTest_parseDateString_UnsupportedFormat',
       javaCode: `
-        try {
-          Date date = DateUtil.parseDateString("March 15, 2024");
-          test(false, "Unsupported format should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported Date format"), "Unsupported format throws correct error message");
-        } catch ( Exception e ) {
-          test(false, "Unsupported format should throw RuntimeException, not " + e.getClass().getSimpleName());
-        }
+        // Default is non-strict mode - unsupported formats return MAX_DATE instead of throwing
+        Date date = DateUtil.parseDateString("March 15, 2024");
+        test(date.equals(DateParser.MAX_DATE), "Unsupported format returns MAX_DATE in lenient mode");
       `
     },
     {
@@ -353,13 +355,9 @@ foam.CLASS({
     {
       name: 'DateUtilTest_adapt_InvalidString',
       javaCode: `
-        // Invalid/unsupported format should throw exception
-        try {
-          Date date = DateUtil.adapt("invalid date string");
-          test(false, "adapt(invalid string) should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported Date format"), "Invalid string throws correct error message");
-        }
+        // Default is non-strict mode - invalid string returns MAX_DATE
+        Date date = DateUtil.adapt("invalid date string");
+        test(date.equals(DateParser.MAX_DATE), "adapt(invalid string) returns MAX_DATE in lenient mode");
       `
     },
     {
@@ -746,13 +744,14 @@ foam.CLASS({
     {
       name: 'DateUtilTest_parseDateString_InvalidFormats',
       javaCode: `
+        // Default is non-strict mode - unsupported formats return MAX_DATE
+
         // Test various invalid formats (don't match any pattern)
+        // Note: Single-digit month/day with separators (e.g., 2024/3/15) ARE supported by grammar
         String[] unsupportedFormats = {
           "2024.03.15",      // dots instead of dashes/slashes
           "2024,03,15",      // commas
-          "2024/3/15",       // single digit month
-          "2024/03/5",       // single digit day
-          "24-3-15",         // single digits in YY-MM-DD
+          "24-3-15",         // single digits in YY-MM-DD (requires opt_name='yymmdd')
           "2024-3",          // incomplete date
           "2024",            // year only
           "03/2024",         // month/year only
@@ -760,12 +759,26 @@ foam.CLASS({
         };
 
         for ( String format : unsupportedFormats ) {
-          try {
-            DateUtil.parseDateString(format);
-            test(false, "Unsupported format \\"" + format + "\\" should throw exception");
-          } catch ( RuntimeException e ) {
-            test(e.getMessage().contains("Unsupported Date format"), "Format \\"" + format + "\\" throws \\"Unsupported Date format\\"");
-          }
+          Date result = DateUtil.parseDateString(format);
+          test(result.equals(DateParser.MAX_DATE), "Format \\"" + format + "\\" returns MAX_DATE in lenient mode");
+        }
+
+        // Test single-digit formats that ARE supported by the grammar
+        String[] singleDigitFormats = {
+          "2024/3/15",       // single digit month - valid
+          "2024/03/5",       // single digit day - valid
+          "2024-3-15",       // single digit month with dash - valid
+          "2024-03-5"        // single digit day with dash - valid
+        };
+
+        for ( String format : singleDigitFormats ) {
+          Date date = DateUtil.parseDateString(format);
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(date);
+          test(cal.get(Calendar.YEAR) == 2024, "Single-digit format \\"" + format + "\\" - year is 2024");
+          test(cal.get(Calendar.MONTH) == 2, "Single-digit format \\"" + format + "\\" - month is March (2)");
+          test(cal.get(Calendar.DAY_OF_MONTH) == 15 || cal.get(Calendar.DAY_OF_MONTH) == 5,
+               "Single-digit format \\"" + format + "\\" - day is valid");
         }
 
         // Test formats that match a pattern but have invalid date values - Calendar normalizes them
@@ -778,58 +791,39 @@ foam.CLASS({
 
         // These dates should be normalized by Calendar, not throw exceptions
         for ( String format : invalidDates ) {
-          try {
-            Date date = DateUtil.parseDateString(format);
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(date);
-            // Just verify we got a valid normalized date without exception
-            test(date != null, "Date \\"" + format + "\\" normalized to valid date");
-          } catch ( RuntimeException e ) {
-            test(false, "Date \\"" + format + "\\" should normalize, not throw exception: " + e.getMessage());
-          }
+          Date date = DateUtil.parseDateString(format);
+          Calendar cal = Calendar.getInstance();
+          cal.setTime(date);
+          // Just verify we got a valid normalized date without exception
+          test(date != null, "Date \\"" + format + "\\" normalized to valid date");
         }
       `
     },
     {
       name: 'DateUtilTest_parseDateString_EmptyAndWhitespace',
       javaCode: `
-        try {
-          DateUtil.parseDateString("");
-          test(false, "Empty string should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported Date format"), "Empty string throws error");
-        }
+        // Default is non-strict mode - empty/whitespace returns MAX_DATE
+        Date emptyResult = DateUtil.parseDateString("");
+        test(emptyResult.equals(DateParser.MAX_DATE), "Empty string returns MAX_DATE in lenient mode");
 
-        try {
-          DateUtil.parseDateString("   ");
-          test(false, "Whitespace string should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported Date format"), "Whitespace throws error");
-        }
+        Date whitespaceResult = DateUtil.parseDateString("   ");
+        test(whitespaceResult.equals(DateParser.MAX_DATE), "Whitespace string returns MAX_DATE in lenient mode");
       `
     },
     {
       name: 'DateUtilTest_adapt_EmptyString',
       javaCode: `
-        // Empty string should throw exception
-        try {
-          Date date = DateUtil.adapt("");
-          test(false, "adapt(empty string) should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported Date format"), "Empty string throws correct error message");
-        }
+        // Default is non-strict mode - empty string returns MAX_DATE
+        Date date = DateUtil.adapt("");
+        test(date.equals(DateParser.MAX_DATE), "adapt(empty string) returns MAX_DATE in lenient mode");
       `
     },
     {
       name: 'DateUtilTest_adapt_WhitespaceString',
       javaCode: `
-        // Whitespace string should throw exception
-        try {
-          Date date = DateUtil.adapt("   ");
-          test(false, "adapt(whitespace) should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported Date format"), "Whitespace throws correct error message");
-        }
+        // Default is non-strict mode - whitespace string returns MAX_DATE
+        Date date = DateUtil.adapt("   ");
+        test(date.equals(DateParser.MAX_DATE), "adapt(whitespace) returns MAX_DATE in lenient mode");
       `
     },
     {
@@ -996,13 +990,9 @@ foam.CLASS({
           test(false, "Invalid hour should normalize, not throw exception: " + e.getMessage());
         }
 
-        // Test unsupported format
-        try {
-          DateUtil.parseDateTime("March 15, 2024 3:30 PM");
-          test(false, "Unsupported format should throw exception");
-        } catch ( RuntimeException e ) {
-          test(e.getMessage().contains("Unsupported DateTime format"), "Unsupported format throws error");
-        }
+        // Test unsupported format - in lenient mode returns MAX_DATE
+        Date unsupportedResult = DateUtil.parseDateTime("March 15, 2024 3:30 PM");
+        test(unsupportedResult.equals(DateParser.MAX_DATE), "Unsupported format returns MAX_DATE in lenient mode");
       `
     },
     {
@@ -1600,6 +1590,180 @@ foam.CLASS({
         test(!formatted1.equals(formattedControlFirst) || true, "format() and formatWithTimeControl() may have different output formats");
         System.out.println("Consistency check - format(date, UTC): " + formatted1);
         System.out.println("Consistency check - formatWithTimeControl(date, true, UTC): " + formattedControlFirst);
+      `
+    },
+
+    // ========== Strict Validation Mode Tests ==========
+
+    {
+      name: 'DateUtilTest_StrictValidation_ThrowsForInvalid',
+      javaCode: `
+        // Enable strict validation mode
+        DateUtil.setStrictValidation(true);
+
+        try {
+          // Test 1: Invalid format should throw
+          try {
+            DateUtil.parseDateString("not-a-date");
+            test(false, "StrictMode: invalid format should throw");
+          } catch ( RuntimeException e ) {
+            test(e.getMessage().contains("Unsupported Date format"), "StrictMode: invalid format throws correct exception");
+          }
+
+          // Test 2: Empty string should throw
+          try {
+            DateUtil.parseDateString("");
+            test(false, "StrictMode: empty string should throw");
+          } catch ( RuntimeException e ) {
+            test(e.getMessage().contains("empty or null"), "StrictMode: empty string throws correct exception");
+          }
+
+          // Test 3: Null should throw
+          try {
+            DateUtil.parseDateString(null);
+            test(false, "StrictMode: null should throw");
+          } catch ( RuntimeException e ) {
+            test(e.getMessage().contains("empty or null"), "StrictMode: null throws correct exception");
+          }
+
+          // Test 4: parseDateTime with invalid input should throw
+          try {
+            DateUtil.parseDateTime("garbage");
+            test(false, "StrictMode parseDateTime: should throw for invalid input");
+          } catch ( RuntimeException e ) {
+            test(true, "StrictMode parseDateTime: throws for invalid input");
+          }
+
+          // Test 5: parseDateTimeUTC with invalid input should throw
+          try {
+            DateUtil.parseDateTimeUTC("invalid");
+            test(false, "StrictMode parseDateTimeUTC: should throw for invalid input");
+          } catch ( RuntimeException e ) {
+            test(true, "StrictMode parseDateTimeUTC: throws for invalid input");
+          }
+
+          // Test 6: adapt with invalid string should throw
+          try {
+            DateUtil.adapt("invalid date string");
+            test(false, "StrictMode adapt: should throw for invalid string");
+          } catch ( RuntimeException e ) {
+            test(true, "StrictMode adapt: throws for invalid string");
+          }
+
+        } finally {
+          // Reset to default lenient mode
+          DateUtil.setStrictValidation(false);
+        }
+      `
+    },
+    {
+      name: 'DateUtilTest_StrictValidation_ValidDatesWork',
+      javaCode: `
+        // Enable strict validation mode
+        DateUtil.setStrictValidation(true);
+
+        try {
+          // Test that valid dates still work in strict mode
+          Date date1 = DateUtil.parseDateString("2025-01-15");
+          Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          cal1.setTime(date1);
+          test(cal1.get(Calendar.YEAR) == 2025, "StrictMode: valid date parses - year 2025");
+          test(cal1.get(Calendar.MONTH) == 0, "StrictMode: valid date parses - month Jan");
+          test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "StrictMode: valid date parses - day 15");
+
+          // Test parseDateTime
+          Date date2 = DateUtil.parseDateTime("2025-01-15T14:30:45");
+          Calendar cal2 = Calendar.getInstance();
+          cal2.setTime(date2);
+          test(cal2.get(Calendar.YEAR) == 2025, "StrictMode: valid datetime parses - year 2025");
+          test(cal2.get(Calendar.HOUR_OF_DAY) == 14, "StrictMode: valid datetime parses - hour 14");
+
+          // Test parseDateTimeUTC
+          Date date3 = DateUtil.parseDateTimeUTC("2025-01-15T14:30:45Z");
+          Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          cal3.setTime(date3);
+          test(cal3.get(Calendar.YEAR) == 2025, "StrictMode: valid UTC datetime parses - year 2025");
+          test(cal3.get(Calendar.HOUR_OF_DAY) == 14, "StrictMode: valid UTC datetime parses - hour 14");
+
+          // Test adapt
+          Date date4 = DateUtil.adapt("2025-01-15");
+          Calendar cal4 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+          cal4.setTime(date4);
+          test(cal4.get(Calendar.YEAR) == 2025, "StrictMode: valid adapt parses - year 2025");
+
+        } finally {
+          // Reset to default lenient mode
+          DateUtil.setStrictValidation(false);
+        }
+      `
+    },
+    {
+      name: 'DateUtilTest_LenientValidation_ReturnsMaxDate',
+      javaCode: `
+        // Ensure lenient mode is enabled (default)
+        DateUtil.setStrictValidation(false);
+
+        // Test 1: Default should be lenient (strictValidation = false)
+        test(DateUtil.getStrictValidation() == false, "Default has strictValidation=false");
+
+        // Test 2: Invalid format should return MAX_DATE, not throw
+        Date result1 = DateUtil.parseDateString("not-a-date");
+        test(result1.equals(DateParser.MAX_DATE), "LenientMode: invalid format returns MAX_DATE");
+
+        // Test 3: Empty string should return MAX_DATE
+        Date result2 = DateUtil.parseDateString("");
+        test(result2.equals(DateParser.MAX_DATE), "LenientMode: empty string returns MAX_DATE");
+
+        // Test 4: Null should return MAX_DATE
+        Date result3 = DateUtil.parseDateString(null);
+        test(result3.equals(DateParser.MAX_DATE), "LenientMode: null returns MAX_DATE");
+
+        // Test 5: parseDateTime with invalid returns MAX_DATE
+        Date result4 = DateUtil.parseDateTime("garbage");
+        test(result4.equals(DateParser.MAX_DATE), "LenientMode parseDateTime: invalid returns MAX_DATE");
+
+        // Test 6: parseDateTimeUTC with invalid returns MAX_DATE
+        Date result5 = DateUtil.parseDateTimeUTC("invalid");
+        test(result5.equals(DateParser.MAX_DATE), "LenientMode parseDateTimeUTC: invalid returns MAX_DATE");
+
+        // Test 7: adapt with invalid returns MAX_DATE
+        Date result6 = DateUtil.adapt("invalid date string");
+        test(result6.equals(DateParser.MAX_DATE), "LenientMode adapt: invalid returns MAX_DATE");
+      `
+    },
+    {
+      name: 'DateUtilTest_LenientValidation_ValidDatesWork',
+      javaCode: `
+        // Ensure lenient mode is enabled (default)
+        DateUtil.setStrictValidation(false);
+
+        // Test that valid dates work in lenient mode
+        Date date1 = DateUtil.parseDateString("2025-01-15");
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal1.setTime(date1);
+        test(cal1.get(Calendar.YEAR) == 2025, "LenientMode: valid date parses - year 2025");
+        test(cal1.get(Calendar.MONTH) == 0, "LenientMode: valid date parses - month Jan");
+        test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "LenientMode: valid date parses - day 15");
+
+        // Test parseDateTime
+        Date date2 = DateUtil.parseDateTime("2025-01-15T14:30:45");
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(date2);
+        test(cal2.get(Calendar.YEAR) == 2025, "LenientMode: valid datetime parses - year 2025");
+        test(cal2.get(Calendar.HOUR_OF_DAY) == 14, "LenientMode: valid datetime parses - hour 14");
+
+        // Test parseDateTimeUTC
+        Date date3 = DateUtil.parseDateTimeUTC("2025-01-15T14:30:45Z");
+        Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal3.setTime(date3);
+        test(cal3.get(Calendar.YEAR) == 2025, "LenientMode: valid UTC datetime parses - year 2025");
+        test(cal3.get(Calendar.HOUR_OF_DAY) == 14, "LenientMode: valid UTC datetime parses - hour 14");
+
+        // Test adapt
+        Date date4 = DateUtil.adapt("2025-01-15");
+        Calendar cal4 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal4.setTime(date4);
+        test(cal4.get(Calendar.YEAR) == 2025, "LenientMode: valid adapt parses - year 2025");
       `
     }
   ]
