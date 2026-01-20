@@ -68,6 +68,12 @@ foam.CLASS({
         DateParserTest_LeapYear();
         DateParserTest_InvalidDates();
         DateParserTest_PartialParse();
+
+        // Strict Validation Mode Tests
+        DateParserTest_StrictValidation_ThrowsForInvalid();
+        DateParserTest_StrictValidation_ValidDatesWork();
+        DateParserTest_LenientValidation_ReturnsMaxDate();
+        DateParserTest_LenientValidation_ValidDatesWork();
       `
     },
 
@@ -688,6 +694,133 @@ foam.CLASS({
         test(cal1.get(Calendar.HOUR_OF_DAY) == 14, "Trailing text allowed: hour is 14 UTC");
         test(cal1.get(Calendar.MINUTE) == 30, "Trailing text allowed: minute is 30");
         test(cal1.get(Calendar.SECOND) == 45, "Trailing text allowed: second is 45");
+      `
+    },
+
+    // ========== Strict Validation Mode Tests ==========
+
+    {
+      name: 'DateParserTest_StrictValidation_ThrowsForInvalid',
+      javaCode: `
+        DateParser parser = new DateParser();
+        parser.setStrictValidation(true);
+
+        // Test 1: Invalid format should throw
+        try {
+          parser.parseString("not-a-date");
+          test(false, "StrictMode: invalid format should throw");
+        } catch (RuntimeException e) {
+          test(e.getMessage().contains("Unsupported Date format"), "StrictMode: invalid format throws correct exception");
+        }
+
+        // Test 2: Empty string should throw
+        try {
+          parser.parseString("");
+          test(false, "StrictMode: empty string should throw");
+        } catch (RuntimeException e) {
+          test(e.getMessage().contains("empty or null"), "StrictMode: empty string throws correct exception");
+        }
+
+        // Test 3: Null should throw
+        try {
+          parser.parseString(null);
+          test(false, "StrictMode: null should throw");
+        } catch (RuntimeException e) {
+          test(e.getMessage().contains("empty or null"), "StrictMode: null throws correct exception");
+        }
+
+        // Test 4: parseDateTime with invalid input should throw
+        try {
+          parser.parseDateTime("garbage");
+          test(false, "StrictMode parseDateTime: should throw for invalid input");
+        } catch (RuntimeException e) {
+          test(true, "StrictMode parseDateTime: throws for invalid input");
+        }
+
+        // Test 5: parseDateTimeUTC with invalid input should throw
+        try {
+          parser.parseDateTimeUTC("invalid");
+          test(false, "StrictMode parseDateTimeUTC: should throw for invalid input");
+        } catch (RuntimeException e) {
+          test(true, "StrictMode parseDateTimeUTC: throws for invalid input");
+        }
+      `
+    },
+
+    {
+      name: 'DateParserTest_StrictValidation_ValidDatesWork',
+      javaCode: `
+        DateParser parser = new DateParser();
+        parser.setStrictValidation(true);
+
+        // Test that valid dates still work in strict mode
+        Date date1 = parser.parseString("2025-01-15");
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal1.setTime(date1);
+        test(cal1.get(Calendar.YEAR) == 2025, "StrictMode: valid date parses - year 2025");
+        test(cal1.get(Calendar.MONTH) == 0, "StrictMode: valid date parses - month Jan");
+        test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "StrictMode: valid date parses - day 15");
+
+        // Test parseDateTime
+        Date date2 = parser.parseDateTime("2025-01-15T14:30:45");
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(date2);
+        test(cal2.get(Calendar.YEAR) == 2025, "StrictMode: valid datetime parses - year 2025");
+        test(cal2.get(Calendar.HOUR_OF_DAY) == 14, "StrictMode: valid datetime parses - hour 14");
+
+        // Test parseDateTimeUTC
+        Date date3 = parser.parseDateTimeUTC("2025-01-15T14:30:45Z");
+        Calendar cal3 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal3.setTime(date3);
+        test(cal3.get(Calendar.YEAR) == 2025, "StrictMode: valid UTC datetime parses - year 2025");
+        test(cal3.get(Calendar.HOUR_OF_DAY) == 14, "StrictMode: valid UTC datetime parses - hour 14");
+      `
+    },
+
+    {
+      name: 'DateParserTest_LenientValidation_ReturnsMaxDate',
+      javaCode: `
+        DateParser parser = new DateParser();
+        parser.setStrictValidation(false);
+
+        // Test 1: Default should be lenient (strictValidation = false)
+        test(parser.getStrictValidation() == false, "Default parser has strictValidation=false");
+
+        // Test 2: Invalid format should return MAX_DATE, not throw
+        Date result1 = parser.parseString("not-a-date");
+        test(result1.equals(DateParser.MAX_DATE), "LenientMode: invalid format returns MAX_DATE");
+
+        // Test 3: Empty string should return MAX_DATE
+        Date result2 = parser.parseString("");
+        test(result2.equals(DateParser.MAX_DATE), "LenientMode: empty string returns MAX_DATE");
+
+        // Test 4: Null should return MAX_DATE
+        Date result3 = parser.parseString(null);
+        test(result3.equals(DateParser.MAX_DATE), "LenientMode: null returns MAX_DATE");
+
+        // Test 5: parseDateTime with invalid returns MAX_DATE
+        Date result4 = parser.parseDateTime("garbage");
+        test(result4.equals(DateParser.MAX_DATE), "LenientMode parseDateTime: invalid returns MAX_DATE");
+
+        // Test 6: parseDateTimeUTC with invalid returns MAX_DATE
+        Date result5 = parser.parseDateTimeUTC("invalid");
+        test(result5.equals(DateParser.MAX_DATE), "LenientMode parseDateTimeUTC: invalid returns MAX_DATE");
+      `
+    },
+
+    {
+      name: 'DateParserTest_LenientValidation_ValidDatesWork',
+      javaCode: `
+        DateParser parser = new DateParser();
+        parser.setStrictValidation(false);
+
+        // Test that valid dates work in lenient mode
+        Date date1 = parser.parseString("2025-01-15");
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        cal1.setTime(date1);
+        test(cal1.get(Calendar.YEAR) == 2025, "LenientMode: valid date parses - year 2025");
+        test(cal1.get(Calendar.MONTH) == 0, "LenientMode: valid date parses - month Jan");
+        test(cal1.get(Calendar.DAY_OF_MONTH) == 15, "LenientMode: valid date parses - day 15");
       `
     }
   ]

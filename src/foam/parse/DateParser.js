@@ -33,6 +33,11 @@ foam.CLASS({
     {
       name: 'dateParseMode',
       value: 'DATETIME'
+    },
+    {
+      class: 'Boolean',
+      name: 'strictValidation',
+      documentation: 'If true, throws errors for invalid dates. If false, logs warnings and returns MAX_DATE.'
     }
   ],
 
@@ -591,24 +596,26 @@ foam.CLASS({
     function validateDate(date, str) {
       // Check if date is NaN
       if ( isNaN(date.getTime()) ) {
+        if ( this.strictValidation ) {
+          throw new Error('Invalid date: "' + str + '"');
+        }
         date = foam.Date.MAX_DATE;
         console.warn("Invalid date: " + str + "; assuming " + date.toISOString() + ".");
         return date;
       }
-
-      // Allow JavaScript's native date normalization (e.g., 2025-13-01 -> 2026-01-01)
       return date;
     },
 
     function validateDateUTC(date, str) {
       // Check if date is NaN
       if ( isNaN(date.getTime()) ) {
+        if ( this.strictValidation ) {
+          throw new Error('Invalid date: "' + str + '"');
+        }
         date = foam.Date.MAX_DATE;
         console.warn("Invalid date: " + str + "; assuming " + date.toISOString() + ".");
         return date;
       }
-
-      // Allow JavaScript's native date normalization (e.g., 2025-13-01 -> 2026-01-01)
       return date;
     },
 
@@ -630,7 +637,14 @@ foam.CLASS({
         'MAY': 4, 'JUN': 5, 'JUL': 6, 'AUG': 7,
         'SEP': 8, 'OCT': 9, 'NOV': 10, 'DEC': 11
       };
-      return months[month] !== undefined ? months[month] : 0;
+      if ( months[month] === undefined ) {
+        if ( this.strictValidation ) {
+          throw new Error('Invalid month name: "' + monthName + '"');
+        }
+        console.warn('Invalid month name: "' + monthName + '"; assuming January.');
+        return 0;
+      }
+      return months[month];
     },
 
     function parseString(str, opt_name) {

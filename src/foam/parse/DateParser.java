@@ -39,6 +39,14 @@ public class DateParser {
   private Grammar grammar_;
 
   /**
+   * If true, throws errors for invalid dates. If false, logs warnings and returns MAX_DATE.
+   */
+  private boolean strictValidation_ = false;
+
+  public boolean getStrictValidation() { return strictValidation_; }
+  public void setStrictValidation(boolean v) { strictValidation_ = v; }
+
+  /**
    * Maximum date value for invalid dates
    */
   public static final Date MAX_DATE = new Date(Long.MAX_VALUE);
@@ -83,16 +91,21 @@ public class DateParser {
   /**
    * Parse a date/datetime string and return a Date object.
    * Auto-detects format and handles time if present.
-   * Throws RuntimeException for invalid formats.
+   * Throws RuntimeException for invalid formats if strictValidation is true,
+   * otherwise returns MAX_DATE with warning.
    *
    * @param str The date string to parse
    * @param opt_name Optional grammar symbol name to use (e.g., "ddmmyyyy", "yyyyddmm")
    * @return Parsed Date object
-   * @throws RuntimeException if format is unsupported
+   * @throws RuntimeException if format is unsupported and strictValidation is true
    */
   public Date parseString(String str, String opt_name) {
     if ( str == null || str.trim().isEmpty() ) {
-      throw new RuntimeException("Unsupported Date format: empty or null string");
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported Date format: empty or null string");
+      }
+      System.err.println("Warning: Invalid date: empty or null string; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     str = str.trim();
@@ -102,7 +115,11 @@ public class DateParser {
 
     PStream parseResult = grammar_.parse(sps, x, opt_name);
     if ( parseResult == null || parseResult.value() == null ) {
-      throw new RuntimeException("Unsupported Date format: " + str);
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported Date format: " + str);
+      }
+      System.err.println("Warning: Invalid date: \"" + str + "\"; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     return (Date) parseResult.value();
@@ -117,15 +134,20 @@ public class DateParser {
 
   /**
    * Parse a date string - ignores any time component and returns date at noon GMT.
-   * Returns MAX_DATE for invalid dates.
+   * Throws RuntimeException for invalid formats if strictValidation is true,
+   * otherwise returns MAX_DATE with warning.
    *
    * @param str The date string to parse
    * @param opt_name Optional grammar symbol name
-   * @return Parsed Date object at noon GMT, or MAX_DATE if invalid
+   * @return Parsed Date object at noon GMT, or MAX_DATE if invalid and strictValidation is false
    */
   public Date parseDateString(String str, String opt_name) {
     if ( str == null || str.trim().isEmpty() ) {
-      throw new RuntimeException("Unsupported Date format: empty or null string");
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported Date format: empty or null string");
+      }
+      System.err.println("Warning: Invalid date: empty or null string; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     str = str.trim();
@@ -135,7 +157,11 @@ public class DateParser {
 
     PStream parseResult = grammar_.parse(sps, x, opt_name);
     if ( parseResult == null || parseResult.value() == null ) {
-      throw new RuntimeException("Unsupported Date format: " + str);
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported Date format: " + str);
+      }
+      System.err.println("Warning: Invalid date: \"" + str + "\"; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     return (Date) parseResult.value();
@@ -152,15 +178,20 @@ public class DateParser {
    * Parse a datetime string using local time.
    * Uses time if present, otherwise sets to noon.
    * If timezone is present, converts to UTC.
-   * Returns MAX_DATE for invalid dates.
+   * Throws RuntimeException for invalid formats if strictValidation is true,
+   * otherwise returns MAX_DATE with warning.
    *
    * @param str The datetime string to parse
    * @param opt_name Optional grammar symbol name
-   * @return Parsed Date object in local time, or MAX_DATE if invalid
+   * @return Parsed Date object in local time, or MAX_DATE if invalid and strictValidation is false
    */
   public Date parseDateTime(String str, String opt_name) {
     if ( str == null || str.trim().isEmpty() ) {
-      throw new RuntimeException("Unsupported DateTime format: empty or null string");
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported DateTime format: empty or null string");
+      }
+      System.err.println("Warning: Invalid datetime: empty or null string; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     str = str.trim();
@@ -170,7 +201,11 @@ public class DateParser {
 
     PStream parseResult = grammar_.parse(sps, x, opt_name);
     if ( parseResult == null || parseResult.value() == null ) {
-      throw new RuntimeException("Unsupported DateTime format: " + str);
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported DateTime format: " + str);
+      }
+      System.err.println("Warning: Invalid datetime: \"" + str + "\"; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     return (Date) parseResult.value();
@@ -187,15 +222,20 @@ public class DateParser {
    * Parse a datetime string using UTC time.
    * Uses time if present, otherwise sets to midnight.
    * If timezone is present, converts to UTC.
-   * Returns MAX_DATE for invalid dates.
+   * Throws RuntimeException for invalid formats if strictValidation is true,
+   * otherwise returns MAX_DATE with warning.
    *
    * @param str The datetime string to parse
    * @param opt_name Optional grammar symbol name
-   * @return Parsed Date object in UTC, or MAX_DATE if invalid
+   * @return Parsed Date object in UTC, or MAX_DATE if invalid and strictValidation is false
    */
   public Date parseDateTimeUTC(String str, String opt_name) {
     if ( str == null || str.trim().isEmpty() ) {
-      throw new RuntimeException("Unsupported DateTime format: empty or null string");
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported DateTime format: empty or null string");
+      }
+      System.err.println("Warning: Invalid datetime: empty or null string; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     str = str.trim();
@@ -205,7 +245,11 @@ public class DateParser {
 
     PStream parseResult = grammar_.parse(sps, x, opt_name);
     if ( parseResult == null || parseResult.value() == null ) {
-      throw new RuntimeException("Unsupported DateTime format: " + str);
+      if ( strictValidation_ ) {
+        throw new RuntimeException("Unsupported DateTime format: " + str);
+      }
+      System.err.println("Warning: Invalid datetime: \"" + str + "\"; assuming MAX_DATE.");
+      return MAX_DATE;
     }
 
     return (Date) parseResult.value();
@@ -303,7 +347,12 @@ public class DateParser {
       case "OCT": return 9;
       case "NOV": return 10;
       case "DEC": return 11;
-      default: return 0;
+      default:
+        if ( strictValidation_ ) {
+          throw new RuntimeException("Invalid month name: \"" + monthName + "\"");
+        }
+        System.err.println("Warning: Invalid month name: \"" + monthName + "\"; assuming January.");
+        return 0;
     }
   }
 
