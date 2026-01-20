@@ -1809,7 +1809,8 @@ foam.CLASS({
           foam.util.DateUtil.parseDateString('invalid');
           x.test(false, 'Strict mode: unsupported format should throw error');
         } catch (e) {
-          x.test(e.message.includes('Unsupported Date format'), 'Strict mode: unsupported format throws correct error');
+          // validateDate throws "Invalid date" for unparseable input
+          x.test(e.message.includes('Invalid date'), 'Strict mode: unsupported format throws correct error');
         }
 
         // Test empty string throws in strict mode
