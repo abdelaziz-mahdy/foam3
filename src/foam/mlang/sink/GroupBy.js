@@ -259,15 +259,15 @@ for (Object key : getGroups().keySet()) {
         // No explicit output type - traverse to find underlying property
         var expr = this.arg1;
         var sourceClass = 'Unknown';
-      while ( expr ) {
+        while ( expr ) {
           if ( foam.lang.Property.isInstance(expr) ) {
             exprClass = expr.cls_?.id || 'String';
             // Get the source class name from the property's forClass_
             sourceClass = expr.forClass_ || sourceClass;
-          break;
+            break;
           }
-          // Try delegate, then arg1, then stop
-          expr = expr.delegate || expr.arg1;
+            // Try delegate, then arg1, then stop
+            expr = expr.delegate || expr.arg1;
         }
       }
 
