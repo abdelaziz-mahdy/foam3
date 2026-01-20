@@ -607,6 +607,22 @@ foam.CLASS({
       };
     },
 
+    // Timestamp actions - convert timestamp strings directly to Date objects
+    // These return Date objects directly (not {year, month, day} objects) because
+    // timestamps are already a complete date representation
+
+    // 13-digit JavaScript timestamp (milliseconds since epoch)
+    // v = "1754308800000" (string)
+    function timestamp13Action(v) {
+      return new Date(parseInt(v, 10));
+    },
+
+    // 10-digit Unix timestamp (seconds since epoch)
+    // v = "1754308800" (string)
+    function timestamp10Action(v) {
+      return new Date(parseInt(v, 10) * 1000);
+    },
+
     function flattenTimezone(tzArray) {
       if ( ! tzArray ) return null;
       if ( tzArray === 'Z' ) return 'Z';
@@ -723,6 +739,11 @@ foam.CLASS({
         return this.validateDate(this.INVALID_DATE, str);
       }
 
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDate(result, str);
+      }
+
       // Determine if this is a datetime or date-only result based on presence of time components
       var ret;
       if ( result.hour !== undefined || result.minute !== undefined || result.second !== undefined ) {
@@ -773,6 +794,11 @@ foam.CLASS({
         return this.validateDate(this.INVALID_DATE, str);
       }
 
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDate(result, str);
+      }
+
       // Always return date at noon UTC, ignoring time even if present
       var ret = new Date(Date.UTC(result.year, result.month, result.day, 12, 0, 0, 0));
 
@@ -808,6 +834,11 @@ foam.CLASS({
       if ( ! result ) {
         // Unparseable format - return MAX_DATE
         return this.validateDate(this.INVALID_DATE, str);
+      }
+
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDate(result, str);
       }
 
       // Validate time components if present
@@ -885,6 +916,11 @@ foam.CLASS({
       if ( ! result ) {
         // Unparseable format - return MAX_DATE
         return this.validateDateUTC(this.INVALID_DATE, str);
+      }
+
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDateUTC(result, str);
       }
 
       // Validate time components if present

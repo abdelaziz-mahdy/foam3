@@ -1473,12 +1473,10 @@ foam.CLASS({
      * @param {Boolean} update True if you'd like changes to each record to be put to
      * the DAO
      */
-    function select(dao, f, before, after) {
+    function select(dao, f) {
       this.add(foam.u2.DAOSelectNode.create({
         dao:  dao,
         code: f,
-        before,
-        after,
       }, this));
       return this;
     },
@@ -1575,9 +1573,14 @@ foam.CLASS({
   refines: 'foam.lang.FObject',
   methods: [
     function toE(args, X) {
+      var ctx = X?.__context__ || this.__context__ || foam.__context__;
+      // Create isolated memento so inline views don't participate in navigation chain
+      var isolatedCtx = ctx.createSubContext({
+        memento_: foam.u2.memento.Memento.create({obj: this}, ctx)
+      });
       return foam.u2.ViewSpec.createView(
         { class: 'foam.u2.DetailView', showActions: true, data: this },
-        args, this, X);
+        args, this, isolatedCtx);
     }
   ]
 });

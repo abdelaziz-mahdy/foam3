@@ -252,19 +252,27 @@ for (Object key : getGroups().keySet()) {
       // Determine property class by traversing expressions to find underlying property
       var exprClass = 'String';
       var expr = this.arg1;
+      var sourceClass = 'Unknown';
       while ( expr ) {
         if ( foam.lang.Property.isInstance(expr) ) {
           exprClass = expr.cls_?.id || 'String';
+          // Get the source class name from the property's forClass_
+          sourceClass = expr.forClass_ || sourceClass;
           break;
         }
         // Try delegate, then arg1, then stop
         expr = expr.delegate || expr.arg1;
       }
 
+      // Generate deterministic name based on source class, property name, and sink type
+      // This prevents conflicts in chained GroupBy operations
+      var sinkName = this.arg2.cls_?.name || 'Count';
+      var sourceClassName = sourceClass.split('.').pop(); // Get last part of class name
+      var modelName = 'GroupBy_' + sourceClassName + '_' + exprName + '_' + sinkName;
 
       const model = {
         package: 'foam.tmp',
-        name: 'GroupBy' + foam.next$UID(),
+        name: modelName,
         ids: [ 'row' ],
         properties: [
           { class: 'Long', name: 'row' },
@@ -307,46 +315,38 @@ for (Object key : getGroups().keySet()) {
     },
 
     function setPropertyValues(o, sink, ps) {
-      // When a GroupBy is used as a nested sink in a Sequence,
-      // this method is called to populate its properties.
-      // The first property is the grouping key - set it to comma-separated keys
-      // Remaining properties are aggregated across all groups using reduce
-
       if ( ps.length === 0 ) return;
 
       var keyProp = ps[0];
       var remainingProps = ps.slice(1);
-
-      // Get the group keys (the values that were grouped by)
       var groupKeys = this.groupKeys || Object.keys(this.groups);
 
-      // Set the key property as comma-separated string (for compatibility with existing scripts)
-      keyProp.set(o, groupKeys.join(','));
+      // Try to get the key from the object - if we can get it, we're setting a single row
+      var key = keyProp.f(o);
+      if ( ! key ) key = o[keyProp.name];
 
-      // For remaining properties, aggregate across all groups using reduce
-      if ( remainingProps.length > 0 && this.arg2 ) {
-        // Create a clone of the first group to accumulate into
-        var firstKey = groupKeys[0];
-        var reduced = this.groups[firstKey];
-
-        // If there are multiple groups, reduce them together
-        if ( groupKeys.length > 1 ) {
-          // Clone the first group as the starting point
-          reduced = foam.util.clone(this.groups[firstKey]);
-
-          // Reduce all other groups into the clone
-          for ( var i = 1; i < groupKeys.length; i++ ) {
-            var group = this.groups[groupKeys[i]];
-            if ( reduced.reduce && group ) {
-              reduced.reduce(group);
-            }
+      if ( key ) {
+        // Single row - key is already set on object
+        var group = this.groups[key];
+        if ( group && this.arg2.setPropertyValues && remainingProps.length > 0 ) {
+          this.arg2.setPropertyValues(o, group, remainingProps);
+        }
+        return null;
+      } else {
+        // Multiple rows - no key set, generate row for each group
+        var rows = [];
+        groupKeys.forEach(key => {
+          var rowObj = o.clone();
+          keyProp.set(rowObj, key);
+          var group = this.groups[key];
+          if ( this.arg2.setPropertyValues ) {
+            this.arg2.setPropertyValues(rowObj, group, remainingProps);
+          } else if ( remainingProps.length > 0 ) {
+            remainingProps[0].set(rowObj, group.value);
           }
-        }
-
-        // Now use setPropertyValues on the reduced sink
-        if ( this.arg2.setPropertyValues ) {
-          this.arg2.setPropertyValues(o, reduced, remainingProps);
-        }
+          rows.push(rowObj);
+        });
+        return rows;
       }
     },
 
@@ -355,17 +355,57 @@ for (Object key : getGroups().keySet()) {
       var ID = props[0];
       props = props.slice(1);
 
+      // Helper to unwrap wrapper sinks (FilteredSink, LabeledSink, etc.)
+      var unwrapSink = function(s) {
+        while ( s && s.delegate ) s = s.delegate;
+        return s;
+      };
+
+      // Helper to check if sink contains nested GroupBy
+      var hasNestedGroupBy = function(sink) {
+        var unwrapped = unwrapSink(sink);
+        if ( foam.mlang.sink.GroupBy && foam.mlang.sink.GroupBy.isInstance(unwrapped) ) {
+          return true;
+        }
+        if ( foam.mlang.sink.Sequence && foam.mlang.sink.Sequence.isInstance(unwrapped) ) {
+          for ( var i = 0; i < unwrapped.args.length; i++ ) {
+            if ( hasNestedGroupBy(unwrapped.args[i]) ) return true;
+          }
+        }
+        return false;
+      };
+
       this.groupKeys.forEach(k => {
         var group = groups[k];
         var o = proto.clone();
-        ID.set(o, k);
 
         if ( group.processGroupValue ) {
+          // Nested GroupBy with its own processGroupValue
+          ID.set(o, k);
           group.processGroupValue(dao, o, props);
         } else if ( this.arg2.setPropertyValues ) {
-          this.arg2.setPropertyValues(o, groups[k], props);
-          dao.put(o);
+          if ( hasNestedGroupBy(groups[k]) ) {
+            // Don't set ID yet - let nested sink generate multiple rows
+            var rows = this.arg2.setPropertyValues(o, groups[k], props);
+            if ( rows && Array.isArray(rows) ) {
+              // Got multiple rows back - set outer key on each and put them
+              rows.forEach(row => {
+                ID.set(row, k);
+                dao.put(row);
+              });
+            } else {
+              // No rows returned - put single row
+              ID.set(o, k);
+              dao.put(o);
+            }
+          } else {
+            // Regular sink - set ID first then set values
+            ID.set(o, k);
+            this.arg2.setPropertyValues(o, groups[k], props);
+            dao.put(o);
+          }
         } else {
+          ID.set(o, k);
           o.value = groups[k].value;
           dao.put(o);
         }
