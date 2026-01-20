@@ -60,30 +60,30 @@ foam.CLASS({
       var self = this;
       var ps = this.of.getAxiomsByClass(foam.lang.Property);
 
-      // Build case-insensitive lookup map: lowercase identifier → property
+      // Build normalized lookup map: normalized identifier → property
+      // Normalizes both property names and input for consistent matching
       var propertyMap = {};
       ps.forEach(function(p) {
-        propertyMap[p.name.toLowerCase()] = p;
-        if ( p.shortName ) propertyMap[p.shortName.toLowerCase()] = p;
-        p.aliases.forEach(function(a) { propertyMap[a.toLowerCase()] = p; });
+        // Store by normalized name (handles non-standard property names)
+        propertyMap[self.normalizeToPropertyName(p.name).toLowerCase()] = p;
+        if ( p.shortName ) {
+          propertyMap[self.normalizeToPropertyName(p.shortName).toLowerCase()] = p;
+        }
+        p.aliases.forEach(function(a) {
+          propertyMap[self.normalizeToPropertyName(a).toLowerCase()] = p;
+        });
       });
 
-      // Single parser that handles all input variations:
-      // 1. Direct case-insensitive lookup (handles exact, case variations, shortNames, aliases)
-      // 2. Normalized lookup (handles underscores, spaces, CONSTANT_CASE)
+      // Single parser: normalize input and lookup in map
       var fieldNameParser = action(
         seq1(0, str(plus(notChars(',\t\n\r'))), sym('end')),
         function(input) {
           input = input.trim();
           if ( ! input ) return foam.parse.ParserWithAction.NO_PARSE;
 
-          // 1. Direct case-insensitive lookup
-          var prop = propertyMap[input.toLowerCase()];
-          if ( prop ) return prop;
-
-          // 2. Normalized lookup (underscores, spaces → camelCase)
+          // Normalize input and lookup
           var normalized = self.normalizeToPropertyName(input);
-          prop = propertyMap[normalized.toLowerCase()];
+          var prop = propertyMap[normalized.toLowerCase()];
           return prop || foam.parse.ParserWithAction.NO_PARSE;
         }
       );

@@ -436,6 +436,179 @@ foam.CLASS({
         parser.parseString('P TEST')?.name === 'PTest',
         'Special: P TEST space uppercase'
       );
+
+      // ============================================
+      // NON-STANDARD PROPERTY NAMES (coder mistakes)
+      // Tests that normalization works on BOTH sides
+      // ============================================
+
+      // Create a model with non-standard property names (underscore format)
+      foam.CLASS({
+        package: 'foam.core.reflow.test',
+        name: 'NonStandardModel',
+        properties: [
+          { name: 'user_name' },  // Should be userName - coder mistake
+          { name: 'account_balance' },  // Should be accountBalance - coder mistake
+          { name: 'CONSTANT_STYLE' },  // CONSTANT_CASE property name
+          { name: 'Mixed_Style_Name' },  // Mixed style
+          { name: 'normalProp', aliases: ['normal_alias', 'CONSTANT_ALIAS', 'Mixed_Alias'] },
+          { name: 'anotherProp', shortName: 'short_name' }  // ShortName with underscore
+        ]
+      });
+
+      var parser2 = this.ColumnParser.create({
+        of: foam.core.reflow.test.NonStandardModel
+      });
+
+      // 5.1 Property with underscore name - various input formats
+      x.test(
+        parser2.parseString('user_name')?.name === 'user_name',
+        'NonStandard: Exact match underscore property - user_name'
+      );
+      x.test(
+        parser2.parseString('USER_NAME')?.name === 'user_name',
+        'NonStandard: CONSTANT_CASE input for underscore property - USER_NAME'
+      );
+      x.test(
+        parser2.parseString('userName')?.name === 'user_name',
+        'NonStandard: camelCase input for underscore property - userName'
+      );
+      x.test(
+        parser2.parseString('UserName')?.name === 'user_name',
+        'NonStandard: PascalCase input for underscore property - UserName'
+      );
+      x.test(
+        parser2.parseString('user name')?.name === 'user_name',
+        'NonStandard: Space input for underscore property - user name'
+      );
+      x.test(
+        parser2.parseString('USER NAME')?.name === 'user_name',
+        'NonStandard: Space uppercase input for underscore property - USER NAME'
+      );
+
+      // 5.2 Multi-word underscore property
+      x.test(
+        parser2.parseString('account_balance')?.name === 'account_balance',
+        'NonStandard: Exact match - account_balance'
+      );
+      x.test(
+        parser2.parseString('accountBalance')?.name === 'account_balance',
+        'NonStandard: camelCase input - accountBalance'
+      );
+      x.test(
+        parser2.parseString('ACCOUNT_BALANCE')?.name === 'account_balance',
+        'NonStandard: CONSTANT_CASE input - ACCOUNT_BALANCE'
+      );
+      x.test(
+        parser2.parseString('account balance')?.name === 'account_balance',
+        'NonStandard: Space input - account balance'
+      );
+
+      // 5.3 CONSTANT_CASE property name
+      x.test(
+        parser2.parseString('CONSTANT_STYLE')?.name === 'CONSTANT_STYLE',
+        'NonStandard: Exact match CONSTANT property - CONSTANT_STYLE'
+      );
+      x.test(
+        parser2.parseString('constantStyle')?.name === 'CONSTANT_STYLE',
+        'NonStandard: camelCase input for CONSTANT property - constantStyle'
+      );
+      x.test(
+        parser2.parseString('constant_style')?.name === 'CONSTANT_STYLE',
+        'NonStandard: lowercase underscore input - constant_style'
+      );
+      x.test(
+        parser2.parseString('CONSTANT STYLE')?.name === 'CONSTANT_STYLE',
+        'NonStandard: Space uppercase input - CONSTANT STYLE'
+      );
+
+      // 5.4 Mixed style property name
+      x.test(
+        parser2.parseString('Mixed_Style_Name')?.name === 'Mixed_Style_Name',
+        'NonStandard: Exact match mixed style - Mixed_Style_Name'
+      );
+      x.test(
+        parser2.parseString('mixedStyleName')?.name === 'Mixed_Style_Name',
+        'NonStandard: camelCase input for mixed style - mixedStyleName'
+      );
+      x.test(
+        parser2.parseString('MIXED_STYLE_NAME')?.name === 'Mixed_Style_Name',
+        'NonStandard: CONSTANT_CASE input for mixed style - MIXED_STYLE_NAME'
+      );
+
+      // 5.5 Aliases with underscores
+      x.test(
+        parser2.parseString('normal_alias')?.name === 'normalProp',
+        'NonStandard: Alias with underscore exact - normal_alias'
+      );
+      x.test(
+        parser2.parseString('normalAlias')?.name === 'normalProp',
+        'NonStandard: camelCase input for underscore alias - normalAlias'
+      );
+      x.test(
+        parser2.parseString('NORMAL_ALIAS')?.name === 'normalProp',
+        'NonStandard: CONSTANT_CASE input for underscore alias - NORMAL_ALIAS'
+      );
+      x.test(
+        parser2.parseString('normal alias')?.name === 'normalProp',
+        'NonStandard: Space input for underscore alias - normal alias'
+      );
+
+      // 5.6 CONSTANT_CASE alias
+      x.test(
+        parser2.parseString('CONSTANT_ALIAS')?.name === 'normalProp',
+        'NonStandard: CONSTANT_CASE alias exact - CONSTANT_ALIAS'
+      );
+      x.test(
+        parser2.parseString('constantAlias')?.name === 'normalProp',
+        'NonStandard: camelCase input for CONSTANT alias - constantAlias'
+      );
+      x.test(
+        parser2.parseString('constant_alias')?.name === 'normalProp',
+        'NonStandard: lowercase underscore input for CONSTANT alias - constant_alias'
+      );
+
+      // 5.7 Mixed style alias
+      x.test(
+        parser2.parseString('Mixed_Alias')?.name === 'normalProp',
+        'NonStandard: Mixed style alias exact - Mixed_Alias'
+      );
+      x.test(
+        parser2.parseString('mixedAlias')?.name === 'normalProp',
+        'NonStandard: camelCase input for mixed alias - mixedAlias'
+      );
+      x.test(
+        parser2.parseString('MIXED_ALIAS')?.name === 'normalProp',
+        'NonStandard: CONSTANT_CASE input for mixed alias - MIXED_ALIAS'
+      );
+
+      // 5.8 ShortName with underscore
+      x.test(
+        parser2.parseString('short_name')?.name === 'anotherProp',
+        'NonStandard: ShortName with underscore exact - short_name'
+      );
+      x.test(
+        parser2.parseString('shortName')?.name === 'anotherProp',
+        'NonStandard: camelCase input for underscore shortName - shortName'
+      );
+      x.test(
+        parser2.parseString('SHORT_NAME')?.name === 'anotherProp',
+        'NonStandard: CONSTANT_CASE input for underscore shortName - SHORT_NAME'
+      );
+      x.test(
+        parser2.parseString('short name')?.name === 'anotherProp',
+        'NonStandard: Space input for underscore shortName - short name'
+      );
+
+      // 5.9 Column list with non-standard properties
+      var list8 = parser2.parseString('userName, ACCOUNT_BALANCE, constantStyle', 'columnList');
+      x.test(
+        list8?.length === 3 &&
+        list8[0]?.name === 'user_name' &&
+        list8[1]?.name === 'account_balance' &&
+        list8[2]?.name === 'CONSTANT_STYLE',
+        'NonStandard List: Mixed input formats for non-standard properties'
+      );
     }
   ]
 });
