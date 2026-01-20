@@ -250,15 +250,22 @@ for (Object key : getGroups().keySet()) {
       var exprLabel = this.arg1.label || foam.String.labelize(this.arg1.delegate?.name) || 'Group';
 
       // Determine property class by traversing expressions to find underlying property
+      // First check if the expression explicitly specifies an output type via 'outputType'
       var exprClass = 'String';
-      var expr = this.arg1;
-      while ( expr ) {
-        if ( foam.lang.Property.isInstance(expr) ) {
-          exprClass = expr.cls_?.id || 'String';
-          break;
+      if ( this.arg1.outputType ) {
+        // Expression specifies its output type - use that
+        exprClass = this.arg1.outputType;
+      } else {
+        // No explicit output type - traverse to find underlying property
+        var expr = this.arg1;
+        while ( expr ) {
+          if ( foam.lang.Property.isInstance(expr) ) {
+            exprClass = expr.cls_?.id || 'String';
+            break;
+          }
+            // Try delegate, then arg1, then stop
+            expr = expr.delegate || expr.arg1;
         }
-        // Try delegate, then arg1, then stop
-        expr = expr.delegate || expr.arg1;
       }
 
 
