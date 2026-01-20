@@ -352,9 +352,9 @@ foam.CLASS({
     function execute(opt_nameQuery) {
       var self = this;
       this.commandDAO.find('upload').then( r => this.uploadAvailable = !! r );
-      var dao  = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
+      var dao  = this.cSpecDAO?.where(this.CSpec.SERVED_DAOS);
       var count = foam.lang.SimpleSlot.create({value: 0});
-      if ( opt_nameQuery ) dao = dao.where(
+      if ( opt_nameQuery ) dao = dao?.where(
         this.OR(
           this.CONTAINS_IC(this.CSpec.NAME,     opt_nameQuery),
           this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
@@ -698,8 +698,8 @@ foam.CLASS({
   methods: [
     function execute(opt_nameQuery) {
       var self = this;
-      var dao  = this.cSpecDAO.where(this.CSpec.SERVED_SERVICES);
-      if ( opt_nameQuery ) dao = dao.where(
+      var dao  = this.cSpecDAO?.where(this.CSpec.SERVED_SERVICES);
+      if ( opt_nameQuery ) dao = dao?.where(
         this.OR(
           this.CONTAINS_IC(this.CSpec.NAME,     opt_nameQuery),
           this.CONTAINS_IC(this.CSpec.KEYWORDS, opt_nameQuery)
