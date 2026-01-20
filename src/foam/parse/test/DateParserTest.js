@@ -38,6 +38,7 @@ foam.CLASS({
       this.testWithAndWithoutZ(x);
       this.testInvalidLeapYearDates(x);
       this.testAllParseMethodsExample(x);
+      this.testTimestampStrings(x);
     },
 
     function testYYYYMMDDFormats(x) {
@@ -49,7 +50,14 @@ foam.CLASS({
         { input: '2025/01/15', year: 2025, month: 0, day: 15 },
         { input: '2024-12-31', year: 2024, month: 11, day: 31 },
         { input: '2000-02-29', year: 2000, month: 1, day: 29 }, // Leap year
-        { input: '1999-01-01', year: 1999, month: 0, day: 1 }
+        { input: '1999-01-01', year: 1999, month: 0, day: 1 },
+        // Single-digit month and day support
+        { input: '2025-1-5', year: 2025, month: 0, day: 5 },
+        { input: '2025/1/5', year: 2025, month: 0, day: 5 },
+        { input: '2025-7-2', year: 2025, month: 6, day: 2 },
+        { input: '2025/7/2', year: 2025, month: 6, day: 2 },
+        { input: '2025-1-15', year: 2025, month: 0, day: 15 },
+        { input: '2025-12-5', year: 2025, month: 11, day: 5 }
       ];
 
       // Test YYYYMMDD with separators
@@ -134,7 +142,10 @@ foam.CLASS({
         { input: '2025-01-15 14:30:45.1', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 100 },
         { input: '2025-01-15T14:30:45.12', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 120 },
         { input: '2025-01-15 14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123 },
-        { input: '2025/01/15T14:30:45.999999', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 999 }
+        { input: '2025/01/15T14:30:45.999999', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 999 },
+        // Single-digit month and day with time
+        { input: '2025-1-5 14:30:45.123', year: 2025, month: 0, day: 5, hour: 14, minute: 30, second: 45, millisecond: 123 },
+        { input: '2025/7/2T10:15:30.500', year: 2025, month: 6, day: 2, hour: 10, minute: 15, second: 30, millisecond: 500 }
       ];
 
       yyyymmddFractional.forEach((testCase, i) => {
@@ -153,9 +164,17 @@ foam.CLASS({
       // MMDDYYYY formats (with separators)
       let mmddyyyySep = [
         { input: '01/15/2025', year: 2025, month: 0, day: 15 },
+        { input: '1/5/2025', year: 2025, month: 0, day: 5 },
+        { input: '12-12-2025', year: 2025, month: 11, day: 12 },
+        { input: '2/28/2025', year: 2025, month: 1, day: 28 },
         { input: '01-15-2025', year: 2025, month: 0, day: 15 },
         { input: '12/31/2024', year: 2024, month: 11, day: 31 },
-        { input: '02/29/2000', year: 2000, month: 1, day: 29 }
+        { input: '02/29/2000', year: 2000, month: 1, day: 29 },
+        // More single-digit month and day support
+        { input: '7/2/2025', year: 2025, month: 6, day: 2 },
+        { input: '7-2-2025', year: 2025, month: 6, day: 2 },
+        { input: '1-5-2025', year: 2025, month: 0, day: 5 },
+        { input: '9/9/2025', year: 2025, month: 8, day: 9 }
       ];
 
       // Test MMDDYYYY with separators
@@ -237,9 +256,14 @@ foam.CLASS({
         { input: '03-27-2025 10:34:14.467', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467 },
         { input: '03-27-2025T10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467 },
         { input: '01-15-2025 14:30:45.1', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 100 },
+        { input: '1/15/2025 14:30:45.1', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 100 },
+        { input: '1/5/2025 14:30:45.1', year: 2025, month: 0, day: 5, hour: 14, minute: 30, second: 45, millisecond: 100 },
         { input: '01/15/2025T14:30:45.12', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 120 },
         { input: '01-15-2025 14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123 },
-        { input: '01/15/2025T14:30:45.999999', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 999 }
+        { input: '01/15/2025T14:30:45.999999', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 999 },
+        // More single-digit month and day with time
+        { input: '7/2/2025 10:15:30.500', year: 2025, month: 6, day: 2, hour: 10, minute: 15, second: 30, millisecond: 500 },
+        { input: '7-2-2025T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123 }
       ];
 
       mmddyyyyFractional.forEach((testCase, i) => {
@@ -259,7 +283,13 @@ foam.CLASS({
       let mmddyySep = [
         { input: '01/15/25', year: 2025, month: 0, day: 15 },
         { input: '01-15-25', year: 2025, month: 0, day: 15 },
-        { input: '02/29/00', year: 2000, month: 1, day: 29 }
+        { input: '02/29/00', year: 2000, month: 1, day: 29 },
+        // Single-digit month and day support
+        { input: '1/5/25', year: 2025, month: 0, day: 5 },
+        { input: '7-2-25', year: 2025, month: 6, day: 2 },
+        { input: '9/9/25', year: 2025, month: 8, day: 9 },
+        { input: '1-15-25', year: 2025, month: 0, day: 15 },
+        { input: '12/5/25', year: 2025, month: 11, day: 5 }
       ];
 
       // Test MMDDYY with separators
@@ -290,7 +320,10 @@ foam.CLASS({
         { input: '03-27-25T10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467 },
         { input: '01-15-25 14:30:45.1', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 100 },
         { input: '01/15/25T14:30:45.12', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 120 },
-        { input: '01-15-25 14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123 }
+        { input: '01-15-25 14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123 },
+        // Single-digit month and day with time
+        { input: '7/2/25 10:15:30.500', year: 2025, month: 6, day: 2, hour: 10, minute: 15, second: 30, millisecond: 500 },
+        { input: '1-5-25T14:30:45.123', year: 2025, month: 0, day: 5, hour: 14, minute: 30, second: 45, millisecond: 123 }
       ];
 
       mmddyyFractional.forEach((testCase, i) => {
@@ -311,7 +344,13 @@ foam.CLASS({
         { input: '15/01/2025', year: 2025, month: 0, day: 15 },
         { input: '15-01-2025', year: 2025, month: 0, day: 15 },
         { input: '31/12/2024', year: 2024, month: 11, day: 31 },
-        { input: '29/02/2000', year: 2000, month: 1, day: 29 }
+        { input: '29/02/2000', year: 2000, month: 1, day: 29 },
+        // Single-digit day and month support
+        { input: '5/1/2025', year: 2025, month: 0, day: 5 },
+        { input: '2-7-2025', year: 2025, month: 6, day: 2 },
+        { input: '9/9/2025', year: 2025, month: 8, day: 9 },
+        { input: '15/1/2025', year: 2025, month: 0, day: 15 },
+        { input: '5-12-2025', year: 2025, month: 11, day: 5 }
       ];
 
       ddmmyyyySep.forEach((testCase, i) => {
@@ -437,7 +476,11 @@ foam.CLASS({
       let ddmmyySep = [
         { input: '15/01/25', year: 2025, month: 0, day: 15 },
         { input: '31/12/24', year: 2024, month: 11, day: 31 },
-        { input: '29/02/00', year: 2000, month: 1, day: 29 }
+        { input: '29/02/00', year: 2000, month: 1, day: 29 },
+        // Single-digit day and month support
+        { input: '5/1/25', year: 2025, month: 0, day: 5 },
+        { input: '2-7-25', year: 2025, month: 6, day: 2 },
+        { input: '9/9/25', year: 2025, month: 8, day: 9 }
       ];
 
       ddmmyySep.forEach((testCase, i) => {
@@ -478,7 +521,13 @@ foam.CLASS({
         { input: '15-01-2025 14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
         // Test DDMMYY format with fractional seconds too
         { input: '27-03-25 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467, opt_name: 'ddmmyyyy' },
-        { input: '15-01-25T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' }
+        { input: '15-01-25T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
+        // Single-digit day and month with time
+        { input: '5/1/2025 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'ddmmyyyy' },
+        { input: '2-7-2025T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
+        // Single-digit DDMMYY with time
+        { input: '5/1/25 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'ddmmyyyy' },
+        { input: '2-7-25T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' }
       ];
 
       ddmmyyyyFractional.forEach((testCase, i) => {
@@ -508,7 +557,13 @@ foam.CLASS({
         { input: '2025/15/01', year: 2025, month: 0, day: 15 },
         { input: '2025-15-01', year: 2025, month: 0, day: 15 },
         { input: '2024/31/12', year: 2024, month: 11, day: 31 },
-        { input: '2000/29/02', year: 2000, month: 1, day: 29 }
+        { input: '2000/29/02', year: 2000, month: 1, day: 29 },
+        // Single-digit day and month support
+        { input: '2025/5/1', year: 2025, month: 0, day: 5 },
+        { input: '2025-2-7', year: 2025, month: 6, day: 2 },
+        { input: '2025/9/9', year: 2025, month: 8, day: 9 },
+        { input: '2025-15/1', year: 2025, month: 0, day: 15 },
+        { input: '2025/5-12', year: 2025, month: 11, day: 5 }
       ];
 
       yyyyddmmSep.forEach((testCase, i) => {
@@ -634,7 +689,11 @@ foam.CLASS({
         { input: '25/15/01', year: 2025, month: 0, day: 15 },
         { input: '24-31-12', year: 2024, month: 11, day: 31 },
         { input: '00/29/02', year: 2000, month: 1, day: 29 },
-        { input: '99/15/01', year: 1999, month: 0, day: 15 }
+        { input: '99/15/01', year: 1999, month: 0, day: 15 },
+        // Single-digit day and month support
+        { input: '25/5/1', year: 2025, month: 0, day: 5 },
+        { input: '25-2-7', year: 2025, month: 6, day: 2 },
+        { input: '25/9/9', year: 2025, month: 8, day: 9 }
       ];
 
       yyddmmSep.forEach((testCase, i) => {
@@ -682,7 +741,13 @@ foam.CLASS({
         { input: '2025-15-01 14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyyyddmm' },
         // Test YYDDMM format with fractional seconds too
         { input: '25-27-03 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467, opt_name: 'yyddmm' },
-        { input: '25-15-01T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyddmm' }
+        { input: '25-15-01T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyddmm' },
+        // Single-digit day and month with time
+        { input: '2025/5/1 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'yyyyddmm' },
+        { input: '2025-2-7T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyyyddmm' },
+        // Single-digit YYDDMM with time
+        { input: '25/5/1 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'yyddmm' },
+        { input: '25-2-7T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyddmm' }
       ];
 
       yyyyddmmFractional.forEach((testCase, i) => {
@@ -717,7 +782,11 @@ foam.CLASS({
         { input: '01-JAN-2000', year: 2000, month: 0, day: 1 },
         { input: '29-FEB-2024', year: 2024, month: 1, day: 29 }, // Leap year
         { input: '15/jun/2025', year: 2025, month: 5, day: 15 }, // Lowercase
-        { input: '10-Jul-2025', year: 2025, month: 6, day: 10 }  // Mixed case
+        { input: '10-Jul-2025', year: 2025, month: 6, day: 10 }, // Mixed case
+        // Single-digit day support
+        { input: '5-JAN-2025', year: 2025, month: 0, day: 5 },
+        { input: '2/FEB/2025', year: 2025, month: 1, day: 2 },
+        { input: '9-MAR-2025', year: 2025, month: 2, day: 9 }
       ];
 
       // Test with STANDARD format (no opt_name) - month names are unambiguous!
@@ -795,7 +864,11 @@ foam.CLASS({
       let yyyyddmmmTests = [
         { input: '2025-31-JAN', year: 2025, month: 0, day: 31 },
         { input: '2024/15/MAR', year: 2024, month: 2, day: 15 },
-        { input: '202531JAN', year: 2025, month: 0, day: 31 }  // Compact works too!
+        { input: '202531JAN', year: 2025, month: 0, day: 31 }, // Compact works too!
+        // Single-digit day support
+        { input: '2025-5-JAN', year: 2025, month: 0, day: 5 },
+        { input: '2025/2/FEB', year: 2025, month: 1, day: 2 },
+        { input: '2025-9-MAR', year: 2025, month: 2, day: 9 }
       ];
 
       yyyyddmmmTests.forEach((testCase, i) => {
@@ -820,7 +893,11 @@ foam.CLASS({
         { input: 'JAN 01 2000', year: 2000, month: 0, day: 1 },
         { input: 'FEB 29 2024', year: 2024, month: 1, day: 29 }, // Leap year
         { input: 'jun 15 2025', year: 2025, month: 5, day: 15 }, // Lowercase
-        { input: 'Jul 10 2025', year: 2025, month: 6, day: 10 }  // Mixed case
+        { input: 'Jul 10 2025', year: 2025, month: 6, day: 10 }, // Mixed case
+        // Single-digit day support
+        { input: 'JAN 5 2025', year: 2025, month: 0, day: 5 },
+        { input: 'FEB 2 2025', year: 2025, month: 1, day: 2 },
+        { input: 'MAR 9 2025', year: 2025, month: 2, day: 9 }
       ];
 
       mmmddyyyySpace.forEach((testCase, i) => {
@@ -875,7 +952,11 @@ foam.CLASS({
         { input: '01 JAN 2000', year: 2000, month: 0, day: 1 },
         { input: '29 FEB 2024', year: 2024, month: 1, day: 29 }, // Leap year
         { input: '15 jun 2025', year: 2025, month: 5, day: 15 }, // Lowercase
-        { input: '10 Jul 2025', year: 2025, month: 6, day: 10 }  // Mixed case
+        { input: '10 Jul 2025', year: 2025, month: 6, day: 10 }, // Mixed case
+        // Single-digit day support
+        { input: '5 JAN 2025', year: 2025, month: 0, day: 5 },
+        { input: '2 FEB 2025', year: 2025, month: 1, day: 2 },
+        { input: '9 MAR 2025', year: 2025, month: 2, day: 9 }
       ];
 
       ddmmmyyyySpace.forEach((testCase, i) => {
@@ -962,30 +1043,51 @@ foam.CLASS({
         { input: '2025-01-15 14:30:45.1', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 100 },
         { input: '2025-01-15 14:30:45.12', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 120 },
         { input: '2025-01-15 14:30:45.999999', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 999 },
+        // Single-digit YYYY-MM-DD with fractional seconds
+        { input: '2025-1-5 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500 },
+        { input: '2025/7/2T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123 },
 
         // MM-DD-YYYY format with fractional seconds
         { input: '03-27-2025 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467 },
         { input: '01-15-2025T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123 },
+        // Single-digit MM-DD-YYYY with fractional seconds
+        { input: '7/2/2025 10:15:30.500', year: 2025, month: 6, day: 2, hour: 10, minute: 15, second: 30, millisecond: 500 },
+        { input: '1-5-2025T14:30:45.123', year: 2025, month: 0, day: 5, hour: 14, minute: 30, second: 45, millisecond: 123 },
 
         // MM-DD-YY format with fractional seconds
         { input: '03-27-25 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467 },
         { input: '01-15-25T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123 },
+        // Single-digit MM-DD-YY with fractional seconds
+        { input: '7/2/25 10:15:30.500', year: 2025, month: 6, day: 2, hour: 10, minute: 15, second: 30, millisecond: 500 },
+        { input: '1-5-25T14:30:45.123', year: 2025, month: 0, day: 5, hour: 14, minute: 30, second: 45, millisecond: 123 },
 
         // DD-MM-YYYY format with fractional seconds
         { input: '27-03-2025 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467, opt_name: 'ddmmyyyy' },
         { input: '15-01-2025T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
+        // Single-digit DD-MM-YYYY with fractional seconds
+        { input: '5/1/2025 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'ddmmyyyy' },
+        { input: '2-7-2025T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
 
         // DD-MM-YY format with fractional seconds
         { input: '27-03-25 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467, opt_name: 'ddmmyyyy' },
         { input: '15-01-25T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
+        // Single-digit DD-MM-YY with fractional seconds
+        { input: '5/1/25 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'ddmmyyyy' },
+        { input: '2-7-25T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'ddmmyyyy' },
 
         // YYYY-DD-MM format with fractional seconds
         { input: '2025-27-03 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467, opt_name: 'yyyyddmm' },
         { input: '2025-15-01T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyyyddmm' },
+        // Single-digit YYYY-DD-MM with fractional seconds
+        { input: '2025/5/1 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'yyyyddmm' },
+        { input: '2025-2-7T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyyyddmm' },
 
         // YY-DD-MM format with fractional seconds
         { input: '25-27-03 10:34:14.467000', year: 2025, month: 2, day: 27, hour: 10, minute: 34, second: 14, millisecond: 467, opt_name: 'yyddmm' },
-        { input: '25-15-01T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyddmm' }
+        { input: '25-15-01T14:30:45.123456', year: 2025, month: 0, day: 15, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyddmm' },
+        // Single-digit YY-DD-MM with fractional seconds
+        { input: '25/5/1 10:15:30.500', year: 2025, month: 0, day: 5, hour: 10, minute: 15, second: 30, millisecond: 500, opt_name: 'yyddmm' },
+        { input: '25-2-7T14:30:45.123', year: 2025, month: 6, day: 2, hour: 14, minute: 30, second: 45, millisecond: 123, opt_name: 'yyddmm' }
       ];
 
       fractionalTests.forEach((testCase, i) => {
@@ -1874,6 +1976,93 @@ foam.CLASS({
         console.error(`Test datetime error:`, e);
         return false;
       }
+    },
+
+    /**
+     * Test that timestamp strings don't conflict with date parsing.
+     * Tests foam.lang.Date and foam.lang.DateTime adapt functions handle:
+     * - 13-digit JavaScript millisecond timestamps (always treated as timestamps)
+     * - 10-digit Unix timestamps starting with '1' (treated as seconds since epoch)
+     * - 10-digit strings starting with '2' should still parse as dates (YYYYMMDDHH)
+     */
+    function testTimestampStrings(x) {
+      // Test 13-digit millisecond timestamps (should be treated as timestamps)
+      let msTimestamps = [
+        { input: '1754308800000', expectedDate: new Date(1754308800000), desc: '13-digit ms timestamp (2025-08-04)' },
+        { input: '1000000000000', expectedDate: new Date(1000000000000), desc: '13-digit ms timestamp (2001-09-09)' },
+        { input: '1609459200000', expectedDate: new Date(1609459200000), desc: '13-digit ms timestamp (2021-01-01)' }
+      ];
+
+      // Test 10-digit Unix second timestamps starting with '1' (should be treated as timestamps)
+      let secTimestamps = [
+        { input: '1754308800', expectedDate: new Date(1754308800 * 1000), desc: '10-digit sec timestamp starting with 1' },
+        { input: '1000000000', expectedDate: new Date(1000000000 * 1000), desc: '10-digit sec timestamp (2001-09-09)' },
+        { input: '1609459200', expectedDate: new Date(1609459200 * 1000), desc: '10-digit sec timestamp (2021-01-01)' }
+      ];
+
+      // Test 10-digit strings starting with '2' should NOT be treated as timestamps
+      // They should be parsed as YYYYMMDDHH format
+      let dateStrings = [
+        { input: '2025011512', desc: '10-digit starting with 2 (YYYYMMDDHH format)', expectedYear: 2025, expectedMonth: 0, expectedDay: 15 },
+        { input: '2024123123', desc: '10-digit date format', expectedYear: 2024, expectedMonth: 11, expectedDay: 31 }
+      ];
+
+      // Test 13-digit timestamps via foam.lang.Date adapt
+      msTimestamps.forEach((testCase, i) => {
+        try {
+          let dateProp = foam.lang.Date.create();
+          let result = dateProp.adapt.call({}, null, testCase.input);
+          // Compare timestamps (allow 1 day tolerance for Date noon UTC normalization)
+          let timeDiff = Math.abs(result.getTime() - testCase.expectedDate.getTime());
+          let pass = timeDiff < 86400000; // Within 24 hours
+          x.test(pass, `Timestamp-13digit Test${i + 1}: ${testCase.desc} - expected ~${testCase.expectedDate.toISOString()}, got ${result.toISOString()}`);
+        } catch (e) {
+          x.test(false, `Timestamp-13digit Test${i + 1}: ${testCase.desc} - Error: ${e.message}`);
+        }
+      });
+
+      // Test 10-digit timestamps starting with '1' via foam.lang.Date adapt
+      secTimestamps.forEach((testCase, i) => {
+        try {
+          let dateProp = foam.lang.Date.create();
+          let result = dateProp.adapt.call({}, null, testCase.input);
+          // Compare timestamps (allow 1 day tolerance for Date noon UTC normalization)
+          let timeDiff = Math.abs(result.getTime() - testCase.expectedDate.getTime());
+          let pass = timeDiff < 86400000; // Within 24 hours
+          x.test(pass, `Timestamp-10digit Test${i + 1}: ${testCase.desc} - expected ~${testCase.expectedDate.toISOString()}, got ${result.toISOString()}`);
+        } catch (e) {
+          x.test(false, `Timestamp-10digit Test${i + 1}: ${testCase.desc} - Error: ${e.message}`);
+        }
+      });
+
+      // Test that 10-digit strings starting with '2' are still parsed as dates (not timestamps)
+      dateStrings.forEach((testCase, i) => {
+        try {
+          let dateProp = foam.lang.Date.create();
+          let result = dateProp.adapt.call({}, null, testCase.input);
+          // Should be parsed as a date, not a timestamp from 1970
+          let isReasonableYear = result.getFullYear() >= 2000 && result.getFullYear() <= 2100;
+          x.test(isReasonableYear, `DateString-10digit Test${i + 1}: ${testCase.desc} - year should be 2000-2100, got ${result.getFullYear()}`);
+          if ( testCase.expectedYear ) {
+            let yearMatch = result.getUTCFullYear() === testCase.expectedYear;
+            x.test(yearMatch, `DateString-10digit Test${i + 1}: ${testCase.desc} - expected year ${testCase.expectedYear}, got ${result.getUTCFullYear()}`);
+          }
+        } catch (e) {
+          x.test(false, `DateString-10digit Test${i + 1}: ${testCase.desc} - Error: ${e.message}`);
+        }
+      });
+
+      // Test foam.lang.DateTime adapt with 13-digit timestamps
+      msTimestamps.forEach((testCase, i) => {
+        try {
+          let dateTimeProp = foam.lang.DateTime.create();
+          let result = dateTimeProp.adapt.call({}, null, testCase.input);
+          let pass = result.getTime() === testCase.expectedDate.getTime();
+          x.test(pass, `DateTime-Timestamp Test${i + 1}: ${testCase.desc} - expected ${testCase.expectedDate.toISOString()}, got ${result.toISOString()}`);
+        } catch (e) {
+          x.test(false, `DateTime-Timestamp Test${i + 1}: ${testCase.desc} - Error: ${e.message}`);
+        }
+      });
     }
   ]
 });

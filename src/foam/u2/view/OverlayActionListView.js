@@ -257,7 +257,14 @@ foam.CLASS({
 
       if ( ! this.obj && this.dao ) {
         foam.assert(this.id, 'Id must be provided when obj needs to be fetched in OverlayActionListView');
-        this.obj = await this.dao.inX(this.__context__).find(this.id);
+        var id = this.id;
+        // Handle multipart keys - convert string ID back to ID object
+        var of = this.dao.of;
+        if ( of && foam.lang.MultiPartID.isInstance(of.ID) && typeof id === 'string' ) {
+          id = of.ID.of.FROM_STRING(id);
+        }
+        this.obj = await this.dao.inX(this.__context__).find(id);
+        foam.assert(this.obj, 'Failed to find object with id: ' + this.id + ' in OverlayActionListView');
       }
 
       self.availabilities_$.follow(self.createAvailabilitySlotArray())

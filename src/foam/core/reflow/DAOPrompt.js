@@ -9,7 +9,7 @@ foam.CLASS({
   name: 'DAOPromptView',
   extends: 'foam.u2.View',
 
-  imports: ['block'],
+  imports: [ 'block' ],
 
   requires: [
     'foam.u2.LoadingSpinner',
@@ -40,26 +40,25 @@ foam.CLASS({
 
       this.
         addClass().
-        start().show(self.loading$).tag(self.LoadingSpinner, {size: '32px'} ).end().
-          add(self.dynamic(async function(data, version) {
-            if ( ! data ) { debugger; return; }
-            var startTime = Date.now();
-            var select    = self.data.select;
-            self.data.select = select;
-            self.loading = true;
-            try {
-              await self.data.select.execute(this);
-              self.data.readyLatch_.resolve();
-              self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
-            } catch (error) {
-              console.error('DAOPrompt execution error:', error);
-              self.data.readyLatch_.reject(error);
-              self.data.hasError = true;
-              this.tag(self.ErrorView, { error: error });
-            } finally {
-              self.loading = false;
-            }
-          }));
+        tag(self.LoadingSpinner, {size: '32px', isHidden$: self.loading$.not()} ).
+        add(self.dynamic(async function(data, version) {
+          var startTime = Date.now();
+          var select    = self.data.select;
+          self.data.select = select;
+          self.loading = true;
+          try {
+            await self.data.select.execute(this);
+            self.data.readyLatch_.resolve();
+            self.data.executionTime = foam.lang.Duration.duration(Date.now() - startTime);
+          } catch (error) {
+            console.error('DAOPrompt execution error:', error);
+            self.data.readyLatch_.reject(error);
+            self.data.hasError = true;
+            this.tag(self.ErrorView, { error: error });
+          } finally {
+            self.loading = false;
+          }
+        }));
     }
   ],
 
@@ -135,19 +134,27 @@ foam.CLASS({
     'foam.parse.QueryParser'
   ],
 
-  imports: [ 'block', 'eval_', 'scope' ],
+  imports: [ 'block?', 'eval_', 'scope' ],
 
   exports: [
     'dao',
     'limitedDAO as sinkDAO',
     'filteredDAO as sinkUnlimitedDAO',
-    'columnStorage'
+    'columnStorage',
+    'columns as flowColumns',
+    'predicate as flowPredicate'
   ],
 
   properties: [
     {
+      class: 'FObjectProperty',
+      name: 'predicate',
+      hidden: true
+    },
+    {
       name: 'select',
       view: function(_, X) {
+//        return foam.core.reflow.SinkView2.create({
         return foam.core.reflow.SinkView.create({
           sinksOnly: false,
           choice: 'foam.core.reflow.TableDAOAgent',
@@ -260,7 +267,6 @@ foam.CLASS({
           if ( p ) {
             dao = dao.where(p);
           }
-          // TODO: display syntax error if didn't parse
         }
 
         if ( order ) {
@@ -300,7 +306,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'aql',
-      label: 'Where',
+      label: 'Where (autocomplete)',
       section: 'filter',
       displayWidth: 60,
       visibility: function(enableAQL_) { return enableAQL_ ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
@@ -308,7 +314,7 @@ foam.CLASS({
         var data = X.data;
         return {
           class: 'foam.parse.auto.SmartView',
-          parser: data.SimpleQueryParser.create({of: data.dao.of})
+          parser: data.SimpleQueryParser.create({of: data.dao.of}, X)
         };
       }
     },
@@ -352,7 +358,8 @@ foam.CLASS({
       name: 'where',
       section: 'filter',
       displayWidth: 60,
-      visibility: function(where, enableAQL_) { return ( where || ! enableAQL_ ) ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN; },
+      postSet: function(o, n) { this.enableAQL_ = ! n; },
+      visibility: function(enableAQL_) { return enableAQL_ ? foam.u2.DisplayMode.HIDDEN : foam.u2.DisplayMode.RW; },
       view: { class: 'foam.core.reflow.PredicateSuggestedField' }
 //      view: { class: 'foam.u2.TextField', type: 'search' } // adds 'x' to clear field
     },
@@ -361,6 +368,7 @@ foam.CLASS({
       name: 'enableAQL_',
       transient: true,
       hidden: true,
+      value: true,
       documentation: 'Temporary flag to determine if AQL is available.'
     },
     {
@@ -432,6 +440,7 @@ foam.CLASS({
     { class: 'Long',       hidden: true,  name: 'rowCount', visibility: 'RO', transient: true },
     { class: 'String',     hidden: true,  name: 'executionTime', value: '-', visibility: 'RO', transient: true, readPermissionRequired: true },
     { class: 'Int',        hidden: true,  name: 'version', transient: true },
+    { class: 'Boolean',    hidden: true,  name: 'skipInitialReset_', transient: true },
     { class: 'Boolean',    hidden: true,  name: 'hasError', value: false, transient: true },
     { class: 'FObjectProperty',  name: 'value', transient: true, hidden: true, visibility: 'RO' },
     {
@@ -442,7 +451,7 @@ foam.CLASS({
         return foam.lang.Latch.create();
       }
     },
-    { class: 'Boolean',    section: 'general',   name: 'autoRun', view: { class: 'foam.u2.Switch' } }
+    { class: 'Boolean', section: 'general', name: 'autoRun', view: { class: 'foam.u2.Switch' } }
   ],
 
   methods: [
@@ -472,21 +481,21 @@ foam.CLASS({
     function init() {
       this.SUPER();
 
-      x.auth.check(x, 'reflow.aql').then(enabled => {
-        this.enableAQL_ = enabled;
-      });
-
       if ( ! this.dao || ! this.dao.of ) return;
 
       if ( ! this.columns ) {
         this.columns = this.getColumnNamesFromStorage(localStorage.getItem(this.dao.of.id));
       }
+      this.aql$.sub(this.maybeAutoRun);
       this.where$.sub(this.maybeAutoRun);
       this.order$.sub(this.maybeAutoRun);
     },
 
-    async function addToE(e) {
-      this.onDetach(this.dao.listen(this.updateRowCount));
+    function addToE(e) {
+      // Skip the initial reset from ProxyDAO.listen_() to prevent double execution
+      this.skipInitialReset_ = true;
+      this.onDetach(this.dao.listen(this.rerun));
+      this.onDetach(this.filteredDAO.listen(this.updateRowCount));
       this.updateRowCount_();
 
       // TODO: name current block
@@ -504,8 +513,10 @@ foam.CLASS({
       // but then we do a copyFrom() the DAOPrompt stored in the script and then
       // the columnStorage gets swapped.
       var old = this.columnStorage;
+      var oldLatch = this.readyLatch_;  // Preserve latch so addToE's await still works
       this.SUPER(o);
       this.columnStorage = old;
+      this.readyLatch_ = oldLatch;
       this.valueDAO = undefined;
     },
 
@@ -557,12 +568,25 @@ foam.CLASS({
     {
       name: 'updateRowCount',
       isFramed: true,
-      code: function() { this.updateRowCount_(); this.run(); }
+      code: function() { this.updateRowCount_(); }
+    },
+    {
+      name: 'rerun',
+      isMerged: true,
+      delay: 100,
+      code: function() {
+        // Skip the initial reset from ProxyDAO.listen_() - not a real data change
+        if ( this.skipInitialReset_ ) {
+          this.skipInitialReset_ = false;
+          return;
+        }
+        this.run();
+      }
     },
     {
       name: 'maybeAutoRun',
       isMerged: true,
-      delay: 200,
+      delay: 250,
       code: function maybeAutoRun() {
         if ( this.autoRun ) this.run();
       }

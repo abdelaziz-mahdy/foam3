@@ -133,6 +133,10 @@ foam.CLASS({
     ^operator { color: $orange400; }
     ^value    { color: $blue400; }
     ^format   { color: $grey400; }
+
+    ^calculation { color: $orange400; }
+    ^chart    { color: $blue400; }
+    ^structure { color: $green400; }
   `,
 
   properties: [
@@ -177,6 +181,8 @@ foam.CLASS({
 });
 
 
+// TODO: Would be better if the input field was replaced by a contenteditable=true <div> so that errors
+// could be displayed in-line in real-time
 foam.CLASS({
   package: 'foam.parse.auto',
   name: 'SmartView', // TODO: rename GrammarView or SyntaxView
@@ -218,10 +224,15 @@ foam.CLASS({
       cursor: pointer;
     }
     ^suggestionSeparator { border-bottom: 1px solid $borderLight; }
+    ^error { border: 1px solid red !important; }
   `,
 
   properties: [
     [ 'type', 'search' ],
+    {
+      class: 'String',
+      name: 'error'
+    },
     {
       class: 'String',
       name: 'preview',
@@ -237,6 +248,7 @@ foam.CLASS({
     {
       class: 'Boolean',
       name: 'normalize',
+      value: true,
       documentation: 'If true the input will be normalized to preferred syntax where options exist.'
     },
     {
@@ -265,6 +277,7 @@ foam.CLASS({
     },
     {
       name: 'apply',
+      documentation: 'Parser callback to be used to track parsing and make suggestions.',
       factory: function() {
         let self = this;
 
@@ -302,7 +315,7 @@ foam.CLASS({
             let s = p.suggest();
             if ( ! s.text ) return result;
             let prevQuery = self.preview.substring(0, this.pos);
-            self.normalizedQuery = prevQuery + s.text + self.preview.substring(this.substring(result).length+this.pos) ;
+            self.normalizedQuery = prevQuery + s.text + self.preview.substring(this.substring(result).length+this.pos);
             if ( self.preview !== self.normalizedQuery ) self.preview = self.normalizedQuery;
           }
 
@@ -324,6 +337,9 @@ foam.CLASS({
       // Recalculate suggestions when the preview text changes
       this.preview$.sub(this.onPreviewChange);
 
+      // Recalculate error when the data text changes
+      this.data$.sub(this.onDataChange);
+
       if ( this.prop?.onKey ) {
         this.data$.linkFrom(this.preview$);
       }
@@ -332,18 +348,25 @@ foam.CLASS({
       this
         .addClass()
         .start(this.TextField, {
-          data$: this.data$,
+          data$:        this.data$,
           autocomplete: false,
-          autocorrect: false
+          autocorrect:  false,
+          tooltip$:     this.error$
         }, this.field$).
+          enableClass(this.myClass('error'), this.error$).
           on('blur', this.onBlur).
           call(function() {
             self.prop && this.fromProperty?.(self.prop);
             // The 'preview' Property is always bound like its onKey mode
             this.attrSlot(null, 'input').linkFrom(self.preview$);
           }).
-        on('keydown', this.onKeyPress, true).
-        end();
+          on('keydown', this.onKeyPress, true).
+        end();/*
+        start().style({color: 'red'}).
+          show(this.error$).
+          start('span').add('Error: ').end().
+          add(this.error$).
+        end();*/
 
       // Search fields have a 'x' icon on the right which clears the field, but for
       // some reason if onPreviewChange runs too quickly then this doesn't work for
@@ -405,7 +428,7 @@ foam.CLASS({
     function suggestText(txt, sug) {
       let str = this.preview.substring(0, this.maxPos);
       // This causes issues when suggesting units like 'px' after numbers
-      if ( sug.prependSpaceOnSelect ) str += ' ';
+      if ( sug.prependSpaceOnSelect ) str = str.trim() + ' ';
       this.preview = ( str + txt ).trimStart();
       this.field.focus();
     },
@@ -456,6 +479,7 @@ foam.CLASS({
           let el = this.field.el_();
           let event = new Event('change', { bubbles: true });
           el.dispatchEvent(event);
+          // this.onDataChange();
         }
       }
     },
@@ -463,14 +487,39 @@ foam.CLASS({
       name: 'onPreviewChange',
       isFramed: true,
       code: function() {
+        this.error = '';
+
         // Parse the preview text with our 'apply' callback so we can rebuild
         // the suggestions map.
         this.reset();
 
-        var ps = this.parser.parseString(
-          this.preview + String.fromCharCode(26) /* EOF */,
-          undefined,
-          this.apply);
+        let str = this.preview + String.fromCharCode(26) /* EOF */;
+        let ps  = foam.parse.StringPStream.create({str: str, apply: this.apply});
+
+        ps = this.parser.parse(ps);
+      }
+    },
+    {
+      name: 'onDataChange',
+      isFramed: true,
+      code: function() {
+        if ( ! this.data ) { this.error = ''; return; }
+
+        let maxPos = 0;
+        let apply  = function(p, grammar) {
+          maxPos = Math.max(maxPos, this.pos);
+          return p.parse(this, grammar);
+        };
+        let str    = this.data + String.fromCharCode(26) /* EOF */;
+        let ps     = foam.parse.StringPStream.create({str: str, apply: apply});
+
+        ps = this.parser.parse(ps);
+
+        if ( ps == null || maxPos < this.data.length ) {
+          this.error = 'Error at: ' + (maxPos == this.data.length ? '<end of input>' : this.data.substring(maxPos));
+        } else {
+          this.error = '';
+        }
       }
     }
   ]

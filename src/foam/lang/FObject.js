@@ -745,16 +745,17 @@ foam.CLASS({
       this.pub('propertyChange', prop.name, slot);
     },
 
-    function dynamic(m /* either a map or a function */) {
+    function dynamic(m /* either a map or a function */, ...args) {
       return this.onDetach(foam.lang.DynamicFunction.create(
         foam.Function.isInstance(m) ?
-          { code: m, obj: this } :
+          (args.length > 0 ? { code: m, obj: this, args } : { code: m, obj: this }) :
           {
             code: m.code,
             obj:  this,
             self: m.self || this,
             pre:  m.pre  || function() {},
-            post: m.post || function() {}
+            post: m.post || function() {},
+            args: m.args
           }
         ));
     },
@@ -803,12 +804,14 @@ foam.CLASS({
       return slot;
     },
 
-    function normalizeObj() {
+    async function normalizeObj() {
       /** Normalize all properties that provide a normalize function. **/
-      this.cls_.getAxiomsByClass(foam.lang.Property).forEach(p => {
+      let a = this.cls_.getAxiomsByClass(foam.lang.Property);
+      for ( let i = 0 ; i < a.length ; i++ ) {
+        let p = a[i];
         if ( p.normalize && ! p.hasDefaultValue(this) )
-          p.set(this, p.normalize(p.get(this), p));
-      });
+          p.set(this, await p.normalize(p.get(this), p));
+      }
     },
 
     /************************************************

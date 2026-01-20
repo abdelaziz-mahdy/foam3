@@ -70,6 +70,7 @@ foam.CLASS({
         JSONFObjectFormatter b = new JSONFObjectFormatter();
         b.setPropertyPredicate(new StoragePropertyPredicate());
         b.setOutputShortNames(true);
+        b.setOutputDefaultClassNames(false);
         return b;
       }
       @Override
@@ -272,7 +273,8 @@ try {
           writer.write(entry);
           writer.newLine();
           writer.flush();
-        } catch (java.io.IOException e) {
+        } catch (Throwable t) {
+          t.printStackTrace();
           getLogger().error("Failed to write version", version);
         }
       `

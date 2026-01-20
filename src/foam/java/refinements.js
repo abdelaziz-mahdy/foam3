@@ -453,14 +453,27 @@ ${isSet} = false;`
       }
 
       if ( ! foam.java.Interface.isInstance(cls) ) {
-        cls.field({
-          name: constantize,
-          visibility: 'public',
-          static: true,
-          final: true,
-          type: 'foam.lang.PropertyInfo',
-          initializer: this.createJavaPropertyInfo_(cls)
-        });
+        let clsName = capitalized + 'PropertyInfo';
+        let pi = this.createJavaPropertyInfo_(cls);
+        pi.name = clsName;
+        pi.anonymous = false;
+        pi.innerClass = true;
+        pi.visibility = '';
+        pi.static = true;
+
+        cls.classes.push(pi);
+
+        // Generate PropertyInfo
+        cls.
+//          innerClass(pi/*{ name: clsName }*/).
+          field({
+            name: constantize,
+            visibility: 'public',
+            static: true,
+            final: true,
+            type: 'foam.lang.PropertyInfo',
+            initializer: 'new ' + clsName + '();' //this.createJavaPropertyInfo_(cls)
+          });
       }
 
       var info = cls.getField('classInfo_');
@@ -1348,6 +1361,19 @@ foam.CLASS({
       });
 
       info.method({
+        name: 'forLabel',
+        visibility: 'public',
+        type: this.of.id,
+        args: [
+          {
+            name: 'label',
+            type: 'String'
+          }
+        ],
+        body: `return ${this.of.id}.forLabel(label);`
+      });
+
+      info.method({
         name: 'toJSON',
         visibility: 'public',
         type: 'void',
@@ -1376,10 +1402,17 @@ foam.CLASS({
   refines: 'foam.lang.AbstractEnum',
   // flags: ['java'],
 
+  properties: [
+    {
+      class: 'String',
+      name: 'javaCode'
+    }
+  ],
+
   axioms: [
     {
-      installInClass: function(cls) {
-        cls.buildJavaClass = function(cls) {
+      installInClass: function(fcls) {
+        fcls.buildJavaClass = function(cls) {
           cls = cls || foam.java.Enum.create();
 
           cls.name       = this.name;
@@ -1387,6 +1420,11 @@ foam.CLASS({
           cls.extends    = this.extends;
           cls.values     = this.VALUES;
           cls.implements = [ 'foam.lang.FEnum' ];
+
+          // TODO: temporary work-around, to be moved to FSM specific refinement
+          if ( this.model_.extends === 'foam.lang.StateMachineEnum' ) {
+            cls.implements = [ 'foam.lang.StateMachineEnum' ];
+          }
 
           // TODO: needed for now because Enums don't extend FObject
           // but a better solution would be to remove setters from
@@ -1428,7 +1466,7 @@ foam.CLASS({
           });
 
           cls.declarations = this.VALUES.map(function(v) {
-            return `${v.name}(${properties.map(p => foam.java.asJavaValue(v[p.name])).join(', ')})`;
+            return `${v.name}(${properties.map(p => foam.java.asJavaValue(v[p.name], p)).join(', ')}) ${v.javaCode ? ' { ' + v.javaCode + ' }' : '/* NO CODE */'}`;
           }).join(',\n  ');
 
           cls.method({
@@ -1514,8 +1552,6 @@ foam.CLASS({
     }
   ]
 });
-
-
 
 
 foam.CLASS({
@@ -1680,6 +1716,7 @@ foam.CLASS({
   methods: [
     function createJavaPropertyInfo_(cls) {
       var info = this.SUPER(cls);
+
       info.method({
         name: 'getFormatted',
         visibility: 'public',
@@ -1690,6 +1727,7 @@ foam.CLASS({
         documentation: 'Returns a formatted version of this property',
         body: this.formatter.buildJavaGetFormatted(cls.name, this.name)
       });
+
       return info;
     }
   ]
@@ -2712,7 +2750,6 @@ foam.CLASS({
     }
   ]
 });
-
 
 foam.CLASS({
   package: 'foam.java',

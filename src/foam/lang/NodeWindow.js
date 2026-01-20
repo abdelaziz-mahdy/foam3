@@ -29,11 +29,13 @@ foam.CLASS({
     'pushMenu',
     'requestAnimationFrame',
     'routeTo',
-    'setTimeout'
+    'setTimeout',
+    'loginSuccess'
   ],
 
   properties: [
-    [ 'location', { origin: 'http://localhost:8080', search: '' } ]
+    [ 'loginSuccess', true ],
+    [ 'location', { origin: 'http://localhost:8080', href: 'http://localhost:8080/', search: '' } ]
   ],
 
   methods: [

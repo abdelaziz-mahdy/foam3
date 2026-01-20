@@ -20,6 +20,11 @@ foam.CLASS({
       var datetime = parser.parseString('2025-01-15T14:30:45');
   `,
 
+  // Singleton pattern - reuse the same parser instance to avoid rebuilding grammar
+  axioms: [
+    foam.pattern.Singleton.create()
+  ],
+
   constants: {
     INVALID_DATE: new Date(NaN)
   },
@@ -509,6 +514,38 @@ foam.CLASS({
         -1, -1, -1, -1, null);
     },
 
+    // Timestamp actions - convert timestamp strings directly to Date objects
+    // These return Date objects directly (not {year, month, day} objects) because
+    // timestamps are already a complete date representation
+
+    // 13-digit JavaScript timestamp (milliseconds since epoch)
+    // v = "1754308800000" (string)
+    function timestamp13Action(v) {
+      return new Date(parseInt(v, 10));
+    },
+
+    // 10-digit Unix timestamp (seconds since epoch)
+    // v = "1754308800" (string)
+    function timestamp10Action(v) {
+      return new Date(parseInt(v, 10) * 1000);
+    },
+
+    // Timestamp actions - convert timestamp strings directly to Date objects
+    // These return Date objects directly (not {year, month, day} objects) because
+    // timestamps are already a complete date representation
+
+    // 13-digit JavaScript timestamp (milliseconds since epoch)
+    // v = "1754308800000" (string)
+    function timestamp13Action(v) {
+      return new Date(parseInt(v, 10));
+    },
+
+    // 10-digit Unix timestamp (seconds since epoch)
+    // v = "1754308800" (string)
+    function timestamp10Action(v) {
+      return new Date(parseInt(v, 10) * 1000);
+    },
+
     function flattenTimezone(tzArray) {
       if ( ! tzArray ) return null;
       if ( tzArray === 'Z' ) return 'Z';
@@ -602,12 +639,8 @@ foam.CLASS({
       }
       str = str.trim();
 
-      // STRING mode: date-only → noon GMT, with time → local time
-      this.dateParseMode = 'STRING';
-
-      this.ps.setString(str);
-      var start = this.getSymbol(opt_name || 'START');
-      var parseResult = this.ps.apply(start, this);
+      // Use parse() to get position information
+      var parseResult = this.parse(this.StringPStream.create({ str: str }), this, opt_name);
 
       if ( ! parseResult || ! parseResult.value ) {
         throw new Error('Unsupported Date format: ' + str);
@@ -617,7 +650,37 @@ foam.CLASS({
         console.warn('DateParser: Partial parse in parseString. Input:', str);
       }
 
-      return parseResult.value;
+      var result = parseResult.value;
+
+      if ( ! result ) {
+        // Unparseable format - return MAX_DATE
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDate(result, str);
+      }
+
+      // Determine if this is a datetime or date-only result based on presence of time components
+      var ret;
+      if ( result.hour !== undefined || result.minute !== undefined || result.second !== undefined ) {
+        // Datetime format - use local time
+        ret = new Date(
+          result.year,
+          result.month,
+          result.day,
+          result.hour !== undefined ? result.hour : 0,
+          result.minute !== undefined ? result.minute : 0,
+          result.second !== undefined ? result.second : 0,
+          result.millisecond !== undefined ? result.millisecond : 0
+        );
+      } else {
+        // Date-only format - use noon GMT (matches DateUtil behavior)
+        ret = new Date(Date.UTC(result.year, result.month, result.day, 12, 0, 0, 0));
+      }
+
+      return this.validateDate(ret, str);
     },
 
     function parseDateString(str, opt_name) {
@@ -627,12 +690,29 @@ foam.CLASS({
       str = str.trim();
       this.dateParseMode = 'DATE';
 
-      this.ps.setString(str);
-      var start = this.getSymbol(opt_name || 'START');
-      var parseResult = this.ps.apply(start, this);
+      // Use parse() to get position information
+      var parseResult = this.parse(this.StringPStream.create({ str: str }), this, opt_name);
 
-      if ( ! parseResult || ! parseResult.value ) {
-        throw new Error('Unsupported Date format: ' + str);
+      if ( ! parseResult ) {
+        // Unparseable format - return MAX_DATE
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+
+      // Check if entire string was consumed - warn but still return parsed value
+      if ( parseResult.pos < str.length ) {
+        console.warn('DateParser: Partial parse in parseDateString. Input:', str, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
+      }
+
+      var result = parseResult.value;
+
+      if ( ! result ) {
+        // Unparseable format - return MAX_DATE
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDate(result, str);
       }
 
       return parseResult.value;
@@ -645,20 +725,75 @@ foam.CLASS({
       str = str.trim();
       this.dateParseMode = 'DATETIME';
 
-      this.ps.setString(str);
-      var start = this.getSymbol(opt_name || 'START');
-      var parseResult = this.ps.apply(start, this);
+      // Use parse() instead of parseString() to get position information
+      var parseResult = this.parse(this.StringPStream.create({ str: str }), this, opt_name);
 
       if ( ! parseResult || ! parseResult.value ) {
         throw new Error('Unsupported DateTime format: ' + str);
       }
 
       if ( parseResult.pos < str.length ) {
-        console.warn('DateParser: Partial parse in parseDateTime. Input:', str);
-        throw new Error('Unsupported DateTime format: ' + str);
+        // Partial parse - remaining characters indicate invalid format
+        console.warn('DateParser: Partial parse detected. Input:', str,'opt_name:', opt_name, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
+        return this.validateDate(this.INVALID_DATE, str);
       }
 
-      return parseResult.value;
+      var result = parseResult.value;
+
+      if ( ! result ) {
+        // Unparseable format - return MAX_DATE
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDate(result, str);
+      }
+
+      // Validate time components if present
+      // Note: Grammar already enforces valid ranges (hour2: 00-23, minute2/second2: 00-59)
+      // but we keep these checks as a safety measure
+      if ( result.hour !== undefined && (result.hour < 0 || result.hour > 23) ) {
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+      if ( result.minute !== undefined && (result.minute < 0 || result.minute > 59) ) {
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+      if ( result.second !== undefined && (result.second < 0 || result.second > 59) ) {
+        return this.validateDate(this.INVALID_DATE, str);
+      }
+
+      var ret;
+      if ( result.timezone ) {
+        // Timezone present - convert to UTC
+        var offset = this.parseTimezone(result.timezone);
+        var utcTime = Date.UTC(
+          result.year,
+          result.month,
+          result.day,
+          result.hour !== undefined ? result.hour : 12,
+          result.minute !== undefined ? result.minute : 0,
+          result.second !== undefined ? result.second : 0,
+          result.millisecond !== undefined ? result.millisecond : 0
+        );
+        // Subtract offset to convert to UTC (if timezone is +05:00, we subtract 5 hours)
+        utcTime -= offset * 60000;
+        ret = new Date(utcTime);
+        // Don't validate date parts - timezone conversion is expected to change the date
+        return this.validateDate(ret, str);
+      } else {
+        // No timezone - use local time
+        ret = new Date(
+          result.year,
+          result.month,
+          result.day,
+          result.hour !== undefined ? result.hour : 12,
+          result.minute !== undefined ? result.minute : 0,
+          result.second !== undefined ? result.second : 0,
+          result.millisecond !== undefined ? result.millisecond : 0
+        );
+        return this.validateDate(ret, str);
+      }
     },
 
     function parseDateTimeUTC(str, opt_name) {
@@ -668,16 +803,36 @@ foam.CLASS({
       str = str.trim();
       this.dateParseMode = 'DATETIME_UTC';
 
-      this.ps.setString(str);
-      var start = this.getSymbol(opt_name || 'START');
-      var parseResult = this.ps.apply(start, this);
+      // Use parse() instead of parseString() to get position information
+      var parseResult = this.parse(this.StringPStream.create({ str: str }), this, opt_name);
 
       if ( ! parseResult || ! parseResult.value ) {
         throw new Error('Unsupported DateTime format: ' + str);
       }
 
       if ( parseResult.pos < str.length ) {
-        throw new Error('Unsupported DateTime format: ' + str);
+        // Partial parse - remaining characters indicate invalid format
+        console.warn('DateParser: Partial parse detected for UTC. Input:', str, 'opt_name:', opt_name, 'Consumed up to position:', parseResult.pos, 'Remaining:', str.substring(parseResult.pos));
+        return this.validateDateUTC(this.INVALID_DATE, str);
+      }
+
+      var result = parseResult.value;
+
+      if ( ! result ) {
+        // Unparseable format - return MAX_DATE
+        return this.validateDateUTC(this.INVALID_DATE, str);
+      }
+
+      // Check if result is already a Date object (from timestamp actions)
+      if ( result instanceof Date ) {
+        return this.validateDateUTC(result, str);
+      }
+
+      // Validate time components if present
+      // Note: Grammar already enforces valid ranges (hour2: 00-23, minute2/second2: 00-59)
+      // but we keep these checks as a safety measure
+      if ( result.hour !== undefined && (result.hour < 0 || result.hour > 23) ) {
+        return this.validateDateUTC(this.INVALID_DATE, str);
       }
 
       return parseResult.value;
