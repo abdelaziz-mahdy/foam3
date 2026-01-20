@@ -18,14 +18,20 @@ foam.CLASS({
   methods: [
     /**
      * Normalize column name to FOAM property naming convention (camelCase).
-     * Converts underscore-separated names to camelCase.
+     * Converts underscore/space-separated names to camelCase.
      * Examples:
      *   Element_attribute → elementAttribute
      *   Parent_Child_value → parentChildValue
      *   CONSTANT_CASE → constantCase
+     *   FIRST NAME → firstName
+     *   _leading → leading
+     *   multi__under → multiUnder
      */
     function normalizeToPropertyName(str) {
       if ( ! str ) return str;
+
+      // Replace spaces with underscores to unify separators
+      str = str.replace(/\s+/g, '_');
 
       // If no underscore, just lowercase first char
       if ( str.indexOf('_') === -1 ) {
@@ -33,11 +39,17 @@ foam.CLASS({
       }
 
       var parts = str.split('_');
-      var result = parts[0].charAt(0).toLowerCase() + parts[0].slice(1).toLowerCase();
+      var result = '';
+      var first = true;
 
-      for ( var i = 1 ; i < parts.length ; i++ ) {
+      for ( var i = 0 ; i < parts.length ; i++ ) {
         if ( parts[i].length > 0 ) {
-          result += parts[i].charAt(0).toUpperCase() + parts[i].slice(1).toLowerCase();
+          if ( first ) {
+            result = parts[i].charAt(0).toLowerCase() + parts[i].slice(1).toLowerCase();
+            first = false;
+          } else {
+            result += parts[i].charAt(0).toUpperCase() + parts[i].slice(1).toLowerCase();
+          }
         }
       }
 
@@ -45,52 +57,36 @@ foam.CLASS({
     },
 
     function grammar(alt, seq, seq0, seq1, eof, literal, literalIC, repeat, repeat0, sym, action, str, plus, notChars, peek) {
-      var fs  = [];
+      var self = this;
       var ps = this.of.getAxiomsByClass(foam.lang.Property);
 
-      // Helper to iterate over all property identifiers (name, shortName, aliases)
-      function forEachIdentifier(p, fn) {
-        fn(p.name, p);
-        if ( p.shortName ) fn(p.shortName, p);
-        p.aliases.forEach(a => fn(a, p));
-      }
-
-      function addProperty(p, lit) {
-        forEachIdentifier(p, (n, p) => fs.push(lit(n, p)));
-      }
-
-      // Five chances to match:
-
-      // 1. Exact match
-      ps.forEach(p => addProperty(p, literal));
-
-      // 2. Case insensitive match
-      ps.forEach(p => addProperty(p, literalIC));
-
-      // 3. CONSTANT_CASE with spaces: "PAYMENT TOKEN ID"
-      ps.forEach(p => addProperty(p, (n, p) => literalIC(foam.String.constantize(n).replaceAll('_', ' '), p)));
-
-      // 4. CONSTANT_CASE: "PAYMENT_TOKEN_ID"
-      ps.forEach(p => addProperty(p, (n, p) => literalIC(foam.String.constantize(n), p)));
-
-      // 5. Final fallback: Normalize any underscore-separated input to camelCase and lookup
-      // Handles arbitrary underscore formats like "Element_attribute" → "elementAttribute"
+      // Build normalized lookup map: normalized identifier → property
+      // Normalizes both property names and input for consistent matching
       var propertyMap = {};
-      ps.forEach(p => forEachIdentifier(p, (n, p) => { propertyMap[n.toLowerCase()] = p; }));
+      ps.forEach(function(p) {
+        // Store by normalized name (handles non-standard property names)
+        propertyMap[self.normalizeToPropertyName(p.name).toLowerCase()] = p;
+        if ( p.shortName ) {
+          propertyMap[self.normalizeToPropertyName(p.shortName).toLowerCase()] = p;
+        }
+        p.aliases.forEach(function(a) {
+          propertyMap[self.normalizeToPropertyName(a).toLowerCase()] = p;
+        });
+      });
 
-      var self = this;
-      var normalizedLookup = action(
-        // Capture any non-delimiter characters as a string (stops at comma, tab, newline, space)
-        str(plus(notChars(',\t\n\r '))),
+      // Single parser: normalize input and lookup in map
+      var fieldNameParser = action(
+        seq1(0, str(plus(notChars(',\t\n\r'))), sym('end')),
         function(input) {
+          input = input.trim();
+          if ( ! input ) return foam.parse.ParserWithAction.NO_PARSE;
+
+          // Normalize input and lookup
           var normalized = self.normalizeToPropertyName(input);
           var prop = propertyMap[normalized.toLowerCase()];
           return prop || foam.parse.ParserWithAction.NO_PARSE;
         }
       );
-      fs.push(normalizedLookup);
-
-      var fieldNameParser = alt.apply(null, fs.map(f => seq1(0, f, sym('end'))));
 
       return {
         START: sym('fieldName'),
