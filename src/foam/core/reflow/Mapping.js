@@ -66,6 +66,24 @@ foam.ENUM({
 });
 
 
+foam.ENUM({
+  package: 'foam.core.reflow',
+  name: 'NumberFormat',
+
+  values: [
+    {
+      name: 'STANDARD',
+      label: 'Standard (1,000.00)',
+      documentation: 'US/UK format: comma for thousands, period for decimal'
+    },
+    {
+      name: 'EUROPEAN',
+      label: 'European (1.000,00)',
+      documentation: 'European format: period for thousands, comma for decimal'
+    }
+  ]
+});
+
 
 foam.CLASS({
   package: 'foam.core.reflow',
@@ -73,7 +91,8 @@ foam.CLASS({
 
   requires: [
     'foam.core.reflow.MappingType',
-    'foam.core.reflow.DateFormat'
+    'foam.core.reflow.DateFormat',
+    'foam.core.reflow.NumberFormat'
   ],
 
   imports: [ 'scope?' ],
@@ -167,6 +186,28 @@ foam.CLASS({
         var isDateProp = foam.lang.Date.isInstance(prop) || foam.lang.DateTime.isInstance(prop);
         return isDateProp ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
       }
+    },
+    {
+      class: 'Enum',
+      of: 'foam.core.reflow.NumberFormat',
+      name: 'numberFormat',
+      label: '',
+      value: 'STANDARD',
+      help: 'Standard format uses comma for thousands and period for decimal (1,000.00). European format uses period for thousands and comma for decimal (1.000,00).',
+      documentation: 'Number format for this field (only applies to numeric properties)',
+      view: {
+        class: 'foam.core.reflow.NumberFormatRichChoiceView'
+      },
+      visibility: function(type, prop) {
+        // Only show for numeric properties that use FIELD or CONSTANT mapping
+        if ( type === foam.core.reflow.MappingType.DYNAMIC ) return foam.u2.DisplayMode.HIDDEN;
+        if ( ! prop ) return foam.u2.DisplayMode.HIDDEN;
+        var isNumericProp = foam.lang.Int.isInstance(prop) ||
+                            foam.lang.Long.isInstance(prop) ||
+                            foam.lang.Float.isInstance(prop) ||
+                            foam.lang.Double.isInstance(prop);
+        return isNumericProp ? foam.u2.DisplayMode.RW : foam.u2.DisplayMode.HIDDEN;
+      }
     }
   ],
 
@@ -224,18 +265,47 @@ foam.CLASS({
         value = value.trim();
       }
 
-      // Set property value using fromCSV, passing format hint for date fields
+      // Set property value using fromCSV, passing format hint for date/number fields
       if ( value !== '' && value != null && value !== undefined ) {
-        // Check DateTimeUTC BEFORE DateTime since DateTimeUTC extends DateTime
-        if ( this.prop && foam.lang.Date.isInstance(this.prop) ) {
-          // For date/datetime properties, pass format to fromCSV
-          var formatName = this.formatToParserName();
-          this.prop.set(obj, this.prop.fromCSV(value, formatName));
-        } else {
-          this.prop.set(obj, this.prop.fromCSV(value));
+        if ( this.prop ) {
+          if ( foam.lang.Date.isInstance(this.prop) || foam.lang.DateTime.isInstance(this.prop) ) {
+            // For date/datetime properties, pass format to fromCSV
+            var dateFormatName = this.formatToParserName();
+            this.prop.set(obj, this.prop.fromCSV(value, dateFormatName));
+            return;
+          } else if ( foam.lang.Int.isInstance(this.prop) ||
+                      foam.lang.Long.isInstance(this.prop) ||
+                      foam.lang.Float.isInstance(this.prop) ||
+                      foam.lang.Double.isInstance(this.prop) ) {
+            // For numeric properties, pass format to fromCSV
+            var numberFormatName = this.numberFormatToParserName();
+            this.prop.set(obj, this.prop.fromCSV(value, numberFormatName));
+            return;
+          }
         }
+        this.prop.set(obj, this.prop.fromCSV(value));
       }
     },
+
+    function numberFormatToParserName() {
+      /**
+       * Maps NumberFormat enum to NumberParser grammar symbol name.
+       * This is used when calling fromCSV with format hints.
+       *
+       * @returns {string} Parser grammar symbol name (undefined for standard, 'european' for European)
+       */
+      if ( ! this.numberFormat ) return undefined;
+
+      // Map enum values to parser symbol names
+      switch ( this.numberFormat.name ) {
+        case 'EUROPEAN':
+          return 'european';
+        case 'STANDARD':
+        default:
+          return undefined;
+      }
+    },
+
     function evaluateExpression(expression, rowData) {
       /**
        * Safely evaluate a JavaScript expression within the context of rowData.
