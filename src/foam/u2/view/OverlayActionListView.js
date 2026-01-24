@@ -76,7 +76,7 @@ foam.CLASS({
       name: 'id',
       documentation: `Id for the obj the actions use as data, must be provided if dao is provided.`,
       expression: function(obj) {
-        return obj?.id;
+        return obj ? obj.id : '';
       }
     },
     {
