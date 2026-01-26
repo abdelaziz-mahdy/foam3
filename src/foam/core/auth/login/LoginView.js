@@ -17,6 +17,7 @@ foam.CLASS({
     'logAnalyticEvent?',
     'oAuthProviderDAO',
     'params',
+    'signInWithOIDC?',
     'window?',
     'stack'
   ],
@@ -238,9 +239,14 @@ foam.CLASS({
                   let action = foam.lang.Action.create({
                     name: 'signIn',
                     label: provider.description,
+                    icon: provider.icon,
                     buttonStyle: showAction ? 'SECONDARY' : 'PRIMARY',
                     code: async function () {
-                      await self.clientLoginService.signInWithOIDC(provider);
+                      if ( self.signInWithOIDC ) {
+                        await self.signInWithOIDC(provider);
+                      } else {
+                        await self.clientLoginService.signInWithOIDC(provider);
+                      }
                     }
                   });
 
