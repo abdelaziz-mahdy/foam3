@@ -196,31 +196,24 @@ foam.CLASS({
       hidden: true,
       transient: true,
       expression: function(fileHeaders) {
-        // Create a temporary model with the current file headers as properties
-        if ( ! fileHeaders || fileHeaders.length === 0 ) {
-          return null;
-        }
+        if ( ! fileHeaders || fileHeaders.length === 0 ) return null;
 
-        // Create mapping of original headers to normalized names
-        var headerMap = {};
-        var props = [];
+        var headerMap   = {};
+        var constantMap = {};
+        var props       = [];
 
-        for ( var i = 0; i < fileHeaders.length; i++ ) {
-          var original = fileHeaders[i];
-          var normalized = original.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[0-9]+/, '');
+        for ( var i = 0 ; i < fileHeaders.length ; i++ ) {
+          var original   = fileHeaders[i];
+          var normalized = this.normalizeHeader(original);
+          normalized     = this.resolveConstantCollision(normalized, constantMap);
+
           headerMap[normalized] = original;
-
-          props.push({
-            class: 'String',
-            name: normalized,
-            label: original
-          });
+          props.push({ class: 'String', name: normalized, label: original });
         }
 
-        // Check if model already exists, if so, reuse it
-        var modelName = 'DynamicExpressionModel';
-        var fullName = 'foam.core.reflow.temp.' + modelName;
-
+        var propKey   = props.map(p => p.name).sort().join('_');
+        var modelName = 'DynamicExpressionModel_' + Math.abs(foam.String.hashCode(propKey));
+        var fullName  = 'foam.core.reflow.temp.' + modelName;
         var TempModel = foam.maybeLookup(fullName);
 
         if ( ! TempModel ) {
@@ -337,6 +330,34 @@ foam.CLASS({
   ],
 
   methods: [
+    function normalizeHeader(header) {
+      /** Normalize a header string to a valid property name. */
+      return header.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[0-9]+/, '');
+    },
+
+    function resolveConstantCollision(normalized, constantMap) {
+      /**
+       * Resolve FOAM constant name collisions by appending a numeric suffix.
+       * Returns the resolved property name.
+       */
+      var constantName = foam.String.constantize(normalized);
+
+      if ( ! constantMap[constantName] || constantMap[constantName] === normalized ) {
+        constantMap[constantName] = normalized;
+        return normalized;
+      }
+
+      // Collision detected - append suffix to make unique
+      var suffix = 2;
+      var newNormalized = normalized + '_' + suffix;
+      while ( constantMap[foam.String.constantize(newNormalized)] ) {
+        suffix++;
+        newNormalized = normalized + '_' + suffix;
+      }
+      constantMap[foam.String.constantize(newNormalized)] = newNormalized;
+      return newNormalized;
+    },
+
     function formatToParserName() {
       /**
        * Maps DateFormat enum to DateParser grammar symbol name.
