@@ -51,11 +51,31 @@ foam.CLASS({
 
       this.daosParser.args = (await this.cSpecDAO.select()).array.map(c => {
         //        console.log('***', c.id, c);
-        return p.sug(p.literalIC(c.id), {
+        let parser = p.sug(p.literalIC(c.id), {
           text:     c.id,
           label:    c.id,
           prependSpaceOnSelect: false,
           category: c.keywords.indexOf('custom') == -1 ? 'standard' : 'custom'});
+
+        parser = this.ParserWithAction.create({
+          p: parser,
+          action: v => {
+            console.log('***** daoName ', v, this.__context__[v]);
+            let key = 'query__' + v;
+            if ( ! this.symbolMap_[key] ) {
+              console.log('************* adding', key, this.$UID, this.cls_.id);
+              let dao = this.__context__[v];
+              this.addSymbol(key, this.SimpleQueryParser.create({of: dao.of}));
+              // TODO: this shouldn't be needed, just setting this.symbolMap_ = undefined
+              // should work but it doesn't.
+              this.symbolMap_ = this.SYMBOL_MAP_.expression(this.symbols);
+            }
+            return v;
+          }
+        });
+
+        parser = p.seq(parser, p.optional(p.seq(' ', p.sym('where'), ' ', p.sym('query__' + c.id))));
+        return parser;
       });
 
       this.cmdsParser.args = (await this.commandDAO.select()).array.map(c => {
@@ -98,7 +118,8 @@ foam.CLASS({
 
         cmd: this.cmdsParser,
 
-        dao: seq(sym('daoName') , optional(seq(sym('where'), sym('query')))),
+//        dao: seq(sym('daoName') , optional(seq(sym('where'), sym('query')))),
+        dao: sym('daoName'),
 
         where: sug(literalIC(' where'), {text: ' WHERE'}),
 
@@ -110,9 +131,11 @@ foam.CLASS({
       };
     },
 
-    function daoNameAction(v) {
+    function xxxdaoNameAction(v) {
       console.log('***** daoName ', v, this.__context__[v]);
-      this.symbolMap_.query = this.SimpleQueryParser.create({of: dao.of});
+      let key = 'query:' + v;
+      if ( ! this.symbolMap_[key] )
+        this.symbolMap_[key] = this.SimpleQueryParser.create({of: dao.of});
       return v;
     }
   ]
