@@ -36,7 +36,7 @@ foam.CLASS({
 
     function applyPrecision(val) {
       if ( this.precision < 0 || typeof val !== 'number' ) return val;
-     return Number(val).toFixed(precision);
+     return Number(val).toFixed(this.precision);
     }
   ]
 });
