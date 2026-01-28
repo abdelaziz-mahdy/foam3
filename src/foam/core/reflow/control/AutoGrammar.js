@@ -17,6 +17,7 @@ foam.CLASS({
   ],
 
   imports: [
+    'agentDAO',
     'commandDAO',
     'flowDAO',
     'AuthenticatedCSpecDAO as cSpecDAO'
@@ -40,6 +41,12 @@ foam.CLASS({
       factory: function() {
         return this.Alternate.create();
       }
+    },
+    {
+      name: 'agentsParser',
+      factory: function() {
+        return this.Alternate.create();
+      }
     }
   ],
 
@@ -49,7 +56,7 @@ foam.CLASS({
 
       var dao = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
 
-      this.daosParser.args = (await this.cSpecDAO.select()).array.map(c => {
+      this.daosParser.args = (await dao.select()).array.map(c => {
         //        console.log('***', c.id, c);
         let parser = p.sug(p.literalIC(c.id), {
           text:     c.id,
@@ -74,7 +81,12 @@ foam.CLASS({
           }
         });
 
-        parser = p.seq(parser, p.optional(p.seq(' ', p.sym('where'), ' ', p.sym('query__' + c.id))));
+        parser = p.seq(
+          parser,
+          p.optional(p.seq(' ', p.sym('where'), ' ', p.sym('query__' + c.id))),
+          p.optional(p.seq(' ', p.sym('to'),    ' ', p.sym('agentName')))
+        );
+
         return parser;
       });
 
@@ -87,7 +99,7 @@ foam.CLASS({
           category: 'command'});
 
         // TODO: take custom parser from Command object itself
-        if ( c.id === 'dao' || c.id === 'add' ) {
+        if ( c.id === 'dao' || c.id === 'add' || c.id == 'from' ) {
           parser = p.seq(parser, p.optional(p.seq(' ', p.sym('dao'))));
         } else if ( c.id === 'load' ) {
           parser = p.seq(parser, p.optional(p.seq(' ', p.sym('flowName'))));
@@ -98,13 +110,21 @@ foam.CLASS({
 
       this.flowsParser.args = (await this.flowDAO.select()).array.map(f => {
         return p.sug(p.literalIC(f.name), {
-          text:  f.name,
+          text:  f.label,
           label: f.description,
           hint:  f.description,
           prependSpaceOnSelect: false,
           category: 'flow'});
       });
 
+      this.agentsParser.args = (await this.agentDAO.select()).array.map(a => {
+        return p.sug(p.literalIC(a.label), {
+          text:  a.label,
+//          label: f.description,
+ //         hint:  f.description,
+          prependSpaceOnSelect: false,
+          category: 'target'});
+      });
     },
 
     function grammar(alt, eof, seq0, seq, seq1, str, sug, sym, repeat, repeat0, anyChar, optional, notChars, literal, range, not, until0, literalIC) {
@@ -123,11 +143,13 @@ foam.CLASS({
 
         where: sug(literalIC(' where'), {text: ' WHERE'}),
 
+        to: sug(literalIC(' to'), {text: ' TO'}),
+
         daoName: this.daosParser,
 
         flowName: this.flowsParser,
 
-        query: literal('-----------')
+        agentName: this.agentsParser
       };
     },
 
