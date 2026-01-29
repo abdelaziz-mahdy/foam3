@@ -270,11 +270,7 @@ foam.CLASS({
       size: 'SMALL',
       code: function(X) {
         this.showNav = true;
-        if ( X.window.history.length > 1 ) {
-          X.window.history.back();
-        } else {
-          X.pushDefaultMenu('');
-        }
+        X.pushDefaultMenu();
       }
     },
     {
