@@ -270,7 +270,11 @@ foam.CLASS({
       size: 'SMALL',
       code: function(X) {
         this.showNav = true;
-        X.routeTo('flows'); // consider route to default menu...
+        if ( X.window.history.length > 1 ) {
+          X.window.history.back();
+        } else {
+          X.pushDefaultMenu('');
+        }
       }
     },
     {
@@ -771,14 +775,14 @@ foam.CLASS({
       display: grid;
       grid-template-rows: max-content minmax(0, 1fr);
       height: 100%;
-      min-height: 100vh;
+      min-height: -webkit-fill-available;
     }
     ^flex-container {
       display: flex;
       flex-direction: row;
       overflow: auto;
       grid-row: 2;
-      height: 100%;
+      height: auto;
       min-height: 0;
     }
     ^header {
@@ -804,9 +808,9 @@ foam.CLASS({
       flex: 3 1 50%;
     }
     ^m {
-       border: 2px dashed $borderLight;
-       overflow-x: auto;
-       background-color: $backgroundDefault;
+      border: 2px dashed $borderLight;
+      overflow-x: auto;
+      background-color: $backgroundDefault;
     }
     ^r {
       overflow-y: auto;
@@ -1039,6 +1043,11 @@ foam.ENUM({
       documentation: 'Whether F1 help key is available'
     },
     {
+      class: 'Boolean',
+      name: 'forceNavHide',
+      documentation: 'Whether to force hiding the app navigation bars',
+    },
+    {
       name: 'getToggleTarget',
       documentation: 'Returns the FlowMode to switch to when toggling, null if toggle not allowed',
       value: function() { return null; }
@@ -1059,6 +1068,7 @@ foam.ENUM({
       isLimitedEditMode: false,
       checksAutosave: true,
       showsHelpKey: true,
+      forceNavHide: true,
       getToggleTarget: function() { return foam.core.reflow.FlowMode.PRESENTATION; }
     },
     {
@@ -1074,6 +1084,7 @@ foam.ENUM({
       isLimitedEditMode: false,
       checksAutosave: true,
       showsHelpKey: false,
+      forceNavHide: true,
       getToggleTarget: function() { return foam.core.reflow.FlowMode.CONSOLE; }
     },
     {
@@ -1119,6 +1130,7 @@ foam.ENUM({
       isLimitedEditMode: true,
       checksAutosave: true,
       showsHelpKey: false,
+      forceNavHide: true,
       getToggleTarget: function() { return foam.core.reflow.FlowMode.LIMIT_EDIT; }
     }
   ]
@@ -1206,7 +1218,7 @@ foam.CLASS({
       display: flex;
       flex-direction: column;
       width: 100%;
-      height: 100%;
+      height: -webkit-fill-available;
       position: relative;
       align-items: center;
       justify-content: center;
@@ -1312,18 +1324,6 @@ foam.CLASS({
       name: 'flowName',
       value: 'flow',
       getter: function() { return 'flow'; }
-    },
-    {
-      class: 'Boolean',
-      name: 'showNavOnMount',
-      documentation: 'If provided, overrides nav visibility while this Console is mounted.',
-      factory: function() { return this.showNav; }
-    },
-    {
-      class: 'Boolean',
-      name: 'isMenuOpenOnMount',
-      documentation: 'If provided, overrides side menu open state while this Console is mounted.',
-      factory: function() { return this.isMenuOpen; }
     },
     {
       class: 'String',
@@ -1556,18 +1556,19 @@ foam.CLASS({
     },
 
     async function render() {
+      let oldIsMenuOpen = this.isMenuOpen;
       foam.u2.table.UnstyledTableView.SELECTED_COLUMN_NAMES.memorable = false;
       foam.u2.table.TableView.SELECTED_COLUMN_NAMES.memorable = false;
 
       // Add the Mode as a CSS Class so we can adjust stying based on the mode
-      this.addClass(this.flowMode$.map(m => this.myClass(m.toString())));
+      this.addClass(this.flowMode$.map(m => {
+        this.myClass(m.toString());
+        this.showNav = m.forceNavHide ? false : this.showNav;
+      }));
 
-      let oldShowNav = this.showNav;
-      let oldIsMenuOpen = this.isMenuOpen;
-      this.showNav = this.showNavOnMount;
-      this.isMenuOpen = this.isMenuOpenOnMount;
+      this.isMenuOpen = false;
       this.onDetach(() => {
-        this.showNav = oldShowNav;
+        this.showNav = true;
         this.isMenuOpen = oldIsMenuOpen;
         // Detach all flow children when closing the flow page
         this.flowChildren.forEach(c => this.detachFlowChild(c));
