@@ -119,8 +119,8 @@ if (responseCode != 200) {
 
 // Read the response body into a JsonObject
 java.io.InputStream is = connection.getInputStream();
-javax.json.JsonReader jsonReader = javax.json.Json.createReader(is);
-javax.json.JsonObject responseJson = jsonReader.readObject(); 
+jakarta.json.JsonReader jsonReader = jakarta.json.Json.createReader(is);
+jakarta.json.JsonObject responseJson = jsonReader.readObject(); 
 return responseJson.getString("access_token");
 } catch (Exception e) {
     throw new RuntimeException("Failed to refresh token", e);
