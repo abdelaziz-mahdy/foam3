@@ -91,7 +91,7 @@ foam.CLASS({
               if ( i >= self.data.length - 1 ) {
                 self.rows_.add(rowEl);
               } else {
-                let nextRow = self.data[realIndex + 1];
+                let nextRow = self.data[i + 1];
                 let nextEl = self.dataViewMap[nextRow.$UID ?? ''];
                 if ( nextEl ) {
                   self.rows_.insertBefore(rowEl, nextEl);

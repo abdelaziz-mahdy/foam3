@@ -825,7 +825,7 @@ foam.CLASS({
       background: $backgroundBrandSecondary;
     }
 
-    ^r .foam-core-reflow-SinkView, .foam-u2-view-IntView {
+    ^r .foam-core-reflow-SinkView, ^r .foam-u2-view-IntView {
       width: 100%;
     }
 
