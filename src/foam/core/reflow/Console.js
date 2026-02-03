@@ -2214,11 +2214,14 @@ foam.CLASS({
             ( this.findFlowChildByName(currentBlockName) || this );
           this.value.loadComplete.pub();
         } finally {
-          this.feedback_ = false;
-          this.isLoading_ = false;
+          // Add delay so that revision isn't updated to '1' after
+          await foam.async.sleep(32);
+          this.feedback_          = false;
+          this.isLoading_         = false;
+          this.value.revision     = 0;
           // Reset progress counters
-          this.loadingProgress_ = 0;
-          this.totalBlocks_ = 0;
+          this.loadingProgress_   = 0;
+          this.totalBlocks_       = 0;
           this.loadingPercentage_ = 0;
         }
       }
