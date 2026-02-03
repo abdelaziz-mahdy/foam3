@@ -825,7 +825,7 @@ foam.CLASS({
       background: $backgroundBrandSecondary;
     }
 
-    ^r .foam-core-reflow-SinkView, .foam-u2-view-IntView {
+    ^r .foam-core-reflow-SinkView, ^r .foam-u2-view-IntView {
       width: 100%;
     }
 
@@ -2214,14 +2214,14 @@ foam.CLASS({
             ( this.findFlowChildByName(currentBlockName) || this );
           this.value.loadComplete.pub();
         } finally {
-          // Add delay so that revision isn't updated to '1' after
-          await foam.async.sleep(32);
-          this.feedback_          = false;
-          this.isLoading_         = false;
-          this.value.revision     = 0;
+          this.feedback_ = false;
+          this.isLoading_ = false;
+
+
+
           // Reset progress counters
-          this.loadingProgress_   = 0;
-          this.totalBlocks_       = 0;
+          this.loadingProgress_ = 0;
+          this.totalBlocks_ = 0;
           this.loadingPercentage_ = 0;
         }
       }
