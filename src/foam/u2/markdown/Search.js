@@ -369,7 +369,7 @@ foam.CLASS({
   css: `
     ^ {
       font-size: 14px;
-      color: #666;
+      color: $textSecondary;
       margin: 8px 0;
     }
   `,
