@@ -14,6 +14,7 @@ foam.CLASS({
     [ 'value', 0 ],
     'min',
     'max',
+    ['formatValue', true],
     [ 'type', 'Integer' ],
     [ 'adapt', function adaptInt(_, v) {
       return typeof v === 'number' ? Math.trunc(v) :

@@ -461,7 +461,7 @@ foam.CLASS({
 
         function link(v) {
           let title = v[1], url = v[3];
-          return function() { this.start('a').attrs({href: url}).add(title); };
+          return function() { this.start('a').attrs({href: encodeURI(url)}).add(title); };
         },
 
         function strikethrough(v) {
@@ -517,7 +517,7 @@ foam.CLASS({
       this.addClass();
 
       this.add(this.dynamic(function(data) {
-        this.markdownContext = undefined;
+        self.markdownContext = undefined;
         var tokens = self.markdownGrammar.parseString(data + '\n');
         if ( tokens ) {
           tokens.forEach(t => t.call(this));

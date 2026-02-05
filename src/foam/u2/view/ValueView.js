@@ -50,7 +50,7 @@ foam.CLASS({
         );
       } else {
         this.add(this.data$.map(v => {
-          if ( foam.Number.isInstance(v) ) {
+          if ( prop.name !== 'id' && foam.Number.isInstance(v) && prop.formatValue ) {
             return Number(v).toLocaleString(navigator.locale);
           }
           return v;

@@ -76,7 +76,7 @@ foam.CLASS({
         return foam.u2.view.FnFormatter.create({
           class: 'foam.u2.view.FnFormatter',
           f: function(value, obj, axiom) {
-            if ( foam.Number.isInstance(value) ) {
+            if ( axiom.name !== 'id' && foam.Number.isInstance(value) && axiom.formatValue ) {
               value = Number(value).toLocaleString(navigator.locale);
             }
             this.add(value);
