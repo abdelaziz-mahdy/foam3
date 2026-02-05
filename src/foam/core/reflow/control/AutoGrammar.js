@@ -20,10 +20,17 @@ foam.CLASS({
     'agentDAO',
     'commandDAO',
     'flowDAO',
+    'history_',
     'AuthenticatedCSpecDAO as cSpecDAO'
   ],
 
   properties: [
+    {
+      name: 'historyParser',
+      factory: function() {
+        return this.Alternate.create();
+      }
+    },
     {
       name: 'cmdsParser',
       factory: function() {
@@ -56,7 +63,9 @@ foam.CLASS({
 
       var dao = this.cSpecDAO.where(this.CSpec.SERVED_DAOS);
 
-      this.daosParser.args = (await dao.select()).array.map(c => {
+      const comparator = (a, b) => b.length - a.length || foam.util.compare(a, b);
+
+      this.daosParser.args = (await dao.select()).array.sort(comparator).map(c => {
         //        console.log('***', c.id, c);
         let parser = p.sug(p.literalIC(c.id), {
           text:     c.id,
@@ -67,10 +76,8 @@ foam.CLASS({
         parser = this.ParserWithAction.create({
           p: parser,
           action: v => {
-            console.log('***** daoName ', v, this.__context__[v]);
             let key = 'query__' + v;
             if ( ! this.symbolMap_[key] ) {
-              console.log('************* adding', key, this.$UID, this.cls_.id);
               let dao = this.__context__[v];
               this.addSymbol(key, this.SimpleQueryParser.create({of: dao.of}));
               // TODO: this shouldn't be needed, just setting this.symbolMap_ = undefined
@@ -90,7 +97,16 @@ foam.CLASS({
         return parser;
       });
 
-      this.cmdsParser.args = (await this.commandDAO.select()).array.map(c => {
+      this.historyParser.args = [...new Set(this.history_)].sort(comparator).map(h => {
+        return p.sug(p.literalIC(h), {
+          text:  h,
+//          label: f.description,
+//          hint:  f.description,
+          prependSpaceOnSelect: false,
+          category: 'history'});
+      });
+
+      this.cmdsParser.args = (await this.commandDAO.select()).array.sort(comparator).map(c => {
         let parser = p.sug(p.literalIC(c.id), {
           text:  c.id,
           label: c.description,
@@ -103,12 +119,14 @@ foam.CLASS({
           parser = p.seq(parser, p.optional(p.seq(' ', p.sym('dao'))));
         } else if ( c.id === 'load' ) {
           parser = p.seq(parser, p.optional(p.seq(' ', p.sym('flowName'))));
+        } else if ( c.id === 'history' || c.id === '!' ) {
+          parser = p.seq(parser, p.optional(p.seq(' ', p.sym('historyCommand'))));
         }
 
         return parser;
       });
 
-      this.flowsParser.args = (await this.flowDAO.select()).array.map(f => {
+      this.flowsParser.args = (await this.flowDAO.select()).array.sort(comparator).map(f => {
         return p.sug(p.literalIC(f.name), {
           text:  f.label,
           label: f.description,
@@ -117,7 +135,7 @@ foam.CLASS({
           category: 'flow'});
       });
 
-      this.agentsParser.args = (await this.agentDAO.select()).array.map(a => {
+      this.agentsParser.args = (await this.agentDAO.select()).array.sort(comparator).map(a => {
         return p.sug(p.literalIC(a.label), {
           text:  a.label,
 //          label: f.description,
@@ -144,6 +162,10 @@ foam.CLASS({
         where: sug(literalIC(' where'), {text: ' WHERE'}),
 
         to: sug(literalIC(' to'), {text: ' TO'}),
+
+        // TODO: make the some kind of lazy parsers?
+
+        historyCommand: this.historyParser,
 
         daoName: this.daosParser,
 
