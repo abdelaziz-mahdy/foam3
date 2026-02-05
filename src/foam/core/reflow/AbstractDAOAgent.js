@@ -998,11 +998,12 @@ foam.CLASS({
     {
       name: 'formats',
       factory: function() {
+        // Used to get large file downloads - currently streaming only setup for csv.
+        //  { label: 'JSON',   extension: '.json', format: 'json',  driver: this.JSONDriver },
+        //  { label: 'JSON/J', extension: '.jrl',  format: 'jsonj', driver: this.JSONJDriver },
+        //  { label: 'XML',    extension: '.xml',  format: 'xml',   driver: this.XMLDriver }
         return [
-          { label: 'CSV',    extension: '.csv',  format: 'csv',   driver: this.CSVTableExportDriver },
-          { label: 'JSON',   extension: '.json', format: 'json',  driver: this.JSONDriver },
-          { label: 'JSON/J', extension: '.jrl',  format: 'jsonj', driver: this.JSONJDriver },
-          { label: 'XML',    extension: '.xml',  format: 'xml',   driver: this.XMLDriver }
+          { label: 'CSV',    extension: '.csv',  format: 'csv',   driver: this.CSVTableExportDriver }
         ];
       }
     }
@@ -1048,8 +1049,10 @@ foam.CLASS({
       var baseParams = {
         dao:  daoKey,
         cmd:  'select',
-        limit: this.block.value.limit
+        limit: this.block.value.limit,
+        download: true
       };
+      if ( this.sessionID ) baseParams.sessionId = this.sessionID;
 
       // Probe DAO to capture the predicate as MQL
       try {
@@ -1073,6 +1076,7 @@ foam.CLASS({
         var form = this.start('form').attrs({
           method: 'POST',
           action: `${location}/service/dig`,
+          target: '_blank',
           style: 'display:inline'
         });
 
