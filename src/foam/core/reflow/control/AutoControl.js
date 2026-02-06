@@ -53,10 +53,7 @@ foam.CLASS({
   `,
 
   properties: [
-    {
-      name: 'input',
-      onKey: false
-    },
+    'data',
     {
       name: 'grammar',
       factory: function() {
@@ -77,19 +74,14 @@ foam.CLASS({
       this.start()
         .addClass(this.myClass('promptHolder'))
         .add(this.COLLECTIONS, this.FLOWS, this.COMMANDS)
-      /*
-        .start(this.Link).addClass(this.myClass('promptLink')).add('/').on('click', () => this.eval_('help')).end()
-        .start(foam.u2.tag.Image, {
-          glyph: 'rightChevron',
-          embedSVG: true
-        }).addClass(this.myClass('chevron')).end()
-          */
-        .start(this.SmartView, {data$: this.input$, parser: this.grammar}, this.smartView_$)
+        .start(this.SmartView, {data$: this.data.input$, parser: this.grammar}, this.smartView_$)
           .on('keydown', this.onKeyDown)
           .addClass(this.myClass('input'))
           .focus()
         .end()
       .end();
+
+      this.data.input_ = this.smartView_.field;
     }
   ],
 

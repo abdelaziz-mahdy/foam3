@@ -2191,14 +2191,6 @@ foam.CLASS({
       }
     },
     {
-      name: 'onInput',
-      code: function() {
-        var input = this.input;
-        this.input = '';
-        this.eval_(input);
-      }
-    },
-    {
       name: 'onClick',
       // TODO: introduce a merge delay so that cut&paste still works
       // but a better solution might be to wait for a keypress then set the focus
