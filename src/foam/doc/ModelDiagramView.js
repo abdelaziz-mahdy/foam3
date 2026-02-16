@@ -118,8 +118,12 @@ foam.CLASS({
     },
     // Layout calculations
     {
-      name: 'gridCols_',
-      documentation: 'Number of columns for relationship and subclass grids.'
+      name: 'relCols_',
+      documentation: 'Actual columns for relationships.'
+    },
+    {
+      name: 'subCols_',
+      documentation: 'Actual columns for subclasses.'
     }
   ],
 
@@ -312,19 +316,23 @@ foam.CLASS({
 
       // Calculate grid columns based on available center width
       var cellTotal = this.SUBCLASS_CELL_WIDTH + this.GRID_GAP;
-      this.gridCols_ = Math.max(1, Math.floor((centerWidth - this.CONTAINER_PADDING * 2) / cellTotal));
+      var gridCols_ = Math.max(1, Math.floor((centerWidth - this.CONTAINER_PADDING * 2) / cellTotal));
+
+      // Calculate actual columns needed for each section
+      this.relCols_ = Math.min(gridCols_, Math.max(1, this.relationships_.length));
+      this.subCols_ = Math.min(gridCols_, Math.max(1, this.subclasses_.length));
 
       // Calculate inheritance stack height
       var stackHeight = this.inheritanceStack_.length * (this.PILL_HEIGHT + this.PILL_GAP);
 
       var focusY = M + stackHeight;
 
-      // Calculate heights for each section
-      var relRows = this.relationships_.length > 0 ? Math.ceil(this.relationships_.length / this.gridCols_) : 0;
+      // Calculate heights for each section (using actual columns needed)
+      var relRows = this.relationships_.length > 0 ? Math.ceil(this.relationships_.length / this.relCols_) : 0;
       var relCellHeight = this.PILL_HEIGHT + this.GRID_GAP;
       var relHeight = relRows > 0 ? relRows * relCellHeight + 50 : 0;
 
-      var subRows = this.subclasses_.length > 0 ? Math.ceil(this.subclasses_.length / this.gridCols_) : 0;
+      var subRows = this.subclasses_.length > 0 ? Math.ceil(this.subclasses_.length / this.subCols_) : 0;
       var subCellHeight = this.PILL_HEIGHT + this.GRID_GAP;
       var subHeight = subRows > 0 ? subRows * subCellHeight + 50 : 0;
 
@@ -353,22 +361,7 @@ foam.CLASS({
     function renderDiagram_(svg) {
       var self = this;
       var M = this.MARGIN;
-
-      // Center the main content, but shift if only one side container
-      var hasLeft = this.referencedBy_.length > 0;
-      var hasRight = this.references_.length > 0;
-      var hasBottomContent = this.relationships_.length > 0 || this.subclasses_.length > 0;
-
-      var centerX;
-      if ( hasBottomContent && hasLeft && !hasRight ) {
-        // Only left container, shift center right
-        centerX = this.calculatedWidth_ / 2 + (this.SIDE_CONTAINER_WIDTH + M) / 2;
-      } else if ( hasBottomContent && hasRight && !hasLeft ) {
-        // Only right container, shift center left
-        centerX = this.calculatedWidth_ / 2 - (this.SIDE_CONTAINER_WIDTH + M) / 2;
-      } else {
-        centerX = this.calculatedWidth_ / 2;
-      }
+      var centerX = this.calculatedWidth_ / 2;
 
       // Calculate stack height
       var stackHeight = this.inheritanceStack_.length * (this.PILL_HEIGHT + this.PILL_GAP);
@@ -419,9 +412,9 @@ foam.CLASS({
       // Relationships
       var relTop = containerTop;
       if ( this.relationships_.length > 0 ) {
-        var relRows = Math.ceil(this.relationships_.length / this.gridCols_);
+        var relRows = Math.ceil(this.relationships_.length / this.relCols_);
         var relHeight = relRows * sideItemHeight + 50;
-        var relWidth = this.gridCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
+        var relWidth = this.relCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
 
         this.renderRelationshipContainer_(svg, centerX - relWidth/2, relTop, relWidth, relHeight);
 
@@ -440,10 +433,10 @@ foam.CLASS({
       // Subclasses
       if ( this.subclasses_.length > 0 ) {
         var subTop = relTop + 5;
-        var subRows = Math.ceil(this.subclasses_.length / this.gridCols_);
+        var subRows = Math.ceil(this.subclasses_.length / this.subCols_);
         var subCellHeight = this.PILL_HEIGHT_WITH_PKG + this.GRID_GAP;
         var subHeight = subRows * subCellHeight + 50;
-        var subWidth = this.gridCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
+        var subWidth = this.subCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
 
         this.renderSubclassContainer_(svg, centerX - subWidth/2, subTop, subWidth, subHeight);
 
@@ -720,12 +713,12 @@ foam.CLASS({
     },
 
     function renderRelationshipContainer_(svg, x, y, width, height) {
+      var numCols = this.relCols_;
       var self = this;
       var colors = this.COLORS.container;
       var itemColors = this.COLORS.relationship;
       var cellWidth = this.SUBCLASS_CELL_WIDTH;
       var cellHeight = this.PILL_HEIGHT;
-      var cols = this.gridCols_;
 
       svg
         .start('g')
@@ -748,25 +741,26 @@ foam.CLASS({
             var startX = x + self.CONTAINER_PADDING;
             var startY = y + 40;
 
-            self.relationships_.forEach((item, i) => {
-              var col = i % cols;
-              var row = Math.floor(i / cols);
+            for ( var i = 0 ; i < self.relationships_.length ; i++ ) {
+              var item = self.relationships_[i];
+              var col = i % numCols;
+              var row = Math.floor(i / numCols);
               var itemX = startX + col * (cellWidth + self.GRID_GAP);
               var itemY = startY + row * (cellHeight + self.GRID_GAP);
 
               self.renderContainerItem_(this, itemX, itemY, cellWidth, cellHeight, item, itemColors);
-            });
+            }
           })
         .end();
     },
 
     function renderSubclassContainer_(svg, x, y, width, height) {
+      var numCols = this.subCols_;
       var self = this;
       var colors = this.COLORS.container;
       var itemColors = this.COLORS.subclass;
       var cellWidth = this.SUBCLASS_CELL_WIDTH;
       var cellHeight = this.PILL_HEIGHT;
-      var cols = this.gridCols_;
 
       svg
         .start('g')
@@ -789,14 +783,14 @@ foam.CLASS({
             var startX = x + self.CONTAINER_PADDING;
             var startY = y + 40;
 
-            self.subclasses_.forEach((cls, i) => {
-              var col = i % cols;
-              var row = Math.floor(i / cols);
+            for ( var i = 0 ; i < self.subclasses_.length ; i++ ) {
+              var cls = self.subclasses_[i];
+              var col = i % numCols;
+              var row = Math.floor(i / numCols);
               var itemX = startX + col * (cellWidth + self.GRID_GAP);
               var itemY = startY + row * (cellHeight + self.GRID_GAP);
-
               self.renderPillWithPackage_(this, itemX, itemY, cellWidth, cellHeight, cls, itemColors);
-            });
+            }
           })
         .end();
     }
