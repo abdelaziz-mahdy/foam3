@@ -8,6 +8,7 @@ foam.POM({
   ],
   files: [
     { name: '../../doc/DIGApiDoc',     flags: 'js' },
+    { name: '../../doc/ModelDiagramView', flags: 'js' },
     { name: '../../u2/mlang/Table',    flags: 'js|java' },
     { name: '../../u2/mlang/Pie',      flags: 'js|java' },
     { name: 'AbstractDAOAgent',        flags: 'js' },
