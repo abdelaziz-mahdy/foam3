@@ -58,8 +58,7 @@ foam.CLASS({
     INHERITANCE_PILL_WIDTH: 200,
     FOCUS_PILL_WIDTH: 220,
     SIDE_CONTAINER_WIDTH: 260,
-    SUBCLASS_CELL_WIDTH: 180,
-    RELATIONSHIP_CELL_WIDTH: 150
+    SUBCLASS_CELL_WIDTH: 180
   },
 
   properties: [
@@ -131,7 +130,8 @@ foam.CLASS({
     function render() {
       this.SUPER();
 
-      // Move all models from UNUSED to USED so that we can include them
+      // Force-load all registered but uninstantiated models so that
+      // subclass and referencedBy discovery can find them in foam.USED
       for ( var key in foam.UNUSED ) try { foam.lookup(key); } catch(x) {}
 
       var self = this;
@@ -165,7 +165,7 @@ foam.CLASS({
       var current = cls;
       var visited = new Set();
 
-      while ( current && current !== foam.core.FObject && current !== foam.lang.FObject && !visited.has(current.id) ) {
+      while ( current && current !== foam.lang.FObject && !visited.has(current.id) ) {
         visited.add(current.id);
 
         if ( current.model_.implements ) {
@@ -193,7 +193,7 @@ foam.CLASS({
         current = foam.maybeLookup(current.model_.extends);
       }
 
-      var fobject = foam.maybeLookup('foam.lang.FObject') || foam.maybeLookup('foam.core.FObject');
+      var fobject = foam.maybeLookup('foam.lang.FObject');
       if ( fobject ) {
         this.inheritanceStack_.unshift({ cls: fobject, type: 'extends' });
       }
@@ -219,12 +219,12 @@ foam.CLASS({
         var targetCls = null;
         var cardinality = '1';
 
-        if ( foam.lang.FObjectProperty && foam.lang.FObjectProperty.isInstance(prop) && prop.of ) {
+        if ( foam.lang.FObjectProperty.isInstance(prop) && prop.of ) {
           targetCls = foam.maybeLookup(prop.of);
-        } else if ( foam.lang.FObjectArray && foam.lang.FObjectArray.isInstance(prop) && prop.of ) {
+        } else if ( foam.lang.FObjectArray.isInstance(prop) && prop.of ) {
           targetCls = foam.maybeLookup(prop.of);
           cardinality = '*';
-        } else if ( foam.dao.Relationship && foam.dao.Relationship.isInstance(prop) ) {
+        } else if ( foam.dao.Relationship.isInstance(prop) ) {
           return;
         }
 
@@ -240,21 +240,27 @@ foam.CLASS({
       if ( foam.USED ) {
         var clsId = cls.id;
         Object.values(foam.USED).forEach(usedCls => {
+          try {
+            usedCls = foam.lookup(usedCls.id);
+            if ( usedCls.__proto__ === cls ) {
+              this.subclasses_.push(usedCls);
+            }
+          } catch (x) {return;}
           if ( ! usedCls.getAxiomsByClass ) return;
           usedCls.getAxiomsByClass(foam.lang.Property).forEach(prop => {
             var targetId = null;
             var cardinality = '1';
 
-            if ( foam.lang.FObjectProperty && foam.lang.FObjectProperty.isInstance(prop) ) {
+            if ( foam.lang.FObjectProperty.isInstance(prop) ) {
               targetId = prop.of;
-            } else if ( foam.lang.FObjectArray && foam.lang.FObjectArray.isInstance(prop) ) {
+            } else if ( foam.lang.FObjectArray.isInstance(prop) ) {
               targetId = prop.of;
               cardinality = '*';
             }
 
-            if ( targetId === clsId && ! seenRefBy.has(usedCls.id) ) {
+            if ( targetId === usedCls.id && ! seenRefBy.has(usedCls.id) ) {
               seenRefBy.add(usedCls.id);
-              this.referencedBy_.push({ cls: usedCls, cardinality: cardinality, prop: prop.name });
+              this.referencedBy_.push({ cls: usedCls.model_, cardinality: cardinality, prop: prop.name });
             }
           });
         });
@@ -294,29 +300,11 @@ foam.CLASS({
       // Determine effective width
       var effectiveWidth = this.width > 0 ? this.width : 1200; // default if auto
 
-      // Calculate available width for center content
-      var hasBottomContent = this.relationships_.length > 0 || this.subclasses_.length > 0;
-      var hasLeft = this.referencedBy_.length > 0;
-      var hasRight = this.references_.length > 0;
-
-      var centerWidth;
-      if ( ! hasBottomContent ) {
-        // No bottom content, doesn't matter
-        centerWidth = effectiveWidth - 2 * M;
-      } else if ( hasLeft && hasRight ) {
-        // Both sides, center content is squeezed
-        centerWidth = effectiveWidth - 2 * (this.SIDE_CONTAINER_WIDTH + M + 20);
-      } else if ( hasLeft || hasRight ) {
-        // Only one side - we shift center, so we only lose space on one side
-        centerWidth = effectiveWidth - (this.SIDE_CONTAINER_WIDTH + M + 20) - M;
-      } else {
-        // No side containers
-        centerWidth = effectiveWidth - 2 * M;
-      }
-
-      // Calculate grid columns based on available center width
+      // Calculate grid columns based on full width (bottom content doesn't
+      // compete horizontally with side containers which are above)
       var cellTotal = this.SUBCLASS_CELL_WIDTH + this.GRID_GAP;
-      var gridCols_ = Math.max(1, Math.floor((centerWidth - this.CONTAINER_PADDING * 2) / cellTotal));
+      var fullCenterWidth = effectiveWidth - 2 * M;
+      var gridCols_ = Math.max(1, Math.floor((fullCenterWidth - this.CONTAINER_PADDING * 2) / cellTotal));
 
       // Calculate actual columns needed for each section
       this.relCols_ = Math.min(gridCols_, Math.max(1, this.relationships_.length));
@@ -434,7 +422,7 @@ foam.CLASS({
       if ( this.subclasses_.length > 0 ) {
         var subTop = relTop + 5;
         var subRows = Math.ceil(this.subclasses_.length / this.subCols_);
-        var subCellHeight = this.PILL_HEIGHT_WITH_PKG + this.GRID_GAP;
+        var subCellHeight = this.PILL_HEIGHT + this.GRID_GAP;
         var subHeight = subRows * subCellHeight + 50;
         var subWidth = this.subCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
 
@@ -459,7 +447,7 @@ foam.CLASS({
         var colors = this.COLORS[item.type] || this.COLORS.extends;
         var hasType = item.type !== 'extends';
 
-        this.renderPillWithPackage_(svg, centerX - this.INHERITANCE_PILL_WIDTH/2, y,
+        this.renderPill_(svg, centerX - this.INHERITANCE_PILL_WIDTH/2, y,
           this.INHERITANCE_PILL_WIDTH, this.PILL_HEIGHT, item.cls, colors, hasType ? item.type : null);
         y += this.PILL_HEIGHT + this.PILL_GAP;
       });
@@ -507,57 +495,7 @@ foam.CLASS({
         .end();
     },
 
-    function renderPill_(svg, x, y, width, height, text, colors, cls, type) {
-      var self = this;
-      var isSelected = this.selection && this.selection.id === cls.id;
-
-      svg
-        .start('g')
-          .addClass('clickable')
-          .on('click', function() { self.selection = cls; })
-          .start('title').add(cls.id).end()
-          .start('rect')
-            .attrs({
-              x: x,
-              y: y,
-              width: width,
-              height: height,
-              rx: 6,
-              fill: isSelected ? colors.stroke : colors.fill,
-              stroke: colors.stroke,
-              'stroke-width': isSelected ? 2 : 1
-            })
-          .end()
-          .start('text')
-            .attrs({
-              x: x + width/2,
-              y: y + (type ? height/2 - 6 : height/2),
-              'text-anchor': 'middle',
-              'dominant-baseline': 'middle',
-              'font-size': '12px',
-              'font-weight': '500',
-              fill: isSelected ? colors.fill : colors.text
-            })
-            .add(text)
-          .end()
-          .callIf(type, function() {
-            this.start('text')
-              .attrs({
-                x: x + width/2,
-                y: y + height/2 + 8,
-                'text-anchor': 'middle',
-                'dominant-baseline': 'middle',
-                'font-size': '9px',
-                'font-style': 'italic',
-                fill: isSelected ? colors.fill : colors.stroke
-              })
-              .add(type)
-            .end();
-          })
-        .end();
-    },
-
-    function renderPillWithPackage_(svg, x, y, width, height, cls, colors, type) {
+    function renderPill_(svg, x, y, width, height, cls, colors, type) {
       var self = this;
       var isSelected = this.selection && this.selection.id === cls.id;
       var pkg = cls.package || '';
@@ -789,7 +727,7 @@ foam.CLASS({
               var row = Math.floor(i / numCols);
               var itemX = startX + col * (cellWidth + self.GRID_GAP);
               var itemY = startY + row * (cellHeight + self.GRID_GAP);
-              self.renderPillWithPackage_(this, itemX, itemY, cellWidth, cellHeight, cls, itemColors);
+              self.renderPill_(this, itemX, itemY, cellWidth, cellHeight, cls, itemColors);
             }
           })
         .end();
