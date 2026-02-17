@@ -62,10 +62,6 @@ foam.CLASS({
   },
 
   axioms: [
-    // Add this constant directly as an axiom so it can be in the long form which allows
-    // for the use of 'factory' without the need to convert all of the other simple
-    // constants to the more complex format.
-
     { class: 'foam.lang.Constant', name: 'CLASSES', factory: function() {
       // Force-load all registered but uninstantiated models so that
       // subclass and referencedBy discovery can find them in foam.USED
@@ -323,13 +319,18 @@ foam.CLASS({
       if ( subHeight > 0 ) totalHeight += 25 + subHeight; // gap + subclasses
       totalHeight += M; // bottom margin
 
-      // Side container height check
+      // Side container height check — ensure bottom content starts below side containers
       var maxSideItems = Math.max(this.references_.length, this.referencedBy_.length);
       var sideHeight = maxSideItems * sideItemHeight + 50;
       var sideTop = Math.max(M, focusY - sideHeight + this.PILL_HEIGHT + 30);
+      var sideBottom = sideTop + sideHeight;
+      var containerTop = focusY + this.PILL_HEIGHT + 40;
+      if ( sideBottom + 20 > containerTop ) {
+        var extraGap = sideBottom + 20 - containerTop;
+        totalHeight += extraGap;
+      }
 
       // Ensure height accommodates side containers
-      var sideBottom = sideTop + sideHeight;
       if ( sideBottom > totalHeight - M ) {
         totalHeight = sideBottom + M;
       }
@@ -359,6 +360,7 @@ foam.CLASS({
       if ( this.referencedBy_.length > 0 ) {
         var refByHeight = this.referencedBy_.length * sideItemHeight + 50;
         var refByTop = Math.max(M, focusY - refByHeight + this.PILL_HEIGHT + 30);
+        containerTop = Math.max(containerTop, refByTop + refByHeight + 20);
         this.renderContainer_(svg, M, refByTop, this.SIDE_CONTAINER_WIDTH, refByHeight,
           'Referenced By', this.referencedBy_, 'reference');
 
@@ -377,6 +379,7 @@ foam.CLASS({
         var refHeight = this.references_.length * sideItemHeight + 50;
         var refTop = Math.max(M, focusY - refHeight + this.PILL_HEIGHT + 30);
         var refX = this.calculatedWidth_ - this.SIDE_CONTAINER_WIDTH - M;
+        containerTop = Math.max(containerTop, refTop + refHeight + 20);
         this.renderContainer_(svg, refX, refTop,
           this.SIDE_CONTAINER_WIDTH, refHeight, 'References', this.references_, 'reference');
 
@@ -397,7 +400,9 @@ foam.CLASS({
         var relHeight = relRows * sideItemHeight + 50;
         var relWidth = this.relCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
 
-        this.renderRelationshipContainer_(svg, centerX - relWidth/2, relTop, relWidth, relHeight);
+        this.renderGridContainer_(svg, centerX - relWidth/2, relTop, relWidth, relHeight,
+          'Relationships', this.relationships_, this.relCols_, this.COLORS.relationship,
+          this.renderContainerItem_.bind(this));
 
         svg.start('path')
           .attrs({
@@ -419,7 +424,9 @@ foam.CLASS({
         var subHeight = subRows * subCellHeight + 50;
         var subWidth = this.subCols_ * (this.SUBCLASS_CELL_WIDTH + this.GRID_GAP) - this.GRID_GAP + this.CONTAINER_PADDING * 2;
 
-        this.renderSubclassContainer_(svg, centerX - subWidth/2, subTop, subWidth, subHeight);
+        this.renderGridContainer_(svg, centerX - subWidth/2, subTop, subWidth, subHeight,
+          'Sub-Classes (' + this.subclasses_.length + ')', this.subclasses_, this.subCols_,
+          this.COLORS.subclass, this.renderPill_.bind(this));
 
         var lineStartY = this.relationships_.length > 0 ? relTop - 20 : focusY + this.PILL_HEIGHT;
         svg.start('path')
@@ -659,11 +666,9 @@ foam.CLASS({
         .end();
     },
 
-    function renderRelationshipContainer_(svg, x, y, width, height) {
-      var numCols = this.relCols_;
+    function renderGridContainer_(svg, x, y, width, height, title, items, numCols, itemColors, renderFn) {
       var self = this;
       var colors = this.COLORS.container;
-      var itemColors = this.COLORS.relationship;
       var cellWidth = this.SUBCLASS_CELL_WIDTH;
       var cellHeight = this.PILL_HEIGHT;
 
@@ -682,61 +687,20 @@ foam.CLASS({
           .start('text')
             .attrs({ x: x + width/2, y: y + 18, 'text-anchor': 'middle',
               'font-size': '11px', 'font-weight': '600', fill: colors.text })
-            .add('Relationships')
+            .add(title)
           .end()
           .call(function() {
             var startX = x + self.CONTAINER_PADDING;
             var startY = y + 40;
 
-            for ( var i = 0 ; i < self.relationships_.length ; i++ ) {
-              var item = self.relationships_[i];
+            for ( var i = 0 ; i < items.length ; i++ ) {
+              var item = items[i];
               var col = i % numCols;
               var row = Math.floor(i / numCols);
               var itemX = startX + col * (cellWidth + self.GRID_GAP);
               var itemY = startY + row * (cellHeight + self.GRID_GAP);
 
-              self.renderContainerItem_(this, itemX, itemY, cellWidth, cellHeight, item, itemColors);
-            }
-          })
-        .end();
-    },
-
-    function renderSubclassContainer_(svg, x, y, width, height) {
-      var numCols = this.subCols_;
-      var self = this;
-      var colors = this.COLORS.container;
-      var itemColors = this.COLORS.subclass;
-      var cellWidth = this.SUBCLASS_CELL_WIDTH;
-      var cellHeight = this.PILL_HEIGHT;
-
-      svg
-        .start('g')
-          .start('rect')
-            .attrs({ x: x, y: y, width: width, height: height, rx: 10,
-              fill: colors.fill, stroke: colors.stroke, 'stroke-width': 1 })
-          .end()
-          .start('rect')
-            .attrs({ x: x, y: y, width: width, height: 32, rx: 10, fill: colors.header })
-          .end()
-          .start('rect')
-            .attrs({ x: x, y: y + 22, width: width, height: 10, fill: colors.header })
-          .end()
-          .start('text')
-            .attrs({ x: x + width/2, y: y + 18, 'text-anchor': 'middle',
-              'font-size': '11px', 'font-weight': '600', fill: colors.text })
-            .add('Sub-Classes (' + this.subclasses_.length + ')')
-          .end()
-          .call(function() {
-            var startX = x + self.CONTAINER_PADDING;
-            var startY = y + 40;
-
-            for ( var i = 0 ; i < self.subclasses_.length ; i++ ) {
-              var cls = self.subclasses_[i];
-              var col = i % numCols;
-              var row = Math.floor(i / numCols);
-              var itemX = startX + col * (cellWidth + self.GRID_GAP);
-              var itemY = startY + row * (cellHeight + self.GRID_GAP);
-              self.renderPill_(this, itemX, itemY, cellWidth, cellHeight, cls, itemColors);
+              renderFn(this, itemX, itemY, cellWidth, cellHeight, item, itemColors);
             }
           })
         .end();
