@@ -38,14 +38,14 @@ foam.CLASS({
 
   constants: {
     COLORS: {
-      focus:      { fill: '#ffffff', text: '#dc2626', stroke: '#dc2626', halo: '#fecaca' },
-      extends:    { fill: '#ecfdf5', text: '#065f46', stroke: '#059669' },
-      implements: { fill: '#f5f3ff', text: '#5b21b6', stroke: '#7c3aed' },
-      mixin:      { fill: '#fef3c7', text: '#92400e', stroke: '#f59e0b' },
-      subclass:   { fill: '#f8fafc', text: '#334155', stroke: '#94a3b8' },
-      reference:  { fill: '#eff6ff', text: '#1e40af', stroke: '#3b82f6' },
+      focus:       { fill: '#ffffff', text: '#dc2626', stroke: '#dc2626', halo: '#fecaca' },
+      extends:     { fill: '#ecfdf5', text: '#065f46', stroke: '#059669' },
+      implements:  { fill: '#f5f3ff', text: '#5b21b6', stroke: '#7c3aed' },
+      mixin:       { fill: '#fef3c7', text: '#92400e', stroke: '#f59e0b' },
+      subclass:    { fill: '#f8fafc', text: '#334155', stroke: '#94a3b8' },
+      reference:   { fill: '#eff6ff', text: '#1e40af', stroke: '#3b82f6' },
       relationship:{ fill: '#fdf2f8', text: '#9d174d', stroke: '#ec4899' },
-      container:  { fill: '#ffffff', text: '#334155', stroke: '#e2e8f0', header: '#f8fafc' }
+      container:   { fill: '#ffffff', text: '#334155', stroke: '#e2e8f0', header: '#f8fafc' }
     },
 
     PILL_HEIGHT: 48,
@@ -60,6 +60,19 @@ foam.CLASS({
     SIDE_CONTAINER_WIDTH: 260,
     SUBCLASS_CELL_WIDTH: 180
   },
+
+  axioms: [
+    // Add this constant directly as an axiom so it can be in the long form which allows
+    // for the use of 'factory' without the need to convert all of the other simple
+    // constants to the more complex format.
+
+    { class: 'foam.lang.Constant', name: 'CLASSES', factory: function() {
+      // Force-load all registered but uninstantiated models so that
+      // subclass and referencedBy discovery can find them in foam.USED
+      for ( var key in foam.UNUSED ) try { foam.lookup(key); } catch(x) {}
+      return Object.keys(foam.USED).map(c => { try { return foam.maybeLookup(c); } catch(x){}}).filter(c => c);
+    }}
+  ],
 
   properties: [
     {
@@ -130,10 +143,6 @@ foam.CLASS({
     function render() {
       this.SUPER();
 
-      // Force-load all registered but uninstantiated models so that
-      // subclass and referencedBy discovery can find them in foam.USED
-      for ( var key in foam.UNUSED ) try { foam.lookup(key); } catch(x) {}
-
       var self = this;
 
       if ( ! this.data ) {
@@ -157,7 +166,8 @@ foam.CLASS({
     },
 
     function buildData_() {
-      var cls = this.data;
+      var self = this;
+      var cls  = this.data;
 
       // Build inheritance stack by walking up extends chain
       this.inheritanceStack_ = [];
@@ -200,17 +210,12 @@ foam.CLASS({
 
       // Subclasses
       this.subclasses_ = [];
-      if ( foam.USED ) {
-        Object.values(foam.USED).forEach(usedCls => {
-          try {
-            usedCls = foam.lookup(usedCls.id);
-            if ( usedCls.__proto__ === cls ) {
-              this.subclasses_.push(usedCls);
-            }
-          } catch (x) {}
-        });
-        this.subclasses_.sort((a, b) => a.name.localeCompare(b.name));
-      }
+      this.CLASSES.forEach(c => {
+        if ( c.__proto__ === cls ) {
+          this.subclasses_.push(c);
+        }
+      });
+      this.subclasses_.sort((a, b) => a.name.localeCompare(b.name));
 
       // References
       this.references_ = [];
@@ -237,35 +242,23 @@ foam.CLASS({
       // Referenced By
       this.referencedBy_ = [];
       var seenRefBy = new Set();
-      if ( foam.USED ) {
-        var clsId = cls.id;
-        Object.values(foam.USED).forEach(usedCls => {
-          try {
-            usedCls = foam.lookup(usedCls.id);
-            if ( usedCls.__proto__ === cls ) {
-              this.subclasses_.push(usedCls);
+      this.CLASSES.forEach(c => {
+        c.getAxiomsByClass(foam.lang.Property).forEach(prop => {
+          function maybeAdd(of, cardinality) {
+            if ( cls === of && ! seenRefBy.has(c.id) ) {
+              seenRefBy.add(c.id);
+              self.referencedBy_.push({ cls: c.model_, cardinality: cardinality, prop: prop.name });
             }
-          } catch (x) {return;}
-          if ( ! usedCls.getAxiomsByClass ) return;
-          usedCls.getAxiomsByClass(foam.lang.Property).forEach(prop => {
-            var targetId = null;
-            var cardinality = '1';
+          }
 
-            if ( foam.lang.FObjectProperty.isInstance(prop) ) {
-              targetId = prop.of;
-            } else if ( foam.lang.FObjectArray.isInstance(prop) ) {
-              targetId = prop.of;
-              cardinality = '*';
-            }
-
-            if ( targetId === usedCls.id && ! seenRefBy.has(usedCls.id) ) {
-              seenRefBy.add(usedCls.id);
-              this.referencedBy_.push({ cls: usedCls.model_, cardinality: cardinality, prop: prop.name });
-            }
-          });
+          if ( foam.lang.FObjectProperty.isInstance(prop) ) {
+            maybeAdd(prop.of, '1');
+          } else if ( foam.lang.FObjectArray.isInstance(prop) ) {
+            maybeAdd(prop.of, '*');
+          }
         });
-        this.referencedBy_.sort((a, b) => a.cls.name.localeCompare(b.cls.name));
-      }
+      });
+      this.referencedBy_.sort((a, b) => a.cls.name.localeCompare(b.cls.name));
 
       // Relationships
       this.relationships_ = [];
@@ -445,16 +438,21 @@ foam.CLASS({
 
       this.inheritanceStack_.forEach(item => {
         var colors = this.COLORS[item.type] || this.COLORS.extends;
-        var hasType = item.type !== 'extends';
 
         this.renderPill_(svg, centerX - this.INHERITANCE_PILL_WIDTH/2, y,
-          this.INHERITANCE_PILL_WIDTH, this.PILL_HEIGHT, item.cls, colors, hasType ? item.type : null);
+          this.INHERITANCE_PILL_WIDTH, this.PILL_HEIGHT, item.cls, colors, item.type);
         y += this.PILL_HEIGHT + this.PILL_GAP;
       });
     },
 
     function renderFocusClass_(svg, centerX, y) {
       var colors = this.COLORS.focus;
+      var cls = this.data;
+      var pkg = cls.package || '';
+      var name = cls.name;
+
+      var maxPkgLen = Math.floor(this.FOCUS_PILL_WIDTH / 6);
+      var displayPkg = pkg.length > maxPkgLen ? '…' + pkg.slice(-(maxPkgLen - 1)) : pkg;
 
       svg
         .start('g')
@@ -483,14 +481,25 @@ foam.CLASS({
           .start('text')
             .attrs({
               x: centerX,
-              y: y + this.PILL_HEIGHT/2,
+              y: y + this.PILL_HEIGHT/2 - 8,
+              'text-anchor': 'middle',
+              'dominant-baseline': 'middle',
+              'font-size': '9px',
+              fill: '#64748b'
+            })
+            .add(displayPkg)
+          .end()
+          .start('text')
+            .attrs({
+              x: centerX,
+              y: y + this.PILL_HEIGHT/2 + 6,
               'text-anchor': 'middle',
               'dominant-baseline': 'middle',
               'font-size': '14px',
               'font-weight': '600',
               fill: colors.text
             })
-            .add(this.data.name)
+            .add(name)
           .end()
         .end();
     },
