@@ -5,7 +5,8 @@
  */
 
 // Can be used in markdown: <foam class="foam.doc.DIGApiDoc" data="foam.core.auth.User"></foam>
-// Use daoPrompt and Script agent to output all APIs: this.__context__.out.add(foam.doc.DIGApiDoc.create({data: x[o.id].of}));
+// Use daoPrompt and Script agent to output all APIs: try {this.__context__.out.add(foam.doc.DIGApiDoc.create({data: o.id},this)); } catch(x){}
+
 foam.CLASS({
   package: 'foam.doc',
   name: 'DIGApiDoc',
@@ -91,6 +92,7 @@ foam.CLASS({
         .start('div').addClass(this.myClass('section'))
           .start('h2').add('Properties').end()
           .add(self.dynamic(function(properties) {
+            if ( ! properties ) return;
             this
               .start('table').addClass(self.myClass('table'))
                 .start('tr')
