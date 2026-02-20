@@ -72,13 +72,10 @@ foam.CLASS({
 
 
           // Return data from cache
-          // only add elements from cache that weren't fetched directly from the dao
           for ( let idx = requestStartIdx ; idx < endIdx ; idx++ ) {
             if ( foam.dao.ArraySink.isInstance(sink) ) {
-              if ( ! sink.array[idx-requestStartIdx] )
                 sink.array[idx-requestStartIdx] = self.cache[key][idx];
             } else if ( foam.mlang.sink.Projection.isInstance(sink) ) {
-              if ( ! sink.projectionWithClass[idx-requestStartIdx] )
                 sink.projectionWithClass[idx-requestStartIdx] = self.cache[key][idx];
             }
           }
