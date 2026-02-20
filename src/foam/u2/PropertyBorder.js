@@ -171,7 +171,7 @@ foam.CLASS({
       var supportingLabelSlot = this.slot(function(prop$supportingLabel) {
         let el = this.E().addClass(this.myClass('supportingLabel'), this.myClass('supportingLabel' + '-' + prop.name), 'p-legal');
         return prop$supportingLabel ?
-          el.call(prop.supportingLabelFormatter, [data, prop]) :
+          el.call(prop.supportingLabel, [data, prop]) :
           this.E().style({ display: 'contents' })
       });
 
