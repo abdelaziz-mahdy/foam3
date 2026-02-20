@@ -1315,8 +1315,14 @@ foam.CLASS({
       Similar to Supporting Text in Material Design: https://m3.material.io/components/text-fields/guidelines#6aeaf1ef-d864-455d-9758-d0a0a6c0269e.
       See foam.u2.PropertyBorder for implementation.
 
-      String for now, can be upgraded to allow a formatter like label does in the future.
+      Override supportingLabelFormatter for reactive/dynamic supporting labels.
       `
+    },
+    {
+      name: 'supportingLabelFormatter',
+      value: function(_, prop) {
+        this.add(prop.supportingLabel);
+      }
     },
     { class: 'String', name: 'shortName' }
   ]
