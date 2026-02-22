@@ -1,5 +1,7 @@
 # Agents Not Protocols
 
+Author: Kevin Greer
+
 *Based on Bill Joy's 2000 essay, extended through FOAM/CORE*
 
 ---
@@ -105,10 +107,25 @@ This is what object-oriented network architecture actually looks like. Not resou
 
 ---
 
+## A Security Dividend
+
+The agent model produces a significant security advantage that is worth making explicit, because it is not an add-on — it is a direct consequence of the architecture.
+
+**No cookies, no CSRF.** FOAM session management does not use cookies. The session token is held in the FOAM context and attached to outbound messages by `SessionClientBox` at the messaging layer. This means there is no ambient credential that a browser will helpfully attach to any request that matches a domain. A classic CSRF attack — tricking a browser into making an authenticated request to a server it is already logged into — has nothing to attach to.
+
+**XSS cannot reach the session.** If an attacker manages to inject HTML into a FOAM page containing a link or hidden request back to a REST endpoint, it does them no good. That connection carries no session token, no authentication, and no authorization. The session lives in the application's context object, not in a cookie jar that the browser manages on behalf of any script that asks.
+
+**No inline scripts.** FOAM runs under a Content Security Policy that prohibits inline scripts. An XSS payload that injects a `<script>` tag or an `onclick` handler gets no execution. The attack surface for script injection is eliminated at the policy level.
+
+Taken together: the attack chain that makes XSS dangerous against conventional web applications — inject script, script reads cookie, cookie authenticates request — is broken at every link. There is no cookie to read, no credential to steal, and no inline execution context to run the injected code in. These are not defences bolted onto the architecture; they fall out of it naturally.
+
+---
+
 ## The Summary of the Summary
 
 > Publish an agent, not a protocol.
 > Code travels. Papers diverge.
-> The best network call is one the caller doesn't know is a network call.
+> The second-best network call is one the caller doesn't know is happening.
+> The best — and most reliable — is the one that never happens at all.
 
 Slides: [here](https://docs.google.com/presentation/d/1rtZ5dvmY6d4aImRkdlbF8IfvXwMMM6WPiA_Bv16mI4I/edit?slide=id.g348851f7453_1_15#slide=id.g348851f7453_1_15)
