@@ -46,7 +46,7 @@ foam.CLASS({
       class: 'Boolean'
     },
     {
-      name: 'disableActionsForRow',
+      name: 'disableTableRowActions',
       class: 'Boolean'
     },
     {
