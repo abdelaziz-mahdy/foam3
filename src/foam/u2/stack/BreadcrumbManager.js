@@ -69,6 +69,8 @@ foam.CLASS({
       on: ['this.propertyChange.crumbs', 'this.propertyChange.pos'],
       code: function() {
         this.current = this.crumbs[this.pos];
+        // Force a memento update to update viewTitle
+        this.current?.view.memento_.update();
       }
     }
   ]
