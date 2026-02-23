@@ -170,7 +170,9 @@ foam.CLASS({
       });
       var supportingLabelSlot = this.slot(function(prop$supportingLabel) {
         let el = this.E().addClass(this.myClass('supportingLabel'), this.myClass('supportingLabel' + '-' + prop.name), 'p-legal');
-        return prop$supportingLabel ? el.add(prop$supportingLabel) : this.E().style({ display: 'contents' })
+        return prop$supportingLabel ?
+          el.call(prop.supportingLabel, [data, prop]) :
+          this.E().style({ display: 'contents' })
       });
 
       var viewSlot = prop.view$.map(v => {
