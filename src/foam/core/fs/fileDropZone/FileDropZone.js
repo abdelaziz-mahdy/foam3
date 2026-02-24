@@ -196,6 +196,11 @@ foam.CLASS({
         if ( Array.isArray(v) ) return v;
         return [v];
       }
+    },
+    {
+      class: 'foam.u2.ViewSpec',
+      name: 'fileCardView',
+      value: { class: 'foam.core.fs.fileDropZone.FileCard' }
     }
   ],
 
@@ -272,11 +277,10 @@ foam.CLASS({
       .on('dragover', e => { this.isDragged_ = true; e.preventDefault(); } )
       .on('dragenter', e => { this.isDragged_ = true; e.preventDefault(); })
       .on('dragleave', e => { this.isDragged_ = false; e.preventDefault(); })
-        .add(this.slot(function(files) {
+      .add(this.slot(function(files) {
         var e = this.E().addClass(self.myClass('fileCards'));
         for ( var i = 0; i < files.length; i++ ) {
-          e.tag({
-            class: 'foam.core.fs.fileDropZone.FileCard',
+          e.tag(this.fileCardView, {
             data: files[i],
             selected: this.selected,
             index: i
@@ -291,8 +295,11 @@ foam.CLASS({
       var constructedString = '';
 
       if ( readable ) {
+        // Remove duplicates in case supportedFormats has multiple extensions for the same type (ex: text/x-vcard and text/vcard both have vCard as an extension)
+        supportedTypes = [...new Set(Object.values(this.supportedFormats))];
         supportedTypes.forEach((type, index) => {
-          constructedString += this.supportedFormats[type];
+          if ( ! type ) return;
+          constructedString += type;
           if ( index < supportedTypes.length - 1 ) {
             constructedString += ', ';
           }
@@ -326,7 +333,7 @@ foam.CLASS({
         }
         if ( isIncluded ) continue;
         if ( this.isMultipleFiles ) {
-          var f = this.File.create({
+          var f = this.createFile({
             owner:    this.subject.user.id,
             filename: files[i].name,
             filesize: files[i].size,
@@ -337,7 +344,7 @@ foam.CLASS({
           });
           this.files.push(f);
         } else {
-          this.files[0] = this.File.create({
+          this.files[0] = this.createFile({
             owner:    this.subject.user.id,
             filename: files[i].name,
             filesize: files[i].size,
@@ -350,6 +357,10 @@ foam.CLASS({
       }
       if ( this.selected ) this.selected = this.files.length - 1;
       this.files = Array.from(this.files);
+    },
+
+    function createFile(opts) {
+      return this.File.create(opts);
     },
 
     function isFileType(file) {
