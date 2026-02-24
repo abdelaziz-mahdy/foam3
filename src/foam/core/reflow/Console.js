@@ -17,7 +17,7 @@ foam.CLASS({
   package: 'foam.core.reflow',
   name: 'Flowable',
 
-  topics: ['flowUpdated'],
+  topics: [ 'flowUpdated' ],
 
   properties: [
     {
@@ -92,13 +92,13 @@ foam.CLASS({
       if ( f.deleted_ ) return;
       f.flowParent = this;
       this.flowChildren$push(f);
-      this.addFlowChild_ && this.addFlowChild_(f);
+      this?.addFlowChild_(f);
     },
 
     function removeFlowChild(f) {
       var index = this.flowChildren.indexOf(f);
       this.flowChildren = this.flowChildren.filter(c => c != f);
-      this.removeFlowChild_ && this.removeFlowChild_(f);
+      this?.removeFlowChild_(f);
 
       if ( this.selected === f ) {
         if ( this.flowChildren.length > 0 ) {
@@ -490,12 +490,9 @@ foam.CLASS({
   name: 'Block',
   extends: 'foam.u2.Accordion',
   implements: [ 'foam.core.reflow.Flowable' ],
-
-  requires: ['foam.u2.WrapperNode'],
-
   mixins: [ 'foam.u2.StyleConfigurator' ],
 
-  implements: [ 'foam.core.reflow.Flowable' ],
+  requires: [ 'foam.u2.WrapperNode' ],
 
   imports: [ 'data', 'showPrompts', 'addToScope', 'selected' ],
 
