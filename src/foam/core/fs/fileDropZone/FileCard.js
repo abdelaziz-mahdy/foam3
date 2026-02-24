@@ -11,11 +11,15 @@ foam.CLASS({
 
   documentation: 'Card based on SME Design',
 
+  axioms: [
+    foam.pattern.Faceted.create()
+  ],
+
   requires: [
     'foam.blob.BlobBlob',
     'foam.core.fs.File',
     'foam.core.fs.FileSizeView',
-    'foam.u2.HTMLView',
+    'foam.u2.tag.Image',
     'foam.u2.layout.Cols'
   ],
 
@@ -27,7 +31,8 @@ foam.CLASS({
   ],
 
   exports: [
-    'as fileCard'
+    'as fileCard',
+    'controllerMode'
   ],
 
   css: `
@@ -36,7 +41,7 @@ foam.CLASS({
       border: 1px solid $borderXLight;
       border-radius: 4px;
       box-sizing: border-box;
-      padding: 12px;
+      padding: 4px 12px;
       width: 100%;
 
       -webkit-transition: all .15s ease-in-out;
@@ -44,6 +49,11 @@ foam.CLASS({
       -ms-transition: all .15s ease-in-out;
       -o-transition: all .15s ease-in-out;
       transition: all .15s ease-in-out;
+    }
+    
+    ^:hover {
+      background: $backgroundBrandTertiary;
+      border-color: $borderBrand;
     }
 
     ^label {
@@ -58,13 +68,8 @@ foam.CLASS({
       color: $textBrand;
       cursor: pointer;
       overflow: hidden;
-      text-align: left;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    ^name:hover {
-      color: $borderBrand;
     }
 
     ^ .foam-u2-ActionView {
@@ -86,17 +91,40 @@ foam.CLASS({
       flex-grow: 1;
       justify-content: flex-start;
     }
+
     ^fileCard-content.foam-u2-layout-Cols {
       gap: 8px;
       align-items: center;
+    }
+
+    ^nameHolder {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex-grow: 1;
+      align-items: flex-start;
+    }
+
+    ^ .foam-u2-tag-Image svg {
+      fill: currentColor;
     }
   `,
 
   properties: [
     {
+      name: 'controllerMode',
+      value: foam.u2.ControllerMode.VIEW
+    },
+    {
       class: 'Boolean',
       name: 'canBeRemoved',
       expression: function(controllerMode) { return controllerMode != foam.u2.ControllerMode.VIEW; }
+    },
+    {
+      class: 'Class',
+      name: 'of',
+      expression: function(data) { return data?.cls_ ?? null; }
     },
     {
       name: 'index'
@@ -115,18 +143,7 @@ foam.CLASS({
           'border-color': foam.CSS.returnTokenValue('$borderBrandStrong', this.cls_, this.__subContext__)
         });
       }
-      var indicator = this.theme && this.theme.glyphs.file.expandSVG({ fill: this.theme.grey1 });
-      var label = this.E()
-        .addClass(this.myClass('label'))
-        .callIfElse(indicator, function() {  
-          this.start(self.HTMLView, { data: indicator }).attrs({ role: 'presentation' }).end();
-        }, function() {
-          this.start({ class: 'foam.u2.tag.Image', data: 'images/attach-icon.svg' }).end();
-        })
-        .start().addClass('h600', this.myClass('name'))
-          .add(this.data.filename)
-        .end()
-        .start(this.FileSizeView, { data: this.data.filesize }).addClass(this.myClass('size'), 'p-legal').end();
+      var label = this.returnLabel();
 
       this.addClass()
       .start(this.Cols)
@@ -141,6 +158,26 @@ foam.CLASS({
         .end();
 
       this.on('click', this.pick);
+    },
+    function returnLabel() {
+      let self = this;
+      return this.E()
+        .addClass(this.myClass('label'))
+        .callIfElse(this.theme, function() {  
+          this.start(self.Image, { glyph: 'file' }).attrs({ role: 'presentation' }).end();
+        }, function() {
+          this.tag(self);
+        })
+        .start()
+          .addClass(this.myClass('nameHolder'))
+          .start().addClass('p-semiBold', this.myClass('name'))
+            .add(this.data.filename)
+          .end()
+          .call(this.addSubLabel, [self])
+        .end()
+    },
+    function addSubLabel(self) {
+      this.start(self.FileSizeView, { data: self.data.filesize }).addClass(self.myClass('size'), 'p-legal-light').end();
     }
   ],
 
