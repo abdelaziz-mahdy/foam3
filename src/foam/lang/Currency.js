@@ -180,12 +180,12 @@ foam.CLASS({
             this.FORMATTER_CACHE[formatterId] = formatter;
           }
           // Intl.NumberFormat may display the ISO code (e.g., "JOD") instead of
-          // the symbol for lesser-known currencies. Use formatToParts to replace
+          // the symbol for lesser-known currencies. When that happens, replace
           // with the actual symbol from the Currency model.
           if ( ! hideSymbol && this.symbol ) {
-            var sym = this.symbol;
+            var self = this;
             return formatter.formatToParts(amount).map(function(p) {
-              return p.type === 'currency' ? sym : p.value;
+              return p.type === 'currency' && p.value === self.id ? self.symbol : p.value;
             }).join('');
           }
           return formatter.format(amount);
