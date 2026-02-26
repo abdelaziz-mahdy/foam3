@@ -38,22 +38,23 @@ If you don't want to manage IDs yourself, use `foam.dao.EasyDAO` with `seqNo: tr
 
 The full DAO interface is small by design:
 
-```javascript
-// Single-object operations (asynchronous — return Promises)
-Promise<object> put(object)      // insert or update
-Promise<object> find(id)         // retrieve by id
-Promise         remove(object)   // delete
+```java
+interface DAO {
+  Future<FObject>  put(FObject obj)               // insert or update; returns stored object
+  Future<FObject>  find(Object id)                // retrieve by id; returns null if not found
+  Future<FObject>  remove(FObject obj)            // delete; not an error if not found
+  Future<Sink>     select(Sink sink)              // retrieve matching objects into sink
+  Future           removeAll()                    // delete all matching objects
+  Detachable       listen(Sink sink)              // receive ongoing changes; detach to stop
+  void             pipe(Sink sink)                // select() then listen()
+  Future           cmd(Object obj)                // send a command to the DAO (advanced)
 
-// Collection operations (asynchronous)
-Promise<Sink>   select(sink)     // retrieve matching objects, send to sink
-Promise         removeAll()      // delete all matching objects
-void            listen(sink)     // receive ongoing changes
-
-// Filtering (synchronous — return a new DAO, nothing is executed yet)
-DAO  where(predicate)    // filter by predicate
-DAO  orderBy(sortOrder)  // sort results
-DAO  limit(num)          // cap result count
-DAO  skip(num)           // skip first N results
+  DAO              where(Predicate predicate)     // filter results
+  DAO              orderBy(Comparator comparator) // sort results
+  DAO              limit(Long count)              // cap result count
+  DAO              skip(Long count)               // skip first N results
+  DAO              inX(Context x)                 // return DAO running in a different context
+}
 ```
 
 The filtering methods (`where`, `orderBy`, `limit`, `skip`) return a new DAO that wraps the original. They don't execute anything — they just narrow the scope of the next `select` or `removeAll`. They can be chained freely:
@@ -86,10 +87,11 @@ console.log(recipe.id); // now set by the DAO
 
 ### find(id)
 
-Retrieves a single object by its primary key. If the object exists, the promise resolves with it. If not, it rejects with `foam.dao.ObjectNotFoundException`:
+Retrieves a single object by its primary key. If the object is found the promise resolves with it. If not found it resolves with `null` — it does not reject:
 
 ```javascript
 var recipe = await dao.find(42);
+if ( recipe === null ) console.log('not found');
 ```
 
 For multi-part primary keys, pass an array:
@@ -278,17 +280,55 @@ DAO operations reject their returned promise on failure. Errors fall into two ca
 | `foam.dao.InternalException` | Transient — the operation may be retried |
 | `foam.dao.ExternalException` | Permanent — the operation cannot succeed |
 
-Both carry a `message` property. More specific subtypes add their own — for example, `foam.dao.ObjectNotFoundException` includes the `id` that wasn't found:
+Both carry a `message` property. Note that `find()` returns `null` for a missing object rather than throwing — an exception from `find()` means a genuine failure to reach or query the backend, not simply that the object wasn't there.
 
 ```javascript
 try {
   var obj = await dao.find(id);
+  if ( obj === null ) console.log('object does not exist');
 } catch (e) {
-  if ( foam.dao.ObjectNotFoundException.isInstance(e) ) {
-    console.log('Not found:', e.id);
-  }
+  console.log('DAO error:', e.message);
 }
 ```
+
+## Advanced Methods
+
+### cmd(obj)
+
+`cmd()` is an escape hatch for DAO-specific operations that don't belong on the universal interface. The problem it solves: a `CachingDAO` needs a way to purge its cache, but adding `purge()` to the DAO interface would force every DAO implementation to provide it, even those that have no cache. And manually walking a decorator chain to find the `CachingDAO` — assuming it even exists, and isn't on the other side of a network boundary — is fragile and couples the caller to the implementation.
+
+Instead, each DAO decorator intercepts the commands it recognises and delegates the rest. The caller just does:
+
+```javascript
+dao.cmd(foam.dao.DAO.PURGE_CMD);
+```
+
+Every decorator in the chain sees it. The `CachingDAO` handles it; everything else passes it along. The caller doesn't need to know what decorators are present, in what order, or where they are.
+
+The standard commands defined on the DAO interface are:
+
+| Command | Effect |
+|---|---|
+| `DAO.PURGE_CMD` | Clear a DAO's cache (handled by `CachingDAO`, `FixedSizeDAO`) |
+| `DAO.RESET_CMD` | Signal listeners to reset |
+| `DAO.LAST_CMD` | Return the last DAO in the delegate chain (e.g. the underlying `MDAO`) |
+| `DAO.COUNT_LISTENERS_CMD` | Return the number of active listeners |
+
+Individual DAOs also define their own domain-specific commands — `MDAO.NOW_CMD`, `AddIndexCommand`, `FileRollCmd`, `RulerProbe`, and others. These follow the same pattern: send the command, the right decorator handles it, the rest ignore it.
+
+A `null` return means the command was not handled by any DAO in the chain. Most application code never needs `cmd()` directly.
+
+### inX(x)
+
+Returns a new DAO that runs all operations in the provided context `x`. Internally it wraps the current DAO in a `ProxyDAO` with `x` as the execution context, so every subsequent call — `put`, `find`, `select`, etc. — runs with the services, permissions, and session data bound to `x` rather than the original context.
+
+```javascript
+// Run a query as a different user / session
+var scopedDAO = dao.inX(otherContext);
+var results = await scopedDAO.select();
+```
+
+Typical uses include impersonating a user, switching sessions, or overriding a context-provided service for a specific set of operations. Note that `inX` is unrelated to the `IN` mlang predicate used in queries.
 
 ---
 
