@@ -30,9 +30,15 @@ foam.CLASS({
     ^inner {
       align-items: stretch;
     }
+    ^body {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
   `,
 
   properties: [
+    [ 'maxWidth', 'clamp(400px, 100%, 85vw)' ],
     [ 'showCancel', false ],
     {
       name: 'title',
@@ -55,11 +61,13 @@ foam.CLASS({
   methods: [
     function addBody() {
       return this.E()
+        .addClass(this.myClass('body'))
         .startContext({ controllerMode: this.ControllerMode.EDIT, data: this.data })
           .tag(this.PropertyBorder, {
             prop: this.property,
             data$: this.data$
           })
+          .tag('', {}, this.content$)
         .endContext();
     }
   ],
