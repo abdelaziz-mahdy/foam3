@@ -159,6 +159,7 @@ foam.CLASS({
     function open() {
       this.closedLatch = this.Latch.create();
       this.write();
+      this.focus();
     }
   ],
 
