@@ -158,6 +158,9 @@ foam.CLASS({
       name: 'files',
       factory: function() {
         return [];
+      },
+      postSet: function(o, n) {
+        this.onFilesChanged(n);
       }
     },
     {
@@ -377,7 +380,6 @@ foam.CLASS({
               this.selected = files.length - 1;
       this.files = files;
       this.document.getElementById('file-upload-' + this.$UID).value = null;
-      this.onFilesChanged(this.files);
     },
 
     function highlight(atIndex) {
@@ -438,7 +440,6 @@ foam.CLASS({
       this.addFiles(files);
       // Remove all temporary files in the element.target.files
       this.document.getElementById('file-upload-' + this.$UID).value = null;
-      this.onFilesChanged(this.files);
     },
 
     function filePathsChanged() {

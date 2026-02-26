@@ -273,11 +273,11 @@ foam.CLASS({
       this.onDetach(() => { this.overlay_ && this.overlay_.remove(); });
 
       // sub to actions from view
-      self.obj?.sub('action', function() {
+      self.obj?.sub('actionCalled', function() {
         self.overlay_.close();
       });
       // sub to actions from view data
-      self.obj?.data?.sub('action', function() {
+      self.obj?.data?.sub('actionCalled', function() {
         self.overlay_.close();
       });
       view$ = this.dynamic(function(availabilities_, data) {
