@@ -111,7 +111,7 @@ m.EQ(...)
 ## Sinks
 
 The `Sink` interface is a target for data retrieved from a DAO. Its functions
-are called asynchronously by the DAO.
+are called by the DAO.
 
 ```javascript
 void put(obj, [opt_flowControl]);
@@ -245,6 +245,8 @@ dao.select(this.COUNT()).then(function(count) {
   console.log(count.value);
 });
 ```
+
+Note that this.COUNT() is short form for foam.mlang.sink.Count.create(), which you recieved by adding `implements: 'foam.mlang.Expressions'` to your model.
 
 If you don't specify a Sink when calling `select()`, a `foam.dao.ArraySink`
 will be created by default and passed to the resolved Promise:
