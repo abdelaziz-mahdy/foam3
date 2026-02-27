@@ -224,6 +224,7 @@ foam.CLASS({
     {
       name: 'searchData',
       shortName: 'search',
+      onKey: true,
       memorable: true
     }
   ],
@@ -288,7 +289,7 @@ foam.CLASS({
         .add(this.dynamic(function(filters) {
           var generalSearchField = foam.u2.ViewSpec.createView(self.TextSearchView, {
             of: self.dao.of.id,
-            onKey: true,
+            property: self.SEARCH_DATA,
             name: 'filterSearch',
             data$: self.searchData$
           }, self, self.__subContext__);
