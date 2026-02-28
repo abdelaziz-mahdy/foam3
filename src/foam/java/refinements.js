@@ -12,6 +12,61 @@
  * from the console.
 **/
 
+foam.LIB({
+  name: 'foam.java.type',
+
+  constants: {
+    TYPES: {
+      Any:      'Object',
+      Boolean:  'boolean',
+      Byte:     'byte',
+      Char:     'char',
+      Class:    'foam.lang.ClassInfo',
+      Context:  'foam.lang.X',
+      Date:     'java.util.Date',
+      DateTime: 'java.util.Date',
+      Double:   'double',
+      Float:    'float',
+      Integer:  'int',
+      List:     'java.util.List',
+      Long:     'long',
+      Map:      'java.util.Map',
+      Number:   'float',
+      Object:   'Object',
+      Regex:    'java.util.regex.Pattern',
+      Short:    'short',
+      String:   'String',
+      Time:     'java.util.Date',
+      Void:     'void'
+    }
+  },
+
+  methods: [
+    function toJavaType(str) {
+      if ( ! str )
+        return this.TYPES.Any;
+
+      if ( this.TYPES[str] )
+        return this.TYPES[str];
+
+      if ( str.endsWith('[]') ) {
+        let base     = str.substring(0, str.lastIndexOf('[]'));
+        let baseType = this.toJavaType(base);
+        return baseType + '[]';
+      }
+
+      if ( foam.isRegistered('foam.lang.' + str) )
+        return 'foam.lang.' + str;
+
+      if ( foam.isRegistered(str) )
+        return str;
+
+      return str;
+    }
+  ]
+});
+
+
 foam.INTERFACE({
   package: 'foam.lib.csv',
   name: 'FromCSVSetter',
@@ -87,7 +142,7 @@ ${Object.keys(o).map(function(k, i, a) {
     {
       name: 'toJavaType',
       code: function(type) {
-        return foam.lang.type.toType(type).toJavaType();
+        return foam.java.type.toJavaType(type);
       }
     },
     {
@@ -1972,7 +2027,7 @@ foam.CLASS({
     {
       name: 'javaFactory',
       expression: function(type) {
-        return `return new ${foam.lang.type.toType(type).type.toJavaType()}[0];`;
+        return `return new ${foam.java.type.toJavaType(type).replace(/\[\]$/, '[0]')};`;
       }
     },
     {

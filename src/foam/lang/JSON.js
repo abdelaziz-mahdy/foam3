@@ -882,9 +882,12 @@ foam.LIB({
           for ( var key in o ) {
             if ( ! o[key] ) continue;
             if ( key === 'type' && foam.String.isInstance(o[key]) ) {
-              foam.lang.type.toType(o[key]).refs().forEach(function(id) {
+              /*
+                // Not supported anymore
+                foam.lang.type.toType(o[key]).refs().forEach(function(id) {
                 r.push(x.classloader.maybeLoad(id));
-              })
+                })
+              */
               continue;
             }
             if ( ( key === 'of'          ||

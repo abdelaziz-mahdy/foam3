@@ -18,10 +18,6 @@ foam.POM({
     `
   ],
 
-  setFlags: {
-    u3: true
-  },
-
   files: [
     { name: "foam/lang/lib",                                          flags: "js" },
     { name: "foam/lang/stdlib",                                       flags: "js" },
@@ -60,7 +56,6 @@ foam.POM({
     { name: "foam/lang/CountingSemaphore",                            flags: "js" },
     { name: "foam/lang/Promised",                                     flags: "js" },
     { name: "foam/lang/Interface",                                    flags: "js" },
-    { name: "foam/lang/Type",                                         flags: "js" },
     { name: "foam/lang/Axiom",                                        flags: "js|java" },
     { name: "foam/lang/ContextMethod",                                flags: "js" },
     { name: "foam/lang/Exception",                                    flags: "js|java" },

@@ -303,7 +303,7 @@ foam.CLASS({
       transient: true
     },
     {
-      name: 'type',
+      name: 'type'
     },
     {
       class: 'Boolean',
