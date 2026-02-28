@@ -353,12 +353,23 @@ foam.CLASS({
           allowClearingSelection: true
         };
       }
+    },
+    {
+      name: 'tableEl'
     }
   ],
 
   methods: [
     function execute(e) {
+      // TODO: prevent table updates when block is hidden
       var self = this;
+      // Tables already listen to underlying daos and are completely reactive by themselves as
+      // opposed to other sinks, this means rendering the tables twice is just causing unecessary flickering that we can
+      // avoid by returning the same table back
+      if ( this.tableEl ) {
+        this.tableEl.moveTo(e);
+        return;
+      }
 
       this.columns$.follow(this.block.value.columns$.map(
         c => c.trim().split(',').map(c => c.trim()).filter(c => c)
@@ -387,8 +398,10 @@ foam.CLASS({
         config.multiSelectEnabled = true;
         config.selectedObjects$ = this.selectedObjects$;
       }
-
-      e.startContext({click: self.click, columnStorage: this.columnStorage})
+      this.tableEl = foam.u2.WrapperNode.create({}, this);
+      e.add(this.tableEl);
+      this.tableEl
+      .startContext({click: self.click, columnStorage: this.columnStorage})
         .callIf(config.multiSelectEnabled, function() {
           this.startContext({data: self})
             .start()
@@ -410,7 +423,6 @@ foam.CLASS({
           .end()
         .endContext()
       .endContext();
-
     },
     function addToE(e) {
       var self = this;

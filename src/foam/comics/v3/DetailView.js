@@ -38,7 +38,7 @@ foam.CLASS({
     'notify',
     'setControllerMode?',
     'stack?',
-    'controlBorder',
+    'controlBorder?',
     'daoController'
   ],
 

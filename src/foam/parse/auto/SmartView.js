@@ -323,7 +323,14 @@ foam.CLASS({
         }
       }
     },
-    'prop'
+    {
+      name: 'prop',
+      postSet: function(_, prop) {
+        if (prop?.onKey ) {
+          this.data$.linkFrom(this.preview$);
+        }
+      }
+    }
   ],
 
   methods: [
@@ -345,7 +352,6 @@ foam.CLASS({
 
       // Recalculate error when the data text changes
       this.data$.sub(this.onDataChange);
-
       if ( this.prop?.onKey ) {
         this.data$.linkFrom(this.preview$);
       }
