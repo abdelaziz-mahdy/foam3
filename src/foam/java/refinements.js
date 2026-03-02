@@ -33,36 +33,39 @@ foam.LIB({
   },
 
   methods: [
-    function toJavaType(str) {
-      if ( ! str )
-        return this.TYPES.Any;
+    {
+      name: 'toJavaType',
+      code: foam.Function.memoize1(function toJavaType(str) {
+        if ( ! str )
+          return this.TYPES.Any;
 
-      if ( foam.isRegistered(str) ) {
-        var cls = foam.lookup(str);
-        if ( foam.lang.Property.isSubClass(cls) ) {
-          let i = cls.create();
-          if ( i.javaType ) {
-            return i.javaType;
+        if ( foam.isRegistered(str) ) {
+          var cls = foam.lookup(str);
+          if ( foam.lang.Property.isSubClass(cls) ) {
+            let i = cls.create();
+            if ( i.javaType ) {
+              return i.javaType;
+            }
           }
         }
-      }
 
-      if ( this.TYPES[str] )
-        return this.TYPES[str];
+        if ( this.TYPES[str] )
+          return this.TYPES[str];
 
-      if ( str.endsWith('[]') ) {
-        let base     = str.substring(0, str.lastIndexOf('[]'));
-        let baseType = this.toJavaType(base);
-        return baseType + '[]';
-      }
+        if ( str.endsWith('[]') ) {
+          let base     = str.substring(0, str.lastIndexOf('[]'));
+          let baseType = this.toJavaType(base);
+          return baseType + '[]';
+        }
 
-      if ( foam.isRegistered('foam.lang.' + str) )
-        return 'foam.lang.' + str;
+        if ( foam.isRegistered('foam.lang.' + str) )
+          return 'foam.lang.' + str;
 
-      if ( foam.isRegistered(str) )
+        if ( foam.isRegistered(str) )
+          return str;
+
         return str;
-
-      return str;
+      })
     }
   ]
 });
