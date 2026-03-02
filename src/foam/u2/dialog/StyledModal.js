@@ -136,7 +136,8 @@ foam.CLASS({
     {
       class: 'String',
       name: 'description'
-    }
+    },
+    'wrapper_'
   ],
 
   methods: [
@@ -155,7 +156,7 @@ foam.CLASS({
           .addClass(this.myClass('background'))
           .on('click', this.closeable ? this.close : null)
         .end()
-        .start(this.Rows)
+        .start(this.Rows, {}, this.wrapper_$)
           .addClass(this.myClass('wrapper'))
           .style({
             'max-height': this.slot(function(fullscreen, maxHeight) { return ! fullscreen ? maxHeight : ''}),
@@ -188,6 +189,10 @@ foam.CLASS({
             .end()
           .end()
         .end();
+    },
+    function styleWrapper() {
+      this.wrapper_.style(...arguments);
+      return this;
     },
     function addBody() {
       return this.E().tag('', null, this.content$);

@@ -285,6 +285,11 @@ foam.CLASS({
       justify-content: space-between;
       gap: 0.8rem;
     }
+    ^labels {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2lh;
+    }
   `,
 
   methods: [
@@ -297,6 +302,7 @@ foam.CLASS({
         start().
           addClass(this.myClass('labelHolder')).
           start().
+          addClass(this.myClass('labels')).
           add(labelSlot).
           add(supportingLabelSlot).
           end().
@@ -355,7 +361,7 @@ foam.CLASS({
           this
             .start(self.ExpandableBorder, { expanded$: self.helpEnabled$, title: self.HELP })
               .style({ 'flex-basis': '100%', width: '100%' })
-              .start('p').add(prop.help).end()
+              .start().addClass('p').add(prop.help).end()
             .end();
         });
     }
