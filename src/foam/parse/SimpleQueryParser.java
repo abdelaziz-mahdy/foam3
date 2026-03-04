@@ -54,7 +54,7 @@ public class SimpleQueryParser
    * Returns null if the input is empty or parsing fails.
    */
   public Predicate parseString(String query) {
-    return parseString(query, null);
+    return (Predicate) parseString(query, null);
   }
 
   /**
@@ -580,7 +580,7 @@ public class SimpleQueryParser
       });
 
       propPredicates.add(new Seq(propertyParser, g.sym(compareSymName)));
-    } catch ( Exception e ) {
+    } catch ( java.lang.Exception e ) {
       // Skip this enum property if reflection fails
     }
   }
@@ -791,7 +791,8 @@ public class SimpleQueryParser
         if ( isStringArrayProp(prop) ) {
           In in = new In();
           in.setArg1(prop);
-          in.setArg2(MLang.prepare(value));
+          Object eqVal = value instanceof Object[] ? value : new Object[] { value };
+          in.setArg2(MLang.prepare(eqVal));
           return in;
         }
         return eq(prop, value);
@@ -800,7 +801,8 @@ public class SimpleQueryParser
         if ( isStringArrayProp(prop) ) {
           In in = new In();
           in.setArg1(prop);
-          in.setArg2(MLang.prepare(value));
+          Object neqVal = value instanceof Object[] ? value : new Object[] { value };
+          in.setArg2(MLang.prepare(neqVal));
           foam.mlang.predicate.Not not = new foam.mlang.predicate.Not();
           not.setArg1(in);
           return not;
