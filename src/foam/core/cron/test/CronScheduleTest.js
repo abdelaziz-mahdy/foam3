@@ -236,7 +236,10 @@ foam.CLASS({
         cal.setTimeZone(TimeZone.getTimeZone(zoneId));
       }
       cal.setTime(next);
-      test ( cal.get(Calendar.HOUR_OF_DAY) == 2, "EST Hour 2" );
+      LocalDate estDate = LocalDateTime.ofInstant(next.toInstant(), zoneId).toLocalDate();
+      LocalDateTime expectedEstTime = LocalDateTime.of(estDate, LocalTime.of(2, 25, sched.getSecond()));
+      int expectedEstHour = zoneId.getRules().getValidOffsets(expectedEstTime).isEmpty() ? 3 : 2;
+      test ( cal.get(Calendar.HOUR_OF_DAY) == expectedEstHour, "EST Hour " + expectedEstHour );
       test ( cal.get(Calendar.MINUTE) == 25, "EST Minute 25" );
       `
     }
