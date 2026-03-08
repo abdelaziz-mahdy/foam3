@@ -21,7 +21,6 @@ APP_NAME=
 APP_HOME=/app
 VERSION=
 EXTRACT_DIR=/tmp/tar_extract
-RESOURCES_DIR=/tmp/resources_extract
 WEB_PORT=8080
 
 function info {
@@ -39,20 +38,18 @@ function usage {
     echo "  -A app-home     : Application deployment directory (default: /app)"
     echo "  -E extract-dir  : Directory where docker tarball was extracted (default: /tmp/tar_extract)"
     echo "  -N app-name     : Application name (required)"
-    echo "  -R resources-dir: Directory where resources tarball was extracted (optional)"
     echo "  -V version      : Application version (required)"
     echo "  -W port         : Web server port (default: 8080)"
     echo ""
     echo "Example:"
-    echo "  $0 -A /app -N myapp -V 1.0.0 -R /tmp/resources_extract -W 8080"
+    echo "  $0 -A /app -N myapp -V 1.0.0 -W 8080"
 }
 
-while getopts "A:E:N:R:V:W:h" opt ; do
+while getopts "A:E:N:V:W:h" opt ; do
     case $opt in
         A) APP_HOME=${OPTARG};;
         E) EXTRACT_DIR=${OPTARG};;
         N) APP_NAME=${OPTARG};;
-        R) RESOURCES_DIR=${OPTARG};;
         V) VERSION=${OPTARG};;
         W) WEB_PORT=${OPTARG};;
         h) usage; exit 0;;
@@ -75,15 +72,11 @@ fi
 
 info "Installing ${APP_NAME} v${VERSION} to ${APP_HOME}"
 
-# Create application directories
+# Create application directories (runtime dirs like journals, logs, documents are mounted as volumes)
 mkdir -p ${APP_HOME}/lib
 mkdir -p ${APP_HOME}/bin
 mkdir -p ${APP_HOME}/etc
 mkdir -p ${APP_HOME}/conf
-mkdir -p ${APP_HOME}/journals
-mkdir -p ${APP_HOME}/documents
-mkdir -p ${APP_HOME}/logs
-mkdir -p ${APP_HOME}/saf
 
 # Copy library files (JARs) from docker tarball
 if [ -d "${EXTRACT_DIR}/lib" ]; then
@@ -92,17 +85,6 @@ if [ -d "${EXTRACT_DIR}/lib" ]; then
 else
     error "No lib directory found in ${EXTRACT_DIR}"
     exit 1
-fi
-
-# Copy resources JAR from resources tarball (if provided)
-if [ -n "${RESOURCES_DIR}" ]; then
-    if [ -d "${RESOURCES_DIR}/lib" ]; then
-        cp -r ${RESOURCES_DIR}/lib/* ${APP_HOME}/lib/
-        info "Installed resources JAR to ${APP_HOME}/lib"
-    else
-        error "No lib directory found in ${RESOURCES_DIR}"
-        exit 1
-    fi
 fi
 
 # Copy bin files (scripts)
@@ -129,10 +111,6 @@ fi
 chmod -R 755 ${APP_HOME}/bin 2>/dev/null || true
 chmod -R 644 ${APP_HOME}/lib/*.jar 2>/dev/null || true
 chmod -R 755 ${APP_HOME}/conf 2>/dev/null || true
-chmod -R 755 ${APP_HOME}/journals 2>/dev/null || true
-chmod -R 755 ${APP_HOME}/documents 2>/dev/null || true
-chmod -R 755 ${APP_HOME}/logs 2>/dev/null || true
-chmod -R 755 ${APP_HOME}/saf 2>/dev/null || true
 
 info "Installation complete"
 info "  APP_HOME: ${APP_HOME}"
