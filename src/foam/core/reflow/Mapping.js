@@ -390,11 +390,11 @@ foam.CLASS({
 
       // Collision detected - append suffix to make unique
       var suffix = 2;
-      var newNormalized = normalized + '_' + suffix;
+      var newNormalized = normalized + suffix;
       while ( constantMap[foam.String.constantize(newNormalized)] ||
               names[newNormalized] ) {
         suffix++;
-        newNormalized = normalized + '_' + suffix;
+        newNormalized = normalized + suffix;
       }
       constantMap[foam.String.constantize(newNormalized)] = newNormalized;
       names[newNormalized]                                = true;
