@@ -233,6 +233,7 @@ foam.CLASS({
         for ( var i = 0 ; i < fileHeaders.length ; i++ ) {
           var original   = fileHeaders[i];
           var normalized = this.normalizeHeader(original);
+          normalized     = normalized || 'field' + i;
           normalized     = this.resolveConstantCollision(normalized, constantMap);
 
           headerMap[normalized] = original;
@@ -360,29 +361,43 @@ foam.CLASS({
   methods: [
     function normalizeHeader(header) {
       /** Normalize a header string to a valid property name. */
-      return header.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[0-9]+/, '');
+      var s = header.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[^a-zA-Z]+/, '');
+      if ( ! s ) return '';
+      // FOAM property names must start with a lowercase letter to avoid
+      // collisions with the UPPER_CASE constant name that FOAM generates
+      // for each property (e.g., an all-caps name would clash with itself).
+      return s.charAt(0).toLowerCase() + s.substring(1);
     },
 
     function resolveConstantCollision(normalized, constantMap) {
       /**
-       * Resolve FOAM constant name collisions by appending a numeric suffix.
-       * Returns the resolved property name.
+       * Resolve FOAM constant and property name collisions by appending
+       * a numeric suffix. constantMap tracks both constant names (keys)
+       * and used property names (via a '__names__' Set).
+       * Returns a unique resolved property name.
        */
+      var names        = constantMap.__names__ || ( constantMap.__names__ = {} );
       var constantName = foam.String.constantize(normalized);
 
-      if ( ! constantMap[constantName] || constantMap[constantName] === normalized ) {
+      // No collision if both the constant and property name are unused
+      // or belong to this same normalized name
+      if ( ( ! constantMap[constantName] || constantMap[constantName] === normalized ) &&
+           ! names[normalized] ) {
         constantMap[constantName] = normalized;
+        names[normalized]         = true;
         return normalized;
       }
 
       // Collision detected - append suffix to make unique
       var suffix = 2;
-      var newNormalized = normalized + '_' + suffix;
-      while ( constantMap[foam.String.constantize(newNormalized)] ) {
+      var newNormalized = normalized + suffix;
+      while ( constantMap[foam.String.constantize(newNormalized)] ||
+              names[newNormalized] ) {
         suffix++;
-        newNormalized = normalized + '_' + suffix;
+        newNormalized = normalized + suffix;
       }
       constantMap[foam.String.constantize(newNormalized)] = newNormalized;
+      names[newNormalized]                                = true;
       return newNormalized;
     },
 
