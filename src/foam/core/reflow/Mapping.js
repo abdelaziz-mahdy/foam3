@@ -233,7 +233,7 @@ foam.CLASS({
         for ( var i = 0 ; i < fileHeaders.length ; i++ ) {
           var original   = fileHeaders[i];
           var normalized = this.normalizeHeader(original);
-          normalized     = normalized || 'field_' + i;
+          normalized     = normalized || 'field' + i;
           normalized     = this.resolveConstantCollision(normalized, constantMap);
 
           headerMap[normalized] = original;
