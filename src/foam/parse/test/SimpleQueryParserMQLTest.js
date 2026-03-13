@@ -99,7 +99,7 @@ foam.CLASS({
         'longitude>=' + fmt(f(6.5)) + ' AND longitude<' + fmt(g(6.5))),
         'Float MQL 1: equals');
       x.test(this.isValidMQL('address.longitude!=6.5',
-        'longitude>=' + fmt(g(6.5)) + ' OR longitude<' + fmt(f(6.5))),
+        '(longitude>=' + fmt(g(6.5)) + ' OR longitude<' + fmt(f(6.5)) + ')'),
         'Float MQL 2: not equals');
       x.test(this.isValidMQL('address.longitude > 6.5',
         'longitude>' + fmt(g(6.5))),
@@ -117,7 +117,7 @@ foam.CLASS({
         'latitude>=' + fmt(f(6.5)) + ' AND latitude<' + fmt(g(8.5))),
         'Float MQL 7: IN RANGE');
       x.test(this.isValidMQL('address.latitude NOT IN RANGE (6.5, 8.5)',
-        'latitude>=' + fmt(g(8.5)) + ' OR latitude<' + fmt(f(6.5))),
+        '(latitude>=' + fmt(g(8.5)) + ' OR latitude<' + fmt(f(6.5)) + ')'),
         'Float MQL 8: NOT IN RANGE');
 
       // ── Float scientific notation guard ──
@@ -135,7 +135,7 @@ foam.CLASS({
         'created>=' + dateMQL([2025, 0, 1, 0]) + ' AND created<' + dateMQL([2025, 0, 2, 0])),
         'Date MQL 1: equals');
       x.test(this.isValidMQL('created!=2025-01-01',
-        'created>=' + dateMQL([2025, 0, 2, 0]) + ' OR created<' + dateMQL([2025, 0, 1, 0])),
+        '(created>=' + dateMQL([2025, 0, 2, 0]) + ' OR created<' + dateMQL([2025, 0, 1, 0]) + ')'),
         'Date MQL 2: not equals');
       x.test(this.isValidMQL('created > 2025-01-01',
         'created>' + dateMQL([2025, 0, 2, 0])),
@@ -153,7 +153,7 @@ foam.CLASS({
         'created>=' + dateMQL([2025, 0, 1, 0]) + ' AND created<' + dateMQL([2025, 5, 2, 0])),
         'Date MQL 7: IN RANGE');
       x.test(this.isValidMQL('created NOT IN RANGE (2025-01-01, 2025-06-01)',
-        'created>=' + dateMQL([2025, 5, 2, 0]) + ' OR created<' + dateMQL([2025, 0, 1, 0])),
+        '(created>=' + dateMQL([2025, 5, 2, 0]) + ' OR created<' + dateMQL([2025, 0, 1, 0]) + ')'),
         'Date MQL 8: NOT IN RANGE');
 
       // ── Date IS EMPTY / IS NOT EMPTY ──
@@ -189,7 +189,7 @@ foam.CLASS({
       // ── Composite predicates ──
       x.test(this.isValidMQL('id > 5 AND firstName = John', 'id>5 AND firstName="John"'),
         'Composite MQL 1: AND');
-      x.test(this.isValidMQL('id = 5 OR id = 10', 'id=5 OR id=10'),
+      x.test(this.isValidMQL('id = 5 OR id = 10', '(id=5 OR id=10)'),
         'Composite MQL 2: OR');
       x.test(this.isValidMQL('( id = 6 )', 'id=6'),
         'Composite MQL 3: parentheses');
@@ -199,6 +199,24 @@ foam.CLASS({
       // NOT CONTAINS survives partialEval, hits Not.toMQL general fallback
       x.test(this.isValidMQL('NOT firstName CONTAINS John', 'NOT (firstName:"John")'),
         'Composite MQL 5: NOT CONTAINS (general fallback)');
+
+      // ── Operator precedence (OR inside AND) ──
+      x.test(this.isValidMQL(
+        'address.longitude!=6.5 AND id = 5',
+        '(longitude>=' + fmt(g(6.5)) + ' OR longitude<' + fmt(f(6.5)) + ') AND id=5'),
+        'Precedence MQL 1: float != inside AND');
+      x.test(this.isValidMQL(
+        'id = 5 AND address.longitude!=6.5',
+        'id=5 AND (longitude>=' + fmt(g(6.5)) + ' OR longitude<' + fmt(f(6.5)) + ')'),
+        'Precedence MQL 2: AND then float !=');
+      x.test(this.isValidMQL(
+        'address.latitude NOT IN RANGE (6.5, 8.5) AND firstName = John',
+        '(latitude>=' + fmt(g(8.5)) + ' OR latitude<' + fmt(f(6.5)) + ') AND firstName="John"'),
+        'Precedence MQL 3: NOT IN RANGE inside AND');
+      x.test(this.isValidMQL(
+        'created!=2025-01-01 AND id > 5',
+        '(created>=' + dateMQL([2025, 0, 2, 0]) + ' OR created<' + dateMQL([2025, 0, 1, 0]) + ') AND id>5'),
+        'Precedence MQL 4: date != inside AND');
     },
 
     function buildMQL(query) {
