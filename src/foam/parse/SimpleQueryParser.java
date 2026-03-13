@@ -113,14 +113,18 @@ public class SimpleQueryParser
     // digits: one or more digit chars joined into a string
     g.addSymbol("digits", new Join(new Repeat(Range.create('0', '9'), 1)));
 
-    // float: optional negative, digits, optional decimal part → joined string
+    // rawDigits: same grammar as digits but without the parseInt action, preserves leading zeros
+    g.addSymbol("rawDigits", new Join(new Repeat(Range.create('0', '9'), 1)));
+
+    // float: optional negative, rawDigits, optional decimal part → joined string
+    // Uses rawDigits (not digits) to avoid parseInt stripping leading zeros (e.g., "001" → 1)
     g.addSymbol("float",
       new Seq1(1,
         g.sym("ws"),
         new Join(new Seq(
           new Optional(Literal.create("-")),
-          g.sym("digits"),
-          new Optional(new Join(new Seq(Literal.create("."), new Optional(g.sym("digits")))))))));
+          g.sym("rawDigits"),
+          new Optional(new Join(new Seq(Literal.create("."), new Optional(g.sym("rawDigits")))))))));
 
     // floats: two or more floats separated by comma (for IN RANGE)
     g.addSymbol("floats", new Repeat(g.sym("float"), Literal.create(","), 2));

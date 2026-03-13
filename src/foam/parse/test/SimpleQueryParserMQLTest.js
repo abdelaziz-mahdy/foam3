@@ -18,11 +18,14 @@ foam.CLASS({
       var EPSILON = 0.0000000001;
       var f = function(num) { return num - EPSILON; };
       var g = function(num) { return num + EPSILON; };
-      // Format a float the same way Constant.toMQL does
+      // Expected float formatting: String() for normal decimals, toFixed for scientific notation
       var fmt = function(num) {
-        var s = num.toFixed(20);
-        s = s.replace(/0+$/, '');
-        if ( s.endsWith('.') ) s += '0';
+        var s = String(num);
+        if ( s.indexOf('e') !== -1 || s.indexOf('E') !== -1 ) {
+          s = num.toFixed(20);
+          s = s.replace(/0+$/, '');
+          if ( s.endsWith('.') ) s += '0';
+        }
         return s;
       };
       // Format a date the same way Constant.toMQL does (truncate at second colon)
@@ -119,6 +122,43 @@ foam.CLASS({
       x.test(this.isValidMQL('address.latitude NOT IN RANGE (6.5, 8.5)',
         '(latitude>=' + fmt(g(8.5)) + ' OR latitude<' + fmt(f(6.5)) + ')'),
         'Float MQL 8: NOT IN RANGE');
+
+      // ── Float small-value precision (Constant.toMQL must not corrupt small floats) ──
+      x.test(this.constantToMQL(0.001) === '0.001',
+        'Float MQL constant 1: 0.001 formats correctly, got: ' + this.constantToMQL(0.001));
+      x.test(this.constantToMQL(0.0001) === '0.0001',
+        'Float MQL constant 2: 0.0001 formats correctly, got: ' + this.constantToMQL(0.0001));
+      x.test(this.constantToMQL(-0.0001) === '-0.0001',
+        'Float MQL constant 3: -0.0001 formats correctly, got: ' + this.constantToMQL(-0.0001));
+      x.test(this.constantToMQL(0.5) === '0.5',
+        'Float MQL constant 4: 0.5 formats correctly, got: ' + this.constantToMQL(0.5));
+      x.test(this.constantToMQL(0.1) === '0.1',
+        'Float MQL constant 5: 0.1 formats correctly, got: ' + this.constantToMQL(0.1));
+      x.test(this.constantToMQL(1.23) === '1.23',
+        'Float MQL constant 6: 1.23 formats correctly, got: ' + this.constantToMQL(1.23));
+      x.test(this.constantToMQL(0.00000001) === '0.00000001',
+        'Float MQL constant 7: 0.00000001 formats correctly, got: ' + this.constantToMQL(0.00000001));
+
+      // ── Float epsilon-adjusted small values (the values that actually appear in MQL) ──
+      x.test(this.constantToMQL(f(0.0001)) === String(f(0.0001)),
+        'Float MQL epsilon 1: f(0.0001) no corruption, got: ' + this.constantToMQL(f(0.0001)));
+      x.test(this.constantToMQL(g(0.0001)) === String(g(0.0001)),
+        'Float MQL epsilon 2: g(0.0001) no corruption, got: ' + this.constantToMQL(g(0.0001)));
+      x.test(this.constantToMQL(f(-0.0001)) === String(f(-0.0001)),
+        'Float MQL epsilon 3: f(-0.0001) no corruption, got: ' + this.constantToMQL(f(-0.0001)));
+      x.test(this.constantToMQL(g(-0.0001)) === String(g(-0.0001)),
+        'Float MQL epsilon 4: g(-0.0001) no corruption, got: ' + this.constantToMQL(g(-0.0001)));
+
+      // ── Float IN RANGE with small values (user-reported bug) ──
+      x.test(this.isValidMQL('address.latitude IN RANGE (-0.0001, 0.0001)',
+        'latitude>=' + String(f(-0.0001)) + ' AND latitude<' + String(g(0.0001))),
+        'Float MQL small range 1: IN RANGE (-0.0001, 0.0001)');
+      x.test(this.isValidMQL('address.latitude NOT IN RANGE (-0.0001, 0.0001)',
+        '(latitude>=' + String(g(0.0001)) + ' OR latitude<' + String(f(-0.0001)) + ')'),
+        'Float MQL small range 2: NOT IN RANGE (-0.0001, 0.0001)');
+      x.test(this.isValidMQL('address.latitude IN RANGE (0.001, 0.01)',
+        'latitude>=' + String(f(0.001)) + ' AND latitude<' + String(g(0.01))),
+        'Float MQL small range 3: IN RANGE (0.001, 0.01)');
 
       // ── Float scientific notation guard ──
       x.test(this.hasNoScientificNotation(this.buildMQL('address.longitude = 0')),
@@ -233,6 +273,11 @@ foam.CLASS({
       if ( mql == null ) return false;
       console.log('MQL Result: ' + mql + ', Expected: ' + expectedMQL);
       return mql === expectedMQL;
+    },
+
+    function constantToMQL(value) {
+      var c = foam.mlang.Constant.create({ value: value });
+      return c.toMQL();
     },
 
     function hasNoScientificNotation(mql) {

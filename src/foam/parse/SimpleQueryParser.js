@@ -191,8 +191,11 @@ foam.CLASS({
 
           digits: str(repeat(range('0', '9'), null, 1)),
 
+          // rawDigits preserves leading zeros (no parseInt action) for use in float parsing
+          rawDigits: str(repeat(range('0', '9'), null, 1)),
+
           // TODO replace '.' with an internationalized decimal point, or have the input preprocessed
-          float: seq1(1, sym('ws'), str(seq(optional('-'), sym('digits'), optional(str(seq('.', optional(sym('digits')))))))),
+          float: seq1(1, sym('ws'), str(seq(optional('-'), sym('rawDigits'), optional(str(seq('.', optional(sym('rawDigits')))))))),
 
           numberArray: seq1(1, sym('ws'), sym('numbers'), sym('ws'), ')'),
 
