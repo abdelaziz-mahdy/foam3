@@ -49,6 +49,12 @@ foam.CLASS({
       align-items: center;
     }
 
+    ^disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     button^button {
       padding: 8px;
       width: 100%;
@@ -302,6 +308,7 @@ foam.CLASS({
         }).
         start().
           addClass(self.myClass('heading')).
+          enableClass(self.myClass('disabled'), self.data.enabled === false).
           style({
             'padding-left': (((self.level - 0.5) * 16 ) + 'px')
           }).
