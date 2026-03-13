@@ -74,6 +74,17 @@ foam.CLASS({
 
       if ( foam.String.isInstance(this.value) )
         return '\"' + this.value + '\"';
+
+      if ( typeof this.value === 'number' && ! Number.isInteger(this.value) && isFinite(this.value) ) {
+        var s = this.value.toFixed(20);
+        s = s.replace(/0+$/, '');
+        if ( s.endsWith('.') ) s += '0';
+        return s;
+      }
+
+      if ( typeof this.value === 'boolean' )
+        return this.value ? 'true' : 'false';
+
       return this.value;
     }
   ]
