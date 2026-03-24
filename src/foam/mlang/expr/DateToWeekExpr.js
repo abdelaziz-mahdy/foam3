@@ -32,13 +32,14 @@ foam.CLASS({
 
         // Get ISO week number (1-53)
         // ISO week starts on Monday, week 1 contains first Thursday of year
-        var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        // Use UTC methods to avoid DST/timezone shifts
+        var d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
         var dayNum = d.getUTCDay() || 7;
         d.setUTCDate(d.getUTCDate() + 4 - dayNum);
         var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
         var weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 
-        return date.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
+        return date.getUTCFullYear() + '-W' + String(weekNum).padStart(2, '0');
       },
       javaCode: `
         java.util.Date date = (java.util.Date) getDelegate().f(obj);

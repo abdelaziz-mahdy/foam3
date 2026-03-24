@@ -486,6 +486,7 @@ foam.CLASS({
     { class: 'Int', name: 'cutoutPercentage', value: 0 },
     { class: 'Boolean', name: 'clockwise', value: true },
     { class: 'Int', name: 'rotation', value: -90 },
+    { class: 'Boolean', name: 'disableLegendClick', value: false, help: 'Disable legend click to toggle slice visibility' },
     // Display properties
     { class: 'Boolean', name: 'responsive', value: true },
     { class: 'Boolean', name: 'maintainAspectRatio', value: false },
@@ -505,7 +506,7 @@ foam.CLASS({
       transient: true,
       expression: function(groups,groupKeys, colors, showPercentages, cutoutPercentage, clockwise, rotation,
                           responsive, maintainAspectRatio, showLegend,
-                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration, width, emptyValueMessage) {
+                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration, width, emptyValueMessage, disableLegendClick) {
         // Don't create chart until we have a valid width
         if ( ! width || width <= 0 ) {
           return null;
@@ -557,13 +558,13 @@ foam.CLASS({
             legend: {
               display: showLegend,
               position: legendPosition ? legendPosition.toString().toLowerCase() : 'top',
-
+              onClick: disableLegendClick ? function() { /* no-op: prevent slice toggle */ } : undefined,
             },
             tooltip: {
               enabled: showTooltips,
               callbacks: (function() {
                 var callbacks = {};
-                
+
                 // Add percentage display to individual tooltip labels
                 if ( showPercentages ) {
                   callbacks.label = function(context) {

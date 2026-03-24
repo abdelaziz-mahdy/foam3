@@ -30,8 +30,9 @@ foam.CLASS({
         var date = this.delegate.f(obj);
         if ( ! date ) return '';
 
-        var year = date.getFullYear();
-        var quarter = Math.floor(date.getMonth() / 3) + 1;
+        // Use UTC methods to avoid DST/timezone shifts causing wrong quarter
+        var year = date.getUTCFullYear();
+        var quarter = Math.floor(date.getUTCMonth() / 3) + 1;
 
         return year + '-Q' + quarter;
       },

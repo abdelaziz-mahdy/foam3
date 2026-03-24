@@ -30,7 +30,8 @@ foam.CLASS({
         var date = this.delegate.f(obj);
         if ( ! date ) return '';
 
-        var year  = date.getFullYear();
+        // Use UTC to avoid DST/timezone shifts causing wrong year at boundaries
+        var year  = date.getUTCFullYear();
 
         return year;
       },
