@@ -40,12 +40,11 @@ foam.CLASS({
         java.util.Date date = (java.util.Date) getDelegate().f(obj);
         if ( date == null ) return "";
 
-        java.util.Calendar cal = java.util.Calendar.getInstance();
+        java.util.Calendar cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
         cal.setTime(date);
 
         int year  = cal.get(java.util.Calendar.YEAR);
         int month = cal.get(java.util.Calendar.MONTH) + 1;
-        int day   = cal.get(java.util.Calendar.DAY_OF_MONTH);
 
         return String.format("%04d/%02d", year, month);
       `

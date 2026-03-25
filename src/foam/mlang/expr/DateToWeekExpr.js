@@ -45,7 +45,7 @@ foam.CLASS({
         java.util.Date date = (java.util.Date) getDelegate().f(obj);
         if ( date == null ) return "";
 
-        java.util.Calendar cal = java.util.Calendar.getInstance();
+        java.util.Calendar cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
         cal.setTime(date);
         cal.setFirstDayOfWeek(java.util.Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
