@@ -78,7 +78,6 @@ foam.CLASS({
         function render() {
           let arrView = this.arrayView
           var summaryType = arrView.title || this.value.toSummary ? this.value$.map(v => v.toSummary()) : ('New ' + arrView.of.model_.label);
-          // var label = this.value$.dot('label').map(label => label || ('New ' + arrView.of.model_.label))
           var summaryTypeClass = this.value.toCSSClassName ? this.value$.map(v => v.toCSSClassName().code()) : 'default';
 
           this
@@ -98,11 +97,6 @@ foam.CLASS({
                     ).end()
                   .end()
                   .start().addClass(this.myClass('actions-holder'))
-                    // .start('span')
-                    //   .addClass('type-label')
-                    //   .addClass(summaryTypeClass)
-                    //   .add(summaryType)
-                    // .end()
                     .tag(this.REMOVE_ROW, {
                       buttonStyle: 'TERTIARY',
                       themeIcon: 'trash',
