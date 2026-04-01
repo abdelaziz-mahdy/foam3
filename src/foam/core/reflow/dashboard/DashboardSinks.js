@@ -2015,17 +2015,13 @@ foam.CLASS({
       if (!d || !c) return;
       let key = d;
       if ( ! (d instanceof Date) ) {
-        // Try to parse as a date string
         if ( typeof d !== 'string' ) {
-          // Should never happen, but just in case.
-          throw new Error('Date must be Date object or a string'); 
+          throw new Error('Date must be Date object or a string');
         }
-        if (d.length === 7) { d = d + `${d[4]}01`; }  // d[4] MUST be '/' or '-'
-        // We only support YYYY/MM and YYYY/MM/DD formats. Add support for the other formats if needed.
-        const datePattern = /^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/;
-        const dateParser = (m) => new Date(Date.UTC(m[1], m[2] - 1, m[3]));
-        if ( ! datePattern.test(d) ) { return; }
-        key = dateParser(d.match(datePattern));
+        if ( d.length === 7 ) { d = d + d[4] + '01'; }
+        d = foam.parse.DateParser.create().parseDateString(d);
+        if ( ! d || d.getTime() === foam.Date.MAX_DATE.getTime() ) return;
+        key = d;
       }
       key = key.toISOString().slice(0, 10);
       if (!this.map_[key]) this.map_[key] = {};
