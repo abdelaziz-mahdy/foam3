@@ -426,7 +426,6 @@ foam.POM({
     { name: "foam/parse/NumberGrammar",                              flags: "js" },
     { name: "foam/parse/NumberParser",                               flags: "js" },
     { name: "foam/parse/auto/SmartView",                              flags: "web" },
-    { name: "foam/parse/SimpleQueryParser",                           flags: "js" },
     { name: "foam/parse/FScriptParser",                               flags: "js" },
     { name: "foam/parse/test/FScriptParserTestUser",                  flags: "js&test|java&test" },
     { name: "foam/parse/test/FScriptParserTest",                      flags: "js&test|java&test" },
