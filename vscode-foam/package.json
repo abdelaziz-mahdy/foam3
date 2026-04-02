@@ -1,0 +1,40 @@
+{
+  "name": "foam-lsp",
+  "displayName": "FOAM3 Language Support",
+  "description": "Autocomplete, hover, go-to-definition, and diagnostics for FOAM3 model files",
+  "version": "0.1.0",
+  "publisher": "paytic",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages"],
+  "activationEvents": [
+    "workspaceContains:**/foam3/src/foam.js",
+    "workspaceContains:**/pom.js"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "FOAM LSP",
+      "properties": {
+        "foam.buildScript": {
+          "type": "string",
+          "default": "./build.sh",
+          "description": "Path to build.sh relative to workspace root"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
