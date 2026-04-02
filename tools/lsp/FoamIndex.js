@@ -1,0 +1,186 @@
+/**
+ * @license
+ * Copyright 2026 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+foam.CLASS({
+  package: 'foam.parse.lsp',
+  name: 'FoamIndex',
+
+  documentation: 'Query layer over the FOAM runtime class registry for LSP handlers.',
+
+  properties: [
+    {
+      name: 'cache_',
+      factory: function() { return {}; }
+    }
+  ],
+
+  methods: [
+    function getAllClassIds() {
+      /** Returns all known class IDs from USED + UNUSED. */
+      return Object.keys({ ...foam.USED, ...foam.UNUSED });
+    },
+
+    function getClass(id) {
+      /** Resolves a class by ID, returns null if not found. */
+      return foam.maybeLookup(id);
+    },
+
+    function classExists(id) {
+      /** Returns true if the class ID is registered. */
+      return foam.isRegistered(id);
+    },
+
+    function getPropertyTypes() {
+      /** Finds all classes that extend foam.lang.Property. */
+      if ( this.cache_.propertyTypes ) return this.cache_.propertyTypes;
+
+      var PropertyClass = foam.lang.Property;
+      var types = [];
+
+      var ids = this.getAllClassIds();
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        try {
+          var cls = foam.maybeLookup(ids[i]);
+          if ( cls && PropertyClass.isSubClass(cls) ) {
+            types.push({
+              name: cls.model_.name,
+              id:   cls.model_.id,
+              doc:  cls.model_.documentation || ''
+            });
+          }
+        } catch (x) {}
+      }
+
+      this.cache_.propertyTypes = types;
+      return types;
+    },
+
+    function getAxioms(classId) {
+      /** Returns all axioms for a class including inherited. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getAxiomsByClass(foam.lang.Axiom);
+    },
+
+    function getProperties(classId) {
+      /** Returns property axioms for a class. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getAxiomsByClass(foam.lang.Property);
+    },
+
+    function getMethods(classId) {
+      /** Returns method axioms for a class. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getAxiomsByClass(foam.lang.Method);
+    },
+
+    function getActions(classId) {
+      /** Returns action axioms for a class. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getAxiomsByClass(foam.lang.Action);
+    },
+
+    function getSourceLocation(classId) {
+      /** Returns { path, line } for a class definition. */
+      var m = foam.USED[classId] || foam.UNUSED[classId];
+      if ( ! m ) return null;
+      return m.source ? { path: m.source, line: 1 } : null;
+    },
+
+    function getInheritanceChain(classId) {
+      /** Returns [classId, parentId, ..., 'foam.lang.FObject']. */
+      var chain = [];
+      var cls = this.getClass(classId);
+      while ( cls ) {
+        chain.push(cls.id);
+        if ( ! cls.model_.extends || cls.id === 'foam.lang.FObject' ) break;
+        cls = this.getClass(cls.model_.extends);
+      }
+      return chain;
+    },
+
+    function getSubclasses(classId) {
+      /** Returns all direct subclasses of a class. */
+      var subs = [];
+      var ids = this.getAllClassIds();
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        var m = foam.USED[ids[i]] || foam.UNUSED[ids[i]];
+        if ( m && m.extends === classId ) subs.push(ids[i]);
+      }
+      return subs;
+    },
+
+    function getImports(classId) {
+      /** Returns import axioms for a class. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getAxiomsByClass(foam.lang.Import);
+    },
+
+    function getRequires(classId) {
+      /** Returns requires axioms for a class. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getAxiomsByClass(foam.lang.Requires);
+    },
+
+    function getEnumValues(classId) {
+      /** Returns enum values for an enum class. */
+      var cls = this.getClass(classId);
+      if ( ! cls || ! cls.VALUES ) return [];
+      return cls.VALUES.map(function(v) {
+        return { name: v.name, label: v.label, ordinal: v.ordinal };
+      });
+    },
+
+    function getClassDoc(classId) {
+      /** Build markdown hover content for a class. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return null;
+      var m = cls.model_;
+
+      var md = '**' + m.id + '**\n\n';
+      if ( m.extends && m.extends !== 'FObject' ) md += 'extends `' + m.extends + '`\n\n';
+      if ( m.documentation ) md += m.documentation + '\n\n';
+
+      var props = this.getProperties(classId);
+      if ( props.length ) {
+        md += '**Properties:** ' + props.map(function(p) {
+          return '`' + p.name + '`';
+        }).join(', ') + '\n';
+      }
+
+      return md;
+    },
+
+    function getPropertyDoc(classId, propName) {
+      /** Build markdown hover content for a property. */
+      var cls = this.getClass(classId);
+      if ( ! cls ) return null;
+      var prop = cls.getAxiomByName(propName);
+      if ( ! prop ) return null;
+
+      var md = '**' + propName + '** (' + (prop.cls_ && prop.cls_.model_ ? prop.cls_.model_.name : 'Property') + ')\n\n';
+      if ( prop.documentation ) md += prop.documentation + '\n\n';
+      if ( prop.value !== undefined && prop.value !== '' ) md += 'Default: `' + prop.value + '`\n';
+      return md;
+    },
+
+    function invalidate(classId) {
+      /** Clear cache for a class and dependents. */
+      delete this.cache_[classId];
+      delete this.cache_.propertyTypes;
+    },
+
+    function invalidateAll() {
+      /** Clear all caches. */
+      this.cache_ = {};
+    }
+  ]
+});
