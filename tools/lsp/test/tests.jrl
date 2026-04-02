@@ -1,1 +1,3 @@
 p({"class":"foam.parse.lsp.test.FoamIndexTest","id":"FoamIndexTest", language: 0})
+p({"class":"foam.parse.lsp.test.FoamClassGrammarTest","id":"FoamClassGrammarTest", language: 0})
+p({"class":"foam.parse.lsp.test.HandlersTest","id":"HandlersTest", language: 0})

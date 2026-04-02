@@ -1,7 +1,8 @@
 foam.POM({
   name: 'lsp',
   files: [
-    { name: 'FoamIndex', flags: 'js' }
+    { name: 'FoamIndex', flags: 'js' },
+    { name: 'FoamClassGrammar', flags: 'js' }
   ],
   projects: [
     { name: 'handlers/pom' },

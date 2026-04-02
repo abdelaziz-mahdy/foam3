@@ -1,6 +1,8 @@
 foam.POM({
   name: 'lsp-test',
   files: [
-    { name: 'FoamIndexTest', flags: 'js&test|java&test' }
+    { name: 'FoamIndexTest', flags: 'js&test|java&test' },
+    { name: 'FoamClassGrammarTest', flags: 'js&test|java&test' },
+    { name: 'HandlersTest', flags: 'js&test|java&test' }
   ]
 });
