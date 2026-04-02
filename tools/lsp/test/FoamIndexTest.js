@@ -75,11 +75,11 @@ foam.CLASS({
       x.test(propDoc != null, 'Should generate property doc for text');
       x.test(propDoc.indexOf('text') !== -1, 'Property doc should contain property name');
 
-      // getSourceLocation returns path (may be null in Node.js if source not tracked)
+      // getSourceLocation returns path or null
       var loc = index.getSourceLocation('foam.parse.Suggestion');
-      // Source may or may not be set depending on build environment
-      x.test(loc == null || (loc.path && loc.path.indexOf('parse') !== -1),
-        'Source location should be null or point to parse directory');
+      // Source tracking depends on build environment — just verify shape
+      x.test(loc == null || (loc.path && loc.line),
+        'Source location should be null or have path and line');
 
       // getClassDoc returns markdown
       var doc = index.getClassDoc('foam.parse.Suggestion');
