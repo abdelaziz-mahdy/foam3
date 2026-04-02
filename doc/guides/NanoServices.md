@@ -349,35 +349,46 @@ foam.CLASS({
 ```
 
 **CalculatorServiceSkeleton** (server-side handler):
-```javascript
+```java
 // Generated - do not edit
-foam.CLASS({
-  package: 'com.example',
-  name: 'CalculatorServiceSkeleton',
-  implements: ['foam.box.Skeleton'],
+package com.example;
 
-  properties: [
-    { name: 'delegate' }  // The real service implementation
-  ],
+public class CalculatorServiceSkeleton extends foam.box.AbstractSkeleton {
 
-  methods: [
-    function send(envelope) {
-      var msg = envelope.message;
-      var methodName = msg.name;
-      var args = msg.args;
+  protected foam.lang.XFactory delegateFactory_;
 
-      // Call the real implementation
-      var result = this.delegate[methodName].apply(this.delegate, args);
-
-      // Send response back
-      Promise.resolve(result).then(function(value) {
-        envelope.replyBox.send(foam.box.Envelope.create({
-          message: foam.box.RPCReturnMessage.create({ data: value })
-        }));
-      });
+  public void send(foam.box.Envelope envelope) {
+    if ( ! ( envelope.getMessage() instanceof foam.box.RPCMessage) ) {
+      return;
     }
-  ]
-});
+
+    foam.box.RPCMessage rpc = (foam.box.RPCMessage) envelope.getMessage();
+    foam.lang.X         x   = envelope.getX();
+    Object result = null;
+
+    try {
+      switch ( rpc.getName() ) {
+        case "sum":
+          result = ((CalculatorService) (getDelegateFactory().create(x))).sum(
+            x,
+            (Double[]) (rpc.getArgs() != null && rpc.getArgs().length > 1 ? rpc.getArgs()[1] : null));
+          break;
+
+        default: throw new RuntimeException("Method not found.");
+      }
+    } catch (Throwable t) {
+      envelope.replyWithException(t);
+      return;
+    }
+
+    if ( envelope.getReplyBox() != null ) {
+      foam.box.RPCReturnMessage reply = (foam.box.RPCReturnMessage)
+        getX().create(foam.box.RPCReturnMessage.class);
+      if ( result != null ) reply.setData(result);
+      envelope.getReplyBox().send(new foam.box.Envelope(reply, null));
+    }
+  }
+}
 ```
 
 ---
