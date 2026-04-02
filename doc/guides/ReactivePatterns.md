@@ -18,6 +18,8 @@ slot.sub(listener);   // fires when fname changes
 
 **Returns**: `PropertySlot` (cached per instance in `obj.getPrivate_('name$')`)
 
+**Note**: `person.fname$` is a short-form for `person.slot('fname')`.
+
 **Use case**: When you need a slot reference to a single, flat property — for linking, following, or passing to views.
 
 ---
@@ -135,7 +137,7 @@ this.data.dynamic(function(items, isLoading) {
 
 **How it differs from `expression`**:
 
-| Aspect | `expression` | `dynamic()` |
+| Aspect | `expression` and slots | `dynamic()` |
 |---|---|---|
 | **Evaluation** | Lazy (pull) — only on `get()` | Eager (push) — runs immediately on change |
 | **Invalidation** | `ExpressionSlot.invalidate` clears value | `DynamicFunction.invalidate` clears AND reads `this.value` |
