@@ -19,8 +19,20 @@ foam.CLASS({
 
   methods: [
     function getAllClassIds() {
-      /** Returns all known class IDs from USED + UNUSED. */
-      return Object.keys({ ...foam.USED, ...foam.UNUSED });
+      /**
+       * Returns all known class IDs.
+       * Uses __cache__ (not USED/UNUSED) because bootstrap classes
+       * (FObject, Boolean, String, Property, etc.) are registered
+       * in the context cache but never tracked in USED/UNUSED.
+       */
+      var cache = foam.__context__.__cache__;
+      var ids = [];
+      for ( var key in cache ) {
+        // Skip short names (e.g., 'FObject' vs 'foam.lang.FObject')
+        // by only including dotted names
+        if ( key.indexOf('.') !== -1 ) ids.push(key);
+      }
+      return ids;
     },
 
     function getClass(id) {
@@ -62,7 +74,7 @@ foam.CLASS({
       /** Returns all axioms for a class including inherited. */
       var cls = this.getClass(classId);
       if ( ! cls ) return [];
-      return cls.getAxiomsByClass(foam.lang.Axiom);
+      return cls.getAxioms();
     },
 
     function getProperties(classId) {
@@ -88,9 +100,14 @@ foam.CLASS({
 
     function getSourceLocation(classId) {
       /** Returns { path, line } for a class definition. */
-      var m = foam.USED[classId] || foam.UNUSED[classId];
-      if ( ! m ) return null;
-      return m.source ? { path: m.source, line: 1 } : null;
+      var cls = this.getClass(classId);
+      if ( ! cls ) return null;
+      var m = cls.model_;
+      // m.source is set by foam_node.js during loading (document.currentScript.src in browser)
+      // In Node.js builds, source is tracked on the model object
+      var source = m.source || (foam.USED[classId] && foam.USED[classId].source) ||
+                   (foam.UNUSED[classId] && foam.UNUSED[classId].source);
+      return source ? { path: source, line: 1 } : null;
     },
 
     function getInheritanceChain(classId) {
