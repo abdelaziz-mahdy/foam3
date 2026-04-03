@@ -77,46 +77,70 @@ foam.CLASS({
     function buildGrammar_(P) {
       var self = this;
 
+      // === PRIMITIVES ===
       var ws = P.repeat0(P.alt(P.literal(' '), P.literal('\t'), P.literal('\n'), P.literal('\r')));
 
-      var sqString = P.seq1(1, P.literal("'"), P.str(P.repeat(P.alt(P.literal("\\'"), P.notChars("'")), null, 0)), P.literal("'"));
-      var dqString = P.seq1(1, P.literal('"'), P.str(P.repeat(P.alt(P.literal('\\"'), P.notChars('"')), null, 0)), P.literal('"'));
-      var stringLiteral = P.alt(sqString, dqString);
+      // Comments
+      var lineComment = P.seq(P.literal('//'), P.str(P.repeat(P.notChars('\n\r'), null, 0)),
+        P.alt(P.literal('\r\n'), P.literal('\n'), P.literal('\r')));
+      var blockComment = P.seq(P.literal('/*'), P.str(P.until(P.literal('*/'))));
+
+      // Whitespace including comments
+      var wsc = P.repeat0(P.alt(P.literal(' '), P.literal('\t'), P.literal('\n'), P.literal('\r'),
+        lineComment, blockComment));
+
+      // String literals
+      var sqString = P.seq1(1, P.literal("'"),
+        P.str(P.repeat(P.alt(P.literal("\\'"), P.notChars("'")), null, 0)), P.literal("'"));
+      var dqString = P.seq1(1, P.literal('"'),
+        P.str(P.repeat(P.alt(P.literal('\\"'), P.notChars('"')), null, 0)), P.literal('"'));
+      var backtickString = P.seq1(1, P.literal('`'),
+        P.str(P.repeat(P.alt(P.literal('\\`'), P.notChars('`')), null, 0)), P.literal('`'));
+      var stringLiteral = P.alt(sqString, dqString, backtickString);
 
       var digit = P.range('0', '9');
-      var number = P.str(P.repeat(digit, null, 1));
-      var booleanLiteral = P.alt(P.literal('true'), P.literal('false'));
+      var number = P.str(P.repeat(P.alt(digit, P.literal('.'), P.literal('-')), null, 1));
+      var booleanLiteral = P.alt(P.literal('true'), P.literal('false'),
+        P.literal('null'), P.literal('undefined'));
+      var identifier = P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'),
+        P.range('0', '9'), P.chars('_$')), null, 1));
+      var dottedId = P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'),
+        P.range('0', '9'), P.chars('_.$')), null, 1));
 
       function key(name) {
-        return P.sug(P.literal(name), foam.parse.Suggestion.create({ text: name + ': ', category: 'key' }));
+        return P.sug(P.literal(name), foam.parse.Suggestion.create({
+          text: name + ': ', category: 'key'
+        }));
       }
 
-      var comma = P.seq0(ws, P.literal(','), ws);
+      var comma = P.seq0(wsc, P.literal(','), wsc);
 
       var anyValue = P.alt(
-        stringLiteral,
-        number,
-        booleanLiteral,
-        P.sym('array'),
-        P.sym('object'),
-        P.sym('functionBody')
+        stringLiteral, number, booleanLiteral, dottedId,
+        P.sym('array'), P.sym('object'), P.sym('functionBody')
       );
 
-      // Match foam.CLASS/ENUM/INTERFACE — used by until() to find the start
-      var foamCall = P.alt(P.literal('foam.CLASS'), P.literal('foam.ENUM'), P.literal('foam.INTERFACE'), P.literal('foam.RELATIONSHIP'));
-
       return {
-        // Skip everything before foam.CLASS/ENUM/INTERFACE, then parse the class body
-        // until() CONSUMES the match, so we use seq with the call keyword + rest
-        START: P.seq(P.str(P.until(foamCall)), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')'))),
+        // === FILE-LEVEL ===
+        START: P.repeat(P.alt(P.sym('foamCall'), P.sym('ignoredContent')), null, 0),
 
-        foamClass:     P.seq(ws, P.literal('foam.CLASS'), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')')), ws),
-        foamEnum:      P.seq(ws, P.literal('foam.ENUM'), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')')), ws),
-        foamInterface: P.seq(ws, P.literal('foam.INTERFACE'), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')')), ws),
+        foamCall: P.alt(P.sym('foamClass'), P.sym('foamEnum'), P.sym('foamInterface')),
 
-        classBody: P.seq(P.literal('{'), ws, P.optional(P.sym('classEntries')), ws, P.optional(P.literal('}'))),
+        foamClass: P.seq(P.literal('foam.CLASS'), wsc, P.literal('('), wsc,
+          P.sym('classBody'), wsc, P.optional(P.literal(')'))),
+        foamEnum: P.seq(P.literal('foam.ENUM'), wsc, P.literal('('), wsc,
+          P.sym('classBody'), wsc, P.optional(P.literal(')'))),
+        foamInterface: P.seq(P.literal('foam.INTERFACE'), wsc, P.literal('('), wsc,
+          P.sym('classBody'), wsc, P.optional(P.literal(')'))),
 
-        classEntries: P.repeat(P.sym('classEntry'), P.seq0(ws, P.literal(','), ws)),
+        // Skip one character — catch-all that lets START consume the whole file
+        ignoredContent: P.anyChar(),
+
+        // === CLASS BODY ===
+        classBody: P.seq(P.literal('{'), wsc,
+          P.optional(P.sym('classEntries')), wsc, P.optional(P.literal('}'))),
+
+        classEntries: P.repeat(P.sym('classEntry'), P.seq0(wsc, P.literal(','), wsc)),
 
         classEntry: P.alt(
           P.sym('packageEntry'),
@@ -126,42 +150,79 @@ foam.CLASS({
           P.sym('requiresEntry'),
           P.sym('propertiesEntry'),
           P.sym('methodsEntry'),
-          P.sym('actionsEntry'),
           P.sym('importsEntry'),
           P.sym('exportsEntry'),
+          P.sym('javaImportsEntry'),
           P.sym('documentationEntry'),
           P.sym('abstractEntry'),
           P.sym('flagsEntry'),
+          P.sym('actionsEntry'),
+          P.sym('listenersEntry'),
+          P.sym('cssEntry'),
           P.sym('topLevelKey'),
           P.sym('genericEntry')
         ),
 
-        packageEntry: P.seq(key('package'), ws, P.literal(':'), ws, stringLiteral),
-        nameEntry: P.seq(key('name'), ws, P.literal(':'), ws, stringLiteral),
-        extendsEntry: P.seq(key('extends'), ws, P.literal(':'), ws, P.literal("'"), P.sym('classRef'), P.optional(P.literal("'"))),
+        // === SPECIFIC ENTRIES ===
+        packageEntry: P.seq(key('package'), wsc, P.literal(':'), wsc, stringLiteral),
+        nameEntry: P.seq(key('name'), wsc, P.literal(':'), wsc, stringLiteral),
+        extendsEntry: P.seq(key('extends'), wsc, P.literal(':'), wsc,
+          P.literal("'"), P.sym('classRef'), P.optional(P.literal("'"))),
+        documentationEntry: P.seq(key('documentation'), wsc, P.literal(':'), wsc, stringLiteral),
+        abstractEntry: P.seq(key('abstract'), wsc, P.literal(':'), wsc, booleanLiteral),
+        flagsEntry: P.seq(key('flags'), wsc, P.literal(':'), wsc, P.sym('array')),
+        actionsEntry: P.seq(key('actions'), wsc, P.literal(':'), wsc, P.sym('array')),
+        listenersEntry: P.seq(key('listeners'), wsc, P.literal(':'), wsc, P.sym('array')),
+        cssEntry: P.seq(key('css'), wsc, P.literal(':'), wsc, backtickString),
 
-        implementsEntry: P.seq(key('implements'), ws, P.literal(':'), ws, P.literal('['), ws,
-          P.optional(P.repeat(P.seq(ws, P.literal("'"), P.sym('classRef'), P.optional(P.literal("'")), ws), comma)),
-          ws, P.optional(P.literal(']'))),
+        implementsEntry: P.seq(key('implements'), wsc, P.literal(':'), wsc, P.literal('['), wsc,
+          P.optional(P.repeat(
+            P.seq(wsc, P.literal("'"), P.sym('classRef'), P.optional(P.literal("'")), wsc), comma)),
+          wsc, P.optional(P.literal(']'))),
 
-        requiresEntry: P.seq(key('requires'), ws, P.literal(':'), ws, P.literal('['), ws,
-          P.optional(P.repeat(P.seq(ws, P.literal("'"), P.sym('classRef'), P.optional(P.literal("'")), ws), comma)),
-          ws, P.optional(P.literal(']'))),
+        requiresEntry: P.seq(key('requires'), wsc, P.literal(':'), wsc, P.literal('['), wsc,
+          P.optional(P.repeat(
+            P.seq(wsc, P.literal("'"), P.sym('classRef'), P.optional(P.literal("'")), wsc), comma)),
+          wsc, P.optional(P.literal(']'))),
 
-        propertiesEntry: P.seq(key('properties'), ws, P.literal(':'), ws, P.literal('['), ws,
+        importsEntry: P.seq(key('imports'), wsc, P.literal(':'), wsc, P.sym('array')),
+        exportsEntry: P.seq(key('exports'), wsc, P.literal(':'), wsc, P.sym('array')),
+
+        javaImportsEntry: P.seq(key('javaImports'), wsc, P.literal(':'), wsc,
+          P.literal('['), wsc,
+          P.optional(P.repeat(P.seq(wsc, P.sym('javaImport'), wsc), comma)),
+          wsc, P.optional(P.literal(']'))),
+
+        javaImport: P.seq1(1, P.literal("'"), P.sym('javaImportRef'), P.optional(P.literal("'"))),
+        javaImportRef: P.alt(
+          P.sug(P.literal('foam.lang.'), foam.parse.Suggestion.create({
+            text: 'foam.lang.', category: 'class',
+            hint: 'FOAM lang package (FObject, X, PropertyInfo)'
+          })),
+          P.sug(P.literal('foam.core.'), foam.parse.Suggestion.create({
+            text: 'foam.core.', category: 'class',
+            hint: 'FOAM core package (auth, logger, ruler)'
+          })),
+          P.sug(P.literal('java.util.'), foam.parse.Suggestion.create({
+            text: 'java.util.', category: 'class',
+            hint: 'Java util (List, ArrayList, Map, Set)'
+          })),
+          P.sug(P.literal('java.io.'), foam.parse.Suggestion.create({
+            text: 'java.io.', category: 'class', hint: 'Java IO'
+          })),
+          P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'),
+            P.range('0', '9'), P.chars('._*')), null, 1))
+        ),
+
+        propertiesEntry: P.seq(key('properties'), wsc, P.literal(':'), wsc,
+          P.literal('['), wsc,
           P.optional(P.repeat(P.sym('propertyDef'), comma)),
-          ws, P.optional(P.literal(']'))),
+          wsc, P.optional(P.literal(']'))),
 
-        methodsEntry: P.seq(key('methods'), ws, P.literal(':'), ws, P.literal('['), ws,
+        methodsEntry: P.seq(key('methods'), wsc, P.literal(':'), wsc,
+          P.literal('['), wsc,
           P.optional(P.repeat(P.sym('methodDef'), comma)),
-          ws, P.optional(P.literal(']'))),
-
-        actionsEntry:       P.seq(key('actions'), ws, P.literal(':'), ws, P.sym('array')),
-        importsEntry:       P.seq(key('imports'), ws, P.literal(':'), ws, P.sym('array')),
-        exportsEntry:       P.seq(key('exports'), ws, P.literal(':'), ws, P.sym('array')),
-        documentationEntry: P.seq(key('documentation'), ws, P.literal(':'), ws, stringLiteral),
-        abstractEntry:      P.seq(key('abstract'), ws, P.literal(':'), ws, booleanLiteral),
-        flagsEntry:         P.seq(key('flags'), ws, P.literal(':'), ws, P.sym('array')),
+          wsc, P.optional(P.literal(']'))),
 
         topLevelKey: P.alt(
           key('package'), key('name'), key('extends'), key('requires'),
@@ -169,70 +230,83 @@ foam.CLASS({
           key('actions'), key('documentation'), key('abstract'),
           key('implements'), key('javaImports'), key('axioms'),
           key('css'), key('messages'), key('topics'), key('listeners'),
-          key('constants'), key('sections')
+          key('constants'), key('sections'), key('flags'),
+          key('tableColumns'), key('searchColumns')
         ),
 
+        // === CLASS REFERENCES (dynamic) ===
         classRef: P.alt(
           self.classRefParser_,
-          P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'), P.range('0', '9'), P.chars('._')), null, 1))
+          P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'),
+            P.range('0', '9'), P.chars('._')), null, 1))
         ),
 
-        propertyDef: P.alt(
-          stringLiteral,
-          P.sym('propertyObject')
-        ),
-
-        propertyObject: P.seq(P.literal('{'), ws, P.optional(P.sym('propEntries')), ws, P.optional(P.literal('}'))),
-
+        // === PROPERTY DEFINITIONS ===
+        propertyDef: P.alt(stringLiteral, P.sym('propertyObject')),
+        propertyObject: P.seq(P.literal('{'), wsc,
+          P.optional(P.sym('propEntries')), wsc, P.optional(P.literal('}'))),
         propEntries: P.repeat(P.sym('propEntry'), comma),
 
         propEntry: P.alt(
-          P.seq(P.sug(P.literal('class'), foam.parse.Suggestion.create({ text: 'class', category: 'key' })), ws, P.literal(':'), ws, P.literal("'"), P.sym('propType'), P.optional(P.literal("'"))),
-          P.seq(P.sug(P.literal('name'), foam.parse.Suggestion.create({ text: 'name', category: 'key' })), ws, P.literal(':'), ws, stringLiteral),
-          P.seq(P.sug(P.literal('of'), foam.parse.Suggestion.create({ text: 'of', category: 'key' })), ws, P.literal(':'), ws, P.literal("'"), P.sym('classRef'), P.optional(P.literal("'"))),
-          P.seq(P.sug(P.literal('value'), foam.parse.Suggestion.create({ text: 'value', category: 'key' })), ws, P.literal(':'), ws, anyValue),
-          P.seq(P.sug(P.literal('documentation'), foam.parse.Suggestion.create({ text: 'documentation', category: 'key' })), ws, P.literal(':'), ws, stringLiteral),
-          P.seq(P.sug(P.literal('hidden'), foam.parse.Suggestion.create({ text: 'hidden', category: 'key' })), ws, P.literal(':'), ws, booleanLiteral),
-          P.seq(P.sug(P.literal('transient'), foam.parse.Suggestion.create({ text: 'transient', category: 'key' })), ws, P.literal(':'), ws, booleanLiteral),
+          P.seq(P.sug(P.literal('class'), foam.parse.Suggestion.create({
+            text: 'class', category: 'key' })),
+            wsc, P.literal(':'), wsc, P.literal("'"), P.sym('propType'),
+            P.optional(P.literal("'"))),
+          P.seq(P.sug(P.literal('name'), foam.parse.Suggestion.create({
+            text: 'name', category: 'key' })),
+            wsc, P.literal(':'), wsc, stringLiteral),
+          P.seq(P.sug(P.literal('of'), foam.parse.Suggestion.create({
+            text: 'of', category: 'key' })),
+            wsc, P.literal(':'), wsc, P.literal("'"), P.sym('classRef'),
+            P.optional(P.literal("'"))),
+          P.seq(P.sug(P.literal('documentation'), foam.parse.Suggestion.create({
+            text: 'documentation', category: 'key' })),
+            wsc, P.literal(':'), wsc, stringLiteral),
+          P.seq(P.sug(P.literal('hidden'), foam.parse.Suggestion.create({
+            text: 'hidden', category: 'key' })),
+            wsc, P.literal(':'), wsc, booleanLiteral),
+          P.seq(P.sug(P.literal('transient'), foam.parse.Suggestion.create({
+            text: 'transient', category: 'key' })),
+            wsc, P.literal(':'), wsc, booleanLiteral),
           P.sym('genericEntry')
         ),
 
         propType: P.alt(
           self.propTypeParser_,
-          P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'), P.range('0', '9'), P.chars('._')), null, 1))
+          P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'),
+            P.range('0', '9'), P.chars('._')), null, 1))
         ),
 
-        methodDef: P.alt(
-          P.sym('functionBody'),
-          P.sym('object')
-        ),
+        // === METHOD DEFINITIONS ===
+        methodDef: P.alt(P.sym('functionBody'), P.sym('object')),
 
-        genericEntry: P.seq(
-          P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'), P.range('0', '9'), P.chars('_')), null, 1)),
-          ws, P.literal(':'), ws, anyValue
-        ),
+        // === GENERIC CATCH-ALL ===
+        genericEntry: P.seq(identifier, wsc, P.literal(':'), wsc, anyValue),
 
-        array: P.seq(P.literal('['), ws, P.optional(P.repeat(P.seq(ws, anyValue, ws), comma)), ws, P.optional(P.literal(']'))),
+        // === STRUCTURAL ===
+        array: P.seq(P.literal('['), wsc,
+          P.optional(P.repeat(P.seq(wsc, anyValue, wsc), comma)),
+          wsc, P.optional(P.literal(']'))),
 
-        object: P.seq(P.literal('{'), ws, P.optional(P.repeat(P.seq(ws, P.sym('genericEntry'), ws), comma)), ws, P.optional(P.literal('}'))),
+        object: P.seq(P.literal('{'), wsc,
+          P.optional(P.repeat(P.seq(wsc, P.sym('genericEntry'), wsc), comma)),
+          wsc, P.optional(P.literal('}'))),
 
         functionBody: P.seq(
-          P.optional(P.literal('async')), ws,
-          P.literal('function'), ws,
-          P.optional(P.str(P.repeat(P.alt(P.range('a', 'z'), P.range('A', 'Z'), P.range('0', '9'), P.chars('_')), null, 1))),
-          ws, P.sym('balancedParens'), ws, P.sym('balancedBraces')
+          P.optional(P.literal('async')), wsc,
+          P.literal('function'), wsc,
+          P.optional(identifier),
+          wsc, P.sym('balancedParens'), wsc, P.sym('balancedBraces')
         ),
 
         balancedParens: P.seq(P.literal('('), P.str(P.repeat(P.alt(
-          P.sym('balancedParens'),
-          stringLiteral,
+          P.sym('balancedParens'), stringLiteral, lineComment, blockComment,
           P.notChars('()')
         ), null, 0)), P.literal(')')),
 
         balancedBraces: P.seq(P.literal('{'), P.str(P.repeat(P.alt(
-          P.sym('balancedBraces'),
-          stringLiteral,
-          P.notChars('{}')
+          P.sym('balancedBraces'), stringLiteral, backtickString,
+          lineComment, blockComment, P.notChars('{}')
         ), null, 0)), P.literal('}'))
       };
     }
