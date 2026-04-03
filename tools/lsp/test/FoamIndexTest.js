@@ -91,6 +91,23 @@ foam.CLASS({
       index.invalidate('foam.parse.Suggestion');
       var propTypes2 = index.getPropertyTypes();
       x.test(propTypes2.length > 10, 'Should still find property types after invalidation');
+
+      // getOwnProperties vs inherited
+      var ownProps = index.getOwnProperties('foam.parse.Suggestion');
+      x.test(ownProps.length > 0, 'Should have own properties');
+      x.test(ownProps.some(function(p) { return p.name === 'text'; }), 'text is own property');
+
+      var inherited = index.getInheritedProperties('foam.parse.Suggestion');
+      x.test(Array.isArray(inherited), 'getInheritedProperties returns array');
+
+      // Java import mappings
+      var mappings = index.getJavaImportMappings();
+      x.test(mappings['foam.nanos.logger.Logger'] === 'foam.core.logger.Logger', 'Logger mapping correct');
+      x.test(mappings['foam.core.FObject'] === 'foam.lang.FObject', 'FObject mapping correct');
+
+      // getPropertyJavaType
+      var jType = index.getPropertyJavaType('foam.parse.Suggestion', 'text');
+      x.test(jType === 'String', 'text property Java type is String, got: ' + jType);
     }
   ]
 });

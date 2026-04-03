@@ -14,6 +14,10 @@ foam.CLASS({
     {
       name: 'cache_',
       factory: function() { return {}; }
+    },
+    {
+      name: 'fileIndex_',
+      documentation: 'Class ID to file path mapping built from foam.poms.'
     }
   ],
 
@@ -198,6 +202,106 @@ foam.CLASS({
     function invalidateAll() {
       /** Clear all caches. */
       this.cache_ = {};
+    },
+
+    function buildFileIndex() {
+      this.fileIndex_ = {};
+      var path_ = require('path');
+      var fs_ = require('fs');
+      var poms = foam.poms || [];
+      for ( var p = 0 ; p < poms.length ; p++ ) {
+        var pom = poms[p];
+        var location = pom.location || '';
+        var files = pom.files || [];
+        for ( var f = 0 ; f < files.length ; f++ ) {
+          var file = files[f];
+          var filePath = path_.resolve(location, file.name + '.js');
+          try {
+            if ( fs_.existsSync(filePath) ) {
+              var content = fs_.readFileSync(filePath, 'utf8');
+              var pkgMatch = content.match(/package\s*:\s*['"]([^'"]+)['"]/);
+              var nameMatch = content.match(/name\s*:\s*['"]([^'"]+)['"]/);
+              if ( nameMatch ) {
+                var classId = pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
+                this.fileIndex_[classId] = filePath;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+    },
+
+    function getFilePath(classId) {
+      if ( ! this.fileIndex_ ) this.buildFileIndex();
+      return this.fileIndex_[classId] || null;
+    },
+
+    function getOwnProperties(classId) {
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      return cls.getOwnAxiomsByClass(foam.lang.Property);
+    },
+
+    function getInheritedProperties(classId) {
+      var cls = this.getClass(classId);
+      if ( ! cls ) return [];
+      var own = {};
+      var ownProps = cls.getOwnAxiomsByClass(foam.lang.Property);
+      for ( var i = 0 ; i < ownProps.length ; i++ ) own[ownProps[i].name] = true;
+      var allProps = cls.getAxiomsByClass(foam.lang.Property);
+      var groups = {};
+      for ( var i = 0 ; i < allProps.length ; i++ ) {
+        var p = allProps[i];
+        if ( own[p.name] ) continue;
+        var source = this.findPropertySource_(cls, p.name);
+        if ( ! groups[source] ) groups[source] = [];
+        groups[source].push(p);
+      }
+      var result = [];
+      for ( var className in groups ) {
+        result.push({ className: className, properties: groups[className] });
+      }
+      return result;
+    },
+
+    function findPropertySource_(cls, propName) {
+      var parent = cls.model_.extends ? this.getClass(cls.model_.extends) : null;
+      while ( parent ) {
+        var ownProps = parent.getOwnAxiomsByClass(foam.lang.Property);
+        for ( var i = 0 ; i < ownProps.length ; i++ ) {
+          if ( ownProps[i].name === propName ) return parent.id;
+        }
+        parent = parent.model_.extends ? this.getClass(parent.model_.extends) : null;
+      }
+      return 'foam.lang.FObject';
+    },
+
+    function getJavaImportMappings() {
+      return {
+        'foam.core.FObject':       'foam.lang.FObject',
+        'foam.core.PropertyInfo':  'foam.lang.PropertyInfo',
+        'foam.core.X':             'foam.lang.X',
+        'foam.core.Serializable':  'foam.lang.Serializable',
+        'foam.nanos.logger.Logger':       'foam.core.logger.Logger',
+        'foam.nanos.auth.LifecycleState': 'foam.core.auth.LifecycleState',
+        'foam.nanos.approval.ValidationException': 'foam.lang.ValidationException'
+      };
+    },
+
+    function getPropertyJavaType(classId, propName) {
+      var cls = this.getClass(classId);
+      if ( ! cls ) return null;
+      var prop = cls.getAxiomByName(propName);
+      if ( ! prop ) return null;
+      var typeMap = {
+        'String': 'String', 'Int': 'int', 'Long': 'long', 'Float': 'float',
+        'Double': 'double', 'Boolean': 'boolean', 'Date': 'java.util.Date',
+        'DateTime': 'java.util.Date', 'DateTimeUTC': 'java.util.Date',
+        'Enum': 'Enum', 'Object': 'Object', 'Array': 'Object[]',
+        'FObjectProperty': prop.of || 'FObject', 'Reference': 'Object'
+      };
+      var propType = prop.cls_ && prop.cls_.model_ ? prop.cls_.model_.name : 'Property';
+      return typeMap[propType] || 'Object';
     }
   ]
 });

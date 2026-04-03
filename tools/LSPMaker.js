@@ -31,6 +31,11 @@ exports.end = function() {
     }
   }
 
+  // Build file index for go-to-definition
+  var index = foam.parse.lsp.FoamIndex.create();
+  index.buildFileIndex();
+  globalThis.__foamLSPIndex__ = index;
+
   console.error('[LSP] ' + Object.keys(foam.USED).length + ' models loaded. Starting server...');
   require('./lsp/server').start();
 };
