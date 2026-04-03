@@ -128,6 +128,17 @@ function startServer(
     client.onNotification('foam/analyzeProgress', (params: any) => {
       runner.handleProgress(params);
     });
+
+    // Auto-run workspace analysis on startup (after a short delay for boot to settle)
+    setTimeout(async () => {
+      outputChannel.appendLine('Auto-running workspace analysis...');
+      try {
+        await runner.run();
+        outputChannel.appendLine('Startup analysis complete.');
+      } catch (e: any) {
+        outputChannel.appendLine('Startup analysis failed: ' + e.message);
+      }
+    }, 2000);
   }).catch((err: Error) => {
     outputChannel.appendLine('FOAM LSP failed: ' + err.message);
     status.text = '$(error) FOAM: Error';

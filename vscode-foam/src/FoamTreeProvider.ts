@@ -20,29 +20,16 @@ export interface AnalysisResults {
   }>>;
 }
 
-enum TreeItemType {
-  Section,
-  Action,
-  Stat,
-  FileEntry,
-  DiagnosticEntry,
-  PatternEntry,
-  InfoEntry
-}
-
 class FoamTreeItem extends vscode.TreeItem {
-  type: TreeItemType;
   children: FoamTreeItem[];
-  uri?: string;
-  line?: number;
+  fileUri?: string;
+  fileLine?: number;
 
   constructor(
     label: string,
-    type: TreeItemType,
     collapsible: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None
   ) {
     super(label, collapsible);
-    this.type = type;
     this.children = [];
   }
 }
@@ -60,13 +47,19 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
     test: false, node: false, swift: false
   };
 
+  // Cache the root items so children work on expand
+  private rootCache: FoamTreeItem[] = [];
+
   getTreeItem(element: FoamTreeItem): vscode.TreeItem {
     return element;
   }
 
   getChildren(element?: FoamTreeItem): FoamTreeItem[] {
-    if ( !element ) return this.getRootItems();
-    return element.children;
+    if ( !element ) {
+      this.rootCache = this.buildRootItems();
+      return this.rootCache;
+    }
+    return element.children || [];
   }
 
   refresh(): void {
@@ -90,99 +83,96 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
     this.refresh();
   }
 
-  private getRootItems(): FoamTreeItem[] {
-    var items: FoamTreeItem[] = [];
+  setActiveFlags(flags: Record<string, boolean>): void {
+    this.activeFlags = flags;
+    this.refresh();
+  }
+
+  private buildRootItems(): FoamTreeItem[] {
+    const items: FoamTreeItem[] = [];
 
     // Analysis section
-    var analysis = new FoamTreeItem(
-      'Analysis',
-      TreeItemType.Section,
-      vscode.TreeItemCollapsibleState.Expanded
-    );
+    const analysis = new FoamTreeItem('Analysis', vscode.TreeItemCollapsibleState.Expanded);
     analysis.iconPath = new vscode.ThemeIcon('graph');
-    analysis.children = this.getAnalysisChildren();
+    analysis.children = this.buildAnalysisChildren();
     items.push(analysis);
 
     // Files with issues
-    if ( this.results && this.results.filesWithIssues > 0 ) {
-      var files = new FoamTreeItem(
-        'Files with Issues (' + this.results.filesWithIssues + ')',
-        TreeItemType.Section,
-        vscode.TreeItemCollapsibleState.Collapsed
-      );
-      files.iconPath = new vscode.ThemeIcon('folder');
-      files.children = this.getFileChildren();
-      items.push(files);
+    if ( this.results && this.results.fileResults ) {
+      const fileCount = Object.keys(this.results.fileResults).length;
+      if ( fileCount > 0 ) {
+        const files = new FoamTreeItem(
+          `Files with Issues (${fileCount})`,
+          vscode.TreeItemCollapsibleState.Collapsed
+        );
+        files.iconPath = new vscode.ThemeIcon('folder');
+        files.children = this.buildFileChildren();
+        items.push(files);
+      }
     }
 
-    // False positive patterns
-    if ( this.results && this.results.patterns.length > 0 ) {
-      var patterns = new FoamTreeItem(
-        'Patterns (' + this.results.patterns.length + ')',
-        TreeItemType.Section,
+    // Patterns
+    if ( this.results && this.results.patterns && this.results.patterns.length > 0 ) {
+      const patterns = new FoamTreeItem(
+        `Patterns (${this.results.patterns.length})`,
         vscode.TreeItemCollapsibleState.Collapsed
       );
       patterns.iconPath = new vscode.ThemeIcon('search');
-      patterns.children = this.getPatternChildren();
+      patterns.children = this.buildPatternChildren();
       items.push(patterns);
     }
 
     // Active flags
-    var flags = new FoamTreeItem(
-      'Active Flags',
-      TreeItemType.Section,
-      vscode.TreeItemCollapsibleState.Collapsed
-    );
+    const flags = new FoamTreeItem('Active Flags', vscode.TreeItemCollapsibleState.Collapsed);
     flags.iconPath = new vscode.ThemeIcon('settings-gear');
-    flags.children = this.getFlagsChildren();
+    flags.children = this.buildFlagsChildren();
     items.push(flags);
 
     // Server info
     if ( this.serverInfo ) {
-      var info = new FoamTreeItem(
-        'Server Info',
-        TreeItemType.Section,
-        vscode.TreeItemCollapsibleState.Collapsed
-      );
+      const info = new FoamTreeItem('Server Info', vscode.TreeItemCollapsibleState.Collapsed);
       info.iconPath = new vscode.ThemeIcon('gear');
-      info.children = this.getServerInfoChildren();
+      info.children = [
+        this.makeStatItem('Classes indexed: ' + this.serverInfo.classes, 'symbol-class'),
+        this.makeStatItem('Files indexed: ' + this.serverInfo.files, 'files'),
+        this.makeStatItem('Property types: ' + this.serverInfo.types, 'symbol-property')
+      ];
       items.push(info);
     }
 
     return items;
   }
 
-  private getAnalysisChildren(): FoamTreeItem[] {
-    var children: FoamTreeItem[] = [];
+  private buildAnalysisChildren(): FoamTreeItem[] {
+    const children: FoamTreeItem[] = [];
 
     if ( this.running ) {
-      var item = new FoamTreeItem('$(loading~spin) Running...', TreeItemType.Stat);
+      const item = new FoamTreeItem('Running analysis...');
+      item.iconPath = new vscode.ThemeIcon('loading~spin');
       children.push(item);
       return children;
     }
 
     // Run button
-    var run = new FoamTreeItem('Run Workspace Analysis', TreeItemType.Action);
+    const run = new FoamTreeItem('Run Workspace Analysis');
     run.iconPath = new vscode.ThemeIcon('play');
     run.command = { command: 'foam.analyzeWorkspace', title: 'Run Analysis' };
     children.push(run);
 
     if ( this.lastRunTime ) {
-      children.push(new FoamTreeItem('Last run: ' + this.lastRunTime, TreeItemType.Stat));
+      children.push(this.makeStatItem('Last run: ' + this.lastRunTime, 'clock'));
     }
 
     if ( this.results ) {
-      children.push(new FoamTreeItem('Files: ' + this.results.filesScanned + ' scanned', TreeItemType.Stat));
+      children.push(this.makeStatItem('Files: ' + this.results.filesScanned + ' scanned', 'files'));
 
-      var warn = new FoamTreeItem('Warnings: ' + this.results.warnings, TreeItemType.Stat);
+      const warn = this.makeStatItem('Warnings: ' + this.results.warnings, 'warning');
       warn.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('list.warningForeground'));
       children.push(warn);
 
-      var info = new FoamTreeItem('Info: ' + this.results.infos, TreeItemType.Stat);
-      info.iconPath = new vscode.ThemeIcon('info');
-      children.push(info);
+      children.push(this.makeStatItem('Info: ' + this.results.infos, 'info'));
 
-      var err = new FoamTreeItem('Errors: ' + this.results.errors, TreeItemType.Stat);
+      const err = this.makeStatItem('Errors: ' + this.results.errors, 'error');
       err.iconPath = new vscode.ThemeIcon('error', new vscode.ThemeColor('list.errorForeground'));
       children.push(err);
     }
@@ -190,43 +180,46 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
     return children;
   }
 
-  private getFileChildren(): FoamTreeItem[] {
+  private buildFileChildren(): FoamTreeItem[] {
     if ( !this.results || !this.results.fileResults ) return [];
-    var children: FoamTreeItem[] = [];
-    var fileResults = this.results.fileResults;
+    const children: FoamTreeItem[] = [];
+    const fileResults = this.results.fileResults;
 
-    // Sort by diagnostic count descending
-    var uris = Object.keys(fileResults).sort(function(a, b) {
-      return fileResults[b].length - fileResults[a].length;
+    const uris = Object.keys(fileResults).sort((a, b) => {
+      return (fileResults[b]?.length || 0) - (fileResults[a]?.length || 0);
     });
 
-    for ( var i = 0 ; i < Math.min(uris.length, 50) ; i++ ) {
-      var uri = uris[i];
-      var diags = fileResults[uri];
-      var fileName = uri.split('/').pop() || uri;
+    for ( let i = 0 ; i < Math.min(uris.length, 100) ; i++ ) {
+      const uri = uris[i];
+      const diags = fileResults[uri];
+      if ( !diags || diags.length === 0 ) continue;
 
-      var file = new FoamTreeItem(
-        fileName + ' (' + diags.length + ')',
-        TreeItemType.FileEntry,
+      const fileName = uri.split('/').pop() || uri;
+
+      const file = new FoamTreeItem(
+        `${fileName} (${diags.length})`,
         vscode.TreeItemCollapsibleState.Collapsed
       );
       file.iconPath = new vscode.ThemeIcon('file');
-      file.uri = uri;
       file.children = [];
 
-      for ( var d = 0 ; d < Math.min(diags.length, 20) ; d++ ) {
-        var diag = diags[d];
-        var icon = diag.severity === 1 ? 'error' : diag.severity === 2 ? 'warning' : 'info';
-        var entry = new FoamTreeItem(diag.message, TreeItemType.DiagnosticEntry);
-        entry.iconPath = new vscode.ThemeIcon(icon);
-        entry.uri = uri;
-        entry.line = diag.range.start.line;
+      for ( let d = 0 ; d < Math.min(diags.length, 30) ; d++ ) {
+        const diag = diags[d];
+        const iconName = diag.severity === 1 ? 'error' : diag.severity === 2 ? 'warning' : 'info';
+        const entry = new FoamTreeItem(diag.message);
+        entry.iconPath = new vscode.ThemeIcon(iconName);
+        entry.description = `Ln ${diag.range.start.line + 1}`;
         entry.command = {
           command: 'vscode.open',
-          title: 'Open',
+          title: 'Open File',
           arguments: [
             vscode.Uri.parse(uri),
-            { selection: new vscode.Range(diag.range.start.line, diag.range.start.character, diag.range.start.line, diag.range.start.character) }
+            {
+              selection: new vscode.Range(
+                diag.range.start.line, diag.range.start.character,
+                diag.range.end.line, diag.range.end.character
+              )
+            }
           ]
         };
         file.children.push(entry);
@@ -238,49 +231,46 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
     return children;
   }
 
-  private getPatternChildren(): FoamTreeItem[] {
-    if ( !this.results ) return [];
-    var children: FoamTreeItem[] = [];
-    var patterns = this.results.patterns;
+  private buildPatternChildren(): FoamTreeItem[] {
+    if ( !this.results || !this.results.patterns ) return [];
+    const children: FoamTreeItem[] = [];
 
-    for ( var i = 0 ; i < Math.min(patterns.length, 30) ; i++ ) {
-      var p = patterns[i];
-      var icon = p.severity === 1 ? 'error' : p.severity === 2 ? 'warning' : 'info';
-      var item = new FoamTreeItem(p.pattern + ' (' + p.count + ')', TreeItemType.PatternEntry);
-      item.iconPath = new vscode.ThemeIcon(icon);
+    const sorted = [...this.results.patterns].sort((a, b) => b.count - a.count);
+
+    for ( let i = 0 ; i < Math.min(sorted.length, 50) ; i++ ) {
+      const p = sorted[i];
+      const iconName = p.severity === 1 ? 'error' : p.severity === 2 ? 'warning' : 'info';
+      const item = new FoamTreeItem(p.pattern);
+      item.iconPath = new vscode.ThemeIcon(iconName);
+      item.description = `${p.count}x`;
       children.push(item);
     }
 
     return children;
   }
 
-  setActiveFlags(flags: Record<string, boolean>): void {
-    this.activeFlags = flags;
-    this.refresh();
-  }
+  private buildFlagsChildren(): FoamTreeItem[] {
+    const children: FoamTreeItem[] = [];
+    const flagNames = ['js', 'java', 'web', 'test', 'node', 'swift', 'debug'];
 
-  private getFlagsChildren(): FoamTreeItem[] {
-    var children: FoamTreeItem[] = [];
-    var flagNames = ['js', 'java', 'web', 'test', 'node', 'swift', 'debug'];
-    for ( var i = 0 ; i < flagNames.length ; i++ ) {
-      var name = flagNames[i];
-      var active = this.activeFlags[name] !== false;
-      var item = new FoamTreeItem(
-        (active ? '$(check) ' : '$(circle-outline) ') + name + (active ? ' (active)' : ' (off)'),
-        TreeItemType.InfoEntry
-      );
-      item.tooltip = 'Flag: ' + name + ' — ' + (active ? 'Classes with this flag are loaded and analyzed' : 'Classes with this flag are known but not loaded');
+    for ( const name of flagNames ) {
+      const active = this.activeFlags[name] !== false;
+      const item = new FoamTreeItem(name + (active ? ' (active)' : ' (off)'));
+      item.iconPath = new vscode.ThemeIcon(active ? 'check' : 'circle-outline');
+      item.tooltip = active
+        ? `Flag "${name}" is ON — classes with this flag are loaded and analyzed`
+        : `Flag "${name}" is OFF — classes with this flag are known but not loaded/analyzed`;
+      // Future: make clickable to toggle
+      // item.command = { command: 'foam.toggleFlag', title: 'Toggle', arguments: [name] };
       children.push(item);
     }
+
     return children;
   }
 
-  private getServerInfoChildren(): FoamTreeItem[] {
-    if ( !this.serverInfo ) return [];
-    return [
-      new FoamTreeItem('Classes indexed: ' + this.serverInfo.classes, TreeItemType.InfoEntry),
-      new FoamTreeItem('Files indexed: ' + this.serverInfo.files, TreeItemType.InfoEntry),
-      new FoamTreeItem('Property types: ' + this.serverInfo.types, TreeItemType.InfoEntry)
-    ];
+  private makeStatItem(label: string, icon: string): FoamTreeItem {
+    const item = new FoamTreeItem(label);
+    item.iconPath = new vscode.ThemeIcon(icon);
+    return item;
   }
 }
