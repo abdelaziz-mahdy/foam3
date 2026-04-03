@@ -81,7 +81,7 @@ foam.CLASS({
         var filePath = filePaths[i];
         try {
           var content = fs_.readFileSync(filePath, 'utf8');
-          var diagnostics = diag.handle(content);
+          var diagnostics = diag.handle(content, { lightweight: true });
 
           if ( diagnostics.length > 0 ) {
             var uri = 'file://' + filePath;

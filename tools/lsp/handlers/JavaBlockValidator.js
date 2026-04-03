@@ -30,12 +30,6 @@ foam.CLASS({
 
   methods: [
     function validate(classId, text, diagnostics, baseOffset, fullText) {
-      /**
-       * Validate Java code blocks within a foam.CLASS definition.
-       * text: the foam.CLASS block text
-       * baseOffset: offset of this block in the full file
-       * fullText: the full file text (for position mapping)
-       */
       this.validateJavaImports(classId, text, diagnostics, baseOffset, fullText);
       this.validateGettersSetters(classId, text, diagnostics, baseOffset, fullText);
     },
@@ -103,7 +97,8 @@ foam.CLASS({
         while ( ( gs = getSetRegex.exec(javaBlock) ) !== null ) {
           // Check character before the match — if it's '.', this is a method call on another object
           var charBefore = gs.index > 0 ? javaBlock[gs.index - 1] : ' ';
-          if ( charBefore === '.' ) continue; // e.g., formatter.setQuoteKeys(), conn.getOutputStream()
+          // Skip calls on other objects: obj.getX(), method().getX(), array[i].getX()
+          if ( charBefore === '.' || charBefore === ')' || charBefore === ']' ) continue;
 
           var propName = gs[2].charAt(0).toLowerCase() + gs[2].substring(1);
           // Skip known framework methods and common Java patterns

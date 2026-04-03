@@ -55,6 +55,10 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
   private running = false;
   private lastRunTime: string | null = null;
   private serverInfo: { classes: number; files: number; types: number } | null = null;
+  private activeFlags: Record<string, boolean> = {
+    js: true, java: true, web: true, debug: true,
+    test: false, node: false, swift: false
+  };
 
   getTreeItem(element: FoamTreeItem): vscode.TreeItem {
     return element;
@@ -122,6 +126,16 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
       patterns.children = this.getPatternChildren();
       items.push(patterns);
     }
+
+    // Active flags
+    var flags = new FoamTreeItem(
+      'Active Flags',
+      TreeItemType.Section,
+      vscode.TreeItemCollapsibleState.Collapsed
+    );
+    flags.iconPath = new vscode.ThemeIcon('settings-gear');
+    flags.children = this.getFlagsChildren();
+    items.push(flags);
 
     // Server info
     if ( this.serverInfo ) {
@@ -237,6 +251,27 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
       children.push(item);
     }
 
+    return children;
+  }
+
+  setActiveFlags(flags: Record<string, boolean>): void {
+    this.activeFlags = flags;
+    this.refresh();
+  }
+
+  private getFlagsChildren(): FoamTreeItem[] {
+    var children: FoamTreeItem[] = [];
+    var flagNames = ['js', 'java', 'web', 'test', 'node', 'swift', 'debug'];
+    for ( var i = 0 ; i < flagNames.length ; i++ ) {
+      var name = flagNames[i];
+      var active = this.activeFlags[name] !== false;
+      var item = new FoamTreeItem(
+        (active ? '$(check) ' : '$(circle-outline) ') + name + (active ? ' (active)' : ' (off)'),
+        TreeItemType.InfoEntry
+      );
+      item.tooltip = 'Flag: ' + name + ' — ' + (active ? 'Classes with this flag are loaded and analyzed' : 'Classes with this flag are known but not loaded');
+      children.push(item);
+    }
     return children;
   }
 
