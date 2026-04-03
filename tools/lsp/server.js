@@ -29,32 +29,33 @@ function start() {
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 
   var documents = {};
-  var buffer = '';
+  var rawBuffer = Buffer.alloc(0);
 
   // === JSON-RPC over stdio ===
+  // Use raw Buffer (not string) because Content-Length is in bytes,
+  // and multi-byte UTF-8 characters cause string.length !== byte length.
 
-  process.stdin.setEncoding('utf8');
   process.stdin.on('data', function(chunk) {
-    buffer += chunk;
+    rawBuffer = Buffer.concat([rawBuffer, chunk]);
     processBuffer();
   });
 
   function processBuffer() {
     while ( true ) {
-      var headerEnd = buffer.indexOf('\r\n\r\n');
+      var headerEnd = rawBuffer.indexOf('\r\n\r\n');
       if ( headerEnd === -1 ) return;
 
-      var header = buffer.substring(0, headerEnd);
+      var header = rawBuffer.slice(0, headerEnd).toString('utf8');
       var match = header.match(/Content-Length:\s*(\d+)/i);
-      if ( ! match ) { buffer = buffer.substring(headerEnd + 4); continue; }
+      if ( ! match ) { rawBuffer = rawBuffer.slice(headerEnd + 4); continue; }
 
       var contentLength = parseInt(match[1]);
       var bodyStart = headerEnd + 4;
 
-      if ( buffer.length < bodyStart + contentLength ) return;
+      if ( rawBuffer.length < bodyStart + contentLength ) return;
 
-      var body = buffer.substring(bodyStart, bodyStart + contentLength);
-      buffer = buffer.substring(bodyStart + contentLength);
+      var body = rawBuffer.slice(bodyStart, bodyStart + contentLength).toString('utf8');
+      rawBuffer = rawBuffer.slice(bodyStart + contentLength);
 
       try {
         handleMessage(JSON.parse(body));
