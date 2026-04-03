@@ -177,14 +177,21 @@ function start() {
           respond(id, { isIncomplete: false, items: [] });
           break;
         }
-        // Check if this is a this. completion
-        var lines = doc.text.split('\n');
-        var line = lines[params.position.line] || '';
-        var prefix = line.substring(0, params.position.character);
-        if ( /this\.\s*$/.test(prefix) ) {
-          respond(id, memberHandler.handle(doc.text, params.position));
-        } else {
-          respond(id, completionHandler.handle(doc.text, params.position));
+        try {
+          var lines = doc.text.split('\n');
+          var line = lines[params.position.line] || '';
+          var prefix = line.substring(0, params.position.character);
+          var result;
+          if ( /this\.\s*$/.test(prefix) ) {
+            result = memberHandler.handle(doc.text, params.position);
+          } else {
+            result = completionHandler.handle(doc.text, params.position);
+          }
+          console.error('[LSP] completion: ' + result.items.length + ' items at line ' + params.position.line + ':' + params.position.character);
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] completion error:', e.message, e.stack);
+          respond(id, { isIncomplete: false, items: [] });
         }
         break;
 

@@ -9,9 +9,7 @@ foam.CLASS({
   name: 'CompletionHandler',
 
   requires: [
-    'foam.parse.lsp.FoamIndex',
-    'foam.parse.lsp.FoamClassGrammar',
-    'foam.parse.StringPStream'
+    'foam.parse.lsp.FoamIndex'
   ],
 
   properties: [
@@ -22,96 +20,170 @@ foam.CLASS({
       factory: function() { return this.FoamIndex.create(); }
     },
     {
-      class: 'FObjectProperty',
-      of: 'foam.parse.lsp.FoamClassGrammar',
-      name: 'grammar',
-      factory: function() { return this.FoamClassGrammar.create({ index: this.index }); }
+      name: 'topLevelKeys_',
+      factory: function() {
+        return [
+          'package', 'name', 'extends', 'implements', 'requires', 'imports',
+          'exports', 'properties', 'methods', 'actions', 'listeners',
+          'documentation', 'abstract', 'javaImports', 'axioms', 'css',
+          'messages', 'topics', 'constants', 'sections', 'flags',
+          'tableColumns', 'searchColumns'
+        ];
+      }
+    },
+    {
+      name: 'propertyKeys_',
+      factory: function() {
+        return [
+          'class', 'name', 'of', 'value', 'factory', 'expression', 'preSet',
+          'postSet', 'view', 'documentation', 'hidden', 'transient', 'section',
+          'visibility', 'javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory',
+          'javaGetter', 'aliases', 'tableCellFormatter', 'labelFormatter',
+          'writePermissionRequired', 'readPermissionRequired'
+        ];
+      }
     }
   ],
 
   methods: [
     function handle(text, position) {
-      /**
-       * Returns { isIncomplete: Boolean, items: CompletionItem[] }
-       * position: { line: Int, character: Int }
-       */
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return { isIncomplete: false, items: [] };
       }
 
-      var offset = this.positionToOffset(text, position);
-      var suggestions = this.collectSuggestions(text, offset);
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var prefix = line.substring(0, position.character);
 
       var items = [];
-      var keys = Object.keys(suggestions);
-      for ( var i = 0 ; i < keys.length ; i++ ) {
-        var s = suggestions[keys[i]];
-        items.push(this.toCompletionItem(s));
+
+      // Context 1: Inside class: ' → property types
+      if ( /class\s*:\s*['"][\w]*$/.test(prefix) ) {
+        items = this.getPropertyTypeItems();
+      }
+      // Context 2: Inside extends: ' → class names
+      else if ( /extends\s*:\s*['"][\w.]*$/.test(prefix) ) {
+        items = this.getClassItems(this.extractPartial(prefix));
+      }
+      // Context 3: Inside of: ' → class names
+      else if ( /of\s*:\s*['"][\w.]*$/.test(prefix) ) {
+        items = this.getClassItems(this.extractPartial(prefix));
+      }
+      // Context 4: Inside requires: ['...  → class names
+      else if ( /requires\s*:\s*\[/.test(this.getLineContext(lines, position.line)) &&
+                /['"][\w.]*$/.test(prefix) ) {
+        items = this.getClassItems(this.extractPartial(prefix));
+      }
+      // Context 5: Inside implements: ['... → class names
+      else if ( /implements\s*:\s*\[/.test(this.getLineContext(lines, position.line)) &&
+                /['"][\w.]*$/.test(prefix) ) {
+        items = this.getClassItems(this.extractPartial(prefix));
+      }
+      // Context 6: Top-level key position (after { or ,)
+      else if ( this.isTopLevelKeyPosition(lines, position) ) {
+        items = this.getTopLevelKeyItems();
+      }
+      // Context 7: Property key position (inside property object)
+      else if ( this.isPropertyKeyPosition(lines, position) ) {
+        items = this.getPropertyKeyItems();
       }
 
       return { isIncomplete: false, items: items };
     },
 
-    function collectSuggestions(text, cursorOffset) {
-      var suggestions = {};
-      var cursorSuggestions = {};
-      var maxPos = 0;
-
-      var apply = function(p, grammar) {
-        if ( this.pos > maxPos ) {
-          maxPos = this.pos;
-        }
-        // Collect suggestions at or near cursor position
-        if ( p.suggest && this.pos >= cursorOffset - 1 && this.pos <= cursorOffset + 1 ) {
-          var s = p.suggest();
-          if ( s ) cursorSuggestions[s.text || s.label] = s;
-        }
-        // Also collect at maxPos (furthest parse point)
-        if ( p.suggest && this.pos === maxPos ) {
-          var s = p.suggest();
-          if ( s ) suggestions[s.text || s.label] = s;
-        }
-        return p.parse(this, grammar);
-      };
-
-      var str = text + String.fromCharCode(26);
-      var ps = this.StringPStream.create({ str: str, apply: apply });
-      this.grammar.parse(ps);
-
-      // Prefer cursor-position suggestions, fall back to maxPos suggestions
-      return Object.keys(cursorSuggestions).length > 0 ? cursorSuggestions : suggestions;
+    function extractPartial(prefix) {
+      /** Extract the partial text after the last quote. */
+      var match = prefix.match(/['"]([^'"]*?)$/);
+      return match ? match[1] : '';
     },
 
-    function positionToOffset(text, position) {
-      var lines = text.split('\n');
-      var offset = 0;
-      for ( var i = 0 ; i < position.line && i < lines.length ; i++ ) {
-        offset += lines[i].length + 1; // +1 for \n
+    function getLineContext(lines, lineNum) {
+      /** Get surrounding lines to detect array/object context. */
+      var ctx = '';
+      for ( var i = Math.max(0, lineNum - 10) ; i <= lineNum ; i++ ) {
+        ctx += (lines[i] || '') + '\n';
       }
-      offset += Math.min(position.character, (lines[position.line] || '').length);
-      return offset;
+      return ctx;
     },
 
-    function toCompletionItem(suggestion) {
-      return {
-        label: suggestion.text || suggestion.label,
-        kind: this.categoryToKind(suggestion.category),
-        detail: suggestion.hint || '',
-        documentation: suggestion.tooltip || '',
-        insertText: suggestion.text
-      };
-    },
-
-    function categoryToKind(category) {
-      switch ( category ) {
-        case 'class':    return 7;  // Class
-        case 'property': return 10; // Property
-        case 'method':   return 2;  // Method
-        case 'key':      return 14; // Keyword
-        case 'enum':     return 13; // Enum
-        case 'operator': return 24; // Operator
-        default:         return 1;  // Text
+    function isTopLevelKeyPosition(lines, position) {
+      /** Check if cursor is where a top-level foam.CLASS key would go. */
+      var line = (lines[position.line] || '').trim();
+      // Empty or just whitespace after comma — likely a key position
+      if ( /^[a-zA-Z]*$/.test(line) ) {
+        // Check if we're inside foam.CLASS({ ... })
+        var ctx = this.getLineContext(lines, position.line);
+        return /foam\.(CLASS|ENUM|INTERFACE)\s*\(\s*\{/.test(ctx);
       }
+      return false;
+    },
+
+    function isPropertyKeyPosition(lines, position) {
+      /** Check if cursor is inside a property object definition. */
+      var line = (lines[position.line] || '').trim();
+      if ( /^[a-zA-Z]*$/.test(line) ) {
+        var ctx = this.getLineContext(lines, position.line);
+        return /properties\s*:\s*\[/.test(ctx) && /\{\s*$/.test(ctx.trim()) || /,\s*$/.test(ctx.trim());
+      }
+      return false;
+    },
+
+    function getPropertyTypeItems() {
+      var types = this.index.getPropertyTypes();
+      return types.map(function(t) {
+        return {
+          label: t.name,
+          kind: 7, // Class
+          detail: t.id,
+          documentation: t.doc || '',
+          insertText: t.name,
+          sortText: t.name.toLowerCase()
+        };
+      });
+    },
+
+    function getClassItems(partial) {
+      var ids = this.index.getAllClassIds();
+      var items = [];
+      var lower = partial.toLowerCase();
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        var id = ids[i];
+        if ( partial && id.toLowerCase().indexOf(lower) === -1 ) continue;
+        var cls = this.index.getClass(id);
+        var doc = cls && cls.model_ ? ( cls.model_.documentation || '' ) : '';
+        items.push({
+          label: id,
+          kind: 7, // Class
+          detail: doc.substring(0, 80),
+          insertText: id,
+          sortText: id.toLowerCase()
+        });
+        // Limit to avoid overwhelming VS Code
+        if ( items.length > 200 ) break;
+      }
+      return items;
+    },
+
+    function getTopLevelKeyItems() {
+      return this.topLevelKeys_.map(function(k) {
+        return {
+          label: k,
+          kind: 14, // Keyword
+          insertText: k + ': ',
+          sortText: k
+        };
+      });
+    },
+
+    function getPropertyKeyItems() {
+      return this.propertyKeys_.map(function(k) {
+        return {
+          label: k,
+          kind: 14, // Keyword
+          insertText: k + ': ',
+          sortText: k
+        };
+      });
     }
   ]
 });

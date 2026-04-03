@@ -23,13 +23,18 @@ process.on('unhandledRejection', function(e) {
   console.error('[LSP] Ignoring unhandled rejection:', e.message || e);
 });
 process.on('uncaughtException', function(e) {
-  // Only ignore 'document is not defined' errors from web-only code
-  if ( e.message && e.message.includes('document') ) {
+  // Ignore web-only errors (document, window, etc.)
+  if ( e.message && ( e.message.includes('document') || e.message.includes('window') ) ) {
     console.error('[LSP] Ignoring web-only error:', e.message);
     return;
   }
-  console.error('[LSP] Fatal error:', e);
-  process.exit(1);
+  // Don't crash on syntax errors in loaded files — they're user's in-progress edits
+  if ( e instanceof SyntaxError ) {
+    console.error('[LSP] Ignoring SyntaxError in loaded file:', e.message);
+    return;
+  }
+  // Log but don't crash — keep the server alive
+  console.error('[LSP] Uncaught error (non-fatal):', e.message);
 });
 
 // Set globals that buildlib expects (normally set by build.js)
@@ -42,6 +47,12 @@ globalThis.NOP     = '';
 var path_ = require('path');
 var pmake = require('./pmake');
 var buildlib = require('./buildlib');
+
+// Override buildlib.error to not exit — keep LSP alive even if POM loading has errors
+var origError = buildlib.error;
+buildlib.error = function() {
+  console.error('[LSP] Build error (non-fatal):', Array.prototype.join.call(arguments, ' '));
+};
 
 var pomPath = process.argv[2] || path_.join(process.cwd(), 'pom');
 
