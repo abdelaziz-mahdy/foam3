@@ -22,7 +22,7 @@
 foam.CLASS({
   package: 'foam.core.controller',
   name: 'ApplicationController',
-  extends: 'foam.u2.Element',
+  extends: 'foam.',
 
   mixins: [ 'foam.u2.memento.Memorable' ],
 

@@ -115,7 +115,17 @@ test(result.items.some(function(i) { return i.label === 'FObjectProperty'; }), '
 // Test completion for extends
 var extendsText = 'foam.CLASS({\n  extends: ' + Q + Q + '\n})';
 var extendsResult = completionHandler.handle(extendsText, { line: 1, character: 13 });
-test(extendsResult.items.length > 0, 'Class completions for extends: ' + extendsResult.items.length + ' items');
+test(extendsResult.items.length > 0, 'Class completions for extends (empty): ' + extendsResult.items.length + ' items');
+
+// Test completion for partial extends value (typing 'foam.')
+var partialExtendsText = 'foam.CLASS({\n  extends: ' + Q + 'foam.' + Q + '\n})';
+var partialExtendsResult = completionHandler.handle(partialExtendsText, { line: 1, character: 17 });
+test(partialExtendsResult.items.length > 0, 'Class completions for extends (partial foam.): ' + partialExtendsResult.items.length + ' items');
+
+// Test completion for partial class type (typing 'S')
+var partialClassText = 'foam.CLASS({\n  properties: [\n    { class: ' + Q + 'S' + Q + ' }\n  ]\n})';
+var partialClassResult = completionHandler.handle(partialClassText, { line: 2, character: 15 });
+test(partialClassResult.items.length > 0, 'Property type completions (partial S): ' + partialClassResult.items.length + ' items');
 
 // Test completion with factory function before the class property (regression test)
 var factoryText = 'foam.CLASS({\n  properties: [\n    { name: ' + Q + 'y' + Q + ', factory: function() { return {}; } },\n    { class: ' + Q + Q + ', name: ' + Q + 'x' + Q + ' }\n  ]\n})';

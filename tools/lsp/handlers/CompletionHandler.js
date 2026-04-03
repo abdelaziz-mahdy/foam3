@@ -45,7 +45,68 @@ foam.CLASS({
         items.push(this.toCompletionItem(s));
       }
 
-      return { isIncomplete: false, items: items };
+      // Fallback: if grammar found no suggestions, detect context from line text
+      // and provide appropriate items. This handles partial values like 'foam.'
+      // where the grammar's sug(literal(...)) can't match.
+      if ( items.length === 0 ) {
+        items = this.contextFallback(text, position);
+      }
+
+      return { isIncomplete: items.length > 200, items: items };
+    },
+
+    function contextFallback(text, position) {
+      /** Detect cursor context from surrounding text and provide suggestions. */
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var prefix = line.substring(0, position.character);
+
+      // Inside class: '...' → property types
+      if ( /class\s*:\s*['"][^'"]*$/.test(prefix) ) {
+        return this.index.getPropertyTypes().map(function(t) {
+          return { label: t.name, kind: 7, detail: t.id, insertText: t.name, sortText: t.name.toLowerCase() };
+        });
+      }
+
+      // Inside extends: '...' or of: '...' or requires: ['...' → class names
+      if ( /(?:extends|of)\s*:\s*['"][^'"]*$/.test(prefix) ||
+           /requires\s*:\s*\[/.test(this.getLineContext_(lines, position.line)) && /['"][^'"]*$/.test(prefix) ||
+           /implements\s*:\s*\[/.test(this.getLineContext_(lines, position.line)) && /['"][^'"]*$/.test(prefix) ) {
+        var partial = this.extractPartial_(prefix).toLowerCase();
+        var ids = this.index.getAllClassIds();
+        var items = [];
+        for ( var i = 0 ; i < ids.length ; i++ ) {
+          if ( partial && ids[i].toLowerCase().indexOf(partial) === -1 ) continue;
+          items.push({ label: ids[i], kind: 7, insertText: ids[i], sortText: ids[i].toLowerCase() });
+          if ( items.length > 200 ) break;
+        }
+        return items;
+      }
+
+      // Inside javaImports: ['...' → Java packages
+      if ( /javaImports\s*:\s*\[/.test(this.getLineContext_(lines, position.line)) && /['"][^'"]*$/.test(prefix) ) {
+        return [
+          { label: 'foam.lang.', kind: 9, detail: 'FObject, X, PropertyInfo' },
+          { label: 'foam.core.', kind: 9, detail: 'auth, logger, ruler' },
+          { label: 'java.util.', kind: 9, detail: 'List, ArrayList, Map, Set' },
+          { label: 'java.io.', kind: 9, detail: 'IO classes' }
+        ];
+      }
+
+      return [];
+    },
+
+    function getLineContext_(lines, lineNum) {
+      var ctx = '';
+      for ( var i = Math.max(0, lineNum - 10) ; i <= lineNum ; i++ ) {
+        ctx += (lines[i] || '') + '\n';
+      }
+      return ctx;
+    },
+
+    function extractPartial_(prefix) {
+      var match = prefix.match(/['"]([^'"]*?)$/);
+      return match ? match[1] : '';
     },
 
     function collectSuggestions(text, cursorOffset) {
