@@ -129,14 +129,8 @@ foam.CLASS({
       /** Resolve a short name from model.requires using FileModelCache. */
       var model = this.cache.getModelAt(opt_uri || '', text, position.line);
       if ( ! model ) return null;
-      var requires = model.requires || [];
-      for ( var i = 0 ; i < requires.length ; i++ ) {
-        var r = requires[i];
-        var id = typeof r === 'string' ? r : r.path;
-        var alias = typeof r === 'string' ? id.split('.').pop() : (r.name || id.split('.').pop());
-        if ( alias === shortName ) return id;
-      }
-      return null;
+      var requiresMap = this.cache.buildRequiresMap(model);
+      return requiresMap[shortName] || null;
     },
 
     function resolveCurrentClass_(text, position, opt_uri) {
