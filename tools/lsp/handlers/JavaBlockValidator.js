@@ -87,13 +87,20 @@ foam.CLASS({
         if ( blockEnd === -1 ) continue;
         var javaBlock = text.substring(blockStart, blockEnd);
 
-        // Find getter/setter calls
+        // Find getter/setter calls that are on 'this' (not on other objects).
+        // Only flag bare getX()/setX() calls — NOT obj.getX() or variable.setX()
+        // A bare call has no '.' immediately before it (start of line, after space,
+        // after '(' , after '=' , after 'return', etc.)
         var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
         var gs;
         while ( ( gs = getSetRegex.exec(javaBlock) ) !== null ) {
+          // Check character before the match — if it's '.', this is a method call on another object
+          var charBefore = gs.index > 0 ? javaBlock[gs.index - 1] : ' ';
+          if ( charBefore === '.' ) continue; // e.g., formatter.setQuoteKeys(), conn.getOutputStream()
+
           var propName = gs[2].charAt(0).toLowerCase() + gs[2].substring(1);
-          // Skip known framework methods
-          if ( ['x', 'class', 'classInfo', 'ownClassInfo'].indexOf(propName) !== -1 ) continue;
+          // Skip known framework methods and common Java patterns
+          if ( ['x', 'class', 'classInfo', 'ownClassInfo', 'instance', 'logger'].indexOf(propName) !== -1 ) continue;
           if ( ! propNames[propName.toLowerCase()] ) {
             var absOffset = baseOffset + blockStart + gs.index;
             var pos = this.offsetToPosition(fullText, absOffset);
@@ -102,7 +109,7 @@ foam.CLASS({
                 start: pos,
                 end: { line: pos.line, character: pos.character + gs[0].length - 1 }
               },
-              severity: 2, // Warning
+              severity: 3, // Info (not warning — could be a local variable method)
               message: "Property '" + propName + "' not found on " + classId,
               source: 'foam-lsp'
             });
