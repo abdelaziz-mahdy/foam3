@@ -23,51 +23,94 @@ foam.CLASS({
 
   methods: [
     function handle(text, position) {
-      /**
-       * Returns { contents: { kind: 'markdown', value: String }, range: Range } or null.
-       */
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return null;
       }
 
-      var word = this.getWordAtPosition(text, position);
+      var word = this.getDottedWordAtPosition(text, position);
       if ( ! word ) return null;
 
-      // Try as class ID
+      // Try as class ID (full path like foam.lang.FObject)
       if ( this.index.classExists(word) ) {
-        var doc = this.index.getClassDoc(word);
-        if ( doc ) {
-          return {
-            contents: { kind: 'markdown', value: doc }
-          };
+        return this.buildClassHover(word);
+      }
+
+      // Try as property type (short name like String, FObjectProperty)
+      var propTypes = this.index.getPropertyTypes();
+      for ( var i = 0 ; i < propTypes.length ; i++ ) {
+        if ( propTypes[i].name === word ) {
+          return this.buildClassHover(propTypes[i].id);
         }
       }
 
-      // Try as a dotted class ID by expanding the word to include dots
-      var dottedWord = this.getDottedWordAtPosition(text, position);
-      if ( dottedWord && this.index.classExists(dottedWord) ) {
-        var doc = this.index.getClassDoc(dottedWord);
-        if ( doc ) {
-          return {
-            contents: { kind: 'markdown', value: doc }
-          };
+      // Try as property name — resolve the current class and check its properties
+      var currentClassId = this.resolveCurrentClass(text);
+      if ( currentClassId ) {
+        var propDoc = this.index.getPropertyDoc(currentClassId, word);
+        if ( propDoc ) {
+          return { contents: { kind: 'markdown', value: propDoc } };
         }
       }
 
       return null;
     },
 
-    function getWordAtPosition(text, position) {
-      var lines = text.split('\n');
-      var line = lines[position.line] || '';
-      var ch = position.character;
+    function buildClassHover(classId) {
+      var cls = this.index.getClass(classId);
+      if ( ! cls ) return null;
+      var m = cls.model_;
 
-      var start = ch;
-      while ( start > 0 && /[a-zA-Z0-9_]/.test(line[start - 1]) ) start--;
-      var end = ch;
-      while ( end < line.length && /[a-zA-Z0-9_]/.test(line[end]) ) end++;
+      var md = '**' + m.id + '**\n\n';
+      if ( m.extends && m.extends !== 'FObject' ) md += 'extends `' + m.extends + '`\n\n';
+      if ( m.documentation ) md += m.documentation + '\n\n';
 
-      return line.substring(start, end);
+      // Own properties
+      var ownProps = this.index.getOwnProperties(classId);
+      if ( ownProps.length > 0 ) {
+        md += '**Own Properties:**\n';
+        for ( var i = 0 ; i < ownProps.length ; i++ ) {
+          var p = ownProps[i];
+          var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
+          md += '- `' + p.name + '` (' + typeName + ')';
+          if ( p.documentation ) md += ' — ' + p.documentation.split('\n')[0].substring(0, 60);
+          md += '\n';
+        }
+        md += '\n';
+      }
+
+      // Inherited properties (grouped by source)
+      var inherited = this.index.getInheritedProperties(classId);
+      for ( var g = 0 ; g < inherited.length ; g++ ) {
+        var group = inherited[g];
+        md += '**Inherited from ' + group.className + ':**\n';
+        for ( var j = 0 ; j < Math.min(group.properties.length, 5) ; j++ ) {
+          var ip = group.properties[j];
+          var iTypeName = ip.cls_ && ip.cls_.model_ ? ip.cls_.model_.name : 'Property';
+          md += '- `' + ip.name + '` (' + iTypeName + ')\n';
+        }
+        if ( group.properties.length > 5 ) {
+          md += '- ... and ' + (group.properties.length - 5) + ' more\n';
+        }
+        md += '\n';
+      }
+
+      // Methods
+      var methods = this.index.getMethods(classId);
+      if ( methods.length > 0 ) {
+        var methodNames = methods.slice(0, 10).map(function(m) { return '`' + m.name + '`'; });
+        md += '**Methods:** ' + methodNames.join(', ');
+        if ( methods.length > 10 ) md += ' ... and ' + (methods.length - 10) + ' more';
+        md += '\n';
+      }
+
+      return { contents: { kind: 'markdown', value: md } };
+    },
+
+    function resolveCurrentClass(text) {
+      var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
+      var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
+      if ( ! nameMatch ) return null;
+      return pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
     },
 
     function getDottedWordAtPosition(text, position) {
@@ -81,7 +124,6 @@ foam.CLASS({
       while ( end < line.length && /[a-zA-Z0-9_.]/.test(line[end]) ) end++;
 
       var word = line.substring(start, end);
-      // Strip surrounding quotes
       if ( word.startsWith("'") ) word = word.substring(1);
       if ( word.endsWith("'") ) word = word.substring(0, word.length - 1);
       return word;

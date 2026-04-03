@@ -23,21 +23,33 @@ foam.CLASS({
 
   methods: [
     function handle(text, position) {
-      /**
-       * Returns { uri: String, range: { start, end } } or null.
-       */
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return null;
       }
 
-      var classId = this.getDottedWordAtPosition(text, position);
-      if ( ! classId ) return null;
+      var word = this.getDottedWordAtPosition(text, position);
+      if ( ! word ) return null;
 
-      var loc = this.index.getSourceLocation(classId);
-      if ( ! loc ) return null;
+      // Try as full class ID
+      var filePath = this.index.getFilePath(word);
+      if ( filePath ) return this.buildLocation(filePath);
 
+      // Try as short property type name → resolve to full ID → get file
+      var propTypes = this.index.getPropertyTypes();
+      for ( var i = 0 ; i < propTypes.length ; i++ ) {
+        if ( propTypes[i].name === word ) {
+          filePath = this.index.getFilePath(propTypes[i].id);
+          if ( filePath ) return this.buildLocation(filePath);
+          break;
+        }
+      }
+
+      return null;
+    },
+
+    function buildLocation(filePath) {
       return {
-        uri: 'file://' + loc.path,
+        uri: 'file://' + filePath,
         range: {
           start: { line: 0, character: 0 },
           end: { line: 0, character: 0 }

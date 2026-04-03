@@ -53,7 +53,7 @@ foam.CLASS({
 
       var apply = function(p, grammar) {
         // Collect suggestions near cursor position
-        if ( p.suggest && this.pos >= cursorOffset - 1 && this.pos <= cursorOffset + 1 ) {
+        if ( p.suggest && this.pos >= cursorOffset - 3 && this.pos <= cursorOffset + 3 ) {
           var s = p.suggest();
           if ( s ) cursorSuggestions[s.text || s.label] = s;
         }
