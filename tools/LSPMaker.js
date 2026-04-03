@@ -11,15 +11,14 @@ var path_ = require('path');
 exports.description = 'starts FOAM LSP server for IDE integration';
 
 exports.init = function() {
-  this.log('[LSP] init');
+  console.error('[LSP] init');
   flags.loadFiles = true;
-  flags.java      = false;
-  flags.genjava   = false;
-  flags.test      = false;
+  flags.java      = true;
+  flags.js        = true;
 };
 
 exports.end = function() {
-  this.log('[LSP] Loading LSP models...');
+  console.error('[LSP] Loading LSP models...');
 
   // Load LSP source files
   var lspPom = path_.join(__dirname, 'lsp/pom');
@@ -32,6 +31,6 @@ exports.end = function() {
     }
   }
 
-  this.log('[LSP] ' + Object.keys(foam.USED).length + ' models loaded. Starting server...');
+  console.error('[LSP] ' + Object.keys(foam.USED).length + ' models loaded. Starting server...');
   require('./lsp/server').start();
 };
