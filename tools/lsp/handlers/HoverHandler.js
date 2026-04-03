@@ -60,8 +60,17 @@ foam.CLASS({
         if ( createHover ) return createHover;
       }
 
-      // Try segment as property or method name — resolve the current class
+      // Try as property inside .create({}) block — resolve the target class
       var lookupName = segment || word;
+      var createClassId = this.resolveCreateContext_(text, position);
+      if ( createClassId ) {
+        var createPropDoc = this.index.getPropertyDoc(createClassId, lookupName);
+        if ( createPropDoc ) {
+          return { contents: { kind: 'markdown', value: createPropDoc } };
+        }
+      }
+
+      // Try segment as property or method name — resolve the current class
       var currentClassId = this.resolveCurrentClass(text);
       if ( currentClassId ) {
         // Property hover
@@ -131,6 +140,33 @@ foam.CLASS({
       }
 
       return { contents: { kind: 'markdown', value: md } };
+    },
+
+    function resolveCreateContext_(text, position) {
+      /** Find if cursor is inside a .create({}) block, return the target class ID. */
+      var lines = text.split('\n');
+      var depth = 0;
+      for ( var i = position.line ; i >= Math.max(0, position.line - 20) ; i-- ) {
+        var line = lines[i] || '';
+        for ( var c = line.length - 1 ; c >= 0 ; c-- ) {
+          if ( line[c] === '}' ) depth++;
+          if ( line[c] === '{' ) depth--;
+        }
+        if ( depth < 0 ) {
+          for ( var j = i ; j >= Math.max(0, i - 3) ; j-- ) {
+            var checkLine = lines[j] || '';
+            var createMatch = checkLine.match(/(?:this\.)?(\w+)\.create\s*\(/);
+            if ( createMatch ) {
+              var shortName = createMatch[1];
+              var resolved = this.resolveRequiredClass_(text, shortName);
+              if ( resolved ) return resolved;
+              if ( this.index.classExists(shortName) ) return shortName;
+            }
+          }
+          break;
+        }
+      }
+      return null;
     },
 
     function resolveRequiredClass_(text, shortName) {
