@@ -61,10 +61,22 @@ foam.CLASS({
       var line = lines[position.line] || '';
       var prefix = line.substring(0, position.character);
 
+      // Find where the partial value starts (after the opening quote)
+      var partialStart = this.findQuoteStart_(prefix);
+      var replaceRange = {
+        start: { line: position.line, character: partialStart },
+        end: position
+      };
+
       // Inside class: '...' → property types
       if ( /class\s*:\s*['"][^'"]*$/.test(prefix) ) {
+        var self = this;
         return this.index.getPropertyTypes().map(function(t) {
-          return { label: t.name, kind: 7, detail: t.id, insertText: t.name, sortText: t.name.toLowerCase() };
+          return {
+            label: t.name, kind: 7, detail: t.id,
+            textEdit: { range: replaceRange, newText: t.name },
+            sortText: t.name.toLowerCase()
+          };
         });
       }
 
@@ -77,20 +89,20 @@ foam.CLASS({
         var items = [];
         for ( var i = 0 ; i < ids.length ; i++ ) {
           if ( partial && ids[i].toLowerCase().indexOf(partial) === -1 ) continue;
-          items.push({ label: ids[i], kind: 7, insertText: ids[i], sortText: ids[i].toLowerCase() });
+          items.push({
+            label: ids[i], kind: 7,
+            textEdit: { range: replaceRange, newText: ids[i] },
+            filterText: ids[i],
+            sortText: ids[i].toLowerCase()
+          });
           if ( items.length > 200 ) break;
         }
         return items;
       }
 
-      // Inside javaImports: ['...' → Java packages
+      // Inside javaImports: ['...' → Java packages (dynamic from registry)
       if ( /javaImports\s*:\s*\[/.test(this.getLineContext_(lines, position.line)) && /['"][^'"]*$/.test(prefix) ) {
-        return [
-          { label: 'foam.lang.', kind: 9, detail: 'FObject, X, PropertyInfo' },
-          { label: 'foam.core.', kind: 9, detail: 'auth, logger, ruler' },
-          { label: 'java.util.', kind: 9, detail: 'List, ArrayList, Map, Set' },
-          { label: 'java.io.', kind: 9, detail: 'IO classes' }
-        ];
+        return this.getJavaImportSuggestions_(replaceRange, this.extractPartial_(prefix));
       }
 
       return [];
@@ -107,6 +119,55 @@ foam.CLASS({
     function extractPartial_(prefix) {
       var match = prefix.match(/['"]([^'"]*?)$/);
       return match ? match[1] : '';
+    },
+
+    function getJavaImportSuggestions_(replaceRange, partial) {
+      /**
+       * Build Java import suggestions dynamically from the FOAM registry.
+       * Extract unique package prefixes from all class IDs that look like
+       * Java-compatible packages (foam.*, com.*, java.*, etc.)
+       */
+      var ids = this.index.getAllClassIds();
+      var packages = {};
+      var lower = partial.toLowerCase();
+
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        var id = ids[i];
+        var lastDot = id.lastIndexOf('.');
+        if ( lastDot <= 0 ) continue;
+        var pkg = id.substring(0, lastDot);
+
+        // Skip if doesn't match partial
+        if ( lower && id.toLowerCase().indexOf(lower) === -1 &&
+             pkg.toLowerCase().indexOf(lower) === -1 ) continue;
+
+        // Add both the full class import and the package prefix
+        if ( ! packages[id] ) {
+          packages[id] = true;
+        }
+      }
+
+      var items = [];
+      var keys = Object.keys(packages);
+      for ( var i = 0 ; i < keys.length ; i++ ) {
+        if ( items.length > 200 ) break;
+        items.push({
+          label: keys[i],
+          kind: 7,
+          textEdit: { range: replaceRange, newText: keys[i] },
+          filterText: keys[i],
+          sortText: keys[i].toLowerCase()
+        });
+      }
+      return items;
+    },
+
+    function findQuoteStart_(prefix) {
+      /** Find the character position right after the opening quote. */
+      for ( var i = prefix.length - 1 ; i >= 0 ; i-- ) {
+        if ( prefix[i] === "'" || prefix[i] === '"' ) return i + 1;
+      }
+      return prefix.length;
     },
 
     function collectSuggestions(text, cursorOffset) {

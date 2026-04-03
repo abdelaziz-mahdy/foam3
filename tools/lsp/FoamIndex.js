@@ -205,6 +205,11 @@ foam.CLASS({
     },
 
     function buildFileIndex() {
+      /**
+       * Build class ID → file path mapping from POM data.
+       * Handles files with multiple foam.CLASS definitions and
+       * files where the filename differs from the class name.
+       */
       this.fileIndex_ = {};
       var path_ = require('path');
       var fs_ = require('fs');
@@ -217,12 +222,18 @@ foam.CLASS({
           var file = files[f];
           var filePath = path_.resolve(location, file.name + '.js');
           try {
-            if ( fs_.existsSync(filePath) ) {
-              var content = fs_.readFileSync(filePath, 'utf8');
-              var pkgMatch = content.match(/package\s*:\s*['"]([^'"]+)['"]/);
-              var nameMatch = content.match(/name\s*:\s*['"]([^'"]+)['"]/);
-              if ( nameMatch ) {
-                var classId = pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
+            if ( ! fs_.existsSync(filePath) ) continue;
+            var content = fs_.readFileSync(filePath, 'utf8');
+            // Find each foam.CLASS/ENUM/INTERFACE call
+            var callRegex = /foam\.(CLASS|ENUM|INTERFACE)\s*\(/g;
+            var callMatch;
+            while ( ( callMatch = callRegex.exec(content) ) !== null ) {
+              // Look for package and name within the next 500 chars
+              var snippet = content.substring(callMatch.index, callMatch.index + 500);
+              var pkgM = snippet.match(/package\s*:\s*['"]([^'"]+)['"]/);
+              var nameM = snippet.match(/name\s*:\s*['"]([^'"]+)['"]/);
+              if ( nameM ) {
+                var classId = pkgM ? pkgM[1] + '.' + nameM[1] : nameM[1];
                 this.fileIndex_[classId] = filePath;
               }
             }
