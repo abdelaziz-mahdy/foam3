@@ -75,16 +75,18 @@ foam.CLASS({
         });
       }
 
-      // Methods
+      // Methods — with parameter signatures
       var methods = classId ? this.index.getMethods(classId) : [];
       for ( var i = 0 ; i < methods.length ; i++ ) {
+        var m = methods[i];
+        var sig = this.getMethodSignature_(m);
         items.push({
-          label: methods[i].name,
+          label: m.name,
           kind: 2, // Method
-          detail: 'Method',
-          documentation: methods[i].documentation || '',
-          insertText: methods[i].name + '()',
-          sortText: '1_' + methods[i].name
+          detail: sig,
+          documentation: m.documentation || '',
+          insertText: m.name + '()',
+          sortText: '1_' + m.name
         });
       }
 
@@ -195,6 +197,25 @@ foam.CLASS({
       /** Resolve a short class name to full ID using requires. */
       var map = this.parseRequires(text);
       return map[shortName] || null;
+    },
+
+    function getMethodSignature_(method) {
+      /** Extract method signature: name(param1, param2) */
+      // Try formal args first
+      if ( method.args && method.args.length > 0 ) {
+        var params = method.args.map(function(a) {
+          return ( a.type ? a.type + ' ' : '' ) + a.name;
+        });
+        return method.name + '(' + params.join(', ') + ')';
+      }
+      // Fall back to parsing the function code
+      if ( method.code ) {
+        var match = method.code.toString().match(/function\s*\w*\s*\(([^)]*)\)/);
+        if ( match && match[1].trim() ) {
+          return method.name + '(' + match[1].trim() + ')';
+        }
+      }
+      return method.name + '()';
     },
 
     function resolveClassId(text) {

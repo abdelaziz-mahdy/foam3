@@ -43,12 +43,21 @@ foam.CLASS({
         }
       }
 
-      // Try as property name — resolve the current class and check its properties
+      // Try as property or method name — resolve the current class
       var currentClassId = this.resolveCurrentClass(text);
       if ( currentClassId ) {
+        // Property hover
         var propDoc = this.index.getPropertyDoc(currentClassId, word);
         if ( propDoc ) {
           return { contents: { kind: 'markdown', value: propDoc } };
+        }
+
+        // Method hover — show signature and documentation
+        var methods = this.index.getMethods(currentClassId);
+        for ( var i = 0 ; i < methods.length ; i++ ) {
+          if ( methods[i].name === word ) {
+            return { contents: { kind: 'markdown', value: this.buildMethodHover_(methods[i], currentClassId) } };
+          }
         }
       }
 
@@ -104,6 +113,33 @@ foam.CLASS({
       }
 
       return { contents: { kind: 'markdown', value: md } };
+    },
+
+    function buildMethodHover_(method, classId) {
+      /** Build markdown hover for a method with signature. */
+      var sig = method.name;
+      // Extract params from formal args or function code
+      if ( method.args && method.args.length > 0 ) {
+        var params = method.args.map(function(a) {
+          return ( a.type ? a.type + ' ' : '' ) + a.name;
+        });
+        sig += '(' + params.join(', ') + ')';
+      } else if ( method.code ) {
+        var match = method.code.toString().match(/function\s*\w*\s*\(([^)]*)\)/);
+        if ( match && match[1].trim() ) {
+          sig += '(' + match[1].trim() + ')';
+        } else {
+          sig += '()';
+        }
+      } else {
+        sig += '()';
+      }
+
+      var md = '**' + sig + '**\n\n';
+      md += 'Method on `' + classId + '`\n\n';
+      if ( method.documentation ) md += method.documentation + '\n\n';
+      if ( method.type ) md += 'Returns: `' + method.type + '`\n';
+      return md;
     },
 
     function resolveCurrentClass(text) {
