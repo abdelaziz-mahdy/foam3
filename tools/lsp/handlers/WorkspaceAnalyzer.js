@@ -45,16 +45,27 @@ foam.CLASS({
 
       if ( ! idx.fileIndex_ ) idx.buildFileIndex();
 
-      // Collect all unique file paths
+      // Collect unique file paths that match active flags.
+      // Files with flags like 'test' or 'swift' are skipped unless
+      // those flags are currently active.
       var fileIndex = idx.fileIndex_;
       var seenPaths = {};
       var filePaths = [];
       for ( var classId in fileIndex ) {
-        var fp = fileIndex[classId];
-        if ( ! seenPaths[fp] ) {
-          seenPaths[fp] = true;
-          filePaths.push(fp);
+        var entry = fileIndex[classId];
+        var fp = entry.path || entry; // handle both new {path,flags} and legacy string format
+        if ( seenPaths[fp] ) continue;
+
+        // Check if file's flags match active flags
+        if ( entry.flags && entry.flags.length > 0 ) {
+          var hasActiveFlag = entry.flags.some(function(flag) {
+            return foam.flags[flag] !== false;
+          });
+          if ( ! hasActiveFlag ) continue;
         }
+
+        seenPaths[fp] = true;
+        filePaths.push(fp);
       }
 
       var total          = filePaths.length;

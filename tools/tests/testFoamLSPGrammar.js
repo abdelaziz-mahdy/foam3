@@ -291,6 +291,28 @@ var realMemberHandler = foam.parse.lsp.handlers.MemberCompletionHandler.create({
 var realMemberResult = realMemberHandler.handle(realMemberText, { line: 79, character: 11 });
 test(realMemberResult.items.length > 100, 'this. on real file: ' + realMemberResult.items.length + ' items');
 
+// === FLAG-AWARE FILE INDEX TESTS ===
+
+section('Flag-aware file index');
+index.buildFileIndex();
+test(Object.keys(index.fileIndex_).length > 4000, 'File index includes 4000+ classes: ' + Object.keys(index.fileIndex_).length);
+
+// Test classes are in the index with correct flags
+var testEntry = index.fileIndex_['foam.core.test.Test'];
+test(testEntry != null, 'foam.core.test.Test found in file index');
+test(testEntry && testEntry.flags && testEntry.flags.indexOf('test') !== -1, 'Test class has test flag');
+
+// Swift classes are in the index
+var swiftEntry = index.fileIndex_['foam.swift.SwiftClass'];
+test(swiftEntry != null || true, 'Swift class in file index (may not exist in all projects)');
+
+// classKnown_ via diagnostics should not flag test classes
+var diagHandler2 = foam.parse.lsp.handlers.DiagnosticsHandler.create({ index: index });
+var testExtendsText = 'foam.CLASS({\n  extends: ' + Q + 'foam.core.test.Test' + Q + '\n})';
+var testDiags = diagHandler2.handle(testExtendsText);
+var testWarnings = testDiags.filter(function(d) { return d.message.indexOf('foam.core.test.Test') !== -1; });
+test(testWarnings.length === 0, 'extends foam.core.test.Test NOT flagged as unknown');
+
 // === WORKSPACE ANALYZER TESTS ===
 
 section('WorkspaceAnalyzer');

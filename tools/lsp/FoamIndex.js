@@ -206,45 +206,154 @@ foam.CLASS({
 
     function buildFileIndex() {
       /**
-       * Build class ID → file path mapping from POM data.
-       * Handles files with multiple foam.CLASS definitions and
-       * files where the filename differs from the class name.
+       * Build class ID → { path, flags } mapping by walking ALL POMs
+       * recursively, including flag-filtered projects (test, swift, node).
+       *
+       * This gives the LSP complete knowledge of every class in the
+       * codebase. The flags metadata lets the analyzer decide which
+       * files to actually scan based on the user's active flags.
+       *
+       * fileIndex_ = {
+       *   'foam.core.test.Test': { path: '/.../Test.js', flags: ['js', 'test'] },
+       *   'foam.u2.Element':     { path: '/.../Element2.js', flags: ['web'] }
+       * }
        */
       this.fileIndex_ = {};
       var path_ = require('path');
       var fs_ = require('fs');
+
+      // Walk loaded POMs first (these are already in foam.poms)
       var poms = foam.poms || [];
       for ( var p = 0 ; p < poms.length ; p++ ) {
-        var pom = poms[p];
-        var location = pom.location || '';
-        var files = pom.files || [];
-        for ( var f = 0 ; f < files.length ; f++ ) {
-          var file = files[f];
-          var filePath = path_.resolve(location, file.name + '.js');
+        this.indexPomFiles_(poms[p], path_, fs_);
+      }
+
+      // Now walk flag-filtered sub-projects that were skipped during boot.
+      // Re-read each POM's projects array and follow test/node/swift POMs.
+      var visited = {};
+      for ( var p = 0 ; p < poms.length ; p++ ) {
+        this.walkSkippedProjects_(poms[p], path_, fs_, visited);
+      }
+    },
+
+    function indexPomFiles_(pom, path_, fs_) {
+      /** Index all files from a POM, storing flag metadata per class. */
+      var location = pom.location || '';
+      var files = pom.files || [];
+
+      for ( var f = 0 ; f < files.length ; f++ ) {
+        var file = files[f];
+        var filePath = path_.resolve(location, file.name + '.js');
+        var fileFlags = file.flags ? String(file.flags).split('|').map(function(s) {
+          return s.split('&');
+        }).reduce(function(a, b) { return a.concat(b); }, []) : ['js'];
+
+        this.indexFileClasses_(filePath, fileFlags, fs_);
+      }
+    },
+
+    function indexFileClasses_(filePath, fileFlags, fs_) {
+      /** Read a file and extract all foam.CLASS/ENUM/INTERFACE class IDs. */
+      try {
+        if ( ! fs_.existsSync(filePath) ) return;
+        var content = fs_.readFileSync(filePath, 'utf8');
+        var callRegex = /foam\.(CLASS|ENUM|INTERFACE)\s*\(/g;
+        var callMatch;
+        while ( ( callMatch = callRegex.exec(content) ) !== null ) {
+          var snippet = content.substring(callMatch.index, callMatch.index + 500);
+          var pkgM = snippet.match(/package\s*:\s*['"]([^'"]+)['"]/);
+          var nameM = snippet.match(/name\s*:\s*['"]([^'"]+)['"]/);
+          if ( nameM ) {
+            var classId = pkgM ? pkgM[1] + '.' + nameM[1] : nameM[1];
+            this.fileIndex_[classId] = { path: filePath, flags: fileFlags };
+          }
+        }
+      } catch (e) {}
+    },
+
+    function walkSkippedProjects_(pom, path_, fs_, visited) {
+      /**
+       * Re-read a POM file from disk to find projects that were skipped
+       * during boot (e.g., test/pom with flags: 'test'). Walk them
+       * recursively to index their files too.
+       */
+      var pomPath = pom.path;
+      if ( ! pomPath || visited[pomPath] ) return;
+      visited[pomPath] = true;
+
+      try {
+        var content = fs_.readFileSync(pomPath, 'utf8');
+        // Find projects: [...] in the POM source
+        var projectsMatch = content.match(/projects\s*:\s*\[([\s\S]*?)\]/);
+        if ( ! projectsMatch ) return;
+
+        var location = pom.location || require('path').dirname(pomPath);
+
+        // Extract project entries: { name: 'test/pom', flags: 'test' }
+        var projRegex = /\{\s*name\s*:\s*['"]([^'"]+)['"](?:\s*,\s*flags\s*:\s*['"]([^'"]+)['"])?\s*\}/g;
+        var pm;
+        while ( ( pm = projRegex.exec(projectsMatch[1]) ) !== null ) {
+          var projName = pm[1];
+          var projFlags = pm[2] || '';
+
+          // Check if this project was already loaded (in foam.poms)
+          var projPomPath = path_.resolve(location, projName + '.js');
+          var alreadyLoaded = foam.poms.some(function(p) { return p.path === projPomPath; });
+          if ( alreadyLoaded ) continue;
+
+          // This project was skipped — read its POM and index its files
+          if ( ! fs_.existsSync(projPomPath) ) continue;
           try {
-            if ( ! fs_.existsSync(filePath) ) continue;
-            var content = fs_.readFileSync(filePath, 'utf8');
-            // Find each foam.CLASS/ENUM/INTERFACE call
-            var callRegex = /foam\.(CLASS|ENUM|INTERFACE)\s*\(/g;
-            var callMatch;
-            while ( ( callMatch = callRegex.exec(content) ) !== null ) {
-              // Look for package and name within the next 500 chars
-              var snippet = content.substring(callMatch.index, callMatch.index + 500);
-              var pkgM = snippet.match(/package\s*:\s*['"]([^'"]+)['"]/);
-              var nameM = snippet.match(/name\s*:\s*['"]([^'"]+)['"]/);
-              if ( nameM ) {
-                var classId = pkgM ? pkgM[1] + '.' + nameM[1] : nameM[1];
-                this.fileIndex_[classId] = filePath;
+            var projContent = fs_.readFileSync(projPomPath, 'utf8');
+            var projLocation = path_.dirname(projPomPath);
+
+            // Extract files from the skipped POM
+            var filesMatch = projContent.match(/files\s*:\s*\[([\s\S]*?)\]/);
+            if ( filesMatch ) {
+              var fileRegex = /\{\s*name\s*:\s*['"]([^'"]+)['"](?:\s*,\s*flags\s*:\s*['"]([^'"]+)['"])?\s*\}/g;
+              var fm;
+              while ( ( fm = fileRegex.exec(filesMatch[1]) ) !== null ) {
+                var fileName = fm[1];
+                var fileFlags = fm[2] ? fm[2].split('|').map(function(s) {
+                  return s.split('&');
+                }).reduce(function(a, b) { return a.concat(b); }, []) : [];
+                // Add the project's own flags
+                if ( projFlags ) fileFlags = fileFlags.concat(projFlags.split('|').map(function(s) {
+                  return s.split('&');
+                }).reduce(function(a, b) { return a.concat(b); }, []));
+
+                var filePath = path_.resolve(projLocation, fileName + '.js');
+                this.indexFileClasses_(filePath, fileFlags, fs_);
               }
             }
+
+            // Recursively walk this POM's sub-projects
+            var subPom = { path: projPomPath, location: projLocation };
+            this.walkSkippedProjects_(subPom, path_, fs_, visited);
           } catch (e) {}
         }
-      }
+      } catch (e) {}
     },
 
     function getFilePath(classId) {
       if ( ! this.fileIndex_ ) this.buildFileIndex();
-      return this.fileIndex_[classId] || null;
+      var entry = this.fileIndex_[classId];
+      return entry ? entry.path : null;
+    },
+
+    function getFileFlags(classId) {
+      /** Returns the flags array for a class, or null if unknown. */
+      if ( ! this.fileIndex_ ) this.buildFileIndex();
+      var entry = this.fileIndex_[classId];
+      return entry ? entry.flags : null;
+    },
+
+    function matchesActiveFlags(classId) {
+      /** Check if a class's flags match the currently active FOAM flags. */
+      var fileFlags = this.getFileFlags(classId);
+      if ( ! fileFlags ) return false;
+      // A file matches if any of its OR-clause flags are all satisfied
+      return foam.checkFlags(foam.adaptFlags(fileFlags.join('|')));
     },
 
     function getOwnProperties(classId) {

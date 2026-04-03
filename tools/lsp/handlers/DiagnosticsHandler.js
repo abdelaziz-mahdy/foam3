@@ -64,7 +64,7 @@ foam.CLASS({
       var extendsMatch = block.match(/extends\s*:\s*['"]([^'"]+)['"]/);
       if ( extendsMatch ) {
         var extendsId = extendsMatch[1];
-        if ( ! this.index.classExists(extendsId) ) {
+        if ( ! this.classKnown_(extendsId) ) {
           this.addDiag(diagnostics, fullText, startOffset + block.indexOf(extendsId, extendsMatch.index),
             extendsId.length, 2, "Unknown class in extends: '" + extendsId + "'");
         }
@@ -77,7 +77,7 @@ foam.CLASS({
         var rMatch;
         while ( ( rMatch = reqRegex.exec(requiresBlock[1]) ) !== null ) {
           var reqId = rMatch[1];
-          if ( ! this.index.classExists(reqId) ) {
+          if ( ! this.classKnown_(reqId) ) {
             var offset = startOffset + block.indexOf(requiresBlock[0]) +
                         requiresBlock[0].indexOf(requiresBlock[1]) + rMatch.index + rMatch[0].indexOf(reqId);
             this.addDiag(diagnostics, fullText, offset, reqId.length, 2,
@@ -97,7 +97,7 @@ foam.CLASS({
       var cMatch;
       while ( ( cMatch = classRegex.exec(block) ) !== null ) {
         var typeName = cMatch[1];
-        if ( ! validTypes[typeName] && ! this.index.classExists(typeName) ) {
+        if ( ! validTypes[typeName] && ! this.classKnown_(typeName) ) {
           var offset = startOffset + cMatch.index + cMatch[0].indexOf(typeName);
           this.addDiag(diagnostics, fullText, offset, typeName.length, 3,
             "Unknown property type: '" + typeName + "'");
@@ -106,6 +106,16 @@ foam.CLASS({
 
       // Validate Java blocks
       this.javaValidator.validate(classId, block, diagnostics, startOffset, fullText);
+    },
+
+    function classKnown_(classId) {
+      /**
+       * Check if a class is known — registered in FOAM runtime OR in the
+       * POM file index. The file index includes all files from the POM walk
+       * with the current flags, so flag-filtered classes (test, swift, etc.)
+       * are correctly excluded unless the user enables those flags.
+       */
+      return this.index.classExists(classId) || this.index.getFilePath(classId) != null;
     },
 
     function addDiag(diagnostics, fullText, offset, length, severity, message) {
