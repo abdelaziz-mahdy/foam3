@@ -16,13 +16,14 @@ function start() {
   if ( ! globalThis.__foamLSPIndex__ ) index.buildFileIndex();
   var grammar = foam.parse.lsp.FoamClassGrammar.create({ index: index });
   var fileModelCache = foam.parse.lsp.FileModelCache.create();
+  var typeTracker = foam.parse.lsp.TypeTracker.create({ cache: fileModelCache });
 
   var completionHandler  = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar, cache: fileModelCache });
-  var hoverHandler       = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: fileModelCache });
+  var hoverHandler       = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
   var definitionHandler  = foam.parse.lsp.handlers.DefinitionHandler.create({ index: index });
   var diagnosticsHandler = foam.parse.lsp.handlers.DiagnosticsHandler.create({ index: index, cache: fileModelCache });
   var symbolHandler      = foam.parse.lsp.handlers.SymbolHandler.create({ cache: fileModelCache });
-  var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: fileModelCache });
+  var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
 
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 

@@ -518,6 +518,27 @@ test(realModels[0].name === 'ApplicationController', 'Real file: correct name');
 test(realModels[0].requires && realModels[0].requires.length > 10, 'Real file: has requires');
 test(realModels[0].properties && realModels[0].properties.length > 5, 'Real file: has properties');
 
+// === TYPE TRACKER TESTS ===
+
+section('TypeTracker');
+var typeTracker = foam.parse.lsp.TypeTracker.create({ cache: cache });
+
+// var sug = this.Suggestion.create() → sug has type foam.parse.Suggestion
+var typeText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'TypeTest' + Q + ',\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      var sug = this.Suggestion.create({});\n      sug.text;\n    }\n  ]\n})';
+var typeModel = cache.getModelAt('', typeText, 9);
+var varTypes = typeTracker.getVariableTypes(typeText, { line: 9, character: 10 }, typeModel, index);
+test(varTypes['sug'] === 'foam.parse.Suggestion', 'TypeTracker: sug resolved to foam.parse.Suggestion');
+
+// Unknown variable — not tracked
+test(varTypes['unknown'] === undefined, 'TypeTracker: unknown variable returns undefined');
+
+// Variable type completion: sug. suggests Suggestion properties
+var typeMemberHandler = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: cache, typeTracker: typeTracker });
+var typeCompText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'TypeTest2' + Q + ',\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      var sug = this.Suggestion.create({});\n      sug.text;\n    }\n  ]\n})';
+var typeCompResult = typeMemberHandler.handle(typeCompText, { line: 9, character: 10 });
+test(typeCompResult.items.length > 0, 'Variable type completion: sug. returns items: ' + typeCompResult.items.length);
+test(typeCompResult.items.some(function(i) { return i.label === 'text'; }), 'Variable type completion includes text property');
+
 // === SUMMARY ===
 
 section('SUMMARY');

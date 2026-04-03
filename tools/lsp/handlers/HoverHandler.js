@@ -11,7 +11,8 @@ foam.CLASS({
   requires: [
     'foam.parse.lsp.FoamIndex',
     'foam.parse.lsp.FileModelCache',
-    'foam.parse.lsp.CursorAnalyzer'
+    'foam.parse.lsp.CursorAnalyzer',
+    'foam.parse.lsp.TypeTracker'
   ],
 
   properties: [
@@ -32,6 +33,11 @@ foam.CLASS({
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.TypeTracker',
+      name: 'typeTracker'
     }
   ],
 
@@ -70,6 +76,15 @@ foam.CLASS({
         resolved = this.analyzer.resolveShortName(text, segment);
         if ( resolved ) {
           return this.buildClassHover(resolved);
+        }
+      }
+
+      // Try as typed variable (var x = this.Foo.create())
+      if ( segment && this.typeTracker ) {
+        var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+        var varType = this.typeTracker.resolveVariableType(text, position, segment, model, this.index);
+        if ( varType ) {
+          return this.buildClassHover(varType);
         }
       }
 

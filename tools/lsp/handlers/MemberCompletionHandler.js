@@ -11,7 +11,8 @@ foam.CLASS({
   requires: [
     'foam.parse.lsp.FoamIndex',
     'foam.parse.lsp.FileModelCache',
-    'foam.parse.lsp.CursorAnalyzer'
+    'foam.parse.lsp.CursorAnalyzer',
+    'foam.parse.lsp.TypeTracker'
   ],
 
   properties: [
@@ -32,6 +33,11 @@ foam.CLASS({
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.TypeTracker',
+      name: 'typeTracker'
     }
   ],
 
@@ -65,6 +71,16 @@ foam.CLASS({
       var createCtx = this.analyzer.findCreateContext(lines, position.line, text, this.index);
       if ( createCtx ) {
         return this.getClassPropertyItems(createCtx);
+      }
+
+      // Detect context: x. ▊ where x is a typed variable from .create()
+      var varMatch = prefix.match(/(\w+)\.\w*$/);
+      if ( varMatch && varMatch[1] !== 'this' && varMatch[1] !== 'foam' ) {
+        var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+        var varType = this.typeTracker ? this.typeTracker.resolveVariableType(text, position, varMatch[1], model, this.index) : null;
+        if ( varType ) {
+          return this.getClassPropertyItems(varType);
+        }
       }
 
       // Detect context: this. ▊ — suggest members + requires + imports
@@ -133,21 +149,19 @@ foam.CLASS({
         });
       }
 
-      // Required classes — this.ShortName is available
+      // Required classes from model — this.ShortName is available
       if ( model ) {
-        var requires = model.requires || [];
-        for ( var i = 0 ; i < requires.length ; i++ ) {
-          var r = requires[i];
-          var fullId = typeof r === 'string' ? r : r.path;
-          var shortName = typeof r === 'string' ? fullId.split('.').pop() : (r.name || fullId.split('.').pop());
+        var requiresMap = this.cache.buildRequiresMap(model);
+        for ( var alias in requiresMap ) {
+          var fullId = requiresMap[alias];
           var cls = this.index.getClass(fullId);
           var rdoc = cls && cls.model_ ? ( cls.model_.documentation || '' ) : '';
           items.push({
-            label: shortName,
+            label: alias,
             kind: 7,
             detail: fullId,
             documentation: rdoc.substring(0, 100),
-            sortText: '2_' + shortName
+            sortText: '2_' + alias
           });
         }
 
