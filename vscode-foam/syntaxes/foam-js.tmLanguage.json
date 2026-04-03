@@ -1,0 +1,18 @@
+{
+  "scopeName": "foam.js.injection",
+  "injectionSelector": "L:source.js",
+  "patterns": [
+    {
+      "begin": "(javaCode|javaPreSet|javaPostSet|javaFactory|javaGetter|javaSetter)\\s*:\\s*`",
+      "beginCaptures": {
+        "1": { "name": "entity.name.tag.foam" }
+      },
+      "end": "`",
+      "name": "meta.embedded.block.java.foam",
+      "contentName": "meta.embedded.block.java",
+      "patterns": [
+        { "include": "source.java" }
+      ]
+    }
+  ]
+}

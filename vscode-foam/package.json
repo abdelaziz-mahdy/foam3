@@ -24,7 +24,14 @@
           "description": "Path to build.sh relative to workspace root"
         }
       }
-    }
+    },
+    "grammars": [
+      {
+        "scopeName": "foam.js.injection",
+        "path": "./syntaxes/foam-js.tmLanguage.json",
+        "injectTo": ["source.js"]
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
