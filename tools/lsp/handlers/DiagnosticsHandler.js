@@ -10,6 +10,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.FileModelCache',
     'foam.parse.lsp.CursorAnalyzer',
     'foam.parse.lsp.handlers.JavaBlockValidator'
   ],
@@ -23,6 +24,12 @@ foam.CLASS({
     },
     {
       class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FileModelCache',
+      name: 'cache',
+      factory: function() { return this.FileModelCache.create(); }
+    },
+    {
+      class: 'FObjectProperty',
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
@@ -32,80 +39,74 @@ foam.CLASS({
       of: 'foam.parse.lsp.handlers.JavaBlockValidator',
       name: 'javaValidator',
       factory: function() { return this.JavaBlockValidator.create({ index: this.index }); }
+    },
+    {
+      name: 'validTypes_',
+      factory: function() {
+        var types = {};
+        var propTypes = this.index.getPropertyTypes();
+        for ( var i = 0 ; i < propTypes.length ; i++ ) {
+          types[propTypes[i].name] = true;
+          types[propTypes[i].id] = true;
+        }
+        return types;
+      }
     }
   ],
 
   methods: [
-    function handle(text) {
+    function handle(text, opt_uri) {
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return [];
       }
 
+      var uri = opt_uri || '';
+      var models = this.cache.getModels(uri, text);
       var diagnostics = [];
-      var self = this;
 
-      this.analyzer.forEachFoamClass(text, function(block, startOffset) {
-        self.validateBlock(text, block, startOffset, diagnostics);
-      });
+      for ( var i = 0 ; i < models.length ; i++ ) {
+        this.validateModel_(models[i], text, diagnostics);
+      }
 
       return diagnostics;
     },
 
-    function validateBlock(fullText, block, startOffset, diagnostics) {
-      // Resolve class ID
-      var pkgMatch = block.match(/package\s*:\s*['"]([^'"]+)['"]/);
-      var nameMatch = block.match(/name\s*:\s*['"]([^'"]+)['"]/);
-      var classId = null;
-      if ( nameMatch ) {
-        classId = pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
-      }
+    function validateModel_(m, text, diagnostics) {
+      var classId = m.refines || (m.package ? m.package + '.' + m.name : m.name);
 
       // Validate extends
-      var extendsMatch = block.match(/extends\s*:\s*['"]([^'"]+)['"]/);
-      if ( extendsMatch ) {
-        var extendsId = extendsMatch[1];
-        if ( ! this.classKnown_(extendsId) ) {
-          this.addDiag(diagnostics, fullText, startOffset + block.indexOf(extendsId, extendsMatch.index),
-            extendsId.length, 2, "Unknown class in extends: '" + extendsId + "'");
-        }
+      if ( m.extends && ! this.classKnown_(m.extends) ) {
+        var loc = this.findInText_(text, 'extends', m.extends);
+        if ( loc !== null ) this.addDiag_(diagnostics, text, loc, m.extends.length, 2,
+          "Unknown class in extends: '" + m.extends + "'");
       }
 
       // Validate requires
-      var requiresBlock = block.match(/requires\s*:\s*\[([\s\S]*?)\]/);
-      if ( requiresBlock ) {
-        var reqRegex = /['"]([a-zA-Z][\w.]+\.[A-Z]\w*)['"]/g;
-        var rMatch;
-        while ( ( rMatch = reqRegex.exec(requiresBlock[1]) ) !== null ) {
-          var reqId = rMatch[1];
-          if ( ! this.classKnown_(reqId) ) {
-            var offset = startOffset + block.indexOf(requiresBlock[0]) +
-                        requiresBlock[0].indexOf(requiresBlock[1]) + rMatch.index + rMatch[0].indexOf(reqId);
-            this.addDiag(diagnostics, fullText, offset, reqId.length, 2,
-              "Unknown class in requires: '" + reqId + "'");
+      var requires = m.requires || [];
+      for ( var i = 0 ; i < requires.length ; i++ ) {
+        var reqId = typeof requires[i] === 'string' ? requires[i] : requires[i].path;
+        if ( reqId && ! this.classKnown_(reqId) ) {
+          var loc = this.findInText_(text, null, reqId);
+          if ( loc !== null ) this.addDiag_(diagnostics, text, loc, reqId.length, 2,
+            "Unknown class in requires: '" + reqId + "'");
+        }
+      }
+
+      // Validate property types
+      var props = m.properties || [];
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        var p = props[i];
+        if ( typeof p === 'object' && p.class ) {
+          if ( ! this.validTypes_[p.class] && ! this.classKnown_(p.class) ) {
+            var loc = this.findInText_(text, 'class', p.class);
+            if ( loc !== null ) this.addDiag_(diagnostics, text, loc, p.class.length, 3,
+              "Unknown property type: '" + p.class + "'");
           }
         }
       }
 
-      // Validate property types (both short and full names)
-      var validTypes = {};
-      var ptypes = this.index.getPropertyTypes();
-      for ( var i = 0 ; i < ptypes.length ; i++ ) {
-        validTypes[ptypes[i].name] = true;
-        validTypes[ptypes[i].id] = true;
-      }
-      var classRegex = /class\s*:\s*['"]([^'"]+)['"]/g;
-      var cMatch;
-      while ( ( cMatch = classRegex.exec(block) ) !== null ) {
-        var typeName = cMatch[1];
-        if ( ! validTypes[typeName] && ! this.classKnown_(typeName) ) {
-          var offset = startOffset + cMatch.index + cMatch[0].indexOf(typeName);
-          this.addDiag(diagnostics, fullText, offset, typeName.length, 3,
-            "Unknown property type: '" + typeName + "'");
-        }
-      }
-
       // Validate Java blocks
-      this.javaValidator.validate(classId, block, diagnostics, startOffset, fullText);
+      this.javaValidator.validateModel(m, classId, diagnostics, text);
     },
 
     function classKnown_(classId) {
@@ -118,8 +119,18 @@ foam.CLASS({
       return this.index.classExists(classId) || this.index.getFilePath(classId) != null;
     },
 
-    function addDiag(diagnostics, fullText, offset, length, severity, message) {
-      var pos = this.analyzer.offsetToPosition(fullText, offset);
+    function findInText_(text, key, value) {
+      /** Find the offset of a value string in text, optionally near a key. */
+      var escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var searchStr = key ? key + "\\s*:\\s*['\"]" + escaped : "['\"]" + escaped;
+      var regex = new RegExp(searchStr);
+      var match = regex.exec(text);
+      if ( ! match ) return null;
+      return match.index + match[0].indexOf(value);
+    },
+
+    function addDiag_(diagnostics, text, offset, length, severity, message) {
+      var pos = this.analyzer.offsetToPosition(text, offset);
       diagnostics.push({
         range: {
           start: pos,

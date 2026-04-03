@@ -149,39 +149,6 @@ foam.CLASS({
       return null;
     },
 
-    function findMatchingEnd(text, fromIndex) {
-      /** Find the matching closing delimiter, handling strings and nested brackets. */
-      var depth = 0;
-      var inString = false;
-      var stringChar = '';
-      for ( var i = fromIndex ; i < text.length ; i++ ) {
-        var ch = text[i];
-        if ( inString ) {
-          if ( ch === '\\' ) { i++; continue; }
-          if ( ch === stringChar ) inString = false;
-          continue;
-        }
-        if ( ch === "'" || ch === '"' || ch === '`' ) { inString = true; stringChar = ch; }
-        else if ( ch === '(' || ch === '{' || ch === '[' ) { depth++; }
-        else if ( ch === ')' || ch === '}' || ch === ']' ) {
-          if ( depth === 0 ) return i + 1;
-          depth--;
-        }
-      }
-      return text.length;
-    },
-
-    function forEachFoamClass(text, callback) {
-      /** Iterate over each foam.CLASS/ENUM/INTERFACE/RELATIONSHIP block in text. */
-      var regex = /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/g;
-      var match;
-      while ( ( match = regex.exec(text) ) !== null ) {
-        var start = match.index;
-        var end = this.findMatchingEnd(text, start + match[0].length);
-        callback(text.substring(start, end), start);
-      }
-    },
-
     function getMethodSignature(method) {
       /** Extract method signature: name(param1, param2) */
       if ( method.args && method.args.length > 0 ) {

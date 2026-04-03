@@ -10,6 +10,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.FileModelCache',
     'foam.parse.lsp.CursorAnalyzer'
   ],
 
@@ -22,6 +23,12 @@ foam.CLASS({
     },
     {
       class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FileModelCache',
+      name: 'cache',
+      factory: function() { return this.FileModelCache.create(); }
+    },
+    {
+      class: 'FObjectProperty',
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
@@ -29,7 +36,7 @@ foam.CLASS({
   ],
 
   methods: [
-    function handle(text, position) {
+    function handle(text, position, opt_uri) {
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return null;
       }
@@ -53,9 +60,14 @@ foam.CLASS({
       // Get the specific segment under cursor (not the full dotted chain)
       var segment = this.analyzer.getSegmentAtPosition(text, position);
 
-      // Try as short name from requires (e.g., StackBlock → foam.u2.stack.StackBlock)
+      // Try as short name from requires via model
       if ( segment ) {
-        var resolved = this.analyzer.resolveShortName(text, segment);
+        var resolved = this.resolveFromModel_(text, position, segment, opt_uri);
+        if ( resolved ) {
+          return this.buildClassHover(resolved);
+        }
+        // Fallback to text-based requires parsing
+        resolved = this.analyzer.resolveShortName(text, segment);
         if ( resolved ) {
           return this.buildClassHover(resolved);
         }
@@ -78,7 +90,7 @@ foam.CLASS({
       }
 
       // Try segment as property or method name — resolve the current class
-      var currentClassId = this.analyzer.resolveClassId(text);
+      var currentClassId = this.resolveCurrentClass_(text, position, opt_uri);
       if ( currentClassId ) {
         // Property hover
         var propDoc = this.index.getPropertyDoc(currentClassId, lookupName);
@@ -96,6 +108,27 @@ foam.CLASS({
       }
 
       return null;
+    },
+
+    function resolveFromModel_(text, position, shortName, opt_uri) {
+      /** Resolve a short name from model.requires using FileModelCache. */
+      var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+      if ( ! model ) return null;
+      var requires = model.requires || [];
+      for ( var i = 0 ; i < requires.length ; i++ ) {
+        var r = requires[i];
+        var id = typeof r === 'string' ? r : r.path;
+        var alias = typeof r === 'string' ? id.split('.').pop() : (r.name || id.split('.').pop());
+        if ( alias === shortName ) return id;
+      }
+      return null;
+    },
+
+    function resolveCurrentClass_(text, position, opt_uri) {
+      /** Get the class ID of the model at the cursor position. */
+      var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+      if ( ! model ) return null;
+      return model.refines || (model.package ? model.package + '.' + model.name : model.name);
     },
 
     function buildClassHover(classId) {
@@ -159,13 +192,10 @@ foam.CLASS({
       /** When hovering on 'create', resolve the class and show its info. */
       var lines = text.split('\n');
       var line = lines[position.line] || '';
-      // Find ClassName.create or this.ShortName.create
       var match = line.match(/(?:this\.)?(\w[\w.]*)\.create/);
       if ( ! match ) return null;
       var name = match[1];
-      // Try as short name from requires
       var resolved = this.analyzer.resolveShortName(text, name);
-      // Try as full class ID
       if ( ! resolved && this.index.classExists(name) ) resolved = name;
       if ( ! resolved ) return null;
 

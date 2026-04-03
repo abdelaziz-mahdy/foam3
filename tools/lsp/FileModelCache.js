@@ -1,0 +1,182 @@
+/**
+ * @license
+ * Copyright 2026 The FOAM Authors. All Rights Reserved.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+foam.CLASS({
+  package: 'foam.parse.lsp',
+  name: 'FileModelCache',
+
+  documentation: 'Eval-intercept cache for FOAM model files. Captures foam.CLASS/ENUM/INTERFACE objects directly by executing the file with overridden foam.CLASS.',
+
+  properties: [
+    {
+      name: 'cache_',
+      factory: function() { return {}; }
+    }
+  ],
+
+  methods: [
+    function getModels(uri, text) {
+      /** Returns cached model objects for a file, or parses fresh. */
+      if ( this.cache_[uri] && this.cache_[uri].text === text ) {
+        return this.cache_[uri].models;
+      }
+      var models = this.parseFileModels(text);
+      this.cache_[uri] = { text: text, models: models };
+      return models;
+    },
+
+    function getModelAt(uri, text, line) {
+      /**
+       * Returns the model whose source range contains the given line.
+       * Uses sourceLine_ (set by findCallLine) to find the last model
+       * that starts at or before the given line. Essential for multi-class
+       * files where we need to know which model the cursor is inside.
+       */
+      var models = this.getModels(uri, text);
+      if ( models.length === 0 ) return null;
+      if ( models.length === 1 ) return models[0];
+      var best = models[0];
+      for ( var i = 1 ; i < models.length ; i++ ) {
+        if ( models[i].sourceLine_ !== undefined && models[i].sourceLine_ <= line ) {
+          best = models[i];
+        }
+      }
+      return best;
+    },
+
+    function invalidate(uri) {
+      delete this.cache_[uri];
+    },
+
+    function invalidateAll() {
+      this.cache_ = {};
+    },
+
+    function parseFileModels(text) {
+      /**
+       * Execute file text with overridden foam.CLASS/ENUM/INTERFACE to capture
+       * model objects. Same pattern as ModelFileDAO.js:47-108.
+       *
+       * Returns array of raw model JS objects with all fields:
+       * { package, name, extends, implements, requires, imports, exports,
+       *   properties, methods, javaImports, javaCode, refines, ... }
+       */
+      var models = [];
+      var modelCount = 0;
+      var context = { foam: Object.create(foam) };
+
+      context.foam.CLASS = function(m) {
+        m.sourceLine_ = findCallLine(text, modelCount);
+        m.type_ = m.type_ || 'CLASS';
+        models.push(m);
+        modelCount++;
+      };
+      context.foam.ENUM = function(m) {
+        m.class = m.class || 'foam.lang.EnumModel';
+        m.type_ = 'ENUM';
+        context.foam.CLASS(m);
+      };
+      context.foam.INTERFACE = function(m) {
+        m.class = m.class || 'foam.lang.InterfaceModel';
+        m.type_ = 'INTERFACE';
+        context.foam.CLASS(m);
+      };
+      context.foam.RELATIONSHIP = function(r) {
+        r.class = r.class || 'foam.dao.Relationship';
+        r.type_ = 'RELATIONSHIP';
+        if ( ! r.name && r.sourceModel ) {
+          var s = r.sourceModel;
+          var t = r.targetModel || '';
+          r.package = r.package || s.substring(0, s.lastIndexOf('.'));
+          r.name = s.split('.').pop() + t.split('.').pop() + 'Relationship';
+        }
+        context.foam.CLASS(r);
+      };
+      context.foam.SCRIPT = function() {};
+      context.foam.POM = function() {};
+      context.foam.LIB = function() {};
+
+      try {
+        with ( context ) { eval(text); }
+      } catch (e) {
+        // SyntaxError prevents ALL execution — JS parses before running.
+        // Fall back to extracting individual foam.CLASS blocks and eval each.
+        if ( e instanceof SyntaxError && models.length === 0 ) {
+          this.evalIndividualBlocks_(text, context, models);
+        }
+        // RuntimeError after some models captured — partial results are fine
+      }
+
+      return models;
+    },
+
+    function evalIndividualBlocks_(text, context, models) {
+      /**
+       * Fallback for SyntaxError: extract individual foam.CLASS/ENUM/INTERFACE
+       * blocks using bracket matching and eval each separately.
+       */
+      var regex = /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/g;
+      var match;
+      while ( ( match = regex.exec(text) ) !== null ) {
+        var start = match.index;
+        var depth = 0;
+        var end = -1;
+        for ( var i = start + match[0].length ; i < text.length ; i++ ) {
+          var ch = text[i];
+          if ( ch === '(' || ch === '{' || ch === '[' ) depth++;
+          else if ( ch === ')' || ch === '}' || ch === ']' ) {
+            if ( depth === 0 ) { end = i + 1; break; }
+            depth--;
+          }
+          // Skip strings
+          else if ( ch === "'" || ch === '"' || ch === '`' ) {
+            var q = ch;
+            for ( i++ ; i < text.length ; i++ ) {
+              if ( text[i] === '\\' ) { i++; continue; }
+              if ( text[i] === q ) break;
+            }
+          }
+        }
+        if ( end === -1 ) continue;
+        var block = text.substring(start, end);
+        try {
+          with ( context ) { eval(block); }
+        } catch (e2) {
+          // This block is incomplete/broken — skip it
+        }
+      }
+    }
+  ]
+});
+
+function findCallLine(text, index) {
+  /**
+   * Find the line number of the Nth foam.CLASS/ENUM/INTERFACE call in text.
+   *
+   * WHY: Multi-class files (e.g., Element2.js) contain multiple foam.CLASS
+   * calls. When the user's cursor is on line 50, getModelAt() needs to know
+   * which model that line belongs to. sourceLine_ on each model enables
+   * this lookup. Also needed by SymbolHandler for accurate outline positions
+   * and DiagnosticsHandler for correct error squiggle placement.
+   *
+   * For single-class files (99% of cases), sourceLine_ is always 0 and
+   * getModelAt() returns the only model regardless. The cost is negligible.
+   */
+  var regex = /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/g;
+  var match;
+  var count = 0;
+  while ( ( match = regex.exec(text) ) !== null ) {
+    if ( count === index ) {
+      var line = 0;
+      for ( var i = 0 ; i < match.index ; i++ ) {
+        if ( text[i] === '\n' ) line++;
+      }
+      return line;
+    }
+    count++;
+  }
+  return 0;
+}

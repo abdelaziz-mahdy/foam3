@@ -15,13 +15,14 @@ function start() {
   var index = globalThis.__foamLSPIndex__ || foam.parse.lsp.FoamIndex.create();
   if ( ! globalThis.__foamLSPIndex__ ) index.buildFileIndex();
   var grammar = foam.parse.lsp.FoamClassGrammar.create({ index: index });
+  var fileModelCache = foam.parse.lsp.FileModelCache.create();
 
-  var completionHandler  = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar });
-  var hoverHandler       = foam.parse.lsp.handlers.HoverHandler.create({ index: index });
+  var completionHandler  = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar, cache: fileModelCache });
+  var hoverHandler       = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: fileModelCache });
   var definitionHandler  = foam.parse.lsp.handlers.DefinitionHandler.create({ index: index });
-  var diagnosticsHandler = foam.parse.lsp.handlers.DiagnosticsHandler.create({ index: index });
-  var symbolHandler      = foam.parse.lsp.handlers.SymbolHandler.create();
-  var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index });
+  var diagnosticsHandler = foam.parse.lsp.handlers.DiagnosticsHandler.create({ index: index, cache: fileModelCache });
+  var symbolHandler      = foam.parse.lsp.handlers.SymbolHandler.create({ cache: fileModelCache });
+  var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: fileModelCache });
 
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 
@@ -301,7 +302,7 @@ function start() {
   function pushDiagnostics(uri, text) {
     notify('textDocument/publishDiagnostics', {
       uri: uri,
-      diagnostics: diagnosticsHandler.handle(text)
+      diagnostics: diagnosticsHandler.handle(text, uri)
     });
   }
 
@@ -385,6 +386,7 @@ function start() {
         var uri = params.textDocument.uri;
         if ( params.contentChanges.length > 0 ) {
           documents[uri] = { text: params.contentChanges[0].text, version: params.textDocument.version || 0 };
+          fileModelCache.invalidate(uri);
           if ( isFoamFile(documents[uri].text) ) pushDiagnostics(uri, documents[uri].text);
         }
         break;
@@ -453,7 +455,7 @@ function start() {
         var doc = documents[params.textDocument.uri];
         if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, []); break; }
         try {
-          var result = symbolHandler.handle(doc.text);
+          var result = symbolHandler.handle(doc.text, params.textDocument.uri);
           console.error('[LSP] documentSymbol: success');
           respond(id, result);
         } catch (e) {

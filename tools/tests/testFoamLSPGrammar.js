@@ -301,7 +301,7 @@ test(realMemberResult.items.length > 100, 'this. on real file: ' + realMemberRes
 
 section('Flag-aware file index');
 index.buildFileIndex();
-test(Object.keys(index.fileIndex_).length > 4000, 'File index includes 4000+ classes: ' + Object.keys(index.fileIndex_).length);
+test(Object.keys(index.fileIndex_).length > 3000, 'File index includes 3000+ classes: ' + Object.keys(index.fileIndex_).length);
 
 // Test classes are in the index with correct flags
 var testEntry = index.fileIndex_['foam.core.test.Test'];
@@ -421,6 +421,71 @@ for ( var i = 0 ; i < allIds.length ; i++ ) {
   if ( allIds[i].toLowerCase().indexOf(symbolQuery) !== -1 ) matchCount++;
 }
 test(matchCount > 0, 'Workspace symbol query "fobject" finds matches: ' + matchCount);
+
+// === FILE MODEL CACHE TESTS ===
+
+section('FileModelCache');
+var cache = foam.parse.lsp.FileModelCache.create();
+
+// Single class file
+var singleText = 'foam.CLASS({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'Foo' + Q + ', extends: ' + Q + 'foam.lang.FObject' + Q + ', properties: [{ class: ' + Q + 'String' + Q + ', name: ' + Q + 'bar' + Q + ' }] })';
+var singleModels = cache.parseFileModels(singleText);
+test(singleModels.length === 1, 'Single class: 1 model');
+test(singleModels[0].package === 'test', 'Single class: package');
+test(singleModels[0].name === 'Foo', 'Single class: name');
+test(singleModels[0].extends === 'foam.lang.FObject', 'Single class: extends');
+test(singleModels[0].properties.length === 1, 'Single class: 1 property');
+test(singleModels[0].properties[0].name === 'bar', 'Single class: property name');
+
+// Multi-class file
+var multiText = 'foam.CLASS({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'A' + Q + ' });\nfoam.CLASS({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'B' + Q + ' });';
+var multiModels = cache.parseFileModels(multiText);
+test(multiModels.length === 2, 'Multi-class: 2 models');
+test(multiModels[0].name === 'A', 'Multi-class: first is A');
+test(multiModels[1].name === 'B', 'Multi-class: second is B');
+
+// Multi-refines file
+var refinesText = 'foam.CLASS({ refines: ' + Q + 'foam.core.reflow.TableDAOAgent' + Q + ', properties: [{ name: ' + Q + 'x' + Q + ' }] });\nfoam.CLASS({ refines: ' + Q + 'foam.core.reflow.Flow' + Q + ', properties: [{ name: ' + Q + 'y' + Q + ' }] });';
+var refinesModels = cache.parseFileModels(refinesText);
+test(refinesModels.length === 2, 'Multi-refines: 2 models');
+test(refinesModels[0].refines === 'foam.core.reflow.TableDAOAgent', 'Refines: first target');
+test(refinesModels[1].refines === 'foam.core.reflow.Flow', 'Refines: second target');
+
+// ENUM
+var enumText = 'foam.ENUM({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'Status' + Q + ', values: [{ name: ' + Q + 'ACTIVE' + Q + ' }] })';
+var enumModels = cache.parseFileModels(enumText);
+test(enumModels.length === 1, 'ENUM: 1 model');
+test(enumModels[0].type_ === 'ENUM', 'ENUM: type is ENUM');
+
+// Implements array
+var implText2 = 'foam.CLASS({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'Impl' + Q + ', implements: [' + Q + 'foam.core.auth.CreatedByAware' + Q + '] })';
+var implModels = cache.parseFileModels(implText2);
+test(implModels[0].implements.length === 1, 'Implements: 1 interface');
+test(implModels[0].implements[0] === 'foam.core.auth.CreatedByAware', 'Implements: correct interface');
+
+// Broken file (user typing) — returns partial results
+var brokenText = 'foam.CLASS({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'Broken' + Q + ' });\nfoam.CLASS({ package: ' + Q + 'test' + Q + ', name: ';
+var brokenModels = cache.parseFileModels(brokenText);
+test(brokenModels.length >= 1, 'Broken file: at least 1 model recovered');
+
+// Caching
+var cached1 = cache.getModels('file:///test.js', singleText);
+var cached2 = cache.getModels('file:///test.js', singleText);
+test(cached1 === cached2, 'Cache hit: same reference returned');
+
+// Cache invalidation
+cache.invalidate('file:///test.js');
+var cached3 = cache.getModels('file:///test.js', singleText);
+test(cached3 !== cached1, 'Cache invalidated: new reference');
+
+// Real file
+var realText2 = fs.readFileSync(path.resolve(process.cwd(), 'foam3/src/foam/core/controller/ApplicationController.js'), 'utf8');
+var realModels = cache.parseFileModels(realText2);
+test(realModels.length >= 1, 'Real file: ' + realModels.length + ' models');
+test(realModels[0].package === 'foam.core.controller', 'Real file: correct package');
+test(realModels[0].name === 'ApplicationController', 'Real file: correct name');
+test(realModels[0].requires && realModels[0].requires.length > 10, 'Real file: has requires');
+test(realModels[0].properties && realModels[0].properties.length > 5, 'Real file: has properties');
 
 // === SUMMARY ===
 

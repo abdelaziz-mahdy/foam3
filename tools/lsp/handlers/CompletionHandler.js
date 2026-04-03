@@ -10,6 +10,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.FileModelCache',
     'foam.parse.lsp.FoamClassGrammar',
     'foam.parse.lsp.CursorAnalyzer',
     'foam.parse.StringPStream'
@@ -21,6 +22,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FileModelCache',
+      name: 'cache',
+      factory: function() { return this.FileModelCache.create(); }
     },
     {
       class: 'FObjectProperty',

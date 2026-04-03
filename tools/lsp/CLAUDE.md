@@ -6,14 +6,17 @@ A runtime-aware Language Server Protocol implementation for the FOAM3 framework.
 ## How It Works
 The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all model definitions into memory. It then serves IDE features over stdio JSON-RPC. The FOAM class registry (`foam.__context__.__cache__`) provides complete metadata about every class, property, method, and axiom.
 
+**Model extraction** uses eval-intercept: `FileModelCache` executes file text with overridden `foam.CLASS/ENUM/INTERFACE` to capture raw model objects directly (same pattern as `ModelFileDAO.js`). All handlers read model fields instead of regex parsing. For incomplete files (user mid-edit), falls back to regex.
+
 ## Key Files
 
 ### Core
 | File | Purpose | Key Functions |
 |---|---|---|
-| `FoamIndex.js` | Query layer over FOAM registry | `getAllClassIds()`, `getProperties()`, `getFilePath()`, `buildFileIndex()`, `getAllPropertiesForFile()` |
-| `FoamClassGrammar.js` | Grammar parser for foam.CLASS files | Skip-and-match pattern, dynamic `sug()` from registry |
-| `CursorAnalyzer.js` | Shared text/position utilities | `offsetToPosition()`, `resolveClassId()`, `parseRequires()`, `findCreateContext()` |
+| `FileModelCache.js` | Eval-intercept model extraction + caching | `getModels()`, `getModelAt()`, `parseFileModels()` |
+| `FoamIndex.js` | Query layer over FOAM registry | `getAllClassIds()`, `getProperties()`, `getFilePath()`, `buildFileIndex()` |
+| `FoamClassGrammar.js` | Grammar parser for completion `sug()` only | Skip-and-match pattern, dynamic `sug()` from registry |
+| `CursorAnalyzer.js` | Shared text/position utilities + regex fallback | `offsetToPosition()`, `resolveClassId()`, `parseRequires()`, `findCreateContext()` |
 | `server.js` | JSON-RPC main loop | Message dispatch, handler creation, helper functions |
 | `lsp-start.js` | Entry point | Console redirect, buildlib globals, pmake invocation |
 | `LSPMaker.js` | Build Maker for pmake | Sets flags, builds file index, starts server |
@@ -25,9 +28,9 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 | `MemberCompletionHandler.js` | (routed from completion) | `this.` members, `.create({})` properties, requires/imports |
 | `HoverHandler.js` | `textDocument/hover` | Class docs, method signatures, property types, create info |
 | `DefinitionHandler.js` | `textDocument/definition` | File index lookup for class → file path |
-| `DiagnosticsHandler.js` | `textDocument/publishDiagnostics` | Class/type validation, delegates to JavaBlockValidator |
-| `JavaBlockValidator.js` | (called by Diagnostics) | Java import validation, getter/setter validation |
-| `SymbolHandler.js` | `textDocument/documentSymbol` | Document outline |
+| `DiagnosticsHandler.js` | `textDocument/publishDiagnostics` | Class/type validation via model objects, delegates to JavaBlockValidator |
+| `JavaBlockValidator.js` | (called by Diagnostics) | Java import validation, getter/setter validation via model fields |
+| `SymbolHandler.js` | `textDocument/documentSymbol` | Document outline via model objects |
 | `WorkspaceAnalyzer.js` | `foam/analyzeWorkspace` | Full codebase scan |
 
 ### VS Code Extension
@@ -47,15 +50,23 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 - `cls.getAxiomsByClass(foam.lang.Property)` — ALL properties including inherited
 - `cls.getOwnAxiomsByClass(foam.lang.Property)` — only properties on this class
 
+### Eval-Intercept Pattern
+`FileModelCache.parseFileModels(text)` captures model objects by:
+1. Creating a context with overridden `foam.CLASS`, `foam.ENUM`, `foam.INTERFACE`, `foam.RELATIONSHIP`
+2. Each override pushes the raw JS object into an array
+3. `eval(text)` with this context — JS executes the file, calls our overrides
+4. SyntaxError fallback: bracket-matching extracts individual blocks, evals each separately
+5. Returns array of raw model objects with all fields: `package`, `name`, `extends`, `requires`, `properties`, `javaImports`, etc.
+
 ### Interfaces
 - FOAM interfaces (`foam.INTERFACE`) define properties/methods
 - Implementing classes get interface properties ONLY if explicitly declared in JS
 - Some interface properties are Java-only (added by Java code generation)
-- `getAllPropertiesForFile(classId, text)` checks implements interfaces from file text
+- Handlers check `model.implements` array to resolve interface properties
 
 ### Refinements
 - `refines: 'target.Class'` modifies an existing class, doesn't create a new one
-- A file can have multiple `refines:` blocks (multiple classes refined)
+- A file can have multiple `refines:` blocks — eval-intercept captures ALL of them
 - Refinements are in `foam.USED` with `m.refines` set
 
 ### Flags
@@ -71,7 +82,7 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 
 ## Testing
 ```bash
-# Quick test (69 tests, ~30s):
+# Quick test (93 tests, ~30s):
 cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 
 # FOAM framework tests:
@@ -88,10 +99,11 @@ cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 5. If VS Code-specific, update `extension.ts` and `package.json`
 
 ### Adding a new diagnostic check
-1. Add check in `DiagnosticsHandler.validateBlock()`
-2. Use `this.classKnown_(id)` to check class existence (respects flags)
-3. Use `this.addDiag()` to create the diagnostic
-4. Add test case in tools test
+1. Add check in `DiagnosticsHandler.validateModel_()`
+2. Read model fields directly (e.g., `model.extends`, `model.properties`)
+3. Use `this.classKnown_(id)` to check class existence (respects flags)
+4. Use `this.findInText_()` + `this.addDiag_()` for position-aware diagnostics
+5. Add test case in tools test
 
 ### Adding to the grammar
 1. Add rule in `FoamClassGrammar.buildGrammar_()`
@@ -99,8 +111,8 @@ cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 3. Dynamic parsers built from registry in `buildDynamicParsers_()`
 
 ## Metrics
-- ~3000 lines of LSP code
-- 69 automated tests
+- ~2500 lines of LSP code
+- 93 automated tests
 - 4310 classes indexed
 - 76 property types
 - Boot time: ~10-15s

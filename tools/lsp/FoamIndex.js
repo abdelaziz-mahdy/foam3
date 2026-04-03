@@ -253,7 +253,8 @@ foam.CLASS({
     },
 
     function indexFileClasses_(filePath, fileFlags, fs_) {
-      /** Read a file and extract all foam.CLASS/ENUM/INTERFACE class IDs. */
+      /** Read a file and extract all foam.CLASS/ENUM/INTERFACE class IDs via regex.
+       *  Uses regex (not eval) for speed — scanning 4000+ files at startup. */
       try {
         if ( ! fs_.existsSync(filePath) ) return;
         var content = fs_.readFileSync(filePath, 'utf8');

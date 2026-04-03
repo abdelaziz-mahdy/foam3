@@ -29,95 +29,115 @@ foam.CLASS({
   ],
 
   methods: [
-    function validate(classId, text, diagnostics, baseOffset, fullText) {
-      this.validateJavaImports(classId, text, diagnostics, baseOffset, fullText);
-      this.validateGettersSetters(classId, text, diagnostics, baseOffset, fullText);
+    function validateModel(model, classId, diagnostics, fullText) {
+      /** Validate Java code within a model using its fields directly. */
+      this.validateImports_(model, diagnostics, fullText);
+      this.validateGetters_(model, classId, diagnostics, fullText);
     },
 
-    function validateJavaImports(classId, text, diagnostics, baseOffset, fullText) {
+    function validateImports_(model, diagnostics, fullText) {
+      /** Check javaImports array for known bad packages. */
       var mappings = this.index.getJavaImportMappings();
-      var regex = /javaImports\s*:\s*\[([\s\S]*?)\]/g;
-      var match = regex.exec(text);
-      if ( ! match ) return;
+      var imports = model.javaImports || [];
 
-      var block = match[1];
-      var blockOffset = match.index + match[0].indexOf(block);
-
-      var importRegex = /['"]([^'"]+)['"]/g;
-      var imp;
-      while ( ( imp = importRegex.exec(block) ) !== null ) {
-        var importStr = imp[1];
-        // Check known bad imports
+      for ( var i = 0 ; i < imports.length ; i++ ) {
+        var imp = imports[i];
         for ( var bad in mappings ) {
-          if ( importStr.indexOf(bad) === 0 || importStr === bad ) {
-            var absOffset = baseOffset + blockOffset + imp.index + imp[0].indexOf(importStr);
-            var pos = this.analyzer.offsetToPosition(fullText, absOffset);
-            diagnostics.push({
-              range: {
-                start: pos,
-                end: { line: pos.line, character: pos.character + importStr.length }
-              },
-              severity: 1, // Error
-              message: "Wrong Java package: '" + importStr + "' → use '" + mappings[bad] + "' instead",
-              source: 'foam-lsp'
-            });
+          if ( imp === bad || imp.indexOf(bad) === 0 ) {
+            var idx = fullText.indexOf(imp);
+            if ( idx !== -1 ) {
+              var pos = this.analyzer.offsetToPosition(fullText, idx);
+              diagnostics.push({
+                range: {
+                  start: pos,
+                  end: { line: pos.line, character: pos.character + imp.length }
+                },
+                severity: 1,
+                message: "Wrong Java package: '" + imp + "' → use '" + mappings[bad] + "' instead",
+                source: 'foam-lsp'
+              });
+            }
             break;
           }
         }
       }
     },
 
-    function validateGettersSetters(classId, text, diagnostics, baseOffset, fullText) {
+    function validateGetters_(model, classId, diagnostics, fullText) {
+      /** Check getter/setter calls in Java code blocks against known properties. */
       if ( ! classId ) return;
 
-      // Collect all property names: class + inherited + implements + refines
-      var allProps = this.index.getAllPropertiesForFile(classId, text);
+      // Build property set: own model properties + implements + refines
       var propNames = {};
-      for ( var key in allProps ) {
-        propNames[key] = allProps[key].name || key;
+
+      (model.properties || []).forEach(function(p) {
+        var name = typeof p === 'string' ? p : p.name;
+        if ( name ) propNames[name.toLowerCase()] = true;
+      });
+
+      (model.implements || []).forEach(function(iface) {
+        var id = typeof iface === 'string' ? iface : iface.path;
+        if ( ! id ) return;
+        var ifaceProps = this.index.getProperties(id);
+        for ( var i = 0 ; i < ifaceProps.length ; i++ ) {
+          propNames[ifaceProps[i].name.toLowerCase()] = true;
+        }
+      }.bind(this));
+
+      if ( model.refines ) {
+        var refProps = this.index.getProperties(model.refines);
+        for ( var i = 0 ; i < refProps.length ; i++ ) {
+          propNames[refProps[i].name.toLowerCase()] = true;
+        }
       }
 
-      // Find all javaCode/javaPreSet/javaPostSet/javaFactory/javaGetter blocks
-      var javaBlockRegex = /(javaCode|javaPreSet|javaPostSet|javaFactory|javaGetter)\s*:\s*[`'"]/g;
-      var jMatch;
-      while ( ( jMatch = javaBlockRegex.exec(text) ) !== null ) {
-        // Find the end of this block
-        var startChar = text[jMatch.index + jMatch[0].length - 1];
-        var blockStart = jMatch.index + jMatch[0].length;
-        var blockEnd = text.indexOf(startChar, blockStart);
-        if ( blockEnd === -1 ) continue;
-        var javaBlock = text.substring(blockStart, blockEnd);
+      // Also add inherited properties from the class if it exists in registry
+      var cls = this.index.getClass(classId);
+      if ( cls ) {
+        var inhProps = cls.getAxiomsByClass(foam.lang.Property);
+        for ( var i = 0 ; i < inhProps.length ; i++ ) {
+          propNames[inhProps[i].name.toLowerCase()] = true;
+        }
+      }
 
-        // Find getter/setter calls that are on 'this' (not on other objects).
-        // Only flag bare getX()/setX() calls — NOT obj.getX() or variable.setX()
-        // A bare call has no '.' immediately before it (start of line, after space,
-        // after '(' , after '=' , after 'return', etc.)
+      // Check all Java code strings on the model AND on each property
+      var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
+      var self = this;
+
+      function checkJavaString(javaStr) {
+        if ( ! javaStr || typeof javaStr !== 'string' ) return;
         var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
         var gs;
-        while ( ( gs = getSetRegex.exec(javaBlock) ) !== null ) {
-          // Check character before the match — if it's '.', this is a method call on another object
-          var charBefore = gs.index > 0 ? javaBlock[gs.index - 1] : ' ';
-          // Skip calls on other objects: obj.getX(), method().getX(), array[i].getX()
+        while ( ( gs = getSetRegex.exec(javaStr) ) !== null ) {
+          var charBefore = gs.index > 0 ? javaStr[gs.index - 1] : ' ';
           if ( charBefore === '.' || charBefore === ')' || charBefore === ']' ) continue;
 
           var propName = gs[2].charAt(0).toLowerCase() + gs[2].substring(1);
-          // Skip known framework methods and common Java patterns
           if ( ['x', 'class', 'classInfo', 'ownClassInfo', 'instance', 'logger'].indexOf(propName) !== -1 ) continue;
+
           if ( ! propNames[propName.toLowerCase()] ) {
-            var absOffset = baseOffset + blockStart + gs.index;
-            var pos = this.analyzer.offsetToPosition(fullText, absOffset);
-            diagnostics.push({
-              range: {
-                start: pos,
-                end: { line: pos.line, character: pos.character + gs[0].length - 1 }
-              },
-              severity: 3, // Info (not warning — could be a local variable method)
-              message: "Property '" + propName + "' not found on " + classId,
-              source: 'foam-lsp'
-            });
+            var idx = fullText.indexOf(gs[0]);
+            if ( idx !== -1 ) {
+              var pos = self.analyzer.offsetToPosition(fullText, idx);
+              diagnostics.push({
+                range: {
+                  start: pos,
+                  end: { line: pos.line, character: pos.character + gs[0].length - 1 }
+                },
+                severity: 3,
+                message: "Property '" + propName + "' not found on " + classId,
+                source: 'foam-lsp'
+              });
+            }
           }
         }
       }
+
+      javaKeys.forEach(function(key) { checkJavaString(model[key]); });
+      (model.properties || []).forEach(function(p) {
+        if ( typeof p !== 'object' ) return;
+        javaKeys.forEach(function(key) { checkJavaString(p[key]); });
+      });
     }
   ]
 });

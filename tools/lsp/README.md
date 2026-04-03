@@ -24,7 +24,8 @@ vscode-foam/                                 tools/lsp/
 
   extension.ts ──stdio──►  server.js (JSON-RPC main loop)
   FoamTreeProvider.ts                │
-  FoamAnalysisRunner.ts              ├── FoamIndex.js (class registry queries)
+  FoamAnalysisRunner.ts              ├── FileModelCache.js (eval-intercept model extraction)
+                                     ├── FoamIndex.js (class registry queries)
                                      ├── FoamClassGrammar.js (FOAM grammar parser)
                                      ├── CursorAnalyzer.js (shared text utilities)
                                      └── handlers/
@@ -43,21 +44,29 @@ vscode-foam/                                 tools/lsp/
 1. `lsp-start.js` redirects console.log to stderr, sets buildlib globals
 2. `pmake` loads FOAM runtime via `foam_node.js`, walks all POMs, loads all models
 3. `LSPMaker.js` runs after POM traversal — builds file index, starts server
-4. `server.js` creates FoamIndex, grammar, handlers — listens on stdio for JSON-RPC
+4. `server.js` creates FoamIndex, FileModelCache, grammar, handlers — listens on stdio for JSON-RPC
 
 ### Key Components
+
+#### FileModelCache (`tools/lsp/FileModelCache.js`)
+Eval-intercept cache that captures FOAM model objects directly. Same pattern as `ModelFileDAO.js` — executes file text with overridden `foam.CLASS/ENUM/INTERFACE` to capture the raw JS objects passed to each call. This gives handlers direct access to all model fields (`extends`, `requires`, `properties`, `javaImports`, etc.) without any regex parsing.
+
+- **`getModels(uri, text)`**: returns cached array of model objects, or parses fresh
+- **`getModelAt(uri, text, line)`**: returns the model at a given line number
+- **`parseFileModels(text)`**: eval-intercept extraction, with bracket-matching fallback for SyntaxError
+- **Caching**: per-URI, invalidated on file change
 
 #### FoamIndex (`tools/lsp/FoamIndex.js`)
 The query layer over the FOAM runtime. All handlers go through FoamIndex, never touch `foam.*` directly.
 
 - **Class discovery**: `getAllClassIds()` uses `foam.__context__.__cache__` (includes bootstrap classes)
 - **File index**: `buildFileIndex()` walks ALL POMs recursively (including test/swift/node projects), stores `{ path, flags }` per class
-- **Properties**: `getProperties()`, `getOwnProperties()`, `getInheritedProperties()`, `getAllPropertiesForFile()` (includes implements interfaces)
+- **Properties**: `getProperties()`, `getOwnProperties()`, `getInheritedProperties()`
 - **Java mappings**: `getJavaImportMappings()`, `getPropertyJavaType()`
 - **Documentation**: `getClassDoc()`, `getPropertyDoc()`
 
 #### FoamClassGrammar (`tools/lsp/FoamClassGrammar.js`)
-FOAM grammar that parses entire `.js` files using a skip-and-match pattern:
+FOAM grammar that parses entire `.js` files using a skip-and-match pattern. Used only for cursor-position-aware completion suggestions (`sug()`).
 
 ```
 START = repeat(alt(foamCall, ignoredContent))
@@ -70,9 +79,30 @@ Dynamic suggestions built from FOAM registry:
 - Class names: all known class IDs → `sug()` entries
 
 #### CursorAnalyzer (`tools/lsp/CursorAnalyzer.js`)
-Shared text/position utilities used by all handlers. Eliminates duplication.
+Shared text/position utilities used by handlers. Provides fallback regex parsing for incomplete files where eval fails.
 
-12 methods: `offsetToPosition`, `positionToOffset`, `getDottedWordAtPosition`, `getSegmentAtPosition`, `resolveClassId`, `parseRequires`, `parseImports`, `resolveShortName`, `findCreateContext`, `findMatchingEnd`, `forEachFoamClass`, `getMethodSignature`
+10 methods: `offsetToPosition`, `positionToOffset`, `getDottedWordAtPosition`, `getSegmentAtPosition`, `resolveClassId`, `parseRequires`, `parseImports`, `resolveShortName`, `findCreateContext`, `getMethodSignature`
+
+## Data Flow
+
+```
+File text ──► FileModelCache.parseFileModels()
+                  │
+                  ├── eval with overridden foam.CLASS ──► model objects
+                  │     (captures: package, name, extends, requires,
+                  │      implements, properties, methods, javaImports, ...)
+                  │
+                  └── SyntaxError fallback ──► bracket-matching + individual eval
+                  │
+                  ▼
+              model objects ──► handlers read fields directly
+                  │
+                  ├── DiagnosticsHandler: model.extends, model.requires, model.properties[].class
+                  ├── JavaBlockValidator: model.javaImports, model.javaCode, model.properties[].javaPostSet
+                  ├── HoverHandler: model.package + model.name → classId → FoamIndex
+                  ├── MemberCompletionHandler: model.requires, model.imports
+                  └── SymbolHandler: model.properties, model.methods → document outline
+```
 
 ## Features
 
@@ -156,9 +186,10 @@ npx tsc -p ./
 cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 ```
 
-69 tests covering:
+93 tests covering:
 - FoamIndex queries (class discovery, property types, file index)
 - Grammar parsing (5 real FOAM files)
+- FileModelCache (single/multi-class, enums, refines, implements, broken files, caching)
 - Completion (property types, class names, partial values, this., .create({}))
 - Hover (class, property type, short names, create, methods)
 - Diagnostics (valid/invalid classes, property types, constants)
@@ -181,8 +212,9 @@ foam3/tools/
 ├── lsp-start.js                   # Entry point for LSP server
 ├── lsp/
 │   ├── pom.js
-│   ├── FoamIndex.js               # Class registry queries (318 lines)
-│   ├── FoamClassGrammar.js        # FOAM grammar parser (316 lines)
+│   ├── FileModelCache.js          # Eval-intercept model extraction
+│   ├── FoamIndex.js               # Class registry queries
+│   ├── FoamClassGrammar.js        # FOAM grammar parser
 │   ├── CursorAnalyzer.js          # Shared text utilities
 │   ├── server.js                  # JSON-RPC main loop (500+ lines)
 │   ├── handlers/
@@ -204,7 +236,7 @@ foam3/tools/
 │       ├── JavaBlockValidatorTest.js
 │       └── LSPIntegrationTest.js
 ├── tests/
-│   └── testFoamLSPGrammar.js      # Quick standalone test (69 tests)
+│   └── testFoamLSPGrammar.js      # Quick standalone test (93 tests)
 └── vscode-foam/
     ├── package.json
     ├── tsconfig.json
@@ -220,8 +252,8 @@ foam3/tools/
 
 ## Known Limitations
 
-1. **Java-only properties**: Properties added by Java code generation (not in JS model) can't be validated
-2. **Multi-refines files**: Files with multiple `refines:` blocks — each block handled separately
+1. **Incomplete files**: When user is mid-edit with syntax errors, eval-intercept falls back to regex for requires/imports
+2. **Java-only properties**: Properties added by Java code generation (not in JS model) can't be validated
 3. **Flag toggle**: Changing flags shows a message but requires LSP restart to take effect
 4. **Refinement properties**: Some properties added by refinements after class boot may not be visible
 5. **Boot time**: ~10-15s to load all FOAM models on startup

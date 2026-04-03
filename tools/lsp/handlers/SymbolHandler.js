@@ -9,10 +9,17 @@ foam.CLASS({
   name: 'SymbolHandler',
 
   requires: [
+    'foam.parse.lsp.FileModelCache',
     'foam.parse.lsp.CursorAnalyzer'
   ],
 
   properties: [
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FileModelCache',
+      name: 'cache',
+      factory: function() { return this.FileModelCache.create(); }
+    },
     {
       class: 'FObjectProperty',
       of: 'foam.parse.lsp.CursorAnalyzer',
@@ -22,62 +29,110 @@ foam.CLASS({
   ],
 
   methods: [
-    function handle(text) {
+    function handle(text, opt_uri) {
       /**
        * Returns DocumentSymbol[] — outline of class, properties, methods.
+       * Uses FileModelCache for class-level info, regex for source positions.
        */
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return [];
       }
 
+      var models = this.cache.getModels(opt_uri || '', text);
       var symbols = [];
 
-      // Extract class name
-      var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
-      var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
-      var className = '';
-      if ( pkgMatch && nameMatch ) {
-        className = pkgMatch[1] + '.' + nameMatch[1];
-      } else if ( nameMatch ) {
-        className = nameMatch[1];
+      for ( var i = 0 ; i < models.length ; i++ ) {
+        var m = models[i];
+        var className = m.refines || (m.package ? m.package + '.' + m.name : (m.name || 'Unknown'));
+        var startLine = m.sourceLine_ || 0;
+
+        // Class symbol
+        var kindNum = m.type_ === 'ENUM' ? 10 : m.type_ === 'INTERFACE' ? 11 : 5;
+        symbols.push({
+          name: className,
+          kind: kindNum,
+          range: { start: { line: startLine, character: 0 }, end: { line: startLine, character: 0 } },
+          selectionRange: { start: { line: startLine, character: 0 }, end: { line: startLine, character: 0 } }
+        });
+
+        // Property symbols from model
+        var props = m.properties || [];
+        for ( var j = 0 ; j < props.length ; j++ ) {
+          var p = props[j];
+          var propName = typeof p === 'string' ? p : p.name;
+          if ( ! propName ) continue;
+          // Find position in text for better source location
+          var propPos = this.findPropPosition_(text, propName);
+          symbols.push({
+            name: propName,
+            kind: 7,
+            range: { start: propPos, end: propPos },
+            selectionRange: { start: propPos, end: propPos }
+          });
+        }
+
+        // Method symbols from model
+        var methods = m.methods || [];
+        for ( var j = 0 ; j < methods.length ; j++ ) {
+          var method = methods[j];
+          var methodName = typeof method === 'function' ? method.name : (method.name || '');
+          if ( ! methodName ) continue;
+          var methodPos = this.findMethodPosition_(text, methodName);
+          symbols.push({
+            name: methodName,
+            kind: 6,
+            range: { start: methodPos, end: methodPos },
+            selectionRange: { start: methodPos, end: methodPos }
+          });
+        }
       }
 
-      if ( className ) {
+      // If no models from eval (SyntaxError), fall back to regex
+      if ( models.length === 0 ) {
+        return this.regexFallback_(text);
+      }
+
+      return symbols;
+    },
+
+    function findPropPosition_(text, propName) {
+      /** Find the position of a property name in the source text. */
+      var regex = new RegExp("name\\s*:\\s*['\"]" + propName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "['\"]");
+      var match = regex.exec(text);
+      if ( match ) return this.analyzer.offsetToPosition(text, match.index);
+      return { line: 0, character: 0 };
+    },
+
+    function findMethodPosition_(text, methodName) {
+      /** Find the position of a method definition in the source text. */
+      var regex = new RegExp("function\\s+" + methodName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "\\s*\\(");
+      var match = regex.exec(text);
+      if ( match ) return this.analyzer.offsetToPosition(text, match.index);
+      return { line: 0, character: 0 };
+    },
+
+    function regexFallback_(text) {
+      /** Fallback symbol extraction using regex for broken files. */
+      var symbols = [];
+
+      // Class name
+      var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
+      var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
+      if ( nameMatch ) {
+        var className = pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
         var classPos = this.analyzer.offsetToPosition(text, nameMatch.index);
         symbols.push({
           name: className,
-          kind: 5, // Class
+          kind: 5,
           range: { start: { line: 0, character: 0 }, end: this.analyzer.offsetToPosition(text, text.length) },
           selectionRange: { start: classPos, end: { line: classPos.line, character: classPos.character + nameMatch[0].length } }
         });
       }
 
-      // Extract properties
-      this.extractProperties(text, symbols);
-
-      // Extract methods
-      this.extractMethods(text, symbols);
-
-      return symbols;
-    },
-
-    function extractProperties(text, symbols) {
-      // Match property objects: { class: '...', name: '...' }
+      // Properties
       var objRegex = /\{\s*class\s*:\s*['"][^'"]*['"]\s*,\s*name\s*:\s*['"]([^'"]+)['"]/g;
       var match;
       while ( ( match = objRegex.exec(text) ) !== null ) {
-        var pos = this.analyzer.offsetToPosition(text, match.index);
-        symbols.push({
-          name: match[1],
-          kind: 7, // Property
-          range: { start: pos, end: { line: pos.line, character: pos.character + match[0].length } },
-          selectionRange: { start: pos, end: { line: pos.line, character: pos.character + match[0].length } }
-        });
-      }
-
-      // Also name-first: { name: '...', class: '...' }
-      var nameFirstRegex = /\{\s*name\s*:\s*['"]([^'"]+)['"]\s*,\s*class\s*:\s*['"][^'"]*['"]/g;
-      while ( ( match = nameFirstRegex.exec(text) ) !== null ) {
         var pos = this.analyzer.offsetToPosition(text, match.index);
         symbols.push({
           name: match[1],
@@ -87,39 +142,20 @@ foam.CLASS({
         });
       }
 
-      // Match shorthand string properties inside properties: [ ... ]
-      var propsSection = text.match(/properties\s*:\s*\[([\s\S]*?)\]/);
-      if ( propsSection ) {
-        var shorthandRegex = /(?:^|,)\s*'([a-zA-Z_][a-zA-Z0-9_]*)'/g;
-        var sectionText = propsSection[1];
-        var sectionOffset = propsSection.index + text.indexOf('[', propsSection.index) + 1;
-        while ( ( match = shorthandRegex.exec(sectionText) ) !== null ) {
-          var pos = this.analyzer.offsetToPosition(text, sectionOffset + match.index + match[0].indexOf("'"));
-          symbols.push({
-            name: match[1],
-            kind: 7,
-            range: { start: pos, end: { line: pos.line, character: pos.character + match[1].length } },
-            selectionRange: { start: pos, end: { line: pos.line, character: pos.character + match[1].length } }
-          });
-        }
-      }
-    },
-
-    function extractMethods(text, symbols) {
-      // Match: function methodName(
-      var regex = /function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
-      var match;
-      while ( ( match = regex.exec(text) ) !== null ) {
-        // Skip the foam.CLASS wrapper function if any
+      // Methods
+      var methodRegex = /function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+      while ( ( match = methodRegex.exec(text) ) !== null ) {
         if ( match[1] === 'factory' || match[1] === 'expression' ) continue;
         var pos = this.analyzer.offsetToPosition(text, match.index);
         symbols.push({
           name: match[1],
-          kind: 6, // Method
+          kind: 6,
           range: { start: pos, end: { line: pos.line, character: pos.character + match[0].length } },
           selectionRange: { start: pos, end: { line: pos.line, character: pos.character + match[0].length } }
         });
       }
+
+      return symbols;
     }
   ]
 });

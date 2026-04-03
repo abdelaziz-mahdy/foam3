@@ -10,6 +10,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.FileModelCache',
     'foam.parse.lsp.CursorAnalyzer'
   ],
 
@@ -22,6 +23,12 @@ foam.CLASS({
     },
     {
       class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FileModelCache',
+      name: 'cache',
+      factory: function() { return this.FileModelCache.create(); }
+    },
+    {
+      class: 'FObjectProperty',
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
@@ -29,7 +36,7 @@ foam.CLASS({
   ],
 
   methods: [
-    function handle(text, position) {
+    function handle(text, position, opt_uri) {
       if ( ! /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text) ) {
         return { isIncomplete: false, items: [] };
       }
@@ -41,7 +48,7 @@ foam.CLASS({
       // Detect context: this.X.create({ ▊ }) — on the same line
       var createMatch = prefix.match(/this\.(\w+)\.create\(\s*\{\s*\w*$/);
       if ( createMatch ) {
-        return this.handleCreateCompletion(text, createMatch[1]);
+        return this.handleCreateCompletion(text, createMatch[1], position, opt_uri);
       }
 
       // Detect context: ClassName.create({ ▊ }) — full class name, same line
@@ -55,7 +62,6 @@ foam.CLASS({
       }
 
       // Detect context: cursor INSIDE a .create({ ... }) block on a separate line
-      // Look backwards from current line to find the .create({ opening
       var createCtx = this.analyzer.findCreateContext(lines, position.line, text, this.index);
       if ( createCtx ) {
         return this.getClassPropertyItems(createCtx);
@@ -63,15 +69,23 @@ foam.CLASS({
 
       // Detect context: this. ▊ — suggest members + requires + imports
       if ( /this\.\w*$/.test(prefix) ) {
-        return this.handleThisCompletion(text);
+        return this.handleThisCompletion(text, position, opt_uri);
       }
 
       return { isIncomplete: false, items: [] };
     },
 
-    function handleThisCompletion(text) {
+    function handleThisCompletion(text, position, opt_uri) {
       /** Suggest: own properties, methods, actions, required classes, imports. */
-      var classId = this.analyzer.resolveClassId(text);
+      var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+      var classId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+
+      // Fallback: if eval failed (SyntaxError from incomplete code like 'this.'),
+      // resolve classId from regex
+      if ( ! classId ) {
+        classId = this.analyzer.resolveClassId(text);
+      }
+
       var items = [];
 
       // Properties (own + inherited) — only if class exists in registry
@@ -83,7 +97,7 @@ foam.CLASS({
         if ( p.documentation ) propDoc += '\n\n' + p.documentation;
         items.push({
           label: p.name,
-          kind: 10, // Property
+          kind: 10,
           detail: typeName,
           documentation: { kind: 'markdown', value: propDoc },
           sortText: '0_' + p.name
@@ -99,7 +113,7 @@ foam.CLASS({
         if ( m.documentation ) doc += '\n\n' + m.documentation;
         items.push({
           label: m.name,
-          kind: 2, // Method
+          kind: 2,
           detail: sig,
           documentation: { kind: 'markdown', value: doc },
           insertText: m.name + '()',
@@ -120,35 +134,67 @@ foam.CLASS({
       }
 
       // Required classes — this.ShortName is available
-      var requiresMap = this.analyzer.parseRequires(text);
-      for ( var shortName in requiresMap ) {
-        var fullId = requiresMap[shortName];
-        var cls = this.index.getClass(fullId);
-        var doc = cls && cls.model_ ? ( cls.model_.documentation || '' ) : '';
-        items.push({
-          label: shortName,
-          kind: 7, // Class
-          detail: fullId,
-          documentation: doc.substring(0, 100),
-          sortText: '2_' + shortName
-        });
-      }
+      if ( model ) {
+        var requires = model.requires || [];
+        for ( var i = 0 ; i < requires.length ; i++ ) {
+          var r = requires[i];
+          var fullId = typeof r === 'string' ? r : r.path;
+          var shortName = typeof r === 'string' ? fullId.split('.').pop() : (r.name || fullId.split('.').pop());
+          var cls = this.index.getClass(fullId);
+          var rdoc = cls && cls.model_ ? ( cls.model_.documentation || '' ) : '';
+          items.push({
+            label: shortName,
+            kind: 7,
+            detail: fullId,
+            documentation: rdoc.substring(0, 100),
+            sortText: '2_' + shortName
+          });
+        }
 
-      // Imports — this.importedName is available
-      var imports = this.analyzer.parseImports(text);
-      for ( var i = 0 ; i < imports.length ; i++ ) {
-        items.push({
-          label: imports[i],
-          kind: 10, // Property (imported context value)
-          detail: 'import',
-          sortText: '2_' + imports[i]
-        });
+        // Imports from model — this.importedName is available
+        var imports = model.imports || [];
+        for ( var i = 0 ; i < imports.length ; i++ ) {
+          var imp = imports[i];
+          var name = typeof imp === 'string' ? imp : imp.name;
+          name = name.replace(/\?$/, '');
+          items.push({
+            label: name,
+            kind: 10,
+            detail: 'import',
+            sortText: '2_' + name
+          });
+        }
+      } else {
+        // Fallback: parse requires/imports via regex for broken files
+        var requiresMap = this.analyzer.parseRequires(text);
+        for ( var shortName in requiresMap ) {
+          var fullId = requiresMap[shortName];
+          var cls = this.index.getClass(fullId);
+          var rdoc = cls && cls.model_ ? ( cls.model_.documentation || '' ) : '';
+          items.push({
+            label: shortName,
+            kind: 7,
+            detail: fullId,
+            documentation: rdoc.substring(0, 100),
+            sortText: '2_' + shortName
+          });
+        }
+
+        var importNames = this.analyzer.parseImports(text);
+        for ( var i = 0 ; i < importNames.length ; i++ ) {
+          items.push({
+            label: importNames[i],
+            kind: 10,
+            detail: 'import',
+            sortText: '2_' + importNames[i]
+          });
+        }
       }
 
       return { isIncomplete: false, items: items };
     },
 
-    function handleCreateCompletion(text, shortName) {
+    function handleCreateCompletion(text, shortName, position, opt_uri) {
       /** Resolve short name from requires, then suggest its properties. */
       var fullId = this.analyzer.resolveShortName(text, shortName);
       if ( ! fullId ) return { isIncomplete: false, items: [] };
@@ -164,7 +210,7 @@ foam.CLASS({
         var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
         items.push({
           label: p.name,
-          kind: 10, // Property
+          kind: 10,
           detail: typeName + ' — ' + classId,
           documentation: p.documentation || '',
           insertText: p.name + ': '
