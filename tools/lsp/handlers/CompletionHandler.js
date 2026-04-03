@@ -169,63 +169,144 @@ foam.CLASS({
         return null;
       }
 
-      // User is typing inside a Java code block — check for get/set prefix
-      var wordMatch = prefix.match(/(get|set|is)([A-Z]\w*)?$/);
-      if ( ! wordMatch ) return null;
-
-      var getSet = wordMatch[1]; // 'get', 'set', or 'is'
-      var partial = wordMatch[2] ? wordMatch[2].toLowerCase() : '';
-
-      // Build property list from the model
+      // User is typing inside a Java code block
       var cache = this.cache || foam.parse.lsp.FileModelCache.create();
       var model = cache.getModelAt('', text, position.line);
-      if ( ! model ) return null;
 
-      var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
-      var props = [];
+      // Check for get/set prefix — either bare (getF) or on a typed variable (user.getF)
+      var varGetSet = prefix.match(/(\w+)\.(get|set|is)([A-Z]\w*)?$/);
+      var bareGetSet = prefix.match(/(?:^|[\s(=!&|,])(?:return\s+)?(get|set|is)([A-Z]\w*)?$/);
 
-      // Own properties from model
-      (model.properties || []).forEach(function(p) {
-        var name = typeof p === 'string' ? p : p.name;
-        if ( name ) props.push(name);
-      });
+      if ( ! varGetSet && ! bareGetSet ) return null;
 
-      // Inherited properties from class registry
-      var cls = this.index.getClass(classId);
-      if ( cls ) {
-        var axioms = cls.getAxiomsByClass(foam.lang.Property);
-        for ( var i = 0 ; i < axioms.length ; i++ ) {
-          if ( props.indexOf(axioms[i].name) === -1 ) props.push(axioms[i].name);
+      var targetClassId = null;
+      var getSet, partial;
+
+      if ( varGetSet ) {
+        // variable.getX — resolve the variable's type from Java declarations
+        var javaVarName = varGetSet[1];
+        getSet = varGetSet[2];
+        partial = varGetSet[3] ? varGetSet[3].toLowerCase() : '';
+        targetClassId = this.resolveJavaVariableType_(text, position, javaVarName, model);
+      }
+
+      if ( ! targetClassId && bareGetSet ) {
+        // Bare getX/setX — use the current model's class
+        getSet = bareGetSet[1];
+        partial = bareGetSet[2] ? bareGetSet[2].toLowerCase() : '';
+        if ( model ) {
+          targetClassId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
         }
       }
 
-      // Build completion items
+      if ( ! targetClassId ) return null;
+
+      // Collect properties with Java types
       var items = [];
+      var props = this.index.getProperties(targetClassId);
+
+      // Also add own model properties not yet in registry
+      if ( model ) {
+        var ownNames = {};
+        for ( var i = 0 ; i < props.length ; i++ ) ownNames[props[i].name] = true;
+        (model.properties || []).forEach(function(p) {
+          var name = typeof p === 'string' ? p : p.name;
+          if ( name && ! ownNames[name] ) {
+            props.push({ name: name, cls_: null });
+          }
+        });
+      }
+
       for ( var i = 0 ; i < props.length ; i++ ) {
-        var propName = props[i];
+        var p = props[i];
+        var propName = p.name;
         var capName = propName.charAt(0).toUpperCase() + propName.substring(1);
         if ( partial && capName.toLowerCase().indexOf(partial) !== 0 ) continue;
+
+        var javaType = this.index.getPropertyJavaType(targetClassId, propName) || 'Object';
 
         if ( getSet === 'get' || getSet === 'is' ) {
           items.push({
             label: 'get' + capName + '()',
-            kind: 2, // Method
-            detail: 'getter for ' + propName,
+            kind: 2,
+            detail: javaType + ' — ' + propName,
+            documentation: javaType + ' get' + capName + '()',
             insertText: 'get' + capName + '()',
-            sortText: '0_' + propName
+            sortText: '!' + propName
           });
         }
         if ( getSet === 'set' ) {
           items.push({
-            label: 'set' + capName + '(val)',
+            label: 'set' + capName + '(' + javaType + ')',
             kind: 2,
-            detail: 'setter for ' + propName,
+            detail: 'void — ' + propName,
+            documentation: 'void set' + capName + '(' + javaType + ' val)',
             insertText: 'set' + capName + '(',
-            sortText: '0_' + propName
+            sortText: '!' + propName
           });
         }
       }
       return items;
+    },
+
+    function resolveJavaVariableType_(text, position, varName, model) {
+      /**
+       * Resolve a Java variable's type from its declaration.
+       * Scans backward for patterns like:
+       *   TypeName varName = ...
+       *   TypeName varName;
+       *   (TypeName) expression → cast
+       * Returns a FOAM class ID if the type maps to a known class, else null.
+       */
+      var lines = text.split('\n');
+      for ( var i = position.line ; i >= 0 ; i-- ) {
+        var line = lines[i];
+        if ( ! line ) continue;
+
+        // Match: TypeName varName = or TypeName varName;
+        var declMatch = line.match(new RegExp('(\\w+)\\s+' + varName + '\\s*[=;]'));
+        if ( declMatch ) {
+          var typeName = declMatch[1];
+          // Skip Java keywords that look like types
+          if ( ['var', 'return', 'new', 'if', 'for', 'while', 'try', 'catch', 'throw', 'else'].indexOf(typeName) !== -1 ) continue;
+          return this.resolveJavaTypeName_(typeName, model);
+        }
+      }
+      return null;
+    },
+
+    function resolveJavaTypeName_(typeName, model) {
+      /**
+       * Resolve a Java type name to a FOAM class ID.
+       * Checks: javaImports, model package, common FOAM types.
+       */
+      // Direct FOAM class lookup
+      if ( this.index.classExists(typeName) ) return typeName;
+
+      // Check javaImports on the model for the full path
+      var imports = model ? model.javaImports || [] : [];
+      for ( var i = 0 ; i < imports.length ; i++ ) {
+        var imp = imports[i];
+        if ( imp.endsWith('.' + typeName) || imp.endsWith('.*') ) {
+          var fullId = imp.endsWith('.*') ? imp.replace('.*', '.' + typeName) : imp;
+          if ( this.index.classExists(fullId) ) return fullId;
+        }
+      }
+
+      // Check same package as model
+      if ( model && model.package ) {
+        var samePackage = model.package + '.' + typeName;
+        if ( this.index.classExists(samePackage) ) return samePackage;
+      }
+
+      // Dynamic scan: find any class whose short name matches typeName
+      var ids = this.index.getAllClassIds();
+      var suffix = '.' + typeName;
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        if ( ids[i].endsWith(suffix) ) return ids[i];
+      }
+
+      return null;
     },
 
     function getLineContext_(lines, lineNum) {

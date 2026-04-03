@@ -570,8 +570,7 @@ test(hasTypeToken, 'Semantic tokens: includes type token for requires alias');
 
 section('Java block completions');
 
-// get inside javaCode should suggest getters
-// Multi-line backtick block with cursor after 'get' on a line inside the block
+// get inside javaCode should suggest getters with Java types
 var BT = String.fromCharCode(96);
 var javaCompText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'JTest' + Q + ',\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'firstName' + Q + ' },\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'lastName' + Q + ' }\n  ],\n  methods: [\n    {\n      name: ' + Q + 'fullName' + Q + ',\n      javaCode: ' + BT + '\n        get\n      ' + BT + '\n    }\n  ]\n})';
 // Cursor on line 11 after 'get' — character 11
@@ -579,6 +578,18 @@ var javaCompResult = completionHandler.handle(javaCompText, { line: 11, characte
 test(javaCompResult.items.length > 0, 'Java block: get suggests getters: ' + javaCompResult.items.length);
 test(javaCompResult.items.some(function(i) { return i.label === 'getFirstName()'; }), 'Java block: suggests getFirstName()');
 test(javaCompResult.items.some(function(i) { return i.label === 'getLastName()'; }), 'Java block: suggests getLastName()');
+
+// Getter detail shows Java return type — use real class foam.parse.Suggestion which has String properties
+var javaRealText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'doStuff' + Q + ',\n      javaCode: ' + BT + '\n        get\n      ' + BT + '\n    }\n  ]\n})';
+var javaRealResult = completionHandler.handle(javaRealText, { line: 7, character: 11 });
+var textItem = javaRealResult.items.find(function(i) { return i.label === 'getText()'; });
+test(textItem && textItem.detail.indexOf('String') !== -1, 'Java getter shows return type: ' + (textItem ? textItem.detail : 'not found'));
+
+// set suggests setters with parameter type
+var javaSetText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'update' + Q + ',\n      javaCode: ' + BT + '\n        set\n      ' + BT + '\n    }\n  ]\n})';
+var javaSetResult = completionHandler.handle(javaSetText, { line: 7, character: 11 });
+var setTextItem = javaSetResult.items.find(function(i) { return i.label.indexOf('setText') !== -1; });
+test(setTextItem && setTextItem.label.indexOf('String') !== -1, 'Java setter shows param type: ' + (setTextItem ? setTextItem.label : 'none'));
 
 // === SUMMARY ===
 
