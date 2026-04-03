@@ -54,18 +54,20 @@ foam.CLASS({
 
     function collectSuggestions(text, cursorOffset) {
       var suggestions = {};
+      var cursorSuggestions = {};
       var maxPos = 0;
 
       var apply = function(p, grammar) {
         if ( this.pos > maxPos ) {
-          suggestions = {};
           maxPos = this.pos;
         }
-        if ( this.pos >= cursorOffset && p.suggest ) {
+        // Collect suggestions at or near cursor position
+        if ( p.suggest && this.pos >= cursorOffset - 1 && this.pos <= cursorOffset + 1 ) {
           var s = p.suggest();
-          if ( s ) suggestions[s.text || s.label] = s;
+          if ( s ) cursorSuggestions[s.text || s.label] = s;
         }
-        if ( this.pos === maxPos && p.suggest ) {
+        // Also collect at maxPos (furthest parse point)
+        if ( p.suggest && this.pos === maxPos ) {
           var s = p.suggest();
           if ( s ) suggestions[s.text || s.label] = s;
         }
@@ -76,7 +78,8 @@ foam.CLASS({
       var ps = this.StringPStream.create({ str: str, apply: apply });
       this.grammar.parse(ps);
 
-      return suggestions;
+      // Prefer cursor-position suggestions, fall back to maxPos suggestions
+      return Object.keys(cursorSuggestions).length > 0 ? cursorSuggestions : suggestions;
     },
 
     function positionToOffset(text, position) {
