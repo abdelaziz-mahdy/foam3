@@ -9,7 +9,8 @@ foam.CLASS({
   name: 'MemberCompletionHandler',
 
   requires: [
-    'foam.parse.lsp.FoamIndex'
+    'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.CursorAnalyzer'
   ],
 
   properties: [
@@ -18,6 +19,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     }
   ],
 
@@ -41,7 +48,7 @@ foam.CLASS({
       var fullCreateMatch = prefix.match(/([\w.]+)\.create\(\s*\{\s*\w*$/);
       if ( fullCreateMatch ) {
         var classId = fullCreateMatch[1];
-        var resolved = this.resolveShortName(text, classId) || classId;
+        var resolved = this.analyzer.resolveShortName(text, classId) || classId;
         if ( this.index.classExists(resolved) ) {
           return this.getClassPropertyItems(resolved);
         }
@@ -49,7 +56,7 @@ foam.CLASS({
 
       // Detect context: cursor INSIDE a .create({ ... }) block on a separate line
       // Look backwards from current line to find the .create({ opening
-      var createCtx = this.findCreateContext_(lines, position.line, text);
+      var createCtx = this.analyzer.findCreateContext(lines, position.line, text, this.index);
       if ( createCtx ) {
         return this.getClassPropertyItems(createCtx);
       }
@@ -64,7 +71,7 @@ foam.CLASS({
 
     function handleThisCompletion(text) {
       /** Suggest: own properties, methods, actions, required classes, imports. */
-      var classId = this.resolveClassId(text);
+      var classId = this.analyzer.resolveClassId(text);
       var items = [];
 
       // Properties (own + inherited) — only if class exists in registry
@@ -87,7 +94,7 @@ foam.CLASS({
       var methods = classId ? this.index.getMethods(classId) : [];
       for ( var i = 0 ; i < methods.length ; i++ ) {
         var m = methods[i];
-        var sig = this.getMethodSignature_(m);
+        var sig = this.analyzer.getMethodSignature(m);
         var doc = '```javascript\n' + sig + '\n```';
         if ( m.documentation ) doc += '\n\n' + m.documentation;
         items.push({
@@ -113,7 +120,7 @@ foam.CLASS({
       }
 
       // Required classes — this.ShortName is available
-      var requiresMap = this.parseRequires(text);
+      var requiresMap = this.analyzer.parseRequires(text);
       for ( var shortName in requiresMap ) {
         var fullId = requiresMap[shortName];
         var cls = this.index.getClass(fullId);
@@ -128,7 +135,7 @@ foam.CLASS({
       }
 
       // Imports — this.importedName is available
-      var imports = this.parseImports(text);
+      var imports = this.analyzer.parseImports(text);
       for ( var i = 0 ; i < imports.length ; i++ ) {
         items.push({
           label: imports[i],
@@ -143,7 +150,7 @@ foam.CLASS({
 
     function handleCreateCompletion(text, shortName) {
       /** Resolve short name from requires, then suggest its properties. */
-      var fullId = this.resolveShortName(text, shortName);
+      var fullId = this.analyzer.resolveShortName(text, shortName);
       if ( ! fullId ) return { isIncomplete: false, items: [] };
       return this.getClassPropertyItems(fullId);
     },
@@ -164,108 +171,6 @@ foam.CLASS({
         });
       }
       return { isIncomplete: false, items: items };
-    },
-
-    function parseRequires(text) {
-      /**
-       * Parse requires: [...] to build shortName → fullId map.
-       * 'foam.u2.DetailView' → { DetailView: 'foam.u2.DetailView' }
-       * 'foam.u2.DetailView as DV' → { DV: 'foam.u2.DetailView' }
-       */
-      var map = {};
-      var requiresMatch = text.match(/requires\s*:\s*\[([\s\S]*?)\]/);
-      if ( ! requiresMatch ) return map;
-
-      var regex = /['"]([a-zA-Z][\w.]+\.(\w+))(?:\s+as\s+(\w+))?['"]/g;
-      var m;
-      while ( ( m = regex.exec(requiresMatch[1]) ) !== null ) {
-        var fullId = m[1];
-        var shortName = m[3] || m[2]; // alias or last part of class ID
-        map[shortName] = fullId;
-      }
-      return map;
-    },
-
-    function parseImports(text) {
-      /** Parse imports: [...] to get imported names. */
-      var names = [];
-      var importsMatch = text.match(/imports\s*:\s*\[([\s\S]*?)\]/);
-      if ( ! importsMatch ) return names;
-
-      var regex = /['"](\w[\w?]*)(?:\s+as\s+(\w+))?['"]/g;
-      var m;
-      while ( ( m = regex.exec(importsMatch[1]) ) !== null ) {
-        var name = m[2] || m[1];
-        // Remove trailing ? (optional import)
-        name = name.replace(/\?$/, '');
-        names.push(name);
-      }
-      return names;
-    },
-
-    function resolveShortName(text, shortName) {
-      /** Resolve a short class name to full ID using requires. */
-      var map = this.parseRequires(text);
-      return map[shortName] || null;
-    },
-
-    function findCreateContext_(lines, lineNum, text) {
-      /**
-       * Scan backwards from current line to find if we're inside a .create({ block.
-       * Handles both: this.X.create({ on same line, and .create(\n{ on separate lines.
-       * Returns the resolved class ID or null.
-       */
-      var depth = 0;
-      for ( var i = lineNum ; i >= Math.max(0, lineNum - 20) ; i-- ) {
-        var line = lines[i];
-        // Count braces to track nesting
-        for ( var c = line.length - 1 ; c >= 0 ; c-- ) {
-          if ( line[c] === '}' ) depth++;
-          if ( line[c] === '{' ) depth--;
-        }
-        // If we've closed a brace pair (depth < 0), we're inside an opening {
-        if ( depth < 0 ) {
-          // Check this line and a few lines above for .create(
-          for ( var j = i ; j >= Math.max(0, i - 3) ; j-- ) {
-            var checkLine = lines[j];
-            var createMatch = checkLine.match(/(?:this\.)?(\w+)\.create\s*\(/);
-            if ( createMatch ) {
-              var shortName = createMatch[1];
-              var resolved = this.resolveShortName(text, shortName);
-              if ( resolved ) return resolved;
-              if ( this.index.classExists(shortName) ) return shortName;
-            }
-          }
-          break;
-        }
-      }
-      return null;
-    },
-
-    function getMethodSignature_(method) {
-      /** Extract method signature: name(param1, param2) */
-      // Try formal args first
-      if ( method.args && method.args.length > 0 ) {
-        var params = method.args.map(function(a) {
-          return ( a.type ? a.type + ' ' : '' ) + a.name;
-        });
-        return method.name + '(' + params.join(', ') + ')';
-      }
-      // Fall back to parsing the function code
-      if ( method.code ) {
-        var match = method.code.toString().match(/function\s*\w*\s*\(([^)]*)\)/);
-        if ( match && match[1].trim() ) {
-          return method.name + '(' + match[1].trim() + ')';
-        }
-      }
-      return method.name + '()';
-    },
-
-    function resolveClassId(text) {
-      var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
-      var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
-      if ( ! nameMatch ) return null;
-      return pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
     }
   ]
 });

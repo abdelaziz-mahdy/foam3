@@ -9,7 +9,8 @@ foam.CLASS({
   name: 'JavaBlockValidator',
 
   requires: [
-    'foam.parse.lsp.FoamIndex'
+    'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.CursorAnalyzer'
   ],
 
   properties: [
@@ -18,6 +19,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     }
   ],
 
@@ -50,7 +57,7 @@ foam.CLASS({
         for ( var bad in mappings ) {
           if ( importStr.indexOf(bad) === 0 || importStr === bad ) {
             var absOffset = baseOffset + blockOffset + imp.index + imp[0].indexOf(importStr);
-            var pos = this.offsetToPosition(fullText, absOffset);
+            var pos = this.analyzer.offsetToPosition(fullText, absOffset);
             diagnostics.push({
               range: {
                 start: pos,
@@ -103,7 +110,7 @@ foam.CLASS({
           if ( ['x', 'class', 'classInfo', 'ownClassInfo', 'instance', 'logger'].indexOf(propName) !== -1 ) continue;
           if ( ! propNames[propName.toLowerCase()] ) {
             var absOffset = baseOffset + blockStart + gs.index;
-            var pos = this.offsetToPosition(fullText, absOffset);
+            var pos = this.analyzer.offsetToPosition(fullText, absOffset);
             diagnostics.push({
               range: {
                 start: pos,
@@ -116,15 +123,6 @@ foam.CLASS({
           }
         }
       }
-    },
-
-    function offsetToPosition(text, offset) {
-      var line = 0;
-      var col = 0;
-      for ( var i = 0 ; i < offset && i < text.length ; i++ ) {
-        if ( text[i] === '\n' ) { line++; col = 0; } else { col++; }
-      }
-      return { line: line, character: col };
     }
   ]
 });

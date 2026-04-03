@@ -246,6 +246,51 @@ var defResult = defHandler.handle(defText, { line: 1, character: 20 });
 test(defResult == null || (defResult.uri && defResult.uri.indexOf('FObject') !== -1),
   'Definition returns null or correct path');
 
+// === CURSOR ANALYZER TESTS ===
+
+section('CursorAnalyzer');
+var analyzer = foam.parse.lsp.CursorAnalyzer.create();
+
+// offsetToPosition
+var testText = 'line0\nline1\nline2';
+var pos = analyzer.offsetToPosition(testText, 6); // start of line1
+test(pos.line === 1 && pos.character === 0, 'offsetToPosition: line 1 start');
+
+// positionToOffset
+var offset = analyzer.positionToOffset(testText, { line: 1, character: 3 });
+test(offset === 9, 'positionToOffset: line1 char3 = offset 9, got: ' + offset);
+
+// resolveClassId
+var classText = 'foam.CLASS({ package: ' + Q + 'foam.parse' + Q + ', name: ' + Q + 'Suggestion' + Q + ' })';
+test(analyzer.resolveClassId(classText) === 'foam.parse.Suggestion', 'resolveClassId extracts class ID');
+
+// parseRequires
+var reqText = 'foam.CLASS({ requires: [' + Q + 'foam.u2.DetailView' + Q + ', ' + Q + 'foam.u2.Element as El' + Q + '] })';
+var reqMap = analyzer.parseRequires(reqText);
+test(reqMap['DetailView'] === 'foam.u2.DetailView', 'parseRequires: DetailView');
+test(reqMap['El'] === 'foam.u2.Element', 'parseRequires: alias El');
+
+// getMethodSignature
+var mockMethod = { name: 'start', code: function start(spec, args) {} };
+test(analyzer.getMethodSignature(mockMethod) === 'start(spec, args)', 'getMethodSignature from code');
+
+// === REAL FILE COVERAGE ===
+
+section('Real file coverage');
+
+// Go-to-definition on real file
+var defHandler2 = foam.parse.lsp.handlers.DefinitionHandler.create({ index: index });
+index.buildFileIndex();
+var defText2 = 'foam.CLASS({ extends: ' + Q + 'foam.core.auth.User' + Q + ' })';
+var defResult2 = defHandler2.handle(defText2, { line: 0, character: 25 });
+test(defResult2 != null && defResult2.uri.indexOf('User.js') !== -1, 'Go-to-definition finds User.js');
+
+// this. on real class shows 200+ items
+var realMemberText = fs.readFileSync(path.resolve(process.cwd(), 'foam3/src/foam/u2/CitationView.js'), 'utf8');
+var realMemberHandler = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index });
+var realMemberResult = realMemberHandler.handle(realMemberText, { line: 79, character: 11 });
+test(realMemberResult.items.length > 100, 'this. on real file: ' + realMemberResult.items.length + ' items');
+
 // === SUMMARY ===
 
 section('SUMMARY');

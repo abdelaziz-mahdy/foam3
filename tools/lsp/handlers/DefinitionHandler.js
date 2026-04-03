@@ -9,7 +9,8 @@ foam.CLASS({
   name: 'DefinitionHandler',
 
   requires: [
-    'foam.parse.lsp.FoamIndex'
+    'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.CursorAnalyzer'
   ],
 
   properties: [
@@ -18,6 +19,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     }
   ],
 
@@ -27,7 +34,7 @@ foam.CLASS({
         return null;
       }
 
-      var word = this.getDottedWordAtPosition(text, position);
+      var word = this.analyzer.getDottedWordAtPosition(text, position);
       if ( ! word ) return null;
 
       // Try as full class ID
@@ -55,22 +62,6 @@ foam.CLASS({
           end: { line: 0, character: 0 }
         }
       };
-    },
-
-    function getDottedWordAtPosition(text, position) {
-      var lines = text.split('\n');
-      var line = lines[position.line] || '';
-      var ch = position.character;
-
-      var start = ch;
-      while ( start > 0 && /[a-zA-Z0-9_.]/.test(line[start - 1]) ) start--;
-      var end = ch;
-      while ( end < line.length && /[a-zA-Z0-9_.]/.test(line[end]) ) end++;
-
-      var word = line.substring(start, end);
-      if ( word.startsWith("'") ) word = word.substring(1);
-      if ( word.endsWith("'") ) word = word.substring(0, word.length - 1);
-      return word;
     }
   ]
 });

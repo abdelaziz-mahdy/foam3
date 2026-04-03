@@ -11,6 +11,7 @@ foam.CLASS({
   requires: [
     'foam.parse.lsp.FoamIndex',
     'foam.parse.lsp.FoamClassGrammar',
+    'foam.parse.lsp.CursorAnalyzer',
     'foam.parse.StringPStream'
   ],
 
@@ -26,6 +27,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamClassGrammar',
       name: 'grammar',
       factory: function() { return this.FoamClassGrammar.create({ index: this.index }); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     }
   ],
 
@@ -35,7 +42,7 @@ foam.CLASS({
         return { isIncomplete: false, items: [] };
       }
 
-      var offset = this.positionToOffset(text, position);
+      var offset = this.analyzer.positionToOffset(text, position);
       var suggestions = this.collectSuggestions(text, offset);
 
       var items = [];
@@ -216,16 +223,6 @@ foam.CLASS({
       } catch (e) {}
 
       return suggestions;
-    },
-
-    function positionToOffset(text, position) {
-      var lines = text.split('\n');
-      var offset = 0;
-      for ( var i = 0 ; i < position.line && i < lines.length ; i++ ) {
-        offset += lines[i].length + 1;
-      }
-      offset += Math.min(position.character, (lines[position.line] || '').length);
-      return offset;
     },
 
     function toCompletionItem(suggestion) {

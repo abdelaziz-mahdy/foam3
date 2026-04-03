@@ -10,6 +10,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.CursorAnalyzer',
     'foam.parse.lsp.handlers.JavaBlockValidator'
   ],
 
@@ -19,6 +20,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     },
     {
       class: 'FObjectProperty',
@@ -37,42 +44,11 @@ foam.CLASS({
       var diagnostics = [];
       var self = this;
 
-      this.forEachFoamClass(text, function(block, startOffset) {
+      this.analyzer.forEachFoamClass(text, function(block, startOffset) {
         self.validateBlock(text, block, startOffset, diagnostics);
       });
 
       return diagnostics;
-    },
-
-    function forEachFoamClass(text, callback) {
-      var regex = /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/g;
-      var match;
-      while ( ( match = regex.exec(text) ) !== null ) {
-        var start = match.index;
-        var end = this.findMatchingEnd(text, start + match[0].length);
-        callback(text.substring(start, end), start);
-      }
-    },
-
-    function findMatchingEnd(text, fromIndex) {
-      var depth = 0;
-      var inString = false;
-      var stringChar = '';
-      for ( var i = fromIndex ; i < text.length ; i++ ) {
-        var ch = text[i];
-        if ( inString ) {
-          if ( ch === '\\' ) { i++; continue; }
-          if ( ch === stringChar ) inString = false;
-          continue;
-        }
-        if ( ch === "'" || ch === '"' || ch === '`' ) { inString = true; stringChar = ch; }
-        else if ( ch === '(' || ch === '{' || ch === '[' ) { depth++; }
-        else if ( ch === ')' || ch === '}' || ch === ']' ) {
-          if ( depth === 0 ) return i + 1;
-          depth--;
-        }
-      }
-      return text.length;
     },
 
     function validateBlock(fullText, block, startOffset, diagnostics) {
@@ -133,7 +109,7 @@ foam.CLASS({
     },
 
     function addDiag(diagnostics, fullText, offset, length, severity, message) {
-      var pos = this.offsetToPosition(fullText, offset);
+      var pos = this.analyzer.offsetToPosition(fullText, offset);
       diagnostics.push({
         range: {
           start: pos,
@@ -143,14 +119,6 @@ foam.CLASS({
         message: message,
         source: 'foam-lsp'
       });
-    },
-
-    function offsetToPosition(text, offset) {
-      var line = 0; var col = 0;
-      for ( var i = 0 ; i < offset && i < text.length ; i++ ) {
-        if ( text[i] === '\n' ) { line++; col = 0; } else { col++; }
-      }
-      return { line: line, character: col };
     }
   ]
 });

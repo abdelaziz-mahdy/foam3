@@ -8,6 +8,19 @@ foam.CLASS({
   package: 'foam.parse.lsp.handlers',
   name: 'SymbolHandler',
 
+  requires: [
+    'foam.parse.lsp.CursorAnalyzer'
+  ],
+
+  properties: [
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
+    }
+  ],
+
   methods: [
     function handle(text) {
       /**
@@ -30,11 +43,11 @@ foam.CLASS({
       }
 
       if ( className ) {
-        var classPos = this.offsetToPosition(text, nameMatch.index);
+        var classPos = this.analyzer.offsetToPosition(text, nameMatch.index);
         symbols.push({
           name: className,
           kind: 5, // Class
-          range: { start: { line: 0, character: 0 }, end: this.offsetToPosition(text, text.length) },
+          range: { start: { line: 0, character: 0 }, end: this.analyzer.offsetToPosition(text, text.length) },
           selectionRange: { start: classPos, end: { line: classPos.line, character: classPos.character + nameMatch[0].length } }
         });
       }
@@ -53,7 +66,7 @@ foam.CLASS({
       var objRegex = /\{\s*class\s*:\s*['"][^'"]*['"]\s*,\s*name\s*:\s*['"]([^'"]+)['"]/g;
       var match;
       while ( ( match = objRegex.exec(text) ) !== null ) {
-        var pos = this.offsetToPosition(text, match.index);
+        var pos = this.analyzer.offsetToPosition(text, match.index);
         symbols.push({
           name: match[1],
           kind: 7, // Property
@@ -65,7 +78,7 @@ foam.CLASS({
       // Also name-first: { name: '...', class: '...' }
       var nameFirstRegex = /\{\s*name\s*:\s*['"]([^'"]+)['"]\s*,\s*class\s*:\s*['"][^'"]*['"]/g;
       while ( ( match = nameFirstRegex.exec(text) ) !== null ) {
-        var pos = this.offsetToPosition(text, match.index);
+        var pos = this.analyzer.offsetToPosition(text, match.index);
         symbols.push({
           name: match[1],
           kind: 7,
@@ -81,7 +94,7 @@ foam.CLASS({
         var sectionText = propsSection[1];
         var sectionOffset = propsSection.index + text.indexOf('[', propsSection.index) + 1;
         while ( ( match = shorthandRegex.exec(sectionText) ) !== null ) {
-          var pos = this.offsetToPosition(text, sectionOffset + match.index + match[0].indexOf("'"));
+          var pos = this.analyzer.offsetToPosition(text, sectionOffset + match.index + match[0].indexOf("'"));
           symbols.push({
             name: match[1],
             kind: 7,
@@ -99,7 +112,7 @@ foam.CLASS({
       while ( ( match = regex.exec(text) ) !== null ) {
         // Skip the foam.CLASS wrapper function if any
         if ( match[1] === 'factory' || match[1] === 'expression' ) continue;
-        var pos = this.offsetToPosition(text, match.index);
+        var pos = this.analyzer.offsetToPosition(text, match.index);
         symbols.push({
           name: match[1],
           kind: 6, // Method
@@ -107,15 +120,6 @@ foam.CLASS({
           selectionRange: { start: pos, end: { line: pos.line, character: pos.character + match[0].length } }
         });
       }
-    },
-
-    function offsetToPosition(text, offset) {
-      var line = 0;
-      var col = 0;
-      for ( var i = 0 ; i < offset && i < text.length ; i++ ) {
-        if ( text[i] === '\n' ) { line++; col = 0; } else { col++; }
-      }
-      return { line: line, character: col };
     }
   ]
 });

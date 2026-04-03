@@ -9,7 +9,8 @@ foam.CLASS({
   name: 'HoverHandler',
 
   requires: [
-    'foam.parse.lsp.FoamIndex'
+    'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.CursorAnalyzer'
   ],
 
   properties: [
@@ -18,6 +19,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     }
   ],
 
@@ -27,7 +34,7 @@ foam.CLASS({
         return null;
       }
 
-      var word = this.getDottedWordAtPosition(text, position);
+      var word = this.analyzer.getDottedWordAtPosition(text, position);
       if ( ! word ) return null;
 
       // Try as class ID (full path like foam.lang.FObject)
@@ -44,11 +51,11 @@ foam.CLASS({
       }
 
       // Get the specific segment under cursor (not the full dotted chain)
-      var segment = this.getSegmentAtPosition_(text, position);
+      var segment = this.analyzer.getSegmentAtPosition(text, position);
 
       // Try as short name from requires (e.g., StackBlock → foam.u2.stack.StackBlock)
       if ( segment ) {
-        var resolved = this.resolveRequiredClass_(text, segment);
+        var resolved = this.analyzer.resolveShortName(text, segment);
         if ( resolved ) {
           return this.buildClassHover(resolved);
         }
@@ -71,7 +78,7 @@ foam.CLASS({
       }
 
       // Try segment as property or method name — resolve the current class
-      var currentClassId = this.resolveCurrentClass(text);
+      var currentClassId = this.analyzer.resolveClassId(text);
       if ( currentClassId ) {
         // Property hover
         var propDoc = this.index.getPropertyDoc(currentClassId, lookupName);
@@ -145,41 +152,7 @@ foam.CLASS({
     function resolveCreateContext_(text, position) {
       /** Find if cursor is inside a .create({}) block, return the target class ID. */
       var lines = text.split('\n');
-      var depth = 0;
-      for ( var i = position.line ; i >= Math.max(0, position.line - 20) ; i-- ) {
-        var line = lines[i] || '';
-        for ( var c = line.length - 1 ; c >= 0 ; c-- ) {
-          if ( line[c] === '}' ) depth++;
-          if ( line[c] === '{' ) depth--;
-        }
-        if ( depth < 0 ) {
-          for ( var j = i ; j >= Math.max(0, i - 3) ; j-- ) {
-            var checkLine = lines[j] || '';
-            var createMatch = checkLine.match(/(?:this\.)?(\w+)\.create\s*\(/);
-            if ( createMatch ) {
-              var shortName = createMatch[1];
-              var resolved = this.resolveRequiredClass_(text, shortName);
-              if ( resolved ) return resolved;
-              if ( this.index.classExists(shortName) ) return shortName;
-            }
-          }
-          break;
-        }
-      }
-      return null;
-    },
-
-    function resolveRequiredClass_(text, shortName) {
-      /** Resolve a short class name from requires: [...] to full ID. */
-      var requiresMatch = text.match(/requires\s*:\s*\[([\s\S]*?)\]/);
-      if ( ! requiresMatch ) return null;
-      var regex = /['"]([a-zA-Z][\w.]+\.(\w+))(?:\s+as\s+(\w+))?['"]/g;
-      var m;
-      while ( ( m = regex.exec(requiresMatch[1]) ) !== null ) {
-        var alias = m[3] || m[2];
-        if ( alias === shortName && this.index.classExists(m[1]) ) return m[1];
-      }
-      return null;
+      return this.analyzer.findCreateContext(lines, position.line, text, this.index);
     },
 
     function buildCreateHover_(text, position) {
@@ -191,7 +164,7 @@ foam.CLASS({
       if ( ! match ) return null;
       var name = match[1];
       // Try as short name from requires
-      var resolved = this.resolveRequiredClass_(text, name);
+      var resolved = this.analyzer.resolveShortName(text, name);
       // Try as full class ID
       if ( ! resolved && this.index.classExists(name) ) resolved = name;
       if ( ! resolved ) return null;
@@ -214,70 +187,13 @@ foam.CLASS({
 
     function buildMethodHover_(method, classId) {
       /** Build markdown hover for a method with signature. */
-      var sig = method.name;
-      // Extract params from formal args or function code
-      if ( method.args && method.args.length > 0 ) {
-        var params = method.args.map(function(a) {
-          return ( a.type ? a.type + ' ' : '' ) + a.name;
-        });
-        sig += '(' + params.join(', ') + ')';
-      } else if ( method.code ) {
-        var match = method.code.toString().match(/function\s*\w*\s*\(([^)]*)\)/);
-        if ( match && match[1].trim() ) {
-          sig += '(' + match[1].trim() + ')';
-        } else {
-          sig += '()';
-        }
-      } else {
-        sig += '()';
-      }
+      var sig = this.analyzer.getMethodSignature(method);
 
       var md = '**' + sig + '**\n\n';
       md += 'Method on `' + classId + '`\n\n';
       if ( method.documentation ) md += method.documentation + '\n\n';
       if ( method.type ) md += 'Returns: `' + method.type + '`\n';
       return md;
-    },
-
-    function resolveCurrentClass(text) {
-      var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
-      var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
-      if ( ! nameMatch ) return null;
-      return pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
-    },
-
-    function getSegmentAtPosition_(text, position) {
-      /**
-       * For chains like 'this.Suggestion.create', returns just the segment
-       * under the cursor. Used for resolving short names and method names.
-       */
-      var lines = text.split('\n');
-      var line = lines[position.line] || '';
-      var ch = position.character;
-
-      // Get just the identifier under cursor (stop at dots)
-      var start = ch;
-      while ( start > 0 && /[a-zA-Z0-9_$]/.test(line[start - 1]) ) start--;
-      var end = ch;
-      while ( end < line.length && /[a-zA-Z0-9_$]/.test(line[end]) ) end++;
-
-      return line.substring(start, end);
-    },
-
-    function getDottedWordAtPosition(text, position) {
-      var lines = text.split('\n');
-      var line = lines[position.line] || '';
-      var ch = position.character;
-
-      var start = ch;
-      while ( start > 0 && /[a-zA-Z0-9_.]/.test(line[start - 1]) ) start--;
-      var end = ch;
-      while ( end < line.length && /[a-zA-Z0-9_.]/.test(line[end]) ) end++;
-
-      var word = line.substring(start, end);
-      if ( word.startsWith("'") ) word = word.substring(1);
-      if ( word.endsWith("'") ) word = word.substring(0, word.length - 1);
-      return word;
     }
   ]
 });
