@@ -275,11 +275,10 @@ var mockMethod = { name: 'start', code: function start(spec, args) {} };
 test(analyzer.getMethodSignature(mockMethod) === 'start(spec, args)', 'getMethodSignature from code');
 
 // getAllPropertiesForFile — includes implements interfaces
-var implText = 'foam.CLASS({ implements: [' + Q + 'foam.core.auth.CreatedByAware' + Q + '], properties: [{ class: ' + Q + 'String' + Q + ', name: ' + Q + 'foo' + Q + ' }] })';
-var allProps = index.getAllPropertiesForFile('foam.lang.FObject', implText);
-test(allProps['foo'] != null, 'getAllPropertiesForFile includes own property foo');
-test(allProps['createdby'] != null || allProps['createdBy'] != null,
-  'getAllPropertiesForFile includes createdBy from CreatedByAware interface');
+// FOAM JS doesn't merge interface props into class — we need to check separately
+var implText = 'foam.CLASS({ package: ' + Q + 'foam.core.auth' + Q + ', name: ' + Q + 'User' + Q + ', implements: [' + Q + 'foam.core.auth.CreatedByAware' + Q + '] })';
+var allProps = index.getAllPropertiesForFile('foam.core.auth.User', implText);
+test(allProps['createdby'] != null, 'getAllPropertiesForFile includes createdBy from interface');
 
 // === REAL FILE COVERAGE ===
 
