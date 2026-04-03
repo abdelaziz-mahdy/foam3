@@ -66,12 +66,14 @@ foam.CLASS({
       for ( var i = 0 ; i < props.length ; i++ ) {
         var p = props[i];
         var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
+        var propDoc = '**' + p.name + '** (`' + typeName + '`)';
+        if ( p.documentation ) propDoc += '\n\n' + p.documentation;
         items.push({
           label: p.name,
           kind: 10, // Property
           detail: typeName,
-          documentation: p.documentation || '',
-          sortText: '0_' + p.name // sort properties first
+          documentation: { kind: 'markdown', value: propDoc },
+          sortText: '0_' + p.name
         });
       }
 
@@ -80,11 +82,13 @@ foam.CLASS({
       for ( var i = 0 ; i < methods.length ; i++ ) {
         var m = methods[i];
         var sig = this.getMethodSignature_(m);
+        var doc = '```javascript\n' + sig + '\n```';
+        if ( m.documentation ) doc += '\n\n' + m.documentation;
         items.push({
           label: m.name,
           kind: 2, // Method
           detail: sig,
-          documentation: m.documentation || '',
+          documentation: { kind: 'markdown', value: doc },
           insertText: m.name + '()',
           sortText: '1_' + m.name
         });
