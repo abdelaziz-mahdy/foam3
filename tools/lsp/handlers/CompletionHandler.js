@@ -174,11 +174,12 @@ foam.CLASS({
       var model = cache.getModelAt('', text, position.line);
 
       // Check for get/set/is prefix — either bare (getCreatedBy, getcre) or on a variable (user.get)
-      // Supports both camelCase (getCreatedBy) and lowercase partial (getcre)
+      // Also trigger on variable. (dot with no prefix yet) or variable.g/ge partial
       var varGetSet = prefix.match(/(\w+)\.(get|set|is)(\w*)$/);
+      var varDot = ! varGetSet ? prefix.match(/(\w+)\.(\w*)$/) : null;
       var bareGetSet = prefix.match(/(?:^|[\s(=!&|,])(?:return\s+)?(get|set|is)(\w*)$/);
 
-      if ( ! varGetSet && ! bareGetSet ) return null;
+      if ( ! varGetSet && ! varDot && ! bareGetSet ) return null;
 
       var targetClassId = null;
       var getSet, partial;
@@ -189,6 +190,16 @@ foam.CLASS({
         getSet = varGetSet[2];
         partial = varGetSet[3] ? varGetSet[3].toLowerCase() : '';
         targetClassId = this.resolveJavaVariableType_(text, position, javaVarName, model);
+      } else if ( varDot ) {
+        // variable. or variable.g or variable.ge — resolve type, show all getters+setters
+        var javaVarName = varDot[1];
+        var dotPartial = varDot[2] ? varDot[2].toLowerCase() : '';
+        targetClassId = this.resolveJavaVariableType_(text, position, javaVarName, model);
+        if ( targetClassId ) {
+          // Show both getters and setters, filtered by the partial after the dot
+          getSet = 'both';
+          partial = dotPartial;
+        }
       }
 
       if ( ! targetClassId && bareGetSet ) {
@@ -222,29 +233,40 @@ foam.CLASS({
         var p = props[i];
         var propName = p.name;
         var capName = propName.charAt(0).toUpperCase() + propName.substring(1);
-        if ( partial && capName.toLowerCase().indexOf(partial.toLowerCase()) !== 0 ) continue;
-
         var javaType = this.index.getPropertyJavaType(targetClassId, propName) || 'Object';
+        var getLabel = 'get' + capName + '()';
+        var setLabel = 'set' + capName + '(' + javaType + ')';
 
-        if ( getSet === 'get' || getSet === 'is' ) {
-          items.push({
-            label: 'get' + capName + '()',
-            kind: 2,
-            detail: javaType + ' — ' + propName,
-            documentation: javaType + ' get' + capName + '()',
-            insertText: 'get' + capName + '()',
-            sortText: '!' + propName
-          });
+        // Filter: for 'both' mode (variable.partial), match against full label
+        if ( partial ) {
+          var getMatches = getLabel.toLowerCase().indexOf(partial) !== -1;
+          var setMatches = setLabel.toLowerCase().indexOf(partial) !== -1;
+          if ( ! getMatches && ! setMatches ) continue;
         }
-        if ( getSet === 'set' ) {
-          items.push({
-            label: 'set' + capName + '(' + javaType + ')',
-            kind: 2,
-            detail: 'void — ' + propName,
-            documentation: 'void set' + capName + '(' + javaType + ' val)',
-            insertText: 'set' + capName + '(',
-            sortText: '!' + propName
-          });
+
+        if ( getSet === 'get' || getSet === 'is' || getSet === 'both' ) {
+          if ( ! partial || getLabel.toLowerCase().indexOf(partial) !== -1 ) {
+            items.push({
+              label: getLabel,
+              kind: 2,
+              detail: javaType + ' — ' + propName,
+              documentation: javaType + ' get' + capName + '()',
+              insertText: 'get' + capName + '()',
+              sortText: '!' + propName
+            });
+          }
+        }
+        if ( getSet === 'set' || getSet === 'both' ) {
+          if ( ! partial || setLabel.toLowerCase().indexOf(partial) !== -1 ) {
+            items.push({
+              label: setLabel,
+              kind: 2,
+              detail: 'void — ' + propName,
+              documentation: 'void set' + capName + '(' + javaType + ' val)',
+              insertText: 'set' + capName + '(',
+              sortText: '!' + propName
+            });
+          }
         }
       }
       return items;
