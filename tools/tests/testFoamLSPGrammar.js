@@ -151,6 +151,20 @@ test(createResult.items.length > 0, 'this.X.create({ suggests properties: ' + cr
 test(createResult.items.some(function(i) { return i.label === 'text'; }), 'create({}) includes text property');
 test(createResult.items.some(function(i) { return i.label === 'category'; }), 'create({}) includes category property');
 
+// this.Suggestion.create({ ... multi-line ... }) — cursor inside block on separate line
+var multiCreateText = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      this.Suggestion.create({\n        \n      })\n    }\n  ]\n})';
+var multiCreateResult = memberHandler.handle(multiCreateText, { line: 7, character: 8 });
+test(multiCreateResult.items.length > 0, 'Multi-line create({}) suggests properties: ' + multiCreateResult.items.length);
+
+// Method signature has params in detail — test with a real class
+var fs = require('fs');
+var realText = fs.readFileSync(path.resolve(process.cwd(), 'foam3/src/foam/u2/CitationView.js'), 'utf8');
+var realResult = memberHandler.handle(realText, { line: 79, character: 11 });
+var methodItems = realResult.items.filter(function(i) { return i.kind === 2 && i.detail && i.detail.indexOf('(') !== -1; });
+test(methodItems.length > 0, 'Method completions have param signatures: ' + methodItems.length);
+var myClassItem = realResult.items.find(function(i) { return i.label === 'myClass'; });
+test(myClassItem && myClassItem.detail === 'myClass(opt_extra)', 'myClass detail shows params: ' + (myClassItem ? myClassItem.detail : 'not found'));
+
 // === HOVER TESTS ===
 
 section('HoverHandler — class hover');

@@ -31,21 +31,27 @@ foam.CLASS({
       var line = lines[position.line] || '';
       var prefix = line.substring(0, position.character);
 
-      // Detect context: this.X.create({ ▊ }) — suggest target class properties
-      var createMatch = prefix.match(/this\.(\w+)\.create\(\s*\{\s*$/);
+      // Detect context: this.X.create({ ▊ }) — on the same line
+      var createMatch = prefix.match(/this\.(\w+)\.create\(\s*\{\s*\w*$/);
       if ( createMatch ) {
         return this.handleCreateCompletion(text, createMatch[1]);
       }
 
-      // Detect context: ClassName.create({ ▊ }) — full class name
-      var fullCreateMatch = prefix.match(/([\w.]+)\.create\(\s*\{\s*$/);
+      // Detect context: ClassName.create({ ▊ }) — full class name, same line
+      var fullCreateMatch = prefix.match(/([\w.]+)\.create\(\s*\{\s*\w*$/);
       if ( fullCreateMatch ) {
         var classId = fullCreateMatch[1];
-        // Could be a full class ID or a short name from requires
         var resolved = this.resolveShortName(text, classId) || classId;
         if ( this.index.classExists(resolved) ) {
           return this.getClassPropertyItems(resolved);
         }
+      }
+
+      // Detect context: cursor INSIDE a .create({ ... }) block on a separate line
+      // Look backwards from current line to find the .create({ opening
+      var createCtx = this.findCreateContext_(lines, position.line, text);
+      if ( createCtx ) {
+        return this.getClassPropertyItems(createCtx);
       }
 
       // Detect context: this. ▊ — suggest members + requires + imports
@@ -201,6 +207,36 @@ foam.CLASS({
       /** Resolve a short class name to full ID using requires. */
       var map = this.parseRequires(text);
       return map[shortName] || null;
+    },
+
+    function findCreateContext_(lines, lineNum, text) {
+      /**
+       * Scan backwards from current line to find if we're inside a .create({ block.
+       * Returns the resolved class ID or null.
+       */
+      var depth = 0;
+      for ( var i = lineNum ; i >= Math.max(0, lineNum - 20) ; i-- ) {
+        var line = lines[i];
+        // Count braces to track nesting
+        for ( var c = line.length - 1 ; c >= 0 ; c-- ) {
+          if ( line[c] === '}' ) depth++;
+          if ( line[c] === '{' ) depth--;
+        }
+        // If we've closed a brace pair (depth < 0), we're inside an opening {
+        if ( depth < 0 ) {
+          // Check if this line has .create({
+          var createMatch = line.match(/(?:this\.)?(\w+)\.create\s*\(\s*\{/);
+          if ( createMatch ) {
+            var shortName = createMatch[1];
+            var resolved = this.resolveShortName(text, shortName);
+            if ( resolved ) return resolved;
+            // Try as full class ID
+            if ( this.index.classExists(shortName) ) return shortName;
+          }
+          break;
+        }
+      }
+      return null;
     },
 
     function getMethodSignature_(method) {

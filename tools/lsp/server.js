@@ -81,6 +81,78 @@ function start() {
     return /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text);
   }
 
+  function getSignatureHelp(text, position, index) {
+    /**
+     * Provides parameter hints when cursor is inside parentheses of a method call.
+     * E.g., this.myClass(|) → shows parameters for myClass
+     * Also handles this.X.create({ → shows class properties
+     */
+    var lines = text.split('\n');
+    var line = lines[position.line] || '';
+    var prefix = line.substring(0, position.character);
+
+    // Find the method name by scanning back from cursor to find '('
+    // Then find the word before '('
+    var callMatch = prefix.match(/(?:this\.)?(\w+)\s*\(\s*[^)]*$/);
+    if ( ! callMatch ) return null;
+
+    var methodName = callMatch[1];
+
+    // Resolve the current class
+    var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
+    var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
+    if ( ! nameMatch ) return null;
+    var classId = pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
+
+    // Find the method in the class
+    var methods = index.getMethods(classId);
+    var method = null;
+    for ( var i = 0 ; i < methods.length ; i++ ) {
+      if ( methods[i].name === methodName ) { method = methods[i]; break; }
+    }
+
+    if ( ! method ) return null;
+
+    // Build parameter list
+    var params = [];
+    if ( method.args && method.args.length > 0 ) {
+      for ( var i = 0 ; i < method.args.length ; i++ ) {
+        var a = method.args[i];
+        params.push({
+          label: a.name,
+          documentation: a.type ? 'Type: ' + a.type : ''
+        });
+      }
+    } else if ( method.code ) {
+      var match = method.code.toString().match(/function\s*\w*\s*\(([^)]*)\)/);
+      if ( match && match[1].trim() ) {
+        var paramNames = match[1].split(',').map(function(p) { return p.trim(); });
+        for ( var i = 0 ; i < paramNames.length ; i++ ) {
+          params.push({ label: paramNames[i] });
+        }
+      }
+    }
+
+    if ( params.length === 0 ) return null;
+
+    // Build signature label
+    var sig = methodName + '(' + params.map(function(p) { return p.label; }).join(', ') + ')';
+
+    // Determine active parameter by counting commas before cursor
+    var afterParen = prefix.substring(prefix.lastIndexOf('(') + 1);
+    var activeParam = (afterParen.match(/,/g) || []).length;
+
+    return {
+      signatures: [{
+        label: sig,
+        documentation: method.documentation || '',
+        parameters: params
+      }],
+      activeSignature: 0,
+      activeParameter: Math.min(activeParam, params.length - 1)
+    };
+  }
+
   function pushDiagnostics(uri, text) {
     notify('textDocument/publishDiagnostics', {
       uri: uri,
@@ -132,7 +204,10 @@ function start() {
             },
             hoverProvider: true,
             definitionProvider: true,
-            documentSymbolProvider: true
+            documentSymbolProvider: true,
+            signatureHelpProvider: {
+              triggerCharacters: ['(', ',']
+            }
           },
           serverInfo: { name: 'foam-lsp', version: '0.1.0' }
         });
@@ -183,9 +258,9 @@ function start() {
           var line = lines[params.position.line] || '';
           var prefix = line.substring(0, params.position.character);
           var result;
-          if ( /this\.\w*$/.test(prefix) || /\.create\(\s*\{\s*\w*$/.test(prefix) ) {
-            result = memberHandler.handle(doc.text, params.position);
-          }
+          // Try member completion first (this., .create({), or inside create block)
+          result = memberHandler.handle(doc.text, params.position);
+          // Fall back to grammar-based completion
           if ( ! result || result.items.length === 0 ) {
             result = completionHandler.handle(doc.text, params.position);
           }
@@ -233,6 +308,18 @@ function start() {
         } catch (e) {
           console.error('[LSP] documentSymbol error:', e.message);
           respond(id, []);
+        }
+        break;
+
+      case 'textDocument/signatureHelp':
+        var doc = documents[params.textDocument.uri];
+        if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, null); break; }
+        try {
+          var result = getSignatureHelp(doc.text, params.position, index);
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] signatureHelp error:', e.message);
+          respond(id, null);
         }
         break;
 
