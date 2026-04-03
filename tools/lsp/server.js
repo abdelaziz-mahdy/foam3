@@ -12,7 +12,8 @@ function start() {
   var origLog = console.log;
   console.log = function() { console.error.apply(console, arguments); };
 
-  var index   = foam.parse.lsp.FoamIndex.create();
+  var index = globalThis.__foamLSPIndex__ || foam.parse.lsp.FoamIndex.create();
+  if ( ! globalThis.__foamLSPIndex__ ) index.buildFileIndex();
   var grammar = foam.parse.lsp.FoamClassGrammar.create({ index: index });
 
   var completionHandler  = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar });
@@ -198,19 +199,40 @@ function start() {
       case 'textDocument/hover':
         var doc = documents[params.textDocument.uri];
         if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, null); break; }
-        respond(id, hoverHandler.handle(doc.text, params.position));
+        try {
+          var result = hoverHandler.handle(doc.text, params.position);
+          console.error('[LSP] hover: success');
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] hover error:', e.message);
+          respond(id, null);
+        }
         break;
 
       case 'textDocument/definition':
         var doc = documents[params.textDocument.uri];
         if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, null); break; }
-        respond(id, definitionHandler.handle(doc.text, params.position));
+        try {
+          var result = definitionHandler.handle(doc.text, params.position);
+          console.error('[LSP] definition: success');
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] definition error:', e.message);
+          respond(id, null);
+        }
         break;
 
       case 'textDocument/documentSymbol':
         var doc = documents[params.textDocument.uri];
         if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, []); break; }
-        respond(id, symbolHandler.handle(doc.text));
+        try {
+          var result = symbolHandler.handle(doc.text);
+          console.error('[LSP] documentSymbol: success');
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] documentSymbol error:', e.message);
+          respond(id, []);
+        }
         break;
 
       default:
