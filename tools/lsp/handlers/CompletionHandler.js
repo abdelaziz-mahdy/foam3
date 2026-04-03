@@ -49,12 +49,19 @@ foam.CLASS({
         return { isIncomplete: false, items: [] };
       }
 
-      // Try context-based completion first when cursor is inside a quoted value.
-      // The grammar sees complete text including closing quote, but contextFallback
-      // correctly extracts the partial value between opening quote and cursor.
       var lines = text.split('\n');
       var line = lines[position.line] || '';
       var prefix = line.substring(0, position.character);
+
+      // Java block completions: suggest getters/setters inside javaCode/javaGetter/etc.
+      var javaItems = this.javaBlockCompletion_(text, position, lines, prefix);
+      if ( javaItems && javaItems.length > 0 ) {
+        return { isIncomplete: false, items: javaItems };
+      }
+
+      // Try context-based completion first when cursor is inside a quoted value.
+      // The grammar sees complete text including closing quote, but contextFallback
+      // correctly extracts the partial value between opening quote and cursor.
       if ( /['"][^'"]*$/.test(prefix) ) {
         var contextItems = this.contextFallback(text, position);
         if ( contextItems.length > 0 ) {
@@ -132,6 +139,93 @@ foam.CLASS({
       }
 
       return [];
+    },
+
+    function javaBlockCompletion_(text, position, lines, prefix) {
+      /**
+       * Suggest getter/setter methods when cursor is inside a Java code block
+       * (javaCode, javaGetter, javaPreSet, javaPostSet, javaFactory).
+       * Detects backtick-delimited blocks by scanning backward for the opening backtick.
+       */
+      var offset = this.analyzer.positionToOffset(text, position);
+
+      // Check if cursor is inside a backtick-delimited Java block.
+      // Scan backward from cursor to find an unmatched opening backtick,
+      // then verify it belongs to a Java block key.
+      var textBefore = text.substring(0, offset);
+      var lastOpenBacktick = -1;
+      var btDepth = 0;
+      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
+        if ( textBefore[i] === '`' ) {
+          btDepth++;
+          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
+        }
+      }
+      if ( lastOpenBacktick === -1 ) return null;
+
+      // Verify the backtick belongs to a Java block key
+      var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
+      if ( ! /(javaCode|javaGetter|javaPreSet|javaPostSet|javaFactory)\s*:\s*$/.test(beforeBacktick) ) {
+        return null;
+      }
+
+      // User is typing inside a Java code block — check for get/set prefix
+      var wordMatch = prefix.match(/(get|set|is)([A-Z]\w*)?$/);
+      if ( ! wordMatch ) return null;
+
+      var getSet = wordMatch[1]; // 'get', 'set', or 'is'
+      var partial = wordMatch[2] ? wordMatch[2].toLowerCase() : '';
+
+      // Build property list from the model
+      var cache = this.cache || foam.parse.lsp.FileModelCache.create();
+      var model = cache.getModelAt('', text, position.line);
+      if ( ! model ) return null;
+
+      var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
+      var props = [];
+
+      // Own properties from model
+      (model.properties || []).forEach(function(p) {
+        var name = typeof p === 'string' ? p : p.name;
+        if ( name ) props.push(name);
+      });
+
+      // Inherited properties from class registry
+      var cls = this.index.getClass(classId);
+      if ( cls ) {
+        var axioms = cls.getAxiomsByClass(foam.lang.Property);
+        for ( var i = 0 ; i < axioms.length ; i++ ) {
+          if ( props.indexOf(axioms[i].name) === -1 ) props.push(axioms[i].name);
+        }
+      }
+
+      // Build completion items
+      var items = [];
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        var propName = props[i];
+        var capName = propName.charAt(0).toUpperCase() + propName.substring(1);
+        if ( partial && capName.toLowerCase().indexOf(partial) !== 0 ) continue;
+
+        if ( getSet === 'get' || getSet === 'is' ) {
+          items.push({
+            label: 'get' + capName + '()',
+            kind: 2, // Method
+            detail: 'getter for ' + propName,
+            insertText: 'get' + capName + '()',
+            sortText: '0_' + propName
+          });
+        }
+        if ( getSet === 'set' ) {
+          items.push({
+            label: 'set' + capName + '(val)',
+            kind: 2,
+            detail: 'setter for ' + propName,
+            insertText: 'set' + capName + '(',
+            sortText: '0_' + propName
+          });
+        }
+      }
+      return items;
     },
 
     function getLineContext_(lines, lineNum) {

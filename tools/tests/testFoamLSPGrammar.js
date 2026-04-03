@@ -559,6 +559,20 @@ for ( var t = 0 ; t < tokenCount ; t++ ) {
 }
 test(hasTypeToken, 'Semantic tokens: includes type token for requires alias');
 
+// === JAVA BLOCK COMPLETION TESTS ===
+
+section('Java block completions');
+
+// get inside javaCode should suggest getters
+// Multi-line backtick block with cursor after 'get' on a line inside the block
+var BT = String.fromCharCode(96);
+var javaCompText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'JTest' + Q + ',\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'firstName' + Q + ' },\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'lastName' + Q + ' }\n  ],\n  methods: [\n    {\n      name: ' + Q + 'fullName' + Q + ',\n      javaCode: ' + BT + '\n        get\n      ' + BT + '\n    }\n  ]\n})';
+// Cursor on line 11 after 'get' — character 11
+var javaCompResult = completionHandler.handle(javaCompText, { line: 11, character: 11 });
+test(javaCompResult.items.length > 0, 'Java block: get suggests getters: ' + javaCompResult.items.length);
+test(javaCompResult.items.some(function(i) { return i.label === 'getFirstName()'; }), 'Java block: suggests getFirstName()');
+test(javaCompResult.items.some(function(i) { return i.label === 'getLastName()'; }), 'Java block: suggests getLastName()');
+
 // === SUMMARY ===
 
 section('SUMMARY');
