@@ -179,6 +179,22 @@ test(hoverResult && hoverResult.contents.value.indexOf('foam.parse.Suggestion') 
 var propTypeHover = hoverHandler.handle("foam.CLASS({\n  properties: [\n    { class: 'FObjectProperty' }\n  ]\n})", { line: 2, character: 18 });
 test(propTypeHover != null, 'Hover returns result for property type');
 
+// Hover on short name from requires (e.g., 'Suggestion' resolves to foam.parse.Suggestion)
+var requiresHoverText = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      this.Suggestion.create();\n    }\n  ]\n})';
+var shortNameHover = hoverHandler.handle(requiresHoverText, { line: 6, character: 12 });
+test(shortNameHover != null, 'Hover on required short name resolves');
+test(shortNameHover && shortNameHover.contents.value.indexOf('foam.parse.Suggestion') !== -1, 'Short name hover shows full class info');
+
+// Hover on 'create' shows class properties
+var createHover = hoverHandler.handle(requiresHoverText, { line: 6, character: 22 });
+test(createHover != null, 'Hover on create shows class info');
+test(createHover && createHover.contents.value.indexOf('create') !== -1, 'Create hover mentions create');
+
+// Hover on method name in synthetic text (avoids file line number issues)
+var methodHoverText2 = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    function matches() {}\n  ]\n})';
+var methodHover2 = hoverHandler.handle(methodHoverText2, { line: 4, character: 15 });
+test(methodHover2 != null, 'Hover on method name shows info');
+
 // === DIAGNOSTICS TESTS ===
 
 section('DiagnosticsHandler');

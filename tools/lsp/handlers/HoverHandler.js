@@ -43,11 +43,29 @@ foam.CLASS({
         }
       }
 
-      // Try as property or method name — resolve the current class
+      // Get the specific segment under cursor (not the full dotted chain)
+      var segment = this.getSegmentAtPosition_(text, position);
+
+      // Try as short name from requires (e.g., StackBlock → foam.u2.stack.StackBlock)
+      if ( segment ) {
+        var resolved = this.resolveRequiredClass_(text, segment);
+        if ( resolved ) {
+          return this.buildClassHover(resolved);
+        }
+      }
+
+      // Try 'create' — show info about the class being created
+      if ( segment === 'create' ) {
+        var createHover = this.buildCreateHover_(text, position);
+        if ( createHover ) return createHover;
+      }
+
+      // Try segment as property or method name — resolve the current class
+      var lookupName = segment || word;
       var currentClassId = this.resolveCurrentClass(text);
       if ( currentClassId ) {
         // Property hover
-        var propDoc = this.index.getPropertyDoc(currentClassId, word);
+        var propDoc = this.index.getPropertyDoc(currentClassId, lookupName);
         if ( propDoc ) {
           return { contents: { kind: 'markdown', value: propDoc } };
         }
@@ -55,7 +73,7 @@ foam.CLASS({
         // Method hover — show signature and documentation
         var methods = this.index.getMethods(currentClassId);
         for ( var i = 0 ; i < methods.length ; i++ ) {
-          if ( methods[i].name === word ) {
+          if ( methods[i].name === lookupName ) {
             return { contents: { kind: 'markdown', value: this.buildMethodHover_(methods[i], currentClassId) } };
           }
         }
@@ -115,6 +133,49 @@ foam.CLASS({
       return { contents: { kind: 'markdown', value: md } };
     },
 
+    function resolveRequiredClass_(text, shortName) {
+      /** Resolve a short class name from requires: [...] to full ID. */
+      var requiresMatch = text.match(/requires\s*:\s*\[([\s\S]*?)\]/);
+      if ( ! requiresMatch ) return null;
+      var regex = /['"]([a-zA-Z][\w.]+\.(\w+))(?:\s+as\s+(\w+))?['"]/g;
+      var m;
+      while ( ( m = regex.exec(requiresMatch[1]) ) !== null ) {
+        var alias = m[3] || m[2];
+        if ( alias === shortName && this.index.classExists(m[1]) ) return m[1];
+      }
+      return null;
+    },
+
+    function buildCreateHover_(text, position) {
+      /** When hovering on 'create', resolve the class and show its info. */
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      // Find ClassName.create or this.ShortName.create
+      var match = line.match(/(?:this\.)?(\w[\w.]*)\.create/);
+      if ( ! match ) return null;
+      var name = match[1];
+      // Try as short name from requires
+      var resolved = this.resolveRequiredClass_(text, name);
+      // Try as full class ID
+      if ( ! resolved && this.index.classExists(name) ) resolved = name;
+      if ( ! resolved ) return null;
+
+      var cls = this.index.getClass(resolved);
+      if ( ! cls ) return null;
+      var md = '**create** — Create a new `' + resolved + '` instance\n\n';
+      var props = this.index.getOwnProperties(resolved);
+      if ( props.length > 0 ) {
+        md += '**Properties you can set:**\n';
+        for ( var i = 0 ; i < Math.min(props.length, 10) ; i++ ) {
+          var p = props[i];
+          var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
+          md += '- `' + p.name + '` (' + typeName + ')\n';
+        }
+        if ( props.length > 10 ) md += '- ... and ' + (props.length - 10) + ' more\n';
+      }
+      return { contents: { kind: 'markdown', value: md } };
+    },
+
     function buildMethodHover_(method, classId) {
       /** Build markdown hover for a method with signature. */
       var sig = method.name;
@@ -147,6 +208,24 @@ foam.CLASS({
       var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
       if ( ! nameMatch ) return null;
       return pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
+    },
+
+    function getSegmentAtPosition_(text, position) {
+      /**
+       * For chains like 'this.Suggestion.create', returns just the segment
+       * under the cursor. Used for resolving short names and method names.
+       */
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var ch = position.character;
+
+      // Get just the identifier under cursor (stop at dots)
+      var start = ch;
+      while ( start > 0 && /[a-zA-Z0-9_$]/.test(line[start - 1]) ) start--;
+      var end = ch;
+      while ( end < line.length && /[a-zA-Z0-9_$]/.test(line[end]) ) end++;
+
+      return line.substring(start, end);
     },
 
     function getDottedWordAtPosition(text, position) {
