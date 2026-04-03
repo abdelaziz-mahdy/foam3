@@ -23,10 +23,12 @@ foam.CLASS({
   package: 'foam.core.controller',
   name: 'ApplicationController',
   extends: 'foam.u2.Element',
+
   mixins: [ 'foam.u2.memento.Memorable' ],
 
   documentation: 'FOAM Application Controller.',
 
+  
   implements: [
     'foam.mlang.Expressions'
   ],

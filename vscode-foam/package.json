@@ -3,14 +3,15 @@
   "displayName": "FOAM3 Language Support",
   "description": "Autocomplete, hover, go-to-definition, and diagnostics for FOAM3 model files",
   "version": "0.1.0",
-  "publisher": "paytic",
+  "publisher": "foam",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": ["Programming Languages"],
   "activationEvents": [
-    "workspaceContains:**/foam3/src/foam.js",
-    "workspaceContains:**/pom.js"
+    "workspaceContains:pom.js",
+    "workspaceContains:foam3/src/foam.js",
+    "onLanguage:javascript"
   ],
   "main": "./out/extension.js",
   "contributes": {

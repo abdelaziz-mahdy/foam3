@@ -5,6 +5,7 @@
  */
 
 import * as path from 'path';
+import * as fs from 'fs';
 import { ExtensionContext, workspace, window } from 'vscode';
 import {
   LanguageClient,
@@ -15,19 +16,54 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
-  const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const outputChannel = window.createOutputChannel('FOAM Language Server');
+  context.subscriptions.push(outputChannel);
+  outputChannel.appendLine('FOAM LSP extension activated');
 
-  if ( !workspaceRoot ) {
+  const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if ( !workspaceRoot ) return;
+
+  // Fast path checks
+  const candidates = [
+    path.join(workspaceRoot, 'foam3/tools/lsp-start.js'),
+    path.join(workspaceRoot, 'tools/lsp-start.js'),
+  ];
+
+  let lspScript = '';
+  for ( const c of candidates ) {
+    if ( fs.existsSync(c) ) { lspScript = c; break; }
+  }
+
+  if ( !lspScript ) {
+    outputChannel.appendLine('Not a FOAM project (lsp-start.js not found)');
     return;
   }
 
+  let pomPath = path.join(workspaceRoot, 'pom');
+  if ( !fs.existsSync(pomPath + '.js') ) {
+    pomPath = path.join(path.dirname(path.dirname(lspScript)), 'pom');
+  }
+
+  outputChannel.appendLine('LSP: ' + lspScript);
+  outputChannel.appendLine('POM: ' + pomPath);
+
+  // Defer server start to not block activation
+  setTimeout(() => {
+    startServer(context, outputChannel, lspScript, pomPath, workspaceRoot);
+  }, 100);
+}
+
+function startServer(
+  context: ExtensionContext,
+  outputChannel: any,
+  lspScript: string,
+  pomPath: string,
+  cwd: string
+) {
   const serverOptions: ServerOptions = {
     command: 'node',
-    args: [
-      path.join(workspaceRoot, 'foam3/tools/lsp-start.js'),
-      path.join(workspaceRoot, 'pom')
-    ],
-    options: { cwd: workspaceRoot }
+    args: [lspScript, pomPath],
+    options: { cwd }
   };
 
   const clientOptions: LanguageClientOptions = {
@@ -37,31 +73,31 @@ export function activate(context: ExtensionContext) {
         workspace.createFileSystemWatcher('**/*.js'),
         workspace.createFileSystemWatcher('**/pom.js')
       ]
-    }
+    },
+    outputChannel: outputChannel as any
   };
 
-  client = new LanguageClient(
-    'foam-lsp',
-    'FOAM Language Server',
-    serverOptions,
-    clientOptions
-  );
+  client = new LanguageClient('foam-lsp', 'FOAM Language Server', serverOptions, clientOptions);
 
   const status = window.createStatusBarItem();
   status.text = '$(loading~spin) FOAM: Indexing...';
   status.show();
 
+  outputChannel.appendLine('Starting FOAM LSP server...');
+
   client.start().then(() => {
+    outputChannel.appendLine('FOAM LSP server ready');
     status.text = '$(check) FOAM: Ready';
-    setTimeout(() => status.hide(), 3000);
+    setTimeout(() => status.hide(), 5000);
+  }).catch((err: Error) => {
+    outputChannel.appendLine('FOAM LSP failed: ' + err.message);
+    status.text = '$(error) FOAM: Error';
   });
 
   context.subscriptions.push(client);
 }
 
 export function deactivate(): Thenable<void> | undefined {
-  if ( !client ) {
-    return undefined;
-  }
+  if ( !client ) return undefined;
   return client.stop();
 }
