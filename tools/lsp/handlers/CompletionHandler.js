@@ -49,13 +49,13 @@ foam.CLASS({
     },
 
     function collectSuggestions(text, cursorOffset) {
-      var cursorSuggestions = {};
+      // Collect ALL suggestions with their positions, then pick nearest to cursor
+      var allSuggestions = []; // { pos, suggestion }
 
       var apply = function(p, grammar) {
-        // Collect suggestions near cursor position
-        if ( p.suggest && this.pos >= cursorOffset - 3 && this.pos <= cursorOffset + 3 ) {
+        if ( p.suggest ) {
           var s = p.suggest();
-          if ( s ) cursorSuggestions[s.text || s.label] = s;
+          if ( s ) allSuggestions.push({ pos: this.pos, suggestion: s });
         }
         return p.parse(this, grammar);
       };
@@ -65,11 +65,24 @@ foam.CLASS({
 
       try {
         this.grammar.parse(ps);
-      } catch (e) {
-        // Grammar parse failed — return whatever we collected
+      } catch (e) {}
+
+      // Find suggestions closest to cursor (within 5 chars)
+      var best = {};
+      var bestDist = 999999;
+      for ( var i = 0 ; i < allSuggestions.length ; i++ ) {
+        var dist = Math.abs(allSuggestions[i].pos - cursorOffset);
+        if ( dist < bestDist ) {
+          bestDist = dist;
+          best = {};
+          best[allSuggestions[i].suggestion.text || allSuggestions[i].suggestion.label] = allSuggestions[i].suggestion;
+        } else if ( dist === bestDist ) {
+          var s = allSuggestions[i].suggestion;
+          best[s.text || s.label] = s;
+        }
       }
 
-      return cursorSuggestions;
+      return bestDist <= 5 ? best : {};
     },
 
     function positionToOffset(text, position) {
