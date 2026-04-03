@@ -77,7 +77,6 @@ foam.CLASS({
 
     function render() {
       this.SUPER();
-      this.myClass()
       this.updateSummary();
       this
         .addClass('p', this.myClass('row'))
