@@ -132,6 +132,25 @@ var factoryText = 'foam.CLASS({\n  properties: [\n    { name: ' + Q + 'y' + Q + 
 var factoryResult = completionHandler.handle(factoryText, { line: 3, character: 14 });
 test(factoryResult.items.length > 0, 'Completions after factory property: ' + factoryResult.items.length + ' items');
 
+// === MEMBER COMPLETION TESTS ===
+
+section('MemberCompletionHandler — this. + requires + create');
+var memberHandler = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index });
+
+// this. suggests properties + methods + required classes + imports
+var memberText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'Foo' + Q + ',\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  imports: [\n    ' + Q + 'userDAO' + Q + '\n  ],\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'bar' + Q + ' }\n  ],\n  methods: [\n    function doStuff() {\n      this.\n    }\n  ]\n})';
+var memberResult = memberHandler.handle(memberText, { line: 14, character: 11 });
+test(memberResult.items.length > 0, 'this. returns items: ' + memberResult.items.length);
+test(memberResult.items.some(function(i) { return i.label === 'Suggestion'; }), 'this. includes required class Suggestion');
+test(memberResult.items.some(function(i) { return i.label === 'userDAO'; }), 'this. includes imported userDAO');
+
+// this.Suggestion.create({ ▊ }) suggests Suggestion properties
+var createText = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      this.Suggestion.create({\n    }\n  ]\n})';
+var createResult = memberHandler.handle(createText, { line: 6, character: 38 });
+test(createResult.items.length > 0, 'this.X.create({ suggests properties: ' + createResult.items.length);
+test(createResult.items.some(function(i) { return i.label === 'text'; }), 'create({}) includes text property');
+test(createResult.items.some(function(i) { return i.label === 'category'; }), 'create({}) includes category property');
+
 // === HOVER TESTS ===
 
 section('HoverHandler — class hover');

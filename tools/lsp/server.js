@@ -183,9 +183,10 @@ function start() {
           var line = lines[params.position.line] || '';
           var prefix = line.substring(0, params.position.character);
           var result;
-          if ( /this\.\s*$/.test(prefix) ) {
+          if ( /this\.\w*$/.test(prefix) || /\.create\(\s*\{\s*\w*$/.test(prefix) ) {
             result = memberHandler.handle(doc.text, params.position);
-          } else {
+          }
+          if ( ! result || result.items.length === 0 ) {
             result = completionHandler.handle(doc.text, params.position);
           }
           console.error('[LSP] completion: ' + result.items.length + ' items at line ' + params.position.line + ':' + params.position.character);
