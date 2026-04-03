@@ -31,7 +31,40 @@
         "path": "./syntaxes/foam-js.tmLanguage.json",
         "injectTo": ["source.js"]
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "foam-explorer",
+          "title": "FOAM",
+          "icon": "resources/foam-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "foam-explorer": [
+        {
+          "id": "foamAnalysis",
+          "name": "Analysis"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "foam.analyzeWorkspace",
+        "title": "FOAM: Analyze Workspace",
+        "icon": "$(play)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "foam.analyzeWorkspace",
+          "when": "view == foamAnalysis",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

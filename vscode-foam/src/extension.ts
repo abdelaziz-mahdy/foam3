@@ -6,12 +6,14 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { ExtensionContext, workspace, window } from 'vscode';
+import { ExtensionContext, workspace, window, commands } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions
 } from 'vscode-languageclient/node';
+import { FoamTreeProvider } from './FoamTreeProvider';
+import { FoamAnalysisRunner } from './FoamAnalysisRunner';
 
 let client: LanguageClient;
 
@@ -47,9 +49,35 @@ export function activate(context: ExtensionContext) {
   outputChannel.appendLine('LSP: ' + lspScript);
   outputChannel.appendLine('POM: ' + pomPath);
 
+  // Register sidebar tree view
+  const treeProvider = new FoamTreeProvider();
+  const treeView = window.createTreeView('foamAnalysis', {
+    treeDataProvider: treeProvider,
+    showCollapseAll: true
+  });
+  context.subscriptions.push(treeView);
+
+  // Register analyze command (runner set up after client starts)
+  let runner: FoamAnalysisRunner | null = null;
+
+  context.subscriptions.push(
+    commands.registerCommand('foam.analyzeWorkspace', async () => {
+      if ( !runner ) {
+        window.showWarningMessage('FOAM LSP server not ready yet.');
+        return;
+      }
+      try {
+        await runner.run();
+        window.showInformationMessage('FOAM workspace analysis complete.');
+      } catch (e: any) {
+        window.showErrorMessage('FOAM analysis failed: ' + e.message);
+      }
+    })
+  );
+
   // Defer server start to not block activation
   setTimeout(() => {
-    startServer(context, outputChannel, lspScript, pomPath, workspaceRoot);
+    startServer(context, outputChannel, lspScript, pomPath, workspaceRoot, treeProvider, (r) => { runner = r; });
   }, 100);
 }
 
@@ -58,7 +86,9 @@ function startServer(
   outputChannel: any,
   lspScript: string,
   pomPath: string,
-  cwd: string
+  cwd: string,
+  treeProvider: FoamTreeProvider,
+  onRunnerReady: (runner: FoamAnalysisRunner) => void
 ) {
   const serverOptions: ServerOptions = {
     command: 'node',
@@ -89,6 +119,15 @@ function startServer(
     outputChannel.appendLine('FOAM LSP server ready');
     status.text = '$(check) FOAM: Ready';
     setTimeout(() => status.hide(), 5000);
+
+    // Set up analysis runner now that client is ready
+    const runner = new FoamAnalysisRunner(client, treeProvider);
+    onRunnerReady(runner);
+
+    // Handle progress notifications from workspace analysis
+    client.onNotification('foam/analyzeProgress', (params: any) => {
+      runner.handleProgress(params);
+    });
   }).catch((err: Error) => {
     outputChannel.appendLine('FOAM LSP failed: ' + err.message);
     status.text = '$(error) FOAM: Error';
