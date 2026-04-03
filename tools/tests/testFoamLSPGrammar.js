@@ -156,6 +156,11 @@ var multiCreateText = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.parse.Sugg
 var multiCreateResult = memberHandler.handle(multiCreateText, { line: 7, character: 8 });
 test(multiCreateResult.items.length > 0, 'Multi-line create({}) suggests properties: ' + multiCreateResult.items.length);
 
+// Multi-line create with { on separate line from .create(
+var separateBraceText = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      this.Suggestion.create(\n        {\n          \n        }\n      )\n    }\n  ]\n})';
+var separateBraceResult = memberHandler.handle(separateBraceText, { line: 8, character: 10 });
+test(separateBraceResult.items.length > 0, 'create( + { on separate lines suggests: ' + separateBraceResult.items.length);
+
 // Method signature has params in detail — test with a real class
 var fs = require('fs');
 var realText = fs.readFileSync(path.resolve(process.cwd(), 'foam3/src/foam/u2/CitationView.js'), 'utf8');

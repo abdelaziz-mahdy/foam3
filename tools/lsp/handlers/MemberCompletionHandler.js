@@ -212,6 +212,7 @@ foam.CLASS({
     function findCreateContext_(lines, lineNum, text) {
       /**
        * Scan backwards from current line to find if we're inside a .create({ block.
+       * Handles both: this.X.create({ on same line, and .create(\n{ on separate lines.
        * Returns the resolved class ID or null.
        */
       var depth = 0;
@@ -224,14 +225,16 @@ foam.CLASS({
         }
         // If we've closed a brace pair (depth < 0), we're inside an opening {
         if ( depth < 0 ) {
-          // Check if this line has .create({
-          var createMatch = line.match(/(?:this\.)?(\w+)\.create\s*\(\s*\{/);
-          if ( createMatch ) {
-            var shortName = createMatch[1];
-            var resolved = this.resolveShortName(text, shortName);
-            if ( resolved ) return resolved;
-            // Try as full class ID
-            if ( this.index.classExists(shortName) ) return shortName;
+          // Check this line and a few lines above for .create(
+          for ( var j = i ; j >= Math.max(0, i - 3) ; j-- ) {
+            var checkLine = lines[j];
+            var createMatch = checkLine.match(/(?:this\.)?(\w+)\.create\s*\(/);
+            if ( createMatch ) {
+              var shortName = createMatch[1];
+              var resolved = this.resolveShortName(text, shortName);
+              if ( resolved ) return resolved;
+              if ( this.index.classExists(shortName) ) return shortName;
+            }
           }
           break;
         }
