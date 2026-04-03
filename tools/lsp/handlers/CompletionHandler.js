@@ -49,15 +49,41 @@ foam.CLASS({
     },
 
     function collectSuggestions(text, cursorOffset) {
-      // Collect ALL suggestions with their positions, then pick nearest to cursor
-      var allSuggestions = []; // { pos, suggestion }
+      /**
+       * Uses the SmartView pattern: track maxPos (furthest successful parse),
+       * collect suggestions at maxPos. Reset when maxPos advances.
+       * Only collect when near the cursor position.
+       */
+      var suggestions = {};
+      var maxPos = 0;
 
       var apply = function(p, grammar) {
-        if ( p.suggest ) {
+        var result = p.parse(this, grammar);
+
+        // Only consider suggestions from parsers that were tried near cursor
+        // AND at positions that are part of a successful parse path
+        if ( result && p.suggest ) {
           var s = p.suggest();
-          if ( s ) allSuggestions.push({ pos: this.pos, suggestion: s });
+          if ( s ) {
+            // Track suggestion at the position where the parser started (this.pos)
+            var startPos = this.pos;
+            if ( startPos >= cursorOffset - 2 && startPos <= cursorOffset + 2 ) {
+              suggestions[s.text || s.label] = s;
+            }
+          }
         }
-        return p.parse(this, grammar);
+
+        // Also collect at current max position (like SmartView)
+        if ( this.pos > maxPos ) {
+          maxPos = this.pos;
+        }
+        if ( ! result && p.suggest && this.pos === maxPos &&
+             this.pos >= cursorOffset - 2 && this.pos <= cursorOffset + 2 ) {
+          var s = p.suggest();
+          if ( s ) suggestions[s.text || s.label] = s;
+        }
+
+        return result;
       };
 
       var str = text + String.fromCharCode(26);
@@ -67,22 +93,7 @@ foam.CLASS({
         this.grammar.parse(ps);
       } catch (e) {}
 
-      // Find suggestions closest to cursor (within 5 chars)
-      var best = {};
-      var bestDist = 999999;
-      for ( var i = 0 ; i < allSuggestions.length ; i++ ) {
-        var dist = Math.abs(allSuggestions[i].pos - cursorOffset);
-        if ( dist < bestDist ) {
-          bestDist = dist;
-          best = {};
-          best[allSuggestions[i].suggestion.text || allSuggestions[i].suggestion.label] = allSuggestions[i].suggestion;
-        } else if ( dist === bestDist ) {
-          var s = allSuggestions[i].suggestion;
-          best[s.text || s.label] = s;
-        }
-      }
-
-      return bestDist <= 5 ? best : {};
+      return suggestions;
     },
 
     function positionToOffset(text, position) {

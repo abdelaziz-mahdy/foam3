@@ -101,29 +101,26 @@ TEST_FILES.forEach(function(filePath) {
 section('CompletionHandler — property types');
 var completionHandler = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar });
 
-var acPath = path.resolve(process.cwd(), 'foam3/src/foam/core/controller/ApplicationController.js');
-if ( fs.existsSync(acPath) ) {
-  var acText = fs.readFileSync(acPath, 'utf8');
-  var acLines = acText.split('\n');
-  var classLine = -1;
-  for ( var i = 0 ; i < acLines.length ; i++ ) {
-    if ( acLines[i].match(/class:\s*'/) && ! acLines[i].includes('foam.CLASS') ) {
-      classLine = i;
-      break;
-    }
-  }
-  if ( classLine >= 0 ) {
-    var charPos = acLines[classLine].indexOf("'") + 1;
-    var result = completionHandler.handle(acText, { line: classLine, character: charPos });
-    test(result.items.length > 0, 'Property type completions at line ' + classLine + ': ' + result.items.length + ' items');
-    test(result.items.some(function(i) { return i.label === 'String'; }), 'Includes String');
-    test(result.items.some(function(i) { return i.label === 'Boolean'; }), 'Includes Boolean');
-  } else {
-    test(false, 'Could not find class: line in ApplicationController.js');
-  }
-} else {
-  console.error('  Skipping: ApplicationController.js not found');
-}
+// Test completion when user is TYPING (empty class value) — the real use case
+var Q = String.fromCharCode(39); // single quote
+var compText = 'foam.CLASS({\n  properties: [\n    { class: ' + Q + Q + ', name: ' + Q + 'x' + Q + ' }\n  ]\n})';
+var compLines = compText.split('\n');
+var compCharPos = compLines[2].indexOf(Q) + 1;
+var result = completionHandler.handle(compText, { line: 2, character: compCharPos });
+test(result.items.length > 0, 'Property type completions (empty value): ' + result.items.length + ' items');
+test(result.items.some(function(i) { return i.label === 'String'; }), 'Includes String');
+test(result.items.some(function(i) { return i.label === 'Boolean'; }), 'Includes Boolean');
+test(result.items.some(function(i) { return i.label === 'FObjectProperty'; }), 'Includes FObjectProperty');
+
+// Test completion for extends
+var extendsText = 'foam.CLASS({\n  extends: ' + Q + Q + '\n})';
+var extendsResult = completionHandler.handle(extendsText, { line: 1, character: 13 });
+test(extendsResult.items.length > 0, 'Class completions for extends: ' + extendsResult.items.length + ' items');
+
+// Test completion with factory function before the class property (regression test)
+var factoryText = 'foam.CLASS({\n  properties: [\n    { name: ' + Q + 'y' + Q + ', factory: function() { return {}; } },\n    { class: ' + Q + Q + ', name: ' + Q + 'x' + Q + ' }\n  ]\n})';
+var factoryResult = completionHandler.handle(factoryText, { line: 3, character: 14 });
+test(factoryResult.items.length > 0, 'Completions after factory property: ' + factoryResult.items.length + ' items');
 
 // === HOVER TESTS ===
 

@@ -116,8 +116,9 @@ foam.CLASS({
       var comma = P.seq0(wsc, P.literal(','), wsc);
 
       var anyValue = P.alt(
-        stringLiteral, number, booleanLiteral, dottedId,
-        P.sym('array'), P.sym('object'), P.sym('functionBody')
+        stringLiteral, number, booleanLiteral,
+        P.sym('functionBody'),  // BEFORE dottedId — 'function' would match as identifier otherwise
+        P.sym('array'), P.sym('object'), dottedId
       );
 
       return {
@@ -242,7 +243,8 @@ foam.CLASS({
         ),
 
         // === PROPERTY DEFINITIONS ===
-        propertyDef: P.alt(stringLiteral, P.sym('propertyObject')),
+        // Try structured parse first, fall back to balanced braces if it fails
+        propertyDef: P.alt(stringLiteral, P.sym('propertyObject'), P.sym('balancedBraces')),
         propertyObject: P.seq(P.literal('{'), wsc,
           P.optional(P.sym('propEntries')), wsc, P.optional(P.literal('}'))),
         propEntries: P.repeat(P.sym('propEntry'), comma),
