@@ -28,6 +28,7 @@ vscode-foam/                                 tools/lsp/
                                      ├── FoamIndex.js (class registry queries)
                                      ├── FoamClassGrammar.js (FOAM grammar parser)
                                      ├── CursorAnalyzer.js (shared text utilities)
+                                     ├── TypeTracker.js (variable type resolution)
                                      └── handlers/
                                          ├── CompletionHandler.js
                                          ├── HoverHandler.js
@@ -36,7 +37,8 @@ vscode-foam/                                 tools/lsp/
                                          ├── MemberCompletionHandler.js
                                          ├── SymbolHandler.js
                                          ├── JavaBlockValidator.js
-                                         └── WorkspaceAnalyzer.js
+                                         ├── WorkspaceAnalyzer.js
+                                         └── SemanticTokenHandler.js
 ```
 
 ### Boot Sequence
@@ -82,6 +84,13 @@ Dynamic suggestions built from FOAM registry:
 Shared text/position utilities used by handlers. Provides fallback regex parsing for incomplete files where eval fails.
 
 10 methods: `offsetToPosition`, `positionToOffset`, `getDottedWordAtPosition`, `getSegmentAtPosition`, `resolveClassId`, `parseRequires`, `parseImports`, `resolveShortName`, `findCreateContext`, `getMethodSignature`
+
+#### TypeTracker (`tools/lsp/TypeTracker.js`)
+Resolves variable types from `.create()` assignments. Scans backward from cursor position to find `var x = this.Foo.create()` patterns and resolves `Foo` through the requires map.
+
+- **`getVariableTypes(text, position, model, index)`**: returns `{ varName: classId }` for variables in scope at the cursor position
+
+Used by MemberCompletionHandler and SemanticTokenHandler to provide type-aware completions and highlighting for local variables.
 
 ## Data Flow
 
@@ -151,6 +160,11 @@ File text ──► FileModelCache.parseFileModels()
 - Pattern grouping for false positive identification
 - Results in VS Code Problems panel + sidebar
 
+### Semantic Tokens
+- Highlights resolved class references (`this.ShortName`) as type tokens
+- Highlights typed variables (assigned from `.create()`) as class tokens
+- VS Code renders these with theme-aware colors for better readability
+
 ### Additional LSP Features
 - **Workspace Symbols** (`Cmd+T`): search all FOAM classes by name
 - **Folding Ranges**: fold properties/methods/requires/etc. blocks
@@ -186,7 +200,7 @@ npx tsc -p ./
 cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 ```
 
-93 tests covering:
+106 tests covering:
 - FoamIndex queries (class discovery, property types, file index)
 - Grammar parsing (5 real FOAM files)
 - FileModelCache (single/multi-class, enums, refines, implements, broken files, caching)
@@ -197,6 +211,8 @@ cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 - CursorAnalyzer (position math, class resolution, requires parsing)
 - WorkspaceAnalyzer (single file, pattern grouping)
 - Folding ranges, code actions, workspace symbols
+- TypeTracker (variable type resolution from .create() assignments)
+- SemanticTokenHandler (class references, typed variables)
 - Flag-aware file index (test classes not flagged as unknown)
 
 ### FOAM Test Framework
@@ -216,6 +232,7 @@ foam3/tools/
 │   ├── FoamIndex.js               # Class registry queries
 │   ├── FoamClassGrammar.js        # FOAM grammar parser
 │   ├── CursorAnalyzer.js          # Shared text utilities
+│   ├── TypeTracker.js             # Variable type resolution
 │   ├── server.js                  # JSON-RPC main loop (500+ lines)
 │   ├── handlers/
 │   │   ├── pom.js
@@ -226,7 +243,8 @@ foam3/tools/
 │   │   ├── MemberCompletionHandler.js  # this. and .create({}) completion
 │   │   ├── SymbolHandler.js       # textDocument/documentSymbol
 │   │   ├── JavaBlockValidator.js  # javaCode validation
-│   │   └── WorkspaceAnalyzer.js   # foam/analyzeWorkspace
+│   │   ├── WorkspaceAnalyzer.js   # foam/analyzeWorkspace
+│   │   └── SemanticTokenHandler.js # textDocument/semanticTokens
 │   └── test/
 │       ├── pom.js
 │       ├── tests.jrl
@@ -236,7 +254,7 @@ foam3/tools/
 │       ├── JavaBlockValidatorTest.js
 │       └── LSPIntegrationTest.js
 ├── tests/
-│   └── testFoamLSPGrammar.js      # Quick standalone test (93 tests)
+│   └── testFoamLSPGrammar.js      # Quick standalone test (106 tests)
 └── vscode-foam/
     ├── package.json
     ├── tsconfig.json

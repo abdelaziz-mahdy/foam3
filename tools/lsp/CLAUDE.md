@@ -17,6 +17,7 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 | `FoamIndex.js` | Query layer over FOAM registry | `getAllClassIds()`, `getProperties()`, `getFilePath()`, `buildFileIndex()` |
 | `FoamClassGrammar.js` | Grammar parser for completion `sug()` only | Skip-and-match pattern, dynamic `sug()` from registry |
 | `CursorAnalyzer.js` | Shared text/position utilities + regex fallback | `offsetToPosition()`, `resolveClassId()`, `parseRequires()`, `findCreateContext()` |
+| `TypeTracker.js` | Variable type resolution from `.create()` assignments | `getVariableTypes()` |
 | `server.js` | JSON-RPC main loop | Message dispatch, handler creation, helper functions |
 | `lsp-start.js` | Entry point | Console redirect, buildlib globals, pmake invocation |
 | `LSPMaker.js` | Build Maker for pmake | Sets flags, builds file index, starts server |
@@ -32,6 +33,7 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 | `JavaBlockValidator.js` | (called by Diagnostics) | Java import validation, getter/setter validation via model fields |
 | `SymbolHandler.js` | `textDocument/documentSymbol` | Document outline via model objects |
 | `WorkspaceAnalyzer.js` | `foam/analyzeWorkspace` | Full codebase scan |
+| `SemanticTokenHandler.js` | `textDocument/semanticTokens/full` | Highlights resolved class refs and typed variables |
 
 ### VS Code Extension
 | File | Purpose |
@@ -69,6 +71,11 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 - A file can have multiple `refines:` blocks — eval-intercept captures ALL of them
 - Refinements are in `foam.USED` with `m.refines` set
 
+### Variable Type Tracking
+- `TypeTracker` scans backward from cursor to find `var x = this.Foo.create()` patterns
+- Resolves `Foo` through the model's requires map to a full class ID
+- Used by MemberCompletionHandler (type-aware `x.` completions) and SemanticTokenHandler (highlighting)
+
 ### Flags
 - `foam.flags` controls which files are loaded: `{ js, java, web, test, node, swift, debug }`
 - POM file entries have `flags: "js|java"` or `flags: "js&test|java&test"`
@@ -82,7 +89,7 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 
 ## Testing
 ```bash
-# Quick test (93 tests, ~30s):
+# Quick test (106 tests, ~30s):
 cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 
 # FOAM framework tests:
@@ -111,8 +118,8 @@ cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 3. Dynamic parsers built from registry in `buildDynamicParsers_()`
 
 ## Metrics
-- ~2500 lines of LSP code
-- 93 automated tests
+- ~3400 lines of LSP code
+- 106 automated tests
 - 4310 classes indexed
 - 76 property types
 - Boot time: ~10-15s
