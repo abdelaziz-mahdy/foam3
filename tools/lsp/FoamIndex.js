@@ -356,6 +356,51 @@ foam.CLASS({
       return foam.checkFlags(foam.adaptFlags(fileFlags.join('|')));
     },
 
+    function getAllPropertiesForFile(classId, fileText) {
+      /**
+       * Get ALL properties available on a class including:
+       * 1. Own + inherited properties from the class hierarchy
+       * 2. Properties from implements: interfaces (e.g., CreatedByAware)
+       * 3. Properties from the refines: target class
+       *
+       * fileText: the raw file text — used to parse implements/refines
+       * since those may reference classes not yet resolved.
+       */
+      var propNames = {};
+
+      // Class own + inherited properties
+      var props = this.getProperties(classId);
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        propNames[props[i].name.toLowerCase()] = props[i];
+      }
+
+      if ( fileText ) {
+        // Implements interfaces
+        var implMatch = fileText.match(/implements\s*:\s*\[([\s\S]*?)\]/);
+        if ( implMatch ) {
+          var ifaceRegex = /['"]([^'"]+)['"]/g;
+          var ifm;
+          while ( ( ifm = ifaceRegex.exec(implMatch[1]) ) !== null ) {
+            var ifaceProps = this.getProperties(ifm[1]);
+            for ( var ip = 0 ; ip < ifaceProps.length ; ip++ ) {
+              propNames[ifaceProps[ip].name.toLowerCase()] = ifaceProps[ip];
+            }
+          }
+        }
+
+        // Refines target
+        var refMatch = fileText.match(/refines\s*:\s*['"]([^'"]+)['"]/);
+        if ( refMatch ) {
+          var refProps = this.getProperties(refMatch[1]);
+          for ( var rp = 0 ; rp < refProps.length ; rp++ ) {
+            propNames[refProps[rp].name.toLowerCase()] = refProps[rp];
+          }
+        }
+      }
+
+      return propNames;
+    },
+
     function getOwnProperties(classId) {
       var cls = this.getClass(classId);
       if ( ! cls ) return [];

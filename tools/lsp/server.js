@@ -479,7 +479,14 @@ function start() {
           var results = workspaceAnalyzer.analyze(function(progress) {
             notify('foam/analyzeProgress', progress);
           });
-          // Return results for sidebar only — per-file diagnostics handles Problems panel
+          // Push diagnostics to Problems panel via standard LSP protocol
+          for ( var uri in results.fileResults ) {
+            notify('textDocument/publishDiagnostics', {
+              uri: uri,
+              diagnostics: results.fileResults[uri]
+            });
+          }
+          // Also return results for sidebar tree view
           respond(id, {
             filesScanned:    results.filesScanned,
             filesWithIssues: results.filesWithIssues,

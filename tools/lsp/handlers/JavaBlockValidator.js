@@ -70,11 +70,11 @@ foam.CLASS({
     function validateGettersSetters(classId, text, diagnostics, baseOffset, fullText) {
       if ( ! classId ) return;
 
-      // Collect all property names for this class
-      var props = this.index.getProperties(classId);
+      // Collect all property names: class + inherited + implements + refines
+      var allProps = this.index.getAllPropertiesForFile(classId, text);
       var propNames = {};
-      for ( var i = 0 ; i < props.length ; i++ ) {
-        propNames[props[i].name.toLowerCase()] = props[i].name;
+      for ( var key in allProps ) {
+        propNames[key] = allProps[key].name || key;
       }
 
       // Find all javaCode/javaPreSet/javaPostSet/javaFactory/javaGetter blocks

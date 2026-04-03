@@ -274,6 +274,13 @@ test(reqMap['El'] === 'foam.u2.Element', 'parseRequires: alias El');
 var mockMethod = { name: 'start', code: function start(spec, args) {} };
 test(analyzer.getMethodSignature(mockMethod) === 'start(spec, args)', 'getMethodSignature from code');
 
+// getAllPropertiesForFile — includes implements interfaces
+var implText = 'foam.CLASS({ implements: [' + Q + 'foam.core.auth.CreatedByAware' + Q + '], properties: [{ class: ' + Q + 'String' + Q + ', name: ' + Q + 'foo' + Q + ' }] })';
+var allProps = index.getAllPropertiesForFile('foam.lang.FObject', implText);
+test(allProps['foo'] != null, 'getAllPropertiesForFile includes own property foo');
+test(allProps['createdby'] != null || allProps['createdBy'] != null,
+  'getAllPropertiesForFile includes createdBy from CreatedByAware interface');
+
 // === REAL FILE COVERAGE ===
 
 section('Real file coverage');
