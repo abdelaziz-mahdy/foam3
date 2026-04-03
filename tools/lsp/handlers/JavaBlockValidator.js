@@ -100,6 +100,19 @@ foam.CLASS({
         }
       }
 
+      // For interfaces: include properties from all implementing classes
+      // Interfaces reference properties that implementors provide (e.g., getInputFilePath())
+      if ( model.type_ === 'INTERFACE' ) {
+        var ifaceId = model.package ? model.package + '.' + model.name : model.name;
+        var implementors = this.index.getImplementors(ifaceId);
+        for ( var i = 0 ; i < implementors.length ; i++ ) {
+          var implProps = this.index.getProperties(implementors[i]);
+          for ( var j = 0 ; j < implProps.length ; j++ ) {
+            propNames[implProps[j].name.toLowerCase()] = true;
+          }
+        }
+      }
+
       // Check all Java code strings on the model AND on each property
       var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
       var self = this;

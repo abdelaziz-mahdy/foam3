@@ -245,6 +245,16 @@ var unknownAliasText = "foam.CLASS({\n  requires: [\n    'foo.bar.Missing as M'\
 var unknownAliasDiags = diagHandler.handle(unknownAliasText);
 test(unknownAliasDiags.some(function(d) { return d.message.indexOf('Missing') !== -1; }), 'Unknown class with as alias IS flagged');
 
+// Interface javaGetter referencing own property — should NOT be flagged
+var ifaceText = 'foam.INTERFACE({ package: ' + Q + 'test' + Q + ', name: ' + Q + 'MyAware' + Q + ', properties: [{ class: ' + Q + 'String' + Q + ', name: ' + Q + 'fileDate' + Q + ', javaGetter: ' + Q + 'return getFileDate();' + Q + ' }] })';
+var ifaceDiags = diagHandler.handle(ifaceText);
+var ifaceGetterErrors = ifaceDiags.filter(function(d) { return d.message.indexOf('fileDate') !== -1; });
+test(ifaceGetterErrors.length === 0, 'Interface own property getter NOT flagged');
+
+// Test getImplementors
+var implementors = index.getImplementors('foam.core.auth.CreatedByAware');
+test(implementors.length > 0, 'getImplementors finds classes implementing CreatedByAware: ' + implementors.length);
+
 // === DEFINITION TESTS ===
 
 section('DefinitionHandler');

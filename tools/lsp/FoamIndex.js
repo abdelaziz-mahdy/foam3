@@ -137,6 +137,32 @@ foam.CLASS({
       return subs;
     },
 
+    function getImplementors(interfaceId) {
+      /**
+       * Returns class IDs of all classes that implement the given interface.
+       * Scans the FOAM registry — cached after first call per interface.
+       */
+      if ( this.cache_['impl_' + interfaceId] ) return this.cache_['impl_' + interfaceId];
+      var result = [];
+      var ids = this.getAllClassIds();
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        try {
+          var cls = foam.maybeLookup(ids[i]);
+          if ( ! cls || ! cls.model_ || ! cls.model_.implements ) continue;
+          var impls = cls.model_.implements;
+          for ( var j = 0 ; j < impls.length ; j++ ) {
+            var implId = typeof impls[j] === 'string' ? impls[j] : (impls[j].path || '');
+            if ( implId === interfaceId ) {
+              result.push(ids[i]);
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+      this.cache_['impl_' + interfaceId] = result;
+      return result;
+    },
+
     function getImports(classId) {
       /** Returns import axioms for a class. */
       var cls = this.getClass(classId);
