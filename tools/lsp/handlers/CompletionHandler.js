@@ -49,6 +49,20 @@ foam.CLASS({
         return { isIncomplete: false, items: [] };
       }
 
+      // Try context-based completion first when cursor is inside a quoted value.
+      // The grammar sees complete text including closing quote, but contextFallback
+      // correctly extracts the partial value between opening quote and cursor.
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var prefix = line.substring(0, position.character);
+      if ( /['"][^'"]*$/.test(prefix) ) {
+        var contextItems = this.contextFallback(text, position);
+        if ( contextItems.length > 0 ) {
+          return { isIncomplete: contextItems.length > 200, items: contextItems };
+        }
+      }
+
+      // Fall back to grammar-based suggestions
       var offset = this.analyzer.positionToOffset(text, position);
       var suggestions = this.collectSuggestions(text, offset);
 
@@ -60,8 +74,6 @@ foam.CLASS({
       }
 
       // Fallback: if grammar found no suggestions, detect context from line text
-      // and provide appropriate items. This handles partial values like 'foam.'
-      // where the grammar's sug(literal(...)) can't match.
       if ( items.length === 0 ) {
         items = this.contextFallback(text, position);
       }

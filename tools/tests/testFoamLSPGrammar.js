@@ -132,6 +132,16 @@ var factoryText = 'foam.CLASS({\n  properties: [\n    { name: ' + Q + 'y' + Q + 
 var factoryResult = completionHandler.handle(factoryText, { line: 3, character: 14 });
 test(factoryResult.items.length > 0, 'Completions after factory property: ' + factoryResult.items.length + ' items');
 
+// Completion inside existing quoted value — extends: 'f' with closing quote present
+var existingQuoteText = 'foam.CLASS({\n  extends: ' + Q + 'f' + Q + ',\n  name: ' + Q + 'Test' + Q + '\n})';
+var existingQuoteResult = completionHandler.handle(existingQuoteText, { line: 1, character: 13 });
+test(existingQuoteResult.items.length > 0, 'Completion inside existing quoted value: ' + existingQuoteResult.items.length + ' items');
+
+// Completion inside existing class: 'S' with closing quote
+var existingClassText = 'foam.CLASS({\n  properties: [\n    { class: ' + Q + 'S' + Q + ', name: ' + Q + 'x' + Q + ' }\n  ]\n})';
+var existingClassResult = completionHandler.handle(existingClassText, { line: 2, character: 15 });
+test(existingClassResult.items.length > 0, 'Completion inside existing class value: ' + existingClassResult.items.length + ' items');
+
 // === MEMBER COMPLETION TESTS ===
 
 section('MemberCompletionHandler — this. + requires + create');
