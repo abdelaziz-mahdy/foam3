@@ -25,6 +25,7 @@ function start() {
   var symbolHandler      = foam.parse.lsp.handlers.SymbolHandler.create({ cache: fileModelCache });
   var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
 
+  var semanticTokenHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 
   var documents = {};
@@ -357,6 +358,13 @@ function start() {
             },
             workspaceSymbolProvider: true,
             foldingRangeProvider: true,
+            semanticTokensProvider: {
+              legend: {
+                tokenTypes: ['type', 'class', 'variable'],
+                tokenModifiers: ['declaration', 'readonly']
+              },
+              full: true
+            },
             codeActionProvider: true
           },
           experimental: {
@@ -538,6 +546,18 @@ function start() {
         var doc = documents[params.textDocument.uri];
         if ( ! doc ) { respond(id, []); break; }
         respond(id, getCodeActions(doc.text, params.range, params.context, index));
+        break;
+
+      case 'textDocument/semanticTokens/full':
+        var doc = documents[params.textDocument.uri];
+        if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, { data: [] }); break; }
+        try {
+          var result = semanticTokenHandler.handle(doc.text, params.textDocument.uri);
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] semanticTokens error:', e.message);
+          respond(id, { data: [] });
+        }
         break;
 
       default:

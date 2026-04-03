@@ -539,6 +539,26 @@ var typeCompResult = typeMemberHandler.handle(typeCompText, { line: 9, character
 test(typeCompResult.items.length > 0, 'Variable type completion: sug. returns items: ' + typeCompResult.items.length);
 test(typeCompResult.items.some(function(i) { return i.label === 'text'; }), 'Variable type completion includes text property');
 
+// === SEMANTIC TOKEN HANDLER TESTS ===
+
+section('SemanticTokenHandler');
+var semanticHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: cache, typeTracker: typeTracker });
+
+// File with requires — this.Suggestion should get semantic token
+var semText = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      var s = this.Suggestion.create({});\n      s.text;\n    }\n  ]\n})';
+var semResult = semanticHandler.handle(semText);
+test(semResult.data.length > 0, 'Semantic tokens: has token data: ' + semResult.data.length + ' values');
+// Each token is 5 values: deltaLine, deltaChar, length, type, modifiers
+test(semResult.data.length % 5 === 0, 'Semantic tokens: data length is multiple of 5');
+
+// Token for 'Suggestion' in this.Suggestion — should be type 0 (type)
+var tokenCount = semResult.data.length / 5;
+var hasTypeToken = false;
+for ( var t = 0 ; t < tokenCount ; t++ ) {
+  if ( semResult.data[t * 5 + 3] === 0 ) { hasTypeToken = true; break; }
+}
+test(hasTypeToken, 'Semantic tokens: includes type token for requires alias');
+
 // === SUMMARY ===
 
 section('SUMMARY');
