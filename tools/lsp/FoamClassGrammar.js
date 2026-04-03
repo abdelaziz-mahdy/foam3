@@ -102,8 +102,13 @@ foam.CLASS({
         P.sym('functionBody')
       );
 
+      // Match foam.CLASS/ENUM/INTERFACE — used by until() to find the start
+      var foamCall = P.alt(P.literal('foam.CLASS'), P.literal('foam.ENUM'), P.literal('foam.INTERFACE'), P.literal('foam.RELATIONSHIP'));
+
       return {
-        START: P.alt(P.sym('foamClass'), P.sym('foamEnum'), P.sym('foamInterface')),
+        // Skip everything before foam.CLASS/ENUM/INTERFACE, then parse the class body
+        // until() CONSUMES the match, so we use seq with the call keyword + rest
+        START: P.seq(P.str(P.until(foamCall)), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')'))),
 
         foamClass:     P.seq(ws, P.literal('foam.CLASS'), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')')), ws),
         foamEnum:      P.seq(ws, P.literal('foam.ENUM'), ws, P.literal('('), ws, P.sym('classBody'), ws, P.optional(P.literal(')')), ws),

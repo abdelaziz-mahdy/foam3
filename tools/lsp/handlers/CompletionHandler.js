@@ -36,14 +36,7 @@ foam.CLASS({
       }
 
       var offset = this.positionToOffset(text, position);
-
-      // Extract just the foam.CLASS(...) portion for grammar parsing
-      var extracted = this.extractFoamClass(text, offset);
-      if ( ! extracted ) {
-        return { isIncomplete: false, items: [] };
-      }
-
-      var suggestions = this.collectSuggestions(extracted.text, extracted.cursorOffset);
+      var suggestions = this.collectSuggestions(text, offset);
 
       var items = [];
       var keys = Object.keys(suggestions);
@@ -55,63 +48,7 @@ foam.CLASS({
       return { isIncomplete: false, items: items };
     },
 
-    function extractFoamClass(text, cursorOffset) {
-      /**
-       * Find the foam.CLASS/ENUM/INTERFACE call that contains the cursor.
-       * Returns { text: 'foam.CLASS({...})', cursorOffset: N, startOffset: N }
-       * where cursorOffset is relative to the extracted text.
-       */
-      var regex = /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/g;
-      var match;
-      var bestMatch = null;
-
-      while ( ( match = regex.exec(text) ) !== null ) {
-        var start = match.index;
-        // Find the matching closing paren by tracking depth
-        var depth = 0;
-        var inString = false;
-        var stringChar = '';
-        var end = start + match[0].length;
-
-        for ( var i = end ; i < text.length ; i++ ) {
-          var ch = text[i];
-
-          if ( inString ) {
-            if ( ch === '\\' ) { i++; continue; } // skip escaped chars
-            if ( ch === stringChar ) inString = false;
-            continue;
-          }
-
-          if ( ch === "'" || ch === '"' || ch === '`' ) {
-            inString = true;
-            stringChar = ch;
-          } else if ( ch === '(' || ch === '{' || ch === '[' ) {
-            depth++;
-          } else if ( ch === ')' || ch === '}' || ch === ']' ) {
-            if ( depth === 0 ) {
-              end = i + 1;
-              break;
-            }
-            depth--;
-          }
-        }
-
-        // Check if cursor is within this foam.CLASS call
-        if ( cursorOffset >= start && cursorOffset <= end ) {
-          bestMatch = {
-            text: text.substring(start, end),
-            cursorOffset: cursorOffset - start,
-            startOffset: start
-          };
-          break;
-        }
-      }
-
-      return bestMatch;
-    },
-
     function collectSuggestions(text, cursorOffset) {
-      var suggestions = {};
       var cursorSuggestions = {};
 
       var apply = function(p, grammar) {
