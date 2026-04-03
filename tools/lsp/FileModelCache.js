@@ -55,6 +55,33 @@ foam.CLASS({
       this.cache_ = {};
     },
 
+    function parseRequiresEntry(entry) {
+      /**
+       * Parse a requires entry into { classId, alias }.
+       * Handles both plain strings and 'as' alias syntax:
+       *   'foam.u2.DetailView'           → { classId: 'foam.u2.DetailView', alias: 'DetailView' }
+       *   'foam.lib.csv.CSVParser as FP' → { classId: 'foam.lib.csv.CSVParser', alias: 'FP' }
+       *   { path: 'foam.u2.Element' }    → { classId: 'foam.u2.Element', alias: 'Element' }
+       */
+      var raw = typeof entry === 'string' ? entry : (entry && entry.path ? entry.path : null);
+      if ( ! raw ) return null;
+      var parts = raw.split(/\s+as\s+/);
+      var classId = parts[0].trim();
+      var alias = parts.length > 1 ? parts[1].trim() : classId.split('.').pop();
+      return { classId: classId, alias: alias };
+    },
+
+    function buildRequiresMap(model) {
+      /** Build { alias: fullClassId } from model.requires, handling 'as' aliases. */
+      var map = {};
+      var requires = model ? model.requires || [] : [];
+      for ( var i = 0 ; i < requires.length ; i++ ) {
+        var parsed = this.parseRequiresEntry(requires[i]);
+        if ( parsed ) map[parsed.alias] = parsed.classId;
+      }
+      return map;
+    },
+
     function parseFileModels(text) {
       /**
        * Execute file text with overridden foam.CLASS/ENUM/INTERFACE to capture

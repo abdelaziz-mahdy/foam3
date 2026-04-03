@@ -234,6 +234,17 @@ var diags4 = diagHandler.handle(constantsText);
 test(diags4.filter(function(d) { return d.message.indexOf('DisplayWidth') !== -1; }).length === 0,
   'DisplayWidth.XS in constants NOT flagged');
 
+// Requires with 'as' alias — should NOT flag the aliased class as unknown
+var aliasText = "foam.CLASS({\n  requires: [\n    'foam.parse.Suggestion as Sug'\n  ]\n})";
+var aliasDiags = diagHandler.handle(aliasText);
+var aliasErrors = aliasDiags.filter(function(d) { return d.message.indexOf('Suggestion') !== -1; });
+test(aliasErrors.length === 0, 'Requires with as alias NOT flagged as unknown');
+
+// Requires with 'as' alias for unknown class — SHOULD flag it
+var unknownAliasText = "foam.CLASS({\n  requires: [\n    'foo.bar.Missing as M'\n  ]\n})";
+var unknownAliasDiags = diagHandler.handle(unknownAliasText);
+test(unknownAliasDiags.some(function(d) { return d.message.indexOf('Missing') !== -1; }), 'Unknown class with as alias IS flagged');
+
 // === DEFINITION TESTS ===
 
 section('DefinitionHandler');

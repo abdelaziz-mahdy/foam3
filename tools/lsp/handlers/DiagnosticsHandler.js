@@ -81,10 +81,12 @@ foam.CLASS({
           "Unknown class in extends: '" + m.extends + "'");
       }
 
-      // Validate requires
+      // Validate requires — parse 'as' aliases to extract the real class ID
       var requires = m.requires || [];
       for ( var i = 0 ; i < requires.length ; i++ ) {
-        var reqId = typeof requires[i] === 'string' ? requires[i] : requires[i].path;
+        var parsed = this.cache.parseRequiresEntry(requires[i]);
+        if ( ! parsed ) continue;
+        var reqId = parsed.classId;
         if ( reqId && ! this.classKnown_(reqId) ) {
           var loc = this.findInText_(text, null, reqId);
           if ( loc !== null ) this.addDiag_(diagnostics, text, loc, reqId.length, 2,
