@@ -104,11 +104,10 @@ function start() {
 
     var methodName = callMatch[1];
 
-    // Resolve the current class
-    var pkgMatch = text.match(/package\s*:\s*['"]([^'"]+)['"]/);
-    var nameMatch = text.match(/name\s*:\s*['"]([^'"]+)['"]/);
-    if ( ! nameMatch ) return null;
-    var classId = pkgMatch ? pkgMatch[1] + '.' + nameMatch[1] : nameMatch[1];
+    // Resolve the current class using FileModelCache for multi-class support
+    var model = fileModelCache.getModelAt('', text, position.line);
+    if ( ! model ) return null;
+    var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
 
     // Find the method in the class
     var methods = index.getMethods(classId);
@@ -312,23 +311,8 @@ function start() {
   function reindexFile(uri) {
     var doc = documents[uri];
     if ( ! doc ) return;
-
-    var match = doc.text.match(/package\s*:\s*['"]([^'"]+)['"]/);
-    var pkg = match ? match[1] : '';
-    match = doc.text.match(/name\s*:\s*['"]([^'"]+)['"]/);
-    var name = match ? match[1] : '';
-
-    if ( name ) {
-      var classId = pkg ? pkg + '.' + name : name;
-      try {
-        var filePath = uri.replace('file://', '');
-        foam.require(filePath.replace(/\.js$/, ''), false, false);
-        index.invalidate(classId);
-      } catch (e) {
-        console.error('FOAM LSP reindex failed for', classId, e);
-      }
-      pushDiagnostics(uri, doc.text);
-    }
+    fileModelCache.invalidate(uri);
+    pushDiagnostics(uri, doc.text);
   }
 
   // === Message Dispatch ===

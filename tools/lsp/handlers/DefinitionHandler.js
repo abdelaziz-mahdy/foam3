@@ -10,6 +10,7 @@ foam.CLASS({
 
   requires: [
     'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.FileModelCache',
     'foam.parse.lsp.CursorAnalyzer'
   ],
 
@@ -19,6 +20,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FileModelCache',
+      name: 'cache',
+      factory: function() { return this.FileModelCache.create(); }
     },
     {
       class: 'FObjectProperty',
@@ -39,14 +46,14 @@ foam.CLASS({
 
       // Try as full class ID
       var filePath = this.index.getFilePath(word);
-      if ( filePath ) return this.buildLocation(filePath);
+      if ( filePath ) return this.buildLocation(filePath, word);
 
       // Try as short property type name → resolve to full ID → get file
       var propTypes = this.index.getPropertyTypes();
       for ( var i = 0 ; i < propTypes.length ; i++ ) {
         if ( propTypes[i].name === word ) {
           filePath = this.index.getFilePath(propTypes[i].id);
-          if ( filePath ) return this.buildLocation(filePath);
+          if ( filePath ) return this.buildLocation(filePath, propTypes[i].id);
           break;
         }
       }
@@ -54,12 +61,25 @@ foam.CLASS({
       return null;
     },
 
-    function buildLocation(filePath) {
+    function buildLocation(filePath, opt_classId) {
+      var line = 0;
+      if ( opt_classId ) {
+        try {
+          var fs_ = require('fs');
+          var content = fs_.readFileSync(filePath, 'utf8');
+          var models = this.cache.parseFileModels(content);
+          for ( var i = 0 ; i < models.length ; i++ ) {
+            var m = models[i];
+            var id = m.refines || (m.package ? m.package + '.' + m.name : m.name);
+            if ( id === opt_classId && m.sourceLine_ ) { line = m.sourceLine_; break; }
+          }
+        } catch (e) {}
+      }
       return {
         uri: 'file://' + filePath,
         range: {
-          start: { line: 0, character: 0 },
-          end: { line: 0, character: 0 }
+          start: { line: line, character: 0 },
+          end: { line: line, character: 0 }
         }
       };
     }
