@@ -117,8 +117,12 @@ foam.CLASS({
       var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
       var self = this;
 
-      function checkJavaString(javaStr) {
+      function checkJavaBlock(key, javaStr) {
         if ( ! javaStr || typeof javaStr !== 'string' ) return;
+        // Find this Java string's position in fullText for accurate diagnostics
+        var baseOffset = fullText.indexOf(javaStr);
+        if ( baseOffset === -1 ) return;
+
         var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
         var gs;
         while ( ( gs = getSetRegex.exec(javaStr) ) !== null ) {
@@ -129,27 +133,25 @@ foam.CLASS({
           if ( ['x', 'class', 'classInfo', 'ownClassInfo', 'instance', 'logger'].indexOf(propName) !== -1 ) continue;
 
           if ( ! propNames[propName.toLowerCase()] ) {
-            var idx = fullText.indexOf(gs[0]);
-            if ( idx !== -1 ) {
-              var pos = self.analyzer.offsetToPosition(fullText, idx);
-              diagnostics.push({
-                range: {
-                  start: pos,
-                  end: { line: pos.line, character: pos.character + gs[0].length - 1 }
-                },
-                severity: 3,
-                message: "Property '" + propName + "' not found on " + classId,
-                source: 'foam-lsp'
-              });
-            }
+            var absOffset = baseOffset + gs.index;
+            var pos = self.analyzer.offsetToPosition(fullText, absOffset);
+            diagnostics.push({
+              range: {
+                start: pos,
+                end: { line: pos.line, character: pos.character + gs[0].length - 1 }
+              },
+              severity: 3,
+              message: "Property '" + propName + "' not found on " + classId,
+              source: 'foam-lsp'
+            });
           }
         }
       }
 
-      javaKeys.forEach(function(key) { checkJavaString(model[key]); });
+      javaKeys.forEach(function(key) { checkJavaBlock(key, model[key]); });
       (model.properties || []).forEach(function(p) {
         if ( typeof p !== 'object' ) return;
-        javaKeys.forEach(function(key) { checkJavaString(p[key]); });
+        javaKeys.forEach(function(key) { checkJavaBlock(key, p[key]); });
       });
     }
   ]

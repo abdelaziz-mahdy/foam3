@@ -73,10 +73,11 @@ foam.CLASS({
 
     function validateModel_(m, text, diagnostics) {
       var classId = m.refines || (m.package ? m.package + '.' + m.name : m.name);
+      var modelOffset = m.sourceLine_ ? this.analyzer.positionToOffset(text, { line: m.sourceLine_, character: 0 }) : 0;
 
       // Validate extends
       if ( m.extends && ! this.classKnown_(m.extends) ) {
-        var loc = this.findInText_(text, 'extends', m.extends);
+        var loc = this.findInText_(text, 'extends', m.extends, modelOffset);
         if ( loc !== null ) this.addDiag_(diagnostics, text, loc, m.extends.length, 2,
           "Unknown class in extends: '" + m.extends + "'");
       }
@@ -88,7 +89,7 @@ foam.CLASS({
         if ( ! parsed ) continue;
         var reqId = parsed.classId;
         if ( reqId && ! this.classKnown_(reqId) ) {
-          var loc = this.findInText_(text, null, reqId);
+          var loc = this.findInText_(text, null, reqId, modelOffset);
           if ( loc !== null ) this.addDiag_(diagnostics, text, loc, reqId.length, 2,
             "Unknown class in requires: '" + reqId + "'");
         }
@@ -100,7 +101,7 @@ foam.CLASS({
         var p = props[i];
         if ( typeof p === 'object' && p.class ) {
           if ( ! this.validTypes_[p.class] && ! this.classKnown_(p.class) ) {
-            var loc = this.findInText_(text, 'class', p.class);
+            var loc = this.findInText_(text, 'class', p.class, modelOffset);
             if ( loc !== null ) this.addDiag_(diagnostics, text, loc, p.class.length, 3,
               "Unknown property type: '" + p.class + "'");
           }
@@ -121,11 +122,12 @@ foam.CLASS({
       return this.index.classExists(classId) || this.index.getFilePath(classId) != null;
     },
 
-    function findInText_(text, key, value) {
+    function findInText_(text, key, value, opt_startOffset) {
       /** Find the offset of a value string in text, optionally near a key. */
       var escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       var searchStr = key ? key + "\\s*:\\s*['\"]" + escaped : "['\"]" + escaped;
-      var regex = new RegExp(searchStr);
+      var regex = new RegExp(searchStr, 'g');
+      if ( opt_startOffset ) regex.lastIndex = opt_startOffset;
       var match = regex.exec(text);
       if ( ! match ) return null;
       return match.index + match[0].indexOf(value);
