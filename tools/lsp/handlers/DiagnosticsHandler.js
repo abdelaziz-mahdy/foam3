@@ -9,7 +9,9 @@ foam.CLASS({
   name: 'DiagnosticsHandler',
 
   requires: [
-    'foam.parse.lsp.FoamIndex'
+    'foam.parse.lsp.FoamIndex',
+    'foam.parse.lsp.FoamClassGrammar',
+    'foam.parse.StringPStream'
   ],
 
   properties: [
@@ -18,6 +20,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FoamIndex',
       name: 'index',
       factory: function() { return this.FoamIndex.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.FoamClassGrammar',
+      name: 'grammar',
+      factory: function() { return this.FoamClassGrammar.create({ index: this.index }); }
     }
   ],
 
@@ -29,93 +37,159 @@ foam.CLASS({
 
       var diagnostics = [];
 
-      // Only check extends — this is a clear class reference
-      this.checkExtendsRef(text, diagnostics);
-
-      // Check requires entries — these are definitely class references
-      this.checkRequiresRefs(text, diagnostics);
-
-      // Check property class types — match both short and full names
-      this.checkPropertyTypes(text, diagnostics);
+      // Extract each foam.CLASS block and validate using grammar
+      var self = this;
+      this.forEachFoamClass(text, function(block, startOffset) {
+        self.validateBlock(text, block, startOffset, diagnostics);
+      });
 
       return diagnostics;
     },
 
-    function checkExtendsRef(text, diagnostics) {
-      var regex = /extends\s*:\s*['"]([^'"]+)['"]/g;
+    function forEachFoamClass(text, callback) {
+      /** Find each foam.CLASS/ENUM/INTERFACE call and invoke callback with extracted text. */
+      var regex = /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/g;
       var match;
+
       while ( ( match = regex.exec(text) ) !== null ) {
-        var classId = match[1];
-        if ( ! this.index.classExists(classId) ) {
-          this.addDiagnostic(diagnostics, text, match, classId,
-            "Unknown class: '" + classId + "'", 2); // Warning, not error
-        }
+        var start = match.index;
+        var end = this.findMatchingEnd(text, start + match[0].length);
+        callback(text.substring(start, end), start);
       }
     },
 
-    function checkRequiresRefs(text, diagnostics) {
-      // Only match strings inside requires: [...] blocks
-      var requiresMatch = text.match(/requires\s*:\s*\[([\s\S]*?)\]/g);
-      if ( ! requiresMatch ) return;
+    function findMatchingEnd(text, fromIndex) {
+      var depth = 0;
+      var inString = false;
+      var stringChar = '';
 
-      for ( var r = 0 ; r < requiresMatch.length ; r++ ) {
-        var block = requiresMatch[r];
-        var blockStart = text.indexOf(block);
-        var regex = /['"]([a-zA-Z][\w.]+\.[A-Z]\w*)['"]/g;
-        var match;
-        while ( ( match = regex.exec(block) ) !== null ) {
-          var classId = match[1];
-          if ( ! this.index.classExists(classId) ) {
-            var absOffset = blockStart + match.index + match[0].indexOf(classId);
-            var pos = this.offsetToPosition(text, absOffset);
+      for ( var i = fromIndex ; i < text.length ; i++ ) {
+        var ch = text[i];
+        if ( inString ) {
+          if ( ch === '\\' ) { i++; continue; }
+          if ( ch === stringChar ) inString = false;
+          continue;
+        }
+        if ( ch === "'" || ch === '"' || ch === '`' ) {
+          inString = true;
+          stringChar = ch;
+        } else if ( ch === '(' || ch === '{' || ch === '[' ) {
+          depth++;
+        } else if ( ch === ')' || ch === '}' || ch === ']' ) {
+          if ( depth === 0 ) return i + 1;
+          depth--;
+        }
+      }
+      return text.length;
+    },
+
+    function validateBlock(fullText, block, startOffset, diagnostics) {
+      /**
+       * Parse the foam.CLASS block with grammar, collecting validation
+       * data via the apply callback, then check references.
+       */
+      var self = this;
+      var classRefs = [];   // { value, pos } — class references found by grammar
+      var propTypes = [];   // { value, pos } — property type references
+      var maxPos = 0;
+
+      // Use grammar to parse and track what the grammar matched as classRef and propType
+      var apply = function(p, grammar) {
+        if ( this.pos > maxPos ) maxPos = this.pos;
+
+        // Track suggestions — they tell us what the grammar thinks this token is
+        if ( p.suggest ) {
+          var s = p.suggest();
+          if ( s ) {
+            if ( s.category === 'class' ) {
+              classRefs.push({ value: s.text, pos: this.pos });
+            } else if ( s.category === 'property' ) {
+              propTypes.push({ value: s.text, pos: this.pos });
+            }
+          }
+        }
+
+        return p.parse(this, grammar);
+      };
+
+      var ps = this.StringPStream.create({ str: block + String.fromCharCode(26), apply: apply });
+      try {
+        this.grammar.parse(ps);
+      } catch (e) {
+        // Grammar failed — report parse error position
+        if ( maxPos > 0 && maxPos < block.length ) {
+          var absPos = startOffset + maxPos;
+          var pos = this.offsetToPosition(fullText, absPos);
+          diagnostics.push({
+            range: { start: pos, end: { line: pos.line, character: pos.character + 10 } },
+            severity: 3, // Info
+            message: 'FOAM grammar could not fully parse this definition',
+            source: 'foam-lsp'
+          });
+        }
+      }
+
+      // Now validate: check extends reference specifically
+      var extendsMatch = block.match(/extends\s*:\s*['"]([^'"]+)['"]/);
+      if ( extendsMatch ) {
+        var classId = extendsMatch[1];
+        if ( ! this.index.classExists(classId) ) {
+          var absOffset = startOffset + block.indexOf(classId, extendsMatch.index);
+          var pos = this.offsetToPosition(fullText, absOffset);
+          diagnostics.push({
+            range: { start: pos, end: { line: pos.line, character: pos.character + classId.length } },
+            severity: 2,
+            message: "Unknown class in extends: '" + classId + "'",
+            source: 'foam-lsp'
+          });
+        }
+      }
+
+      // Validate requires references
+      var requiresBlock = block.match(/requires\s*:\s*\[([\s\S]*?)\]/);
+      if ( requiresBlock ) {
+        var reqRegex = /['"]([a-zA-Z][\w.]+\.[A-Z]\w*)['"]/g;
+        var reqMatch;
+        while ( ( reqMatch = reqRegex.exec(requiresBlock[1]) ) !== null ) {
+          var reqId = reqMatch[1];
+          if ( ! this.index.classExists(reqId) ) {
+            var absOffset = startOffset + block.indexOf(requiresBlock[0]) +
+                           requiresBlock[0].indexOf(requiresBlock[1]) + reqMatch.index +
+                           reqMatch[0].indexOf(reqId);
+            var pos = this.offsetToPosition(fullText, absOffset);
             diagnostics.push({
-              range: {
-                start: pos,
-                end: { line: pos.line, character: pos.character + classId.length }
-              },
-              severity: 2, // Warning
-              message: "Unknown class in requires: '" + classId + "'",
+              range: { start: pos, end: { line: pos.line, character: pos.character + reqId.length } },
+              severity: 2,
+              message: "Unknown class in requires: '" + reqId + "'",
               source: 'foam-lsp'
             });
           }
         }
       }
-    },
 
-    function checkPropertyTypes(text, diagnostics) {
-      // Build lookup: both short names AND full IDs
-      var propTypes = this.index.getPropertyTypes();
+      // Validate property types — check both short and full names
       var validTypes = {};
-      for ( var i = 0 ; i < propTypes.length ; i++ ) {
-        validTypes[propTypes[i].name] = true;  // Short: 'FObjectProperty'
-        validTypes[propTypes[i].id] = true;    // Full: 'foam.lang.FObjectProperty'
+      var ptypes = this.index.getPropertyTypes();
+      for ( var i = 0 ; i < ptypes.length ; i++ ) {
+        validTypes[ptypes[i].name] = true;
+        validTypes[ptypes[i].id] = true;
       }
 
-      var regex = /class\s*:\s*['"]([^'"]+)['"]/g;
-      var match;
-      while ( ( match = regex.exec(text) ) !== null ) {
-        var typeName = match[1];
-        // Skip if it's a known type (short or full name)
-        if ( validTypes[typeName] ) continue;
-        // Also skip if it looks like a class reference (dots) and exists as a class
-        if ( typeName.indexOf('.') !== -1 && this.index.classExists(typeName) ) continue;
-
-        this.addDiagnostic(diagnostics, text, match, typeName,
-          "Unknown property type: '" + typeName + "'", 3); // Info, not warning
+      var classRegex = /class\s*:\s*['"]([^'"]+)['"]/g;
+      var classMatch;
+      while ( ( classMatch = classRegex.exec(block) ) !== null ) {
+        var typeName = classMatch[1];
+        if ( ! validTypes[typeName] && ! this.index.classExists(typeName) ) {
+          var absOffset = startOffset + classMatch.index + classMatch[0].indexOf(typeName);
+          var pos = this.offsetToPosition(fullText, absOffset);
+          diagnostics.push({
+            range: { start: pos, end: { line: pos.line, character: pos.character + typeName.length } },
+            severity: 3, // Info only — might be a valid type we don't know about
+            message: "Unknown property type: '" + typeName + "'",
+            source: 'foam-lsp'
+          });
+        }
       }
-    },
-
-    function addDiagnostic(diagnostics, text, match, value, message, severity) {
-      var pos = this.offsetToPosition(text, match.index + match[0].indexOf(value));
-      diagnostics.push({
-        range: {
-          start: pos,
-          end: { line: pos.line, character: pos.character + value.length }
-        },
-        severity: severity,
-        message: message,
-        source: 'foam-lsp'
-      });
     },
 
     function offsetToPosition(text, offset) {
