@@ -207,7 +207,7 @@ function start() {
     return ranges;
   }
 
-  function getCodeActions(text, range, context, index) {
+  function getCodeActions(text, range, context, index, uri) {
     /**
      * Provides code actions for diagnostics:
      * - "Did you mean X?" for unknown class references
@@ -231,7 +231,7 @@ function start() {
             diagnostics: [diag],
             edit: {
               changes: {
-                [context.textDocument ? context.textDocument.uri : '']: [{
+                [uri]: [{
                   range: diag.range,
                   newText: suggestions[s]
                 }]
@@ -254,7 +254,7 @@ function start() {
             diagnostics: [diag],
             edit: {
               changes: {
-                [context.textDocument ? context.textDocument.uri : '']: [{
+                [uri]: [{
                   range: diag.range,
                   newText: javaImportMappings[wrongPkg]
                 }]
@@ -546,7 +546,7 @@ function start() {
       case 'textDocument/codeAction':
         var doc = documents[params.textDocument.uri];
         if ( ! doc ) { respond(id, []); break; }
-        respond(id, getCodeActions(doc.text, params.range, params.context, index));
+        respond(id, getCodeActions(doc.text, params.range, params.context, index, params.textDocument.uri));
         break;
 
       case 'textDocument/semanticTokens/full':

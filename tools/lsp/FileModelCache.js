@@ -132,6 +132,7 @@ foam.CLASS({
         // SyntaxError prevents ALL execution — JS parses before running.
         // Fall back to extracting individual foam.CLASS blocks and eval each.
         if ( e instanceof SyntaxError && models.length === 0 ) {
+          modelCount = 0;
           this.evalIndividualBlocks_(text, context, models);
         }
         // RuntimeError after some models captured — partial results are fine

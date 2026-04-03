@@ -59,7 +59,7 @@ foam.CLASS({
         // Check if file's flags match active flags
         if ( entry.flags && entry.flags.length > 0 ) {
           var hasActiveFlag = entry.flags.some(function(flag) {
-            return foam.flags[flag] !== false;
+            return foam.flags[flag] === true;
           });
           if ( ! hasActiveFlag ) continue;
         }
