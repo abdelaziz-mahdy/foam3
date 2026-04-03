@@ -579,6 +579,12 @@ test(javaCompResult.items.length > 0, 'Java block: get suggests getters: ' + jav
 test(javaCompResult.items.some(function(i) { return i.label === 'getFirstName()'; }), 'Java block: suggests getFirstName()');
 test(javaCompResult.items.some(function(i) { return i.label === 'getLastName()'; }), 'Java block: suggests getLastName()');
 
+// Lowercase partial: 'getfir' should match getFirstName
+var javaPartialText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'JTest3' + Q + ',\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'firstName' + Q + ' },\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'lastName' + Q + ' }\n  ],\n  methods: [\n    {\n      name: ' + Q + 'fullName' + Q + ',\n      javaCode: ' + BT + '\n        getfir\n      ' + BT + '\n    }\n  ]\n})';
+var javaPartialResult = completionHandler.handle(javaPartialText, { line: 11, character: 14 });
+test(javaPartialResult.items.length === 1, 'Java block: getfir filters to 1 item: ' + javaPartialResult.items.length);
+test(javaPartialResult.items.some(function(i) { return i.label === 'getFirstName()'; }), 'Java block: getfir matches getFirstName()');
+
 // Getter detail shows Java return type — use real class foam.parse.Suggestion which has String properties
 var javaRealText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'doStuff' + Q + ',\n      javaCode: ' + BT + '\n        get\n      ' + BT + '\n    }\n  ]\n})';
 var javaRealResult = completionHandler.handle(javaRealText, { line: 7, character: 11 });

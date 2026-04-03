@@ -173,9 +173,10 @@ foam.CLASS({
       var cache = this.cache || foam.parse.lsp.FileModelCache.create();
       var model = cache.getModelAt('', text, position.line);
 
-      // Check for get/set prefix — either bare (getF) or on a typed variable (user.getF)
-      var varGetSet = prefix.match(/(\w+)\.(get|set|is)([A-Z]\w*)?$/);
-      var bareGetSet = prefix.match(/(?:^|[\s(=!&|,])(?:return\s+)?(get|set|is)([A-Z]\w*)?$/);
+      // Check for get/set/is prefix — either bare (getCreatedBy, getcre) or on a variable (user.get)
+      // Supports both camelCase (getCreatedBy) and lowercase partial (getcre)
+      var varGetSet = prefix.match(/(\w+)\.(get|set|is)(\w*)$/);
+      var bareGetSet = prefix.match(/(?:^|[\s(=!&|,])(?:return\s+)?(get|set|is)(\w*)$/);
 
       if ( ! varGetSet && ! bareGetSet ) return null;
 
@@ -221,7 +222,7 @@ foam.CLASS({
         var p = props[i];
         var propName = p.name;
         var capName = propName.charAt(0).toUpperCase() + propName.substring(1);
-        if ( partial && capName.toLowerCase().indexOf(partial) !== 0 ) continue;
+        if ( partial && capName.toLowerCase().indexOf(partial.toLowerCase()) !== 0 ) continue;
 
         var javaType = this.index.getPropertyJavaType(targetClassId, propName) || 'Object';
 
