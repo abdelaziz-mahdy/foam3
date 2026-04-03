@@ -189,12 +189,12 @@ foam.CLASS({
         var javaVarName = varGetSet[1];
         getSet = varGetSet[2];
         partial = varGetSet[3] ? varGetSet[3].toLowerCase() : '';
-        targetClassId = this.resolveJavaVariableType_(text, position, javaVarName, model);
+        targetClassId = this.analyzer.resolveJavaVariableType(text, position, javaVarName, model, this.index);
       } else if ( varDot ) {
         // variable. or variable.g or variable.ge — resolve type, show all getters+setters
         var javaVarName = varDot[1];
         var dotPartial = varDot[2] ? varDot[2].toLowerCase() : '';
-        targetClassId = this.resolveJavaVariableType_(text, position, javaVarName, model);
+        targetClassId = this.analyzer.resolveJavaVariableType(text, position, javaVarName, model, this.index);
         if ( targetClassId ) {
           // Show both getters and setters, filtered by the partial after the dot
           getSet = 'both';
@@ -270,66 +270,6 @@ foam.CLASS({
         }
       }
       return items;
-    },
-
-    function resolveJavaVariableType_(text, position, varName, model) {
-      /**
-       * Resolve a Java variable's type from its declaration.
-       * Scans backward for patterns like:
-       *   TypeName varName = ...
-       *   TypeName varName;
-       *   (TypeName) expression → cast
-       * Returns a FOAM class ID if the type maps to a known class, else null.
-       */
-      var lines = text.split('\n');
-      for ( var i = position.line ; i >= 0 ; i-- ) {
-        var line = lines[i];
-        if ( ! line ) continue;
-
-        // Match: TypeName varName = or TypeName varName;
-        var declMatch = line.match(new RegExp('(\\w+)\\s+' + varName + '\\s*[=;]'));
-        if ( declMatch ) {
-          var typeName = declMatch[1];
-          // Skip Java keywords that look like types
-          if ( ['var', 'return', 'new', 'if', 'for', 'while', 'try', 'catch', 'throw', 'else'].indexOf(typeName) !== -1 ) continue;
-          return this.resolveJavaTypeName_(typeName, model);
-        }
-      }
-      return null;
-    },
-
-    function resolveJavaTypeName_(typeName, model) {
-      /**
-       * Resolve a Java type name to a FOAM class ID.
-       * Checks: javaImports, model package, common FOAM types.
-       */
-      // Direct FOAM class lookup
-      if ( this.index.classExists(typeName) ) return typeName;
-
-      // Check javaImports on the model for the full path
-      var imports = model ? model.javaImports || [] : [];
-      for ( var i = 0 ; i < imports.length ; i++ ) {
-        var imp = imports[i];
-        if ( imp.endsWith('.' + typeName) || imp.endsWith('.*') ) {
-          var fullId = imp.endsWith('.*') ? imp.replace('.*', '.' + typeName) : imp;
-          if ( this.index.classExists(fullId) ) return fullId;
-        }
-      }
-
-      // Check same package as model
-      if ( model && model.package ) {
-        var samePackage = model.package + '.' + typeName;
-        if ( this.index.classExists(samePackage) ) return samePackage;
-      }
-
-      // Dynamic scan: find any class whose short name matches typeName
-      var ids = this.index.getAllClassIds();
-      var suffix = '.' + typeName;
-      for ( var i = 0 ; i < ids.length ; i++ ) {
-        if ( ids[i].endsWith(suffix) ) return ids[i];
-      }
-
-      return null;
     },
 
     function getLineContext_(lines, lineNum) {

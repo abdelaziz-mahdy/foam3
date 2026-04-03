@@ -164,6 +164,55 @@ foam.CLASS({
         }
       }
       return method.name + '()';
+    },
+
+    function resolveJavaVariableType(text, position, varName, model, index) {
+      /**
+       * Resolve a Java variable's type from its declaration.
+       * Scans backward for: TypeName varName = ... or TypeName varName;
+       */
+      var lines = text.split('\n');
+      for ( var i = position.line ; i >= 0 ; i-- ) {
+        var line = lines[i];
+        if ( ! line ) continue;
+        var declMatch = line.match(new RegExp('(\\w+)\\s+' + varName + '\\s*[=;]'));
+        if ( declMatch ) {
+          var typeName = declMatch[1];
+          if ( ['var', 'return', 'new', 'if', 'for', 'while', 'try', 'catch', 'throw', 'else'].indexOf(typeName) !== -1 ) continue;
+          return this.resolveJavaTypeName(typeName, model, index);
+        }
+      }
+      return null;
+    },
+
+    function resolveJavaTypeName(typeName, model, index) {
+      /**
+       * Resolve a Java type name to a FOAM class ID.
+       * Checks: direct lookup, javaImports, same package, dynamic scan.
+       */
+      if ( index.classExists(typeName) ) return typeName;
+
+      var imports = model ? model.javaImports || [] : [];
+      for ( var i = 0 ; i < imports.length ; i++ ) {
+        var imp = imports[i];
+        if ( imp.endsWith('.' + typeName) || imp.endsWith('.*') ) {
+          var fullId = imp.endsWith('.*') ? imp.replace('.*', '.' + typeName) : imp;
+          if ( index.classExists(fullId) ) return fullId;
+        }
+      }
+
+      if ( model && model.package ) {
+        var samePackage = model.package + '.' + typeName;
+        if ( index.classExists(samePackage) ) return samePackage;
+      }
+
+      var ids = index.getAllClassIds();
+      var suffix = '.' + typeName;
+      for ( var i = 0 ; i < ids.length ; i++ ) {
+        if ( ids[i].endsWith(suffix) ) return ids[i];
+      }
+
+      return null;
     }
   ]
 });
