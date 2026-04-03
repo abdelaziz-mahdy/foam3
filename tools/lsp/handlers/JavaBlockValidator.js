@@ -41,7 +41,7 @@ foam.CLASS({
       if ( ! match ) return;
 
       var block = match[1];
-      var blockOffset = match.index + text.indexOf(block, match.index);
+      var blockOffset = match.index + match[0].indexOf(block);
 
       var importRegex = /['"]([^'"]+)['"]/g;
       var imp;
