@@ -108,7 +108,7 @@ foam.CLASS({
           return {
             label: t.name, kind: 7, detail: t.id,
             textEdit: { range: replaceRange, newText: t.name },
-            sortText: t.name.toLowerCase()
+            sortText: '!' + t.name.toLowerCase()
           };
         });
       }
@@ -126,7 +126,7 @@ foam.CLASS({
             label: ids[i], kind: 7,
             textEdit: { range: replaceRange, newText: ids[i] },
             filterText: ids[i],
-            sortText: ids[i].toLowerCase()
+            sortText: '!' + ids[i].toLowerCase()
           });
           if ( items.length > 200 ) break;
         }

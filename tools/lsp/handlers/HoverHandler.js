@@ -88,6 +88,24 @@ foam.CLASS({
         }
       }
 
+      // Try as property on a typed variable: testvar.breadcrumbTitle
+      // word = 'testvar.breadcrumbTitle', segment = 'breadcrumbTitle'
+      if ( segment && word && word.indexOf('.') !== -1 && this.typeTracker ) {
+        var parts = word.split('.');
+        var varName = parts[0];
+        var propName = parts[parts.length - 1];
+        if ( varName !== 'this' && varName !== 'foam' ) {
+          var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+          var varType = this.typeTracker.resolveVariableType(text, position, varName, model, this.index);
+          if ( varType ) {
+            var propDoc = this.index.getPropertyDoc(varType, propName);
+            if ( propDoc ) {
+              return { contents: { kind: 'markdown', value: propDoc } };
+            }
+          }
+        }
+      }
+
       // Try 'create' — show info about the class being created
       if ( segment === 'create' ) {
         var createHover = this.buildCreateHover_(text, position);

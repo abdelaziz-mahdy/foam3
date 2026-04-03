@@ -539,6 +539,13 @@ var typeCompResult = typeMemberHandler.handle(typeCompText, { line: 9, character
 test(typeCompResult.items.length > 0, 'Variable type completion: sug. returns items: ' + typeCompResult.items.length);
 test(typeCompResult.items.some(function(i) { return i.label === 'text'; }), 'Variable type completion includes text property');
 
+// Hover on variable.property — sug.text should show property info from Suggestion
+var typeHoverHandler = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: cache, typeTracker: typeTracker });
+var typeHoverText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'HoverTest' + Q + ',\n  requires: [\n    ' + Q + 'foam.parse.Suggestion' + Q + '\n  ],\n  methods: [\n    function go() {\n      var sug = this.Suggestion.create({});\n      sug.text;\n    }\n  ]\n})';
+var varPropHover = typeHoverHandler.handle(typeHoverText, { line: 9, character: 10 });
+test(varPropHover != null, 'Hover on variable.property resolves: ' + (varPropHover ? 'yes' : 'null'));
+test(varPropHover && varPropHover.contents.value.indexOf('text') !== -1, 'variable.property hover shows property name');
+
 // === SEMANTIC TOKEN HANDLER TESTS ===
 
 section('SemanticTokenHandler');

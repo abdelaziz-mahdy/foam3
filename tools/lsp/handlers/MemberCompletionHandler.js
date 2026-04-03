@@ -116,7 +116,7 @@ foam.CLASS({
           kind: 10,
           detail: typeName,
           documentation: { kind: 'markdown', value: propDoc },
-          sortText: '0_' + p.name
+          sortText: '!' + p.name
         });
       }
 
@@ -133,7 +133,7 @@ foam.CLASS({
           detail: sig,
           documentation: { kind: 'markdown', value: doc },
           insertText: m.name + '()',
-          sortText: '1_' + m.name
+          sortText: '!1_' + m.name
         });
       }
 
@@ -161,7 +161,7 @@ foam.CLASS({
             kind: 7,
             detail: fullId,
             documentation: rdoc.substring(0, 100),
-            sortText: '2_' + alias
+            sortText: '!2_' + alias
           });
         }
 
@@ -175,7 +175,7 @@ foam.CLASS({
             label: name,
             kind: 10,
             detail: 'import',
-            sortText: '2_' + name
+            sortText: '!2_' + name
           });
         }
       } else {
@@ -190,7 +190,7 @@ foam.CLASS({
             kind: 7,
             detail: fullId,
             documentation: rdoc.substring(0, 100),
-            sortText: '2_' + shortName
+            sortText: '!2_' + shortName
           });
         }
 
@@ -200,7 +200,7 @@ foam.CLASS({
             label: importNames[i],
             kind: 10,
             detail: 'import',
-            sortText: '2_' + importNames[i]
+            sortText: '!2_' + importNames[i]
           });
         }
       }
@@ -227,7 +227,9 @@ foam.CLASS({
           kind: 10,
           detail: typeName + ' — ' + classId,
           documentation: p.documentation || '',
-          insertText: p.name + ': '
+          insertText: p.name + ': ',
+          sortText: '!' + p.name,
+          preselect: i === 0
         });
       }
       return { isIncomplete: false, items: items };
