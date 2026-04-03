@@ -45,25 +45,17 @@ foam.CLASS({
         var m = models[i];
         var className = m.refines || (m.package ? m.package + '.' + m.name : (m.name || 'Unknown'));
         var startLine = m.sourceLine_ || 0;
-
-        // Class symbol
         var kindNum = m.type_ === 'ENUM' ? 10 : m.type_ === 'INTERFACE' ? 11 : 5;
-        symbols.push({
-          name: className,
-          kind: kindNum,
-          range: { start: { line: startLine, character: 0 }, end: { line: startLine, character: 0 } },
-          selectionRange: { start: { line: startLine, character: 0 }, end: { line: startLine, character: 0 } }
-        });
+        var children = [];
 
-        // Property symbols from model
+        // Property children
         var props = m.properties || [];
         for ( var j = 0 ; j < props.length ; j++ ) {
           var p = props[j];
           var propName = typeof p === 'string' ? p : p.name;
           if ( ! propName ) continue;
-          // Find position in text for better source location
           var propPos = this.findPropPosition_(text, propName);
-          symbols.push({
+          children.push({
             name: propName,
             kind: 7,
             range: { start: propPos, end: propPos },
@@ -71,20 +63,28 @@ foam.CLASS({
           });
         }
 
-        // Method symbols from model
+        // Method children
         var methods = m.methods || [];
         for ( var j = 0 ; j < methods.length ; j++ ) {
           var method = methods[j];
           var methodName = typeof method === 'function' ? method.name : (method.name || '');
           if ( ! methodName ) continue;
           var methodPos = this.findMethodPosition_(text, methodName);
-          symbols.push({
+          children.push({
             name: methodName,
             kind: 6,
             range: { start: methodPos, end: methodPos },
             selectionRange: { start: methodPos, end: methodPos }
           });
         }
+
+        symbols.push({
+          name: className,
+          kind: kindNum,
+          range: { start: { line: startLine, character: 0 }, end: { line: startLine, character: 0 } },
+          selectionRange: { start: { line: startLine, character: 0 }, end: { line: startLine, character: 0 } },
+          children: children
+        });
       }
 
       // If no models from eval (SyntaxError), fall back to regex
