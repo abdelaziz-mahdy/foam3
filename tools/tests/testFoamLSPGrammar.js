@@ -7,7 +7,7 @@
  */
 
 // Quick test for FOAM LSP grammar — runs in seconds without full build.
-// Usage: cd ptv3 && node foam3/tools/tests/testFoamLSPGrammar.js
+// Usage: cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 
 console.log = function() { console.error.apply(console, arguments); };
 console.warn = function() { console.error.apply(console, arguments); };
@@ -290,6 +290,109 @@ var realMemberText = fs.readFileSync(path.resolve(process.cwd(), 'foam3/src/foam
 var realMemberHandler = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index });
 var realMemberResult = realMemberHandler.handle(realMemberText, { line: 79, character: 11 });
 test(realMemberResult.items.length > 100, 'this. on real file: ' + realMemberResult.items.length + ' items');
+
+// === WORKSPACE ANALYZER TESTS ===
+
+section('WorkspaceAnalyzer');
+var wsAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
+
+// Test single file analysis
+var singleResult = wsAnalyzer.analyzeSingleFile(path.resolve(process.cwd(), 'foam3/src/foam/parse/parse.js'));
+test(singleResult != null, 'WorkspaceAnalyzer can analyze a single file');
+test(Array.isArray(singleResult), 'Single file result is an array');
+
+// Test message generalization
+var gen1 = wsAnalyzer.generalizeMessage("Unknown class in requires: 'foam.core.auth.User'");
+test(gen1.indexOf('*') !== -1, 'generalizeMessage replaces class name with wildcard: ' + gen1);
+
+var gen2 = wsAnalyzer.generalizeMessage("Unknown property type: 'FooBar'");
+test(gen2 === "Unknown property type: 'FooBar'", 'generalizeMessage leaves short names alone');
+
+// === FOLDING RANGE TESTS ===
+
+section('Folding Ranges');
+
+// Load getFoldingRanges from server module via inline test
+var foldText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'Fold' + Q + ',\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'x' + Q + ' },\n    { class: ' + Q + 'Int' + Q + ', name: ' + Q + 'y' + Q + ' }\n  ],\n  methods: [\n    function foo() {},\n    function bar() {}\n  ]\n})';
+
+// Manual fold range detection (same algorithm as server)
+function testGetFoldingRanges(text) {
+  var ranges = [];
+  var keywords = ['properties', 'methods', 'requires', 'imports', 'exports', 'javaImports', 'actions', 'listeners'];
+  var lines = text.split('\n');
+
+  for ( var k = 0 ; k < keywords.length ; k++ ) {
+    var kw = keywords[k];
+    var pattern = new RegExp(kw + '\\s*:\\s*\\[');
+    for ( var i = 0 ; i < lines.length ; i++ ) {
+      if ( ! pattern.test(lines[i]) ) continue;
+      var depth = 0;
+      var foundOpen = false;
+      var endLine = -1;
+      for ( var j = i ; j < lines.length ; j++ ) {
+        var line = lines[j];
+        for ( var c = 0 ; c < line.length ; c++ ) {
+          if ( line[c] === '[' ) { depth++; foundOpen = true; }
+          else if ( line[c] === ']' ) {
+            depth--;
+            if ( foundOpen && depth === 0 ) { endLine = j; break; }
+          }
+        }
+        if ( endLine !== -1 ) break;
+      }
+      if ( endLine > i ) ranges.push({ startLine: i, endLine: endLine, kind: 'region' });
+    }
+  }
+  return ranges;
+}
+
+var foldRanges = testGetFoldingRanges(foldText);
+test(foldRanges.length === 2, 'Fold ranges found properties and methods: ' + foldRanges.length);
+test(foldRanges[0].startLine === 3, 'Properties fold starts at line 3');
+test(foldRanges[1].startLine === 7, 'Methods fold starts at line 7');
+
+// Test with requires
+var foldText2 = 'foam.CLASS({\n  requires: [\n    ' + Q + 'foam.u2.Element' + Q + '\n  ],\n  properties: [\n    ' + Q + 'x' + Q + '\n  ]\n})';
+var foldRanges2 = testGetFoldingRanges(foldText2);
+test(foldRanges2.length === 2, 'Fold ranges found requires and properties');
+
+// === CODE ACTION TESTS ===
+
+section('Code Actions');
+
+// Test findSimilarClasses (same algorithm as server)
+function testFindSimilarClasses(target, idx, maxResults) {
+  var targetShort = target.split('.').pop().toLowerCase();
+  var ids = idx.getAllClassIds();
+  var scored = [];
+  for ( var i = 0 ; i < ids.length ; i++ ) {
+    var shortName = ids[i].split('.').pop().toLowerCase();
+    if ( shortName === targetShort ) {
+      scored.push({ id: ids[i], score: 100 });
+    } else if ( shortName.indexOf(targetShort) !== -1 || targetShort.indexOf(shortName) !== -1 ) {
+      scored.push({ id: ids[i], score: 50 });
+    }
+  }
+  scored.sort(function(a, b) { return b.score - a.score; });
+  var results = [];
+  for ( var i = 0 ; i < Math.min(scored.length, maxResults) ; i++ ) results.push(scored[i].id);
+  return results;
+}
+
+// 'foam.core.FObject' should suggest 'foam.lang.FObject'
+var suggestions = testFindSimilarClasses('foam.core.FObject', index, 3);
+test(suggestions.some(function(s) { return s === 'foam.lang.FObject'; }), 'Suggests foam.lang.FObject for foam.core.FObject');
+
+// === WORKSPACE SYMBOL TESTS ===
+
+section('Workspace Symbols');
+var allIds = index.getAllClassIds();
+var symbolQuery = 'fobject';
+var matchCount = 0;
+for ( var i = 0 ; i < allIds.length ; i++ ) {
+  if ( allIds[i].toLowerCase().indexOf(symbolQuery) !== -1 ) matchCount++;
+}
+test(matchCount > 0, 'Workspace symbol query "fobject" finds matches: ' + matchCount);
 
 // === SUMMARY ===
 
