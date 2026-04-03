@@ -54,6 +54,10 @@
         "command": "foam.analyzeWorkspace",
         "title": "FOAM: Analyze Workspace",
         "icon": "$(play)"
+      },
+      {
+        "command": "foam.toggleFlag",
+        "title": "FOAM: Toggle Flag"
       }
     ],
     "menus": {

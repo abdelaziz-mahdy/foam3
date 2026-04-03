@@ -75,6 +75,23 @@ export function activate(context: ExtensionContext) {
     })
   );
 
+  // Register flag toggle command
+  const flagState: Record<string, boolean> = {
+    js: true, java: true, web: true, debug: true,
+    test: false, node: false, swift: false
+  };
+
+  context.subscriptions.push(
+    commands.registerCommand('foam.toggleFlag', (flagName: string) => {
+      flagState[flagName] = !flagState[flagName];
+      treeProvider.setActiveFlags(flagState);
+      window.showInformationMessage(
+        `FOAM flag "${flagName}" is now ${flagState[flagName] ? 'ON' : 'OFF'}. ` +
+        `Restart LSP (Cmd+Shift+P → "FOAM: Restart") to apply.`
+      );
+    })
+  );
+
   // Defer server start to not block activation
   setTimeout(() => {
     startServer(context, outputChannel, lspScript, pomPath, workspaceRoot, treeProvider, (r) => { runner = r; });

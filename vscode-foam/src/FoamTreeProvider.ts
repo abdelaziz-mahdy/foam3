@@ -258,10 +258,9 @@ export class FoamTreeProvider implements vscode.TreeDataProvider<FoamTreeItem> {
       const item = new FoamTreeItem(name + (active ? ' (active)' : ' (off)'));
       item.iconPath = new vscode.ThemeIcon(active ? 'check' : 'circle-outline');
       item.tooltip = active
-        ? `Flag "${name}" is ON — classes with this flag are loaded and analyzed`
-        : `Flag "${name}" is OFF — classes with this flag are known but not loaded/analyzed`;
-      // Future: make clickable to toggle
-      // item.command = { command: 'foam.toggleFlag', title: 'Toggle', arguments: [name] };
+        ? `Flag "${name}" is ON — click to disable (requires LSP restart)`
+        : `Flag "${name}" is OFF — click to enable (requires LSP restart)`;
+      item.command = { command: 'foam.toggleFlag', title: 'Toggle Flag', arguments: [name] };
       children.push(item);
     }
 

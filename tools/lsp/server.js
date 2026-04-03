@@ -479,20 +479,15 @@ function start() {
           var results = workspaceAnalyzer.analyze(function(progress) {
             notify('foam/analyzeProgress', progress);
           });
-          // Push diagnostics for each file with issues
-          for ( var uri in results.fileResults ) {
-            notify('textDocument/publishDiagnostics', {
-              uri: uri,
-              diagnostics: results.fileResults[uri]
-            });
-          }
+          // Return results for sidebar only — per-file diagnostics handles Problems panel
           respond(id, {
-            filesScanned:   results.filesScanned,
+            filesScanned:    results.filesScanned,
             filesWithIssues: results.filesWithIssues,
-            warnings:       results.warnings,
-            errors:         results.errors,
-            infos:          results.infos,
-            patterns:       results.patterns
+            warnings:        results.warnings,
+            errors:          results.errors,
+            infos:           results.infos,
+            patterns:        results.patterns,
+            fileResults:     results.fileResults
           });
         } catch (e) {
           console.error('[LSP] analyzeWorkspace error:', e.message);
