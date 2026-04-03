@@ -7,6 +7,7 @@ foam.POM({
     { name: 'DiagnosticsHandler', flags: 'js' },
     { name: 'JavaBlockValidator', flags: 'js' },
     { name: 'SymbolHandler', flags: 'js' },
-    { name: 'MemberCompletionHandler', flags: 'js' }
+    { name: 'MemberCompletionHandler', flags: 'js' },
+    { name: 'WorkspaceAnalyzer', flags: 'js' }
   ]
 });

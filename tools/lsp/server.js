@@ -23,6 +23,8 @@ function start() {
   var symbolHandler      = foam.parse.lsp.handlers.SymbolHandler.create();
   var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index });
 
+  var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
+
   var documents = {};
   var buffer = '';
 
@@ -153,6 +155,149 @@ function start() {
     };
   }
 
+  function getFoldingRanges(text) {
+    /**
+     * Finds foldable sections: properties, methods, requires, imports,
+     * exports, javaImports, actions, listeners arrays.
+     */
+    var ranges = [];
+    var keywords = ['properties', 'methods', 'requires', 'imports', 'exports', 'javaImports', 'actions', 'listeners'];
+    var lines = text.split('\n');
+
+    for ( var k = 0 ; k < keywords.length ; k++ ) {
+      var kw = keywords[k];
+      var pattern = new RegExp(kw + '\\s*:\\s*\\[');
+
+      for ( var i = 0 ; i < lines.length ; i++ ) {
+        if ( ! pattern.test(lines[i]) ) continue;
+
+        // Find the matching ] using balanced bracket tracking
+        var depth = 0;
+        var foundOpen = false;
+        var endLine = -1;
+        for ( var j = i ; j < lines.length ; j++ ) {
+          var line = lines[j];
+          for ( var c = 0 ; c < line.length ; c++ ) {
+            if ( line[c] === '[' ) { depth++; foundOpen = true; }
+            else if ( line[c] === ']' ) {
+              depth--;
+              if ( foundOpen && depth === 0 ) {
+                endLine = j;
+                break;
+              }
+            }
+          }
+          if ( endLine !== -1 ) break;
+        }
+
+        if ( endLine > i ) {
+          ranges.push({
+            startLine: i,
+            endLine: endLine,
+            kind: 'region'
+          });
+        }
+      }
+    }
+
+    return ranges;
+  }
+
+  function getCodeActions(text, range, context, index) {
+    /**
+     * Provides code actions for diagnostics:
+     * - "Did you mean X?" for unknown class references
+     * - "Replace with correct import" for wrong Java packages
+     */
+    var actions = [];
+    if ( ! context || ! context.diagnostics ) return actions;
+
+    for ( var i = 0 ; i < context.diagnostics.length ; i++ ) {
+      var diag = context.diagnostics[i];
+
+      // For "Unknown class" diagnostics, suggest similar names
+      var unknownMatch = diag.message.match(/Unknown class[^']*'([^']+)'/);
+      if ( unknownMatch ) {
+        var unknownId = unknownMatch[1];
+        var suggestions = findSimilarClasses(unknownId, index, 3);
+        for ( var s = 0 ; s < suggestions.length ; s++ ) {
+          actions.push({
+            title: "Did you mean '" + suggestions[s] + "'?",
+            kind: 'quickfix',
+            diagnostics: [diag],
+            edit: {
+              changes: {
+                [context.textDocument ? context.textDocument.uri : '']: [{
+                  range: diag.range,
+                  newText: suggestions[s]
+                }]
+              }
+            }
+          });
+        }
+      }
+
+      // For wrong Java import packages, suggest correct ones
+      var javaImportMappings = index.getJavaImportMappings();
+      var wrongPkgMatch = diag.message.match(/Wrong Java package[^']*'([^']+)'/);
+      if ( wrongPkgMatch ) {
+        var wrongPkg = wrongPkgMatch[1];
+        if ( javaImportMappings[wrongPkg] ) {
+          actions.push({
+            title: "Replace with '" + javaImportMappings[wrongPkg] + "'",
+            kind: 'quickfix',
+            isPreferred: true,
+            diagnostics: [diag],
+            edit: {
+              changes: {
+                [context.textDocument ? context.textDocument.uri : '']: [{
+                  range: diag.range,
+                  newText: javaImportMappings[wrongPkg]
+                }]
+              }
+            }
+          });
+        }
+      }
+    }
+
+    return actions;
+  }
+
+  function findSimilarClasses(target, index, maxResults) {
+    /** Simple fuzzy match: find classes whose short name is close to target's short name. */
+    var targetShort = target.split('.').pop().toLowerCase();
+    var ids = index.getAllClassIds();
+    var scored = [];
+
+    for ( var i = 0 ; i < ids.length ; i++ ) {
+      var shortName = ids[i].split('.').pop().toLowerCase();
+      if ( shortName === targetShort ) {
+        // Exact short name match but different package — high score
+        scored.push({ id: ids[i], score: 100 });
+      } else if ( shortName.indexOf(targetShort) !== -1 || targetShort.indexOf(shortName) !== -1 ) {
+        scored.push({ id: ids[i], score: 50 });
+      } else {
+        // Levenshtein-like: count common chars
+        var common = 0;
+        for ( var c = 0 ; c < targetShort.length ; c++ ) {
+          if ( shortName.indexOf(targetShort[c]) !== -1 ) common++;
+        }
+        var similarity = common / Math.max(targetShort.length, shortName.length);
+        if ( similarity > 0.6 ) {
+          scored.push({ id: ids[i], score: Math.round(similarity * 40) });
+        }
+      }
+    }
+
+    scored.sort(function(a, b) { return b.score - a.score; });
+    var results = [];
+    for ( var i = 0 ; i < Math.min(scored.length, maxResults) ; i++ ) {
+      results.push(scored[i].id);
+    }
+    return results;
+  }
+
   function pushDiagnostics(uri, text) {
     notify('textDocument/publishDiagnostics', {
       uri: uri,
@@ -207,9 +352,15 @@ function start() {
             documentSymbolProvider: true,
             signatureHelpProvider: {
               triggerCharacters: ['(', ',']
-            }
+            },
+            workspaceSymbolProvider: true,
+            foldingRangeProvider: true,
+            codeActionProvider: true
           },
-          serverInfo: { name: 'foam-lsp', version: '0.1.0' }
+          experimental: {
+            workspaceAnalyzer: true
+          },
+          serverInfo: { name: 'foam-lsp', version: '0.2.0' }
         });
         break;
 
@@ -321,6 +472,67 @@ function start() {
           console.error('[LSP] signatureHelp error:', e.message);
           respond(id, null);
         }
+        break;
+
+      case 'foam/analyzeWorkspace':
+        try {
+          var results = workspaceAnalyzer.analyze(function(progress) {
+            notify('foam/analyzeProgress', progress);
+          });
+          // Push diagnostics for each file with issues
+          for ( var uri in results.fileResults ) {
+            notify('textDocument/publishDiagnostics', {
+              uri: uri,
+              diagnostics: results.fileResults[uri]
+            });
+          }
+          respond(id, {
+            filesScanned:   results.filesScanned,
+            filesWithIssues: results.filesWithIssues,
+            warnings:       results.warnings,
+            errors:         results.errors,
+            infos:          results.infos,
+            patterns:       results.patterns
+          });
+        } catch (e) {
+          console.error('[LSP] analyzeWorkspace error:', e.message);
+          respondError(id, -32603, e.message);
+        }
+        break;
+
+      case 'workspace/symbol':
+        var query = (params.query || '').toLowerCase();
+        var symbols = [];
+        var ids = index.getAllClassIds();
+        for ( var i = 0 ; i < ids.length && symbols.length < 100 ; i++ ) {
+          if ( ids[i].toLowerCase().indexOf(query) !== -1 ) {
+            var filePath = index.getFilePath(ids[i]);
+            if ( filePath ) {
+              symbols.push({
+                name: ids[i].split('.').pop(),
+                kind: 5,
+                location: {
+                  uri: 'file://' + filePath,
+                  range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
+                },
+                containerName: ids[i]
+              });
+            }
+          }
+        }
+        respond(id, symbols);
+        break;
+
+      case 'textDocument/foldingRange':
+        var doc = documents[params.textDocument.uri];
+        if ( ! doc ) { respond(id, []); break; }
+        respond(id, getFoldingRanges(doc.text));
+        break;
+
+      case 'textDocument/codeAction':
+        var doc = documents[params.textDocument.uri];
+        if ( ! doc ) { respond(id, []); break; }
+        respond(id, getCodeActions(doc.text, params.range, params.context, index));
         break;
 
       default:
