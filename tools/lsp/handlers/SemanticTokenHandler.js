@@ -246,6 +246,15 @@ foam.CLASS({
           }
         }
 
+        // Java variable declarations: TypeName varName = or var varName =
+        var varDeclRegex = /\b(?:([A-Z]\w+)|var)\s+([a-z]\w*)\s*[=;]/g;
+        var vd;
+        while ( ( vd = varDeclRegex.exec(javaStr) ) !== null ) {
+          var vName = vd[2];
+          var vOffset = vd.index + vd[0].indexOf(vName);
+          addToken(baseOffset + vOffset, vName.length, 2);
+        }
+
         // Enum values: ClassName.VALUE — resolved via same resolveType + getEnumValues
         var enumRegex = /\b([A-Z]\w*)\.([A-Z][A-Z0-9_]+)\b/g;
         var em;
