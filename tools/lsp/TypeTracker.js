@@ -35,6 +35,9 @@ foam.CLASS({
       var requiresMap = this.cache.buildRequiresMap(model);
       var lines = text.split('\n');
 
+      // Resolve the current class for method return type lookups
+      var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
+
       // Scan backward from cursor, stop at function boundary
       for ( var i = position.line ; i >= 0 ; i-- ) {
         var line = lines[i];
@@ -43,14 +46,47 @@ foam.CLASS({
         // Stop at function declaration (we've left the method scope)
         if ( i < position.line && /^\s*function\s+\w+\s*\(/.test(line) ) break;
         if ( i < position.line && /^\s*\w+\s*:\s*function\s*\(/.test(line) ) break;
+        if ( i < position.line && /^\s*async\s+function\s+\w+\s*\(/.test(line) ) break;
 
         // var x = this.ShortName.create( or var x = ClassName.create(
-        var match = line.match(/(?:var|let|const)\s+(\w+)\s*=\s*(?:this\.)?(\w+)\.create\s*\(/);
-        if ( match ) {
-          var varName = match[1];
-          var className = match[2];
-          var resolved = requiresMap[className] || ( index.classExists(className) ? className : null );
+        var createMatch = line.match(/(?:var|let|const)\s+(\w+)\s*=\s*(?:this\.)?(\w+)\.create\s*\(/);
+        if ( createMatch ) {
+          var varName = createMatch[1];
+          var className = createMatch[2];
+          var resolved = requiresMap[className] || (index.classExists(className) ? className : null);
           if ( resolved ) types[varName] = resolved;
+          continue;
+        }
+
+        // var x = this.methodName(...) → resolve from method.type on current class
+        var methodMatch = line.match(/(?:var|let|const)\s+(\w+)\s*=\s*this\.(\w+)\s*\(/);
+        if ( methodMatch ) {
+          var varName = methodMatch[1];
+          var methodName = methodMatch[2];
+          // Skip .create() (handled above)
+          if ( methodName === 'create' ) continue;
+          var cls = index.getClass(classId);
+          if ( cls ) {
+            var methods = cls.getAxiomsByClass(foam.lang.Method);
+            for ( var j = 0 ; j < methods.length ; j++ ) {
+              if ( methods[j].name === methodName && methods[j].type ) {
+                var retType = methods[j].type;
+                if ( retType !== 'Void' && retType !== 'void' ) {
+                  var resolved = index.classExists(retType) ? retType : null;
+                  if ( ! resolved ) {
+                    // Try short name resolution
+                    var ids = index.getAllClassIds();
+                    var suffix = '.' + retType;
+                    for ( var k = 0 ; k < ids.length ; k++ ) {
+                      if ( ids[k].endsWith(suffix) ) { resolved = ids[k]; break; }
+                    }
+                  }
+                  if ( resolved ) types[varName] = resolved;
+                }
+                break;
+              }
+            }
+          }
         }
       }
       return types;

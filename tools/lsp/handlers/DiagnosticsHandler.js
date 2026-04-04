@@ -41,6 +41,11 @@ foam.CLASS({
       factory: function() { return this.JavaBlockValidator.create({ index: this.index }); }
     },
     {
+      name: 'prevResults_',
+      documentation: 'Cache of previous diagnostics per URI for incremental updates.',
+      factory: function() { return {}; }
+    },
+    {
       name: 'validTypes_',
       factory: function() {
         var types = {};
@@ -63,11 +68,26 @@ foam.CLASS({
       var uri = opt_uri || '';
       var models = this.cache.getModels(uri, text);
       var diagnostics = [];
+      var prev = this.prevResults_[uri];
 
       for ( var i = 0 ; i < models.length ; i++ ) {
-        this.validateModel_(models[i], text, diagnostics);
+        var m = models[i];
+        var modelKey = (m.refines || (m.package ? m.package + '.' + m.name : m.name)) + '_' + (m.sourceLine_ || 0);
+
+        // Incremental: reuse previous diagnostics if model hasn't changed
+        if ( prev && prev.modelKeys && prev.modelKeys[modelKey] && prev.text === text ) {
+          var cached = prev.modelKeys[modelKey];
+          for ( var j = 0 ; j < cached.length ; j++ ) diagnostics.push(cached[j]);
+        } else {
+          var modelDiags = [];
+          this.validateModel_(m, text, modelDiags);
+          for ( var j = 0 ; j < modelDiags.length ; j++ ) diagnostics.push(modelDiags[j]);
+          if ( ! prev ) prev = { text: text, modelKeys: {} };
+          prev.modelKeys[modelKey] = modelDiags;
+        }
       }
 
+      this.prevResults_[uri] = { text: text, modelKeys: prev ? prev.modelKeys : {} };
       return diagnostics;
     },
 

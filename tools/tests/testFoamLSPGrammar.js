@@ -697,6 +697,18 @@ test( ! Array.isArray(defSingleResult) || defSingleResult.length === 1, 'Definit
 // Go-to-definition resolves to correct line (not line 0)
 test(defSingleResult && defSingleResult.range && defSingleResult.range.start.line > 0 || true, 'Definition: returns non-zero line when method is not at top');
 
+// JS method return type: var sub = this.getCurrentSubject() → resolves from method.type
+var jsRetText = 'foam.CLASS({\n  package: ' + Q + 'foam.core.auth' + Q + ',\n  name: ' + Q + 'AuthService' + Q + ',\n  methods: [\n    function test() {\n      var sub = this.getCurrentSubject();\n      sub.text;\n    }\n  ]\n})';
+var jsRetModel = cache.getModelAt('', jsRetText, 6);
+var jsRetTypes = typeTracker.getVariableTypes(jsRetText, { line: 6, character: 10 }, jsRetModel, index);
+test(jsRetTypes['sub'] === 'foam.core.auth.Subject', 'JS method return type: getCurrentSubject → Subject: ' + jsRetTypes['sub']);
+
+// Incremental diagnostics — same text returns same result (cached)
+var incText = "foam.CLASS({\n  extends: 'foam.lang.FObject'\n})";
+var diags1 = diagHandler.handle(incText, 'file:///inc-test');
+var diags2 = diagHandler.handle(incText, 'file:///inc-test');
+test(diags1.length === diags2.length, 'Incremental diagnostics: same text same result');
+
 // Cast with nested parens: ((AuthService) x.get("auth")).check resolves
 var nestedCastInfo = analyzer.resolveJavaCastType('var r = ((AuthService) x.get("auth")).check(x);', {}, index);
 test(nestedCastInfo != null && nestedCastInfo.typeName === 'AuthService', 'resolveJavaCastType: nested parens in cast expr');
