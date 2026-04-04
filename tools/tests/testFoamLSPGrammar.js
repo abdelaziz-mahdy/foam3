@@ -714,6 +714,37 @@ var nestedCastInfo = analyzer.resolveJavaCastType('var r = ((AuthService) x.get(
 test(nestedCastInfo != null && nestedCastInfo.typeName === 'AuthService', 'resolveJavaCastType: nested parens in cast expr');
 test(nestedCastInfo != null && nestedCastInfo.methodName === 'check', 'resolveJavaCastType: method after nested cast');
 
+// === JRL HANDLER TESTS ===
+
+section('JrlHandler');
+var jrlHandler = foam.parse.lsp.handlers.JrlHandler.create({ index: index });
+
+// JRL hover on class value
+var jrlLine = 'p({"class":"foam.parse.Suggestion","id":1,"text":"hello"})';
+var jrlClassHover = jrlHandler.handleHover(jrlLine, { line: 0, character: 16 });
+test(jrlClassHover != null, 'JRL hover: class value shows class info');
+test(jrlClassHover && jrlClassHover.contents.value.indexOf('foam.parse.Suggestion') !== -1, 'JRL hover: class value contains class name');
+
+// JRL hover on property name — "text" starts at col 43
+var jrlPropHover = jrlHandler.handleHover(jrlLine, { line: 0, character: 43 });
+test(jrlPropHover != null, 'JRL hover: property name shows type: ' + (jrlPropHover ? 'yes' : 'null'));
+
+// JRL hover on timestamp → formatted date
+var jrlDateLine = 'p({"class":"foam.core.auth.User","id":1,"lastLogin":1735689600000})';
+var jrlDateHover = jrlHandler.handleHover(jrlDateLine, { line: 0, character: 55 });
+test(jrlDateHover != null, 'JRL hover: timestamp shows date');
+test(jrlDateHover && jrlDateHover.contents.value.indexOf('2025') !== -1, 'JRL hover: date contains year 2025');
+
+// JRL semantic tokens
+var jrlText = 'p({"class":"foam.parse.Suggestion","id":1,"text":"hello","active":true})\nc({"class":"foam.parse.Suggestion","id":2})';
+var jrlTokens = jrlHandler.handleSemanticTokens(jrlText);
+test(jrlTokens.data.length > 0, 'JRL semantic tokens: has data: ' + jrlTokens.data.length);
+test(jrlTokens.data.length % 5 === 0, 'JRL semantic tokens: multiple of 5');
+
+// JRL isJrlFile detection
+test(jrlHandler.isJrlFile('file:///test.jrl') === true, 'isJrlFile: .jrl returns true');
+test(jrlHandler.isJrlFile('file:///test.js') === false, 'isJrlFile: .js returns false');
+
 // === SUMMARY ===
 
 section('SUMMARY');

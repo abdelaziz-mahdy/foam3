@@ -10,6 +10,7 @@ foam.POM({
     { name: 'MemberCompletionHandler', flags: 'js' },
     { name: 'SemanticTokenHandler', flags: 'js' },
     { name: 'ReferencesHandler', flags: 'js' },
-    { name: 'WorkspaceAnalyzer', flags: 'js' }
+    { name: 'WorkspaceAnalyzer', flags: 'js' },
+    { name: 'JrlHandler', flags: 'js' }
   ]
 });

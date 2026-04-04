@@ -27,6 +27,7 @@ function start() {
 
   var semanticTokenHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
   var referencesHandler = foam.parse.lsp.handlers.ReferencesHandler.create({ index: index });
+  var jrlHandler = foam.parse.lsp.handlers.JrlHandler.create({ index: index });
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 
   var documents = {};
@@ -86,6 +87,10 @@ function start() {
 
   function isFoamFile(text) {
     return /foam\.(CLASS|ENUM|INTERFACE|RELATIONSHIP)\s*\(/.test(text);
+  }
+
+  function isJrlFile(uri) {
+    return uri && uri.endsWith('.jrl');
   }
 
   function getSignatureHelp(text, position, index) {
@@ -423,7 +428,19 @@ function start() {
 
       case 'textDocument/hover':
         var doc = documents[params.textDocument.uri];
-        if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, null); break; }
+        if ( ! doc ) { respond(id, null); break; }
+        // JRL file hover
+        if ( isJrlFile(params.textDocument.uri) ) {
+          try {
+            var result = jrlHandler.handleHover(doc.text, params.position);
+            respond(id, result);
+          } catch (e) {
+            console.error('[LSP] JRL hover error:', e.message);
+            respond(id, null);
+          }
+          break;
+        }
+        if ( ! isFoamFile(doc.text) ) { respond(id, null); break; }
         try {
           var result = hoverHandler.handle(doc.text, params.position);
           console.error('[LSP] hover: success');
@@ -537,8 +554,19 @@ function start() {
 
       case 'textDocument/semanticTokens/full':
         var doc = documents[params.textDocument.uri];
-        console.error('[LSP] semanticTokens/full requested for', params.textDocument.uri, 'doc exists:', !!doc);
-        if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, { data: [] }); break; }
+        if ( ! doc ) { respond(id, { data: [] }); break; }
+        // JRL file semantic tokens
+        if ( isJrlFile(params.textDocument.uri) ) {
+          try {
+            var result = jrlHandler.handleSemanticTokens(doc.text);
+            respond(id, result);
+          } catch (e) {
+            console.error('[LSP] JRL semanticTokens error:', e.message);
+            respond(id, { data: [] });
+          }
+          break;
+        }
+        if ( ! isFoamFile(doc.text) ) { respond(id, { data: [] }); break; }
         try {
           var result = semanticTokenHandler.handle(doc.text, params.textDocument.uri);
           console.error('[LSP] semanticTokens: ' + (result.data.length / 5) + ' tokens');

@@ -114,10 +114,14 @@ function startServer(
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: 'file', language: 'javascript' }],
+    documentSelector: [
+      { scheme: 'file', language: 'javascript' },
+      { scheme: 'file', language: 'foam-journal' }
+    ],
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.js'),
+        workspace.createFileSystemWatcher('**/*.jrl'),
         workspace.createFileSystemWatcher('**/pom.js')
       ]
     },
