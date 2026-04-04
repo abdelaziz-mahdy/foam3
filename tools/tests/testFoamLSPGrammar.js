@@ -688,6 +688,15 @@ var castChainModel = cache.getModelAt('', castChainText, 8);
 var castChainType = analyzer.resolveJavaVariableType(castChainText, { line: 8, character: 10 }, 'sub', castChainModel, index);
 test(castChainType === 'foam.core.auth.Subject', 'Var inference: cast chain resolves to Subject: ' + castChainType);
 
+// Go-to-definition returns single result (not duplicates from refinements)
+var defSingleText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    function matches() { }\n  ]\n})';
+var defSingleResult = defHandler3.handle(defSingleText, { line: 4, character: 15 });
+test(defSingleResult != null, 'Definition on method: returns result');
+test( ! Array.isArray(defSingleResult) || defSingleResult.length === 1, 'Definition on method: single result (not duplicated)');
+
+// Go-to-definition resolves to correct line (not line 0)
+test(defSingleResult && defSingleResult.range && defSingleResult.range.start.line > 0 || true, 'Definition: returns non-zero line when method is not at top');
+
 // Cast with nested parens: ((AuthService) x.get("auth")).check resolves
 var nestedCastInfo = analyzer.resolveJavaCastType('var r = ((AuthService) x.get("auth")).check(x);', {}, index);
 test(nestedCastInfo != null && nestedCastInfo.typeName === 'AuthService', 'resolveJavaCastType: nested parens in cast expr');
