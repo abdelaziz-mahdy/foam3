@@ -246,13 +246,25 @@ foam.CLASS({
           }
         }
 
-        // Java variable declarations: TypeName varName = or var varName =
-        var varDeclRegex = /\b(?:([A-Z]\w+)|var)\s+([a-z]\w*)\s*[=;]/g;
+        // Java variable declarations — knowledge-driven via resolveJavaTypeName
+        // Only highlights variables whose type resolves to a known FOAM class
+        var varDeclRegex = /\b(\w+)\s+([a-z]\w*)\s*[=;]/g;
         var vd;
         while ( ( vd = varDeclRegex.exec(javaStr) ) !== null ) {
-          var vName = vd[2];
-          var vOffset = vd.index + vd[0].indexOf(vName);
-          addToken(baseOffset + vOffset, vName.length, 2);
+          var declType = vd[1];
+          if ( /^(if|for|while|try|catch|throw|return|new|else|var|int|long|float|double|boolean|byte|short|char|void)$/.test(declType) ) {
+            // 'var' and primitives: still mark the variable name
+            if ( declType === 'var' || /^(int|long|float|double|boolean|byte|short|char)$/.test(declType) ) {
+              var vOffset = vd.index + vd[0].indexOf(vd[2]);
+              addToken(baseOffset + vOffset, vd[2].length, 2);
+            }
+            continue;
+          }
+          // Only mark if the type resolves — same path as hover
+          if ( resolveType(declType) ) {
+            var vOffset = vd.index + vd[0].indexOf(vd[2]);
+            addToken(baseOffset + vOffset, vd[2].length, 2);
+          }
         }
 
         // Enum values: ClassName.VALUE — resolved via same resolveType + getEnumValues
