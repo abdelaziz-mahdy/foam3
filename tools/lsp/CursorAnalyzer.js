@@ -168,19 +168,60 @@ foam.CLASS({
 
     function resolveJavaVariableType(text, position, varName, model, index) {
       /**
-       * Resolve a Java variable's type from its declaration.
-       * Scans backward for: TypeName varName = ... or TypeName varName;
+       * Resolve a Java variable's type from its declaration or cast.
+       * Checks (in order):
+       *   1. Cast: ((TypeName) varName). on the current line
+       *   2. Declaration: TypeName varName = ... scanning backward
        */
       var lines = text.split('\n');
+      var line = lines[position.line] || '';
+
+      // Check for cast on current line: ((TypeName) varName).
+      var castRegex = new RegExp('\\(\\s*\\(\\s*(\\w+)\\s*\\)\\s*' + varName + '\\s*\\)');
+      var castMatch = line.match(castRegex);
+      if ( castMatch ) {
+        var castType = this.resolveJavaTypeName(castMatch[1], model, index);
+        if ( castType ) return castType;
+      }
+
+      // Also check previous lines for multi-line cast
+      for ( var i = position.line ; i >= Math.max(0, position.line - 3) ; i-- ) {
+        var checkLine = lines[i];
+        if ( ! checkLine ) continue;
+        var mlCast = checkLine.match(castRegex);
+        if ( mlCast ) {
+          var castType = this.resolveJavaTypeName(mlCast[1], model, index);
+          if ( castType ) return castType;
+        }
+      }
+
+      // Declaration: TypeName varName = ... or TypeName varName;
       for ( var i = position.line ; i >= 0 ; i-- ) {
-        var line = lines[i];
-        if ( ! line ) continue;
-        var declMatch = line.match(new RegExp('(\\w+)\\s+' + varName + '\\s*[=;]'));
+        var scanLine = lines[i];
+        if ( ! scanLine ) continue;
+        var declMatch = scanLine.match(new RegExp('(\\w+)\\s+' + varName + '\\s*[=;]'));
         if ( declMatch ) {
           var typeName = declMatch[1];
           if ( ['var', 'return', 'new', 'if', 'for', 'while', 'try', 'catch', 'throw', 'else'].indexOf(typeName) !== -1 ) continue;
           return this.resolveJavaTypeName(typeName, model, index);
         }
+      }
+      return null;
+    },
+
+    function resolveJavaCastType(line, model, index) {
+      /**
+       * Extract the cast type from a line containing ((TypeName) expr).method()
+       * Returns the resolved FOAM class ID or null.
+       * Used by hover on method calls after casts and by semantic tokens.
+       */
+      var castMatch = line.match(/\(\s*\(\s*(\w+)\s*\)\s*\w+\s*\)\s*\.\s*(\w+)/);
+      if ( castMatch ) {
+        return {
+          classId: this.resolveJavaTypeName(castMatch[1], model, index),
+          typeName: castMatch[1],
+          methodName: castMatch[2]
+        };
       }
       return null;
     },

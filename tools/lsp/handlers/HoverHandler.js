@@ -181,10 +181,21 @@ foam.CLASS({
       var model = this.cache.getModelAt(opt_uri || '', text, position.line);
 
       // Hover on getX/setX → show property type
+      // Resolves from: (1) cast on same line, (2) current model's class
       var getSetMatch = segment.match(/^(get|set)([A-Z]\w*)$/);
       if ( getSetMatch ) {
         var propName = getSetMatch[2].charAt(0).toLowerCase() + getSetMatch[2].substring(1);
-        var classId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+
+        // Try cast resolution first: ((TypeName) expr).getX()
+        var lines = text.split('\n');
+        var castInfo = this.analyzer.resolveJavaCastType(lines[position.line] || '', model, this.index);
+        var classId = castInfo && castInfo.classId ? castInfo.classId : null;
+
+        // Fall back to current model's class
+        if ( ! classId ) {
+          classId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+        }
+
         if ( classId ) {
           var javaType = this.index.getPropertyJavaType(classId, propName);
           if ( javaType ) {

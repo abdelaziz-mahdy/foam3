@@ -283,12 +283,29 @@ foam.CLASS({
           }
         }
 
-        // Getter/setter calls — verified against known properties
+        // Getter/setter calls — verified against known properties OR cast target properties
         var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
         var gs;
         while ( ( gs = getSetRegex.exec(javaStr) ) !== null ) {
           var propName = gs[2].charAt(0).toLowerCase() + gs[2].substring(1);
-          if ( propNames[propName.toLowerCase()] ) {
+          var known = propNames[propName.toLowerCase()];
+
+          // If not on current model, check if preceded by a cast: ((TypeName) x).getX()
+          if ( ! known ) {
+            var beforeGetter = javaStr.substring(Math.max(0, gs.index - 100), gs.index);
+            var castMatch = beforeGetter.match(/\(\s*\(\s*(\w+)\s*\)\s*\w+\s*\)\s*\.\s*$/);
+            if ( castMatch ) {
+              var castClassId = resolveType(castMatch[1]);
+              if ( castClassId ) {
+                var castProps = self.index.getProperties(castClassId);
+                for ( var i = 0 ; i < castProps.length ; i++ ) {
+                  if ( castProps[i].name.toLowerCase() === propName.toLowerCase() ) { known = true; break; }
+                }
+              }
+            }
+          }
+
+          if ( known ) {
             addToken(baseOffset + gs.index, gs[1].length + gs[2].length, 8);
           }
         }
