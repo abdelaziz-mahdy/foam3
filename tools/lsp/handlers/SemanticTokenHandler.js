@@ -62,40 +62,47 @@ foam.CLASS({
 
     function collectModelTokens_(text, model, tokens) {
       var requiresMap = this.cache.buildRequiresMap(model);
+      var aliases = Object.keys(requiresMap);
+      if ( aliases.length === 0 ) return;
+
       var lines = text.split('\n');
 
-      // Find this.<alias> references — mark alias as 'type' (token type 0)
-      for ( var alias in requiresMap ) {
-        var pattern = new RegExp('this\\.' + alias + '\\b', 'g');
-        for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
-          var line = lines[lineNum];
-          var match;
-          while ( ( match = pattern.exec(line) ) !== null ) {
-            // Offset past 'this.' to highlight just the alias
-            tokens.push({
-              line: lineNum,
-              char: match.index + 5,
-              length: alias.length,
-              type: 0,
-              modifiers: 0
-            });
-          }
+      // Build a single regex for all aliases: this\.(Alias1|Alias2|...)\b
+      var aliasPattern = new RegExp('this\\.(' + aliases.map(function(a) {
+        return a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }).join('|') + ')\\b', 'g');
+
+      // Single pass over all lines for alias references
+      for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        var line = lines[lineNum];
+        aliasPattern.lastIndex = 0;
+        var match;
+        while ( ( match = aliasPattern.exec(line) ) !== null ) {
+          tokens.push({
+            line: lineNum,
+            char: match.index + 5,
+            length: match[1].length,
+            type: 0,
+            modifiers: 0
+          });
         }
       }
 
-      // Find typed variables — mark as 'variable' (token type 2)
-      if ( this.typeTracker ) {
-        var createRegex = /(?:var|let|const)\s+(\w+)\s*=\s*(?:this\.)?(\w+)\.create\s*\(/g;
-        for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
-          var line = lines[lineNum];
-          var match;
-          while ( ( match = createRegex.exec(line) ) !== null ) {
-            var varName = match[1];
-            var className = match[2];
-            var resolved = requiresMap[className] || ( this.index.classExists(className) ? className : null );
-            if ( ! resolved ) continue;
+      // Typed variable declarations + usages (single pass)
+      if ( ! this.typeTracker ) return;
+      var createRegex = /(?:var|let|const)\s+(\w+)\s*=\s*(?:this\.)?(\w+)\.create\s*\(/g;
+      var varTypes = {};
 
-            // Mark the variable declaration
+      for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        var line = lines[lineNum];
+        createRegex.lastIndex = 0;
+        var match;
+        while ( ( match = createRegex.exec(line) ) !== null ) {
+          var varName = match[1];
+          var className = match[2];
+          var resolved = requiresMap[className] || ( this.index.classExists(className) ? className : null );
+          if ( resolved ) {
+            varTypes[varName] = true;
             tokens.push({
               line: lineNum,
               char: match.index + match[0].indexOf(varName),
@@ -103,21 +110,26 @@ foam.CLASS({
               type: 2,
               modifiers: 1
             });
+          }
+        }
+      }
 
-            // Find usages of this variable in subsequent lines
-            var usageRegex = new RegExp('\\b' + varName + '\\b', 'g');
-            for ( var j = lineNum + 1 ; j < lines.length ; j++ ) {
-              var usage;
-              while ( ( usage = usageRegex.exec(lines[j]) ) !== null ) {
-                tokens.push({
-                  line: j,
-                  char: usage.index,
-                  length: varName.length,
-                  type: 2,
-                  modifiers: 2
-                });
-              }
+      // Mark usages of typed variables
+      var varNames = Object.keys(varTypes);
+      if ( varNames.length === 0 ) return;
+      var usagePattern = new RegExp('\\b(' + varNames.join('|') + ')\\b', 'g');
+      for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        usagePattern.lastIndex = 0;
+        var match;
+        while ( ( match = usagePattern.exec(lines[lineNum]) ) !== null ) {
+          var isDecl = false;
+          for ( var t = 0 ; t < tokens.length ; t++ ) {
+            if ( tokens[t].line === lineNum && tokens[t].char === match.index && tokens[t].modifiers === 1 ) {
+              isDecl = true; break;
             }
+          }
+          if ( ! isDecl ) {
+            tokens.push({ line: lineNum, char: match.index, length: match[1].length, type: 2, modifiers: 2 });
           }
         }
       }
