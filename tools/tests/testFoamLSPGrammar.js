@@ -597,6 +597,21 @@ var javaSetResult = completionHandler.handle(javaSetText, { line: 7, character: 
 var setTextItem = javaSetResult.items.find(function(i) { return i.label.indexOf('setText') !== -1; });
 test(setTextItem && setTextItem.label.indexOf('String') !== -1, 'Java setter shows param type: ' + (setTextItem ? setTextItem.label : 'none'));
 
+// === REFERENCES HANDLER TESTS ===
+
+section('ReferencesHandler');
+var refsHandler = foam.parse.lsp.handlers.ReferencesHandler.create({ index: index });
+
+// Find references to foam.u2.Element — should have many subclasses
+var refsText = 'foam.CLASS({ extends: ' + Q + 'foam.u2.Element' + Q + ' })';
+var refsResult = refsHandler.handle(refsText, { line: 0, character: 25 });
+test(refsResult.length > 10, 'References: Element has many subclasses: ' + refsResult.length);
+
+// Find references to CreatedByAware — should have implementors
+var implRefsText = 'foam.CLASS({ implements: [' + Q + 'foam.core.auth.CreatedByAware' + Q + '] })';
+var implRefsResult = refsHandler.handle(implRefsText, { line: 0, character: 30 });
+test(implRefsResult.length > 0, 'References: CreatedByAware has implementors: ' + implRefsResult.length);
+
 // === SUMMARY ===
 
 section('SUMMARY');

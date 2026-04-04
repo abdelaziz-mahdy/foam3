@@ -26,6 +26,7 @@ function start() {
   var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
 
   var semanticTokenHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
+  var referencesHandler = foam.parse.lsp.handlers.ReferencesHandler.create({ index: index });
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 
   var documents = {};
@@ -337,6 +338,7 @@ function start() {
             },
             hoverProvider: true,
             definitionProvider: true,
+            referencesProvider: true,
             documentSymbolProvider: true,
             signatureHelpProvider: {
               triggerCharacters: ['(', ',']
@@ -542,6 +544,18 @@ function start() {
         } catch (e) {
           console.error('[LSP] semanticTokens error:', e.message);
           respond(id, { data: [] });
+        }
+        break;
+
+      case 'textDocument/references':
+        var doc = documents[params.textDocument.uri];
+        if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, []); break; }
+        try {
+          var result = referencesHandler.handle(doc.text, params.position);
+          respond(id, result);
+        } catch (e) {
+          console.error('[LSP] references error:', e.message);
+          respond(id, []);
         }
         break;
 
