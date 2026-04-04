@@ -1,0 +1,32 @@
+{
+  "scopeName": "source.foam-journal",
+  "patterns": [
+    {
+      "comment": "Function calls: p(...), c(...), r(...)",
+      "match": "^\\s*(\\w+)\\s*\\(",
+      "captures": {
+        "1": { "name": "keyword.other.foam-journal" }
+      }
+    },
+    {
+      "comment": "String keys and values in JSON-like content",
+      "match": "\"([^\"]+)\"",
+      "name": "string.quoted.double.foam-journal"
+    },
+    {
+      "comment": "Numbers",
+      "match": "\\b\\d+\\.?\\d*\\b",
+      "name": "constant.numeric.foam-journal"
+    },
+    {
+      "comment": "Booleans and null",
+      "match": "\\b(true|false|null)\\b",
+      "name": "constant.language.foam-journal"
+    },
+    {
+      "comment": "Comments",
+      "match": "//.*$",
+      "name": "comment.line.foam-journal"
+    }
+  ]
+}

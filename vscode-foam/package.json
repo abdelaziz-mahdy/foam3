@@ -35,6 +35,11 @@
     ],
     "grammars": [
       {
+        "language": "foam-journal",
+        "scopeName": "source.foam-journal",
+        "path": "./syntaxes/foam-jrl.tmLanguage.json"
+      },
+      {
         "scopeName": "foam.js.injection",
         "path": "./syntaxes/foam-js.tmLanguage.json",
         "injectTo": ["source.js"],
