@@ -126,18 +126,36 @@ foam.CLASS({
     },
 
     function buildLocationAtMethod(filePath, classId, methodName) {
-      /** Jump to a method definition within a file. */
+      /**
+       * Jump to a method definition within the correct class in the file.
+       * Uses FileModelCache to find the class's source range, then searches
+       * only within that range — avoids matching refinement methods.
+       */
       try {
         var fs_ = require('fs');
         var content = fs_.readFileSync(filePath, 'utf8');
-        var regex = new RegExp('function\\s+' + methodName + '\\s*\\(');
-        var match = regex.exec(content);
-        if ( match ) {
-          var line = 0;
-          for ( var i = 0 ; i < match.index ; i++ ) {
-            if ( content[i] === '\n' ) line++;
+
+        // Find the correct model's source range
+        var models = this.cache.parseFileModels(content);
+        var startLine = 0;
+        var endLine = content.split('\n').length;
+        for ( var i = 0 ; i < models.length ; i++ ) {
+          var m = models[i];
+          var id = m.refines || (m.package ? m.package + '.' + m.name : m.name);
+          if ( id === classId ) {
+            startLine = m.sourceLine_ || 0;
+            endLine = (i + 1 < models.length && models[i + 1].sourceLine_) ? models[i + 1].sourceLine_ : endLine;
+            break;
           }
-          return { uri: 'file://' + filePath, range: { start: { line: line, character: 0 }, end: { line: line, character: 0 } } };
+        }
+
+        // Search for the method only within the model's range
+        var lines = content.split('\n');
+        var regex = new RegExp('function\\s+' + methodName + '\\s*\\(');
+        for ( var ln = startLine ; ln < endLine ; ln++ ) {
+          if ( regex.test(lines[ln]) ) {
+            return { uri: 'file://' + filePath, range: { start: { line: ln, character: 0 }, end: { line: ln, character: 0 } } };
+          }
         }
       } catch (e) {}
       return this.buildLocation(filePath, classId);
