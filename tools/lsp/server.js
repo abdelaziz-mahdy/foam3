@@ -537,12 +537,14 @@ function start() {
 
       case 'textDocument/semanticTokens/full':
         var doc = documents[params.textDocument.uri];
+        console.error('[LSP] semanticTokens/full requested for', params.textDocument.uri, 'doc exists:', !!doc);
         if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, { data: [] }); break; }
         try {
           var result = semanticTokenHandler.handle(doc.text, params.textDocument.uri);
+          console.error('[LSP] semanticTokens: ' + (result.data.length / 5) + ' tokens');
           respond(id, result);
         } catch (e) {
-          console.error('[LSP] semanticTokens error:', e.message);
+          console.error('[LSP] semanticTokens error:', e.message, e.stack);
           respond(id, { data: [] });
         }
         break;
