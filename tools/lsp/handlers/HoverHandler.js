@@ -196,6 +196,28 @@ foam.CLASS({
         }
       }
 
+      // Hover on enum value: PRIVATE, SHARED, etc. — check if preceded by ClassName.
+      if ( /^[A-Z][A-Z0-9_]+$/.test(segment) ) {
+        var word = this.analyzer.getDottedWordAtPosition(text, position);
+        var dotParts = word ? word.split('.') : [];
+        if ( dotParts.length >= 2 ) {
+          var enumClassName = dotParts[dotParts.length - 2];
+          var enumValue = dotParts[dotParts.length - 1];
+          var enumClassId = this.analyzer.resolveJavaTypeName(enumClassName, model, this.index);
+          if ( enumClassId ) {
+            var enumValues = this.index.getEnumValues(enumClassId);
+            for ( var i = 0 ; i < enumValues.length ; i++ ) {
+              if ( enumValues[i].name === enumValue ) {
+                var md = '**' + enumClassId + '.' + enumValue + '**\n\n';
+                md += 'Enum value (ordinal: ' + enumValues[i].ordinal + ')';
+                if ( enumValues[i].label ) md += '\n\nLabel: ' + enumValues[i].label;
+                return { contents: { kind: 'markdown', value: md } };
+              }
+            }
+          }
+        }
+      }
+
       // Hover on a variable name → resolve its Java type
       var varType = this.analyzer.resolveJavaVariableType(text, position, segment, model, this.index);
       if ( varType ) {
