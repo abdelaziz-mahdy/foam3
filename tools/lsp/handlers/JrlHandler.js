@@ -276,58 +276,78 @@ foam.CLASS({
     },
 
     function parseJrlEntry_(line) {
-      /** Extract the JSON object from a p({...}) line. */
+      /**
+       * Extract the object from a p({...}), c({...}), r({...}) line.
+       * FOAM JRL uses JS object notation (unquoted keys), not JSON.
+       * Use eval to parse since it's valid JS.
+       */
       var match = line.match(/^\s*\w+\s*\(\s*(\{.*\})\s*\)\s*$/);
       if ( ! match ) return null;
       try {
+        // Try JSON first (faster, handles quoted keys)
         return JSON.parse(match[1]);
       } catch (e) {
-        return null;
+        // Fall back to eval for FOAM's unquoted-key format
+        try {
+          return eval('(' + match[1] + ')');
+        } catch (e2) {
+          return null;
+        }
       }
     },
 
     function getSegmentAt_(line, col) {
       /**
        * Find what's under the cursor in a JRL line.
+       * Handles both JSON ("key":value) and FOAM (key:value) formats.
        * Returns { value, isKey, isValue, key, rawValue } or null.
        */
-      // Find the nearest quoted string or number at the cursor position
       var entry = this.parseJrlEntry_(line);
       if ( ! entry ) return null;
 
-      // Scan for key-value positions
-      var kvRegex = /"(\w+)"\s*:\s*/g;
+      // Match both quoted and unquoted keys: "key": or key:
+      var kvRegex = /(?:"(\w+)"|(\w+))\s*:\s*/g;
       var kv;
       while ( ( kv = kvRegex.exec(line) ) !== null ) {
-        var keyStart = kv.index + 1;
-        var keyEnd = keyStart + kv[1].length;
+        var keyName = kv[1] || kv[2];
+        var keyStart = kv.index + (kv[1] ? 1 : 0); // skip quote if present
+        var keyEnd = keyStart + keyName.length;
 
         // Cursor on key name
         if ( col >= keyStart && col <= keyEnd ) {
-          return { value: kv[1], isKey: true, isValue: false };
+          return { value: keyName, isKey: true, isValue: false };
         }
 
         // Check if cursor is on the value after this key
         var afterKey = kv.index + kv[0].length;
         var valuePart = line.substring(afterKey);
 
-        // String value
+        // String value (quoted)
         var strMatch = valuePart.match(/^"([^"]*)"/);
         if ( strMatch ) {
-          var valStart = afterKey + 1;
           var valEnd = afterKey + 1 + strMatch[1].length;
           if ( col >= afterKey && col <= valEnd + 1 ) {
-            return { value: strMatch[1], isKey: false, isValue: true, key: kv[1], rawValue: entry[kv[1]] };
+            return { value: strMatch[1], isKey: false, isValue: true, key: keyName, rawValue: entry[keyName] };
           }
+          continue;
         }
 
         // Number value
         var numMatch = valuePart.match(/^(-?\d+\.?\d*)/);
         if ( numMatch ) {
-          var valStart = afterKey;
           var valEnd = afterKey + numMatch[1].length;
-          if ( col >= valStart && col <= valEnd ) {
-            return { value: numMatch[1], isKey: false, isValue: true, key: kv[1], rawValue: entry[kv[1]] };
+          if ( col >= afterKey && col <= valEnd ) {
+            return { value: numMatch[1], isKey: false, isValue: true, key: keyName, rawValue: entry[keyName] };
+          }
+          continue;
+        }
+
+        // Boolean/null
+        var boolMatch = valuePart.match(/^(true|false|null)/);
+        if ( boolMatch ) {
+          var valEnd = afterKey + boolMatch[1].length;
+          if ( col >= afterKey && col <= valEnd ) {
+            return { value: boolMatch[1], isKey: false, isValue: true, key: keyName, rawValue: entry[keyName] };
           }
         }
       }

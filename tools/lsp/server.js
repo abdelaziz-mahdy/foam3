@@ -430,7 +430,8 @@ function start() {
 
       case 'textDocument/hover':
         var doc = documents[params.textDocument.uri];
-        if ( ! doc ) { respond(id, null); break; }
+        console.error('[LSP] hover requested: ' + params.textDocument.uri);
+        if ( ! doc ) { console.error('[LSP] hover: no doc'); respond(id, null); break; }
         // JRL file hover
         if ( isJrlFile(params.textDocument.uri) ) {
           try {

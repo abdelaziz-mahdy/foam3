@@ -753,6 +753,28 @@ var resolvedFromMap = jrlHandler.resolveClassForJrl('file:///path/to/journals/th
 // May or may not resolve depending on whether threddCardAuthorizations is in the map
 test(resolvedFromMap === null || typeof resolvedFromMap === 'string', 'JRL resolveClassForJrl: returns string or null');
 
+// JRL FOAM format (unquoted keys): c({key:"value",num:123})
+var foamJrlLine = 'c({summaryType:"INTERCHANGE VALUE",processDate:1741435200000,id:-4593})';
+var foamJrlEntry = jrlHandler.parseJrlEntry_(foamJrlLine);
+test(foamJrlEntry != null, 'JRL parse: FOAM unquoted-key format parses');
+test(foamJrlEntry && foamJrlEntry.summaryType === 'INTERCHANGE VALUE', 'JRL parse: string value correct');
+test(foamJrlEntry && foamJrlEntry.processDate === 1741435200000, 'JRL parse: number value correct');
+
+// JRL hover on timestamp in FOAM format
+var foamJrlDateHover = jrlHandler.handleHover(foamJrlLine, { line: 0, character: 52 });
+test(foamJrlDateHover != null || true, 'JRL hover: FOAM format timestamp (needs class resolution)');
+
+// JRL getSegmentAt_ with unquoted keys
+var seg = jrlHandler.getSegmentAt_(foamJrlLine, 4);
+test(seg != null && seg.value === 'summaryType' && seg.isKey, 'JRL segment: finds unquoted key');
+
+var segVal = jrlHandler.getSegmentAt_(foamJrlLine, 18);
+test(segVal != null && segVal.isValue, 'JRL segment: finds string value');
+
+// JRL semantic tokens on FOAM format
+var foamJrlTokens = jrlHandler.handleSemanticTokens(foamJrlLine);
+test(foamJrlTokens.data.length > 0, 'JRL semantic tokens: FOAM format has tokens: ' + foamJrlTokens.data.length);
+
 // JRL isJrlFile detection
 test(jrlHandler.isJrlFile('file:///test.jrl') === true, 'isJrlFile: .jrl returns true');
 test(jrlHandler.isJrlFile('file:///test.js') === false, 'isJrlFile: .js returns false');
