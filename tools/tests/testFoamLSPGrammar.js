@@ -634,6 +634,38 @@ var javaTypeHoverText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\
 var javaTypeHover = hoverHandler.handle(javaTypeHoverText, { line: 7, character: 12 });
 test(javaTypeHover != null, 'Java hover: type name resolves to class');
 
+// Hover on enum value — shows enum info
+var enumHoverText = 'foam.CLASS({\n  package: ' + Q + 'foam.core.reflow' + Q + ',\n  name: ' + Q + 'Flow' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'test' + Q + ',\n      javaCode: ' + BT + '\n        FlowAccess.PRIVATE\n      ' + BT + '\n    }\n  ]\n})';
+var enumValHover = hoverHandler.handle(enumHoverText, { line: 7, character: 20 });
+test(enumValHover != null, 'Java hover: enum value shows info');
+
+// Cast-aware resolution: ((UserFlowAccess) o).getUserId()
+var castHoverText = 'foam.CLASS({\n  package: ' + Q + 'foam.core.reflow' + Q + ',\n  name: ' + Q + 'Flow' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'test' + Q + ',\n      javaCode: ' + BT + '\n        ((UserFlowAccess) o).getUserId()\n      ' + BT + '\n    }\n  ]\n})';
+var castMethodHover = hoverHandler.handle(castHoverText, { line: 7, character: 32 });
+test(castMethodHover != null, 'Java hover: getter after cast resolves');
+
+// resolveJavaCastType extracts cast info
+var castInfo = analyzer.resolveJavaCastType('((UserFlowAccess) o).getUserId()', {}, index);
+test(castInfo != null && castInfo.typeName === 'UserFlowAccess', 'resolveJavaCastType: extracts UserFlowAccess');
+
+// Java variable type from declaration
+var javaVarCompText = 'foam.CLASS({\n  package: ' + Q + 'foam.core.reflow' + Q + ',\n  name: ' + Q + 'Flow' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'test' + Q + ',\n      javaCode: ' + BT + '\n        User user = null;\n        user.get\n      ' + BT + '\n    }\n  ]\n})';
+var javaVarCompResult = completionHandler.handle(javaVarCompText, { line: 8, character: 16 });
+test(javaVarCompResult.items.length > 0, 'Java variable completion: user.get returns items: ' + javaVarCompResult.items.length);
+
+// Go-to-definition on method name
+var defHandler3 = foam.parse.lsp.handlers.DefinitionHandler.create({ index: index, cache: cache });
+var defMethodText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    function matches() { }\n  ]\n})';
+var defMethodResult = defHandler3.handle(defMethodText, { line: 4, character: 15 });
+test(defMethodResult != null, 'Go-to-definition on method resolves');
+
+// Nested document symbols — class has children
+var nestedSymHandler = foam.parse.lsp.handlers.SymbolHandler.create({ cache: cache });
+var symText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'SymTest' + Q + ',\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'foo' + Q + ' }\n  ],\n  methods: [\n    function bar() {}\n  ]\n})';
+var symResult = nestedSymHandler.handle(symText, '');
+test(symResult.length === 1, 'Nested symbols: 1 class symbol');
+test(symResult[0].children && symResult[0].children.length === 2, 'Nested symbols: 2 children (foo + bar): ' + (symResult[0].children ? symResult[0].children.length : 0));
+
 // === SUMMARY ===
 
 section('SUMMARY');

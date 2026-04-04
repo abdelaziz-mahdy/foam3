@@ -168,30 +168,18 @@ foam.CLASS({
 
     function resolveJavaVariableType(text, position, varName, model, index) {
       /**
-       * Resolve a Java variable's type from its declaration or cast.
-       * Checks (in order):
-       *   1. Cast: ((TypeName) varName). on the current line
-       *   2. Declaration: TypeName varName = ... scanning backward
+       * Resolve a Java variable's type from cast or declaration.
+       * Uses resolveJavaCastType for casts (DRY — same logic as hover/tokens).
        */
       var lines = text.split('\n');
-      var line = lines[position.line] || '';
 
-      // Check for cast on current line: ((TypeName) varName).
-      var castRegex = new RegExp('\\(\\s*\\(\\s*(\\w+)\\s*\\)\\s*' + varName + '\\s*\\)');
-      var castMatch = line.match(castRegex);
-      if ( castMatch ) {
-        var castType = this.resolveJavaTypeName(castMatch[1], model, index);
-        if ( castType ) return castType;
-      }
-
-      // Also check previous lines for multi-line cast
+      // Check for cast on current or nearby lines: ((TypeName) varName).
       for ( var i = position.line ; i >= Math.max(0, position.line - 3) ; i-- ) {
-        var checkLine = lines[i];
-        if ( ! checkLine ) continue;
-        var mlCast = checkLine.match(castRegex);
-        if ( mlCast ) {
-          var castType = this.resolveJavaTypeName(mlCast[1], model, index);
-          if ( castType ) return castType;
+        var castInfo = this.resolveJavaCastType(lines[i] || '', model, index);
+        if ( castInfo && castInfo.classId ) {
+          // Verify the cast is for our variable
+          var castVarRegex = new RegExp('\\(\\s*\\(\\s*' + castInfo.typeName + '\\s*\\)\\s*' + varName + '\\s*\\)');
+          if ( castVarRegex.test(lines[i]) ) return castInfo.classId;
         }
       }
 
@@ -211,9 +199,11 @@ foam.CLASS({
 
     function resolveJavaCastType(line, model, index) {
       /**
-       * Extract the cast type from a line containing ((TypeName) expr).method()
-       * Returns the resolved FOAM class ID or null.
-       * Used by hover on method calls after casts and by semantic tokens.
+       * Extract the cast type from ((TypeName) expr).method().
+       * Single source of truth for cast resolution — used by:
+       * - resolveJavaVariableType (variable type from cast)
+       * - HoverHandler (hover on method after cast)
+       * - SemanticTokenHandler (highlight method after cast)
        */
       var castMatch = line.match(/\(\s*\(\s*(\w+)\s*\)\s*\w+\s*\)\s*\.\s*(\w+)/);
       if ( castMatch ) {
