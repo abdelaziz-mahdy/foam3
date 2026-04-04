@@ -1,16 +1,20 @@
 {
   "scopeName": "foam.js.injection",
-  "injectionSelector": "L:source.js -comment",
+  "injectionSelector": "L:source.js -comment -string",
   "patterns": [
     {
-      "comment": "Java syntax highlighting inside javaCode/javaGetter/etc. backtick blocks",
-      "begin": "(javaCode|javaPreSet|javaPostSet|javaFactory|javaGetter|javaSetter)\\s*:\\s*`",
+      "comment": "Java syntax highlighting inside javaCode/javaGetter/etc. backtick blocks. The key: contentName must be meta.embedded.block.java and embeddedLanguages in package.json maps it to 'java'.",
+      "begin": "(javaCode|javaPreSet|javaPostSet|javaFactory|javaGetter|javaSetter)\\s*:\\s*(`)",
       "beginCaptures": {
-        "1": { "name": "entity.name.tag.foam" }
+        "1": { "name": "entity.name.tag.foam" },
+        "2": { "name": "punctuation.definition.string.template.begin.js" }
       },
-      "end": "`",
-      "name": "meta.embedded.block.java.foam",
-      "contentName": "source.java",
+      "end": "(`)",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.string.template.end.js" }
+      },
+      "name": "string.template.foam.java",
+      "contentName": "meta.embedded.block.java",
       "patterns": [
         { "include": "source.java" }
       ]

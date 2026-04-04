@@ -29,7 +29,10 @@
       {
         "scopeName": "foam.js.injection",
         "path": "./syntaxes/foam-js.tmLanguage.json",
-        "injectTo": ["source.js"]
+        "injectTo": ["source.js"],
+        "embeddedLanguages": {
+          "meta.embedded.block.java": "java"
+        }
       }
     ],
     "viewsContainers": {
