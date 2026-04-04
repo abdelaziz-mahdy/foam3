@@ -347,7 +347,7 @@ function start() {
             foldingRangeProvider: true,
             semanticTokensProvider: {
               legend: {
-                tokenTypes: ['type', 'class', 'variable'],
+                tokenTypes: ['type', 'class', 'variable', 'keyword', 'string', 'comment', 'number', 'operator', 'method'],
                 tokenModifiers: ['declaration', 'readonly']
               },
               full: true

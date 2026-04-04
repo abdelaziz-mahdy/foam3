@@ -17,7 +17,7 @@ foam.CLASS({
   ],
 
   constants: {
-    TOKEN_TYPES: ['type', 'class', 'variable'],
+    TOKEN_TYPES: ['type', 'class', 'variable', 'keyword', 'string', 'comment', 'number', 'operator', 'method'],
     TOKEN_MODIFIERS: ['declaration', 'readonly']
   },
 
@@ -62,14 +62,18 @@ foam.CLASS({
     },
 
     function collectModelTokens_(text, model, tokens) {
-      // For refines models, also get requires from the refined class in the registry
+      // For refines: the FOAM registry class already has all axioms merged
+      // (original + refinement). Use registry requires, not just the raw model.
+      var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
+      var cls = this.index.getClass(classId);
       var requiresMap = this.cache.buildRequiresMap(model);
-      if ( model.refines ) {
-        var refinedCls = this.index.getClass(model.refines);
-        if ( refinedCls && refinedCls.model_ && refinedCls.model_.requires ) {
-          var refinedReqs = this.cache.buildRequiresMap(refinedCls.model_);
-          for ( var key in refinedReqs ) {
-            if ( ! requiresMap[key] ) requiresMap[key] = refinedReqs[key];
+      // Merge registry requires (handles refines inheriting parent's requires)
+      if ( cls ) {
+        var regRequires = this.index.getRequires(classId);
+        for ( var i = 0 ; i < regRequires.length ; i++ ) {
+          var r = regRequires[i];
+          if ( r.name && r.path && ! requiresMap[r.name] ) {
+            requiresMap[r.name] = r.path;
           }
         }
       }
@@ -133,55 +137,99 @@ foam.CLASS({
 
     function collectJavaTokens_(text, model, tokens) {
       /**
-       * Highlight getter/setter calls and type names inside Java code blocks.
-       * Scans model-level, property-level, AND method-level javaCode blocks.
+       * Full Java syntax highlighting inside javaCode blocks.
+       * Token type indices: 0=type, 1=class, 2=variable, 3=keyword, 4=string,
+       * 5=comment, 6=number, 7=operator, 8=method
        */
       var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
       var self = this;
 
-      function offsetToLineCol(absOffset) {
-        var line = 0, col = 0;
-        for ( var i = 0 ; i < absOffset ; i++ ) {
-          if ( text[i] === '\n' ) { line++; col = 0; } else { col++; }
-        }
-        return { line: line, col: col };
+      // Pre-compute line offsets for fast offset → line/col conversion
+      var lineOffsets = [0];
+      for ( var i = 0 ; i < text.length ; i++ ) {
+        if ( text[i] === '\n' ) lineOffsets.push(i + 1);
       }
+
+      function offsetToLineCol(absOffset) {
+        // Binary search for the line
+        var lo = 0, hi = lineOffsets.length - 1;
+        while ( lo < hi ) {
+          var mid = (lo + hi + 1) >> 1;
+          if ( lineOffsets[mid] <= absOffset ) lo = mid; else hi = mid - 1;
+        }
+        return { line: lo, col: absOffset - lineOffsets[lo] };
+      }
+
+      function addToken(absOffset, length, type) {
+        var pos = offsetToLineCol(absOffset);
+        tokens.push({ line: pos.line, char: pos.col, length: length, type: type, modifiers: 0 });
+      }
+
+      var JAVA_KEYWORDS = /\b(abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|var|void|volatile|while|true|false)\b/g;
 
       function scanJavaBlock(javaStr) {
         if ( ! javaStr || typeof javaStr !== 'string' ) return;
         var baseOffset = text.indexOf(javaStr);
         if ( baseOffset === -1 ) return;
 
-        // Highlight getter/setter calls: getX(), setX()
-        var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
-        var gs;
-        while ( ( gs = getSetRegex.exec(javaStr) ) !== null ) {
-          var pos = offsetToLineCol(baseOffset + gs.index);
-          tokens.push({ line: pos.line, char: pos.col, length: gs[1].length + gs[2].length, type: 2, modifiers: 0 });
+        // 1. Java keywords
+        var kw;
+        JAVA_KEYWORDS.lastIndex = 0;
+        while ( ( kw = JAVA_KEYWORDS.exec(javaStr) ) !== null ) {
+          addToken(baseOffset + kw.index, kw[1].length, 3);
         }
 
-        // Highlight Java type names in declarations: TypeName varName =
-        var typeRegex = /([A-Z][a-zA-Z0-9_]*)\s+[a-z]\w*\s*[=;]/g;
+        // 2. String literals: "..." and '...'
+        var strRegex = /"(?:[^"\\]|\\.)*"|'[^']*'/g;
+        var sm;
+        while ( ( sm = strRegex.exec(javaStr) ) !== null ) {
+          addToken(baseOffset + sm.index, sm[0].length, 4);
+        }
+
+        // 3. Comments: // ... and /* ... */
+        var commentRegex = /\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+        var cm;
+        while ( ( cm = commentRegex.exec(javaStr) ) !== null ) {
+          addToken(baseOffset + cm.index, cm[0].length, 5);
+        }
+
+        // 4. Numbers
+        var numRegex = /\b\d+[lLfFdD]?\b/g;
+        var nm;
+        while ( ( nm = numRegex.exec(javaStr) ) !== null ) {
+          addToken(baseOffset + nm.index, nm[0].length, 6);
+        }
+
+        // 5. Type names (capitalized identifiers in declarations)
+        var typeRegex = /\b([A-Z][a-zA-Z0-9_]*)\b/g;
         var tm;
         while ( ( tm = typeRegex.exec(javaStr) ) !== null ) {
           var typeName = tm[1];
-          if ( self.index.classExists(typeName) || self.index.getAllClassIds().some(function(id) { return id.endsWith('.' + typeName); }) ) {
-            var pos = offsetToLineCol(baseOffset + tm.index);
-            tokens.push({ line: pos.line, char: pos.col, length: typeName.length, type: 1, modifiers: 0 });
+          // Skip Java keywords that start with uppercase (none really, but safe)
+          if ( /^(String|Object|Exception|Boolean|Integer|Long|Double|Float|Short|Byte|Character|Void)$/.test(typeName) ) {
+            addToken(baseOffset + tm.index, typeName.length, 0);
+          } else if ( self.index.classExists(typeName) || self.index.getAllClassIds().some(function(id) { return id.endsWith('.' + typeName); }) ) {
+            addToken(baseOffset + tm.index, typeName.length, 0);
           }
+        }
+
+        // 6. Method calls: methodName(
+        var methodRegex = /\b([a-z]\w*)\s*\(/g;
+        var mm;
+        while ( ( mm = methodRegex.exec(javaStr) ) !== null ) {
+          var mname = mm[1];
+          // Skip keywords already highlighted
+          if ( /^(if|for|while|switch|catch|return|new|throw)$/.test(mname) ) continue;
+          addToken(baseOffset + mm.index, mname.length, 8);
         }
       }
 
-      // Model-level Java blocks
+      // Scan all Java blocks: model-level, property-level, method-level
       javaKeys.forEach(function(key) { scanJavaBlock(model[key]); });
-
-      // Property-level Java blocks
       (model.properties || []).forEach(function(p) {
         if ( typeof p !== 'object' ) return;
         javaKeys.forEach(function(key) { scanJavaBlock(p[key]); });
       });
-
-      // Method-level Java blocks
       (model.methods || []).forEach(function(m) {
         if ( typeof m !== 'object' ) return;
         javaKeys.forEach(function(key) { scanJavaBlock(m[key]); });
