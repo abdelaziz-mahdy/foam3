@@ -666,6 +666,33 @@ var symResult = nestedSymHandler.handle(symText, '');
 test(symResult.length === 1, 'Nested symbols: 1 class symbol');
 test(symResult[0].children && symResult[0].children.length === 2, 'Nested symbols: 2 children (foo + bar): ' + (symResult[0].children ? symResult[0].children.length : 0));
 
+// === METHOD RETURN TYPE INFERENCE TESTS ===
+
+section('Method Return Type Inference');
+
+// resolveMethodReturnType: AuthService.getCurrentSubject returns foam.core.auth.Subject
+var retType = analyzer.resolveMethodReturnType('foam.core.auth.AuthService', 'getCurrentSubject', index);
+test(retType === 'foam.core.auth.Subject', 'Method return type: getCurrentSubject returns Subject: ' + retType);
+
+// resolveMethodReturnType: AuthService.login returns foam.core.auth.User
+var loginRetType = analyzer.resolveMethodReturnType('foam.core.auth.AuthService', 'login', index);
+test(loginRetType === 'foam.core.auth.User', 'Method return type: login returns User: ' + loginRetType);
+
+// resolveMethodReturnType: void method returns null
+var voidRetType = analyzer.resolveMethodReturnType('foam.core.auth.AuthService', 'validatePassword', index);
+test(voidRetType === null, 'Method return type: void method returns null');
+
+// var inference via cast chain: var x = ((AuthService) y).getCurrentSubject()
+var castChainText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'RetTest' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'test' + Q + ',\n      javaCode: ' + BT + '\n        var sub = ((AuthService) x.get("auth")).getCurrentSubject(x);\n        sub.text;\n      ' + BT + '\n    }\n  ]\n})';
+var castChainModel = cache.getModelAt('', castChainText, 8);
+var castChainType = analyzer.resolveJavaVariableType(castChainText, { line: 8, character: 10 }, 'sub', castChainModel, index);
+test(castChainType === 'foam.core.auth.Subject', 'Var inference: cast chain resolves to Subject: ' + castChainType);
+
+// Cast with nested parens: ((AuthService) x.get("auth")).check resolves
+var nestedCastInfo = analyzer.resolveJavaCastType('var r = ((AuthService) x.get("auth")).check(x);', {}, index);
+test(nestedCastInfo != null && nestedCastInfo.typeName === 'AuthService', 'resolveJavaCastType: nested parens in cast expr');
+test(nestedCastInfo != null && nestedCastInfo.methodName === 'check', 'resolveJavaCastType: method after nested cast');
+
 // === SUMMARY ===
 
 section('SUMMARY');

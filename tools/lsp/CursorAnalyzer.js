@@ -168,30 +168,108 @@ foam.CLASS({
 
     function resolveJavaVariableType(text, position, varName, model, index) {
       /**
-       * Resolve a Java variable's type from cast or declaration.
-       * Uses resolveJavaCastType for casts (DRY — same logic as hover/tokens).
+       * Resolve a Java variable's type from cast, declaration, or method return type.
+       * Resolution order:
+       *   1. Cast on current/nearby line: ((TypeName) varName).
+       *   2. Explicit type declaration: TypeName varName = ...
+       *   3. Method return type: var varName = expr.method(...) → method.type
+       *   4. Getter return type: var varName = getProperty() → property type
        */
       var lines = text.split('\n');
 
-      // Check for cast on current or nearby lines: ((TypeName) varName).
+      // 1. Check for cast on current or nearby lines
       for ( var i = position.line ; i >= Math.max(0, position.line - 3) ; i-- ) {
         var castInfo = this.resolveJavaCastType(lines[i] || '', model, index);
         if ( castInfo && castInfo.classId ) {
-          // Verify the cast is for our variable
           var castVarRegex = new RegExp('\\(\\s*\\(\\s*' + castInfo.typeName + '\\s*\\)\\s*' + varName + '\\s*\\)');
           if ( castVarRegex.test(lines[i]) ) return castInfo.classId;
         }
       }
 
-      // Declaration: TypeName varName = ... or TypeName varName;
+      // Scan backward for declaration
       for ( var i = position.line ; i >= 0 ; i-- ) {
         var scanLine = lines[i];
         if ( ! scanLine ) continue;
         var declMatch = scanLine.match(new RegExp('(\\w+)\\s+' + varName + '\\s*[=;]'));
-        if ( declMatch ) {
-          var typeName = declMatch[1];
-          if ( ['var', 'return', 'new', 'if', 'for', 'while', 'try', 'catch', 'throw', 'else'].indexOf(typeName) !== -1 ) continue;
+        if ( ! declMatch ) continue;
+
+        var typeName = declMatch[1];
+        if ( ['return', 'new', 'if', 'for', 'while', 'try', 'catch', 'throw', 'else'].indexOf(typeName) !== -1 ) continue;
+
+        // 2. Explicit type declaration (not 'var')
+        if ( typeName !== 'var' ) {
           return this.resolveJavaTypeName(typeName, model, index);
+        }
+
+        // 3. 'var' declaration — infer from the right-hand side
+        // var x = ((Cast) y).method() → resolve cast chain
+        var rhsCastInfo = this.resolveJavaCastType(scanLine, model, index);
+        if ( rhsCastInfo && rhsCastInfo.classId && rhsCastInfo.methodName ) {
+          var returnType = this.resolveMethodReturnType(rhsCastInfo.classId, rhsCastInfo.methodName, index);
+          if ( returnType ) return returnType;
+        }
+
+        // var x = expr.method() → resolve expr type, then method return type
+        var methodCallMatch = scanLine.match(new RegExp(varName + '\\s*=\\s*(?:\\w+\\.)*?(\\w+)\\.(\\w+)\\s*\\('));
+        if ( methodCallMatch ) {
+          var receiverName = methodCallMatch[1];
+          var methodName = methodCallMatch[2];
+
+          // Try receiver as a type name (static call)
+          var receiverClassId = this.resolveJavaTypeName(receiverName, model, index);
+          if ( receiverClassId ) {
+            var returnType = this.resolveMethodReturnType(receiverClassId, methodName, index);
+            if ( returnType ) return returnType;
+          }
+
+          // Try receiver as a variable
+          var receiverType = this.resolveJavaVariableType(text, { line: i, character: 0 }, receiverName, model, index);
+          if ( receiverType ) {
+            var returnType = this.resolveMethodReturnType(receiverType, methodName, index);
+            if ( returnType ) return returnType;
+          }
+        }
+
+        // var x = getProperty() → property type on current model
+        var getterMatch = scanLine.match(new RegExp(varName + '\\s*=\\s*(get)([A-Z]\\w*)\\s*\\('));
+        if ( getterMatch ) {
+          var propName = getterMatch[2].charAt(0).toLowerCase() + getterMatch[2].substring(1);
+          var classId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+          if ( classId ) {
+            var propType = index.getPropertyJavaType(classId, propName);
+            if ( propType ) return this.resolveJavaTypeName(propType, model, index);
+          }
+        }
+
+        return null;
+      }
+      return null;
+    },
+
+    function resolveMethodReturnType(classId, methodName, index) {
+      /**
+       * Look up a method's return type from the FOAM registry.
+       * method.type contains the FOAM class ID of the return type.
+       * Also handles getX/setX as property getters/setters.
+       */
+      var cls = index.getClass(classId);
+      if ( ! cls ) return null;
+
+      // Check getter pattern: getX → property type
+      var getMatch = methodName.match(/^get([A-Z]\w*)$/);
+      if ( getMatch ) {
+        var propName = getMatch[1].charAt(0).toLowerCase() + getMatch[1].substring(1);
+        var propType = index.getPropertyJavaType(classId, propName);
+        if ( propType ) return propType === 'String' || propType === 'Object' ? null : propType;
+      }
+
+      // Look up method in the class
+      var methods = cls.getAxiomsByClass(foam.lang.Method);
+      for ( var i = 0 ; i < methods.length ; i++ ) {
+        if ( methods[i].name === methodName && methods[i].type ) {
+          var returnType = methods[i].type;
+          if ( returnType === 'Void' || returnType === 'void' ) return null;
+          return returnType;
         }
       }
       return null;
@@ -204,14 +282,34 @@ foam.CLASS({
        * - resolveJavaVariableType (variable type from cast)
        * - HoverHandler (hover on method after cast)
        * - SemanticTokenHandler (highlight method after cast)
+       *
+       * Handles nested parens: ((AuthService) x.get("auth")).check(...)
        */
-      var castMatch = line.match(/\(\s*\(\s*(\w+)\s*\)\s*\w+\s*\)\s*\.\s*(\w+)/);
-      if ( castMatch ) {
-        return {
-          classId: this.resolveJavaTypeName(castMatch[1], model, index),
-          typeName: castMatch[1],
-          methodName: castMatch[2]
-        };
+      // Find ((TypeName) — the opening of a cast expression
+      var castStart = line.match(/\(\s*\(\s*(\w+)\s*\)\s*/);
+      if ( ! castStart ) return null;
+
+      // From after the type cast, find the matching closing ) using balanced paren tracking
+      var afterCast = castStart.index + castStart[0].length;
+      var depth = 1; // We're inside the outer (
+      for ( var i = afterCast ; i < line.length ; i++ ) {
+        if ( line[i] === '(' ) depth++;
+        else if ( line[i] === ')' ) {
+          depth--;
+          if ( depth === 0 ) {
+            // Found the closing ) — check for .methodName after it
+            var rest = line.substring(i + 1);
+            var methodMatch = rest.match(/^\s*\.\s*(\w+)/);
+            if ( methodMatch ) {
+              return {
+                classId: this.resolveJavaTypeName(castStart[1], model, index),
+                typeName: castStart[1],
+                methodName: methodMatch[1]
+              };
+            }
+            break;
+          }
+        }
       }
       return null;
     },
