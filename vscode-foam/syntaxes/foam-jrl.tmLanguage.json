@@ -2,31 +2,45 @@
   "scopeName": "source.foam-journal",
   "patterns": [
     {
+      "comment": "Comment lines",
+      "match": "^\\s*//.*$",
+      "name": "comment.line.foam-journal"
+    },
+    {
       "comment": "Function calls: p(...), c(...), r(...)",
       "match": "^\\s*(\\w+)\\s*\\(",
       "captures": {
-        "1": { "name": "keyword.other.foam-journal" }
+        "1": { "name": "keyword.control.foam-journal" }
       }
     },
     {
-      "comment": "String keys and values in JSON-like content",
-      "match": "\"([^\"]+)\"",
-      "name": "string.quoted.double.foam-journal"
+      "comment": "Property key with string value: key:\"value\" or \"key\":\"value\"",
+      "match": "\"?(\\w+)\"?\\s*:\\s*(\"[^\"]*\")",
+      "captures": {
+        "1": { "name": "variable.other.property.foam-journal" },
+        "2": { "name": "string.quoted.double.foam-journal" }
+      }
     },
     {
-      "comment": "Numbers",
-      "match": "\\b\\d+\\.?\\d*\\b",
-      "name": "constant.numeric.foam-journal"
+      "comment": "Property key with number value: key:12345",
+      "match": "\"?(\\w+)\"?\\s*:\\s*(-?\\d+\\.?\\d*)",
+      "captures": {
+        "1": { "name": "variable.other.property.foam-journal" },
+        "2": { "name": "constant.numeric.foam-journal" }
+      }
     },
     {
-      "comment": "Booleans and null",
-      "match": "\\b(true|false|null)\\b",
-      "name": "constant.language.foam-journal"
+      "comment": "Property key with boolean/null: key:true",
+      "match": "\"?(\\w+)\"?\\s*:\\s*(true|false|null)",
+      "captures": {
+        "1": { "name": "variable.other.property.foam-journal" },
+        "2": { "name": "constant.language.foam-journal" }
+      }
     },
     {
-      "comment": "Comments",
-      "match": "//.*$",
-      "name": "comment.line.foam-journal"
+      "comment": "Closing braces and parens",
+      "match": "[{}()]",
+      "name": "punctuation.foam-journal"
     }
   ]
 }
