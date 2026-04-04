@@ -34,6 +34,7 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 | `SymbolHandler.js` | `textDocument/documentSymbol` | Document outline via model objects |
 | `WorkspaceAnalyzer.js` | `foam/analyzeWorkspace` | Full codebase scan |
 | `SemanticTokenHandler.js` | `textDocument/semanticTokens/full` | Highlights resolved class refs and typed variables |
+| `ReferencesHandler.js` | `textDocument/references` | Find subclasses and interface implementors |
 
 ### VS Code Extension
 | File | Purpose |
@@ -89,7 +90,7 @@ The LSP boots the FOAM runtime via `pmake` (same as `build.sh`), loading all mod
 
 ## Testing
 ```bash
-# Quick test (106 tests, ~30s):
+# Quick test (123 tests, ~30s):
 cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 
 # FOAM framework tests:
@@ -118,8 +119,8 @@ cd <project> && node foam3/tools/tests/testFoamLSPGrammar.js
 3. Dynamic parsers built from registry in `buildDynamicParsers_()`
 
 ## Metrics
-- ~3400 lines of LSP code
-- 106 automated tests
+- ~3800 lines of LSP code
+- 123 automated tests
 - 4310 classes indexed
 - 76 property types
 - Boot time: ~10-15s

@@ -128,6 +128,9 @@ File text ──► FileModelCache.parseFileModels()
 | `this.X.create({▊})` | Target class properties |
 | Top-level key position | package, name, extends, properties, etc. |
 | Property key position | class, name, of, value, factory, etc. |
+| Java block: `get▊` / `set▊` | Getters/setters with Java types |
+| Java block: `variable.▊` | Getters/setters on resolved variable type |
+| Java block: empty line | All getters and setters for current model |
 
 ### Hover
 - **Class names**: own vs inherited properties, documentation, methods
@@ -136,6 +139,8 @@ File text ──► FileModelCache.parseFileModels()
 - **Method names**: signature with parameters
 - **Properties inside `.create({})`**: type from target class
 - **Property types**: type info and documentation
+- **Java block getters/setters**: shows return/parameter types inside `javaCode` blocks
+- **Java block type names**: resolves FOAM class names inside Java blocks
 
 ### Go-to-Definition
 - Classes in `extends:`, `requires:`, `of:` → navigates to source file
@@ -148,6 +153,11 @@ File text ──► FileModelCache.parseFileModels()
 - Wrong Java imports (`foam.nanos.*` → suggests correct package)
 - Invalid getter/setter in `javaCode` (bare calls on `this`)
 - Flag-aware: test/swift/node classes known but not flagged
+
+### Find References
+- Find all subclasses of a class (`extends:`)
+- Find all implementors of an interface (`implements:`)
+- Results shown in VS Code References panel
 
 ### Signature Help
 - Shows parameter names inside method parentheses
@@ -200,7 +210,7 @@ npx tsc -p ./
 cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 ```
 
-106 tests covering:
+123 tests covering:
 - FoamIndex queries (class discovery, property types, file index)
 - Grammar parsing (5 real FOAM files)
 - FileModelCache (single/multi-class, enums, refines, implements, broken files, caching)
@@ -214,6 +224,9 @@ cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 - TypeTracker (variable type resolution from .create() assignments)
 - SemanticTokenHandler (class references, typed variables)
 - Flag-aware file index (test classes not flagged as unknown)
+- Java block completions (getters/setters, variable.method, empty-line)
+- Java block hover (getter types, class name resolution)
+- ReferencesHandler (subclasses, implementors)
 
 ### FOAM Test Framework
 ```bash
@@ -244,7 +257,8 @@ foam3/tools/
 │   │   ├── SymbolHandler.js       # textDocument/documentSymbol
 │   │   ├── JavaBlockValidator.js  # javaCode validation
 │   │   ├── WorkspaceAnalyzer.js   # foam/analyzeWorkspace
-│   │   └── SemanticTokenHandler.js # textDocument/semanticTokens
+│   │   ├── SemanticTokenHandler.js # textDocument/semanticTokens
+│   │   └── ReferencesHandler.js   # textDocument/references
 │   └── test/
 │       ├── pom.js
 │       ├── tests.jrl
@@ -254,7 +268,7 @@ foam3/tools/
 │       ├── JavaBlockValidatorTest.js
 │       └── LSPIntegrationTest.js
 ├── tests/
-│   └── testFoamLSPGrammar.js      # Quick standalone test (106 tests)
+│   └── testFoamLSPGrammar.js      # Quick standalone test (123 tests)
 └── vscode-foam/
     ├── package.json
     ├── tsconfig.json

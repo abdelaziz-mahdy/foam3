@@ -173,16 +173,26 @@ foam.CLASS({
       var cache = this.cache || foam.parse.lsp.FileModelCache.create();
       var model = cache.getModelAt('', text, position.line);
 
+      var targetClassId = null;
+      var getSet, partial;
+
+      // Empty line or just whitespace inside Java block — suggest all getters and setters
+      var trimmedPrefix = prefix.trim();
+      if ( trimmedPrefix === '' ) {
+        if ( model ) {
+          getSet = 'both';
+          partial = '';
+          targetClassId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
+        }
+      }
+
       // Check for get/set/is prefix — either bare (getCreatedBy, getcre) or on a variable (user.get)
       // Also trigger on variable. (dot with no prefix yet) or variable.g/ge partial
       var varGetSet = prefix.match(/(\w+)\.(get|set|is)(\w*)$/);
       var varDot = ! varGetSet ? prefix.match(/(\w+)\.(\w*)$/) : null;
       var bareGetSet = prefix.match(/(?:^|[\s(=!&|,])(?:return\s+)?(get|set|is)(\w*)$/);
 
-      if ( ! varGetSet && ! varDot && ! bareGetSet ) return null;
-
-      var targetClassId = null;
-      var getSet, partial;
+      if ( ! targetClassId && ! varGetSet && ! varDot && ! bareGetSet ) return null;
 
       if ( varGetSet ) {
         // variable.getX — resolve the variable's type from Java declarations

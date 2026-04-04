@@ -597,6 +597,13 @@ var javaSetResult = completionHandler.handle(javaSetText, { line: 7, character: 
 var setTextItem = javaSetResult.items.find(function(i) { return i.label.indexOf('setText') !== -1; });
 test(setTextItem && setTextItem.label.indexOf('String') !== -1, 'Java setter shows param type: ' + (setTextItem ? setTextItem.label : 'none'));
 
+// Empty line inside javaCode — suggests all getters AND setters
+var javaEmptyText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'JEmpty' + Q + ',\n  properties: [\n    { class: ' + Q + 'String' + Q + ', name: ' + Q + 'firstName' + Q + ' }\n  ],\n  methods: [\n    {\n      name: ' + Q + 'doStuff' + Q + ',\n      javaCode: ' + BT + '\n        \n      ' + BT + '\n    }\n  ]\n})';
+var javaEmptyResult = completionHandler.handle(javaEmptyText, { line: 10, character: 8 });
+test(javaEmptyResult.items.length > 0, 'Java empty line: suggests getters+setters: ' + javaEmptyResult.items.length);
+test(javaEmptyResult.items.some(function(i) { return i.label.indexOf('getFirstName') !== -1; }), 'Java empty line: includes getFirstName');
+test(javaEmptyResult.items.some(function(i) { return i.label.indexOf('setFirstName') !== -1; }), 'Java empty line: includes setFirstName');
+
 // === REFERENCES HANDLER TESTS ===
 
 section('ReferencesHandler');
