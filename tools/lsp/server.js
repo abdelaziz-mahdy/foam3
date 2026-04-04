@@ -380,6 +380,7 @@ function start() {
 
       case 'textDocument/didOpen':
         var tdoc = params.textDocument;
+        console.error('[LSP] didOpen: ' + tdoc.uri + ' lang=' + tdoc.languageId);
         documents[tdoc.uri] = { text: tdoc.text, version: tdoc.version || 0 };
         if ( isFoamFile(tdoc.text) ) pushDiagnostics(tdoc.uri, tdoc.text);
         break;
