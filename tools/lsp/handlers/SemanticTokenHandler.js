@@ -13,6 +13,7 @@ foam.CLASS({
   requires: [
     'foam.parse.lsp.FoamIndex',
     'foam.parse.lsp.FileModelCache',
+    'foam.parse.lsp.CursorAnalyzer',
     'foam.parse.lsp.TypeTracker'
   ],
 
@@ -33,6 +34,12 @@ foam.CLASS({
       of: 'foam.parse.lsp.FileModelCache',
       name: 'cache',
       factory: function() { return this.FileModelCache.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CursorAnalyzer',
+      name: 'analyzer',
+      factory: function() { return this.CursorAnalyzer.create(); }
     },
     {
       class: 'FObjectProperty',
@@ -137,46 +144,30 @@ foam.CLASS({
 
     function collectJavaTokens_(text, model, tokens) {
       /**
-       * Knowledge-driven Java syntax highlighting inside javaCode blocks.
-       * Only highlights tokens we can verify from the FOAM registry:
-       * - Type names: resolved via javaImports or registry lookup
-       * - Enum values: verified against known enum class values
-       * - Getter/setter calls: verified against known model properties
-       * - Java keywords and literals: always correct (language syntax)
+       * Knowledge-driven Java syntax highlighting — uses the SAME resolution
+       * logic as HoverHandler (via CursorAnalyzer.resolveJavaTypeName).
+       * DRY: one source of truth for type/enum resolution.
        *
-       * Token type indices: 0=type, 1=class, 2=variable, 3=keyword, 4=string,
+       * Token types: 0=type, 1=class, 2=variable, 3=keyword, 4=string,
        * 5=comment, 6=number, 7=operator, 8=method
        */
       var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
       var self = this;
       var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
 
-      // Build a set of known type short names from javaImports + registry
-      var knownTypes = {};
-      var javaImports = model.javaImports || [];
-      for ( var i = 0 ; i < javaImports.length ; i++ ) {
-        var imp = javaImports[i];
-        var shortName = imp.substring(imp.lastIndexOf('.') + 1);
-        if ( shortName !== '*' ) knownTypes[shortName] = imp;
-      }
-      // Also check registry requires for the refined/base class
+      // Use registry class for refines — FOAM merges refinements into the original class
       var cls = self.index.getClass(classId);
-      if ( cls && cls.model_ && cls.model_.javaImports ) {
-        var baseImports = cls.model_.javaImports;
-        for ( var i = 0 ; i < baseImports.length ; i++ ) {
-          var imp = baseImports[i];
-          var shortName = imp.substring(imp.lastIndexOf('.') + 1);
-          if ( shortName !== '*' ) knownTypes[shortName] = imp;
-        }
-      }
-      // Common Java types always known
-      ['String', 'Object', 'Exception', 'Boolean', 'Integer', 'Long', 'Double',
-       'Float', 'List', 'ArrayList', 'Map', 'HashMap', 'Set', 'HashSet',
-       'Arrays', 'Collections', 'Pattern', 'Matcher'].forEach(function(t) {
-        knownTypes[t] = 'java.lang.' + t;
-      });
 
-      // Build property set for getter/setter verification
+      // Merge model's javaImports with the registry class's javaImports (for refines)
+      var effectiveModel = model;
+      if ( model.refines && cls && cls.model_ ) {
+        effectiveModel = {
+          javaImports: (model.javaImports || []).concat(cls.model_.javaImports || []),
+          package: cls.model_.package || model.package
+        };
+      }
+
+      // Build property set from registry (not manually)
       var propNames = {};
       if ( cls ) {
         var props = cls.getAxiomsByClass(foam.lang.Property);
@@ -187,91 +178,83 @@ foam.CLASS({
         if ( name ) propNames[name.toLowerCase()] = true;
       });
 
-      // Pre-compute line offsets for fast offset → line/col conversion
+      // Pre-compute line offsets for fast offset → line/col
       var lineOffsets = [0];
       for ( var i = 0 ; i < text.length ; i++ ) {
         if ( text[i] === '\n' ) lineOffsets.push(i + 1);
       }
 
-      function offsetToLineCol(absOffset) {
+      function addToken(absOffset, length, type) {
         var lo = 0, hi = lineOffsets.length - 1;
         while ( lo < hi ) {
           var mid = (lo + hi + 1) >> 1;
           if ( lineOffsets[mid] <= absOffset ) lo = mid; else hi = mid - 1;
         }
-        return { line: lo, col: absOffset - lineOffsets[lo] };
-      }
-
-      function addToken(absOffset, length, type) {
-        var pos = offsetToLineCol(absOffset);
-        tokens.push({ line: pos.line, char: pos.col, length: length, type: type, modifiers: 0 });
+        tokens.push({ line: lo, char: absOffset - lineOffsets[lo], length: length, type: type, modifiers: 0 });
       }
 
       var JAVA_KEYWORDS = /\b(abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|var|void|volatile|while|true|false)\b/g;
+
+      // Cache type resolutions to avoid repeated registry scans
+      var typeCache = {};
+      function resolveType(name) {
+        if ( typeCache[name] !== undefined ) return typeCache[name];
+        // Use SAME resolution as HoverHandler → CursorAnalyzer.resolveJavaTypeName
+        typeCache[name] = self.analyzer.resolveJavaTypeName(name, effectiveModel, self.index);
+        return typeCache[name];
+      }
 
       function scanJavaBlock(javaStr) {
         if ( ! javaStr || typeof javaStr !== 'string' ) return;
         var baseOffset = text.indexOf(javaStr);
         if ( baseOffset === -1 ) return;
 
-        // 1. Comments (scan first — other patterns should skip comment regions)
+        // Comments
         var commentRegex = /\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
         var cm;
         while ( ( cm = commentRegex.exec(javaStr) ) !== null ) {
           addToken(baseOffset + cm.index, cm[0].length, 5);
         }
 
-        // 2. String literals
+        // String literals
         var strRegex = /"(?:[^"\\]|\\.)*"|'[^']*'/g;
         var sm;
         while ( ( sm = strRegex.exec(javaStr) ) !== null ) {
           addToken(baseOffset + sm.index, sm[0].length, 4);
         }
 
-        // 3. Java keywords
+        // Java keywords
         JAVA_KEYWORDS.lastIndex = 0;
         var kw;
         while ( ( kw = JAVA_KEYWORDS.exec(javaStr) ) !== null ) {
           addToken(baseOffset + kw.index, kw[1].length, 3);
         }
 
-        // 4. Numbers
+        // Numbers
         var numRegex = /\b\d+[lLfFdD]?\b/g;
         var nm;
         while ( ( nm = numRegex.exec(javaStr) ) !== null ) {
           addToken(baseOffset + nm.index, nm[0].length, 6);
         }
 
-        // 5. Known type names — only types verified from javaImports or registry
+        // Type names — resolved via CursorAnalyzer.resolveJavaTypeName (same as hover)
         var typeRegex = /\b([A-Z][a-zA-Z0-9_]*)\b/g;
         var tm;
         while ( ( tm = typeRegex.exec(javaStr) ) !== null ) {
-          if ( knownTypes[tm[1]] ) {
-            addToken(baseOffset + tm.index, tm[1].length, 0);
-          } else if ( self.index.classExists(tm[1]) ) {
+          if ( resolveType(tm[1]) ) {
             addToken(baseOffset + tm.index, tm[1].length, 0);
           }
         }
 
-        // 6. Enum values: ClassName.VALUE — verify the enum class + value exist
+        // Enum values: ClassName.VALUE — resolved via same resolveType + getEnumValues
         var enumRegex = /\b([A-Z]\w*)\.([A-Z][A-Z0-9_]+)\b/g;
         var em;
         while ( ( em = enumRegex.exec(javaStr) ) !== null ) {
-          var enumTypeName = em[1];
-          var enumValueName = em[2];
-          var enumFullId = knownTypes[enumTypeName] || null;
-          if ( ! enumFullId ) {
-            // Try registry lookup
-            var suffix = '.' + enumTypeName;
-            var ids = self.index.getAllClassIds();
-            for ( var i = 0 ; i < ids.length ; i++ ) {
-              if ( ids[i].endsWith(suffix) ) { enumFullId = ids[i]; break; }
-            }
-          }
+          var enumFullId = resolveType(em[1]);
           if ( enumFullId ) {
             var enumVals = self.index.getEnumValues(enumFullId);
             for ( var i = 0 ; i < enumVals.length ; i++ ) {
-              if ( enumVals[i].name === enumValueName ) {
+              if ( enumVals[i].name === em[2] ) {
                 addToken(baseOffset + em.index + em[1].length + 1, em[2].length, 2);
                 break;
               }
@@ -279,7 +262,7 @@ foam.CLASS({
           }
         }
 
-        // 7. Known getter/setter calls — only verified properties
+        // Getter/setter calls — verified against known properties
         var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
         var gs;
         while ( ( gs = getSetRegex.exec(javaStr) ) !== null ) {
@@ -290,7 +273,7 @@ foam.CLASS({
         }
       }
 
-      // Scan all Java blocks: model-level, property-level, method-level
+      // Scan model-level, property-level, AND method-level Java blocks
       javaKeys.forEach(function(key) { scanJavaBlock(model[key]); });
       (model.properties || []).forEach(function(p) {
         if ( typeof p !== 'object' ) return;
