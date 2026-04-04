@@ -612,6 +612,21 @@ var implRefsText = 'foam.CLASS({ implements: [' + Q + 'foam.core.auth.CreatedByA
 var implRefsResult = refsHandler.handle(implRefsText, { line: 0, character: 30 });
 test(implRefsResult.length > 0, 'References: CreatedByAware has implementors: ' + implRefsResult.length);
 
+// === JAVA BLOCK HOVER TESTS ===
+
+section('Java Block Hover');
+
+// Hover on getter inside javaCode — shows type
+var javaHoverText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'test' + Q + ',\n      javaCode: ' + BT + '\n        getText\n      ' + BT + '\n    }\n  ]\n})';
+var javaGetterHover = hoverHandler.handle(javaHoverText, { line: 7, character: 12 });
+test(javaGetterHover != null, 'Java hover: getter shows type info');
+test(javaGetterHover && javaGetterHover.contents.value.indexOf('String') !== -1, 'Java hover: getText shows String type');
+
+// Hover on type name inside javaCode — resolves to FOAM class
+var javaTypeHoverText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse' + Q + ',\n  name: ' + Q + 'Suggestion' + Q + ',\n  methods: [\n    {\n      name: ' + Q + 'test' + Q + ',\n      javaCode: ' + BT + '\n        Suggestion\n      ' + BT + '\n    }\n  ]\n})';
+var javaTypeHover = hoverHandler.handle(javaTypeHoverText, { line: 7, character: 12 });
+test(javaTypeHover != null, 'Java hover: type name resolves to class');
+
 // === SUMMARY ===
 
 section('SUMMARY');

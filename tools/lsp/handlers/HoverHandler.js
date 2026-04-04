@@ -50,6 +50,10 @@ foam.CLASS({
       var word = this.analyzer.getDottedWordAtPosition(text, position);
       if ( ! word ) return null;
 
+      // Try Java block hover — getters, variables, type references inside javaCode
+      var javaHover = this.javaBlockHover_(text, position, opt_uri);
+      if ( javaHover ) return javaHover;
+
       // Try as class ID (full path like foam.lang.FObject)
       if ( this.index.classExists(word) ) {
         return this.buildClassHover(word);
@@ -156,6 +160,55 @@ foam.CLASS({
       var model = this.cache.getModelAt(opt_uri || '', text, position.line);
       if ( ! model ) return null;
       return model.refines || (model.package ? model.package + '.' + model.name : model.name);
+    },
+
+    function javaBlockHover_(text, position, opt_uri) {
+      /** Hover inside Java code blocks — resolve getters, variables, types. */
+      var offset = this.analyzer.positionToOffset(text, position);
+      var textBefore = text.substring(0, offset);
+      var lastBT = -1;
+      var btd = 0;
+      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
+        if ( textBefore[i] === '`' ) { btd++; if ( btd % 2 === 1 ) { lastBT = i; break; } }
+      }
+      if ( lastBT === -1 ) return null;
+      var beforeBT = text.substring(Math.max(0, lastBT - 200), lastBT);
+      if ( ! /(javaCode|javaGetter|javaPreSet|javaPostSet|javaFactory)\s*:\s*$/.test(beforeBT) ) return null;
+
+      var segment = this.analyzer.getSegmentAtPosition(text, position);
+      if ( ! segment ) return null;
+
+      var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+
+      // Hover on getX/setX → show property type
+      var getSetMatch = segment.match(/^(get|set)([A-Z]\w*)$/);
+      if ( getSetMatch ) {
+        var propName = getSetMatch[2].charAt(0).toLowerCase() + getSetMatch[2].substring(1);
+        var classId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+        if ( classId ) {
+          var javaType = this.index.getPropertyJavaType(classId, propName);
+          if ( javaType ) {
+            var md = getSetMatch[1] === 'get'
+              ? '**' + javaType + '** get' + getSetMatch[2] + '()\n\nGetter for `' + propName + '` on `' + classId + '`'
+              : '**void** set' + getSetMatch[2] + '(' + javaType + ' val)\n\nSetter for `' + propName + '` on `' + classId + '`';
+            return { contents: { kind: 'markdown', value: md } };
+          }
+        }
+      }
+
+      // Hover on a variable name → resolve its Java type
+      var varType = this.analyzer.resolveJavaVariableType(text, position, segment, model, this.index);
+      if ( varType ) {
+        return this.buildClassHover(varType);
+      }
+
+      // Hover on a type name (e.g., FlowAccess, Subject) → resolve to FOAM class
+      var typeClassId = this.analyzer.resolveJavaTypeName(segment, model, this.index);
+      if ( typeClassId ) {
+        return this.buildClassHover(typeClassId);
+      }
+
+      return null;
     },
 
     function buildClassHover(classId) {
