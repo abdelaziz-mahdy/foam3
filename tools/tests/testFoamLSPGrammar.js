@@ -775,6 +775,24 @@ test(segVal != null && segVal.isValue, 'JRL segment: finds string value');
 var foamJrlTokens = jrlHandler.handleSemanticTokens(foamJrlLine);
 test(foamJrlTokens.data.length > 0, 'JRL semantic tokens: FOAM format has tokens: ' + foamJrlTokens.data.length);
 
+// JRL shortName/alias resolution
+var shortNameHandler = foam.parse.lsp.handlers.JrlHandler.create({ index: index });
+var cardFinCls = index.getClass('com.paytic.domain.processor.thredd.CardFinancial');
+if ( cardFinCls ) {
+  var resolvedProp = shortNameHandler.resolveProperty_(cardFinCls, 'an');
+  test(resolvedProp != null, 'JRL resolveProperty: shortName an found');
+  test(resolvedProp && resolvedProp.name === 'accountNo', 'JRL resolveProperty: an → accountNo: ' + (resolvedProp ? resolvedProp.name : 'null'));
+  test(resolvedProp && resolvedProp.label === 'Account No', 'JRL resolveProperty: label is Account No');
+
+  var aliasResolve = shortNameHandler.resolveProperty_(cardFinCls, 'ARN');
+  test(aliasResolve != null && aliasResolve.name === 'arn', 'JRL resolveProperty: alias ARN → arn');
+
+  var directResolve = shortNameHandler.resolveProperty_(cardFinCls, 'id');
+  test(directResolve != null && directResolve.name === 'id', 'JRL resolveProperty: direct name id');
+} else {
+  test(false, 'CardFinancial class not found — skip shortName tests');
+}
+
 // JRL isJrlFile detection
 test(jrlHandler.isJrlFile('file:///test.jrl') === true, 'isJrlFile: .jrl returns true');
 test(jrlHandler.isJrlFile('file:///test.js') === false, 'isJrlFile: .js returns false');

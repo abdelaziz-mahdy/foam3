@@ -157,11 +157,17 @@ foam.CLASS({
       }
 
       // Hover on a property name → show type info
+      // Handles both full names (processDate) and shortNames (an → accountNo)
       if ( segment.isKey && cls ) {
-        var prop = cls.getAxiomByName(segment.value);
+        var prop = this.resolveProperty_(cls, segment.value);
         if ( prop ) {
           var typeName = prop.cls_ && prop.cls_.model_ ? prop.cls_.model_.name : 'Property';
-          var md = '**' + segment.value + '** (`' + typeName + '`)\n\n';
+          var isShort = prop.name !== segment.value;
+          var md = isShort
+            ? '**' + prop.name + '** → `' + segment.value + '`\n\n'
+            : '**' + segment.value + '**\n\n';
+          if ( prop.label ) md += 'Label: **' + prop.label + '**\n\n';
+          md += 'Type: `' + typeName + '`\n\n';
           if ( prop.documentation ) md += prop.documentation + '\n\n';
           return { contents: { kind: 'markdown', value: md } };
         }
@@ -169,12 +175,13 @@ foam.CLASS({
 
       // Hover on a value → check if it's a timestamp on a Date property
       if ( segment.isValue && segment.key && cls ) {
-        var prop = cls.getAxiomByName(segment.key);
+        var prop = this.resolveProperty_(cls, segment.key);
         if ( prop ) {
           var typeName = prop.cls_ && prop.cls_.model_ ? prop.cls_.model_.name : '';
+          var propLabel = prop.label || prop.name;
           if ( (typeName === 'Date' || typeName === 'DateTime' || typeName === 'DateTimeUTC') && typeof segment.rawValue === 'number' ) {
             var formatted = this.formatTimestamp_(segment.rawValue);
-            var md = '**' + segment.key + '**: `' + formatted + '`\n\n';
+            var md = '**' + propLabel + '**: `' + formatted + '`\n\n';
             md += 'Type: ' + typeName + '\n\nRaw: ' + segment.rawValue;
             return { contents: { kind: 'markdown', value: md } };
           }
@@ -352,6 +359,25 @@ foam.CLASS({
         }
       }
 
+      return null;
+    },
+
+    function resolveProperty_(cls, keyName) {
+      /** Find a property by name, shortName, or alias. */
+      // Try direct name first
+      var prop = cls.getAxiomByName(keyName);
+      if ( prop && foam.lang.Property.isInstance(prop) ) return prop;
+
+      // Search by shortName or alias
+      var props = cls.getAxiomsByClass(foam.lang.Property);
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        if ( props[i].shortName === keyName ) return props[i];
+        if ( props[i].aliases ) {
+          for ( var j = 0 ; j < props[i].aliases.length ; j++ ) {
+            if ( props[i].aliases[j] === keyName ) return props[i];
+          }
+        }
+      }
       return null;
     },
 
