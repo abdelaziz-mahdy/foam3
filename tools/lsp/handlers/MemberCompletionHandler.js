@@ -79,7 +79,7 @@ foam.CLASS({
         var model = this.cache.getModelAt(opt_uri || '', text, position.line);
         var varType = this.typeTracker ? this.typeTracker.resolveVariableType(text, position, varMatch[1], model, this.index) : null;
         if ( varType ) {
-          return this.getClassPropertyItems(varType);
+          return this.getClassMemberItems(varType);
         }
       }
 
@@ -213,6 +213,54 @@ foam.CLASS({
       var fullId = this.analyzer.resolveShortName(text, shortName);
       if ( ! fullId ) return { isIncomplete: false, items: [] };
       return this.getClassPropertyItems(fullId);
+    },
+
+    function getClassMemberItems(classId) {
+      /** Get completion items for properties + methods + actions of a class (for typed variables). */
+      var items = [];
+
+      // Properties
+      var props = this.index.getProperties(classId);
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        var p = props[i];
+        var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
+        items.push({
+          label: p.name,
+          kind: 10,
+          detail: typeName + ' — ' + classId,
+          documentation: p.documentation || '',
+          sortText: '!' + p.name
+        });
+      }
+
+      // Methods
+      var methods = this.index.getMethods(classId);
+      for ( var i = 0 ; i < methods.length ; i++ ) {
+        var m = methods[i];
+        var sig = this.analyzer.getMethodSignature(m);
+        items.push({
+          label: m.name,
+          kind: 2,
+          detail: sig,
+          documentation: m.documentation || '',
+          insertText: m.name + '()',
+          sortText: '!1_' + m.name
+        });
+      }
+
+      // Actions
+      var actions = this.index.getActions(classId);
+      for ( var i = 0 ; i < actions.length ; i++ ) {
+        items.push({
+          label: actions[i].name,
+          kind: 2,
+          detail: 'Action — ' + classId,
+          documentation: actions[i].documentation || '',
+          sortText: '!1_' + actions[i].name
+        });
+      }
+
+      return { isIncomplete: false, items: items };
     },
 
     function getClassPropertyItems(classId) {

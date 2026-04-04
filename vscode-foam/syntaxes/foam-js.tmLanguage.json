@@ -1,15 +1,16 @@
 {
   "scopeName": "foam.js.injection",
-  "injectionSelector": "L:source.js",
+  "injectionSelector": "L:source.js -comment",
   "patterns": [
     {
+      "comment": "Java syntax highlighting inside javaCode/javaGetter/etc. backtick blocks",
       "begin": "(javaCode|javaPreSet|javaPostSet|javaFactory|javaGetter|javaSetter)\\s*:\\s*`",
       "beginCaptures": {
         "1": { "name": "entity.name.tag.foam" }
       },
       "end": "`",
       "name": "meta.embedded.block.java.foam",
-      "contentName": "meta.embedded.block.java",
+      "contentName": "source.java",
       "patterns": [
         { "include": "source.java" }
       ]

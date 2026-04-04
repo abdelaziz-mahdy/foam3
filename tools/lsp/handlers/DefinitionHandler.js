@@ -58,7 +58,107 @@ foam.CLASS({
         }
       }
 
+      // Try as method/property on current class — navigate to the defining class
+      var segment = this.analyzer.getSegmentAtPosition(text, position);
+      if ( segment ) {
+        var model = this.cache.getModelAt('', text, position.line);
+        var classId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+        if ( classId ) {
+          var cls = this.index.getClass(classId);
+          if ( cls ) {
+            // Check if it's a method
+            var methods = cls.getAxiomsByClass(foam.lang.Method);
+            for ( var i = 0 ; i < methods.length ; i++ ) {
+              if ( methods[i].name === segment ) {
+                // Find which class in the hierarchy defines this method
+                var defClass = this.findMethodDefiner_(cls, segment);
+                if ( defClass ) {
+                  filePath = this.index.getFilePath(defClass);
+                  if ( filePath ) return this.buildLocationAtMethod(filePath, defClass, segment);
+                }
+              }
+            }
+            // Check if it's a property
+            var prop = cls.getAxiomByName(segment);
+            if ( prop && foam.lang.Property.isInstance(prop) ) {
+              var defClass = this.findPropertyDefiner_(cls, segment);
+              if ( defClass ) {
+                filePath = this.index.getFilePath(defClass);
+                if ( filePath ) return this.buildLocationAtProperty(filePath, segment);
+              }
+            }
+          }
+        }
+
+        // Try as short name from requires
+        var resolved = this.analyzer.resolveShortName(text, segment);
+        if ( resolved ) {
+          filePath = this.index.getFilePath(resolved);
+          if ( filePath ) return this.buildLocation(filePath, resolved);
+        }
+      }
+
       return null;
+    },
+
+    function findMethodDefiner_(cls, methodName) {
+      /** Walk the class hierarchy to find which class defines the method. */
+      while ( cls ) {
+        var own = cls.getOwnAxiomsByClass(foam.lang.Method);
+        for ( var i = 0 ; i < own.length ; i++ ) {
+          if ( own[i].name === methodName ) return cls.id;
+        }
+        cls = cls.model_.extends ? this.index.getClass(cls.model_.extends) : null;
+      }
+      return null;
+    },
+
+    function findPropertyDefiner_(cls, propName) {
+      /** Walk the class hierarchy to find which class defines the property. */
+      while ( cls ) {
+        var own = cls.getOwnAxiomsByClass(foam.lang.Property);
+        for ( var i = 0 ; i < own.length ; i++ ) {
+          if ( own[i].name === propName ) return cls.id;
+        }
+        cls = cls.model_.extends ? this.index.getClass(cls.model_.extends) : null;
+      }
+      return null;
+    },
+
+    function buildLocationAtMethod(filePath, classId, methodName) {
+      /** Jump to a method definition within a file. */
+      try {
+        var fs_ = require('fs');
+        var content = fs_.readFileSync(filePath, 'utf8');
+        var regex = new RegExp('function\\s+' + methodName + '\\s*\\(');
+        var match = regex.exec(content);
+        if ( match ) {
+          var line = 0;
+          for ( var i = 0 ; i < match.index ; i++ ) {
+            if ( content[i] === '\n' ) line++;
+          }
+          return { uri: 'file://' + filePath, range: { start: { line: line, character: 0 }, end: { line: line, character: 0 } } };
+        }
+      } catch (e) {}
+      return this.buildLocation(filePath, classId);
+    },
+
+    function buildLocationAtProperty(filePath, propName) {
+      /** Jump to a property definition within a file. */
+      try {
+        var fs_ = require('fs');
+        var content = fs_.readFileSync(filePath, 'utf8');
+        var regex = new RegExp("name\\s*:\\s*['\"]" + propName + "['\"]");
+        var match = regex.exec(content);
+        if ( match ) {
+          var line = 0;
+          for ( var i = 0 ; i < match.index ; i++ ) {
+            if ( content[i] === '\n' ) line++;
+          }
+          return { uri: 'file://' + filePath, range: { start: { line: line, character: 0 }, end: { line: line, character: 0 } } };
+        }
+      } catch (e) {}
+      return this.buildLocation(filePath);
     },
 
     function buildLocation(filePath, opt_classId) {

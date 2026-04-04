@@ -49,6 +49,7 @@ foam.CLASS({
 
       for ( var i = 0 ; i < models.length ; i++ ) {
         this.collectModelTokens_(text, models[i], tokens);
+        this.collectJavaTokens_(text, models[i], tokens);
       }
 
       // Sort by position (line, then character)
@@ -133,6 +134,56 @@ foam.CLASS({
           }
         }
       }
+    },
+
+    function collectJavaTokens_(text, model, tokens) {
+      /**
+       * Highlight getter/setter calls and type names inside Java code blocks.
+       * Scans javaCode, javaGetter, javaPreSet, javaPostSet, javaFactory on
+       * both the model and its properties.
+       */
+      var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
+      var self = this;
+
+      function scanJavaBlock(javaStr) {
+        if ( ! javaStr || typeof javaStr !== 'string' ) return;
+        var baseOffset = text.indexOf(javaStr);
+        if ( baseOffset === -1 ) return;
+
+        // Highlight getter/setter calls: getX(), setX()
+        var getSetRegex = /(get|set)([A-Z][a-zA-Z0-9_]*)\s*\(/g;
+        var gs;
+        while ( ( gs = getSetRegex.exec(javaStr) ) !== null ) {
+          var absOffset = baseOffset + gs.index;
+          var line = 0, col = 0;
+          for ( var i = 0 ; i < absOffset ; i++ ) {
+            if ( text[i] === '\n' ) { line++; col = 0; } else { col++; }
+          }
+          tokens.push({ line: line, char: col, length: gs[1].length + gs[2].length, type: 2, modifiers: 0 });
+        }
+
+        // Highlight Java type names in declarations: TypeName varName =
+        var typeRegex = /([A-Z][a-zA-Z0-9_]*)\s+[a-z]\w*\s*[=;]/g;
+        var tm;
+        while ( ( tm = typeRegex.exec(javaStr) ) !== null ) {
+          var typeName = tm[1];
+          // Verify it resolves to a known FOAM class
+          if ( self.index.classExists(typeName) || self.index.getAllClassIds().some(function(id) { return id.endsWith('.' + typeName); }) ) {
+            var absOffset = baseOffset + tm.index;
+            var line = 0, col = 0;
+            for ( var i = 0 ; i < absOffset ; i++ ) {
+              if ( text[i] === '\n' ) { line++; col = 0; } else { col++; }
+            }
+            tokens.push({ line: line, char: col, length: typeName.length, type: 1, modifiers: 0 });
+          }
+        }
+      }
+
+      javaKeys.forEach(function(key) { scanJavaBlock(model[key]); });
+      (model.properties || []).forEach(function(p) {
+        if ( typeof p !== 'object' ) return;
+        javaKeys.forEach(function(key) { scanJavaBlock(p[key]); });
+      });
     },
 
     function encodeTokens_(tokens) {
