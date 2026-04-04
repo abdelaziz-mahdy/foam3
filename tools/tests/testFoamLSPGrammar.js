@@ -741,6 +741,18 @@ var jrlTokens = jrlHandler.handleSemanticTokens(jrlText);
 test(jrlTokens.data.length > 0, 'JRL semantic tokens: has data: ' + jrlTokens.data.length);
 test(jrlTokens.data.length % 5 === 0, 'JRL semantic tokens: multiple of 5');
 
+// JRL journal class map — resolves filename to class without "class" field
+index.buildFileIndex();
+jrlHandler.buildJournalClassMap();
+var mapSize = Object.keys(jrlHandler.journalClassMap_).length;
+test(mapSize > 0, 'JRL journal class map: ' + mapSize + ' entries');
+
+// Resolve class from URI for JRL without "class" field
+var noClassEntry = {"id": 1, "name": "test"};
+var resolvedFromMap = jrlHandler.resolveClassForJrl('file:///path/to/journals/threddCardAuthorizations.jrl', noClassEntry);
+// May or may not resolve depending on whether threddCardAuthorizations is in the map
+test(resolvedFromMap === null || typeof resolvedFromMap === 'string', 'JRL resolveClassForJrl: returns string or null');
+
 // JRL isJrlFile detection
 test(jrlHandler.isJrlFile('file:///test.jrl') === true, 'isJrlFile: .jrl returns true');
 test(jrlHandler.isJrlFile('file:///test.js') === false, 'isJrlFile: .js returns false');

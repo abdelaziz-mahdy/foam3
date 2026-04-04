@@ -28,6 +28,7 @@ function start() {
   var semanticTokenHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
   var referencesHandler = foam.parse.lsp.handlers.ReferencesHandler.create({ index: index });
   var jrlHandler = foam.parse.lsp.handlers.JrlHandler.create({ index: index });
+  jrlHandler.buildJournalClassMap();
   var workspaceAnalyzer = foam.parse.lsp.handlers.WorkspaceAnalyzer.create({ index: index });
 
   var documents = {};
@@ -432,7 +433,7 @@ function start() {
         // JRL file hover
         if ( isJrlFile(params.textDocument.uri) ) {
           try {
-            var result = jrlHandler.handleHover(doc.text, params.position);
+            var result = jrlHandler.handleHover(doc.text, params.position, params.textDocument.uri);
             respond(id, result);
           } catch (e) {
             console.error('[LSP] JRL hover error:', e.message);

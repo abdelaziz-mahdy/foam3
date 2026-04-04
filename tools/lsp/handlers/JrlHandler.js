@@ -27,6 +27,11 @@ foam.CLASS({
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
+    },
+    {
+      name: 'journalClassMap_',
+      documentation: 'Map of journal filename → FOAM class ID, built from services.jrl files.',
+      factory: function() { return {}; }
     }
   ],
 
@@ -35,7 +40,96 @@ foam.CLASS({
       return uri && uri.endsWith('.jrl');
     },
 
-    function handleHover(text, position) {
+    function buildJournalClassMap() {
+      /**
+       * Scan services.jrl files for setJournalName/setOf pairings.
+       * Builds map: journalName → FOAM class ID.
+       * Called once at startup.
+       */
+      var fs_ = require('fs');
+      var path_ = require('path');
+      var map = {};
+
+      // Find all services.jrl files via POM locations
+      var poms = foam.poms || [];
+      for ( var p = 0 ; p < poms.length ; p++ ) {
+        var loc = poms[p].location || '';
+        var svcPath = path_.resolve(loc, 'services.jrl');
+        if ( ! fs_.existsSync(svcPath) ) continue;
+
+        try {
+          var content = fs_.readFileSync(svcPath, 'utf8');
+          // Find setJournalName + setOf pairs (they appear close together)
+          var journalName = null;
+          var lines = content.split('\n');
+          for ( var i = 0 ; i < lines.length ; i++ ) {
+            var jnMatch = lines[i].match(/\.setJournalName\s*\(\s*"(\w+)"\s*\)/);
+            if ( jnMatch ) journalName = jnMatch[1];
+
+            var ofMatch = lines[i].match(/\.setOf\s*\(\s*([\w.]+)\.getOwnClassInfo\s*\(\s*\)\s*\)/);
+            if ( ofMatch && journalName ) {
+              map[journalName] = ofMatch[1];
+              journalName = null;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Also scan sub-project services.jrl files
+      this.walkServiceFiles_(map, fs_, path_);
+
+      this.journalClassMap_ = map;
+      return map;
+    },
+
+    function walkServiceFiles_(map, fs_, path_) {
+      /** Walk the file index to find services.jrl files not in POM locations. */
+      var fileIndex = this.index.fileIndex_;
+      if ( ! fileIndex ) return;
+      var seenDirs = {};
+      for ( var classId in fileIndex ) {
+        var entry = fileIndex[classId];
+        var filePath = entry.path || entry;
+        var dir = path_.dirname(filePath);
+        if ( seenDirs[dir] ) continue;
+        seenDirs[dir] = true;
+        var svcPath = path_.resolve(dir, 'services.jrl');
+        if ( ! fs_.existsSync(svcPath) ) continue;
+        try {
+          var content = fs_.readFileSync(svcPath, 'utf8');
+          var journalName = null;
+          var lines = content.split('\n');
+          for ( var i = 0 ; i < lines.length ; i++ ) {
+            var jnMatch = lines[i].match(/\.setJournalName\s*\(\s*"(\w+)"\s*\)/);
+            if ( jnMatch ) journalName = jnMatch[1];
+            var ofMatch = lines[i].match(/\.setOf\s*\(\s*([\w.]+)\.getOwnClassInfo\s*\(\s*\)\s*\)/);
+            if ( ofMatch && journalName ) {
+              map[journalName] = ofMatch[1];
+              journalName = null;
+            }
+          }
+        } catch (e) {}
+      }
+    },
+
+    function resolveClassForJrl(uri, entry) {
+      /**
+       * Resolve the FOAM class for a JRL entry.
+       * 1. If entry has "class" field, use it directly
+       * 2. Otherwise, look up the JRL filename in journalClassMap_
+       */
+      if ( entry && entry['class'] ) return entry['class'];
+
+      // Extract filename from URI: file:///path/to/journals/threddCardAuthorizations.jrl → threddCardAuthorizations
+      if ( uri ) {
+        var parts = uri.split('/');
+        var filename = parts[parts.length - 1].replace('.jrl', '');
+        return this.journalClassMap_[filename] || null;
+      }
+      return null;
+    },
+
+    function handleHover(text, position, opt_uri) {
       var lines = text.split('\n');
       var line = lines[position.line] || '';
 
@@ -43,7 +137,8 @@ foam.CLASS({
       var entry = this.parseJrlEntry_(line);
       if ( ! entry ) return null;
 
-      var classId = entry['class'];
+      // Resolve class: from "class" field or from journal filename → services.jrl map
+      var classId = this.resolveClassForJrl(opt_uri, entry);
       var cls = classId ? this.index.getClass(classId) : null;
 
       // Find what's under the cursor
