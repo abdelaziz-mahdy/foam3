@@ -204,10 +204,18 @@ foam.CLASS({
         return typeCache[name];
       }
 
+      var usedOffsets = {};
       function scanJavaBlock(javaStr) {
         if ( ! javaStr || typeof javaStr !== 'string' ) return;
-        var baseOffset = text.indexOf(javaStr);
-        if ( baseOffset === -1 ) return;
+        // Find this Java string in the full text, skipping already-used offsets
+        var searchFrom = 0;
+        var baseOffset = -1;
+        while ( true ) {
+          baseOffset = text.indexOf(javaStr, searchFrom);
+          if ( baseOffset === -1 ) return;
+          if ( ! usedOffsets[baseOffset] ) { usedOffsets[baseOffset] = true; break; }
+          searchFrom = baseOffset + 1;
+        }
 
         // Comments
         var commentRegex = /\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
