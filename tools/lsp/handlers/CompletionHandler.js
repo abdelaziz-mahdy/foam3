@@ -256,7 +256,8 @@ foam.CLASS({
       }
 
       // Context 2: CSS property value completion (after "property-name: ")
-      var valueMatch = prefix.match(/([\w-]+)\s*:\s*([\w-]*)$/);
+      // Matches: "  outline: " (empty partial), "  outline: no" (partial), "  outline: none" (full)
+      var valueMatch = prefix.match(/([\w-]+)\s*:\s*([\w$-]*)$/);
       if ( valueMatch ) {
         var propName = valueMatch[1].toLowerCase();
         var partial = valueMatch[2].toLowerCase();
@@ -293,8 +294,8 @@ foam.CLASS({
         }
       }
 
-      // Context 3: CSS property name completion (after indentation, at start of declaration)
-      var propMatch = prefix.match(/^\s+([\w-]*)$/);
+      // Context 3: CSS property name completion (at start of line, with or without indentation)
+      var propMatch = prefix.match(/^\s*([\w-]*)$/);
       if ( propMatch ) {
         var partial = propMatch[1].toLowerCase();
         var props = this.CSS_PROPERTIES;
@@ -356,12 +357,35 @@ foam.CLASS({
         'word-break':      ['normal', 'break-all', 'keep-all', 'break-word'],
         'word-wrap':       ['normal', 'break-word', 'anywhere'],
         'transition':      ['none', 'all'],
+        'outline':         ['none'],
+        'outline-style':   ['none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset'],
+        'opacity':         ['0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1'],
+        'z-index':         ['auto', '0', '1', '10', '100', '1000'],
+        'flex':            ['none', '0', '1', 'auto'],
+        'flex-grow':       ['0', '1'],
+        'flex-shrink':     ['0', '1'],
+        'flex-basis':      ['auto', '0', 'content'],
+        'gap':             [],
+        'row-gap':         [],
+        'column-gap':      [],
+        'order':           ['0', '1', '2', '-1'],
+        'grid-template-columns': ['none', 'auto', 'min-content', 'max-content'],
+        'grid-template-rows':    ['none', 'auto', 'min-content', 'max-content'],
+        'place-items':     ['center', 'start', 'end', 'stretch'],
+        'place-content':   ['center', 'start', 'end', 'stretch', 'space-between', 'space-around', 'space-evenly'],
         'animation-fill-mode': ['none', 'forwards', 'backwards', 'both'],
         'animation-direction': ['normal', 'reverse', 'alternate', 'alternate-reverse'],
-        'animation-play-state': ['running', 'paused']
+        'animation-play-state': ['running', 'paused'],
+        'content':         ['none', 'normal', '""', "''"],
+        'table-layout':    ['auto', 'fixed'],
+        'vertical-align':  ['baseline', 'sub', 'super', 'top', 'text-top', 'middle', 'bottom', 'text-bottom'],
+        'direction':       ['ltr', 'rtl'],
+        'writing-mode':    ['horizontal-tb', 'vertical-rl', 'vertical-lr'],
+        'overflow-wrap':   ['normal', 'break-word', 'anywhere']
       };
       var values = valueMap[propertyName] || [];
-      return values.concat(common);
+      // For unknown properties, still return common values so completion is useful
+      return values.length > 0 ? values.concat(common) : common;
     },
 
     function javaBlockCompletion_(text, position, lines, prefix) {
