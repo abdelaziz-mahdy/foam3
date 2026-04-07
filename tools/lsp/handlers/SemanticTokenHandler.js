@@ -301,47 +301,122 @@ foam.CLASS({
 
     function collectCSSTokens_(text, model, tokens) {
       /**
-       * Finds css template strings in the model and emits tokens for:
-       * - $tokenName → variable token (type 2)
-       * - ^name      → type token (type 0)
+       * Full CSS syntax highlighting inside css: backtick blocks.
+       *
+       * Token types: 0=type, 1=class, 2=variable, 3=keyword, 4=string,
+       * 5=comment, 6=number, 7=operator, 8=method
+       *
+       * Highlights:
+       * - $tokenName        → variable (2)
+       * - ^ and ^name       → type (0)
+       * - CSS property names → keyword (3)
+       * - CSS values         → string (4)
+       * - Numbers with units → number (6)
+       * - Hex colors         → number (6)
+       * - Comments           → comment (5)
+       * - !important         → operator (7)
+       * - Selectors (.class) → class (1)
        */
       var cssStr = model.css;
       if ( ! cssStr || typeof cssStr !== 'string' ) return;
 
-      // Locate the css string within the full text
       var cssIndex = text.indexOf(cssStr);
       if ( cssIndex === -1 ) return;
 
-      // Pre-compute line offsets for css content
+      // Pre-compute line offsets
       var lineOffsets = [0];
       for ( var i = 0 ; i < text.length ; i++ ) {
         if ( text[i] === '\n' ) lineOffsets.push(i + 1);
       }
 
-      function offsetToLineChar(absOffset) {
+      function addToken(offset, length, type) {
         var lo = 0, hi = lineOffsets.length - 1;
         while ( lo < hi ) {
           var mid = (lo + hi + 1) >> 1;
-          if ( lineOffsets[mid] <= absOffset ) lo = mid; else hi = mid - 1;
+          if ( lineOffsets[mid] <= offset ) lo = mid; else hi = mid - 1;
         }
-        return { line: lo, char: absOffset - lineOffsets[lo] };
+        tokens.push({ line: lo, char: offset - lineOffsets[lo], length: length, type: type, modifiers: 0 });
       }
 
-      // Scan for $tokenName (CSS token variable references)
-      var tokenVarPattern = /\$([a-zA-Z_]\w*)/g;
+      var base = cssIndex;
       var match;
-      while ( ( match = tokenVarPattern.exec(cssStr) ) !== null ) {
-        var pos = offsetToLineChar(cssIndex + match.index);
-        // Include the $ in the token
-        tokens.push({ line: pos.line, char: pos.char, length: match[0].length, type: 2, modifiers: 0 });
+
+      // Comments: /* ... */
+      var commentRegex = /\/\*[\s\S]*?\*\//g;
+      while ( ( match = commentRegex.exec(cssStr) ) !== null ) {
+        addToken(base + match.index, match[0].length, 5);
       }
 
-      // Scan for ^name (myClass shorthand references)
-      var myClassPattern = /\^(\w+)/g;
+      // $tokenName references (FOAM CSS tokens)
+      var tokenVarPattern = /\$([a-zA-Z_][\w-]*)/g;
+      while ( ( match = tokenVarPattern.exec(cssStr) ) !== null ) {
+        addToken(base + match.index, match[0].length, 2);
+      }
+
+      // ^ and ^name selectors (FOAM myClass shorthand)
+      var myClassPattern = /\^([a-zA-Z][\w-]*)?/g;
       while ( ( match = myClassPattern.exec(cssStr) ) !== null ) {
-        var pos = offsetToLineChar(cssIndex + match.index);
-        // Include the ^ in the token
-        tokens.push({ line: pos.line, char: pos.char, length: match[0].length, type: 0, modifiers: 0 });
+        addToken(base + match.index, match[0].length, 0);
+      }
+
+      // .className selectors
+      var classSelectorPattern = /\.([a-zA-Z][\w-]*)/g;
+      while ( ( match = classSelectorPattern.exec(cssStr) ) !== null ) {
+        // Skip if inside a $token (e.g., don't match the dot in numbers like 0.8rem)
+        if ( match.index > 0 && /\d/.test(cssStr[match.index - 1]) ) continue;
+        addToken(base + match.index, match[0].length, 1);
+      }
+
+      // CSS property declarations: property-name: value;
+      // Match "  property-name:" at the start of lines (indented)
+      var propRegex = /^[ \t]+([\w-]+)\s*:/gm;
+      while ( ( match = propRegex.exec(cssStr) ) !== null ) {
+        var propName = match[1];
+        var propStart = match.index + match[0].indexOf(propName);
+        addToken(base + propStart, propName.length, 3);
+
+        // Find the value between : and ; on this line
+        var afterColon = match.index + match[0].length;
+        var semiPos = cssStr.indexOf(';', afterColon);
+        if ( semiPos === -1 ) continue;
+        var valueStr = cssStr.substring(afterColon, semiPos).trim();
+        if ( ! valueStr ) continue;
+
+        // Skip values that are purely $tokenName (already highlighted as variable)
+        if ( /^\$[\w-]+$/.test(valueStr) ) continue;
+        // Skip values that contain $tokenName mixed with other text (e.g., "1px solid $borderLight")
+        // — highlight the non-token parts only
+
+        // Numbers with units: 8px, 1rem, 0.8rem, 100%, 1.5em
+        var numUnitRegex = /(\d+\.?\d*)(px|em|rem|%|vh|vw|vmin|vmax|pt|ch|s|ms|deg|fr)?/g;
+        var numMatch;
+        var valueStart = cssStr.indexOf(valueStr, afterColon);
+        while ( ( numMatch = numUnitRegex.exec(valueStr) ) !== null ) {
+          addToken(base + valueStart + numMatch.index, numMatch[0].length, 6);
+        }
+
+        // Hex colors: #FFF, #FFFFFF, #0A4AC6
+        var hexRegex = /#[0-9a-fA-F]{3,8}/g;
+        var hexMatch;
+        while ( ( hexMatch = hexRegex.exec(valueStr) ) !== null ) {
+          addToken(base + valueStart + hexMatch.index, hexMatch[0].length, 6);
+        }
+
+        // CSS keyword values (common ones)
+        var cssValueKeywords = /\b(none|auto|inherit|initial|unset|revert|flex|grid|block|inline|inline-block|inline-flex|contents|table|column|row|wrap|nowrap|center|start|end|stretch|space-between|space-around|space-evenly|baseline|normal|bold|bolder|lighter|italic|underline|solid|dashed|dotted|double|hidden|visible|scroll|relative|absolute|fixed|sticky|static|pointer|not-allowed|default|text|move|grab|grabbing|crosshair|help|wait|collapse|separate|transparent|currentColor|ease|ease-in|ease-out|ease-in-out|linear|forwards|backwards|both|infinite|alternate|running|paused|uppercase|lowercase|capitalize|nowrap|pre|pre-wrap|pre-line|break-word|break-all|keep-all|ellipsis|clip|cover|contain|fill|border-box|content-box|padding-box)\b/g;
+        var kwMatch;
+        while ( ( kwMatch = cssValueKeywords.exec(valueStr) ) !== null ) {
+          // Skip if this is part of a $token
+          var absPos = valueStart + kwMatch.index;
+          if ( absPos > 0 && cssStr[absPos - 1] === '$' ) continue;
+          addToken(base + absPos, kwMatch[0].length, 4);
+        }
+      }
+
+      // !important
+      var importantRegex = /!important/g;
+      while ( ( match = importantRegex.exec(cssStr) ) !== null ) {
+        addToken(base + match.index, match[0].length, 7);
       }
     },
 

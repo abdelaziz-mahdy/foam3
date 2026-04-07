@@ -16,6 +16,58 @@ foam.CLASS({
     'foam.parse.StringPStream'
   ],
 
+  constants: {
+    CSS_PROPERTIES: [
+      'align-content', 'align-items', 'align-self', 'animation', 'animation-delay',
+      'animation-direction', 'animation-duration', 'animation-fill-mode', 'animation-name',
+      'animation-play-state', 'animation-timing-function', 'appearance',
+      'backdrop-filter', 'backface-visibility', 'background', 'background-attachment',
+      'background-clip', 'background-color', 'background-image', 'background-origin',
+      'background-position', 'background-repeat', 'background-size',
+      'border', 'border-bottom', 'border-bottom-color', 'border-bottom-left-radius',
+      'border-bottom-right-radius', 'border-bottom-style', 'border-bottom-width',
+      'border-collapse', 'border-color', 'border-image', 'border-left', 'border-left-color',
+      'border-left-style', 'border-left-width', 'border-radius', 'border-right',
+      'border-right-color', 'border-right-style', 'border-right-width', 'border-spacing',
+      'border-style', 'border-top', 'border-top-color', 'border-top-left-radius',
+      'border-top-right-radius', 'border-top-style', 'border-top-width', 'border-width',
+      'bottom', 'box-shadow', 'box-sizing',
+      'clear', 'clip', 'clip-path', 'color', 'column-count', 'column-gap', 'column-rule',
+      'column-width', 'columns', 'content', 'counter-increment', 'counter-reset', 'cursor',
+      'direction', 'display',
+      'fill', 'filter', 'flex', 'flex-basis', 'flex-direction', 'flex-flow', 'flex-grow',
+      'flex-shrink', 'flex-wrap', 'float', 'font', 'font-family', 'font-feature-settings',
+      'font-size', 'font-style', 'font-variant', 'font-weight',
+      'gap', 'grid', 'grid-area', 'grid-auto-columns', 'grid-auto-flow', 'grid-auto-rows',
+      'grid-column', 'grid-column-end', 'grid-column-gap', 'grid-column-start', 'grid-gap',
+      'grid-row', 'grid-row-end', 'grid-row-gap', 'grid-row-start', 'grid-template',
+      'grid-template-areas', 'grid-template-columns', 'grid-template-rows',
+      'height',
+      'justify-content', 'justify-items', 'justify-self',
+      'left', 'letter-spacing', 'line-height', 'list-style', 'list-style-type',
+      'margin', 'margin-bottom', 'margin-left', 'margin-right', 'margin-top',
+      'max-height', 'max-width', 'min-height', 'min-width',
+      'object-fit', 'object-position', 'opacity', 'order', 'outline', 'outline-color',
+      'outline-offset', 'outline-style', 'outline-width', 'overflow', 'overflow-x',
+      'overflow-y', 'overflow-wrap',
+      'padding', 'padding-bottom', 'padding-left', 'padding-right', 'padding-top',
+      'perspective', 'place-content', 'place-items', 'place-self', 'pointer-events',
+      'position',
+      'resize', 'right', 'row-gap',
+      'scroll-behavior', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-width',
+      'table-layout', 'text-align', 'text-decoration', 'text-decoration-color',
+      'text-decoration-line', 'text-decoration-style', 'text-indent', 'text-overflow',
+      'text-shadow', 'text-transform', 'top', 'transform', 'transform-origin',
+      'transition', 'transition-delay', 'transition-duration', 'transition-property',
+      'transition-timing-function',
+      'user-select',
+      'vertical-align', 'visibility',
+      'white-space', 'width', 'will-change', 'word-break', 'word-spacing', 'word-wrap',
+      'writing-mode',
+      'z-index'
+    ]
+  },
+
   properties: [
     {
       class: 'FObjectProperty',
@@ -152,17 +204,10 @@ foam.CLASS({
       return [];
     },
 
-    function cssBlockCompletion_(text, position, prefix) {
-      /**
-       * Suggest CSS token names when cursor is inside a css: backtick block
-       * and the user has typed a $ prefix.
-       */
-      if ( ! this.cssTokenResolver ) return null;
-
+    function isInsideCSSBlock_(text, position) {
+      /** Returns true if cursor is inside a css: backtick block. */
       var offset = this.analyzer.positionToOffset(text, position);
       var textBefore = text.substring(0, offset);
-
-      // Check if cursor is inside a backtick-delimited CSS block.
       var lastOpenBacktick = -1;
       var btDepth = 0;
       for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
@@ -171,39 +216,152 @@ foam.CLASS({
           if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
         }
       }
-      if ( lastOpenBacktick === -1 ) return null;
-
-      // Verify the backtick belongs to a css block key
+      if ( lastOpenBacktick === -1 ) return false;
       var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
-      if ( ! /css\s*:\s*$/.test(beforeBacktick) ) return null;
+      return /css\s*:\s*$/.test(beforeBacktick);
+    },
 
-      // Check if prefix ends with $word pattern
+    function cssBlockCompletion_(text, position, prefix) {
+      /**
+       * CSS completion inside css: backtick blocks.
+       * Handles three contexts:
+       * 1. $tokenName — FOAM CSS token references
+       * 2. property-name: — CSS property names (after indentation)
+       * 3. property: value — CSS property values (after colon)
+       */
+      if ( ! this.isInsideCSSBlock_(text, position) ) return null;
+
+      // Context 1: $tokenName completion
       var dollarMatch = prefix.match(/\$(\w*)$/);
-      if ( ! dollarMatch ) return null;
-
-      var partial = dollarMatch[1].toLowerCase();
-      var allNames = this.cssTokenResolver.getAllTokenNames();
-      var items = [];
-
-      for ( var i = 0 ; i < allNames.length ; i++ ) {
-        var name = allNames[i];
-        if ( partial && name.toLowerCase().indexOf(partial) === -1 ) continue;
-
-        var info = this.cssTokenResolver.getTokenInfo(name);
-        var resolved = this.cssTokenResolver.getResolvedValue(name);
-        var isColor = info && info.type && info.type.indexOf('ColorToken') !== -1;
-
-        items.push({
-          label: name,
-          kind: isColor ? 16 : 6,
-          detail: resolved || '',
-          insertText: name,
-          filterText: '$' + name,
-          sortText: '!' + name.toLowerCase()
-        });
+      if ( dollarMatch && this.cssTokenResolver ) {
+        var partial = dollarMatch[1].toLowerCase();
+        var allNames = this.cssTokenResolver.getAllTokenNames();
+        var items = [];
+        for ( var i = 0 ; i < allNames.length ; i++ ) {
+          var name = allNames[i];
+          if ( partial && name.toLowerCase().indexOf(partial) === -1 ) continue;
+          var info = this.cssTokenResolver.getTokenInfo(name);
+          var resolved = this.cssTokenResolver.getResolvedValue(name);
+          var isColor = info && info.type && info.type.indexOf('ColorToken') !== -1;
+          items.push({
+            label: name,
+            kind: isColor ? 16 : 6,
+            detail: resolved || '',
+            insertText: name,
+            filterText: '$' + name,
+            sortText: '!' + name.toLowerCase()
+          });
+        }
+        return items;
       }
 
-      return items;
+      // Context 2: CSS property value completion (after "property-name: ")
+      var valueMatch = prefix.match(/([\w-]+)\s*:\s*([\w-]*)$/);
+      if ( valueMatch ) {
+        var propName = valueMatch[1].toLowerCase();
+        var partial = valueMatch[2].toLowerCase();
+        var values = this.getCSSPropertyValues_(propName);
+        if ( values.length > 0 ) {
+          var items = [];
+          for ( var i = 0 ; i < values.length ; i++ ) {
+            if ( partial && values[i].toLowerCase().indexOf(partial) === -1 ) continue;
+            items.push({
+              label: values[i],
+              kind: 12,
+              detail: propName,
+              insertText: values[i],
+              sortText: '!' + values[i]
+            });
+          }
+          // Also add $token suggestions for color properties
+          if ( this.cssTokenResolver && /color|background|border|fill|stroke|outline/.test(propName) ) {
+            var allNames = this.cssTokenResolver.getAllTokenNames();
+            for ( var i = 0 ; i < allNames.length ; i++ ) {
+              var info = this.cssTokenResolver.getTokenInfo(allNames[i]);
+              if ( ! info || info.type !== 'ColorToken' ) continue;
+              if ( partial && allNames[i].toLowerCase().indexOf(partial) === -1 ) continue;
+              items.push({
+                label: '$' + allNames[i],
+                kind: 16,
+                detail: info.default_.resolved || info.default_.value,
+                insertText: '$' + allNames[i],
+                sortText: '~' + allNames[i]
+              });
+            }
+          }
+          return items;
+        }
+      }
+
+      // Context 3: CSS property name completion (after indentation, at start of declaration)
+      var propMatch = prefix.match(/^\s+([\w-]*)$/);
+      if ( propMatch ) {
+        var partial = propMatch[1].toLowerCase();
+        var props = this.CSS_PROPERTIES;
+        var items = [];
+        for ( var i = 0 ; i < props.length ; i++ ) {
+          if ( partial && props[i].indexOf(partial) === -1 ) continue;
+          items.push({
+            label: props[i],
+            kind: 10,
+            detail: 'CSS property',
+            insertText: props[i] + ': ',
+            sortText: '!' + props[i]
+          });
+        }
+        return items;
+      }
+
+      return null;
+    },
+
+    function getCSSPropertyValues_(propertyName) {
+      /** Returns common CSS values for a given property name. */
+      var common = ['inherit', 'initial', 'unset', 'revert'];
+      var valueMap = {
+        'display':         ['none', 'block', 'inline', 'inline-block', 'flex', 'inline-flex', 'grid', 'inline-grid', 'contents', 'table', 'table-row', 'table-cell'],
+        'position':        ['static', 'relative', 'absolute', 'fixed', 'sticky'],
+        'flex-direction':  ['row', 'row-reverse', 'column', 'column-reverse'],
+        'flex-wrap':       ['nowrap', 'wrap', 'wrap-reverse'],
+        'justify-content': ['flex-start', 'flex-end', 'center', 'space-between', 'space-around', 'space-evenly', 'start', 'end', 'stretch'],
+        'align-items':     ['flex-start', 'flex-end', 'center', 'baseline', 'stretch', 'start', 'end'],
+        'align-content':   ['flex-start', 'flex-end', 'center', 'space-between', 'space-around', 'stretch', 'start', 'end'],
+        'align-self':      ['auto', 'flex-start', 'flex-end', 'center', 'baseline', 'stretch'],
+        'overflow':        ['visible', 'hidden', 'scroll', 'auto', 'clip'],
+        'overflow-x':      ['visible', 'hidden', 'scroll', 'auto', 'clip'],
+        'overflow-y':      ['visible', 'hidden', 'scroll', 'auto', 'clip'],
+        'visibility':      ['visible', 'hidden', 'collapse'],
+        'white-space':     ['normal', 'nowrap', 'pre', 'pre-wrap', 'pre-line', 'break-spaces'],
+        'text-align':      ['left', 'right', 'center', 'justify', 'start', 'end'],
+        'text-decoration': ['none', 'underline', 'overline', 'line-through'],
+        'text-transform':  ['none', 'capitalize', 'uppercase', 'lowercase'],
+        'text-overflow':   ['clip', 'ellipsis'],
+        'font-weight':     ['normal', 'bold', 'bolder', 'lighter', '100', '200', '300', '400', '500', '600', '700', '800', '900'],
+        'font-style':      ['normal', 'italic', 'oblique'],
+        'cursor':          ['auto', 'default', 'pointer', 'move', 'text', 'wait', 'help', 'crosshair', 'not-allowed', 'grab', 'grabbing', 'col-resize', 'row-resize', 'n-resize', 's-resize', 'e-resize', 'w-resize', 'zoom-in', 'zoom-out'],
+        'resize':          ['none', 'both', 'horizontal', 'vertical', 'block', 'inline'],
+        'pointer-events':  ['auto', 'none'],
+        'user-select':     ['auto', 'text', 'none', 'contain', 'all'],
+        'float':           ['none', 'left', 'right', 'inline-start', 'inline-end'],
+        'clear':           ['none', 'left', 'right', 'both', 'inline-start', 'inline-end'],
+        'box-sizing':      ['content-box', 'border-box'],
+        'border-style':    ['none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 'groove', 'ridge', 'inset', 'outset'],
+        'border-collapse': ['collapse', 'separate'],
+        'list-style-type': ['none', 'disc', 'circle', 'square', 'decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'],
+        'background-size': ['auto', 'cover', 'contain'],
+        'background-repeat': ['repeat', 'repeat-x', 'repeat-y', 'no-repeat', 'space', 'round'],
+        'background-position': ['top', 'bottom', 'left', 'right', 'center'],
+        'background-attachment': ['scroll', 'fixed', 'local'],
+        'object-fit':      ['fill', 'contain', 'cover', 'none', 'scale-down'],
+        'word-break':      ['normal', 'break-all', 'keep-all', 'break-word'],
+        'word-wrap':       ['normal', 'break-word', 'anywhere'],
+        'transition':      ['none', 'all'],
+        'animation-fill-mode': ['none', 'forwards', 'backwards', 'both'],
+        'animation-direction': ['normal', 'reverse', 'alternate', 'alternate-reverse'],
+        'animation-play-state': ['running', 'paused']
+      };
+      var values = valueMap[propertyName] || [];
+      return values.concat(common);
     },
 
     function javaBlockCompletion_(text, position, lines, prefix) {

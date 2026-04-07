@@ -344,7 +344,7 @@ function start() {
               save: { includeText: false }
             },
             completionProvider: {
-              triggerCharacters: ["'", '"', '.', ':'],
+              triggerCharacters: ["'", '"', '.', ':', '$'],
               resolveProvider: false
             },
             hoverProvider: true,
