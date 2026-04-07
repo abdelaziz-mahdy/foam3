@@ -17,6 +17,7 @@ foam.CLASS({
       await this.testDiagnosticsHandler(x);
       await this.testSymbolHandler(x);
       await this.testMemberCompletionHandler(x);
+      await this.testSemanticTokenHandler(x);
     },
 
     // ========== CompletionHandler ==========
@@ -211,6 +212,102 @@ foam.CLASS({
       // Non-FOAM file
       var result2 = handler.handle("var x = this.", { line: 0, character: 13 });
       x.test(result2.items.length === 0, 'Member: should not suggest in non-FOAM file');
+    },
+
+    // ========== SemanticTokenHandler ==========
+
+    async function testSemanticTokenHandler(x) {
+      var handler = foam.parse.lsp.handlers.SemanticTokenHandler.create({
+        typeTracker: foam.parse.lsp.TypeTracker.create()
+      });
+
+      // Build a test FOAM class with requires, a property, and a method
+      var text = [
+        "foam.CLASS({",
+        "  package: 'test.semantic',",
+        "  name: 'TokenTest',",
+        "  requires: [",
+        "    'foam.core.notification.Notification',",       // line 4: 'notification' inside string
+        "    'foam.u2.dialog.ToastState'",
+        "  ],",
+        "  properties: [",
+        "    { class: 'String', name: 'notificationSub' }", // line 8
+        "  ],",
+        "  methods: [",
+        "    function doStuff() {",                          // line 11
+        "      var notification = this.Notification.create();", // line 12
+        "      notification.userId = 1;",                   // line 13
+        "      this.notificationSub = 'test';",             // line 14
+        "    }",
+        "  ]",
+        "})"
+      ].join('\n');
+
+      var result = handler.handle(text, 'test://scope');
+      var decoded = this.decodeSemanticTokens(result.data);
+
+      // The word 'notification' (12 chars) on line 4 inside the requires string
+      // should NOT have a semantic token — it's inside a structural range + string literal
+      var line4Hits = decoded.filter(function(t) {
+        return t.line === 4 && t.length === 12;
+      });
+      x.test(
+        line4Hits.length === 0,
+        'Semantic: "notification" inside requires string should NOT be highlighted'
+      );
+
+      // this.Notification on line 12 should be highlighted as type (token type 0)
+      var thisNotifHits = decoded.filter(function(t) {
+        return t.line === 12 && t.type === 0 && t.length === 12;
+      });
+      x.test(
+        thisNotifHits.length > 0,
+        'Semantic: this.Notification on line 12 should be highlighted as type (0)'
+      );
+
+      // this.notificationSub on line 14 should be highlighted as property (token type 2)
+      var thisPropHits = decoded.filter(function(t) {
+        return t.line === 14 && t.type === 2 && t.length === 15;
+      });
+      x.test(
+        thisPropHits.length > 0,
+        'Semantic: this.notificationSub on line 14 should be highlighted as property'
+      );
+
+      // notification usage on line 13 (inside code, not string) should be highlighted
+      // as typed variable usage (type 2, modifiers 2 = readonly)
+      var usageHits = decoded.filter(function(t) {
+        return t.line === 13 && t.type === 2 && t.length === 12;
+      });
+      x.test(
+        usageHits.length > 0,
+        'Semantic: "notification" usage on line 13 should be highlighted as typed variable'
+      );
+    },
+
+    function decodeSemanticTokens(data) {
+      /**
+       * Decodes the LSP relative delta array back to absolute positions.
+       * Returns array of { line, char, length, type, modifiers }.
+       */
+      var tokens = [];
+      var prevLine = 0;
+      var prevChar = 0;
+      for ( var i = 0 ; i + 4 < data.length ; i += 5 ) {
+        var deltaLine = data[i];
+        var deltaChar = data[i + 1];
+        var length    = data[i + 2];
+        var type      = data[i + 3];
+        var modifiers = data[i + 4];
+
+        var line = prevLine + deltaLine;
+        var ch   = deltaLine === 0 ? prevChar + deltaChar : deltaChar;
+
+        tokens.push({ line: line, char: ch, length: length, type: type, modifiers: modifiers });
+        prevLine = line;
+        prevChar = ch;
+      }
+      return tokens;
     }
   ]
 });

@@ -45,6 +45,10 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.parse.lsp.TypeTracker',
       name: 'typeTracker'
+    },
+    {
+      class: 'FObjectProperty',
+      name: 'cssTokenResolver'
     }
   ],
 
@@ -57,6 +61,7 @@ foam.CLASS({
       for ( var i = 0 ; i < models.length ; i++ ) {
         this.collectModelTokens_(text, models[i], tokens);
         this.collectJavaTokens_(text, models[i], tokens);
+        this.collectCSSTokens_(text, models[i], tokens);
       }
 
       // Sort by position (line, then character)
@@ -69,12 +74,21 @@ foam.CLASS({
     },
 
     function collectModelTokens_(text, model, tokens) {
-      // For refines: the FOAM registry class already has all axioms merged
-      // (original + refinement). Use registry requires, not just the raw model.
+      /**
+       * Scope-aware model token collection. Builds four priority lookup sets
+       * from the model and does a single pass over lines matching this.\w+.
+       *
+       * Priority: requires (type 0) > property (variable 2) > method (method 8) > import (variable 2 readonly)
+       *
+       * Typed variable usages (var x = this.Foo.create()) are only emitted
+       * inside code scope — NOT in structural ranges or string literals.
+       */
       var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
-      var cls = this.index.getClass(classId);
+      var cls     = this.index.getClass(classId);
+
+      // --- Build requires set ---
+      var requiresSet = {};
       var requiresMap = this.cache.buildRequiresMap(model);
-      // Merge registry requires (handles refines inheriting parent's requires)
       if ( cls ) {
         var regRequires = this.index.getRequires(classId);
         for ( var i = 0 ; i < regRequires.length ; i++ ) {
@@ -84,26 +98,90 @@ foam.CLASS({
           }
         }
       }
-
       var aliases = Object.keys(requiresMap);
+      for ( var i = 0 ; i < aliases.length ; i++ ) {
+        requiresSet[aliases[i]] = true;
+      }
+
+      // --- Build property set ---
+      var propertySet = {};
+      if ( cls ) {
+        var props = cls.getAxiomsByClass(foam.lang.Property);
+        for ( var i = 0 ; i < props.length ; i++ ) {
+          propertySet[props[i].name] = true;
+        }
+      }
+      // Also pick up raw model properties (may not be registered yet)
+      var rawProps = model.properties || [];
+      for ( var i = 0 ; i < rawProps.length ; i++ ) {
+        var pName = typeof rawProps[i] === 'string' ? rawProps[i] : rawProps[i].name;
+        if ( pName ) propertySet[pName] = true;
+      }
+
+      // --- Build method set ---
+      var methodSet = {};
+      if ( cls ) {
+        var methods = cls.getAxiomsByClass(foam.lang.Method);
+        for ( var i = 0 ; i < methods.length ; i++ ) {
+          methodSet[methods[i].name] = true;
+        }
+      }
+      var rawMethods = model.methods || [];
+      for ( var i = 0 ; i < rawMethods.length ; i++ ) {
+        var m = rawMethods[i];
+        var mName = typeof m === 'function' ? m.name : (m && m.name);
+        if ( mName ) methodSet[mName] = true;
+      }
+
+      // --- Build import set ---
+      var importSet = {};
+      if ( cls ) {
+        var imports = cls.getAxiomsByClass(foam.lang.Import);
+        for ( var i = 0 ; i < imports.length ; i++ ) {
+          // Import key is the local name (last segment or 'as' alias)
+          var imp = imports[i];
+          var impName = imp.name || imp.key;
+          if ( impName ) importSet[impName] = true;
+        }
+      }
+      var rawImports = model.imports || [];
+      for ( var i = 0 ; i < rawImports.length ; i++ ) {
+        var rawImp = rawImports[i];
+        if ( typeof rawImp === 'string' ) {
+          // Strip trailing '?' for optional imports
+          var cleaned = rawImp.replace(/\?$/, '');
+          var parts = cleaned.split(/\s+as\s+/);
+          var localName = parts.length > 1 ? parts[1].trim() : parts[0].trim().split('.').pop();
+          if ( localName ) importSet[localName] = true;
+        }
+      }
+
+      // --- Compute structural ranges to skip for variable usage ---
       var lines = text.split('\n');
+      var structuralRanges = this.computeStructuralRanges_(lines);
 
-      // Alias references: this.ShortName → highlight ShortName as type
-      if ( aliases.length > 0 ) {
-        var aliasPattern = new RegExp('this\\.(' + aliases.map(function(a) {
-          return a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }).join('|') + ')\\b', 'g');
+      // --- Single pass: match this.\w+ and classify by priority ---
+      var thisPattern = /this\.(\w+)/g;
+      for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        thisPattern.lastIndex = 0;
+        var match;
+        while ( ( match = thisPattern.exec(lines[lineNum]) ) !== null ) {
+          var name = match[1];
+          var charPos = match.index + 5; // skip 'this.'
 
-        for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
-          aliasPattern.lastIndex = 0;
-          var match;
-          while ( ( match = aliasPattern.exec(lines[lineNum]) ) !== null ) {
-            tokens.push({ line: lineNum, char: match.index + 5, length: match[1].length, type: 0, modifiers: 0 });
+          if ( requiresSet[name] ) {
+            tokens.push({ line: lineNum, char: charPos, length: name.length, type: 0, modifiers: 0 });
+          } else if ( propertySet[name] ) {
+            tokens.push({ line: lineNum, char: charPos, length: name.length, type: 2, modifiers: 0 });
+          } else if ( methodSet[name] ) {
+            tokens.push({ line: lineNum, char: charPos, length: name.length, type: 8, modifiers: 0 });
+          } else if ( importSet[name] ) {
+            tokens.push({ line: lineNum, char: charPos, length: name.length, type: 2, modifiers: 2 });
           }
         }
       }
 
-      // Typed variable declarations + usages
+      // --- Typed variable declarations + scoped usages ---
       if ( ! this.typeTracker ) return;
       var createRegex = /(?:var|let|const)\s+(\w+)\s*=\s*(?:this\.)?(\w+)\.create\s*\(/g;
       var varTypes = {};
@@ -112,33 +190,157 @@ foam.CLASS({
         createRegex.lastIndex = 0;
         var match;
         while ( ( match = createRegex.exec(lines[lineNum]) ) !== null ) {
-          var varName = match[1];
+          var varName   = match[1];
           var className = match[2];
-          var resolved = requiresMap[className] || (this.index.classExists(className) ? className : null);
+          var resolved  = requiresMap[className] ||
+            (this.index.classExists(className) ? className : null);
           if ( resolved ) {
             varTypes[varName] = true;
-            tokens.push({ line: lineNum, char: match.index + match[0].indexOf(varName), length: varName.length, type: 2, modifiers: 1 });
+            tokens.push({
+              line: lineNum,
+              char: match.index + match[0].indexOf(varName),
+              length: varName.length,
+              type: 2,
+              modifiers: 1
+            });
           }
         }
       }
 
+      // Emit usage tokens only in code scope (skip structural ranges and strings)
       var varNames = Object.keys(varTypes);
       if ( varNames.length === 0 ) return;
       var usagePattern = new RegExp('\\b(' + varNames.join('|') + ')\\b', 'g');
       for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        if ( this.isInStructuralRange_(lineNum, structuralRanges) ) continue;
         usagePattern.lastIndex = 0;
         var match;
         while ( ( match = usagePattern.exec(lines[lineNum]) ) !== null ) {
+          // Skip if this is a declaration token
           var isDecl = false;
           for ( var t = 0 ; t < tokens.length ; t++ ) {
             if ( tokens[t].line === lineNum && tokens[t].char === match.index && tokens[t].modifiers === 1 ) {
-              isDecl = true; break;
+              isDecl = true;
+              break;
             }
           }
-          if ( ! isDecl ) {
-            tokens.push({ line: lineNum, char: match.index, length: match[1].length, type: 2, modifiers: 2 });
+          if ( isDecl ) continue;
+
+          // Skip matches inside string literals
+          if ( this.isInStringLiteral_(lines[lineNum], match.index) ) continue;
+
+          tokens.push({ line: lineNum, char: match.index, length: match[1].length, type: 2, modifiers: 2 });
+        }
+      }
+    },
+
+    function computeStructuralRanges_(lines) {
+      /**
+       * Finds line ranges of structural arrays (requires, imports, exports,
+       * javaImports) where variable usage tokens should NOT be emitted.
+       * Returns array of { start: lineNum, end: lineNum } objects.
+       */
+      var ranges = [];
+      var keywords = ['requires', 'imports', 'exports', 'javaImports'];
+      var keywordPattern = new RegExp(
+        '\\b(' + keywords.join('|') + ')\\s*:\\s*\\[', 'g'
+      );
+
+      for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        keywordPattern.lastIndex = 0;
+        var match = keywordPattern.exec(lines[lineNum]);
+        if ( ! match ) continue;
+
+        // Found opening bracket — track depth to find closing bracket
+        var depth  = 0;
+        var started = false;
+        var startLine = lineNum;
+        for ( var i = lineNum ; i < lines.length ; i++ ) {
+          var line = lines[i];
+          for ( var c = (i === lineNum ? match.index : 0) ; c < line.length ; c++ ) {
+            if ( line[c] === '[' ) { depth++; started = true; }
+            if ( line[c] === ']' ) { depth--; }
+            if ( started && depth === 0 ) {
+              ranges.push({ start: startLine, end: i });
+              i = lines.length; // break outer
+              break;
+            }
           }
         }
+      }
+      return ranges;
+    },
+
+    function isInStructuralRange_(lineNum, ranges) {
+      /** Returns true if lineNum falls within any structural range. */
+      for ( var i = 0 ; i < ranges.length ; i++ ) {
+        if ( lineNum >= ranges[i].start && lineNum <= ranges[i].end ) return true;
+      }
+      return false;
+    },
+
+    function isInStringLiteral_(line, charIndex) {
+      /**
+       * Returns true if charIndex falls inside a string literal on this line.
+       * Handles single quotes, double quotes, and backtick template literals.
+       */
+      var inSingle = false;
+      var inDouble = false;
+      var inTick   = false;
+      for ( var i = 0 ; i < charIndex ; i++ ) {
+        var ch = line[i];
+        // Skip escaped characters
+        if ( ch === '\\' ) { i++; continue; }
+        if ( ch === "'" && ! inDouble && ! inTick ) { inSingle = ! inSingle; continue; }
+        if ( ch === '"' && ! inSingle && ! inTick ) { inDouble = ! inDouble; continue; }
+        if ( ch === '`' && ! inSingle && ! inDouble ) { inTick = ! inTick; continue; }
+      }
+      return inSingle || inDouble || inTick;
+    },
+
+    function collectCSSTokens_(text, model, tokens) {
+      /**
+       * Finds css template strings in the model and emits tokens for:
+       * - $tokenName → variable token (type 2)
+       * - ^name      → type token (type 0)
+       */
+      var cssStr = model.css;
+      if ( ! cssStr || typeof cssStr !== 'string' ) return;
+
+      // Locate the css string within the full text
+      var cssIndex = text.indexOf(cssStr);
+      if ( cssIndex === -1 ) return;
+
+      // Pre-compute line offsets for css content
+      var lineOffsets = [0];
+      for ( var i = 0 ; i < text.length ; i++ ) {
+        if ( text[i] === '\n' ) lineOffsets.push(i + 1);
+      }
+
+      function offsetToLineChar(absOffset) {
+        var lo = 0, hi = lineOffsets.length - 1;
+        while ( lo < hi ) {
+          var mid = (lo + hi + 1) >> 1;
+          if ( lineOffsets[mid] <= absOffset ) lo = mid; else hi = mid - 1;
+        }
+        return { line: lo, char: absOffset - lineOffsets[lo] };
+      }
+
+      // Scan for $tokenName (CSS token variable references)
+      var tokenVarPattern = /\$([a-zA-Z_]\w*)/g;
+      var match;
+      while ( ( match = tokenVarPattern.exec(cssStr) ) !== null ) {
+        var pos = offsetToLineChar(cssIndex + match.index);
+        // Include the $ in the token
+        tokens.push({ line: pos.line, char: pos.char, length: match[0].length, type: 2, modifiers: 0 });
+      }
+
+      // Scan for ^name (myClass shorthand references)
+      var myClassPattern = /\^(\w+)/g;
+      while ( ( match = myClassPattern.exec(cssStr) ) !== null ) {
+        var pos = offsetToLineChar(cssIndex + match.index);
+        // Include the ^ in the token
+        tokens.push({ line: pos.line, char: pos.char, length: match[0].length, type: 0, modifiers: 0 });
       }
     },
 
