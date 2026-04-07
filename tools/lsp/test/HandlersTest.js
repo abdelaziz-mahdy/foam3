@@ -18,6 +18,9 @@ foam.CLASS({
       await this.testSymbolHandler(x);
       await this.testMemberCompletionHandler(x);
       await this.testSemanticTokenHandler(x);
+      await this.testCSSCompletion(x);
+      await this.testCSSHover(x);
+      await this.testCSSDiagnostics(x);
     },
 
     // ========== CompletionHandler ==========
@@ -283,6 +286,135 @@ foam.CLASS({
         usageHits.length > 0,
         'Semantic: "notification" usage on line 13 should be highlighted as typed variable'
       );
+
+      // --- CSS semantic tokens ---
+      var cssResolver = foam.parse.lsp.CSSTokenResolver.create();
+      cssResolver.loadFromRegistry();
+
+      var cssHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({
+        typeTracker: foam.parse.lsp.TypeTracker.create(),
+        cssTokenResolver: cssResolver
+      });
+
+      var cssText = [
+        "foam.CLASS({",
+        "  package: 'test.css',",
+        "  name: 'CSSTokenModel',",
+        "  css: `",
+        "    ^ { color: $primary400; }",
+        "    ^toolbar { background: $backgroundDefault; }",
+        "  `",
+        "})"
+      ].join('\n');
+
+      var cssResult = cssHandler.handle(cssText, 'test://css-tokens');
+      var cssDecoded = this.decodeSemanticTokens(cssResult.data);
+
+      // $primary400 should get variable token (type 2)
+      var primaryHits = cssDecoded.filter(function(t) {
+        return t.type === 2 && t.length === '$primary400'.length;
+      });
+      x.test(
+        primaryHits.length > 0,
+        'Semantic CSS: $primary400 should be highlighted as variable (type 2)'
+      );
+
+      // ^toolbar should get type token (type 0)
+      var toolbarHits = cssDecoded.filter(function(t) {
+        return t.type === 0 && t.length === '^toolbar'.length;
+      });
+      x.test(
+        toolbarHits.length > 0,
+        'Semantic CSS: ^toolbar should be highlighted as type (type 0)'
+      );
+    },
+
+    // ========== CSSCompletion ==========
+
+    async function testCSSCompletion(x) {
+      var resolver = foam.parse.lsp.CSSTokenResolver.create();
+      resolver.loadFromRegistry();
+
+      var handler = foam.parse.lsp.handlers.CompletionHandler.create({
+        cssTokenResolver: resolver
+      });
+
+      // Inside a css block with $ at cursor — should suggest tokens
+      var cssText = "foam.CLASS({\n  package: 'test',\n  name: 'CSSComp',\n  css: `\n    ^ { color: $\n  `\n})";
+      var result = handler.handle(cssText, { line: 4, character: 17 });
+      x.test(result.items.length > 0, 'CSSCompletion: should return CSS token items for $ in css block');
+      x.test(
+        result.items.some(function(i) { return i.label === 'primary400'; }),
+        'CSSCompletion: should suggest primary400'
+      );
+      x.test(
+        result.items.some(function(i) { return i.label === 'textDefault'; }),
+        'CSSCompletion: should suggest textDefault'
+      );
+
+      // Outside css block — property name with $ should NOT suggest CSS tokens
+      var nonCSSText = "foam.CLASS({\n  package: 'test',\n  name: 'NoCSSComp',\n  properties: [\n    { class: 'String', name: '$\n  ]\n})";
+      var result2 = handler.handle(nonCSSText, { line: 4, character: 33 });
+      x.test(
+        ! result2.items.some(function(i) { return i.label === 'primary400'; }),
+        'CSSCompletion: should NOT suggest CSS tokens outside css block'
+      );
+    },
+
+    // ========== CSSHover ==========
+
+    async function testCSSHover(x) {
+      var resolver = foam.parse.lsp.CSSTokenResolver.create();
+      resolver.loadFromRegistry();
+
+      var handler = foam.parse.lsp.handlers.HoverHandler.create({
+        cssTokenResolver: resolver
+      });
+
+      var cssText = "foam.CLASS({\n  package: 'test',\n  name: 'CSSHov',\n  css: `\n    ^ { color: $primary400; }\n    ^toolbar { background: $backgroundDefault; }\n  `\n})";
+
+      // Hover on $primary400 (line 4, character ~18 inside the token name)
+      var result = handler.handle(cssText, { line: 4, character: 18 });
+      x.test(result != null, 'CSSHover: should return hover for $primary400');
+      x.test(
+        result != null && result.contents.value.indexOf('primary400') !== -1,
+        'CSSHover: hover content should contain primary400'
+      );
+      x.test(
+        result != null && result.contents.value.indexOf('Default') !== -1,
+        'CSSHover: hover content should contain Default theme info'
+      );
+
+      // Hover on $backgroundDefault (line 5, character ~32)
+      var result2 = handler.handle(cssText, { line: 5, character: 32 });
+      x.test(result2 != null, 'CSSHover: should return hover for $backgroundDefault');
+    },
+
+    // ========== CSSDiagnostics ==========
+
+    async function testCSSDiagnostics(x) {
+      var resolver = foam.parse.lsp.CSSTokenResolver.create();
+      resolver.loadFromRegistry();
+
+      var handler = foam.parse.lsp.handlers.DiagnosticsHandler.create({
+        cssTokenResolver: resolver
+      });
+
+      // Valid $primary400 — should have no CSS token warnings
+      var validText = "foam.CLASS({\n  package: 'test',\n  name: 'CSSDiagValid',\n  css: `\n    ^ { color: $primary400; }\n  `\n})";
+      var result = handler.handle(validText);
+      var cssWarnings = result.filter(function(d) {
+        return d.message && d.message.indexOf('CSS token') !== -1;
+      });
+      x.test(cssWarnings.length === 0, 'CSSDiagnostics: valid $primary400 should have no CSS token warnings');
+
+      // Unknown $nonExistentFakeToken — should produce a warning
+      var invalidText = "foam.CLASS({\n  package: 'test',\n  name: 'CSSDiagBad',\n  css: `\n    ^ { color: $nonExistentFakeToken; }\n  `\n})";
+      var result2 = handler.handle(invalidText);
+      var cssWarnings2 = result2.filter(function(d) {
+        return d.message && d.message.indexOf('nonExistentFakeToken') !== -1;
+      });
+      x.test(cssWarnings2.length > 0, 'CSSDiagnostics: unknown $nonExistentFakeToken should produce a warning');
     },
 
     function decodeSemanticTokens(data) {

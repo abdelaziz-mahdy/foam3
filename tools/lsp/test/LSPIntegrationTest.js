@@ -53,6 +53,30 @@ foam.CLASS({
       // Member completion: this.
       var m1 = memberHandler.handle(testFile, { line: 10, character: 11 });
       x.test(m1.items.length > 0, 'Integration: member completion returns items');
+
+      // Semantic tokens: scope-aware
+      var semanticHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: foam.parse.lsp.FileModelCache.create() });
+      var scopeFile = "foam.CLASS({\n  package: 'test.integ',\n  name: 'ScopeModel',\n  requires: ['foam.lang.FObject'],\n  properties: [\n    { class: 'String', name: 'status' }\n  ],\n  methods: [\n    function test() {\n      var obj = this.FObject.create();\n      this.status = 'done';\n    }\n  ]\n})";
+      var semResult = semanticHandler.handle(scopeFile, 'test://scope');
+      x.test(semResult.data.length > 0, 'Integration: semantic tokens emitted for scope test');
+
+      // CSS token resolver
+      var resolver = foam.parse.lsp.CSSTokenResolver.create();
+      resolver.loadFromRegistry();
+      x.test(resolver.getAllTokenNames().length > 50, 'Integration: CSS resolver loaded tokens');
+      x.test(resolver.tokenExists('primary400'), 'Integration: primary400 exists in resolver');
+
+      // CSS completion
+      var cssCompletion = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar, cssTokenResolver: resolver });
+      var cssFile = "foam.CLASS({\n  package: 'test.integ',\n  name: 'CSSModel',\n  css: `\n    ^ { color: $\n  `\n})";
+      var cssC = cssCompletion.handle(cssFile, { line: 4, character: 17 });
+      x.test(cssC.items.length > 0, 'Integration: CSS completion returns token items');
+
+      // CSS hover
+      var cssHover = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: foam.parse.lsp.FileModelCache.create(), cssTokenResolver: resolver });
+      var cssHoverFile = "foam.CLASS({\n  package: 'test.integ',\n  name: 'CSSModel2',\n  css: `\n    ^ { color: $primary400; }\n  `\n})";
+      var cssH = cssHover.handle(cssHoverFile, { line: 4, character: 18 });
+      x.test(cssH != null, 'Integration: CSS hover returns content for $primary400');
     }
   ]
 });
