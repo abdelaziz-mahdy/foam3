@@ -5,6 +5,7 @@ foam.POM({
     { name: 'FoamClassGrammarTest', flags: 'js&test|java&test' },
     { name: 'HandlersTest', flags: 'js&test|java&test' },
     { name: 'LSPIntegrationTest', flags: 'js&test|java&test' },
-    { name: 'JavaBlockValidatorTest', flags: 'js&test|java&test' }
+    { name: 'JavaBlockValidatorTest', flags: 'js&test|java&test' },
+    { name: 'CSSTokenResolverTest', flags: 'js&test|java&test' }
   ]
 });

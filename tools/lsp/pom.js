@@ -5,7 +5,8 @@ foam.POM({
     { name: 'TypeTracker', flags: 'js' },
     { name: 'FoamIndex', flags: 'js' },
     { name: 'FoamClassGrammar', flags: 'js' },
-    { name: 'CursorAnalyzer', flags: 'js' }
+    { name: 'CursorAnalyzer', flags: 'js' },
+    { name: 'CSSTokenResolver', flags: 'js' }
   ],
   projects: [
     { name: 'handlers/pom' },
