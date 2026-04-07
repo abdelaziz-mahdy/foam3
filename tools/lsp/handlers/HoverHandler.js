@@ -38,6 +38,11 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.parse.lsp.TypeTracker',
       name: 'typeTracker'
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CSSTokenResolver',
+      name: 'cssTokenResolver'
     }
   ],
 
@@ -53,6 +58,10 @@ foam.CLASS({
       // Try Java block hover — getters, variables, type references inside javaCode
       var javaHover = this.javaBlockHover_(text, position, opt_uri);
       if ( javaHover ) return javaHover;
+
+      // Try CSS block hover — $tokens and ^myClass references
+      var cssHover = this.cssBlockHover_(text, position);
+      if ( cssHover ) return cssHover;
 
       // Try as class ID (full path like foam.lang.FObject)
       if ( this.index.classExists(word) ) {
@@ -239,6 +248,69 @@ foam.CLASS({
       var typeClassId = this.analyzer.resolveJavaTypeName(segment, model, this.index);
       if ( typeClassId ) {
         return this.buildClassHover(typeClassId);
+      }
+
+      return null;
+    },
+
+    function cssBlockHover_(text, position) {
+      /**
+       * Hover inside CSS template blocks — resolve $token references
+       * and ^myClass shorthand references.
+       */
+      if ( ! this.cssTokenResolver ) return null;
+
+      var offset = this.analyzer.positionToOffset(text, position);
+      var textBefore = text.substring(0, offset);
+
+      // Check if cursor is inside a backtick-delimited CSS block.
+      var lastOpenBacktick = -1;
+      var btDepth = 0;
+      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
+        if ( textBefore[i] === '`' ) {
+          btDepth++;
+          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
+        }
+      }
+      if ( lastOpenBacktick === -1 ) return null;
+
+      var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
+      if ( ! /css\s*:\s*$/.test(beforeBacktick) ) return null;
+
+      // Get the word under cursor by scanning left/right for valid CSS token chars
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var col = position.character;
+
+      var left = col;
+      while ( left > 0 && /[a-zA-Z0-9_$\-^]/.test(line[left - 1]) ) left--;
+
+      var right = col;
+      while ( right < line.length && /[a-zA-Z0-9_\-]/.test(line[right]) ) right++;
+
+      var word = line.substring(left, right);
+      if ( ! word ) return null;
+
+      // $tokenName — resolve via CSSTokenResolver
+      if ( word.charAt(0) === '$' ) {
+        var tokenName = word.substring(1);
+        var md = this.cssTokenResolver.buildHoverContent(tokenName);
+        if ( md ) {
+          return { contents: { kind: 'markdown', value: md } };
+        }
+      }
+
+      // ^name — myClass shorthand, resolve to full CSS class name
+      if ( word.charAt(0) === '^' ) {
+        var suffix = word.substring(1);
+        var model = this.cache.getModelAt('', text, position.line);
+        if ( model ) {
+          var pkg = model.package ? model.package.replace(/\./g, '-') : '';
+          var cls = model.name || '';
+          var expanded = '.' + pkg + '-' + cls + '-' + suffix;
+          var md = '**^' + suffix + '**\n\nExpands to: `' + expanded + '`';
+          return { contents: { kind: 'markdown', value: md } };
+        }
       }
 
       return null;

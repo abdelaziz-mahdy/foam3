@@ -48,6 +48,7 @@ foam.CLASS({
     },
     {
       class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CSSTokenResolver',
       name: 'cssTokenResolver'
     }
   ],

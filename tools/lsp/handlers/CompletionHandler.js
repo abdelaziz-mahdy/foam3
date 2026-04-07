@@ -40,6 +40,11 @@ foam.CLASS({
       of: 'foam.parse.lsp.CursorAnalyzer',
       name: 'analyzer',
       factory: function() { return this.CursorAnalyzer.create(); }
+    },
+    {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CSSTokenResolver',
+      name: 'cssTokenResolver'
     }
   ],
 
@@ -52,6 +57,12 @@ foam.CLASS({
       var lines = text.split('\n');
       var line = lines[position.line] || '';
       var prefix = line.substring(0, position.character);
+
+      // CSS block completions: suggest $tokens inside css: backtick blocks
+      var cssItems = this.cssBlockCompletion_(text, position, prefix);
+      if ( cssItems && cssItems.length > 0 ) {
+        return { isIncomplete: false, items: cssItems };
+      }
 
       // Java block completions: suggest getters/setters inside javaCode/javaGetter/etc.
       var javaItems = this.javaBlockCompletion_(text, position, lines, prefix);
@@ -139,6 +150,60 @@ foam.CLASS({
       }
 
       return [];
+    },
+
+    function cssBlockCompletion_(text, position, prefix) {
+      /**
+       * Suggest CSS token names when cursor is inside a css: backtick block
+       * and the user has typed a $ prefix.
+       */
+      if ( ! this.cssTokenResolver ) return null;
+
+      var offset = this.analyzer.positionToOffset(text, position);
+      var textBefore = text.substring(0, offset);
+
+      // Check if cursor is inside a backtick-delimited CSS block.
+      var lastOpenBacktick = -1;
+      var btDepth = 0;
+      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
+        if ( textBefore[i] === '`' ) {
+          btDepth++;
+          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
+        }
+      }
+      if ( lastOpenBacktick === -1 ) return null;
+
+      // Verify the backtick belongs to a css block key
+      var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
+      if ( ! /css\s*:\s*$/.test(beforeBacktick) ) return null;
+
+      // Check if prefix ends with $word pattern
+      var dollarMatch = prefix.match(/\$(\w*)$/);
+      if ( ! dollarMatch ) return null;
+
+      var partial = dollarMatch[1].toLowerCase();
+      var allNames = this.cssTokenResolver.getAllTokenNames();
+      var items = [];
+
+      for ( var i = 0 ; i < allNames.length ; i++ ) {
+        var name = allNames[i];
+        if ( partial && name.toLowerCase().indexOf(partial) === -1 ) continue;
+
+        var info = this.cssTokenResolver.getTokenInfo(name);
+        var resolved = this.cssTokenResolver.getResolvedValue(name);
+        var isColor = info && info.type && info.type.indexOf('ColorToken') !== -1;
+
+        items.push({
+          label: name,
+          kind: isColor ? 16 : 6,
+          detail: resolved || '',
+          insertText: name,
+          filterText: '$' + name,
+          sortText: '!' + name.toLowerCase()
+        });
+      }
+
+      return items;
     },
 
     function javaBlockCompletion_(text, position, lines, prefix) {

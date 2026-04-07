@@ -46,6 +46,11 @@ foam.CLASS({
       factory: function() { return {}; }
     },
     {
+      class: 'FObjectProperty',
+      of: 'foam.parse.lsp.CSSTokenResolver',
+      name: 'cssTokenResolver'
+    },
+    {
       name: 'validTypes_',
       factory: function() {
         var types = {};
@@ -130,6 +135,33 @@ foam.CLASS({
 
       // Validate Java blocks
       this.javaValidator.validateModel(m, classId, diagnostics, text);
+
+      // Validate CSS token references
+      this.validateCSS_(m, text, diagnostics);
+    },
+
+    function validateCSS_(model, text, diagnostics) {
+      /**
+       * Validate $token references inside css: template strings.
+       * Reports unknown CSS token names as warnings.
+       */
+      if ( ! this.cssTokenResolver ) return;
+
+      var cssStr = model.css;
+      if ( ! cssStr || typeof cssStr !== 'string' ) return;
+
+      var baseOffset = text.indexOf(cssStr);
+      if ( baseOffset === -1 ) return;
+
+      var tokenPattern = /\$([a-zA-Z][a-zA-Z0-9_\-]*)/g;
+      var tm;
+      while ( ( tm = tokenPattern.exec(cssStr) ) !== null ) {
+        var tokenName = tm[1];
+        if ( ! this.cssTokenResolver.tokenExists(tokenName) ) {
+          this.addDiag_(diagnostics, text, baseOffset + tm.index, tm[0].length, 2,
+            "Unknown CSS token: '$" + tokenName + "'");
+        }
+      }
     },
 
     function classKnown_(classId) {

@@ -18,14 +18,19 @@ function start() {
   var fileModelCache = foam.parse.lsp.FileModelCache.create();
   var typeTracker = foam.parse.lsp.TypeTracker.create({ cache: fileModelCache });
 
-  var completionHandler  = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar, cache: fileModelCache });
-  var hoverHandler       = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
+  var cssTokenResolver = foam.parse.lsp.CSSTokenResolver.create();
+  cssTokenResolver.loadFromRegistry();
+  cssTokenResolver.loadFromJournals();
+  console.error('[LSP] ' + cssTokenResolver.getAllTokenNames().length + ' CSS tokens loaded.');
+
+  var completionHandler  = foam.parse.lsp.handlers.CompletionHandler.create({ index: index, grammar: grammar, cache: fileModelCache, cssTokenResolver: cssTokenResolver });
+  var hoverHandler       = foam.parse.lsp.handlers.HoverHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker, cssTokenResolver: cssTokenResolver });
   var definitionHandler  = foam.parse.lsp.handlers.DefinitionHandler.create({ index: index });
-  var diagnosticsHandler = foam.parse.lsp.handlers.DiagnosticsHandler.create({ index: index, cache: fileModelCache });
+  var diagnosticsHandler = foam.parse.lsp.handlers.DiagnosticsHandler.create({ index: index, cache: fileModelCache, cssTokenResolver: cssTokenResolver });
   var symbolHandler      = foam.parse.lsp.handlers.SymbolHandler.create({ cache: fileModelCache });
   var memberHandler      = foam.parse.lsp.handlers.MemberCompletionHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
 
-  var semanticTokenHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker });
+  var semanticTokenHandler = foam.parse.lsp.handlers.SemanticTokenHandler.create({ index: index, cache: fileModelCache, typeTracker: typeTracker, cssTokenResolver: cssTokenResolver });
   var referencesHandler = foam.parse.lsp.handlers.ReferencesHandler.create({ index: index });
   var jrlHandler = foam.parse.lsp.handlers.JrlHandler.create({ index: index });
   jrlHandler.buildJournalClassMap();
