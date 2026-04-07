@@ -279,26 +279,45 @@ foam.CLASS({
       return entry.default_.resolved || entry.default_.value;
     },
 
+    function colorSwatch_(hexColor) {
+      /**
+       * Returns an inline markdown image of a colored square using an SVG data URI.
+       * Works in VS Code hover markdown. Returns empty string for non-hex values.
+       */
+      if ( ! hexColor || typeof hexColor !== 'string' ) return '';
+      // Only render swatches for hex colors
+      var hex = hexColor.match(/^#([0-9a-fA-F]{3,8})$/);
+      if ( ! hex ) return '';
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">'
+        + '<rect width="12" height="12" rx="2" fill="' + hexColor + '" stroke="%23888" stroke-width="1"/>'
+        + '</svg>';
+      var encoded = svg.replace(/#/g, '%23').replace(/"/g, '%22').replace(/</g, '%3C').replace(/>/g, '%3E').replace(/ /g, '%20');
+      return '![](data:image/svg+xml,' + encoded + ')';
+    },
+
     function buildHoverContent(tokenName) {
       /**
-       * Build markdown hover content with multi-theme resolution table.
-       * @param tokenName Token name (without $).
-       * @returns Markdown string.
+       * Build markdown hover content with multi-theme resolution table
+       * and inline color swatches for hex values.
        */
       var entry = this.tokenMap_[tokenName];
       if ( ! entry ) return null;
 
       var typeName = entry.type ? entry.type.replace(/^foam\.u2\./, '') : '';
-      var md = '**$' + tokenName + '**';
+      var defaultResolved = entry.default_.resolved || entry.default_.value;
+      var swatch = this.colorSwatch_(defaultResolved);
+
+      var md = swatch + (swatch ? ' ' : '') + '**$' + tokenName + '**';
       if ( typeName ) md += ' (' + typeName + ')';
       md += '\n\n';
 
       // Theme resolution table
-      md += '| Theme | Value | Resolved |\n';
-      md += '|-------|-------|----------|\n';
+      md += '| Theme | Value | Resolved | |\n';
+      md += '|-------|-------|----------|---|\n';
 
       // Default row
-      md += '| Default | `' + entry.default_.value + '` | `' + (entry.default_.resolved || entry.default_.value) + '` |\n';
+      md += '| Default | `' + entry.default_.value + '` | `' + defaultResolved + '` | '
+        + this.colorSwatch_(defaultResolved) + ' |\n';
 
       // Theme override rows
       for ( var themeId in entry.themes ) {
@@ -306,7 +325,8 @@ foam.CLASS({
         var theme = entry.themes[themeId];
         var displayName = this.themeNames_[themeId] || themeId;
         var resolved = theme.resolved || this.resolve_(theme.value, themeId);
-        md += '| ' + displayName + ' | `' + theme.value + '` | `' + resolved + '` |\n';
+        md += '| ' + displayName + ' | `' + theme.value + '` | `' + resolved + '` | '
+          + this.colorSwatch_(resolved) + ' |\n';
       }
 
       // Variants section
@@ -317,8 +337,10 @@ foam.CLASS({
           var vk = variantKeys[i];
           var v = entry.variants[vk];
           var resolvedV = v.resolved || this.resolve_(v.value);
+          var vSwatch = this.colorSwatch_(resolvedV);
           md += '- ' + vk + ': `' + v.value + '`';
           if ( v.value !== resolvedV ) md += ' → `' + resolvedV + '`';
+          if ( vSwatch ) md += ' ' + vSwatch;
           md += '\n';
         }
       }
