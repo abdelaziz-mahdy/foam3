@@ -327,6 +327,50 @@ foam.CLASS({
         toolbarHits.length > 0,
         'Semantic CSS: ^toolbar should be highlighted as type (type 0)'
       );
+
+      // Test richer CSS highlighting: property names, values, comments, numbers
+      var richCSSText = [
+        "foam.CLASS({",
+        "  package: 'test.css',",
+        "  name: 'RichCSS',",
+        "  css: `",
+        "    /* Step section styling */",
+        "    ^step-section {",
+        "      display: flex;",
+        "      gap: 1rem;",
+        "      cursor: not-allowed;",
+        "      color: $textSecondary;",
+        "    }",
+        "  `",
+        "})"
+      ].join('\n');
+
+      var richResult = cssHandler.handle(richCSSText, 'test://rich-css');
+      var richDecoded = this.decodeSemanticTokens(richResult.data);
+
+      // Comment on line 4 should be highlighted (type 5)
+      var commentHits = richDecoded.filter(function(t) { return t.line === 4 && t.type === 5; });
+      x.test(commentHits.length > 0, 'Semantic CSS: comment should be highlighted (type 5)');
+
+      // 'display' on line 6 should be keyword (type 3)
+      var displayHits = richDecoded.filter(function(t) { return t.line === 6 && t.type === 3; });
+      x.test(displayHits.length > 0, 'Semantic CSS: "display" property should be keyword (type 3)');
+
+      // 'flex' on line 6 should be string/value (type 4)
+      var flexHits = richDecoded.filter(function(t) { return t.line === 6 && t.type === 4; });
+      x.test(flexHits.length > 0, 'Semantic CSS: "flex" value should be string (type 4)');
+
+      // '1rem' on line 7 should be number (type 6)
+      var remHits = richDecoded.filter(function(t) { return t.line === 7 && t.type === 6; });
+      x.test(remHits.length > 0, 'Semantic CSS: "1rem" should be number (type 6)');
+
+      // 'not-allowed' on line 8 should be string/value (type 4)
+      var notAllowedHits = richDecoded.filter(function(t) { return t.line === 8 && t.type === 4; });
+      x.test(notAllowedHits.length > 0, 'Semantic CSS: "not-allowed" value should be string (type 4)');
+
+      // $textSecondary on line 9 should be variable (type 2)
+      var textSecHits = richDecoded.filter(function(t) { return t.line === 9 && t.type === 2; });
+      x.test(textSecHits.length > 0, 'Semantic CSS: $textSecondary should be variable (type 2)');
     },
 
     // ========== CSSCompletion ==========
@@ -358,6 +402,70 @@ foam.CLASS({
       x.test(
         ! result2.items.some(function(i) { return i.label === 'primary400'; }),
         'CSSCompletion: should NOT suggest CSS tokens outside css block'
+      );
+
+      // CSS property value completion: "outline: " → should suggest 'none'
+      var valueText = [
+        "foam.CLASS({",
+        "  package: 'test',",
+        "  name: 'CSSValComp',",
+        "  css: `",
+        "    ^ { outline: ",
+        "  `",
+        "})"
+      ].join('\n');
+      var valResult = handler.handle(valueText, { line: 4, character: 17 });
+      x.test(valResult.items.length > 0, 'CSSCompletion: should return value suggestions after "outline: "');
+      x.test(
+        valResult.items.some(function(i) { return i.label === 'none'; }),
+        'CSSCompletion: should suggest "none" for outline'
+      );
+      x.test(
+        valResult.items.some(function(i) { return i.label === 'inherit'; }),
+        'CSSCompletion: should suggest "inherit" as common value'
+      );
+
+      // CSS property value completion: "cursor: no" → should suggest 'not-allowed'
+      var cursorText = [
+        "foam.CLASS({",
+        "  package: 'test',",
+        "  name: 'CSSCurComp',",
+        "  css: `",
+        "    ^ { cursor: no",
+        "  `",
+        "})"
+      ].join('\n');
+      var curResult = handler.handle(cursorText, { line: 4, character: 18 });
+      x.test(
+        curResult.items.some(function(i) { return i.label === 'not-allowed'; }),
+        'CSSCompletion: should suggest "not-allowed" for "cursor: no" partial'
+      );
+
+      // CSS property name completion on empty indented line
+      var propText = [
+        "foam.CLASS({",
+        "  package: 'test',",
+        "  name: 'CSSPropComp',",
+        "  css: `",
+        "    ^ {",
+        "      ",
+        "    }",
+        "  `",
+        "})"
+      ].join('\n');
+      var propResult = handler.handle(propText, { line: 5, character: 6 });
+      x.test(propResult.items.length > 0, 'CSSCompletion: should return property names on empty line');
+      x.test(
+        propResult.items.some(function(i) { return i.label === 'display'; }),
+        'CSSCompletion: should suggest "display" as CSS property'
+      );
+      x.test(
+        propResult.items.some(function(i) { return i.label === 'cursor'; }),
+        'CSSCompletion: should suggest "cursor" as CSS property'
+      );
+      x.test(
+        propResult.items.some(function(i) { return i.insertText === 'display: '; }),
+        'CSSCompletion: property insertText should include ": " suffix'
       );
     },
 
