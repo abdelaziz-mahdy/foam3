@@ -21,6 +21,7 @@ foam.CLASS({
       await this.testCSSCompletion(x);
       await this.testCSSHover(x);
       await this.testCSSDiagnostics(x);
+      await this.testBacktickBlockContext(x);
     },
 
     // ========== CompletionHandler ==========
@@ -523,6 +524,76 @@ foam.CLASS({
         return d.message && d.message.indexOf('nonExistentFakeToken') !== -1;
       });
       x.test(cssWarnings2.length > 0, 'CSSDiagnostics: unknown $nonExistentFakeToken should produce a warning');
+    },
+
+    // ========== BacktickBlockContext ==========
+
+    async function testBacktickBlockContext(x) {
+      var analyzer = foam.parse.lsp.CursorAnalyzer.create();
+
+      // Inside css: block
+      var cssText = [
+        "foam.CLASS({",
+        "  css: `",
+        "    ^ { color: red; }",
+        "  `",
+        "})"
+      ].join('\n');
+      var ctx = analyzer.getBacktickBlockContext(cssText, { line: 2, character: 10 });
+      x.test(ctx != null, 'BacktickCtx: should detect css block');
+      x.test(ctx.blockKey === 'css', 'BacktickCtx: blockKey should be css');
+      x.test(ctx.blockContent.indexOf('color') !== -1, 'BacktickCtx: blockContent should contain css text');
+
+      // Inside javaCode: block
+      var javaText = [
+        "foam.CLASS({",
+        "  properties: [{",
+        "    name: 'x',",
+        "    javaCode: `",
+        "      return getX();",
+        "    `",
+        "  }]",
+        "})"
+      ].join('\n');
+      var jCtx = analyzer.getBacktickBlockContext(javaText, { line: 4, character: 10 });
+      x.test(jCtx != null, 'BacktickCtx: should detect javaCode block');
+      x.test(jCtx.blockKey === 'javaCode', 'BacktickCtx: blockKey should be javaCode');
+
+      // Inside javaPostSet: block
+      var postSetText = [
+        "foam.CLASS({",
+        "  properties: [{",
+        "    name: 'y',",
+        "    javaPostSet: `",
+        "      setZ(val);",
+        "    `",
+        "  }]",
+        "})"
+      ].join('\n');
+      var pCtx = analyzer.getBacktickBlockContext(postSetText, { line: 4, character: 8 });
+      x.test(pCtx != null && pCtx.blockKey === 'javaPostSet', 'BacktickCtx: should detect javaPostSet block');
+
+      // Outside any backtick block
+      var plainText = [
+        "foam.CLASS({",
+        "  name: 'Test',",
+        "  properties: [",
+        "    { class: 'String', name: 'foo' }",
+        "  ]",
+        "})"
+      ].join('\n');
+      var noCtx = analyzer.getBacktickBlockContext(plainText, { line: 3, character: 20 });
+      x.test(noCtx == null, 'BacktickCtx: should return null outside backtick blocks');
+
+      // Inside a regular backtick string (not a known block key like documentation)
+      var unknownText = [
+        "foam.CLASS({",
+        "  documentation: `some docs`,",
+        "  name: 'Test'",
+        "})"
+      ].join('\n');
+      var uCtx = analyzer.getBacktickBlockContext(unknownText, { line: 1, character: 22 });
+      x.test(uCtx == null, 'BacktickCtx: should return null for unknown block key like documentation');
     },
 
     function decodeSemanticTokens(data) {

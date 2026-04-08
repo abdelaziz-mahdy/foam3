@@ -314,6 +314,51 @@ foam.CLASS({
       return null;
     },
 
+    function getBacktickBlockContext(text, position) {
+      /**
+       * Detects if cursor is inside a backtick-delimited block (css:, javaCode:, etc.).
+       * Returns { blockKey, blockContent, blockOffset } or null.
+       *
+       * Replaces all inline backtick-scanning code across handlers.
+       */
+      var offset = this.positionToOffset(text, position);
+      var textBefore = text.substring(0, offset);
+
+      // Scan backward for unmatched opening backtick
+      var lastOpenBacktick = -1;
+      var btDepth = 0;
+      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
+        if ( textBefore[i] === '`' ) {
+          btDepth++;
+          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
+        }
+      }
+      if ( lastOpenBacktick === -1 ) return null;
+
+      // Extract the key before the backtick: scan backward for "keyName:"
+      var beforeBT = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
+      var keyMatch = beforeBT.match(/([\w]+)\s*:\s*$/);
+      if ( ! keyMatch ) return null;
+
+      var blockKey = keyMatch[1];
+
+      // Only return for known block keys
+      var knownKeys = { css: true, javaCode: true, javaPreSet: true, javaPostSet: true, javaFactory: true, javaGetter: true };
+      if ( ! knownKeys[blockKey] ) return null;
+
+      // Extract block content (between opening backtick and next backtick or end)
+      var contentStart = lastOpenBacktick + 1;
+      var contentEnd = text.indexOf('`', contentStart);
+      if ( contentEnd === -1 ) contentEnd = text.length;
+      var blockContent = text.substring(contentStart, contentEnd);
+
+      return {
+        blockKey: blockKey,
+        blockContent: blockContent,
+        blockOffset: contentStart
+      };
+    },
+
     function resolveJavaTypeName(typeName, model, index) {
       /**
        * Resolve a Java type name to a FOAM class ID.
