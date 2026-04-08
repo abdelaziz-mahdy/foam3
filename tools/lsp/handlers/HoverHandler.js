@@ -173,16 +173,9 @@ foam.CLASS({
 
     function javaBlockHover_(text, position, opt_uri) {
       /** Hover inside Java code blocks — resolve getters, variables, types. */
-      var offset = this.analyzer.positionToOffset(text, position);
-      var textBefore = text.substring(0, offset);
-      var lastBT = -1;
-      var btd = 0;
-      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
-        if ( textBefore[i] === '`' ) { btd++; if ( btd % 2 === 1 ) { lastBT = i; break; } }
-      }
-      if ( lastBT === -1 ) return null;
-      var beforeBT = text.substring(Math.max(0, lastBT - 200), lastBT);
-      if ( ! /(javaCode|javaGetter|javaPreSet|javaPostSet|javaFactory)\s*:\s*$/.test(beforeBT) ) return null;
+      var blockCtx = this.analyzer.getBacktickBlockContext(text, position);
+      if ( ! blockCtx || blockCtx.blockKey === 'css' ) return null;
+      // blockCtx.blockKey is javaCode/javaPreSet/javaPostSet/javaFactory/javaGetter
 
       var segment = this.analyzer.getSegmentAtPosition(text, position);
       if ( ! segment ) return null;
@@ -255,59 +248,37 @@ foam.CLASS({
 
     function cssBlockHover_(text, position) {
       /**
-       * Hover inside CSS template blocks — resolve $token references
-       * and ^myClass shorthand references.
+       * Hover inside CSS template blocks — uses shared block detection
+       * and CSS context analysis.
        */
       if ( ! this.cssTokenResolver ) return null;
 
-      var offset = this.analyzer.positionToOffset(text, position);
-      var textBefore = text.substring(0, offset);
+      var blockCtx = this.analyzer.getBacktickBlockContext(text, position);
+      if ( ! blockCtx || blockCtx.blockKey !== 'css' ) return null;
 
-      // Check if cursor is inside a backtick-delimited CSS block.
-      var lastOpenBacktick = -1;
-      var btDepth = 0;
-      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
-        if ( textBefore[i] === '`' ) {
-          btDepth++;
-          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
-        }
-      }
-      if ( lastOpenBacktick === -1 ) return null;
-
-      var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
-      if ( ! /css\s*:\s*$/.test(beforeBacktick) ) return null;
-
-      // Get the word under cursor by scanning left/right for valid CSS token chars
       var lines = text.split('\n');
       var line = lines[position.line] || '';
-      var col = position.character;
+      var cssCtx = this.analyzer.getCSSContext(line, position.character);
+      if ( ! cssCtx || ! cssCtx.partial ) return null;
 
-      var left = col;
-      while ( left > 0 && /[a-zA-Z0-9_$\-^]/.test(line[left - 1]) ) left--;
-
-      var right = col;
-      while ( right < line.length && /[a-zA-Z0-9_\-]/.test(line[right]) ) right++;
-
-      var word = line.substring(left, right);
-      if ( ! word ) return null;
+      // Get the full word (including text after cursor) for exact matching
+      var fullWord = line.substring(cssCtx.replaceRange.start, cssCtx.replaceRange.end);
 
       // $tokenName — resolve via CSSTokenResolver
-      if ( word.charAt(0) === '$' ) {
-        var tokenName = word.substring(1);
+      if ( fullWord.charAt(0) === '$' ) {
+        var tokenName = fullWord.substring(1);
         var md = this.cssTokenResolver.buildHoverContent(tokenName);
-        if ( md ) {
-          return { contents: { kind: 'markdown', value: md } };
-        }
+        if ( md ) return { contents: { kind: 'markdown', value: md } };
       }
 
-      // ^name — myClass shorthand, resolve to full CSS class name
-      if ( word.charAt(0) === '^' ) {
-        var suffix = word.substring(1);
+      // ^name — myClass shorthand
+      if ( fullWord.charAt(0) === '^' ) {
+        var suffix = fullWord.substring(1);
         var model = this.cache.getModelAt('', text, position.line);
         if ( model ) {
           var pkg = model.package ? model.package.replace(/\./g, '-') : '';
           var cls = model.name || '';
-          var expanded = '.' + pkg + '-' + cls + '-' + suffix;
+          var expanded = '.' + pkg + '-' + cls + (suffix ? '-' + suffix : '');
           var md = '**^' + suffix + '**\n\nExpands to: `' + expanded + '`';
           return { contents: { kind: 'markdown', value: md } };
         }
