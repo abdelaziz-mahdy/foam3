@@ -402,12 +402,16 @@ foam.CLASS({
       var trimmed = line.trimStart();
       if ( ! trimmed ) return { type: 'propertyName', propName: null, partial: '', replaceRange: { start: character, end: character } };
 
-      // Selector detection: line starts with ^, ., #, or contains { before cursor
+      // Selector detection: line starts with ^, ., #, &, or contains {
+      // IMPORTANT: do NOT include \w — that matches property names like "color:"
+      // Selectors use ^ (FOAM myClass), . (class), # (id), & (parent ref), > ~ + (combinators)
       var bracePos = line.indexOf('{');
+      var closeBracePos = line.indexOf('}');
       var isBeforeBrace = bracePos === -1 || character <= bracePos;
-      var selectorStart = /^\s*[\^.#\w&:>~+\[\]]/.test(line);
+      var hasBrace = bracePos !== -1;
+      var selectorStart = /^\s*[\^.#&>~+\[]/.test(line);
 
-      if ( selectorStart && isBeforeBrace ) {
+      if ( selectorStart && isBeforeBrace && ( hasBrace || ! /:\s/.test(line) ) ) {
         var word = this.getWordAtChar_(line, character);
         return { type: 'selector', propName: null, partial: word.text, replaceRange: word.range };
       }

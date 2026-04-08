@@ -112,6 +112,7 @@ foam.CLASS({
 
       // CSS block completions
       var cssItems = this.cssBlockCompletion_(text, position);
+      console.error('[LSP] CSS completion check: items=' + (cssItems ? cssItems.length : 'null') + ' line=' + position.line + ' char=' + position.character + ' prefix="' + prefix + '"');
       if ( cssItems && cssItems.length > 0 ) {
         return { isIncomplete: cssItems.length > 200, items: cssItems };
       }
@@ -211,11 +212,13 @@ foam.CLASS({
        * All items include textEdit.range for mid-word replacement.
        */
       var blockCtx = this.analyzer.getBacktickBlockContext(text, position);
+      console.error('[LSP] cssBlockCompletion_ blockCtx=' + (blockCtx ? blockCtx.blockKey : 'null'));
       if ( ! blockCtx || blockCtx.blockKey !== 'css' ) return null;
 
       var lines = text.split('\n');
       var line = lines[position.line] || '';
       var cssCtx = this.analyzer.getCSSContext(line, position.character);
+      console.error('[LSP] cssBlockCompletion_ cssCtx=' + (cssCtx ? JSON.stringify({ type: cssCtx.type, propName: cssCtx.propName, partial: cssCtx.partial }) : 'null'));
       if ( ! cssCtx ) return null;
 
       var replaceRange = {
