@@ -30,12 +30,25 @@ foam.CLASS({
   methods: [
     function loadFromRegistry() {
       /**
-       * Load CSS tokens from foam.u2.CSSTokens model_.cssTokens.
+       * Load CSS tokens from foam.u2.CSSTokens axioms.
+       * Uses getAxiomsByClass to get actual CSSToken/ColorToken instances
+       * (model_.cssTokens raw array loses the 'class' field after FOAM processes it).
        * Two-pass: first store raw values, then resolve $-references.
        */
       var cls = foam.maybeLookup('foam.u2.CSSTokens');
       if ( ! cls ) return;
 
+      // Build a set of ColorToken names for type detection
+      var colorTokenCls = foam.maybeLookup('foam.u2.ColorToken');
+      var colorNames = {};
+      if ( colorTokenCls ) {
+        var colorAxioms = cls.getAxiomsByClass(colorTokenCls);
+        for ( var i = 0 ; i < colorAxioms.length ; i++ ) {
+          colorNames[colorAxioms[i].name] = true;
+        }
+      }
+
+      // Read from model_.cssTokens for raw values (name, value, variants)
       var tokens = cls.model_.cssTokens;
       if ( ! tokens || ! tokens.length ) return;
 
@@ -48,7 +61,7 @@ foam.CLASS({
           default_: { value: t.value || '', resolved: null },
           themes: {},
           variants: {},
-          type: t.class || null,
+          type: colorNames[t.name] ? 'ColorToken' : 'CSSToken',
           source: 'foam.u2.CSSTokens'
         };
 

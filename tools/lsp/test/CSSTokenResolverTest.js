@@ -41,7 +41,7 @@ foam.CLASS({
       // Check type is set for color tokens
       var info = resolver.getTokenInfo('primary400');
       x.test(info != null, 'getTokenInfo should return info for primary400');
-      x.test(info.type === 'foam.u2.ColorToken',
+      x.test(info.type === 'ColorToken',
         'primary400 type should be ColorToken, got: ' + info.type);
       x.test(info.source === 'foam.u2.CSSTokens',
         'primary400 source should be foam.u2.CSSTokens');
@@ -49,8 +49,8 @@ foam.CLASS({
       // Non-color tokens should have null type
       var inputInfo = resolver.getTokenInfo('inputHeight');
       x.test(inputInfo != null, 'getTokenInfo should return info for inputHeight');
-      x.test(inputInfo.type === null,
-        'inputHeight type should be null (not a ColorToken), got: ' + inputInfo.type);
+      x.test(inputInfo.type === 'CSSToken',
+        'inputHeight type should be CSSToken, got: ' + inputInfo.type);
 
       // Variants
       var bgInfo = resolver.getTokenInfo('backgroundDefault');
