@@ -923,7 +923,6 @@ This extracts the following files into <code>src/com/foamdev/cook/</code>:
 | <code>StepCategory.js</code> | ENUM | Categories for recipe steps (TOPPING, MARINADE, SAUCE, MAIN) |
 | <code>Unit.js</code> | ENUM | Measurement units (TABLE_SPOON, CUP, GRAM, LITER, etc.) |
 | <code>Relationships.js</code> | RELATIONSHIP | The relationship definitions — we'll examine this file in detail shortly |
-| <code>RecipeCreateView.js</code> | VIEW | A custom create view for recipes — covered in the Custom Views section |
 
 Feel free to open these files and review them — you'll find they follow the exact same patterns as <code>Recipe.js</code> and <code>RecipeCategory.js</code>. The interesting new content is in <code>Relationships.js</code>, which we'll explore next.
 
@@ -1175,7 +1174,13 @@ Order matters: models must be declared before the relationships that reference t
 
 ## Adding Menu Navigation
 
-// WIP
+To make the Ingredients DAO accessible from the application UI, add a menu entry in <code>deployment/default/menus.jrl</code>:
+
+```
+p({"class":"foam.nanos.menu.Menu","id":"ingredient","label":"Ingredients","handler":{"class":"foam.nanos.menu.DAOMenu","daoKey":"ingredientDAO"}})
+```
+
+We only add a menu for Ingredients because RecipeSteps and IngredientAmounts are accessed through their parent relationships rather than browsed independently. If you ever need to inspect those DAOs for debugging, you can search for them by name using the search bar in the left menu to navigate directly to the DAO.
 
 ## Build and Verify
 
