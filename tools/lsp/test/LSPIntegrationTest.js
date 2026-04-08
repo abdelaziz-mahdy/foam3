@@ -77,6 +77,12 @@ foam.CLASS({
       var cssHoverFile = "foam.CLASS({\n  package: 'test.integ',\n  name: 'CSSModel2',\n  css: `\n    ^ { color: $primary400; }\n  `\n})";
       var cssH = cssHover.handle(cssHoverFile, { line: 4, character: 18 });
       x.test(cssH != null, 'Integration: CSS hover returns content for $primary400');
+
+      // CSS completion with textEdit — mid-word replacement
+      var cssReplaceFile = "foam.CLASS({\n  package: 'test',\n  name: 'ReplaceTest',\n  css: `\n      display: flex;\n  `\n})";
+      var cssR = cssCompletion.handle(cssReplaceFile, { line: 4, character: 9 });
+      var hasTextEdit = cssR.items.length > 0 && cssR.items[0].textEdit != null;
+      x.test(hasTextEdit, 'Integration: CSS completion items have textEdit for mid-word replace');
     }
   ]
 });
