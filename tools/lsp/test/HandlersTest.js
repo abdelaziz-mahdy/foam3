@@ -22,6 +22,7 @@ foam.CLASS({
       await this.testCSSHover(x);
       await this.testCSSDiagnostics(x);
       await this.testBacktickBlockContext(x);
+      await this.testCSSContext(x);
     },
 
     // ========== CompletionHandler ==========
@@ -594,6 +595,80 @@ foam.CLASS({
       ].join('\n');
       var uCtx = analyzer.getBacktickBlockContext(unknownText, { line: 1, character: 22 });
       x.test(uCtx == null, 'BacktickCtx: should return null for unknown block key like documentation');
+    },
+
+    // ========== CSSContext ==========
+
+    async function testCSSContext(x) {
+      var analyzer = foam.parse.lsp.CursorAnalyzer.create();
+
+      // Case 1: empty line → propertyName
+      var ctx1 = analyzer.getCSSContext('      ', 6);
+      x.test(ctx1 != null && ctx1.type === 'propertyName', 'CSSCtx: empty line → propertyName');
+      x.test(ctx1.partial === '', 'CSSCtx: empty line partial is empty');
+
+      // Case 2: partial property name
+      var ctx2 = analyzer.getCSSContext('      dis', 9);
+      x.test(ctx2 != null && ctx2.type === 'propertyName', 'CSSCtx: partial prop → propertyName');
+      x.test(ctx2.partial === 'dis', 'CSSCtx: partial is "dis"');
+      x.test(ctx2.replaceRange.start === 6 && ctx2.replaceRange.end === 9, 'CSSCtx: replaceRange for "dis"');
+
+      // Case 3: mid-word in existing property name (cursor at "dis|play: flex;")
+      var ctx3 = analyzer.getCSSContext('      display: flex;', 9);
+      x.test(ctx3 != null && ctx3.type === 'propertyName', 'CSSCtx: mid-word prop → propertyName');
+      x.test(ctx3.partial === 'dis', 'CSSCtx: mid-word partial is "dis"');
+      x.test(ctx3.replaceRange.end === 13, 'CSSCtx: replaceRange.end covers full "display"');
+
+      // Case 4: after semicolon → propertyName
+      var ctx4 = analyzer.getCSSContext('      display: flex; ', 21);
+      x.test(ctx4 != null && ctx4.type === 'propertyName', 'CSSCtx: after semicolon → propertyName');
+
+      // Case 5: after colon → propertyValue
+      var ctx5 = analyzer.getCSSContext('      display: ', 15);
+      x.test(ctx5 != null && ctx5.type === 'propertyValue', 'CSSCtx: after colon → propertyValue');
+      x.test(ctx5.propName === 'display', 'CSSCtx: propName is "display"');
+      x.test(ctx5.partial === '', 'CSSCtx: value partial is empty');
+
+      // Case 6: after colon no space → propertyValue
+      var ctx6 = analyzer.getCSSContext('      display:', 14);
+      x.test(ctx6 != null && ctx6.type === 'propertyValue', 'CSSCtx: after colon no space → propertyValue');
+      x.test(ctx6.propName === 'display', 'CSSCtx: propName after colon no space');
+
+      // Case 7: partial value
+      var ctx7 = analyzer.getCSSContext('      display: fl', 17);
+      x.test(ctx7 != null && ctx7.type === 'propertyValue', 'CSSCtx: partial value → propertyValue');
+      x.test(ctx7.partial === 'fl', 'CSSCtx: value partial is "fl"');
+
+      // Case 8: mid-word in existing value ("fl|ex;")
+      var ctx8 = analyzer.getCSSContext('      display: flex;', 17);
+      x.test(ctx8 != null && ctx8.type === 'propertyValue', 'CSSCtx: mid-word value → propertyValue');
+      x.test(ctx8.partial === 'fl', 'CSSCtx: mid-word value partial is "fl"');
+      x.test(ctx8.replaceRange.end === 19, 'CSSCtx: replaceRange.end covers full "flex"');
+
+      // Case 9: dollar token in value position
+      var ctx9 = analyzer.getCSSContext('      color: $prim', 18);
+      x.test(ctx9 != null && ctx9.type === 'propertyValue', 'CSSCtx: $token → propertyValue');
+      x.test(ctx9.partial === '$prim', 'CSSCtx: $token partial includes $');
+
+      // Case 10: mid-word dollar token ("$prim|ary400;")
+      var ctx10 = analyzer.getCSSContext('      color: $primary400;', 18);
+      x.test(ctx10 != null && ctx10.type === 'propertyValue', 'CSSCtx: mid-word $token → propertyValue');
+      x.test(ctx10.partial === '$prim', 'CSSCtx: mid-word $token partial is "$prim"');
+      x.test(ctx10.replaceRange.end === 24, 'CSSCtx: replaceRange covers "$primary400"');
+
+      // Case 11: selector line (starts with ^)
+      var ctx11 = analyzer.getCSSContext('    ^step-section {', 5);
+      x.test(ctx11 != null && ctx11.type === 'selector', 'CSSCtx: ^ line → selector');
+
+      // Case 12: inline after { on selector line
+      var ctx12 = analyzer.getCSSContext('    ^ { ', 8);
+      x.test(ctx12 != null && ctx12.type === 'propertyName', 'CSSCtx: after { inline → propertyName');
+
+      // Case 13: multi-value — cursor on last value part
+      var ctx13 = analyzer.getCSSContext('      border: 1px solid $', 25);
+      x.test(ctx13 != null && ctx13.type === 'propertyValue', 'CSSCtx: multi-value → propertyValue');
+      x.test(ctx13.partial === '$', 'CSSCtx: multi-value partial is "$"');
+      x.test(ctx13.propName === 'border', 'CSSCtx: multi-value propName is "border"');
     },
 
     function decodeSemanticTokens(data) {

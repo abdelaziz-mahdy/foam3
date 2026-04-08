@@ -387,6 +387,79 @@ foam.CLASS({
       }
 
       return null;
+    },
+
+    function getCSSContext(line, character) {
+      /**
+       * Analyzes cursor position within a CSS line.
+       * Returns { type, propName, partial, replaceRange } or null.
+       *
+       * Types: 'propertyName', 'propertyValue', 'selector'
+       *
+       * Parses the full line (not just prefix) to handle mid-word editing.
+       * Determines context by finding the : and ; boundaries around the cursor.
+       */
+      var trimmed = line.trimStart();
+      if ( ! trimmed ) return { type: 'propertyName', propName: null, partial: '', replaceRange: { start: character, end: character } };
+
+      // Selector detection: line starts with ^, ., #, or contains { before cursor
+      var bracePos = line.indexOf('{');
+      var isBeforeBrace = bracePos === -1 || character <= bracePos;
+      var selectorStart = /^\s*[\^.#\w&:>~+\[\]]/.test(line);
+
+      if ( selectorStart && isBeforeBrace ) {
+        var word = this.getWordAtChar_(line, character);
+        return { type: 'selector', propName: null, partial: word.text, replaceRange: word.range };
+      }
+
+      // After { on a selector line → fall through to colon/semicolon analysis
+
+      // Find the relevant colon and semicolons — walk backward from cursor
+      var colonPos = -1;
+      var lastSemiBeforeCursor = -1;
+
+      for ( var i = character - 1 ; i >= 0 ; i-- ) {
+        if ( line[i] === ':' && colonPos === -1 ) colonPos = i;
+        if ( line[i] === ';' ) { lastSemiBeforeCursor = i; break; }
+      }
+
+      // If we found a semicolon before the colon, the colon belongs to a previous declaration
+      if ( lastSemiBeforeCursor !== -1 && colonPos !== -1 && colonPos < lastSemiBeforeCursor ) {
+        colonPos = -1;
+      }
+
+      // Extract the word under/before cursor
+      var word = this.getWordAtChar_(line, character);
+
+      if ( colonPos === -1 ) {
+        // No colon found before cursor → property name context
+        return { type: 'propertyName', propName: null, partial: word.text, replaceRange: word.range };
+      }
+
+      // Colon found → property value context
+      // Extract property name: text between last semi (or start/brace) and colon
+      var propStart = Math.max(lastSemiBeforeCursor + 1, bracePos !== -1 ? bracePos + 1 : 0);
+      var propName = line.substring(propStart, colonPos).trim();
+
+      return { type: 'propertyValue', propName: propName, partial: word.text, replaceRange: word.range };
+    },
+
+    function getWordAtChar_(line, character) {
+      /**
+       * Extracts the word fragment at cursor position by scanning both directions.
+       * The "partial" is text from word start to cursor. The replaceRange covers
+       * the entire word (including text after cursor) for mid-word editing.
+       *
+       * Word characters: a-z A-Z 0-9 _ - $ . (for CSS tokens, selectors, values)
+       */
+      var wordChars = /[a-zA-Z0-9_$\-\.]/;
+      var left = character;
+      while ( left > 0 && wordChars.test(line[left - 1]) ) left--;
+      var right = character;
+      while ( right < line.length && wordChars.test(line[right]) ) right++;
+
+      var partial = line.substring(left, character);
+      return { text: partial, range: { start: left, end: right } };
     }
   ]
 });
