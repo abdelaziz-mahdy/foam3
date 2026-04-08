@@ -110,10 +110,10 @@ foam.CLASS({
       var line = lines[position.line] || '';
       var prefix = line.substring(0, position.character);
 
-      // CSS block completions: suggest $tokens inside css: backtick blocks
-      var cssItems = this.cssBlockCompletion_(text, position, prefix);
+      // CSS block completions
+      var cssItems = this.cssBlockCompletion_(text, position);
       if ( cssItems && cssItems.length > 0 ) {
-        return { isIncomplete: false, items: cssItems };
+        return { isIncomplete: cssItems.length > 200, items: cssItems };
       }
 
       // Java block completions: suggest getters/setters inside javaCode/javaGetter/etc.
@@ -204,50 +204,76 @@ foam.CLASS({
       return [];
     },
 
-    function isInsideCSSBlock_(text, position) {
-      /** Returns true if cursor is inside a css: backtick block. */
-      var offset = this.analyzer.positionToOffset(text, position);
-      var textBefore = text.substring(0, offset);
-      var lastOpenBacktick = -1;
-      var btDepth = 0;
-      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
-        if ( textBefore[i] === '`' ) {
-          btDepth++;
-          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
-        }
+    function cssBlockCompletion_(text, position) {
+      /**
+       * CSS completion using shared CursorAnalyzer methods.
+       * Handles: property names, property values, $token references.
+       * All items include textEdit.range for mid-word replacement.
+       */
+      var blockCtx = this.analyzer.getBacktickBlockContext(text, position);
+      if ( ! blockCtx || blockCtx.blockKey !== 'css' ) return null;
+
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var cssCtx = this.analyzer.getCSSContext(line, position.character);
+      if ( ! cssCtx ) return null;
+
+      var replaceRange = {
+        start: { line: position.line, character: cssCtx.replaceRange.start },
+        end:   { line: position.line, character: cssCtx.replaceRange.end }
+      };
+
+      if ( cssCtx.type === 'propertyName' ) {
+        return this.cssPropNameItems_(cssCtx.partial, replaceRange);
       }
-      if ( lastOpenBacktick === -1 ) return false;
-      var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
-      return /css\s*:\s*$/.test(beforeBacktick);
+
+      if ( cssCtx.type === 'propertyValue' ) {
+        return this.cssPropValueItems_(cssCtx.propName, cssCtx.partial, replaceRange);
+      }
+
+      return null;
     },
 
-    function cssBlockCompletion_(text, position, prefix) {
-      /**
-       * CSS completion inside css: backtick blocks.
-       * Handles three contexts:
-       * 1. $tokenName — FOAM CSS token references
-       * 2. property-name: — CSS property names (after indentation)
-       * 3. property: value — CSS property values (after colon)
-       */
-      if ( ! this.isInsideCSSBlock_(text, position) ) return null;
+    function cssPropNameItems_(partial, replaceRange) {
+      /** Build completion items for CSS property names. */
+      var lower = partial.toLowerCase();
+      var props = this.CSS_PROPERTIES;
+      var items = [];
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        if ( lower && props[i].indexOf(lower) === -1 ) continue;
+        items.push({
+          label: props[i],
+          kind: 10,
+          detail: 'CSS property',
+          textEdit: { range: replaceRange, newText: props[i] + ': ' },
+          filterText: props[i],
+          sortText: '!' + props[i]
+        });
+      }
+      return items;
+    },
 
-      // Context 1: $tokenName completion
-      var dollarMatch = prefix.match(/\$(\w*)$/);
-      if ( dollarMatch && this.cssTokenResolver ) {
-        var partial = dollarMatch[1].toLowerCase();
+    function cssPropValueItems_(propName, partial, replaceRange) {
+      /** Build completion items for CSS property values + $tokens. */
+      var lower = partial.toLowerCase();
+      var isDollar = partial.charAt(0) === '$';
+      var items = [];
+
+      // $token suggestions
+      if ( isDollar && this.cssTokenResolver ) {
+        var tokenPartial = partial.substring(1).toLowerCase();
         var allNames = this.cssTokenResolver.getAllTokenNames();
-        var items = [];
         for ( var i = 0 ; i < allNames.length ; i++ ) {
           var name = allNames[i];
-          if ( partial && name.toLowerCase().indexOf(partial) === -1 ) continue;
+          if ( tokenPartial && name.toLowerCase().indexOf(tokenPartial) === -1 ) continue;
           var info = this.cssTokenResolver.getTokenInfo(name);
           var resolved = this.cssTokenResolver.getResolvedValue(name);
-          var isColor = info && info.type && info.type.indexOf('ColorToken') !== -1;
+          var isColor = info && info.type === 'ColorToken';
           items.push({
-            label: name,
+            label: '$' + name,
             kind: isColor ? 16 : 6,
             detail: resolved || '',
-            insertText: name,
+            textEdit: { range: replaceRange, newText: '$' + name },
             filterText: '$' + name,
             sortText: '!' + name.toLowerCase()
           });
@@ -255,65 +281,42 @@ foam.CLASS({
         return items;
       }
 
-      // Context 2: CSS property value completion (after "property-name: ")
-      // Matches: "  outline: " (empty partial), "  outline: no" (partial), "  outline: none" (full)
-      var valueMatch = prefix.match(/([\w-]+)\s*:\s*([\w$-]*)$/);
-      if ( valueMatch ) {
-        var propName = valueMatch[1].toLowerCase();
-        var partial = valueMatch[2].toLowerCase();
-        var values = this.getCSSPropertyValues_(propName);
-        if ( values.length > 0 ) {
-          var items = [];
-          for ( var i = 0 ; i < values.length ; i++ ) {
-            if ( partial && values[i].toLowerCase().indexOf(partial) === -1 ) continue;
-            items.push({
-              label: values[i],
-              kind: 12,
-              detail: propName,
-              insertText: values[i],
-              sortText: '!' + values[i]
-            });
-          }
-          // Also add $token suggestions for color properties
-          if ( this.cssTokenResolver && /color|background|border|fill|stroke|outline/.test(propName) ) {
-            var allNames = this.cssTokenResolver.getAllTokenNames();
-            for ( var i = 0 ; i < allNames.length ; i++ ) {
-              var info = this.cssTokenResolver.getTokenInfo(allNames[i]);
-              if ( ! info || info.type !== 'ColorToken' ) continue;
-              if ( partial && allNames[i].toLowerCase().indexOf(partial) === -1 ) continue;
-              items.push({
-                label: '$' + allNames[i],
-                kind: 16,
-                detail: info.default_.resolved || info.default_.value,
-                insertText: '$' + allNames[i],
-                sortText: '~' + allNames[i]
-              });
-            }
-          }
-          return items;
-        }
-      }
-
-      // Context 3: CSS property name completion (at start of line, with or without indentation)
-      var propMatch = prefix.match(/^\s*([\w-]*)$/);
-      if ( propMatch ) {
-        var partial = propMatch[1].toLowerCase();
-        var props = this.CSS_PROPERTIES;
-        var items = [];
-        for ( var i = 0 ; i < props.length ; i++ ) {
-          if ( partial && props[i].indexOf(partial) === -1 ) continue;
+      // CSS keyword values for the property
+      if ( propName ) {
+        var values = this.getCSSPropertyValues_(propName.toLowerCase());
+        for ( var i = 0 ; i < values.length ; i++ ) {
+          if ( lower && values[i].toLowerCase().indexOf(lower) === -1 ) continue;
           items.push({
-            label: props[i],
-            kind: 10,
-            detail: 'CSS property',
-            insertText: props[i] + ': ',
-            sortText: '!' + props[i]
+            label: values[i],
+            kind: 12,
+            detail: propName,
+            textEdit: { range: replaceRange, newText: values[i] },
+            filterText: values[i],
+            sortText: '!' + values[i]
           });
         }
-        return items;
       }
 
-      return null;
+      // Also offer $token suggestions for color-related properties
+      if ( this.cssTokenResolver && propName && /color|background|border|fill|stroke|outline|shadow/.test(propName.toLowerCase()) ) {
+        var allNames = this.cssTokenResolver.getAllTokenNames();
+        for ( var i = 0 ; i < allNames.length ; i++ ) {
+          var info = this.cssTokenResolver.getTokenInfo(allNames[i]);
+          if ( ! info || info.type !== 'ColorToken' ) continue;
+          if ( lower && allNames[i].toLowerCase().indexOf(lower) === -1 ) continue;
+          var resolved = this.cssTokenResolver.getResolvedValue(allNames[i]);
+          items.push({
+            label: '$' + allNames[i],
+            kind: 16,
+            detail: resolved || '',
+            textEdit: { range: replaceRange, newText: '$' + allNames[i] },
+            filterText: '$' + allNames[i],
+            sortText: '~' + allNames[i]
+          });
+        }
+      }
+
+      return items;
     },
 
     function getCSSPropertyValues_(propertyName) {
@@ -390,31 +393,12 @@ foam.CLASS({
 
     function javaBlockCompletion_(text, position, lines, prefix) {
       /**
-       * Suggest getter/setter methods when cursor is inside a Java code block
-       * (javaCode, javaGetter, javaPreSet, javaPostSet, javaFactory).
-       * Detects backtick-delimited blocks by scanning backward for the opening backtick.
+       * Suggest getter/setter methods when cursor is inside a Java code block.
+       * Uses shared getBacktickBlockContext for block detection.
        */
-      var offset = this.analyzer.positionToOffset(text, position);
-
-      // Check if cursor is inside a backtick-delimited Java block.
-      // Scan backward from cursor to find an unmatched opening backtick,
-      // then verify it belongs to a Java block key.
-      var textBefore = text.substring(0, offset);
-      var lastOpenBacktick = -1;
-      var btDepth = 0;
-      for ( var i = textBefore.length - 1 ; i >= 0 ; i-- ) {
-        if ( textBefore[i] === '`' ) {
-          btDepth++;
-          if ( btDepth % 2 === 1 ) { lastOpenBacktick = i; break; }
-        }
-      }
-      if ( lastOpenBacktick === -1 ) return null;
-
-      // Verify the backtick belongs to a Java block key
-      var beforeBacktick = text.substring(Math.max(0, lastOpenBacktick - 200), lastOpenBacktick);
-      if ( ! /(javaCode|javaGetter|javaPreSet|javaPostSet|javaFactory)\s*:\s*$/.test(beforeBacktick) ) {
-        return null;
-      }
+      var blockCtx = this.analyzer.getBacktickBlockContext(text, position);
+      if ( ! blockCtx || blockCtx.blockKey === 'css' ) return null;
+      // blockCtx.blockKey is one of: javaCode, javaPreSet, javaPostSet, javaFactory, javaGetter
 
       // User is typing inside a Java code block
       var cache = this.cache || foam.parse.lsp.FileModelCache.create();

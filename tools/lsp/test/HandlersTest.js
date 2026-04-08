@@ -18,7 +18,7 @@ foam.CLASS({
       await this.testSymbolHandler(x);
       await this.testMemberCompletionHandler(x);
       await this.testSemanticTokenHandler(x);
-      await this.testCSSCompletion(x);
+      await this.testCSSCompletionRefactored(x);
       await this.testCSSHover(x);
       await this.testCSSDiagnostics(x);
       await this.testBacktickBlockContext(x);
@@ -375,100 +375,86 @@ foam.CLASS({
       x.test(textSecHits.length > 0, 'Semantic CSS: $textSecondary should be variable (type 2)');
     },
 
-    // ========== CSSCompletion ==========
+    // ========== CSS Completion (Refactored) ==========
 
-    async function testCSSCompletion(x) {
+    async function testCSSCompletionRefactored(x) {
       var resolver = foam.parse.lsp.CSSTokenResolver.create();
       resolver.loadFromRegistry();
+      var handler = foam.parse.lsp.handlers.CompletionHandler.create({ cssTokenResolver: resolver });
 
-      var handler = foam.parse.lsp.handlers.CompletionHandler.create({
-        cssTokenResolver: resolver
-      });
+      function cssFile(cssBody) {
+        return "foam.CLASS({\n  package: 'test',\n  name: 'C',\n  css: `\n" + cssBody + "\n  `\n})";
+      }
 
-      // Inside a css block with $ at cursor — should suggest tokens
-      var cssText = "foam.CLASS({\n  package: 'test',\n  name: 'CSSComp',\n  css: `\n    ^ { color: $\n  `\n})";
-      var result = handler.handle(cssText, { line: 4, character: 17 });
-      x.test(result.items.length > 0, 'CSSCompletion: should return CSS token items for $ in css block');
-      x.test(
-        result.items.some(function(i) { return i.label === 'primary400'; }),
-        'CSSCompletion: should suggest primary400'
-      );
-      x.test(
-        result.items.some(function(i) { return i.label === 'textDefault'; }),
-        'CSSCompletion: should suggest textDefault'
-      );
+      // Case 1: empty indented line → property names
+      var r1 = handler.handle(cssFile('      '), { line: 4, character: 6 });
+      x.test(r1.items.length > 50, 'CSSRefactor case 1: empty line → many property names');
+      x.test(r1.items.some(function(i) { return i.label === 'display'; }), 'CSSRefactor case 1: includes display');
+      x.test(r1.items[0].textEdit != null, 'CSSRefactor case 1: items have textEdit');
 
-      // Outside css block — property name with $ should NOT suggest CSS tokens
-      var nonCSSText = "foam.CLASS({\n  package: 'test',\n  name: 'NoCSSComp',\n  properties: [\n    { class: 'String', name: '$\n  ]\n})";
-      var result2 = handler.handle(nonCSSText, { line: 4, character: 33 });
-      x.test(
-        ! result2.items.some(function(i) { return i.label === 'primary400'; }),
-        'CSSCompletion: should NOT suggest CSS tokens outside css block'
-      );
+      // Case 2: partial property name "dis"
+      var r2 = handler.handle(cssFile('      dis'), { line: 4, character: 9 });
+      x.test(r2.items.some(function(i) { return i.label === 'display'; }), 'CSSRefactor case 2: "dis" → display');
+      x.test( ! r2.items.some(function(i) { return i.label === 'cursor'; }), 'CSSRefactor case 2: "dis" excludes cursor');
 
-      // CSS property value completion: "outline: " → should suggest 'none'
-      var valueText = [
-        "foam.CLASS({",
-        "  package: 'test',",
-        "  name: 'CSSValComp',",
-        "  css: `",
-        "    ^ { outline: ",
-        "  `",
-        "})"
-      ].join('\n');
-      var valResult = handler.handle(valueText, { line: 4, character: 17 });
-      x.test(valResult.items.length > 0, 'CSSCompletion: should return value suggestions after "outline: "');
-      x.test(
-        valResult.items.some(function(i) { return i.label === 'none'; }),
-        'CSSCompletion: should suggest "none" for outline'
-      );
-      x.test(
-        valResult.items.some(function(i) { return i.label === 'inherit'; }),
-        'CSSCompletion: should suggest "inherit" as common value'
-      );
+      // Case 3: mid-word existing property "dis|play: flex;"
+      var r3 = handler.handle(cssFile('      display: flex;'), { line: 4, character: 9 });
+      x.test(r3.items.some(function(i) { return i.label === 'display'; }), 'CSSRefactor case 3: mid-word prop → display');
+      var dispItem = r3.items.filter(function(i) { return i.label === 'display'; })[0];
+      x.test(dispItem && dispItem.textEdit && dispItem.textEdit.range.end.character === 13,
+        'CSSRefactor case 3: textEdit replaces full "display"');
 
-      // CSS property value completion: "cursor: no" → should suggest 'not-allowed'
-      var cursorText = [
-        "foam.CLASS({",
-        "  package: 'test',",
-        "  name: 'CSSCurComp',",
-        "  css: `",
-        "    ^ { cursor: no",
-        "  `",
-        "})"
-      ].join('\n');
-      var curResult = handler.handle(cursorText, { line: 4, character: 18 });
-      x.test(
-        curResult.items.some(function(i) { return i.label === 'not-allowed'; }),
-        'CSSCompletion: should suggest "not-allowed" for "cursor: no" partial'
-      );
+      // Case 4: after semicolon "display: flex; "
+      var r4 = handler.handle(cssFile('      display: flex; '), { line: 4, character: 21 });
+      x.test(r4.items.length > 50, 'CSSRefactor case 4: after semi → property names');
 
-      // CSS property name completion on empty indented line
-      var propText = [
-        "foam.CLASS({",
-        "  package: 'test',",
-        "  name: 'CSSPropComp',",
-        "  css: `",
-        "    ^ {",
-        "      ",
-        "    }",
-        "  `",
-        "})"
-      ].join('\n');
-      var propResult = handler.handle(propText, { line: 5, character: 6 });
-      x.test(propResult.items.length > 0, 'CSSCompletion: should return property names on empty line');
-      x.test(
-        propResult.items.some(function(i) { return i.label === 'display'; }),
-        'CSSCompletion: should suggest "display" as CSS property'
-      );
-      x.test(
-        propResult.items.some(function(i) { return i.label === 'cursor'; }),
-        'CSSCompletion: should suggest "cursor" as CSS property'
-      );
-      x.test(
-        propResult.items.some(function(i) { return i.insertText === 'display: '; }),
-        'CSSCompletion: property insertText should include ": " suffix'
-      );
+      // Case 6: after colon "display: "
+      var r6 = handler.handle(cssFile('      display: '), { line: 4, character: 15 });
+      x.test(r6.items.some(function(i) { return i.label === 'flex'; }), 'CSSRefactor case 6: "display: " → flex');
+      x.test(r6.items.some(function(i) { return i.label === 'none'; }), 'CSSRefactor case 6: "display: " → none');
+
+      // Case 7: after colon no space "display:"
+      var r7 = handler.handle(cssFile('      display:'), { line: 4, character: 14 });
+      x.test(r7.items.some(function(i) { return i.label === 'flex'; }), 'CSSRefactor case 7: "display:" → flex');
+
+      // Case 8: partial value "display: fl"
+      var r8 = handler.handle(cssFile('      display: fl'), { line: 4, character: 17 });
+      x.test(r8.items.some(function(i) { return i.label === 'flex'; }), 'CSSRefactor case 8: "fl" → flex');
+      x.test( ! r8.items.some(function(i) { return i.label === 'none'; }), 'CSSRefactor case 8: "fl" excludes none');
+
+      // Case 9: mid-word value "display: fl|ex;"
+      var r9 = handler.handle(cssFile('      display: flex;'), { line: 4, character: 17 });
+      x.test(r9.items.some(function(i) { return i.label === 'flex'; }), 'CSSRefactor case 9: mid-word val → flex');
+      var flexItem = r9.items.filter(function(i) { return i.label === 'flex'; })[0];
+      x.test(flexItem && flexItem.textEdit && flexItem.textEdit.range.end.character === 19,
+        'CSSRefactor case 9: textEdit replaces full "flex"');
+
+      // Case 10: $token in value position "color: $"
+      var r10 = handler.handle(cssFile('      color: $'), { line: 4, character: 14 });
+      x.test(r10.items.some(function(i) { return i.label === '$primary400'; }), 'CSSRefactor case 10: "$" → token items');
+
+      // Case 11: partial $token "color: $prim"
+      var r11 = handler.handle(cssFile('      color: $prim'), { line: 4, character: 18 });
+      x.test(r11.items.some(function(i) { return i.label === '$primary400'; }), 'CSSRefactor case 11: "$prim" → primary400');
+      x.test( ! r11.items.some(function(i) { return i.label === '$textDefault'; }), 'CSSRefactor case 11: "$prim" excludes textDefault');
+
+      // Case 12: mid-word $token "color: $prim|ary400;"
+      var r12 = handler.handle(cssFile('      color: $primary400;'), { line: 4, character: 18 });
+      x.test(r12.items.some(function(i) { return i.label === '$primary400'; }), 'CSSRefactor case 12: mid-word $token → primary400');
+      var tokItem = r12.items.filter(function(i) { return i.label === '$primary400'; })[0];
+      x.test(tokItem && tokItem.textEdit && tokItem.textEdit.range.end.character === 24,
+        'CSSRefactor case 12: textEdit replaces full "$primary400"');
+
+      // Case 14: cursor property value suggestions
+      var r14 = handler.handle(cssFile('      cursor: '), { line: 4, character: 15 });
+      x.test(r14.items.some(function(i) { return i.label === 'not-allowed'; }), 'CSSRefactor case 14: cursor → not-allowed');
+      x.test(r14.items.some(function(i) { return i.label === 'pointer'; }), 'CSSRefactor case 14: cursor → pointer');
+
+      // NOT inside css block → no CSS items
+      var noCSS = "foam.CLASS({\n  name: 'X',\n  properties: [\n    { class: 'String', name: 'foo' }\n  ]\n})";
+      var rNo = handler.handle(noCSS, { line: 3, character: 20 });
+      x.test( ! rNo.items.some(function(i) { return i.label === 'display'; }),
+        'CSSRefactor: no CSS items outside css block');
     },
 
     // ========== CSSHover ==========
