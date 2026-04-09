@@ -4,6 +4,7 @@ foam.POM({
     { name: 'dashboard/pom' },
     { name: "pivottest/pom" },
     { name: "example/pom" },
+    { name: "canvas/pom" },
     { name: "test/pom", flags: "test" }
   ],
   files: [
@@ -22,6 +23,7 @@ foam.POM({
     { name: 'DAOCreate',               flags: 'js' },
     { name: 'DAOFilterPrompt',         flags: 'js' },
     { name: 'DAOPrompt',               flags: 'js' },
+    { name: 'ClassLink',               flags: 'js' },
     { name: 'Doc',                     flags: 'js' },
     { name: 'Markdown',                flags: 'js' },
     { name: 'Image',                   flags: 'js' },

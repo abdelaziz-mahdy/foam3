@@ -1440,6 +1440,8 @@ foam.CLASS({
 
   methods: [
     function init() {
+      this.__subContext__.register(foam.core.reflow.ClassLink, 'foam.doc.ClassLink');
+
       this.SUPER();
       this.addCrumb();
     },

@@ -448,7 +448,6 @@ foam.CLASS({
         }
       }
 
-      debugger;
       // TODO: add ability to specify how SimpleClassView writes links so it can hyperlink back to this command
       if ( foam.lang.InterfaceModel.isInstance(cls.model_) ) {
         this.out.tag(foam.doc.InterfaceView, {data: cls});
