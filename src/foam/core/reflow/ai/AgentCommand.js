@@ -40,8 +40,9 @@ foam.CLASS({
   `,
 
   imports: [
-    'llmService',
+    'block',
     'commandDAO',
+    'llmService',
     'subject'
   ],
 
@@ -77,6 +78,9 @@ foam.CLASS({
 
   methods: [
     async function execute(q) {
+      // -- 0. Delete this block, since it was just a prompt, not a block
+      this.block.del();
+
       // ── 1. Build the system prompt with environment context ──
       var systemPrompt = await this.buildSystemPrompt_(x);
       console.log('systemPrompt', systemPrompt);
@@ -109,17 +113,9 @@ foam.CLASS({
       }
 
       // ── 4. Insert commands into the flow ──
-      if ( this.dryRun ) {
-        // Show what would execute without running
-        var preview = lines.map(l => '    ' + l).join('\n');
-        preview =  '**Generated commands** (dry run):\n```\n' + preview + '\n```';
-
-        this.out.tag(this.Markdown, {markdown: preview});
-        return;
-      }
-
       for ( var i = 0 ; i < lines.length ; i++ ) {
-        await this.eval_(lines[i]);
+        if ( lines[i].trim() != '' )
+          await this.eval_((this.dryRun ? 'propose ' : '') + lines[i]);
       }
     },
 
