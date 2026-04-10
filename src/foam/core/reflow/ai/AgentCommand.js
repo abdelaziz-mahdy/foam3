@@ -78,12 +78,8 @@ foam.CLASS({
 
   methods: [
     async function execute(q) {
-      // -- 0. Delete this block, since it was just a prompt, not a block
-      this.block.del();
-
       // ── 1. Build the system prompt with environment context ──
       var systemPrompt = await this.buildSystemPrompt_(x);
-      console.log('systemPrompt', systemPrompt);
 
       // ── 2. Call LLMService ──
       var request = foam.core.ai.CompletionRequest.create({
@@ -117,6 +113,9 @@ foam.CLASS({
         if ( lines[i].trim() != '' )
           await this.eval_((this.dryRun ? 'propose ' : '') + lines[i]);
       }
+
+      // -- 5. Delete this block, since it was just a prompt, not a block
+      setTimeout(() => this.block.del(), 100);
     },
 
     async function buildSystemPrompt_(x) {
@@ -131,7 +130,25 @@ If you need to show data, use dao, cells, or chart commands.
 Examples:
 show users -> dao userDAO
 create a spreadsheet of size 5 x 10 -> cells(5,10)
-create a markdown document -> markdown
+create a markdown document -> markdown("markdown test\ngoes here")
+
+You can also use the 'ask' command to run commands and have their output sent back to you.
+Examples:
+get a list of available flows -> ask flows
+get a list of available DAOs -> ask daos
+get a list of available commands -> ask help (but you have already been provided this information)
+
+## REFLOW JavaScript String Formatting Rules
+
+When using REFLOW commands that accept string parameters (especially \`markdown\`, \`doc\`, \`h1\`, \`h2\`, etc.), follow these JavaScript string formatting requirements:
+
+### Multi-line Strings
+- **NEVER use actual newline characters** in string literals
+- **ALWAYS escape newlines** using \`\\n\`
+- Strings must be valid JavaScript string literals
+
+### Pitfalls
+- Don't use the *doc* command as it doesn't support markdown. Use *markdown* instead.
 `
       );
 
@@ -151,15 +168,14 @@ create a markdown document -> markdown
       // ── Available DAOs ──
       // The LLM needs to know what data it can query
       parts.push('## Available DAOs');
-      parts.push('Use `daos` to list all, `describe <daoName>` to see model properties.');
+      parts.push('Use `ask daos` to list all, `ask describe <daoName>` to see model properties.');
       parts.push('Use `dao query <daoName> [where <predicate>]` to query data.');
       parts.push('');
 
       // ── Conventions ──
       parts.push('## Conventions');
-      parts.push('- Chain commands: output of one feeds into the next via lastResult.');
-      parts.push('- For conversational responses, use: markdown "your text here"');
-      parts.push('- For errors or unknowns, use: markdown "I could not ..."');
+      parts.push('- For conversational responses, use: markdown("your text here")');
+      parts.push('- For errors or unknowns, use: \'throw "error ..."\' or  \'markdown("I could not ...")\', depending on the length.');
       parts.push('- Prefer specific commands over generic markdown when possible.');
 //      parts.push('- You can call `agent` to delegate to another LLM for sub-tasks.');
 

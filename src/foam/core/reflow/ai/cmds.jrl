@@ -22,8 +22,14 @@ p({
   "description": "Issue a request to an LLM agent to execute FLOW commands."
 })
 p({
+  "class":"foam.core.reflow.ai.AskCommand",
+  "id": "ask",
+  "description": "Allow LLMs to ask questions and get responses.",
+  "hidden": true
+})
+p({
   "class":"foam.core.reflow.cmd.Command",
   "id": "propose",
   "description": "Propose a command for execution",
-  "script": "debugger;addValue(foam.core.reflow.ai.Propose.create({command: args.join(' ')}, this));"
+  "script": "addValue(foam.core.reflow.ai.Propose.create({command: args.join(' ')}, this));"
 })
