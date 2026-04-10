@@ -1,25 +1,28 @@
 p({
   "class":"foam.core.reflow.ai.LLMCommand",
   "id": "llm",
+  "permissionRequired": true,
   "description": "Issue a direct LLM query."
 })
 p({
   "class":"foam.core.reflow.ai.AgentCommand",
   "id": "agent",
   "dryRun": false,
+  "permissionRequired": true,
   "description": "Issue a request to an LLM agent to execute FLOW commands."
 })
+// p({
+//   "class":"foam.core.reflow.ai.AgentCommand",
+//   "id": "?",
+//   "dryRun": false,
+//   "description": "Issue a request to an LLM agent to execute FLOW commands."
+// })
 p({
   "class":"foam.core.reflow.ai.AgentCommand",
-  "id": "?",
-  "dryRun": false,
-  "description": "Issue a request to an LLM agent to execute FLOW commands."
-})
-p({
-  "class":"foam.core.reflow.ai.AgentCommand",
-  "id": "??",
+  "id": "plan",
   "dryRun": true,
-  "description": "Issue a request to an LLM agent to execute FLOW commands."
+  "permissionRequired": true,
+  "description": "Issue a request to an LLM agent to plan FLOW commands."
 })
 p({
   "class":"foam.core.reflow.ai.AskCommand",

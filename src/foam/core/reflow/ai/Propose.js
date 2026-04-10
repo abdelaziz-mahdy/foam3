@@ -17,8 +17,8 @@ foam.CLASS({
       align-items: center;
       gap: 8px;
       padding: 6px 12px;
-      border-left: 3px solid #1a8fe3;
-      background: #f4f8fc;
+      border-left: 3px solid $borderBrand;
+      background: $backgroundTertiary;
       border-radius: 0 6px 6px 0;
       margin: 4px 0;
       font-family: monospace;
@@ -37,7 +37,7 @@ foam.CLASS({
       outline: none;
     }
     ^command input:focus {
-      border-color: #1a8fe3;
+      border-color: $borderBrand;
     }
     ^btn {
       width: 28px;
@@ -56,18 +56,18 @@ foam.CLASS({
       transform: scale(1.1);
     }
     ^accept {
-      background: #e6f4ea;
-      color: #1e7e34;
+      background: $success50;
+      color: $success700;
     }
     ^accept:hover {
-      background: #c8e6c9;
+      background: $success50;
     }
     ^reject {
-      background: #fde8e8;
-      color: #c62828;
+      background: $error50;
+      color: $error700;
     }
     ^reject:hover {
-      background: #f5c6c6;
+      background: $error50;
     }
   `,
 
