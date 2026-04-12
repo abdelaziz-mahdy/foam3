@@ -11,7 +11,7 @@ FOAM Language Server.
 2. Open Command Palette (`Cmd+Shift+P`)
 3. Type `zed: extensions`
 4. Click **Install Dev Extension**
-5. Select the `foam3/tools/editors/zed-foam3/` directory
+5. Select the `foam3/tools/lsp/editors/zed-foam3/` directory
 
 Zed compiles the Rust code to WASM automatically. The extension activates
 for JavaScript files in any workspace.
@@ -19,7 +19,7 @@ for JavaScript files in any workspace.
 Or run the guided install:
 
 ```bash
-cd foam3/tools/editors/zed-foam3
+cd foam3/tools/lsp/editors/zed-foam3
 ./install.sh
 ```
 

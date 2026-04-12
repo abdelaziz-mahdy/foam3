@@ -57,7 +57,7 @@ Recompiles on every TypeScript change.
 
 ### Debug in VS Code
 
-1. Open the `vscode-foam/` folder in VS Code
+1. Open the `tools/lsp/editors/vscode/` folder in VS Code
 2. Press **F5** (or Run → Start Debugging)
 3. A new VS Code window opens with the extension loaded
 4. Open a FOAM project in that window to test
@@ -67,7 +67,7 @@ The launch configuration is in `.vscode/launch.json`.
 ### Project Structure
 
 ```
-vscode-foam/
+editors/vscode/
   src/
     extension.ts           # LSP client, server startup, status bar
     FoamTreeProvider.ts    # Sidebar tree view (analysis, files, patterns, flags)

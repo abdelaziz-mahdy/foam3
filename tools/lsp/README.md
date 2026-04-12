@@ -12,15 +12,15 @@ node foam3/tools/lsp-start.js
 cd <your-project> && node foam3/tools/tests/testFoamLSPGrammar.js
 
 # VS Code debug mode:
-cd foam3/vscode-foam && npm install && npx tsc -p ./
-# Open foam3/vscode-foam/ in VS Code, press F5
+cd foam3/tools/lsp/editors/vscode && npm install && npx tsc -p ./
+# Open foam3/tools/lsp/editors/vscode/ in VS Code, press F5
 ```
 
 ## Architecture
 
 ```
 VS Code Extension (TypeScript)              FOAM LSP Server (Node.js)
-vscode-foam/                                 tools/lsp/
+tools/lsp/editors/vscode/                    tools/lsp/
 
   extension.ts ──stdio──►  server.js (JSON-RPC main loop)
   FoamTreeProvider.ts                │
@@ -194,7 +194,7 @@ File text ──► FileModelCache.parseFileModels()
 ### Installation
 
 ```bash
-cd foam3/vscode-foam
+cd foam3/tools/lsp/editors/vscode
 npm install
 npx tsc -p ./
 
@@ -269,17 +269,25 @@ foam3/tools/
 │       └── LSPIntegrationTest.js
 ├── tests/
 │   └── testFoamLSPGrammar.js      # Quick standalone test (123 tests)
-└── vscode-foam/
-    ├── package.json
-    ├── tsconfig.json
-    ├── .gitignore
-    ├── .vscode/launch.json
-    ├── resources/foam-icon.svg
-    ├── syntaxes/foam-js.tmLanguage.json
-    └── src/
-        ├── extension.ts
-        ├── FoamTreeProvider.ts
-        └── FoamAnalysisRunner.ts
+└── editors/
+    ├── vscode/                    # VS Code extension
+    │   ├── package.json
+    │   ├── tsconfig.json
+    │   ├── install.sh
+    │   ├── resources/foam-icon.svg
+    │   ├── syntaxes/foam-js.tmLanguage.json
+    │   └── src/
+    │       ├── extension.ts
+    │       ├── FoamTreeProvider.ts
+    │       └── FoamAnalysisRunner.ts
+    ├── emacs/                     # Emacs (eglot + lsp-mode)
+    │   ├── lsp-foam.el
+    │   └── install.sh
+    └── zed-foam3/                 # Zed IDE extension
+        ├── extension.toml
+        ├── Cargo.toml
+        ├── install.sh
+        └── src/lib.rs
 ```
 
 ## Known Limitations

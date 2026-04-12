@@ -32,7 +32,7 @@ To auto-start in FOAM projects:
 Run the install script:
 
 ```bash
-cd foam3/tools/editors/emacs
+cd foam3/tools/lsp/editors/emacs
 ./install.sh
 ```
 

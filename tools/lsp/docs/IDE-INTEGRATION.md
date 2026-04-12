@@ -116,27 +116,27 @@ The server expects the editor to send standard LSP lifecycle messages:
 
 ### VS Code
 
-The dedicated VS Code extension lives at `foam3/vscode-foam/`. It provides the
+The dedicated VS Code extension lives at `foam3/tools/lsp/editors/vscode/`. It provides the
 LSP client plus a sidebar panel for workspace analysis and flag management.
 
 **Install locally:**
 
 ```bash
-cd foam3/vscode-foam
+cd foam3/tools/lsp/editors/vscode
 ./install.sh
 ```
 
 Or manually:
 
 ```bash
-cd foam3/vscode-foam
+cd foam3/tools/lsp/editors/vscode
 npm install
 npm run compile
 npm run package
 code --install-extension foam-lsp-*.vsix
 ```
 
-See `foam3/vscode-foam/README.md` for development and debugging instructions.
+See `foam3/tools/lsp/editors/vscode/README.md` for development and debugging instructions.
 
 ### Emacs
 
@@ -155,11 +155,11 @@ Then open a FOAM `.js` file and run `M-x eglot`.
 **lsp-mode** — install the `lsp-foam` package:
 
 ```bash
-cd foam3/tools/editors/emacs
+cd foam3/tools/lsp/editors/emacs
 ./install.sh
 ```
 
-See `foam3/tools/editors/emacs/README.md` for the full setup guide.
+See `foam3/tools/lsp/editors/emacs/README.md` for the full setup guide.
 
 ### Zed
 
@@ -168,11 +168,11 @@ Install the FOAM3 extension as a dev extension:
 1. Open Zed
 2. Open Command Palette → "zed: extensions"
 3. Click "Install Dev Extension"
-4. Select the `foam3/tools/editors/zed-foam3/` directory
+4. Select the `foam3/tools/lsp/editors/zed-foam3/` directory
 
 Zed compiles the extension automatically. Requires Rust installed via `rustup`.
 
-See `foam3/tools/editors/zed-foam3/README.md` for details.
+See `foam3/tools/lsp/editors/zed-foam3/README.md` for details.
 
 ### Neovim
 
