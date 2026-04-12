@@ -23,8 +23,9 @@ if ! command -v rustc &>/dev/null; then
 fi
 
 if ! command -v zed &>/dev/null; then
-  echo "WARNING: 'zed' CLI not found in PATH."
-  echo "         You can install it from Zed: Command Palette → 'cli: install cli binary'"
+  echo "NOTE: The 'zed' CLI is not in your PATH."
+  echo "      With it installed, you can open projects directly from the terminal (e.g., 'zed .')."
+  echo "      To install: open Zed → Command Palette → 'cli: install cli binary'"
   echo ""
 fi
 
