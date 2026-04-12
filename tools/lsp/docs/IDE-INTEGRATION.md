@@ -60,11 +60,11 @@ Content-Length: 123\r\n
 
 The optional `pom-path` argument tells the server where the root POM file is.
 If omitted, the server looks for `pom.js` in the current working directory.
-For a standard ptv3 checkout:
+Example:
 
 ```bash
-node foam3/tools/lsp-start.js pom       # relative to cwd
-node foam3/tools/lsp-start.js /path/to/ptv3/pom   # absolute path
+node foam3/tools/lsp-start.js pom                    # relative to cwd
+node foam3/tools/lsp-start.js /path/to/my-project/pom   # absolute path
 ```
 
 ## Capabilities
@@ -105,7 +105,7 @@ Any editor with LSP support can connect to the FOAM server. The general pattern:
 
 1. **Command**: `node foam3/tools/lsp-start.js`
 2. **Arguments**: optional POM path (defaults to `pom` in cwd)
-3. **Working directory**: your FOAM project root (e.g., `ptv3/`)
+3. **Working directory**: your FOAM project root (the directory containing `pom.js`)
 4. **Transport**: stdio (the default for most LSP clients)
 5. **Language IDs**: `javascript`, `foam-journal`
 
