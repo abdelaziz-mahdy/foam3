@@ -22,24 +22,53 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(outputChannel);
   outputChannel.appendLine('FOAM LSP extension activated');
 
-  const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath;
-  if ( !workspaceRoot ) return;
+  const folders = workspace.workspaceFolders;
+  if ( !folders || folders.length === 0 ) return;
 
-  // Fast path checks
-  const candidates = [
-    path.join(workspaceRoot, 'foam3/tools/lsp-start.js'),
-    path.join(workspaceRoot, 'tools/lsp-start.js'),
-  ];
-
+  // Search all workspace folders and one level of subdirectories for lsp-start.js
+  const lspPaths = ['foam3/tools/lsp-start.js', 'tools/lsp-start.js'];
   let lspScript = '';
-  for ( const c of candidates ) {
-    if ( fs.existsSync(c) ) { lspScript = c; break; }
+  let workspaceRoot = folders[0].uri.fsPath;
+
+  for ( const folder of folders ) {
+    const root = folder.uri.fsPath;
+    // Check the folder itself
+    for ( const rel of lspPaths ) {
+      const candidate = path.join(root, rel);
+      if ( fs.existsSync(candidate) ) {
+        lspScript = candidate;
+        workspaceRoot = root;
+        break;
+      }
+    }
+    if ( lspScript ) break;
+
+    // Check immediate subdirectories (handles opening the parent directory)
+    try {
+      const entries = fs.readdirSync(root, { withFileTypes: true });
+      for ( const entry of entries ) {
+        if ( !entry.isDirectory() || entry.name.startsWith('.') ) continue;
+        for ( const rel of lspPaths ) {
+          const candidate = path.join(root, entry.name, rel);
+          if ( fs.existsSync(candidate) ) {
+            lspScript = candidate;
+            workspaceRoot = path.join(root, entry.name);
+            break;
+          }
+        }
+        if ( lspScript ) break;
+      }
+    } catch (e) { /* ignore permission errors */ }
+    if ( lspScript ) break;
   }
 
   if ( !lspScript ) {
     outputChannel.appendLine('Not a FOAM project (lsp-start.js not found)');
+    outputChannel.appendLine('Searched: ' + folders.map(f => f.uri.fsPath).join(', '));
     return;
   }
+
+  outputChannel.appendLine('Workspace: ' + workspaceRoot);
 
   let pomPath = path.join(workspaceRoot, 'pom');
   if ( !fs.existsSync(pomPath + '.js') ) {
