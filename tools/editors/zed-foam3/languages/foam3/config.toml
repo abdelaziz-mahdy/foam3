@@ -1,0 +1,6 @@
+name = "FOAM3"
+grammar = "javascript"
+path_suffixes = ["js"]
+line_comments = ["// "]
+block_comment = ["/* ", " */"]
+tab_size = 2

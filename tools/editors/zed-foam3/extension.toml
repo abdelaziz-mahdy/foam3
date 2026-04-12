@@ -1,0 +1,11 @@
+id = "foam3-lsp"
+name = "FOAM3 Language Support"
+version = "0.1.0"
+schema_version = 1
+authors = ["FOAM Authors"]
+description = "Language support for FOAM3 model definitions via the FOAM Language Server"
+repository = "https://github.com/kgrgreer/foam3"
+
+[language_servers.foam3-lsp]
+name = "FOAM3 LSP"
+languages = ["JavaScript"]
