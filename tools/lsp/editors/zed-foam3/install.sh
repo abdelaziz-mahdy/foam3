@@ -24,7 +24,7 @@ fi
 
 if ! command -v zed &>/dev/null; then
   echo "WARNING: 'zed' CLI not found in PATH."
-  echo "         You can install it from Zed: Command Palette → 'zed: install cli'"
+  echo "         You can install it from Zed: Command Palette → 'cli: install cli binary'"
   echo ""
 fi
 
