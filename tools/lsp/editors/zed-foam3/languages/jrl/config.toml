@@ -1,0 +1,5 @@
+name = "FOAM Journal"
+grammar = "json"
+path_suffixes = ["jrl"]
+line_comments = ["// "]
+tab_size = 2

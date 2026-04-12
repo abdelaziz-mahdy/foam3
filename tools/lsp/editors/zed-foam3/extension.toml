@@ -1,6 +1,6 @@
 id = "foam3-lsp"
 name = "FOAM3 Language Support"
-version = "0.1.0"
+version = "0.2.0"
 schema_version = 1
 authors = ["FOAM Authors"]
 description = "Language support for FOAM3 model definitions via the FOAM Language Server"
@@ -8,4 +8,8 @@ repository = "https://github.com/kgrgreer/foam3"
 
 [language_servers.foam3-lsp]
 name = "FOAM3 LSP"
-languages = ["JavaScript"]
+languages = ["JavaScript", "FOAM Journal"]
+
+[grammars.json]
+repository = "https://github.com/tree-sitter/tree-sitter-json"
+commit = "94f5c527b2965465956c2000ed6134dd24daf2a7"
