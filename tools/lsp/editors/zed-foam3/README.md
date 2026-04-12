@@ -87,9 +87,6 @@ zed-foam3/
   Cargo.toml                 # Rust WASM build configuration
   src/
     lib.rs                   # Extension entry point (~40 lines)
-  languages/
-    foam3/
-      config.toml            # Language metadata (reuses JS tree-sitter grammar)
   install.sh                 # Guided installation helper
   README.md                  # This file
 ```
@@ -121,6 +118,16 @@ Open a FOAM project in Zed and verify:
 - Hover shows class documentation on `extends: 'foam.u2.Element'`
 - Go-to-definition works on class names in `requires:`
 - Diagnostics appear for unknown classes
+
+## Known Limitations
+
+- **No Java syntax highlighting in `javaCode:` blocks** — VS Code uses TextMate
+  injection grammars for this. Zed uses Tree-sitter grammars which require a
+  separate implementation. The LSP semantic tokens provide some highlighting
+  for class references and typed variables, but not full Java syntax.
+- **No JRL syntax highlighting** — `.jrl` (FOAM Journal) files appear as plain
+  text. The LSP still provides hover and semantic tokens for JRL files, but
+  the base syntax coloring requires a Tree-sitter grammar.
 
 ## Troubleshooting
 
