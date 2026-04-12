@@ -8,7 +8,7 @@ repository = "https://github.com/kgrgreer/foam3"
 
 [language_servers.foam3-lsp]
 name = "FOAM3 LSP"
-languages = ["JavaScript", "FOAM Journal"]
+languages = ["JavaScript", "FOAM JavaScript", "FOAM Journal"]
 
 [grammars.json]
 repository = "https://github.com/tree-sitter/tree-sitter-json"

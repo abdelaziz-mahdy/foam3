@@ -52,3 +52,15 @@ echo '  }'
 echo ""
 echo "The default uses 'node' from PATH and 'foam3/tools/lsp-start.js'"
 echo "relative to the workspace root."
+echo ""
+echo "--- Java syntax highlighting in javaCode: blocks ---"
+echo ""
+echo "1. Install the 'Java' extension in Zed (for the Java grammar)"
+echo "2. Add this to your Zed settings.json (~/.config/zed/settings.json):"
+echo ""
+echo '  "file_types": {'
+echo '    "FOAM JavaScript": ["js", "jsx", "mjs", "cjs"]'
+echo '  }'
+echo ""
+echo "This maps .js files to the FOAM JavaScript language which includes"
+echo "Java highlighting for javaCode:, javaFactory:, javaPreSet:, etc."

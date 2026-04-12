@@ -79,6 +79,53 @@ Defaults:
 - `path`: `node` from PATH (detected via `worktree.which("node")`)
 - `arguments`: `["foam3/tools/lsp-start.js"]`
 
+### Java Syntax Highlighting in `javaCode:` Blocks
+
+The extension provides a "FOAM JavaScript" language that includes Java syntax
+highlighting for FOAM model properties like `javaCode:`, `javaFactory:`,
+`javaPreSet:`, `javaPostSet:`, etc. To activate it:
+
+1. **Install the Zed Java extension** (required for the Java grammar):
+   - Open Command Palette (`Cmd+Shift+P`)
+   - Type `zed: extensions`
+   - Search for "Java" and install it
+
+2. **Map `.js` files to FOAM JavaScript** in your Zed settings
+   (`~/.config/zed/settings.json`):
+
+```json
+{
+  "file_types": {
+    "FOAM JavaScript": ["js", "jsx", "mjs", "cjs"]
+  }
+}
+```
+
+This tells Zed to use the "FOAM JavaScript" language (which includes all
+standard JavaScript highlighting plus FOAM-specific Java injections) instead
+of the built-in JavaScript for `.js` files. All other JavaScript features
+(completions, indenting, bracket matching, JSX, etc.) work identically since
+both languages share the same underlying TSX grammar.
+
+To revert, remove the `file_types` entry.
+
+**Supported FOAM properties with Java highlighting:**
+`javaCode`, `javaFactory`, `javaGetter`, `javaSetter`, `javaPreSet`,
+`javaPostSet`, `javaAdapt`, `javaValidateObj`, `javaCompare`,
+`javaComparePropertyToObject`, `javaComparePropertyToValue`,
+`javaAssertValue`, `javaCloneProperty`, `javaDiffProperty`,
+`javaFromCSVLabelMapping`, `javaToCSV`, `javaToCSVLabel`, `javaFormatJSON`,
+`javaValue`, `javaInfoType`, `javaType`, `javaJSONParser`,
+`javaQueryParser`, `javaCSVParser`, `javaThrows`, `javaGenerate`
+
+Both backtick template literals and quoted strings are supported.
+
+You can also use the `/* java */` comment prefix on any template string:
+
+```javascript
+const query = /* java */ `SELECT * FROM users WHERE id = ?`;
+```
+
 ## Project Structure
 
 ```
@@ -87,6 +134,21 @@ zed-foam3/
   Cargo.toml                 # Rust WASM build configuration
   src/
     lib.rs                   # Extension entry point (~40 lines)
+  languages/
+    foam-javascript/         # FOAM JavaScript language (JS + Java injections)
+      config.toml            # Language config (uses tsx grammar)
+      injections.scm         # JS injections + FOAM Java property injections
+      highlights.scm         # Syntax highlighting (copy of Zed JS)
+      brackets.scm           # Bracket matching
+      indents.scm            # Auto-indentation
+      outline.scm            # Document outline
+      overrides.scm          # Editor overrides (strings, JSX, etc.)
+      runnables.scm          # Test runner support
+      textobjects.scm        # Text object selection
+      debugger.scm           # Debugger variable detection
+    jrl/                     # FOAM Journal language
+      config.toml            # Uses JSON grammar for .jrl files
+      highlights.scm         # JSON-based highlighting
   install.sh                 # Guided installation helper
   README.md                  # This file
 ```
@@ -121,13 +183,15 @@ Open a FOAM project in Zed and verify:
 
 ## Known Limitations
 
-- **No Java syntax highlighting in `javaCode:` blocks** — VS Code uses TextMate
-  injection grammars for this. Zed uses Tree-sitter grammars which require a
-  separate implementation. The LSP semantic tokens provide some highlighting
-  for class references and typed variables, but not full Java syntax.
-- **No JRL syntax highlighting** — `.jrl` (FOAM Journal) files appear as plain
-  text. The LSP still provides hover and semantic tokens for JRL files, but
-  the base syntax coloring requires a Tree-sitter grammar.
+- **Java highlighting requires opt-in** — Zed does not support augmenting
+  built-in language queries from extensions (see [zed#8795]). The workaround
+  is the "FOAM JavaScript" language, activated via `file_types` in settings.
+  See the Configuration section above for setup.
+- **Query files must stay in sync** — The FOAM JavaScript language copies
+  Zed's built-in JavaScript query files (highlights.scm, brackets.scm, etc.).
+  If Zed updates these files in a new release, the copies may need updating.
+
+[zed#8795]: https://github.com/zed-industries/zed/issues/8795
 
 ## Troubleshooting
 
