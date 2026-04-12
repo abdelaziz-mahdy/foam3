@@ -29,7 +29,7 @@ foam.POM({
     lspInstall: ['lsp-install', 'Install FOAM LSP editor integration. Use lsp-install:vscode, lsp-install:emacs, or lsp-install:zed for a specific editor.', [], function(args) {
       var editor = args || '';
       var script = this.join(__dirname, 'lsp/install.sh');
-      this.execSync(`${script} ${editor}`);
+      require('child_process').execSync(`${script} ${editor}`, { stdio: 'inherit' });
     }],
 
     genJS: ['gen-js', 'Build foam-bin.js', ['cleanFOAM', 'genFoamBinVersion'], function() {
