@@ -13,14 +13,14 @@ p({
 })
 p({
    "class":"foam.core.reflow.ai.AgentCommand",
-   "id": "!",
+   "id": "?",
    "permissionRequired": true,
    "dryRun": true,
    "description": "Issue a request to an LLM agent to execute FLOW commands."
 })
 p({
    "class":"foam.core.reflow.ai.AgentCommand",
-   "id": "?",
+   "id": "??",
    "permissionRequired": true,
    "dryRun": false,
    "description": "Issue a request to an LLM agent to execute FLOW commands."

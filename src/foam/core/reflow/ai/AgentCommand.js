@@ -56,13 +56,10 @@ foam.CLASS({
   ],
 
   properties: [
-    /*
     {
       class: 'String',
-      name: 'name',
-      value: 'prompt'
-      },
-      */
+      name: 'systemPrompt'
+    },
     {
       class: 'String',
       name: 'description',
@@ -84,7 +81,7 @@ foam.CLASS({
   methods: [
     async function execute(q) {
       // ── 1. Build the system prompt with environment context ──
-      var systemPrompt = await this.buildSystemPrompt_(x);
+      var systemPrompt = await this.buildSystemPrompt_();
 
       // ── 2. Call LLMService ──
       var request = foam.core.ai.CompletionRequest.create({
@@ -125,24 +122,27 @@ foam.CLASS({
       setTimeout(() => this.block.del(), 100);
     },
 
-    async function buildSystemPrompt_(x) {
-      const prompts = (await this.flowDAO.orderBy(this.Flow.NAME).where(this.STARTS_WITH(this.Flow.NAME, 'systemPrompt')).select()).array;
-      var parts = [];
+    async function buildSystemPrompt_() {
+      if ( ! this.systemPrompt ) {
+        const prompts = (await this.flowDAO.orderBy(this.Flow.NAME).where(this.STARTS_WITH(this.Flow.NAME, 'systemPrompt')).select()).array;
+        const parts   = [];
 
-      prompts.forEach(p => {
-        const script = JSON.parse(p.script);
-        script.forEach(block => {
-          if ( block?.value?.class == 'foam.core.reflow.Markdown' ) {
-            parts.push(block.value.markdown);
-          } else {
-            debugger;
-          }
+        prompts.forEach(p => {
+          const script = JSON.parse(p.script);
+          script.forEach(block => {
+            if ( block?.value?.class == 'foam.core.reflow.Markdown' ) {
+              parts.push(block.value.markdown);
+            } else {
+            }
+          });
         });
-      });
 
-      console.log('sysPrompt: ', parts.join('\n'));
+        console.log('sysPrompt: ', parts.join('\n'));
 
-      return parts.join('\n');
+        this.systemPrompt = parts.join('\n');
+      }
+
+      return this.systemPrompt;
     },
 
     function parseCommandLines_(content) {
