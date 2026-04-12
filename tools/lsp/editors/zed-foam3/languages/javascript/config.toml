@@ -1,0 +1,6 @@
+name = "JavaScript"
+grammar = "javascript"
+path_suffixes = ["js", "mjs", "cjs"]
+line_comments = ["// "]
+block_comment = ["/* ", " */"]
+tab_size = 2
