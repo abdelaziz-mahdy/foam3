@@ -23,3 +23,12 @@ p({
   class:"foam.dao.test.MDAOCountTest",
   id:"MDAOCountTest"
 })
+p({
+  class:"foam.dao.test.JournalReplayBenchmark",
+  id:"JournalReplayBenchmark",
+  description:"Journal replay performance benchmark — FOAM parser vs Jackson, MDAO operations, full replay throughput"
+})
+p({
+  class:"foam.dao.test.JacksonParserCorrectnessTest",
+  id:"JacksonParserCorrectnessTest"
+})
