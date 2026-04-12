@@ -318,15 +318,19 @@ foam.CLASS({
         }
       }
 
-      // Inherited property count per ancestor
+      // Inherited properties grouped by ancestor
       var inherited = this.index.getInheritedProperties(classId);
-      if ( inherited.length > 0 ) {
+      for ( var g = 0 ; g < inherited.length ; g++ ) {
+        var group = inherited[g];
         md += '\n---\n\n';
-        var parts = [];
-        for ( var g = 0 ; g < inherited.length ; g++ ) {
-          parts.push('`' + inherited[g].className + '` (' + inherited[g].properties.length + ')');
+        md += '**' + group.className + '** (' + group.properties.length + ')\n\n';
+        var names = [];
+        for ( var j = 0 ; j < group.properties.length ; j++ ) {
+          var ip = group.properties[j];
+          var iType = ip.cls_ && ip.cls_.model_ ? ip.cls_.model_.name : '';
+          names.push('`' + ip.name + '`' + ( iType ? ' *' + iType + '*' : '' ));
         }
-        md += 'Inherited from: ' + parts.join(' · ') + '\n';
+        md += names.join(' · ') + '\n';
       }
 
       // Methods (compact inline)
