@@ -292,46 +292,49 @@ foam.CLASS({
       if ( ! cls ) return null;
       var m = cls.model_;
 
-      var md = '**' + m.id + '**\n\n';
-      if ( m.extends && m.extends !== 'FObject' ) md += 'extends `' + m.extends + '`\n\n';
-      if ( m.documentation ) md += m.documentation + '\n\n';
+      // Header: class signature in a code block
+      var sig = m.id;
+      if ( m.extends && m.extends !== 'FObject' ) sig += ' extends ' + m.extends;
+      if ( m.implements && m.implements.length > 0 ) {
+        var ifaces = m.implements.map(function(i) { return typeof i === 'string' ? i : i.path; });
+        sig += ' implements ' + ifaces.join(', ');
+      }
+      var md = '```foam\n' + sig + '\n```\n';
+
+      // Documentation
+      if ( m.documentation ) md += m.documentation + '\n';
 
       // Own properties
       var ownProps = this.index.getOwnProperties(classId);
       if ( ownProps.length > 0 ) {
-        md += '**Own Properties:**\n';
+        md += '\n---\n\n';
+        md += '| Property | Type | Description |\n';
+        md += '|:--|:--|:--|\n';
         for ( var i = 0 ; i < ownProps.length ; i++ ) {
           var p = ownProps[i];
           var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
-          md += '- `' + p.name + '` (' + typeName + ')';
-          if ( p.documentation ) md += ' — ' + p.documentation.split('\n')[0].substring(0, 60);
-          md += '\n';
+          var doc = p.documentation ? p.documentation.split('\n')[0].substring(0, 50) : '';
+          md += '| `' + p.name + '` | ' + typeName + ' | ' + doc + ' |\n';
         }
-        md += '\n';
       }
 
-      // Inherited properties (grouped by source)
+      // Inherited property count per ancestor
       var inherited = this.index.getInheritedProperties(classId);
-      for ( var g = 0 ; g < inherited.length ; g++ ) {
-        var group = inherited[g];
-        md += '**Inherited from ' + group.className + ':**\n';
-        for ( var j = 0 ; j < Math.min(group.properties.length, 5) ; j++ ) {
-          var ip = group.properties[j];
-          var iTypeName = ip.cls_ && ip.cls_.model_ ? ip.cls_.model_.name : 'Property';
-          md += '- `' + ip.name + '` (' + iTypeName + ')\n';
+      if ( inherited.length > 0 ) {
+        md += '\n---\n\n';
+        var parts = [];
+        for ( var g = 0 ; g < inherited.length ; g++ ) {
+          parts.push('`' + inherited[g].className + '` (' + inherited[g].properties.length + ')');
         }
-        if ( group.properties.length > 5 ) {
-          md += '- ... and ' + (group.properties.length - 5) + ' more\n';
-        }
-        md += '\n';
+        md += 'Inherited from: ' + parts.join(' · ') + '\n';
       }
 
-      // Methods
+      // Methods (compact inline)
       var methods = this.index.getMethods(classId);
       if ( methods.length > 0 ) {
-        var methodNames = methods.slice(0, 10).map(function(m) { return '`' + m.name + '`'; });
-        md += '**Methods:** ' + methodNames.join(', ');
-        if ( methods.length > 10 ) md += ' ... and ' + (methods.length - 10) + ' more';
+        var methodNames = methods.slice(0, 8).map(function(m) { return '`' + m.name + '()`'; });
+        md += '\nMethods: ' + methodNames.join(' · ');
+        if ( methods.length > 8 ) md += ' *+' + (methods.length - 8) + ' more*';
         md += '\n';
       }
 
@@ -357,16 +360,17 @@ foam.CLASS({
 
       var cls = this.index.getClass(resolved);
       if ( ! cls ) return null;
-      var md = '**create** — Create a new `' + resolved + '` instance\n\n';
+      var md = '```foam\n' + resolved + '.create()\n```\n';
       var props = this.index.getOwnProperties(resolved);
       if ( props.length > 0 ) {
-        md += '**Properties you can set:**\n';
-        for ( var i = 0 ; i < Math.min(props.length, 10) ; i++ ) {
+        md += '| Property | Type |\n';
+        md += '|:--|:--|\n';
+        for ( var i = 0 ; i < Math.min(props.length, 12) ; i++ ) {
           var p = props[i];
           var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
-          md += '- `' + p.name + '` (' + typeName + ')\n';
+          md += '| `' + p.name + '` | ' + typeName + ' |\n';
         }
-        if ( props.length > 10 ) md += '- ... and ' + (props.length - 10) + ' more\n';
+        if ( props.length > 12 ) md += '| *... +' + (props.length - 12) + ' more* | |\n';
       }
       return { contents: { kind: 'markdown', value: md } };
     },
@@ -374,11 +378,10 @@ foam.CLASS({
     function buildMethodHover_(method, classId) {
       /** Build markdown hover for a method with signature. */
       var sig = this.analyzer.getMethodSignature(method);
-
-      var md = '**' + sig + '**\n\n';
-      md += 'Method on `' + classId + '`\n\n';
-      if ( method.documentation ) md += method.documentation + '\n\n';
-      if ( method.type ) md += 'Returns: `' + method.type + '`\n';
+      var md = '```javascript\n' + sig + '\n```\n';
+      md += '*' + classId + '*\n';
+      if ( method.documentation ) md += '\n' + method.documentation + '\n';
+      if ( method.type ) md += '\nReturns: `' + method.type + '`\n';
       return md;
     }
   ]
