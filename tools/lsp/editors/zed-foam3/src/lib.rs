@@ -23,6 +23,9 @@ impl zed::Extension for Foam3Extension {
             .or_else(|| worktree.which("node"))
             .unwrap_or_else(|| "node".to_string());
 
+        // Path is relative to workspace root. Assumes foam3 is a subdirectory
+        // (e.g., as a git submodule). If opening the foam3 repo directly,
+        // override via Zed settings: lsp.foam3-lsp.binary.arguments
         let default_args = vec!["foam3/tools/lsp-start.js".to_string()];
 
         let args = settings
