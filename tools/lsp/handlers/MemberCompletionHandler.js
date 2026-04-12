@@ -83,6 +83,17 @@ foam.CLASS({
         }
       }
 
+      // Detect context: this.RequiredClass. ▊ — suggest create() and class constants
+      var reqClassMatch = prefix.match(/this\.([A-Z]\w*)\.\w*$/);
+      if ( reqClassMatch ) {
+        var model = this.cache.getModelAt(opt_uri || '', text, position.line);
+        var requiresMap = model ? this.cache.buildRequiresMap(model) : this.analyzer.parseRequires(text);
+        var fullId = requiresMap[reqClassMatch[1]];
+        if ( fullId && this.index.classExists(fullId) ) {
+          return this.getRequiredClassItems(fullId);
+        }
+      }
+
       // Detect context: this. ▊ — suggest members + requires + imports
       if ( /this\.\w*$/.test(prefix) ) {
         return this.handleThisCompletion(text, position, opt_uri);
@@ -257,6 +268,53 @@ foam.CLASS({
           detail: 'Action — ' + classId,
           documentation: actions[i].documentation || '',
           sortText: '!1_' + actions[i].name
+        });
+      }
+
+      return { isIncomplete: false, items: items };
+    },
+
+    function getRequiredClassItems(classId) {
+      /** Get completion items for a required class: create(), static methods, constants. */
+      var items = [];
+
+      // create() — primary action on a required class
+      var props = this.index.getOwnProperties(classId);
+      var propNames = props.slice(0, 5).map(function(p) { return p.name; }).join(', ');
+      items.push({
+        label: 'create',
+        kind: 2,
+        detail: classId + '.create({})',
+        documentation: { kind: 'markdown', value: '```foam\n' + classId + '.create()\n```\nCreate a new instance.' + ( propNames ? '\n\nProperties: `' + propNames + '`...' : '' ) },
+        insertText: 'create({\n  $0\n})',
+        insertTextFormat: 2,
+        sortText: '!0_create'
+      });
+
+      // Static property constants: CLASS_NAME.PROPERTY_NAME
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        var p = props[i];
+        var constName = p.name.replace(/([A-Z])/g, '_$1').toUpperCase();
+        var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
+        items.push({
+          label: constName,
+          kind: 21,
+          detail: typeName + ' axiom',
+          documentation: p.documentation || '',
+          sortText: '!1_' + constName
+        });
+      }
+
+      // getAxiomByName, isInstance, isSubClass — common static methods
+      var staticMethods = ['isInstance', 'isSubClass', 'getAxiomByName', 'getAxiomsByClass'];
+      for ( var i = 0 ; i < staticMethods.length ; i++ ) {
+        items.push({
+          label: staticMethods[i],
+          kind: 2,
+          detail: 'static method',
+          insertText: staticMethods[i] + '($0)',
+          insertTextFormat: 2,
+          sortText: '!2_' + staticMethods[i]
         });
       }
 
