@@ -89,7 +89,8 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "package": "npx @vscode/vsce package --allow-missing-repository"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
