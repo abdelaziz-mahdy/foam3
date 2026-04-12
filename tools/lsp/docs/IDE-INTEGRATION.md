@@ -52,7 +52,7 @@ Content-Length: 123\r\n
 1. The editor spawns: `node foam3/tools/lsp-start.js [pom-path]`
 2. `lsp-start.js` redirects console.log to stderr, sets up FOAM buildlib globals
 3. `pmake` loads the FOAM runtime, walks all POM files, loads all model definitions
-4. `LSPMaker.js` builds a file index (4300+ files) and starts the JSON-RPC loop
+4. `LSPMaker.js` builds a file index (4300+ classes) and starts the JSON-RPC loop
 5. The server responds to `initialize` with its capability list
 6. Boot takes ~10-15 seconds (loading the full FOAM class registry)
 
@@ -77,7 +77,7 @@ The FOAM LSP server announces these capabilities to the editor:
 | **Hover** | `textDocument/hover` | Class documentation, method signatures, property types, Java block type info, CSS token colors |
 | **Go-to-Definition** | `textDocument/definition` | Navigate to class source files, property type definitions |
 | **Find References** | `textDocument/references` | Find subclasses and interface implementors |
-| **Diagnostics** | `textDocument/publishDiagnostics` | Unknown classes, wrong property types, incorrect Java imports, invalid getter/setter calls |
+| **Diagnostics** | server push notification | Unknown classes, wrong property types, incorrect Java imports, invalid getter/setter calls |
 | **Document Symbols** | `textDocument/documentSymbol` | Outline of properties, methods, actions, listeners |
 | **Signature Help** | `textDocument/signatureHelp` | Method parameter hints (triggered by `(` and `,`) |
 | **Workspace Symbols** | `workspace/symbol` | Search all FOAM classes by name |
@@ -152,7 +152,7 @@ Both **eglot** (built-in since Emacs 29) and **lsp-mode** are supported.
 
 Then open a FOAM `.js` file and run `M-x eglot`.
 
-**lsp-mode** — install the `lsp-foam` package:
+**lsp-mode** — install the `lsp-foam.el` client:
 
 ```bash
 cd foam3/tools/lsp/editors/emacs
@@ -257,8 +257,8 @@ cd <your-project>
 node foam3/tools/tests/testFoamLSPGrammar.js
 ```
 
-This runs 123 tests covering all handlers, the grammar, file model cache, and
-type tracker in approximately 30 seconds.
+This runs 200+ tests covering all handlers, the grammar, file model cache, and
+type tracker.
 
 ## Further Reading
 
