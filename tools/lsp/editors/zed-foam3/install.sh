@@ -22,13 +22,6 @@ if ! command -v rustc &>/dev/null; then
   exit 1
 fi
 
-if ! command -v zed &>/dev/null; then
-  echo "NOTE: The 'zed' CLI is not in your PATH."
-  echo "      With it installed, you can open projects directly from the terminal (e.g., 'zed .')."
-  echo "      To install: open Zed → Command Palette → 'cli: install cli binary'"
-  echo ""
-fi
-
 echo "Extension directory: $SCRIPT_DIR"
 echo ""
 echo "To install the extension in Zed:"
