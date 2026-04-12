@@ -55,12 +55,8 @@ echo "relative to the workspace root."
 echo ""
 echo "--- Java syntax highlighting in javaCode: blocks ---"
 echo ""
-echo "1. Install the 'Java' extension in Zed (for the Java grammar)"
-echo "2. Add this to your Zed settings.json (~/.config/zed/settings.json):"
+echo "For Java highlighting inside javaCode:, javaFactory:, javaPreSet:, etc.:"
+echo "  Install the 'Java' extension in Zed (Command Palette → 'zed: extensions' → search 'Java')"
 echo ""
-echo '  "file_types": {'
-echo '    "FOAM JavaScript": ["js", "jsx", "mjs", "cjs"]'
-echo '  }'
-echo ""
-echo "This maps .js files to the FOAM JavaScript language which includes"
-echo "Java highlighting for javaCode:, javaFactory:, javaPreSet:, etc."
+echo "The FOAM JavaScript language automatically handles .js files with"
+echo "Java injection rules. No extra configuration needed."
