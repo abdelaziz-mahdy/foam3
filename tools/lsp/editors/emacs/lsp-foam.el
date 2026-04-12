@@ -64,10 +64,8 @@ The first extra argument is the POM path (defaults to \"pom\" in cwd)."
   :activation-fn (lsp-activate-on "javascript")
   :server-id 'foam-lsp
   :priority -1
-  :add-on? nil
-  :initialized-fn (lambda (workspace)
-                    (message "FOAM LSP: ready (%s classes indexed)"
-                             (or (lsp--workspace-server-capabilities workspace) "?")))))
+  :initialized-fn (lambda (_workspace)
+                    (message "FOAM LSP: ready"))))
 
 (lsp-consistency-check lsp-foam)
 

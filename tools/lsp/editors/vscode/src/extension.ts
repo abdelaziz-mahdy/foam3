@@ -150,16 +150,6 @@ function startServer(
       runner.handleProgress(params);
     });
 
-    // Auto-run workspace analysis on startup
-    outputChannel.appendLine('Auto-running workspace analysis...');
-    setTimeout(() => {
-      runner.run().then(() => {
-        outputChannel.appendLine('Startup analysis complete');
-      }).catch((e: Error) => {
-        outputChannel.appendLine('Startup analysis failed: ' + e.message);
-      });
-    }, 2000); // Wait 2s for server to settle
-
     // Auto-run workspace analysis on startup (after a short delay for boot to settle)
     setTimeout(async () => {
       outputChannel.appendLine('Auto-running workspace analysis...');

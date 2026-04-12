@@ -67,7 +67,7 @@ The launch configuration is in `.vscode/launch.json`.
 ### Project Structure
 
 ```
-editors/vscode/
+tools/lsp/editors/vscode/
   src/
     extension.ts           # LSP client, server startup, status bar
     FoamTreeProvider.ts    # Sidebar tree view (analysis, files, patterns, flags)

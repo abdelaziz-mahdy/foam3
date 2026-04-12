@@ -16,7 +16,7 @@ echo "==> FOAM LSP — Emacs Setup"
 echo ""
 
 # Detect FOAM project root (walk up from script location)
-FOAM_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+FOAM_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 LSP_START="$FOAM_ROOT/tools/lsp-start.js"
 
 if [ ! -f "$LSP_START" ]; then
