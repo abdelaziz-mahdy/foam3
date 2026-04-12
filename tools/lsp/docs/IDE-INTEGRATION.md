@@ -112,6 +112,27 @@ Any editor with LSP support can connect to the FOAM server. The general pattern:
 The server expects the editor to send standard LSP lifecycle messages:
 `initialize` → `initialized` → document sync → feature requests → `shutdown` → `exit`.
 
+## Quick Install
+
+The fastest way to set up any editor:
+
+```bash
+# Auto-detect editors and prompt
+foam3/tools/lsp/install.sh
+
+# Install for a specific editor
+foam3/tools/lsp/install.sh vscode
+foam3/tools/lsp/install.sh emacs
+foam3/tools/lsp/install.sh zed
+
+# Install for all detected editors
+foam3/tools/lsp/install.sh all
+
+# Via the build system
+./build.sh lsp-install
+./build.sh lsp-install:vscode
+```
+
 ## Editor Setup
 
 ### VS Code
