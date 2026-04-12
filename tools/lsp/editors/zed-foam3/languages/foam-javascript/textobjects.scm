@@ -1,91 +1,28 @@
-(comment)+ @comment.around
+; FOAM model definitions (foam.CLASS, foam.ENUM, foam.INTERFACE)
+(call_expression
+  function: (member_expression
+    object: (identifier) @_obj
+    (#eq? @_obj "foam"))
+  arguments: (arguments
+    (object) @function.inside)) @function.around
 
-(function_declaration
-  body: (_
-    "{"
-    (_)* @function.inside
-    "}")) @function.around
+; Method/property objects inside axiom arrays
+(pair
+  key: (property_identifier) @_section
+  value: (array
+    (object) @class.inside)
+  (#any-of? @_section
+    "properties" "methods" "actions" "listeners"
+    "constants" "classes" "enums" "mixins"
+    "static" "reactions" "templates" "values"
+    "sections")) @class.around
 
-(method_definition
-  body: (_
-    "{"
-    (_)* @function.inside
-    "}")) @function.around
+; Function-style methods inside arrays
+(pair
+  key: (property_identifier) @_section
+  value: (array
+    (function_expression) @class.inside)
+  (#any-of? @_section "methods" "listeners" "actions" "static")) @class.around
 
-(function_expression
-  body: (_
-    "{"
-    (_)* @function.inside
-    "}")) @function.around
-
-((arrow_function
-  body: (statement_block
-    "{"
-    (_)* @function.inside
-    "}")) @function.around
-  (#not-has-parent? @function.around variable_declarator))
-
-; Arrow function in variable declaration - capture the full declaration
-([
-  (lexical_declaration
-    (variable_declarator
-      value: (arrow_function
-        body: (statement_block
-          "{"
-          (_)* @function.inside
-          "}"))))
-  (variable_declaration
-    (variable_declarator
-      value: (arrow_function
-        body: (statement_block
-          "{"
-          (_)* @function.inside
-          "}"))))
-]) @function.around
-
-; Arrow function in variable declaration (captures body for expression-bodied arrows)
-([
-  (lexical_declaration
-    (variable_declarator
-      value: (arrow_function
-        body: (_) @function.inside)))
-  (variable_declaration
-    (variable_declarator
-      value: (arrow_function
-        body: (_) @function.inside)))
-]) @function.around
-
-; Catch-all for arrow functions in other contexts (callbacks, etc.)
-((arrow_function
-  body: (_) @function.inside) @function.around
-  (#not-has-parent? @function.around variable_declarator))
-
-(generator_function
-  body: (_
-    "{"
-    (_)* @function.inside
-    "}")) @function.around
-
-(generator_function_declaration
-  body: (_
-    "{"
-    (_)* @function.inside
-    "}")) @function.around
-
-(class_declaration
-  body: (_
-    "{"
-    [
-      (_)
-      ";"?
-    ]* @class.inside
-    "}")) @class.around
-
-(class
-  body: (_
-    "{"
-    [
-      (_)
-      ";"?
-    ]* @class.inside
-    "}")) @class.around
+; Comments
+(comment) @comment.around

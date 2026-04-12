@@ -1,5 +1,5 @@
 name = "FOAM JavaScript"
-grammar = "tsx"
+grammar = "javascript"
 path_suffixes = ["js", "mjs", "cjs"]
 line_comments = ["// "]
 block_comment = { start = "/*", prefix = "* ", end = "*/", tab_size = 1 }
