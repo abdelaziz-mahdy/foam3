@@ -408,12 +408,16 @@ foam.CLASS({
       if ( ! cls ) return null;
       var m = cls.model_;
 
-      // Header: class signature in a code block
+      // Header: class signature in a code block — multi-line for readability
       var sig = m.id;
-      if ( m.extends && m.extends !== 'FObject' ) sig += ' extends ' + m.extends;
+      if ( m.extends && m.extends !== 'FObject' ) sig += '\n  extends ' + m.extends;
       if ( m.implements && m.implements.length > 0 ) {
         var ifaces = m.implements.map(function(i) { return typeof i === 'string' ? i : i.path; });
-        sig += ' implements ' + ifaces.join(', ');
+        if ( ifaces.length === 1 ) {
+          sig += '\n  implements ' + ifaces[0];
+        } else {
+          sig += '\n  implements\n    ' + ifaces.join(',\n    ');
+        }
       }
       var md = '```foam\n' + sig + '\n```\n';
 

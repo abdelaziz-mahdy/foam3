@@ -1185,6 +1185,33 @@ if ( index.classExists(docHoverClassId) ) {
   test(docClassHover && docClassHover.contents.value.indexOf('> ') !== -1, 'Doc hover: blockquote for docs');
 }
 
+// ========== Class Signature Multi-line Format ==========
+section('Hover Signature Format');
+
+// Inline test class with multiple implements
+foam.INTERFACE({ package: 'foam.parse.lsp.test', name: 'IFoo' });
+foam.INTERFACE({ package: 'foam.parse.lsp.test', name: 'IBar' });
+foam.INTERFACE({ package: 'foam.parse.lsp.test', name: 'IBaz' });
+foam.CLASS({
+  package: 'foam.parse.lsp.test',
+  name: 'MultiImplTest',
+  implements: ['foam.parse.lsp.test.IFoo', 'foam.parse.lsp.test.IBar', 'foam.parse.lsp.test.IBaz']
+});
+
+var multiImplHover = hoverHandler.buildClassHover('foam.parse.lsp.test.MultiImplTest');
+test(multiImplHover != null, 'Sig format: hover returned');
+test(multiImplHover && multiImplHover.contents.value.indexOf('implements\n    foam.parse.lsp.test.IFoo') !== -1, 'Sig format: multiple implements on separate lines');
+test(multiImplHover && multiImplHover.contents.value.indexOf('IBar,\n    foam.parse.lsp.test.IBaz') !== -1, 'Sig format: implements have indented separator');
+
+// Single implement stays on one line
+foam.CLASS({
+  package: 'foam.parse.lsp.test',
+  name: 'SingleImplTest',
+  implements: ['foam.parse.lsp.test.IFoo']
+});
+var singleImplHover = hoverHandler.buildClassHover('foam.parse.lsp.test.SingleImplTest');
+test(singleImplHover && singleImplHover.contents.value.indexOf('implements foam.parse.lsp.test.IFoo') !== -1, 'Sig format: single implement inline');
+
 // === SUMMARY ===
 
 section('SUMMARY');
