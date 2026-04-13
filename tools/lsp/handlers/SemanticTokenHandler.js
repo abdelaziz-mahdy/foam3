@@ -429,7 +429,14 @@ foam.CLASS({
        * Token types: 0=type, 1=class, 2=variable, 3=keyword, 4=string,
        * 5=comment, 6=number, 7=operator, 8=method
        */
-      var javaKeys = ['javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter'];
+      var javaKeys = [
+        'javaCode', 'javaPreSet', 'javaPostSet', 'javaFactory', 'javaGetter', 'javaSetter',
+        'javaAdapt', 'javaCompare', 'javaComparePropertyToObject', 'javaComparePropertyToValue',
+        'javaCloneProperty', 'javaDiffProperty', 'javaFormatJSON', 'javaJSONParser',
+        'javaCSVParser', 'javaQueryParser', 'javaToCSV', 'javaToCSVLabel',
+        'javaFromCSVLabelMapping', 'javaAssertValue', 'javaValidateObj',
+        'javaCondition', 'javaValue', 'javaImports', 'code', 'serviceScript'
+      ];
       var self = this;
       var classId = model.refines || (model.package ? model.package + '.' + model.name : model.name);
 
@@ -532,24 +539,36 @@ foam.CLASS({
           }
         }
 
-        // Java variable declarations — knowledge-driven via resolveJavaTypeName
-        // Only highlights variables whose type resolves to a known FOAM class
+        // Java variable declarations + usage tracking
+        // Track declared variables so we can highlight their usage throughout the block
+        var declaredVars = {};
         var varDeclRegex = /\b(\w+)\s+([a-z]\w*)\s*[=;]/g;
         var vd;
         while ( ( vd = varDeclRegex.exec(javaStr) ) !== null ) {
           var declType = vd[1];
           if ( /^(if|for|while|try|catch|throw|return|new|else|var|int|long|float|double|boolean|byte|short|char|void)$/.test(declType) ) {
-            // 'var' and primitives: still mark the variable name
             if ( declType === 'var' || /^(int|long|float|double|boolean|byte|short|char)$/.test(declType) ) {
               var vOffset = vd.index + vd[0].indexOf(vd[2]);
               addToken(baseOffset + vOffset, vd[2].length, 2);
+              declaredVars[vd[2]] = true;
             }
             continue;
           }
-          // Only mark if the type resolves — same path as hover
           if ( resolveType(declType) ) {
             var vOffset = vd.index + vd[0].indexOf(vd[2]);
             addToken(baseOffset + vOffset, vd[2].length, 2);
+            declaredVars[vd[2]] = true;
+          }
+        }
+
+        // Variable usage — highlight declared variables throughout the block
+        // Match: varName. or varName = or varName; or varName) etc.
+        if ( Object.keys(declaredVars).length > 0 ) {
+          var varNames = Object.keys(declaredVars).join('|');
+          var usageRegex = new RegExp('\\b(' + varNames + ')\\b', 'g');
+          var vu;
+          while ( ( vu = usageRegex.exec(javaStr) ) !== null ) {
+            addToken(baseOffset + vu.index, vu[1].length, 2);
           }
         }
 
