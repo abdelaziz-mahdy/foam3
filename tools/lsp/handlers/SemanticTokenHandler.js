@@ -541,7 +541,8 @@ foam.CLASS({
 
         // Java variable declarations + usage tracking
         // Track declared variables so we can highlight their usage throughout the block
-        var declaredVars = {};
+        // 'x' is always available as the FOAM context (foam.lang.X)
+        var declaredVars = { x: true };
         var varDeclRegex = /\b(\w+)\s+([a-z]\w*)\s*[=;]/g;
         var vd;
         while ( ( vd = varDeclRegex.exec(javaStr) ) !== null ) {

@@ -985,6 +985,41 @@ test(fcloneHover != null || true, 'Java hover: variable.method() does not crash'
 var fobjectHover = hoverHandler.handle(javaVarHoverText, { line: 4, character: 5 });
 test(fobjectHover != null, 'Java hover: type name FObject resolves in Java block');
 
+// ========== Java Block: variable.method() Hover Regression Tests ==========
+section('Java variable.method() Hover');
+
+// Simulate DAONotificationTest.js javaCode block
+var javaMethodText = 'foam.CLASS({\n  package: ' + Q + 'foam.core.notification.test' + Q + ',\n  name: ' + Q + 'DAONotificationTest' + Q + ',\n  javaCode: `\n    Country country = (Country) countryDAO.find("CA");\n    country = (Country) country.fclone();\n    country.setName("Canada Eh!");\n  `\n})';
+
+// Debug: check if backtick block is detected at line 5 (country.fclone line)
+var blockCtx = hoverHandler.analyzer.getBacktickBlockContext(javaMethodText, { line: 5, character: 30 });
+test(blockCtx != null, 'Java var.method: backtick block detected at line 5: ' + JSON.stringify(blockCtx));
+test(blockCtx && blockCtx.blockKey && blockCtx.blockKey.indexOf('java') !== -1, 'Java var.method: block key is java*: ' + (blockCtx ? blockCtx.blockKey : 'null'));
+
+// Debug: check variable type resolution
+var javaModel = hoverHandler.cache.getModelAt('', javaMethodText, 5);
+test(javaModel != null, 'Java var.method: model found at line 5');
+
+if ( blockCtx && javaModel ) {
+  var countryType = hoverHandler.analyzer.resolveJavaVariableType(javaMethodText, { line: 5, character: 30 }, 'country', javaModel, hoverHandler.index);
+  test(countryType != null, 'Java var.method: country resolves to type: ' + countryType);
+}
+
+// fclone hover — Java-only FObject method, resolved via fallback constant map
+var fcloneHover = hoverHandler.handle(javaMethodText, { line: 5, character: 33 }, '');
+test(fcloneHover != null, 'Java var.method: hover on country.fclone() returns result');
+test(fcloneHover && fcloneHover.contents.value.indexOf('fclone') !== -1, 'Java var.method: fclone hover mentions fclone');
+
+// setName should work (it's a getter/setter)
+var setNameHover = hoverHandler.handle(javaMethodText, { line: 6, character: 13 }, '');
+test(setNameHover != null, 'Java var.method: hover on country.setName() returns result');
+
+// x.get() hover — x is always foam.lang.X
+var xGetText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'XTest' + Q + ',\n  javaCode: `\n    DAO dao = (DAO) x.get("countryDAO");\n  `\n})';
+var xGetHover = hoverHandler.handle(xGetText, { line: 4, character: 23 }, '');
+test(xGetHover != null, 'Java x.get: hover on x.get() returns result');
+test(xGetHover && xGetHover.contents.value.indexOf('foam.lang.X') !== -1, 'Java x.get: hover mentions foam.lang.X');
+
 // === SUMMARY ===
 
 section('SUMMARY');

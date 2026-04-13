@@ -15,6 +15,40 @@ foam.CLASS({
     'foam.parse.lsp.TypeTracker'
   ],
 
+  constants: {
+    JAVA_FOBJECT_METHODS_: {
+      fclone:          { sig: 'FObject fclone()',          doc: 'Create a shallow clone of this object. Properties are copied by value.' },
+      deepClone:       { sig: 'FObject deepClone()',       doc: 'Create a deep clone of this object. Nested FObjects are also cloned.' },
+      freeze:          { sig: 'FObject freeze()',          doc: 'Freeze this object, making it immutable. Throws on subsequent modifications.' },
+      isFrozen:        { sig: 'boolean isFrozen()',        doc: 'Returns true if this object has been frozen.' },
+      copyFrom:        { sig: 'FObject copyFrom(FObject o)', doc: 'Copy all set properties from another object into this one.' },
+      diff:            { sig: 'Map diff(FObject o)',       doc: 'Compute the difference between this object and another.' },
+      hardDiff:        { sig: 'FObject hardDiff(FObject o)', doc: 'Compute a hard diff: returns an object with only the differing properties.' },
+      getClassInfo:    { sig: 'ClassInfo getClassInfo()',   doc: 'Returns the ClassInfo (metadata) for this object\'s class.' },
+      getProperty:     { sig: 'Object getProperty(String name)', doc: 'Get a property value by name.' },
+      setProperty:     { sig: 'void setProperty(String name, Object value)', doc: 'Set a property value by name.' },
+      clearProperty:   { sig: 'void clearProperty(String name)', doc: 'Clear a property, resetting it to its default value.' },
+      hasDefaultValue: { sig: 'boolean hasDefaultValue(String name)', doc: 'Returns true if the property has its default value.' },
+      toJSON:          { sig: 'String toJSON()',           doc: 'Serialize this object to JSON.' },
+      compareTo:       { sig: 'int compareTo(Object o)',   doc: 'Compare this object to another for ordering.' },
+      equals:          { sig: 'boolean equals(Object o)',  doc: 'Returns true if this object equals another.' },
+      hashCode:        { sig: 'int hashCode()',            doc: 'Returns the hash code for this object.' },
+      toString:        { sig: 'String toString()',         doc: 'Returns a string representation of this object.' },
+      toSummary:       { sig: 'String toSummary()',        doc: 'Returns a short human-readable summary of this object.' },
+      validate:        { sig: 'void validate(X x)',        doc: 'Validate this object. Throws ValidationException if invalid.' },
+      put_:            { sig: 'FObject put_(X x, FObject obj)', doc: 'DAO put operation: store an object.' },
+      find_:           { sig: 'FObject find_(X x, Object id)', doc: 'DAO find operation: retrieve an object by ID.' },
+      remove_:         { sig: 'FObject remove_(X x, FObject obj)', doc: 'DAO remove operation: delete an object.' },
+      select_:         { sig: 'Sink select_(X x, Sink sink, ...)', doc: 'DAO select operation: query objects into a sink.' },
+      cmd_:            { sig: 'Object cmd_(X x, Object obj)', doc: 'DAO command operation: execute a command on the DAO.' }
+    },
+    JAVA_X_METHODS_: {
+      get:            { sig: 'Object get(String key)',     doc: 'Look up a service or value in the context by key.\n\nCommon keys: `"userDAO"`, `"subject"`, `"auth"`, `"emailMessageDAO"`' },
+      put:            { sig: 'X put(String key, Object value)', doc: 'Create a new sub-context with an additional key-value binding.' },
+      createSubContext: { sig: 'X createSubContext(Map values)', doc: 'Create a sub-context with multiple key-value bindings.' }
+    }
+  },
+
   properties: [
     {
       class: 'FObjectProperty',
@@ -240,6 +274,14 @@ foam.CLASS({
 
         // Skip this.method (handled by main hover) and ClassName.ENUM_VALUE (handled above)
         if ( varName !== 'this' && ! /^[A-Z][A-Z0-9_]+$/.test(methodName) ) {
+          // Special: x is always foam.lang.X (the FOAM context)
+          if ( varName === 'x' ) {
+            var xMethodDoc = this.JAVA_X_METHODS_[methodName];
+            if ( xMethodDoc ) {
+              return { contents: { kind: 'markdown', value: '```java\n' + xMethodDoc.sig + '\n```\n*foam.lang.X*\n\n' + xMethodDoc.doc } };
+            }
+          }
+
           // Resolve the variable's type
           var varClassId = this.analyzer.resolveJavaVariableType(text, position, varName, model, this.index);
           if ( ! varClassId ) {
@@ -260,12 +302,18 @@ foam.CLASS({
               }
             }
 
-            // Check if it's a FOAM method (fclone, toJSON, etc.)
+            // Check if it's a FOAM method
             var methods = this.index.getMethods(varClassId);
             for ( var i = 0 ; i < methods.length ; i++ ) {
               if ( methods[i].name === methodName ) {
                 return { contents: { kind: 'markdown', value: this.buildMethodHover_(methods[i], varClassId) } };
               }
+            }
+
+            // Fallback: common Java-only FObject methods not in FOAM axioms
+            var javaMethodDoc = this.JAVA_FOBJECT_METHODS_[methodName];
+            if ( javaMethodDoc ) {
+              return { contents: { kind: 'markdown', value: '```java\n' + javaMethodDoc.sig + '\n```\n*foam.lang.FObject*\n\n' + javaMethodDoc.doc } };
             }
 
             // Show the variable's type at minimum
