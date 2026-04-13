@@ -1117,6 +1117,55 @@ var jrlBadDef = 'p({"class":"com.fake.Bad","id":1})';
 var jrlBadResult = jrlHandler.handleDefinition(jrlBadDef, { line: 0, character: 15 }, '');
 test(jrlBadResult == null, 'JRL go-to-def: unknown class returns null');
 
+// ========== JavaParser (FOAM Grammar-based) ==========
+section('JavaParser');
+
+var javaParser = foam.parse.lsp.JavaParser.create();
+
+var sampleJava = [
+  'package foam.test;',
+  '',
+  'import java.util.List;',
+  'import static foo.Bar.BAZ;',
+  '',
+  'public interface MyClass {',
+  '  /** Clone this object. */',
+  '  default MyClass myClone() {',
+  '    return null;',
+  '  }',
+  '',
+  '  public List<String> getItems(int n) throws Exception;',
+  '',
+  '  abstract Map<K,V> diff(Object o);',
+  '}'
+].join('\n');
+
+var parsed = javaParser.parseFile(sampleJava);
+test(parsed['package'] === 'foam.test', 'JavaParser: package extracted: ' + parsed['package']);
+test(parsed.imports.length === 2, 'JavaParser: 2 imports extracted: ' + parsed.imports.length);
+test(parsed.imports[0].name === 'java.util.List', 'JavaParser: first import name');
+test(parsed.imports[1].name === 'foo.Bar.BAZ', 'JavaParser: static import name');
+test(parsed.classes.length === 1, 'JavaParser: 1 class extracted: ' + parsed.classes.length);
+test(parsed.classes[0].name === 'MyClass', 'JavaParser: class name');
+test(parsed.classes[0].kind === 'interface', 'JavaParser: class kind');
+test(parsed.methods.length === 3, 'JavaParser: 3 methods extracted: ' + parsed.methods.length);
+
+var myCloneMethod = parsed.methods.find(function(m) { return m.name === 'myClone'; });
+test(myCloneMethod != null, 'JavaParser: myClone method found');
+test(myCloneMethod && myCloneMethod.returnType === 'MyClass', 'JavaParser: myClone return type');
+test(myCloneMethod && myCloneMethod.doc.indexOf('Clone') !== -1, 'JavaParser: javadoc extracted');
+test(myCloneMethod && myCloneMethod.modifiers.indexOf('default') !== -1, 'JavaParser: default modifier captured');
+
+var getItemsMethod = parsed.methods.find(function(m) { return m.name === 'getItems'; });
+test(getItemsMethod && getItemsMethod.returnType === 'List<String>', 'JavaParser: generic return type: ' + (getItemsMethod ? getItemsMethod.returnType : ''));
+test(getItemsMethod && getItemsMethod.params === 'int n', 'JavaParser: params extracted');
+
+// FOAM-aware: scan a real .java file via the index
+var fobjectMethods2 = index.getJavaMethods('foam.lang.FObject');
+test(fobjectMethods2.length > 0, 'JavaParser via index: FObject methods: ' + fobjectMethods2.length);
+var fcloneMethod2 = fobjectMethods2.find(function(m) { return m.name === 'fclone'; });
+test(fcloneMethod2 && fcloneMethod2.line > 0, 'JavaParser via index: fclone has line number: ' + (fcloneMethod2 ? fcloneMethod2.line : ''));
+
 // === SUMMARY ===
 
 section('SUMMARY');

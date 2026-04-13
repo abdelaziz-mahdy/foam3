@@ -269,26 +269,29 @@ foam.CLASS({
     },
 
     function findJavaMethodLocation_(classId, methodName) {
-      /** Find a Java-only method's location in the .java file. Walks the inheritance chain. */
+      /**
+       * Find a Java-only method's location in the .java file.
+       * Walks the inheritance chain. Uses JavaParser (FOAM grammar-based)
+       * for accurate line numbers via getJavaMethods.
+       */
       var fs_ = require('fs');
       var chain = this.index.getInheritanceChain(classId);
       for ( var c = 0 ; c < chain.length ; c++ ) {
-        var entry = this.index.fileIndex_ && this.index.fileIndex_[chain[c]];
-        if ( ! entry ) continue;
-        var jsPath = typeof entry === 'string' ? entry : entry.path;
-        if ( ! jsPath ) continue;
-        var javaPath = jsPath.replace(/\.js$/, '.java');
-        if ( ! fs_.existsSync(javaPath) ) continue;
-        try {
-          var content = fs_.readFileSync(javaPath, 'utf8');
-          var regex = new RegExp('\\b' + methodName + '\\s*\\(');
-          var lines = content.split('\n');
-          for ( var ln = 0 ; ln < lines.length ; ln++ ) {
-            if ( regex.test(lines[ln]) && /default\s|public\s/.test(lines[ln]) ) {
-              return { uri: 'file://' + javaPath, range: { start: { line: ln, character: 0 }, end: { line: ln, character: 0 } } };
-            }
+        var methods = this.index.getJavaMethods(chain[c]);
+        for ( var i = 0 ; i < methods.length ; i++ ) {
+          if ( methods[i].name === methodName ) {
+            var entry = this.index.fileIndex_[chain[c]];
+            var jsPath = typeof entry === 'string' ? entry : entry.path;
+            var javaPath = jsPath.replace(/\.js$/, '.java');
+            return {
+              uri: 'file://' + javaPath,
+              range: {
+                start: { line: methods[i].line || 0, character: 0 },
+                end:   { line: methods[i].line || 0, character: 0 }
+              }
+            };
           }
-        } catch (e) {}
+        }
       }
       return null;
     },

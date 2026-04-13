@@ -136,8 +136,8 @@ foam.CLASS({
     function scanJavaFile_(classId) {
       /**
        * Scan the .java file for a FOAM class and extract method signatures.
-       * Looks for: default/public Type methodName(params) patterns.
-       * Returns array of { name, sig, doc }.
+       * Uses JavaParser (FOAM grammar-based) for structured parsing.
+       * Returns array of { name, sig, doc, line, returnType, params, modifiers }.
        */
       var entry = this.fileIndex_ && this.fileIndex_[classId];
       if ( ! entry ) return [];
@@ -145,42 +145,25 @@ foam.CLASS({
       var jsPath = typeof entry === 'string' ? entry : entry.path;
       if ( ! jsPath ) return [];
 
-      // Try .java file alongside .js file
       var javaPath = jsPath.replace(/\.js$/, '.java');
       var fs_ = require('fs');
       if ( ! fs_.existsSync(javaPath) ) return [];
 
       try {
         var content = fs_.readFileSync(javaPath, 'utf8');
-        var methods = [];
-
-        // Match: (default|public|abstract) ReturnType methodName(params) {
-        // Also handles: default ReturnType methodName(params) throws ...
-        var methodRegex = /(?:default|public|abstract)\s+([\w.<>\[\]]+)\s+(\w+)\s*\(([^)]*)\)/g;
-        var m;
-        while ( ( m = methodRegex.exec(content) ) !== null ) {
-          var returnType = m[1];
-          var name = m[2];
-          var params = m[3].trim();
-
-          // Skip constructors, getName, call (internal MethodInfo boilerplate)
-          if ( name === 'getName' || name === 'call' || name === classId.split('.').pop() ) continue;
-
-          // Build signature
-          var sig = returnType + ' ' + name + '(' + params + ')';
-
-          // Look for javadoc comment before the method
-          var doc = '';
-          var beforeMethod = content.substring(Math.max(0, m.index - 200), m.index);
-          var docMatch = beforeMethod.match(/\/\*\*\s*([\s\S]*?)\s*\*\/\s*$/);
-          if ( docMatch ) {
-            doc = docMatch[1].replace(/\s*\*\s*/g, ' ').trim();
-          }
-
-          methods.push({ name: name, sig: sig, doc: doc });
+        var parser = foam.parse.lsp.JavaParser.create();
+        var parsed = parser.parseFile(content);
+        var simpleName = classId.split('.').pop();
+        var result = [];
+        for ( var i = 0 ; i < parsed.methods.length ; i++ ) {
+          var m = parsed.methods[i];
+          // Skip MethodInfo boilerplate
+          if ( m.name === 'getName' || m.name === 'call' ) continue;
+          // Skip constructors (return type matches class name)
+          if ( m.name === simpleName && m.returnType === simpleName ) continue;
+          result.push(m);
         }
-
-        return methods;
+        return result;
       } catch (e) {
         return [];
       }
