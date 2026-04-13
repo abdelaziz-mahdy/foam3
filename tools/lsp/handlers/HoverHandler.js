@@ -231,6 +231,52 @@ foam.CLASS({
         }
       }
 
+      // Hover on variable.method() — resolve variable type, then find method
+      var word = this.analyzer.getDottedWordAtPosition(text, position);
+      if ( word && word.indexOf('.') !== -1 ) {
+        var parts = word.split('.');
+        var varName = parts[parts.length - 2];
+        var methodName = parts[parts.length - 1];
+
+        // Skip this.method (handled by main hover) and ClassName.ENUM_VALUE (handled above)
+        if ( varName !== 'this' && ! /^[A-Z][A-Z0-9_]+$/.test(methodName) ) {
+          // Resolve the variable's type
+          var varClassId = this.analyzer.resolveJavaVariableType(text, position, varName, model, this.index);
+          if ( ! varClassId ) {
+            // Try as a type name (static call like Country.find())
+            varClassId = this.analyzer.resolveJavaTypeName(varName, model, this.index);
+          }
+          if ( varClassId ) {
+            // Check if it's a getter/setter
+            var gsMatch = methodName.match(/^(get|set)([A-Z]\w*)$/);
+            if ( gsMatch ) {
+              var propName = gsMatch[2].charAt(0).toLowerCase() + gsMatch[2].substring(1);
+              var javaType = this.index.getPropertyJavaType(varClassId, propName);
+              if ( javaType ) {
+                var md = gsMatch[1] === 'get'
+                  ? '```java\n' + javaType + ' get' + gsMatch[2] + '()\n```\n*' + varClassId + '*\n\nGetter for `' + propName + '`'
+                  : '```java\nvoid set' + gsMatch[2] + '(' + javaType + ' val)\n```\n*' + varClassId + '*\n\nSetter for `' + propName + '`';
+                return { contents: { kind: 'markdown', value: md } };
+              }
+            }
+
+            // Check if it's a FOAM method (fclone, toJSON, etc.)
+            var methods = this.index.getMethods(varClassId);
+            for ( var i = 0 ; i < methods.length ; i++ ) {
+              if ( methods[i].name === methodName ) {
+                return { contents: { kind: 'markdown', value: this.buildMethodHover_(methods[i], varClassId) } };
+              }
+            }
+
+            // Show the variable's type at minimum
+            var propDoc = this.index.getPropertyDoc(varClassId, methodName);
+            if ( propDoc ) {
+              return { contents: { kind: 'markdown', value: propDoc } };
+            }
+          }
+        }
+      }
+
       // Hover on a variable name → resolve its Java type
       var varType = this.analyzer.resolveJavaVariableType(text, position, segment, model, this.index);
       if ( varType ) {
