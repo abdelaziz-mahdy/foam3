@@ -37,14 +37,18 @@
       {
         "language": "foam-journal",
         "scopeName": "source.foam-journal",
-        "path": "./syntaxes/foam-jrl.tmLanguage.json"
+        "path": "./syntaxes/foam-jrl.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.java": "java"
+        }
       },
       {
         "scopeName": "foam.js.injection",
         "path": "./syntaxes/foam-js.tmLanguage.json",
         "injectTo": ["source.js"],
         "embeddedLanguages": {
-          "meta.embedded.block.java": "java"
+          "meta.embedded.block.java": "java",
+          "meta.embedded.block.css": "css"
         }
       }
     ],
