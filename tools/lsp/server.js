@@ -320,6 +320,17 @@ function start() {
     });
   }
 
+  function pushJrlDiagnostics(uri, text) {
+    try {
+      notify('textDocument/publishDiagnostics', {
+        uri: uri,
+        diagnostics: jrlHandler.handleDiagnostics(text, uri)
+      });
+    } catch (e) {
+      console.error('[LSP] JRL diagnostics error:', e.message);
+    }
+  }
+
   function reindexFile(uri) {
     var doc = documents[uri];
     if ( ! doc ) return;
@@ -388,6 +399,7 @@ function start() {
         console.error('[LSP] didOpen: ' + tdoc.uri + ' lang=' + tdoc.languageId);
         documents[tdoc.uri] = { text: tdoc.text, version: tdoc.version || 0 };
         if ( isFoamFile(tdoc.text) ) pushDiagnostics(tdoc.uri, tdoc.text);
+        if ( isJrlFile(tdoc.uri) ) pushJrlDiagnostics(tdoc.uri, tdoc.text);
         break;
 
       case 'textDocument/didChange':
@@ -396,6 +408,7 @@ function start() {
           documents[uri] = { text: params.contentChanges[0].text, version: params.textDocument.version || 0 };
           fileModelCache.invalidate(uri);
           if ( isFoamFile(documents[uri].text) ) pushDiagnostics(uri, documents[uri].text);
+          if ( isJrlFile(uri) ) pushJrlDiagnostics(uri, documents[uri].text);
         }
         break;
 
@@ -410,6 +423,17 @@ function start() {
 
       case 'textDocument/completion':
         var doc = documents[params.textDocument.uri];
+        // JRL file completion
+        if ( doc && isJrlFile(params.textDocument.uri) ) {
+          try {
+            var result = jrlHandler.handleCompletion(doc.text, params.position, params.textDocument.uri);
+            respond(id, result);
+          } catch (e) {
+            console.error('[LSP] JRL completion error:', e.message);
+            respond(id, { isIncomplete: false, items: [] });
+          }
+          break;
+        }
         if ( ! doc || ! isFoamFile(doc.text) ) {
           respond(id, { isIncomplete: false, items: [] });
           break;

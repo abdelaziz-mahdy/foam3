@@ -133,8 +133,12 @@ foam.CLASS({
       var lines = text.split('\n');
       var line = lines[position.line] || '';
 
-      // Parse the JSON object from p({...}), c({...}), etc.
+      // Try single-line first, then multi-line
       var entry = this.parseJrlEntry_(line);
+      if ( ! entry ) {
+        var found = this.findEntryAtLine_(text, position.line);
+        if ( found ) entry = found.entry;
+      }
       if ( ! entry ) return null;
 
       // Resolve class: from "class" field or from journal filename → services.jrl map
@@ -284,19 +288,64 @@ foam.CLASS({
 
     function parseJrlEntry_(line) {
       /**
-       * Extract the object from a p({...}), c({...}), r({...}) line.
+       * Extract the object from a single-line p({...}), c({...}), r({...}).
        * FOAM JRL uses JS object notation (unquoted keys), not JSON.
-       * Use eval to parse since it's valid JS.
        */
-      var match = line.match(/^\s*\w+\s*\(\s*(\{.*\})\s*\)\s*$/);
+      var match = line.match(/^\s*(?:\w+\.)?\w+\s*\(\s*(\{.*\})\s*\)\s*$/);
       if ( ! match ) return null;
+      return this.evalJrlObject_(match[1]);
+    },
+
+    function findEntryAtLine_(text, lineNum) {
+      /**
+       * Find the JRL entry spanning the given line (handles multi-line entries).
+       * Returns { entry, startLine, endLine, rawText } or null.
+       */
+      var lines = text.split('\n');
+
+      // Walk backward from lineNum to find the start of the entry (the p({, c({, etc.)
+      var startLine = lineNum;
+      while ( startLine > 0 && ! /^\s*(?:\w+\.)?\w+\s*\(/.test(lines[startLine]) ) {
+        startLine--;
+      }
+
+      // Single-line entry — fast path
+      var singleMatch = lines[startLine].match(/^\s*(?:\w+\.)?\w+\s*\(\s*(\{.*\})\s*\)\s*$/);
+      if ( singleMatch ) {
+        var entry = this.evalJrlObject_(singleMatch[1]);
+        return entry ? { entry: entry, startLine: startLine, endLine: startLine, rawText: lines[startLine] } : null;
+      }
+
+      // Multi-line entry — collect lines until we find the closing )
+      var depth = 0;
+      var endLine = startLine;
+      var raw = '';
+      for ( var i = startLine ; i < lines.length ; i++ ) {
+        raw += lines[i] + '\n';
+        for ( var c = 0 ; c < lines[i].length ; c++ ) {
+          if ( lines[i][c] === '{' || lines[i][c] === '[' ) depth++;
+          if ( lines[i][c] === '}' || lines[i][c] === ']' ) depth--;
+        }
+        if ( depth <= 0 && raw.indexOf(')') !== -1 ) {
+          endLine = i;
+          break;
+        }
+      }
+
+      // Extract the object from p({...}) across lines
+      var objMatch = raw.match(/(?:\w+\.)?\w+\s*\(\s*(\{[\s\S]*\})\s*\)/);
+      if ( ! objMatch ) return null;
+      var entry = this.evalJrlObject_(objMatch[1]);
+      return entry ? { entry: entry, startLine: startLine, endLine: endLine, rawText: raw } : null;
+    },
+
+    function evalJrlObject_(objStr) {
+      /** Parse a JRL object string (JSON or FOAM unquoted-key format). */
       try {
-        // Try JSON first (faster, handles quoted keys)
-        return JSON.parse(match[1]);
+        return JSON.parse(objStr);
       } catch (e) {
-        // Fall back to eval for FOAM's unquoted-key format
         try {
-          return eval('(' + match[1] + ')');
+          return eval('(' + objStr + ')');
         } catch (e2) {
           return null;
         }
@@ -379,6 +428,175 @@ foam.CLASS({
         }
       }
       return null;
+    },
+
+    function handleCompletion(text, position, opt_uri) {
+      /** Suggest property names based on the class in the JRL entry. */
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var entry = this.parseJrlEntry_(line);
+      if ( ! entry ) {
+        var found = this.findEntryAtLine_(text, position.line);
+        if ( found ) entry = found.entry;
+      }
+      var classId = this.resolveClassForJrl(opt_uri, entry);
+      if ( ! classId ) return { isIncomplete: false, items: [] };
+
+      var cls = this.index.getClass(classId);
+      if ( ! cls ) return { isIncomplete: false, items: [] };
+
+      var prefix = line.substring(0, position.character);
+
+      // After a key colon — suggest class names for "class": or enum values
+      var afterColonMatch = prefix.match(/"(class)"\s*:\s*"?(\w*)$/);
+      if ( afterColonMatch ) {
+        return this.getClassNameCompletions_(afterColonMatch[2]);
+      }
+
+      // Inside a key position — suggest property names
+      var items = [];
+      var props = this.index.getProperties(classId);
+      var existingKeys = entry ? Object.keys(entry) : [];
+
+      for ( var i = 0 ; i < props.length ; i++ ) {
+        var p = props[i];
+        if ( existingKeys.indexOf(p.name) !== -1 ) continue;
+        var typeName = p.cls_ && p.cls_.model_ ? p.cls_.model_.name : 'Property';
+        var doc = '';
+        if ( p.label ) doc += '**' + p.label + '**\n\n';
+        doc += 'Type: `' + typeName + '`';
+        if ( p.documentation ) doc += '\n\n' + p.documentation;
+
+        items.push({
+          label: p.name,
+          kind: 10,
+          detail: typeName + ' — ' + classId,
+          documentation: { kind: 'markdown', value: doc },
+          insertText: '"' + p.name + '": ',
+          sortText: '!' + p.name
+        });
+
+        // Also suggest shortName if available
+        if ( p.shortName ) {
+          items.push({
+            label: p.shortName,
+            kind: 10,
+            detail: p.name + ' (' + typeName + ')',
+            documentation: { kind: 'markdown', value: 'Short name for `' + p.name + '`\n\n' + doc },
+            insertText: '"' + p.shortName + '": ',
+            sortText: '~' + p.shortName
+          });
+        }
+      }
+
+      // Always suggest "class" if not present
+      if ( ! entry || ! entry['class'] ) {
+        items.unshift({
+          label: 'class',
+          kind: 10,
+          detail: 'FOAM class identifier',
+          insertText: '"class": "',
+          sortText: '!!class'
+        });
+      }
+
+      return { isIncomplete: false, items: items };
+    },
+
+    function getClassNameCompletions_(partial) {
+      /** Suggest FOAM class IDs matching partial input. */
+      var allIds = this.index.getAllClassIds();
+      var items = [];
+      var lower = partial.toLowerCase();
+      for ( var i = 0 ; i < allIds.length ; i++ ) {
+        if ( lower && allIds[i].toLowerCase().indexOf(lower) === -1 ) continue;
+        items.push({
+          label: allIds[i],
+          kind: 7,
+          insertText: allIds[i],
+          sortText: allIds[i]
+        });
+        if ( items.length > 50 ) break;
+      }
+      return { isIncomplete: items.length > 50, items: items };
+    },
+
+    function handleDiagnostics(text, opt_uri) {
+      /** Validate JRL entries: unknown classes, unknown properties. Handles single and multi-line. */
+      var lines = text.split('\n');
+      var diags = [];
+      var processed = {};
+
+      for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
+        var line = lines[lineNum];
+        if ( ! line.trim() || /^\s*\/\//.test(line) ) continue;
+        if ( processed[lineNum] ) continue;
+
+        // Try single-line first, then multi-line
+        var entry = this.parseJrlEntry_(line);
+        var startLine = lineNum;
+        var endLine = lineNum;
+
+        if ( ! entry ) {
+          // Only try multi-line from entry start lines
+          if ( ! /^\s*(?:\w+\.)?\w+\s*\(/.test(line) ) continue;
+          var found = this.findEntryAtLine_(text, lineNum);
+          if ( ! found ) continue;
+          entry = found.entry;
+          startLine = found.startLine;
+          endLine = found.endLine;
+        }
+
+        // Mark processed lines
+        for ( var p = startLine ; p <= endLine ; p++ ) processed[p] = true;
+
+        var classId = this.resolveClassForJrl(opt_uri, entry);
+        if ( ! classId ) continue;
+
+        // Validate class exists
+        var cls = this.index.getClass(classId);
+        if ( ! cls ) {
+          // Find the class string in the entry lines
+          for ( var sl = startLine ; sl <= endLine ; sl++ ) {
+            var classIdx = lines[sl].indexOf(classId);
+            if ( classIdx !== -1 ) {
+              diags.push({
+                range: { start: { line: sl, character: classIdx }, end: { line: sl, character: classIdx + classId.length } },
+                severity: 1,
+                source: 'foam-lsp',
+                message: 'Unknown class: ' + classId
+              });
+              break;
+            }
+          }
+          continue;
+        }
+
+        // Validate property names across all lines of the entry
+        for ( var key in entry ) {
+          if ( key === 'class' ) continue;
+          var prop = this.resolveProperty_(cls, key);
+          if ( ! prop ) {
+            var escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            var keyPattern = new RegExp('(?:"' + escaped + '"|' + escaped + ')\\s*:');
+            for ( var sl = startLine ; sl <= endLine ; sl++ ) {
+              var keyMatch = keyPattern.exec(lines[sl]);
+              if ( keyMatch ) {
+                var keyStart = keyMatch.index + (keyMatch[0].charAt(0) === '"' ? 1 : 0);
+                diags.push({
+                  range: { start: { line: sl, character: keyStart }, end: { line: sl, character: keyStart + key.length } },
+                  severity: 2,
+                  source: 'foam-lsp',
+                  message: 'Unknown property "' + key + '" on ' + classId
+                });
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      return diags;
     },
 
     function formatTimestamp_(ts) {
