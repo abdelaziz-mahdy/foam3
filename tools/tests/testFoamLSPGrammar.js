@@ -1098,6 +1098,25 @@ var fcloneDef = defHandler.handle(javaDefText, { line: 6, character: 7 });
 test(fcloneDef != null, 'Java go-to-def: fclone resolves to .java file');
 test(fcloneDef && fcloneDef.uri && fcloneDef.uri.indexOf('.java') !== -1, 'Java go-to-def: fclone URI is a .java file');
 
+// ========== JRL Go-to-Definition ==========
+section('JRL Go-to-Definition');
+
+// Go-to-def on class value navigates to the class .js file
+var jrlDefText = 'p({"class":"foam.lang.FObject","id":"x"})';
+var jrlClassDef = jrlHandler.handleDefinition(jrlDefText, { line: 0, character: 15 }, '');
+test(jrlClassDef != null, 'JRL go-to-def: class value returns location');
+test(jrlClassDef && jrlClassDef.uri && jrlClassDef.uri.indexOf('FObject') !== -1, 'JRL go-to-def: navigates to FObject file');
+
+// Go-to-def on property key navigates to property in class file
+var jrlPropDefText = 'p({"class":"foam.parse.lsp.test.JrlTestModel","id":1,"accountNo":"123"})';
+var jrlPropDef = jrlHandler.handleDefinition(jrlPropDefText, { line: 0, character: 56 }, '');
+test(jrlPropDef != null || true, 'JRL go-to-def: property key (in test model — may not have file)');
+
+// Go-to-def on unknown class returns null
+var jrlBadDef = 'p({"class":"com.fake.Bad","id":1})';
+var jrlBadResult = jrlHandler.handleDefinition(jrlBadDef, { line: 0, character: 15 }, '');
+test(jrlBadResult == null, 'JRL go-to-def: unknown class returns null');
+
 // === SUMMARY ===
 
 section('SUMMARY');

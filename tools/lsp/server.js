@@ -485,7 +485,19 @@ function start() {
 
       case 'textDocument/definition':
         var doc = documents[params.textDocument.uri];
-        if ( ! doc || ! isFoamFile(doc.text) ) { respond(id, null); break; }
+        if ( ! doc ) { respond(id, null); break; }
+        // JRL file go-to-definition
+        if ( isJrlFile(params.textDocument.uri) ) {
+          try {
+            var result = jrlHandler.handleDefinition(doc.text, params.position, params.textDocument.uri);
+            respond(id, result);
+          } catch (e) {
+            console.error('[LSP] JRL definition error:', e.message);
+            respond(id, null);
+          }
+          break;
+        }
+        if ( ! isFoamFile(doc.text) ) { respond(id, null); break; }
         try {
           var result = definitionHandler.handle(doc.text, params.position);
           console.error('[LSP] definition: success');

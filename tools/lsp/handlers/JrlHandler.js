@@ -570,6 +570,83 @@ foam.CLASS({
       return diags;
     },
 
+    function handleDefinition(text, position, opt_uri) {
+      /**
+       * Go-to-definition for JRL entries.
+       * Resolves: class names → .js source, property keys → property in class file.
+       */
+      var lines = text.split('\n');
+      var line = lines[position.line] || '';
+      var entry = this.parseJrlEntry_(line);
+      if ( ! entry ) {
+        var found = this.findEntryAtLine_(text, position.line);
+        if ( found ) entry = found.entry;
+      }
+      if ( ! entry ) return null;
+
+      var classId = this.resolveNearestClass_(text, position.line, opt_uri, entry);
+      var cls = classId ? this.index.getClass(classId) : null;
+
+      var col = position.character;
+      var segment = this.getSegmentAt_(line, col, entry);
+      if ( ! segment ) return null;
+
+      // Go-to on class value → navigate to the class .js file
+      if ( segment.value === classId || ( segment.isValue && segment.key === 'class' ) ) {
+        var clsId = segment.value;
+        var filePath = this.index.getFilePath(clsId);
+        if ( filePath ) {
+          return { uri: 'file://' + filePath, range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } } };
+        }
+      }
+
+      // Go-to on property key → navigate to property definition in the class
+      if ( segment.isKey && cls ) {
+        var prop = this.resolveProperty_(cls, segment.value);
+        if ( prop ) {
+          // Find which class in the chain defines this property
+          var chain = this.index.getInheritanceChain(classId);
+          for ( var c = 0 ; c < chain.length ; c++ ) {
+            var ancestorCls = this.index.getClass(chain[c]);
+            if ( ! ancestorCls ) continue;
+            var own = ancestorCls.getOwnAxiomsByClass(foam.lang.Property);
+            for ( var i = 0 ; i < own.length ; i++ ) {
+              if ( own[i].name === prop.name ) {
+                var filePath = this.index.getFilePath(chain[c]);
+                if ( filePath ) {
+                  // Find the property line in the file
+                  var fs_ = require('fs');
+                  try {
+                    var content = fs_.readFileSync(filePath, 'utf8');
+                    var propRegex = new RegExp("name\\s*:\\s*['\"]" + prop.name + "['\"]");
+                    var match = propRegex.exec(content);
+                    if ( match ) {
+                      var lineNum = 0;
+                      for ( var ci = 0 ; ci < match.index ; ci++ ) {
+                        if ( content[ci] === '\n' ) lineNum++;
+                      }
+                      return { uri: 'file://' + filePath, range: { start: { line: lineNum, character: 0 }, end: { line: lineNum, character: 0 } } };
+                    }
+                  } catch (e) {}
+                  return { uri: 'file://' + filePath, range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } } };
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Go-to on a value that looks like a class ID → navigate to that class
+      if ( segment.isValue && typeof segment.value === 'string' && this.index.classExists(segment.value) ) {
+        var filePath = this.index.getFilePath(segment.value);
+        if ( filePath ) {
+          return { uri: 'file://' + filePath, range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } } };
+        }
+      }
+
+      return null;
+    },
+
     function resolveNearestClass_(text, lineNum, opt_uri, entry) {
       /**
        * Find the nearest "class" value for the cursor position.
