@@ -23,12 +23,10 @@ foam.CLASS({
   package: 'foam.core.controller',
   name: 'ApplicationController',
   extends: 'foam.u2.Element',
-
   mixins: [ 'foam.u2.memento.Memorable' ],
 
   documentation: 'FOAM Application Controller.',
 
-  
   implements: [
     'foam.mlang.Expressions'
   ],
@@ -439,7 +437,7 @@ foam.CLASS({
   methods: [
     function init() {
       this.SUPER();
-      
+
       // done to start using SectionedDetailViews instead of DetailViews
       this.__subContext__.register(foam.u2.detail.SectionedDetailView, 'foam.u2.DetailView');
 
