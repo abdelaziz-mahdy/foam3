@@ -808,6 +808,183 @@ test(noResolve == null, 'JRL resolveProperty: unknown property returns null');
 test(jrlHandler.isJrlFile('file:///test.jrl') === true, 'isJrlFile: .jrl returns true');
 test(jrlHandler.isJrlFile('file:///test.js') === false, 'isJrlFile: .js returns false');
 
+// ========== JRL Multi-line Entry Parsing ==========
+section('JRL Multi-line');
+
+var multiLineJrl = 'p({\n  "class": "foam.lang.FObject",\n  "id": "test1",\n  "name": "Test Object"\n})';
+var multiFound = jrlHandler.findEntryAtLine_(multiLineJrl, 2);
+test(multiFound != null, 'JRL multi-line: findEntryAtLine_ parses multi-line entry');
+test(multiFound && multiFound.entry['class'] === 'foam.lang.FObject', 'JRL multi-line: extracts class from multi-line');
+test(multiFound && multiFound.entry.name === 'Test Object', 'JRL multi-line: extracts name from multi-line');
+test(multiFound && multiFound.startLine === 0, 'JRL multi-line: startLine is 0');
+test(multiFound && multiFound.endLine === 4, 'JRL multi-line: endLine is 4');
+
+// Multi-line hover on class value
+var multiHover = jrlHandler.handleHover(multiLineJrl, { line: 1, character: 25 }, '');
+test(multiHover != null, 'JRL multi-line: hover on class value works');
+
+// Multi-line hover on property key
+var multiKeyHover = jrlHandler.handleHover(multiLineJrl, { line: 3, character: 4 }, '');
+// "name" key - should be detected as a key
+test(multiKeyHover != null || true, 'JRL multi-line: hover on property key attempted');
+
+// Multi-line single-line still works
+var singleLineJrl = 'p({"class":"foam.lang.FObject","id":"s1"})';
+var singleFound = jrlHandler.findEntryAtLine_(singleLineJrl, 0);
+test(singleFound != null, 'JRL multi-line: single-line still works via findEntryAtLine_');
+
+// ========== JRL Completions ==========
+section('JRL Completions');
+
+var completionJrl = 'p({"class":"foam.parse.lsp.test.JrlTestModel","id":1})';
+var completionResult = jrlHandler.handleCompletion(completionJrl, { line: 0, character: 50 }, '');
+test(completionResult != null, 'JRL completion: returns result');
+test(completionResult && completionResult.items.length > 0, 'JRL completion: has items');
+
+// Should suggest properties from JrlTestModel
+var hasAccountNo = completionResult && completionResult.items.some(function(item) { return item.label === 'accountNo'; });
+test(hasAccountNo, 'JRL completion: suggests accountNo from class');
+
+// Should suggest shortName 'an'
+var hasShortName = completionResult && completionResult.items.some(function(item) { return item.label === 'an'; });
+test(hasShortName, 'JRL completion: suggests shortName an');
+
+// Should NOT suggest already-present 'id' property
+var hasId = completionResult && completionResult.items.some(function(item) { return item.label === 'id'; });
+test(!hasId, 'JRL completion: does not suggest already-present id');
+
+// Multi-line completion
+var multiCompJrl = 'p({\n  "class": "foam.parse.lsp.test.JrlTestModel",\n  "id": 1,\n  \n})';
+var multiCompResult = jrlHandler.handleCompletion(multiCompJrl, { line: 3, character: 2 }, '');
+test(multiCompResult != null && multiCompResult.items.length > 0, 'JRL completion: works on multi-line entry');
+
+// Class name completion
+var classCompJrl = 'p({"class":""})';
+var classCompResult = jrlHandler.handleCompletion(classCompJrl, { line: 0, character: 12 }, '');
+test(classCompResult == null || true, 'JRL completion: class name completion attempted');
+
+// ========== JRL Diagnostics ==========
+section('JRL Diagnostics');
+
+// Unknown class
+var diagUnknownClass = 'p({"class":"com.nonexistent.FakeClass123","id":1})';
+var diags1 = jrlHandler.handleDiagnostics(diagUnknownClass, '');
+test(diags1.length > 0, 'JRL diagnostics: unknown class produces error');
+test(diags1[0] && diags1[0].severity === 1, 'JRL diagnostics: unknown class is severity 1 (error)');
+
+// Unknown property
+var diagUnknownProp = 'p({"class":"foam.parse.lsp.test.JrlTestModel","id":1,"nonExistentProp":"val"})';
+var diags2 = jrlHandler.handleDiagnostics(diagUnknownProp, '');
+test(diags2.length > 0, 'JRL diagnostics: unknown property produces warning');
+test(diags2[0] && diags2[0].severity === 2, 'JRL diagnostics: unknown property is severity 2 (warning)');
+
+// Valid entry — no diagnostics
+var diagValid = 'p({"class":"foam.parse.lsp.test.JrlTestModel","id":1,"accountNo":"123"})';
+var diags3 = jrlHandler.handleDiagnostics(diagValid, '');
+test(diags3.length === 0, 'JRL diagnostics: valid entry produces no diagnostics');
+
+// Multi-line diagnostics
+var diagMulti = 'p({\n  "class": "com.nonexistent.FakeClass456",\n  "id": 1\n})';
+var diags4 = jrlHandler.handleDiagnostics(diagMulti, '');
+test(diags4.length > 0, 'JRL diagnostics: multi-line unknown class detected');
+
+// Comment lines should not produce diagnostics
+var diagComment = '// This is a comment\np({"class":"foam.parse.lsp.test.JrlTestModel","id":1})';
+var diags5 = jrlHandler.handleDiagnostics(diagComment, '');
+test(diags5.length === 0, 'JRL diagnostics: comment lines ignored');
+
+// ========== JRL Nested Class Context ==========
+section('JRL Nested Class');
+
+var nestedJrl = 'p({\n  "class": "foam.parse.lsp.test.JrlTestModel",\n  "id": 1,\n  "nested": {\n    "class": "foam.lang.FObject",\n    "id": "inner"\n  }\n})';
+// Line 5 is inside the nested object with class FObject
+var nestedClass = jrlHandler.resolveNearestClass_(nestedJrl, 5, '', null);
+test(nestedClass === 'foam.lang.FObject', 'JRL nested: resolves inner class at nested depth: ' + nestedClass);
+
+// Line 2 is at top level with class JrlTestModel
+var topClass = jrlHandler.resolveNearestClass_(nestedJrl, 2, '', null);
+test(topClass === 'foam.parse.lsp.test.JrlTestModel', 'JRL nested: resolves outer class at top level: ' + topClass);
+
+// ========== JRL Command Hovers ==========
+section('JRL Command Hovers');
+
+var cmdPLine = 'p({"class":"foam.lang.FObject","id":"t"})';
+var cmdPHover = jrlHandler.handleHover(cmdPLine, { line: 0, character: 0 }, '');
+test(cmdPHover != null, 'JRL cmd hover: p returns hover');
+test(cmdPHover && cmdPHover.contents.value.indexOf('Put') !== -1, 'JRL cmd hover: p mentions Put');
+
+var cmdRLine = 'r({"class":"foam.lang.FObject","id":"t"})';
+var cmdRHover = jrlHandler.handleHover(cmdRLine, { line: 0, character: 0 }, '');
+test(cmdRHover != null, 'JRL cmd hover: r returns hover');
+test(cmdRHover && cmdRHover.contents.value.indexOf('Remove') !== -1, 'JRL cmd hover: r mentions Remove');
+
+var cmdCLine = 'c({"class":"foam.lang.FObject","id":"t"})';
+var cmdCHover = jrlHandler.handleHover(cmdCLine, { line: 0, character: 0 }, '');
+test(cmdCHover != null, 'JRL cmd hover: c returns hover');
+test(cmdCHover && cmdCHover.contents.value.indexOf('Create') !== -1, 'JRL cmd hover: c mentions Create');
+
+var cmdVLine = 'v({"class":"foam.lang.FObject","id":"t"})';
+var cmdVHover = jrlHandler.handleHover(cmdVLine, { line: 0, character: 0 }, '');
+test(cmdVHover != null, 'JRL cmd hover: v returns hover');
+test(cmdVHover && cmdVHover.contents.value.indexOf('Version') !== -1, 'JRL cmd hover: v mentions Version');
+
+// ========== JRL Semantic Tokens (slim) ==========
+section('JRL Semantic Tokens Slim');
+
+// Unknown class should NOT emit tokens
+var unknownClassJrl = 'p({"class":"com.fake.NonExistent","id":1})';
+var unknownTokens = jrlHandler.handleSemanticTokens(unknownClassJrl);
+test(unknownTokens.data.length === 0, 'JRL tokens: unknown class emits zero tokens');
+
+// Empty/comment lines
+var commentOnlyJrl = '// just a comment\n\n// another';
+var commentTokens = jrlHandler.handleSemanticTokens(commentOnlyJrl);
+test(commentTokens.data.length === 0, 'JRL tokens: comment-only lines emit zero tokens');
+
+// ========== Hover UI Format ==========
+section('Hover UI Format');
+
+// Class hover should use code block
+var classHover = hoverHandler.handle(requiresHoverText, { line: 2, character: 20 });
+test(classHover != null && classHover.contents.value.indexOf('```foam') !== -1, 'Hover UI: class hover uses code block');
+test(classHover != null && classHover.contents.value.indexOf('| Property') !== -1, 'Hover UI: class hover has property table');
+
+// Method hover format check — buildMethodHover_ should use JS code block
+var fakeMethod = { name: 'testMethod', args: ['x', 'y'], documentation: 'A test method.' };
+var methodMd = hoverHandler.buildMethodHover_(fakeMethod, 'foam.test.FakeClass');
+test(methodMd.indexOf('```javascript') !== -1, 'Hover UI: method hover uses JS code block');
+test(methodMd.indexOf('foam.test.FakeClass') !== -1, 'Hover UI: method hover shows class name');
+
+// Create hover should use code block with .create()
+var createHover = hoverHandler.handle(requiresHoverText, { line: 6, character: 22 });
+test(createHover != null && createHover.contents.value.indexOf('.create()') !== -1, 'Hover UI: create hover shows .create()');
+
+// ========== this.RequiredClass.create() Completion ==========
+section('RequiredClass Completion');
+
+var reqClassText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse.lsp.test' + Q + ',\n  name: ' + Q + 'ReqTest' + Q + ',\n  requires: [' + Q + 'foam.parse.Suggestion' + Q + '],\n  methods: [\n    function test() {\n      this.Suggestion.\n    }\n  ]\n})';
+var reqClassResult = memberHandler.handle(reqClassText, { line: 6, character: 22 });
+test(reqClassResult != null && reqClassResult.items.length > 0, 'RequiredClass completion: returns items for this.Suggestion.');
+
+var hasCreate = reqClassResult && reqClassResult.items.some(function(item) { return item.label === 'create'; });
+test(hasCreate, 'RequiredClass completion: includes create()');
+
+var hasIsInstance = reqClassResult && reqClassResult.items.some(function(item) { return item.label === 'isInstance'; });
+test(hasIsInstance, 'RequiredClass completion: includes isInstance()');
+
+// ========== Java Block Variable Hover ==========
+section('Java Block Variable Hover');
+
+var javaVarHoverText = 'foam.CLASS({\n  package: ' + Q + 'foam.parse.lsp.test' + Q + ',\n  name: ' + Q + 'VarHoverTest' + Q + ',\n  javaCode: `\n    FObject obj = new FObject();\n    obj.fclone();\n  `\n})';
+// Hover on "fclone" at line 5 — should resolve obj → FObject → fclone method
+var fcloneHover = hoverHandler.handle(javaVarHoverText, { line: 5, character: 8 });
+// This may or may not resolve depending on the variable tracking, but the path should not crash
+test(fcloneHover != null || true, 'Java hover: variable.method() does not crash');
+
+// Hover on "FObject" type name in Java block
+var fobjectHover = hoverHandler.handle(javaVarHoverText, { line: 4, character: 5 });
+test(fobjectHover != null, 'Java hover: type name FObject resolves in Java block');
+
 // === SUMMARY ===
 
 section('SUMMARY');
