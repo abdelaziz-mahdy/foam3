@@ -359,6 +359,50 @@ foam.CLASS({
       return null;
     },
 
+    function formatDocumentation_(doc) {
+      /**
+       * Format FOAM documentation for markdown rendering.
+       * - Dedents common leading indentation
+       * - Preserves blank lines as paragraph breaks
+       * - Indented lines (deeper than baseline) become list items with
+       *   trailing markdown hard-breaks (two spaces) so they stay on
+       *   their own line in the rendered hover
+       */
+      if ( ! doc ) return '';
+      var lines = doc.split('\n');
+
+      // Trim leading/trailing blank lines
+      while ( lines.length && ! lines[0].trim() ) lines.shift();
+      while ( lines.length && ! lines[lines.length - 1].trim() ) lines.pop();
+      if ( ! lines.length ) return '';
+
+      // Find minimum indent across non-empty lines
+      var minIndent = Infinity;
+      for ( var i = 0 ; i < lines.length ; i++ ) {
+        if ( ! lines[i].trim() ) continue;
+        var leading = lines[i].match(/^(\s*)/)[1].length;
+        if ( leading < minIndent ) minIndent = leading;
+      }
+      if ( minIndent === Infinity ) minIndent = 0;
+
+      // Dedent and detect indented/structured lines
+      var out = [];
+      for ( var i = 0 ; i < lines.length ; i++ ) {
+        var line = lines[i].substring(minIndent);
+        var trimmed = line.trim();
+        if ( ! trimmed ) {
+          out.push('');  // paragraph break
+          continue;
+        }
+        // Indented lines (e.g. "  START — ..." or "  - item") get a hard break
+        // so they don't collapse with the next prose line
+        var hasExtraIndent = /^\s/.test(line);
+        out.push(hasExtraIndent ? line + '  ' : line);
+      }
+
+      return out.join('\n');
+    },
+
     function buildClassHover(classId) {
       var cls = this.index.getClass(classId);
       if ( ! cls ) return null;
@@ -373,8 +417,12 @@ foam.CLASS({
       }
       var md = '```foam\n' + sig + '\n```\n';
 
-      // Documentation
-      if ( m.documentation ) md += m.documentation + '\n';
+      // Documentation — quoted block for visual distinction, paragraphs preserved
+      if ( m.documentation ) {
+        md += '\n**Documentation**\n\n';
+        var formatted = this.formatDocumentation_(m.documentation);
+        md += '> ' + formatted.split('\n').join('\n> ') + '\n';
+      }
 
       // Own properties
       var ownProps = this.index.getOwnProperties(classId);

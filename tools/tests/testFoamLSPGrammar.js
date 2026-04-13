@@ -1166,6 +1166,25 @@ test(fobjectMethods2.length > 0, 'JavaParser via index: FObject methods: ' + fob
 var fcloneMethod2 = fobjectMethods2.find(function(m) { return m.name === 'fclone'; });
 test(fcloneMethod2 && fcloneMethod2.line > 0, 'JavaParser via index: fclone has line number: ' + (fcloneMethod2 ? fcloneMethod2.line : ''));
 
+// ========== Documentation Formatting in Hover ==========
+section('Hover Doc Formatting');
+
+var multiParagraphDoc = '\n    First paragraph line.\n    Continues here.\n\n    Entry points:\n      - one\n      - two\n\n    Final paragraph.\n  ';
+var formatted = hoverHandler.formatDocumentation_(multiParagraphDoc);
+test(formatted.indexOf('First paragraph line.') === 0, 'Doc format: dedents leading indent');
+test(formatted.indexOf('\n\nEntry points:') !== -1, 'Doc format: preserves paragraph breaks');
+test(formatted.indexOf('  - one  ') !== -1 || formatted.indexOf('- one  ') !== -1, 'Doc format: indented list items get hard break');
+test(formatted.indexOf('Final paragraph.') !== -1, 'Doc format: keeps last paragraph');
+
+// Class hover should wrap docs in blockquote
+var docHoverClassId = 'foam.parse.lsp.JavaGrammar';
+if ( index.classExists(docHoverClassId) ) {
+  var docClassHover = hoverHandler.buildClassHover(docHoverClassId);
+  test(docClassHover != null, 'Doc hover: class hover returned');
+  test(docClassHover && docClassHover.contents.value.indexOf('**Documentation**') !== -1, 'Doc hover: documentation header present');
+  test(docClassHover && docClassHover.contents.value.indexOf('> ') !== -1, 'Doc hover: blockquote for docs');
+}
+
 // === SUMMARY ===
 
 section('SUMMARY');
