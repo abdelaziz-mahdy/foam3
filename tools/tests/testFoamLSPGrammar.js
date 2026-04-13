@@ -1020,6 +1020,45 @@ var xGetHover = hoverHandler.handle(xGetText, { line: 4, character: 23 }, '');
 test(xGetHover != null, 'Java x.get: hover on x.get() returns result');
 test(xGetHover && xGetHover.contents.value.indexOf('foam.lang.X') !== -1, 'Java x.get: hover mentions foam.lang.X');
 
+// ========== Java File Method Scanner ==========
+section('Java Method Scanner');
+
+// FoamIndex.getJavaMethods should find Java-only methods from .java files
+var fobjectJavaMethods = index.getJavaMethods('foam.lang.FObject');
+test(fobjectJavaMethods.length > 0, 'Java scanner: FObject has Java-only methods: ' + fobjectJavaMethods.length);
+
+var fcloneFound = fobjectJavaMethods.some(function(m) { return m.name === 'fclone'; });
+test(fcloneFound, 'Java scanner: fclone found in FObject Java methods');
+
+var deepCloneFound = fobjectJavaMethods.some(function(m) { return m.name === 'deepClone'; });
+test(deepCloneFound, 'Java scanner: deepClone found in FObject Java methods');
+
+// Log all Java-only method names for debugging
+var javaMethodNames = fobjectJavaMethods.map(function(m) { return m.name; });
+test(fobjectJavaMethods.length >= 10, 'Java scanner: FObject has at least 10 Java-only methods: ' + javaMethodNames.join(', '));
+
+// fclone should have a signature
+var fcloneMethod = fobjectJavaMethods.find(function(m) { return m.name === 'fclone'; });
+test(fcloneMethod && fcloneMethod.sig.indexOf('FObject') !== -1, 'Java scanner: fclone sig has FObject: ' + (fcloneMethod ? fcloneMethod.sig : ''));
+
+// Java methods should NOT include FOAM axiom methods (they're in getMethods)
+var foamMethods = index.getMethods('foam.lang.FObject');
+var foamMethodNames = {};
+foamMethods.forEach(function(m) { foamMethodNames[m.name] = true; });
+var noDuplicates = fobjectJavaMethods.every(function(m) { return ! foamMethodNames[m.name]; });
+test(noDuplicates, 'Java scanner: no overlap with FOAM axiom methods');
+
+// Inheritance: Country should inherit FObject Java methods
+var countryJavaMethods = index.getJavaMethods('foam.core.auth.Country');
+var countryHasFclone = countryJavaMethods.some(function(m) { return m.name === 'fclone'; });
+test(countryHasFclone, 'Java scanner: Country inherits fclone from FObject');
+
+// Go-to-definition for Java-only methods
+var defHandler = foam.parse.lsp.handlers.DefinitionHandler.create({ index: index, cache: foam.parse.lsp.FileModelCache.create() });
+var fcloneJavaLoc = defHandler.findJavaMethodLocation_('foam.lang.FObject', 'fclone');
+test(fcloneJavaLoc != null, 'Java go-to-def: fclone resolves to a .java file location');
+test(fcloneJavaLoc && fcloneJavaLoc.uri.indexOf('.java') !== -1, 'Java go-to-def: URI is a .java file');
+
 // === SUMMARY ===
 
 section('SUMMARY');

@@ -18,6 +18,11 @@ foam.CLASS({
     {
       name: 'fileIndex_',
       documentation: 'Class ID to file path mapping built from foam.poms.'
+    },
+    {
+      name: 'javaMethodCache_',
+      documentation: 'Class ID → array of { name, sig, doc } for Java-only methods.',
+      factory: function() { return {}; }
     }
   ],
 
@@ -93,6 +98,92 @@ foam.CLASS({
       var cls = this.getClass(classId);
       if ( ! cls ) return [];
       return cls.getAxiomsByClass(foam.lang.Method);
+    },
+
+    function getJavaMethods(classId) {
+      /**
+       * Returns Java-only methods for a class (not in FOAM axioms).
+       * Scanned from .java files alongside the .js model files.
+       * Includes methods from the full inheritance chain.
+       * Returns array of { name, sig, doc }.
+       */
+      if ( this.javaMethodCache_[classId] ) return this.javaMethodCache_[classId];
+
+      var result = [];
+      var seen = {};
+      var chain = this.getInheritanceChain(classId);
+
+      // Collect FOAM method names to exclude (we only want Java-only methods)
+      var foamMethodNames = {};
+      var foamMethods = this.getMethods(classId);
+      for ( var i = 0 ; i < foamMethods.length ; i++ ) foamMethodNames[foamMethods[i].name] = true;
+
+      for ( var c = 0 ; c < chain.length ; c++ ) {
+        var cid = chain[c];
+        var scanned = this.scanJavaFile_(cid);
+        for ( var j = 0 ; j < scanned.length ; j++ ) {
+          if ( ! seen[scanned[j].name] && ! foamMethodNames[scanned[j].name] ) {
+            seen[scanned[j].name] = true;
+            result.push(scanned[j]);
+          }
+        }
+      }
+
+      this.javaMethodCache_[classId] = result;
+      return result;
+    },
+
+    function scanJavaFile_(classId) {
+      /**
+       * Scan the .java file for a FOAM class and extract method signatures.
+       * Looks for: default/public Type methodName(params) patterns.
+       * Returns array of { name, sig, doc }.
+       */
+      var entry = this.fileIndex_ && this.fileIndex_[classId];
+      if ( ! entry ) return [];
+
+      var jsPath = typeof entry === 'string' ? entry : entry.path;
+      if ( ! jsPath ) return [];
+
+      // Try .java file alongside .js file
+      var javaPath = jsPath.replace(/\.js$/, '.java');
+      var fs_ = require('fs');
+      if ( ! fs_.existsSync(javaPath) ) return [];
+
+      try {
+        var content = fs_.readFileSync(javaPath, 'utf8');
+        var methods = [];
+
+        // Match: (default|public|abstract) ReturnType methodName(params) {
+        // Also handles: default ReturnType methodName(params) throws ...
+        var methodRegex = /(?:default|public|abstract)\s+([\w.<>\[\]]+)\s+(\w+)\s*\(([^)]*)\)/g;
+        var m;
+        while ( ( m = methodRegex.exec(content) ) !== null ) {
+          var returnType = m[1];
+          var name = m[2];
+          var params = m[3].trim();
+
+          // Skip constructors, getName, call (internal MethodInfo boilerplate)
+          if ( name === 'getName' || name === 'call' || name === classId.split('.').pop() ) continue;
+
+          // Build signature
+          var sig = returnType + ' ' + name + '(' + params + ')';
+
+          // Look for javadoc comment before the method
+          var doc = '';
+          var beforeMethod = content.substring(Math.max(0, m.index - 200), m.index);
+          var docMatch = beforeMethod.match(/\/\*\*\s*([\s\S]*?)\s*\*\/\s*$/);
+          if ( docMatch ) {
+            doc = docMatch[1].replace(/\s*\*\s*/g, ' ').trim();
+          }
+
+          methods.push({ name: name, sig: sig, doc: doc });
+        }
+
+        return methods;
+      } catch (e) {
+        return [];
+      }
     },
 
     function getActions(classId) {

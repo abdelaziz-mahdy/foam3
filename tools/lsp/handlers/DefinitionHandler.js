@@ -66,16 +66,23 @@ foam.CLASS({
         if ( classId ) {
           var cls = this.index.getClass(classId);
           if ( cls ) {
-            // Check if it's a method
+            // Check if it's a FOAM method
             var methods = cls.getAxiomsByClass(foam.lang.Method);
             for ( var i = 0 ; i < methods.length ; i++ ) {
               if ( methods[i].name === segment ) {
-                // Find which class in the hierarchy defines this method
                 var defClass = this.findMethodDefiner_(cls, segment);
                 if ( defClass ) {
                   filePath = this.index.getFilePath(defClass);
                   if ( filePath ) return this.buildLocationAtMethod(filePath, defClass, segment);
                 }
+              }
+            }
+            // Check if it's a Java-only method (not in FOAM axioms)
+            var javaMethods = this.index.getJavaMethods(classId);
+            for ( var i = 0 ; i < javaMethods.length ; i++ ) {
+              if ( javaMethods[i].name === segment ) {
+                var javaLoc = this.findJavaMethodLocation_(classId, segment);
+                if ( javaLoc ) return javaLoc;
               }
             }
             // Check if it's a property
@@ -177,6 +184,31 @@ foam.CLASS({
         }
       } catch (e) {}
       return this.buildLocation(filePath);
+    },
+
+    function findJavaMethodLocation_(classId, methodName) {
+      /** Find a Java-only method's location in the .java file. Walks the inheritance chain. */
+      var fs_ = require('fs');
+      var chain = this.index.getInheritanceChain(classId);
+      for ( var c = 0 ; c < chain.length ; c++ ) {
+        var entry = this.index.fileIndex_ && this.index.fileIndex_[chain[c]];
+        if ( ! entry ) continue;
+        var jsPath = typeof entry === 'string' ? entry : entry.path;
+        if ( ! jsPath ) continue;
+        var javaPath = jsPath.replace(/\.js$/, '.java');
+        if ( ! fs_.existsSync(javaPath) ) continue;
+        try {
+          var content = fs_.readFileSync(javaPath, 'utf8');
+          var regex = new RegExp('\\b' + methodName + '\\s*\\(');
+          var lines = content.split('\n');
+          for ( var ln = 0 ; ln < lines.length ; ln++ ) {
+            if ( regex.test(lines[ln]) && /default\s|public\s/.test(lines[ln]) ) {
+              return { uri: 'file://' + javaPath, range: { start: { line: ln, character: 0 }, end: { line: ln, character: 0 } } };
+            }
+          }
+        } catch (e) {}
+      }
+      return null;
     },
 
     function buildLocation(filePath, opt_classId) {
