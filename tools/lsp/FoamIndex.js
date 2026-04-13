@@ -208,8 +208,10 @@ foam.CLASS({
     function getInheritanceChain(classId) {
       /** Returns [classId, parentId, ..., 'foam.lang.FObject']. */
       var chain = [];
+      var seen = {};
       var cls = this.getClass(classId);
-      while ( cls ) {
+      while ( cls && ! seen[cls.id] ) {
+        seen[cls.id] = true;
         chain.push(cls.id);
         if ( ! cls.model_.extends || cls.id === 'foam.lang.FObject' ) break;
         cls = this.getClass(cls.model_.extends);

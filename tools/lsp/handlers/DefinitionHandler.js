@@ -117,7 +117,9 @@ foam.CLASS({
 
     function findMethodDefiner_(cls, methodName) {
       /** Walk the class hierarchy to find which class defines the method. */
-      while ( cls ) {
+      var seen = {};
+      while ( cls && ! seen[cls.id] ) {
+        seen[cls.id] = true;
         var own = cls.getOwnAxiomsByClass(foam.lang.Method);
         for ( var i = 0 ; i < own.length ; i++ ) {
           if ( own[i].name === methodName ) return cls.id;
@@ -129,7 +131,9 @@ foam.CLASS({
 
     function findPropertyDefiner_(cls, propName) {
       /** Walk the class hierarchy to find which class defines the property. */
-      while ( cls ) {
+      var seen = {};
+      while ( cls && ! seen[cls.id] ) {
+        seen[cls.id] = true;
         var own = cls.getOwnAxiomsByClass(foam.lang.Property);
         for ( var i = 0 ; i < own.length ; i++ ) {
           if ( own[i].name === propName ) return cls.id;

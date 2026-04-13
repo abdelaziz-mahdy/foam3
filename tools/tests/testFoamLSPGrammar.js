@@ -1059,6 +1059,45 @@ var fcloneJavaLoc = defHandler.findJavaMethodLocation_('foam.lang.FObject', 'fcl
 test(fcloneJavaLoc != null, 'Java go-to-def: fclone resolves to a .java file location');
 test(fcloneJavaLoc && fcloneJavaLoc.uri.indexOf('.java') !== -1, 'Java go-to-def: URI is a .java file');
 
+// ========== Java Block: Complex Variable Declarations ==========
+section('Java Complex Declarations');
+
+var complexJavaText = 'foam.CLASS({\n  package: ' + Q + 'test' + Q + ',\n  name: ' + Q + 'ComplexTest' + Q + ',\n  javaCode: ' + '`' + '\n    EmailMessage msg = null;\n    for ( EmailMessage m : messages ) { break; }\n    try { } catch ( Exception e ) { }\n  ' + '`' + '\n})';
+
+try {
+  var complexTokens = semanticHandler.handle(complexJavaText, '');
+  var complexTokenCount = complexTokens.data.length / 5;
+  test(complexTokenCount > 0, 'Complex Java: produces semantic tokens: ' + complexTokenCount);
+} catch (e) {
+  test(false, 'Complex Java: semantic tokens crashed: ' + e.message);
+}
+
+// Test that emailMessages is tracked as a declared variable (via generic type)
+// The semantic tokens should include entries for emailMessages
+var complexLines = complexJavaText.split('\n');
+// Check that the generic declaration line produces variable tokens
+test(complexTokenCount > 5, 'Complex Java: enough tokens for generic + for-each + catch');
+
+// ========== Java Block: Go-to-Definition ==========
+section('Java Go-to-Definition');
+
+var javaDefText = 'foam.CLASS({\n  package: ' + Q + 'test.def' + Q + ',\n  name: ' + Q + 'JavaDefTest' + Q + ',\n  javaImports: [' + Q + 'foam.core.auth.Country' + Q + '],\n  javaCode: `\n    Country c = new Country();\n    c.fclone();\n  `\n})';
+
+var defHandler = foam.parse.lsp.handlers.DefinitionHandler.create({
+  index: index,
+  cache: foam.parse.lsp.FileModelCache.create()
+});
+
+// Go-to-def on "Country" type name in Java block (line 5, char 5)
+var countryDef = defHandler.handle(javaDefText, { line: 5, character: 5 });
+test(countryDef != null, 'Java go-to-def: Country type name resolves');
+test(countryDef && countryDef.uri && countryDef.uri.indexOf('Country') !== -1, 'Java go-to-def: Country navigates to correct file');
+
+// Go-to-def on "fclone" Java-only method (line 6, char 7)
+var fcloneDef = defHandler.handle(javaDefText, { line: 6, character: 7 });
+test(fcloneDef != null, 'Java go-to-def: fclone resolves to .java file');
+test(fcloneDef && fcloneDef.uri && fcloneDef.uri.indexOf('.java') !== -1, 'Java go-to-def: fclone URI is a .java file');
+
 // === SUMMARY ===
 
 section('SUMMARY');

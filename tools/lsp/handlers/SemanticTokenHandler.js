@@ -561,15 +561,35 @@ foam.CLASS({
             declaredVars[vd[2]] = true;
           }
         }
+        var genericDeclRegex = /(\w+)\s*<[^>]*>\s+([a-z]\w*)\s*[=;]/g;
+        var gd;
+        while ( ( gd = genericDeclRegex.exec(javaStr) ) !== null ) {
+          var vOffset = gd.index + gd[0].indexOf(gd[2]);
+          addToken(baseOffset + vOffset, gd[2].length, 2);
+          declaredVars[gd[2]] = true;
+        }
+        var forEachRegex = /\bfor\s*\(\s*(\w+)\s+([a-z]\w*)\s*:/g;
+        var fe;
+        while ( ( fe = forEachRegex.exec(javaStr) ) !== null ) {
+          var vOffset = fe.index + fe[0].indexOf(fe[2]);
+          addToken(baseOffset + vOffset, fe[2].length, 2);
+          declaredVars[fe[2]] = true;
+        }
+        var catchRegex = /\bcatch\s*\(\s*(\w+)\s+([a-z]\w*)\s*\)/g;
+        var ce;
+        while ( ( ce = catchRegex.exec(javaStr) ) !== null ) {
+          var vOffset = ce.index + ce[0].indexOf(ce[2]);
+          addToken(baseOffset + vOffset, ce[2].length, 2);
+          declaredVars[ce[2]] = true;
+        }
 
-        // Variable usage — highlight declared variables throughout the block
-        // Match: varName. or varName = or varName; or varName) etc.
-        if ( Object.keys(declaredVars).length > 0 ) {
-          var varNames = Object.keys(declaredVars).join('|');
-          var usageRegex = new RegExp('\\b(' + varNames + ')\\b', 'g');
+        // Variable usage — highlight each declared variable throughout the block
+        for ( var varName in declaredVars ) {
+          if ( varName.length < 2 ) continue;
+          var vuRegex = new RegExp('\\b' + varName + '\\b', 'g');
           var vu;
-          while ( ( vu = usageRegex.exec(javaStr) ) !== null ) {
-            addToken(baseOffset + vu.index, vu[1].length, 2);
+          while ( ( vu = vuRegex.exec(javaStr) ) !== null ) {
+            addToken(baseOffset + vu.index, varName.length, 2);
           }
         }
 
