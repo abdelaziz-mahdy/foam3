@@ -20,7 +20,7 @@
       }
     },
     "entry": {
-      "comment": "Journal commands: p (put), r (remove), c (create), v (version)",
+      "comment": "Journal commands with distinct colors: p=blue, r=red, c=green, v=yellow",
       "patterns": [
         {
           "match": "\\b(p)\\s*(?=\\()",
@@ -42,28 +42,59 @@
     },
     "object": {
       "patterns": [
-        { "include": "#class-pair" },
+        { "include": "#class-pair-quoted-quoted" },
+        { "include": "#class-pair-quoted-single" },
+        { "include": "#class-pair-unquoted-quoted" },
+        { "include": "#class-pair-unquoted-single" },
         { "include": "#id-name-pair" },
         { "include": "#java-block-triple" },
         { "include": "#java-block-backtick" },
-        { "include": "#key-value" },
-        { "include": "#strings" },
+        { "include": "#java-block-single-quoted" },
+        { "include": "#key-value-quoted" },
+        { "include": "#key-value-unquoted" },
+        { "include": "#double-string" },
+        { "include": "#single-string" },
+        { "include": "#backtick-string" },
         { "include": "#numbers" },
         { "include": "#constants" },
         { "include": "#template-variable" },
         { "include": "#punctuation" }
       ]
     },
-    "class-pair": {
-      "comment": "class key with value highlighted as type",
-      "match": "\"?(class)\"?\\s*:\\s*\"([^\"]+)\"",
+    "class-pair-quoted-quoted": {
+      "comment": "\"class\":\"com.foo.Bar\" — quoted key, double-quoted value",
+      "match": "\"(class)\"\\s*:\\s*\"([^\"]+)\"",
+      "captures": {
+        "1": { "name": "support.type.property-name.class.foam-journal" },
+        "2": { "name": "entity.name.type.class-ref.foam-journal" }
+      }
+    },
+    "class-pair-quoted-single": {
+      "comment": "\"class\":'com.foo.Bar' — quoted key, single-quoted value",
+      "match": "\"(class)\"\\s*:\\s*'([^']+)'",
+      "captures": {
+        "1": { "name": "support.type.property-name.class.foam-journal" },
+        "2": { "name": "entity.name.type.class-ref.foam-journal" }
+      }
+    },
+    "class-pair-unquoted-quoted": {
+      "comment": "class:\"com.foo.Bar\" — unquoted key, double-quoted value",
+      "match": "(?<=[{,])\\s*(class)\\s*:\\s*\"([^\"]+)\"",
+      "captures": {
+        "1": { "name": "support.type.property-name.class.foam-journal" },
+        "2": { "name": "entity.name.type.class-ref.foam-journal" }
+      }
+    },
+    "class-pair-unquoted-single": {
+      "comment": "class:'com.foo.Bar' — unquoted key, single-quoted value",
+      "match": "(?<=[{,])\\s*(class)\\s*:\\s*'([^']+)'",
       "captures": {
         "1": { "name": "support.type.property-name.class.foam-journal" },
         "2": { "name": "entity.name.type.class-ref.foam-journal" }
       }
     },
     "id-name-pair": {
-      "comment": "id and name keys with special string values",
+      "comment": "id and name keys (quoted or unquoted) with special string values",
       "match": "\"?(id|name)\"?\\s*:\\s*(?:\"([^\"]*)\"|'([^']*)'|(-?\\d+\\.?\\d*))",
       "captures": {
         "1": { "name": "support.type.property-name.id.foam-journal" },
@@ -104,40 +135,56 @@
         { "include": "source.java" }
       ]
     },
-    "key-value": {
-      "comment": "Generic key: value pairs",
-      "match": "\"?(\\w+)\"?\\s*:",
+    "java-block-single-quoted": {
+      "comment": "Java injection in single-quoted strings after java* keys",
+      "begin": "\"?(javaCode|javaFactory|javaGetter|javaSetter|javaPreSet|javaPostSet|javaAdapt|javaCompare|javaComparePropertyToObject|javaComparePropertyToValue|javaCloneProperty|javaDiffProperty|javaFormatJSON|javaJSONParser|javaCSVParser|javaQueryParser|javaToCSV|javaToCSVLabel|javaFromCSVLabelMapping|javaAssertValue|javaValidateObj|javaCondition|javaValue|javaImports|code|serviceScript)\"?\\s*:\\s*(')",
+      "beginCaptures": {
+        "1": { "name": "support.type.property-name.java.foam-journal" },
+        "2": { "name": "punctuation.definition.string.begin.foam-journal" }
+      },
+      "end": "(')",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.string.end.foam-journal" }
+      },
+      "contentName": "meta.embedded.block.java",
+      "patterns": [
+        { "include": "source.java" }
+      ]
+    },
+    "key-value-quoted": {
+      "comment": "Quoted key: \"propName\":",
+      "match": "\"(\\w+)\"\\s*:",
       "captures": {
         "1": { "name": "variable.other.property.foam-journal" }
       }
     },
-    "strings": {
+    "key-value-unquoted": {
+      "comment": "Unquoted key: propName:",
+      "match": "(?<=[{,])\\s*(\\w+)\\s*:",
+      "captures": {
+        "1": { "name": "variable.other.property.foam-journal" }
+      }
+    },
+    "double-string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.foam-journal",
       "patterns": [
         {
-          "comment": "Double-quoted string",
-          "begin": "\"",
-          "end": "\"",
-          "name": "string.quoted.double.foam-journal",
-          "patterns": [
-            {
-              "match": "\\\\(?:[\"\\\\/bfnrt]|u[0-9a-fA-F]{4})",
-              "name": "constant.character.escape.foam-journal"
-            }
-          ]
-        },
-        {
-          "comment": "Single-quoted string",
-          "begin": "'",
-          "end": "'",
-          "name": "string.quoted.single.foam-journal"
-        },
-        {
-          "comment": "Backtick string",
-          "begin": "`",
-          "end": "`",
-          "name": "string.template.foam-journal"
+          "match": "\\\\(?:[\"\\\\/bfnrt]|u[0-9a-fA-F]{4})",
+          "name": "constant.character.escape.foam-journal"
         }
       ]
+    },
+    "single-string": {
+      "begin": "'",
+      "end": "'",
+      "name": "string.quoted.single.foam-journal"
+    },
+    "backtick-string": {
+      "begin": "`",
+      "end": "`",
+      "name": "string.template.foam-journal"
     },
     "numbers": {
       "match": "-?\\d+\\.?\\d*(?:[eE][+-]?\\d+)?",
