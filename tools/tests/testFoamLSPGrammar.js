@@ -771,9 +771,11 @@ test(seg != null && seg.value === 'summaryType' && seg.isKey, 'JRL segment: find
 var segVal = jrlHandler.getSegmentAt_(foamJrlLine, 18);
 test(segVal != null && segVal.isValue, 'JRL segment: finds string value');
 
-// JRL semantic tokens on FOAM format
-var foamJrlTokens = jrlHandler.handleSemanticTokens(foamJrlLine);
-test(foamJrlTokens.data.length > 0, 'JRL semantic tokens: FOAM format has tokens: ' + foamJrlTokens.data.length);
+// JRL semantic tokens — only emit for verified class values
+// Use a line with a known FOAM class for the test
+var knownClassJrl = 'p({"class":"foam.lang.FObject","id":"test1","name":"Test"})';
+var foamJrlTokens = jrlHandler.handleSemanticTokens(knownClassJrl);
+test(foamJrlTokens.data.length > 0, 'JRL semantic tokens: verified class emits tokens: ' + foamJrlTokens.data.length);
 
 // JRL shortName/alias resolution — uses inline test model
 foam.CLASS({

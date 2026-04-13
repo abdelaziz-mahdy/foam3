@@ -141,13 +141,28 @@ foam.CLASS({
       }
       if ( ! entry ) return null;
 
-      // Resolve class: from "class" field or from journal filename → services.jrl map
-      var classId = this.resolveClassForJrl(opt_uri, entry);
+      // Resolve class: nearest class context (handles nested objects)
+      var classId = this.resolveNearestClass_(text, position.line, opt_uri, entry);
       var cls = classId ? this.index.getClass(classId) : null;
 
-      // Find what's under the cursor
+      // Hover on p/c/r/v command
+      var cmdMatch = line.match(/^\s*(?:\w+\.)?(p|c|r|v)\s*\(/);
+      if ( cmdMatch ) {
+        var cmdStart = line.indexOf(cmdMatch[1]);
+        if ( position.character >= cmdStart && position.character <= cmdStart + cmdMatch[1].length ) {
+          var cmdDocs = {
+            p: '**p** (Put / Update)\n\nUpdate an existing record in the DAO. If a record with the same ID exists, it is merged with the new values. If no record exists, it is created.\n\nUsed in data journals for persisting FObject state.',
+            c: '**c** (Create)\n\nCreate a new record in the DAO. Unlike `p`, this always creates a new entry and does not merge with existing records.\n\nCommonly used in `services.jrl` to define DAO configurations and service CSpecs.',
+            r: '**r** (Remove)\n\nRemove a record from the DAO by its ID.\n\nThe object only needs the `id` field to identify which record to remove.',
+            v: '**v** (Version)\n\nSet the journal version number for schema migration tracking.\n\nWhen the journal version changes, FOAM can run migration logic to update persisted data.'
+          };
+          return { contents: { kind: 'markdown', value: cmdDocs[cmdMatch[1]] || '' } };
+        }
+      }
+
+      // Find what's under the cursor — pass entry so it works for multi-line
       var col = position.character;
-      var segment = this.getSegmentAt_(line, col);
+      var segment = this.getSegmentAt_(line, col, entry);
       if ( ! segment ) return null;
 
       // Hover on "class" value → show class info
@@ -199,72 +214,25 @@ foam.CLASS({
       var lines = text.split('\n');
       var tokens = [];
 
+      // Only emit semantic tokens for things the TextMate grammar can't resolve:
+      // - Class values verified against the FOAM registry (type=1 class)
       // Token types: 0=type, 1=class, 2=variable, 3=keyword, 4=string,
       // 5=comment, 6=number, 7=operator, 8=method
       for ( var lineNum = 0 ; lineNum < lines.length ; lineNum++ ) {
         var line = lines[lineNum];
-        if ( ! line.trim() ) continue;
+        if ( ! line.trim() || /^\s*\/\//.test(line) ) continue;
 
-        // Comment lines (// ...)
-        var commentMatch = line.match(/^\s*\/\//);
-        if ( commentMatch ) {
-          tokens.push({ line: lineNum, char: 0, length: line.length, type: 5, modifiers: 0 });
-          continue;
-        }
-
-        // Function name: p, c, r, put, remove, etc.
-        var funcMatch = line.match(/^\s*(\w+)\s*\(/);
-        if ( funcMatch ) {
-          var funcStart = line.indexOf(funcMatch[1]);
-          tokens.push({ line: lineNum, char: funcStart, length: funcMatch[1].length, type: 3, modifiers: 0 });
-        }
-
-        // Parse key-value pairs from the line
-        var kvRegex = /"(\w+)"\s*:\s*/g;
-        var kv;
-        while ( ( kv = kvRegex.exec(line) ) !== null ) {
-          var keyName = kv[1];
-          var keyStart = kv.index + 1; // after opening quote
-
-          // "class" key → type color
-          if ( keyName === 'class' ) {
-            tokens.push({ line: lineNum, char: keyStart, length: keyName.length, type: 0, modifiers: 0 });
-            // Class value
-            var classValMatch = line.substring(kv.index + kv[0].length).match(/^"([^"]+)"/);
-            if ( classValMatch ) {
-              var valStart = kv.index + kv[0].length + 1;
-              tokens.push({ line: lineNum, char: valStart, length: classValMatch[1].length, type: 1, modifiers: 0 });
+        // Highlight verified class values — both "class":"value" and class:"value"
+        var classRegex = /(?:"class"|(?<=[{,])\s*class)\s*:\s*(?:"([^"]+)"|'([^']+)')/g;
+        var cm;
+        while ( ( cm = classRegex.exec(line) ) !== null ) {
+          var classVal = cm[1] || cm[2];
+          if ( classVal && this.index.classExists(classVal) ) {
+            var valIdx = line.indexOf(classVal, cm.index);
+            if ( valIdx !== -1 ) {
+              tokens.push({ line: lineNum, char: valIdx, length: classVal.length, type: 1, modifiers: 0 });
             }
-          } else {
-            // Property name → property color (use type 2 = variable)
-            tokens.push({ line: lineNum, char: keyStart, length: keyName.length, type: 2, modifiers: 0 });
           }
-        }
-
-        // String values (not keys)
-        var strRegex = /:\s*"([^"]*)"/g;
-        var sv;
-        while ( ( sv = strRegex.exec(line) ) !== null ) {
-          var valStart = sv.index + sv[0].indexOf('"') + 1;
-          // Skip class values (already highlighted)
-          if ( line.substring(sv.index - 10, sv.index).indexOf('"class"') !== -1 ) continue;
-          tokens.push({ line: lineNum, char: valStart, length: sv[1].length, type: 4, modifiers: 0 });
-        }
-
-        // Number values
-        var numRegex = /:\s*(-?\d+\.?\d*)/g;
-        var nv;
-        while ( ( nv = numRegex.exec(line) ) !== null ) {
-          var numStart = nv.index + nv[0].indexOf(nv[1]);
-          tokens.push({ line: lineNum, char: numStart, length: nv[1].length, type: 6, modifiers: 0 });
-        }
-
-        // Boolean and null values
-        var boolRegex = /:\s*(true|false|null)\b/g;
-        var bv;
-        while ( ( bv = boolRegex.exec(line) ) !== null ) {
-          var boolStart = bv.index + bv[0].indexOf(bv[1]);
-          tokens.push({ line: lineNum, char: boolStart, length: bv[1].length, type: 3, modifiers: 0 });
         }
       }
 
@@ -352,21 +320,23 @@ foam.CLASS({
       }
     },
 
-    function getSegmentAt_(line, col) {
+    function getSegmentAt_(line, col, opt_entry) {
       /**
        * Find what's under the cursor in a JRL line.
        * Handles both JSON ("key":value) and FOAM (key:value) formats.
+       * opt_entry: pre-parsed entry object (for multi-line entries).
        * Returns { value, isKey, isValue, key, rawValue } or null.
        */
-      var entry = this.parseJrlEntry_(line);
+      var entry = opt_entry || this.parseJrlEntry_(line);
       if ( ! entry ) return null;
 
       // Match both quoted and unquoted keys: "key": or key:
-      var kvRegex = /(?:"(\w+)"|(\w+))\s*:\s*/g;
+      // Also match single-quoted keys: 'key':
+      var kvRegex = /(?:"(\w+)"|'(\w+)'|(?<=[{,\s])(\w+))\s*:\s*/g;
       var kv;
       while ( ( kv = kvRegex.exec(line) ) !== null ) {
-        var keyName = kv[1] || kv[2];
-        var keyStart = kv.index + (kv[1] ? 1 : 0); // skip quote if present
+        var keyName = kv[1] || kv[2] || kv[3];
+        var keyStart = kv.index + (kv[1] ? 1 : kv[2] ? 1 : 0); // skip quote if present
         var keyEnd = keyStart + keyName.length;
 
         // Cursor on key name
@@ -439,7 +409,8 @@ foam.CLASS({
         var found = this.findEntryAtLine_(text, position.line);
         if ( found ) entry = found.entry;
       }
-      var classId = this.resolveClassForJrl(opt_uri, entry);
+      // For nested objects, find the nearest class context
+      var classId = this.resolveNearestClass_(text, position.line, opt_uri, entry);
       if ( ! classId ) return { isIncomplete: false, items: [] };
 
       var cls = this.index.getClass(classId);
@@ -597,6 +568,36 @@ foam.CLASS({
       }
 
       return diags;
+    },
+
+    function resolveNearestClass_(text, lineNum, opt_uri, entry) {
+      /**
+       * Find the nearest "class" value for the cursor position.
+       * Handles nested objects: walks backward from cursor to find
+       * the closest "class": "..." within the current brace depth.
+       */
+      var lines = text.split('\n');
+      var depth = 0;
+
+      // Walk backward from cursor to find the nearest "class" at our depth or above
+      for ( var i = lineNum ; i >= 0 ; i-- ) {
+        var l = lines[i] || '';
+
+        // Track brace depth (going backward, } increases, { decreases)
+        for ( var c = l.length - 1 ; c >= 0 ; c-- ) {
+          if ( l[c] === '}' ) depth++;
+          if ( l[c] === '{' ) depth--;
+        }
+
+        // Look for "class" on this line at current depth or shallower
+        var classMatch = l.match(/(?:"class"|class)\s*:\s*(?:"([^"]+)"|'([^']+)')/);
+        if ( classMatch && depth <= 0 ) {
+          return classMatch[1] || classMatch[2];
+        }
+      }
+
+      // Fallback to entry-level or filename-based resolution
+      return this.resolveClassForJrl(opt_uri, entry);
     },
 
     function formatTimestamp_(ts) {
