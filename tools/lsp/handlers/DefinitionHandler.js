@@ -44,6 +44,13 @@ foam.CLASS({
       var word = this.analyzer.getDottedWordAtPosition(text, position);
       if ( ! word ) return null;
 
+      // Java block: resolve type names and methods via javaImports + registry
+      var blockCtx = this.analyzer.getBacktickBlockContext(text, position);
+      if ( blockCtx && blockCtx.blockKey !== 'css' ) {
+        var result = this.handleJavaDefinition_(text, position, word);
+        if ( result ) return result;
+      }
+
       // Try as full class ID
       var filePath = this.index.getFilePath(word);
       if ( filePath ) return this.buildLocation(filePath, word);
@@ -184,6 +191,77 @@ foam.CLASS({
         }
       } catch (e) {}
       return this.buildLocation(filePath);
+    },
+
+    function handleJavaDefinition_(text, position, word) {
+      /**
+       * Go-to-definition inside Java code blocks.
+       * Resolves: type names (Country → foam.core.auth.Country),
+       * variable.method() chains, getters/setters, x.get().
+       */
+      var model = this.cache.getModelAt('', text, position.line);
+      var segment = this.analyzer.getSegmentAtPosition(text, position);
+      if ( ! segment ) return null;
+
+      // 1. Try as a Java type name → resolve via javaImports + registry
+      var typeClassId = this.analyzer.resolveJavaTypeName(segment, model, this.index);
+      if ( typeClassId ) {
+        var filePath = this.index.getFilePath(typeClassId);
+        if ( filePath ) return this.buildLocation(filePath, typeClassId);
+      }
+
+      // 2. variable.method() — resolve variable type, then find method definition
+      if ( word && word.indexOf('.') !== -1 ) {
+        var parts = word.split('.');
+        var varName = parts[parts.length - 2];
+        var methodName = parts[parts.length - 1];
+
+        if ( varName !== 'this' ) {
+          // Resolve the variable's type
+          var varClassId = this.analyzer.resolveJavaVariableType(text, position, varName, model, this.index);
+          if ( ! varClassId ) {
+            varClassId = this.analyzer.resolveJavaTypeName(varName, model, this.index);
+          }
+          if ( varClassId ) {
+            // getter/setter → navigate to the property's defining class
+            var gsMatch = methodName.match(/^(get|set)([A-Z]\w*)$/);
+            if ( gsMatch ) {
+              var propName = gsMatch[2].charAt(0).toLowerCase() + gsMatch[2].substring(1);
+              var cls = this.index.getClass(varClassId);
+              if ( cls ) {
+                var defClass = this.findPropertyDefiner_(cls, propName);
+                if ( defClass ) {
+                  var filePath = this.index.getFilePath(defClass);
+                  if ( filePath ) return this.buildLocationAtProperty(filePath, propName);
+                }
+              }
+            }
+
+            // FOAM method
+            var cls = this.index.getClass(varClassId);
+            if ( cls ) {
+              var defClass = this.findMethodDefiner_(cls, methodName);
+              if ( defClass ) {
+                var filePath = this.index.getFilePath(defClass);
+                if ( filePath ) return this.buildLocationAtMethod(filePath, defClass, methodName);
+              }
+            }
+
+            // Java-only method → navigate to .java file
+            var javaLoc = this.findJavaMethodLocation_(varClassId, methodName);
+            if ( javaLoc ) return javaLoc;
+          }
+        }
+      }
+
+      // 3. Standalone method name (e.g., getProperty on current model)
+      var currentClassId = model ? (model.refines || (model.package ? model.package + '.' + model.name : model.name)) : null;
+      if ( currentClassId ) {
+        var javaLoc = this.findJavaMethodLocation_(currentClassId, segment);
+        if ( javaLoc ) return javaLoc;
+      }
+
+      return null;
     },
 
     function findJavaMethodLocation_(classId, methodName) {
