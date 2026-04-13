@@ -63,7 +63,6 @@ foam.CLASS({
         if ( res ) {
           args = res;
         }
-        debugger;
       }
       if ( ! args ) args = {dao: dao, label: opt_label};
       let p     = this.DAOPrompt.create(args);
