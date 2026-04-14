@@ -69,7 +69,7 @@ foam.CLASS({
       let label = p.dao.of.model_.plural;
 
       p.addToE(this.out);
-      this.currentBlock.flowName = opt_label || this.createFlowChildName(label.replaceAll(' ', '').toLowerCase());
+      this.currentBlock.flowName = opt_label || m.label || this.createFlowChildName(label.replaceAll(' ', '').toLowerCase());
       this.currentBlock.obj    = p; // ???: Needed
       this.currentBlock.value  = p;
     }
