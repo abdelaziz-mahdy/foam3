@@ -20,9 +20,5 @@ foam.POM({
     { name: "AbstractJDBCDAO" },
     { name: "MySQLDAO" },
     { name: "PostgresDAO" }
-  ],
-
-  javaDependencies: [
-    'mysql:mysql-connector-java:8.0.16'
   ]
 });

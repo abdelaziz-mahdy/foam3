@@ -18,24 +18,25 @@ foam.CLASS({
 
   imports: ['objData'],
   css: `
-    ^row {
+    <<row {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
       gap: 2rem;
       align-items: center;
     }
-    ^label{
+    <<label{
       display: inherit;
       flex-basis: 50%;
       font-weight: normal;
     }
-    ^body{
+    <<body{
       flex-shrink: 2;
       font-family: monospace;
       text-align: end;
+      word-break: break-word;
     }
-    ^ > .note {
+    << > .note {
       white-space: pre;
       width: 100%;
       text-align: center;
@@ -86,7 +87,7 @@ foam.CLASS({
                     self.objData || self.data,
                     prop
                   );
-                  return el.addClass(self.myClass('body'))
+                  return el.addClass(self.myClass('body'), 'p-label-lg')
                 }));
             }
             break;

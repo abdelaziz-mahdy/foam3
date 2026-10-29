@@ -26,8 +26,10 @@ foam.CLASS({
   ],
 
   imports: [
+    'document',
     'fileTypeDAO',
-    'sessionID'
+    'sessionID',
+    'window'
   ],
 
   javaImports: [
@@ -81,6 +83,22 @@ foam.CLASS({
       updatevisibility: 'RO',
       readVisibility: 'RO',
       documentation: 'GUID'
+    },
+    {
+      class: 'String',
+      name: 'digest',
+      createVisibility: 'HIDDEN',
+      updateVisibility: 'HIDDEN',
+      readVisibility: 'RO',
+      documentation: `Blob store key (sha256 of the file content). Falls back to id for
+        legacy records created before digest was split out of id.`,
+      javaGetter: `
+        if ( digestIsSet_ ) return digest_;
+        return getId();
+      `,
+      getter: function() {
+        return this.instance_.digest || this.id;
+      }
     },
     {
       class: 'String',
@@ -142,7 +160,7 @@ foam.CLASS({
       hidden: true,
       transient: true,
       expression: function (id) {
-        return window.location.origin + '/service/httpFileService/' + id + '?sessionId=' + this.sessionID;
+        return this.window.location.origin + '/service/httpFileService/' + id + '?sessionId=' + this.sessionID;
       }
     },
 
@@ -326,7 +344,7 @@ foam.CLASS({
         return ((InputStreamBlob)blob).getInputStream();
       } else {
         BlobService blobStore = (BlobService) x.get("blobStore");
-        blob = blobStore.find(getId());
+        blob = blobStore.find(getDigest());
         if ( blob != null ) {
           try {
             return new java.io.FileInputStream(((FileBlob) blob).getFile());
@@ -352,9 +370,9 @@ foam.CLASS({
         if ( ! isImage && ! isPdf ) {
           var blob = this.data;
           if ( foam.blob.BlobBlob.isInstance(blob) ) {
-            window.open(URL.createObjectURL(blob.blob));
+            this.window.open(URL.createObjectURL(blob.blob));
           } else {
-            window.open(this.address);
+            this.window.open(this.address);
           }
           return;
         }
@@ -390,12 +408,12 @@ foam.CLASS({
         if ( foam.blob.BlobBlob.isInstance(this.data) ) {
           url = URL.createObjectURL(this.data.blob);
         }
-        var link = document.createElement('a');
+        var link = this.document.createElement('a');
         link.setAttribute("href", url);
         link.setAttribute("download", this.filename);
-        document.body.appendChild(link);
+        this.document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        this.document.body.removeChild(link);
       }
     },
     {

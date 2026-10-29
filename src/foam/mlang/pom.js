@@ -13,6 +13,12 @@ foam.POM({
     `
   ],
   files: [
+    // foam.mlang.Expr, Comparator and other mlang classes implement this dao
+    // interface, and mlang files build them while loading (for example
+    // PropertyComparatorRefinement refines Property right away). It has to be
+    // defined before foam/mlang/pom, which loads well before foam/dao/pom.
+    { name: "../dao/SQLStatement",                  flags: "js|java" },
+
     { name: "order/Comparator",                     flags: "js|java" },
     { name: "Compare",                              flags: "js" },
     { name: "sink/Count",                           flags: "js|java" },
@@ -32,8 +38,10 @@ foam.POM({
     { name: "predicate/True",                       flags: "js|java" },
     { name: "predicate/False",                      flags: "js|java" },
     { name: "predicate/Unary",                      flags: "js|java" },
-    { name: "Absolute",                             flags: "js|java" },
-    { name: "Round",                                flags: "js|java" },
+    { name: "expr/Cond",                            flags: "js|java" },
+    { name: "expr/Concat",                          flags: "js|java" },
+    { name: "expr/Ifs",                             flags: "js|java" },
+    { name: "expr/Switch",                          flags: "js|java" },
     { name: "Mux",                                  flags: "js|java" },
     { name: "predicate/Binary",                     flags: "js|java" },
     { name: "predicate/Nary",                       flags: "js|java" },
@@ -84,7 +92,7 @@ foam.POM({
     { name: "sink/Average",                         flags: "js|java" },
     { name: "expr/Dot",                             flags: "js|java" },
     { name: "predicate/DotF",                       flags: "js|java" },
-    { name: "PredicatedExpr",                       flags: "js|java" },
+    { name: "PredicateExpr",                        flags: "js|java" },
     { name: "ContextObject",                        flags: "js|java" },
     { name: "predicate/IsClassOf",                  flags: "js|java" },
     { name: "Expressions",                          flags: "js|java" },
@@ -138,9 +146,18 @@ foam.POM({
     { name: "predicate/ContextUserPredicate",       flags: "js|java" },
     { name: "predicate/CapabilityAuthServicePredicate", flags: "js|java" },
     { name: "predicate/AuthPermissionPredicate",    flags: "js|java" },
-    { name: "LabeledValue",                         flags: "js" }
+    { name: "LabeledValue",                         flags: "js" },
+    { name: "predicate/test/DatePredicateConstantTest", flags: "js&test|java&test" }
   ],
+
+  javaFiles: [
+    { name: "MLang" },
+    { name: "Expressions" },
+    { name: "MLangTest",                            flags: "test" }
+  ],
+
   journalFiles: [
-    { name: "tests",                                flags: "test" }
+    { name: "tests",                                flags: "test" },
+    { name: "predicate/test/tests",                 flags: "test" }
   ]
 });

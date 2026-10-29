@@ -14,7 +14,7 @@ foam.CLASS({
   imports: ['returnExpandedCSS', 'theme'],
 
   css: `
-    ^ {
+    << {
       display: inline-flex;
       justify-content: center;
       align-items: center;
@@ -23,14 +23,14 @@ foam.CLASS({
       width: -webkit-max-content;
       width: -moz-max-content;
     }
-    ^pill{
+    <<pill{
       border-radius: 11.2px;
       border: 1px solid;
     }
-    ^icon{
+    <<icon{
       margin-right: 4px;
     }
-    ^center {
+    <<center {
       justify-content: center;
     }
   `,
@@ -48,21 +48,28 @@ foam.CLASS({
     function render() {
       let self = this;
       this.SUPER();
+      // The colours land as inline styles, which a scheme flip's
+      // foam.u2.CSS.reloadStyles() never rewrites (it only refreshes <style>
+      // elements). Re-run on theme.activeVariants$ so a pill already on
+      // screen picks up its dark values when the scheme changes. The property
+      // slot, not a .dot() on theme, because the flip is activeVariants$set(),
+      // which publishes without replacing the map.
       this.dynamic(function(data) {
+        if ( ! data ) return;
         this.removeAllChildren();
-        var color = this.resolveColor(this.data.color);
-        var background = this.resolveColor(this.data.background);
-        var glyphBackground = this.resolveColor(this.data.glyphBackground);
-        var glyphColor = this.resolveColor(this.data.glyphFill);
-        var borderColor = this.resolveColor(this.data.borderColor);
-        var isPill = this.isFancy(this.data.VALUES);
+        var color = this.resolveColor(data.color);
+        var background = this.resolveColor(data.background);
+        var glyphBackground = this.resolveColor(data.glyphBackground);
+        var glyphColor = this.resolveColor(data.glyphFill);
+        var borderColor = this.resolveColor(data.borderColor);
+        var isPill = this.isFancy(data.VALUES);
         this
           .enableClass(this.myClass('pill'), isPill)
           .addClass('enum-label', this.myClass())
           .style({ width: 'max-content' })
           .style({
             'background-color': background,
-            color: color,
+            'color': color,
             'border-color': borderColor
           })
           .callIfElse(this.showGlyph && (data.glyph || data.icon), () => {
@@ -81,7 +88,7 @@ foam.CLASS({
             () => { this.start().add(data.label).end(); },
             () => { this.start().addClass('p').add(data.label).end(); }
           );
-      });
+      }, this.data$, this.theme?.activeVariants$);
     },
     {
       name: 'isFancy',

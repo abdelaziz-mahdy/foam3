@@ -37,15 +37,57 @@ foam.CLASS({
 
         return m;
       }
+    },
+    {
+      class: 'Map',
+      name: 'reactionErrors_',
+      generateJava: false,
+      searchable: false,
+      hidden: true,
+      transient: true
+    },
+    {
+      class: 'String',
+      name: 'reactionError_',
+      generateJava: false,
+      searchable: false,
+      hidden: true,
+      transient: true
     }
   ],
 
   methods: [
+    function reportReactionError(name, error) {
+      if ( this.reactionErrors_[name] === error ) return;
+
+      this.reactionErrors_[name] = error;
+      this.pub('propertyChange', 'reactionErrors_', this.reactionErrors_);
+      this.pub('reactiveError', name, error);
+      this.reactionError_ = this.updateReactionError();
+    },
+
+    function clearReactionError(name) {
+      if ( ! this.reactionErrors_[name] ) return;
+
+      delete this.reactionErrors_[name];
+      this.pub('propertyChange', 'reactionErrors_', this.reactionErrors_);
+      this.pub('reactiveError', name, '');
+      this.reactionError_ = this.updateReactionError();
+    },
+
+    function updateReactionError() {
+      let a = Object.keys(this.reactionErrors_);
+      if ( a == 0 ) return '';
+      if ( 1 == 1 ) return `Formula error in '${a[0]}': ${this.reactionErrors_[a[0]]}`;
+      return 'Formula errors';
+    },
+
     function addReaction(name, formula) {
       // TODO: stop any previous reaction
       this.reactions_[name] = formula;
       this.startReaction_(name, formula);
     },
+
     function startReaction_(name, formula) {
       /**
        * Starts a reactive formula evaluation that re-runs whenever dependencies change.
@@ -65,7 +107,12 @@ foam.CLASS({
         with ( this.__context__.scope ) {
           // Create function - can be sync or return a Promise
           // The timer will handle both cases by checking if result is a Promise
-          f = eval('(function() { return ' + formula + '})');
+          try {
+            f = eval('(function() { return ' + formula + '})');
+            self.clearReactionError(name);
+          } catch (x) {
+            self.reportReactionError(name, x.message);
+          }
         }
         f.toString = function() { return formula; };
 
@@ -75,8 +122,20 @@ foam.CLASS({
           if ( detached ) return;
           if ( self.reactions_[name] !== f ) return;
           // Await handles both Promises and non-Promises
-          self[name] = await f.call(self);
-          self.__context__.requestAnimationFrame(timer);
+          try {
+            self[name] = await f.call(self);
+            self.clearReactionError(name);
+          } catch (x) {
+            self.reportReactionError(name, x.message);
+          }
+
+          /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+          /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+          ///                                                                                    TODO: Listen for changes, don't animate!!!!!
+          /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+          /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+          self.__context__.setTimeout(timer, 1000); // at least make less frequent for now
+//          self.__context__.requestAnimationFrame(timer);
         };
 
         this.reactions_[name] = f;
@@ -94,21 +153,23 @@ foam.CLASS({
 
   imports: [ 'scope' ],
 
+  exports: [ 'error' ],
+
   css: `
-    ^{
+    <<{
       width: 100%;
       flex-direction: row;
       flex-wrap: wrap;
       justify-content: flex-start;
     }
-    ^view: {
+    <<view: {
       min-height: 0px;
     }
-    ^view > div > span {
+    <<view > div > span {
       align-items: center;
       gap: 5px;
     }
-    ^select, ^select1, ^select2 {
+    <<select, <<select1, <<select2 {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
@@ -117,35 +178,35 @@ foam.CLASS({
       border-radius: 5px;
       border: 1px solid $borderLight;
     }
-    ^switch {
+    <<switch {
       color: $textTertiary;
       line-height: 1;
     }
-    ^switch:hover {
+    <<switch:hover {
       padding-inline: 5px;
       border-radius: 2px;
       background-color: $backgroundSecondary;
     }
-    ^switch.reactive {
+    <<switch.reactive {
       color: $textBrand!important;
     }
-    ^formulaInput input:focus {
+    <<formulaInput input:focus {
       outline: 1px solid $backgroundBrand!important;
     }
-    ^element-icon {
+    <<element-icon {
       width: 14px;
       height: 14px;
     }
-    ^ .foam-core-reflow-SinkView {
+    << .foam-core-reflow-SinkView {
       display: flex;
       flex-direction: column;
       width: 100%;
       gap: 5px;
     }
-    ^ .foam-core-reflow-SinkView > div > div {
+    << .foam-core-reflow-SinkView > div > div {
       width: 100%;
     }
-    ^labelHolder {
+    <<labelHolder {
       border-radius: 4px;
       padding-block: 2px;
       cursor: pointer;
@@ -156,10 +217,10 @@ foam.CLASS({
       justify-content: space-between;
       gap: 0.8rem;
     }
-    ^layoutView {
+    <<layoutView {
       width: 100%;
     }
-    ^ .property-skip .foam-u2-view-DualView-wrapper {
+    << .property-skip .foam-u2-view-DualView-wrapper {
       flex-direction: column;
     }
   `,
@@ -190,6 +251,10 @@ foam.CLASS({
       postSet: function(_, f) {
         if ( f ) this.setFormula(f);
       }
+    },
+    {
+      class: 'String',
+      name: 'error'
     }
   ],
 
@@ -298,12 +363,18 @@ foam.CLASS({
         add(
           self.dynamic(function(reactive) {
             if ( reactive ) {
+              let error = foam.lang.SimpleSlot.create({value: self.data.reactions_[self.prop.name]?.error || ''});
+              self.data.sub('reactiveError', self.prop.name, function(_, __, ___, err) { error.set(err); });
               this.start().
                 start(self.FORMULA, {data$: self.formula$}).
                   addClass(self.myClass('formulaInput')).
                   on('blur', function() { self.reactive = !! self.formula; }).
                   focus().
-                end().add(self.data.slot(self.prop.name)).
+                end().add(self.data.slot(self.prop.name), ' ').
+                start('span').
+                  style({color: foam.CSS.returnTokenValue('$destructive500', this.cls_, this.__subContext__)}).
+                  add(error).
+                end().
               end();
             } else {
               this.add(viewSlot);
@@ -342,12 +413,12 @@ foam.CLASS({
   requires: [ 'foam.core.reflow.PropertyBorder' ],
 
   css: `
-   // ^ { margin: inherit !important; }
-   // ^ table { width: auto !important; }
-   ^title input { font-size: large; }
-   ^title { font-size: large; }
-   ^collapsePropertyViews .com-google-flow-PropertyBorder-propHolder { width: auto; display: inline-flex; }
-   ^ .foam.core.reflow-PropertyBorder-propHolder > :first-child { width: auto; }
+   /* ^ { margin: inherit !important; } */
+   /* ^ table { width: auto !important; } */
+   <<title input { font-size: large; }
+   <<title { font-size: large; }
+   <<collapsePropertyViews .com-google-flow-PropertyBorder-propHolder { width: auto; display: inline-flex; }
+   << .foam.core.reflow-PropertyBorder-propHolder > :first-child { width: auto; }
   `,
 
   properties: [
@@ -400,12 +471,13 @@ foam.CLASS({
   extends: 'foam.u2.detail.SectionView',
 
   css:`
-    ^actionDiv {
-      display: flex;
-      flex-direction: column;
+    <<actionDiv {
+      flex-wrap: wrap;
       gap: 8px;
+      justify-content: start;
+      display: flex;
     }
-    ^ {
+    << {
       padding: 8px 0;
     }
   `,
@@ -425,10 +497,10 @@ foam.CLASS({
   ],
 
   css: `
-    ^ {
+    << {
       padding: 8px 16px;
     }
-    ^ > .foam-u2-layout-Rows > div:not(:last-child) > * {
+    << > .foam-u2-layout-Rows > div:not(:last-child) > * {
       border-bottom: 1px solid $borderLight;
     }
   `,

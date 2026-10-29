@@ -158,20 +158,27 @@ foam.CLASS({
     {
       name: 'MORE_CHOICES',
       message: 'Refine search to see more results'
+    },
+    {
+      name: 'SEARCH_PLACEHOLDER_DEFAULT',
+      messageMap: {
+        en: 'Search...',
+        fr: 'Recherche...'
+      }
     }
   ],
 
   css: `
-    ^ {
+    << {
       display: flex;
       position: relative;
     }
 
-    ^setAbove {
+    <<setAbove {
       z-index: 1;
     }
 
-    ^container {
+    <<container {
       position: relative;
       background: $backgroundDefault;
       border: 1px solid $borderDefault;
@@ -181,16 +188,16 @@ foam.CLASS({
       width: 100%;
       border-radius: $inputBorderRadius;
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.16);
-      z-index: 1000;
+      z-index: $z-popup;
       position: relative;
     }
 
-    ^heading {
+    <<heading {
       color: $textSecondary;
       padding: 8px 4px;
     }
 
-    ^selection-view {
+    <<selection-view {
       display: inline-flex;
       align-items: center;
       justify-content: space-between;
@@ -208,40 +215,40 @@ foam.CLASS({
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    ^dropdown {
+    <<dropdown {
       padding: 0 0.8rem;
     }
-    ^dropdown svg {
+    <<dropdown svg {
       height: 1em;
       fill: $dropdownIcon;
       aspect-ratio: 1;
     }
 
-    ^selection-view:hover,
-    ^selection-view:hover ^clear-btn {
+    <<selection-view:hover,
+    <<selection-view:hover <<clear-btn {
       border-color: $borderDefault;
       background: $backgroundHover;
     }
 
-    ^:focus {
+    <<:focus {
       outline: none;
     }
 
-    ^:focus ^selection-view,
-    ^:focus ^selection-view ^clear-btn {
+    <<:focus <<selection-view,
+    <<:focus <<selection-view <<clear-btn {
       border-color: $borderBrand;
     }
 
-    ^custom-selection-view {
+    <<custom-selection-view {
       flex-grow: 1;
       overflow: hidden;
     }
 
-    ^search .property-filter_ {
+    <<search .property-filter_ {
       width: 100%;
     }
 
-    ^search input {
+    <<search input {
       border: none;
       width: 100%;
       border: none;
@@ -250,16 +257,16 @@ foam.CLASS({
       height: $inputHeight;
     }
 
-    ^search input:focus-visible {
+    <<search input:focus-visible {
       border: none;
       outline: none;
     }
 
-    ^search img {
+    <<search img {
       padding: 0 10px;
     }
 
-    ^search {
+    <<search {
       background: $backgroundDefault;
       border-bottom: 1px solid $borderDefault;
       display: flex;
@@ -268,15 +275,15 @@ foam.CLASS({
       z-index: 1;
     }
 
-    ^container .disabled {
+    <<container .disabled {
       filter: grayscale(100%) opacity(70%);
     }
 
-    ^container .disabled:hover {
+    <<container .disabled:hover {
       cursor: default;
     }
 
-    ^clear-btn {
+    <<clear-btn {
       display: flex;
       align-items: center;
       border-left: 1px;
@@ -289,17 +296,26 @@ foam.CLASS({
       padding-left: 16px;
     }
 
-    ^clear-btn:hover {
+    <<clear-btn:hover {
       color: $textDestructive;
       cursor: pointer;
     }
 
-    ^moreChoices {
+    <<moreChoices {
       padding: 8px 16px;
     }
 
-    ^section:not(:last-child) {
-      border-bottom: 1px solid #f4f4f9;
+    <<section:not(:last-child) {
+      border-bottom: 1px solid $borderXLight;
+    }
+
+    <<container .highlighted {
+      border-color: $borderDefault;
+      background-color: $backgroundHover;
+    }
+
+    <<container .highlighted.disabled {
+      background-color: unset;
     }
   `,
 
@@ -347,6 +363,10 @@ foam.CLASS({
           this.sections.forEach((section) => {
             section.clearProperty('filteredDAO');
           });
+        }
+        // Reset highlighted index when dropdown opens/closes
+        if ( nv ) {
+          this.highlightedIndex_ = -1;
         }
       }
     },
@@ -431,8 +451,7 @@ foam.CLASS({
     {
       class: 'String',
       name: 'searchPlaceholder',
-      documentation: 'Replaces search box placeholder with passed in string.',
-      value: 'Search...'
+      documentation: 'Replaces search box placeholder with passed in string.'
     },
     {
       class: 'String',
@@ -479,7 +498,12 @@ foam.CLASS({
       class: 'String',
       value: 'id'
     },
-    'inputField',
+    {
+      name: 'inputField',
+      postSet: function(_, n) {
+        this.autoFocus();
+      }
+    },
     {
       class: 'FObjectProperty',
       of: 'foam.u2.Element',
@@ -493,7 +517,18 @@ foam.CLASS({
         });
       }
     },
-    'selectionEl_'
+    'selectionEl_',
+    {
+      class: 'Int',
+      name: 'highlightedIndex_',
+      documentation: 'Tracks the currently highlighted item index for keyboard navigation.',
+      value: -1
+    },
+    {
+      name: 'selectableItems_',
+      documentation: 'Array of selectable items in the dropdown.',
+      factory: function() { return []; }
+    }
   ],
 
   methods: [
@@ -505,6 +540,22 @@ foam.CLASS({
       if ( ! Array.isArray(this.sections) || this.sections.length === 0 ) {
         throw new Error(`You must provide an array of sections. See documentation on the 'sections' property in RichTextView.js.`);
       }
+
+      this.sections.forEach(function(section, i) {
+        if ( ! section.dao ) {
+          console.error('RichChoiceView: section ' + i +
+            ( section.heading ? ' ("' + section.heading + '")' : '' ) +
+            ' has no dao. Every section must provide one; opening the ' +
+            'dropdown, searching or resolving a selection will throw.');
+        }
+        section.searchBy.forEach(function(p) {
+          if ( typeof p === 'string' ) {
+            console.warn('RichChoiceView: searchBy expects PropertyInfos ' +
+              '(e.g. Model.NAME), but got string "' + p + '"; the search ' +
+              'will not filter by this property.');
+          }
+        });
+      });
 
       // If the property that this view is for already has a value when being
       // rendered, the 'data' property on this model will be set to an id for
@@ -529,6 +580,7 @@ foam.CLASS({
         if ( ! hasBeenOpenedYet_ ) return this.E();
         return this.E()
           .addClass(self.myClass('container'))
+          // .attrs({ tabindex: 0 })
           .add(self.search$.map(searchEnabled => {
             if ( ! searchEnabled ) return null;
             return this.E()
@@ -539,19 +591,22 @@ foam.CLASS({
                   .addClass(self.myClass('search'))
                   .tag(self.FILTER_.clone().copyFrom({ view: {
                     class: 'foam.u2.TextField',
-                    placeholder: this.searchPlaceholder || 'Search... ',
+                    placeholder: this.searchPlaceholder || self.SEARCH_PLACEHOLDER_DEFAULT,
                     autofocus: true,
                     onKey: true
                   } }), {}, self.inputField$)
                 .endContext();
           }))
-          .add(self.slot(function(sections) {
+          .add(self.slot(function(sections, filter_) {
+            self.highlightedIndex_ = -1;
+            // Check filteredDAO count for each section to respect hideIfEmpty when searching
             var promiseArray = [];
             sections.forEach(function(section) {
-              promiseArray.push(section.dao.select(self.COUNT()));
+              promiseArray.push(section.filteredDAO.select(self.COUNT()));
             });
             return Promise.all(promiseArray).then(resp => {
               var index = 0;
+              self.selectableItems_ = [];
               return this.E().forEach(sections, function(section) {
                 if ( section.hideIfEmpty && resp[index].value <= 0 ) {
                   index++;
@@ -567,10 +622,22 @@ foam.CLASS({
                   .start()
                     .select( section.choicesLimit ? section.filteredDAO$proxy.limit(section.choicesLimit) : section.filteredDAO$proxy, function(obj) {
                       let addRow = function() {
+                        let itemIndex = self.selectableItems_.length;
+                        if ( ! section.disabled ) {
+                          self.selectableItems_.push(obj);
+                        }
                         this.start(self.rowView, { data: obj })
+                          .addClass(self.myClass('selectable-item'))
                           .attr('disabled', section.disabled)
                           .attr('role', 'option')
+                          // Option rows had no id-bearing attribute, so recorders/tests
+                          // could only address them by list position, which breaks on
+                          // any reorder. Carry the choice id as data-value, the same
+                          // attribute the root element uses for its chosen value; name
+                          // stays on the root, where it is the field name.
+                          .attrs({ 'data-value': foam.util.isPrimitive(obj.id) ? obj.id : obj.id?.toString?.() ?? obj.id })
                           .enableClass('disabled', section.disabled)
+                          .enableClass('highlighted', self.highlightedIndex_$.map(v => v === itemIndex))
                           .callIf(! section.disabled, function() {
                             this.on('click', () => {
                               self.onSelect(obj);
@@ -593,6 +660,9 @@ foam.CLASS({
               });
             });
           }))
+          .on('keydown', function(evt) {
+            self.onKeyDown(evt);
+          })
           .add(this.slot(self.addAction));
       }));
 
@@ -606,6 +676,19 @@ foam.CLASS({
             }
             return self.E()
               .attrs({ tabindex: 0 })
+              .on('keydown', function(evt) {
+                // Press space to open the dropdown when the RichChoiceView has focused
+                if ( evt.key == ' ' ) {
+                  evt.preventDefault();
+                  if ( ! self.isOpen_ ) {
+                    let x = self.selectionEl_.el_().getBoundingClientRect().x;
+                    let y = self.selectionEl_.el_().getBoundingClientRect().y;
+                    self.dropdown_.parentEl = self.selectionEl_.el_();
+                    self.dropdown_.open(x, y);
+                    self.autoFocus();
+                  }
+                }
+              })
               .addClass(this.myClass())
               .start('', {}, this.selectionEl_$)
                 .addClass(this.myClass('selection-view'))
@@ -616,7 +699,7 @@ foam.CLASS({
                   if ( self.mode === foam.u2.DisplayMode.RW ) {
                     self.dropdown_.parentEl = self.selectionEl_.el_();
                     self.dropdown_.open(x, y);
-                    if ( self.inputField ) self.inputField.focused = true;
+                    self.autoFocus();
                   }
                   e.preventDefault();
                   e.stopPropagation();
@@ -657,9 +740,73 @@ foam.CLASS({
     },
 
     function onSelect(obj) {
+      var id = obj[this.idProperty];
+      if ( id === undefined ) {
+        console.error('RichChoiceView: idProperty "' + this.idProperty +
+          '" did not resolve on the selected object. Pass a bare property name (e.g. \'name\'), not a PropertyInfo (e.g. Model.NAME, which stringifies to a qualified "' +
+          ( typeof this.idProperty === 'string' && this.idProperty.indexOf('.') >= 0 ? this.idProperty : 'package.Model.prop' ) + '" path).');
+        this.isOpen_ = false;
+        return;
+      }
       this.fullObject_ = obj;
-      this.data = obj[this.idProperty];
+      this.data = id;
       this.isOpen_ = false;
+    },
+
+    function onKeyDown(evt) {
+      if ( ! this.isOpen_ ) return;
+
+      var items = this.selectableItems_;
+      if ( items.length === 0 ) return;
+
+      var idx = this.highlightedIndex_;
+
+      switch ( evt.key ) {
+        // Moving down in the dropdown item list
+        case 'ArrowDown':
+          evt.preventDefault();
+          idx = ( idx + 1 ) % items.length;
+          this.highlightedIndex_ = idx;
+          this.scrollToHighlighted_();
+          break;
+
+        // Moving up in the dropdown item list
+        case 'ArrowUp':
+          evt.preventDefault();
+          idx = idx <= 0 ? items.length - 1 : idx - 1;
+          this.highlightedIndex_ = idx;
+          this.scrollToHighlighted_();
+          break;
+
+        // Select the current highlighted item
+        case 'Enter':
+        case 'Tab':
+          if ( idx >= 0 && idx < items.length ) {
+            evt.preventDefault();
+            this.onSelect(items[idx]);
+            this.dropdown_.close();
+          }
+          break;
+
+        // Close the dropdown
+        case 'Escape':
+          evt.preventDefault();
+          this.dropdown_.close();
+          break;
+
+      }
+    },
+
+    function scrollToHighlighted_() {
+      var container = this.dropdown_.el_();
+      if ( ! container ) return;
+      var items = container.querySelectorAll('.' + this.myClass('selectable-item'));
+      if ( this.highlightedIndex_ >= 0 && this.highlightedIndex_ < items.length ) {
+        var el = items[this.highlightedIndex_];
+        if ( el ) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
     },
 
     function addAction(action, actionData) {
@@ -707,10 +854,19 @@ foam.CLASS({
           this.clearSelection();
           return;
         }
+        var axiom = this.of && this.of.getAxiomByName(this.idProperty);
+        if ( this.of && ! axiom ) {
+          console.error('RichChoiceView: idProperty "' + this.idProperty +
+            '" is not an axiom of ' + this.of.id + ', so the preselected ' +
+            'value cannot be resolved and the selection will stay on the ' +
+            'placeholder. Pass a bare property name (e.g. \'name\'), not a ' +
+            'PropertyInfo (e.g. Model.NAME, which stringifies to a qualified path).');
+          return;
+        }
         this.sections.forEach(section => {
           if ( this.of ) {
             section.dao.where(
-              this.EQ(this.of.getAxiomByName(this.idProperty), this.data)
+              this.EQ(axiom, this.data)
             ).select().then(result => {
               if ( result.array.length > 0 ) {
                 if ( section.disabled ) return this.clearSelection();
@@ -744,6 +900,13 @@ foam.CLASS({
       // the put. Instead, we need to explicitly set the value to the default
       // value.
       this.data = this.prop ? this.prop.value : undefined;
+    },
+    {
+      name: 'autoFocus',
+      isFramed: true,
+      code: function() {
+        if ( this.inputField ) this.inputField.focused = true;
+      }
     }
   ],
 
@@ -771,17 +934,17 @@ foam.CLASS({
       ],
 
       css:`
-        ^ {
+        << {
           border-radius: $inputBorderRadius;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
         }
-        ^paddingWrapper {
+        <<paddingWrapper {
           padding-left: $inputHorizontalPadding;
           padding-right: $inputHorizontalPadding;
         }
-        ^customSelectView:not(^ro) > div {
+        <<customSelectView:not(<<ro) > div {
           padding: 4px 8px;
         }
       `,
@@ -857,7 +1020,7 @@ foam.CLASS({
       ],
 
       css: `
-        ^ {
+        << {
           border: none;
           border-top: 1px solid $borderDefault;
           justify-content: flex-start;

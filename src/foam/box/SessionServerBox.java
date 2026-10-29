@@ -24,7 +24,6 @@ import foam.core.om.OMLogger;
 import foam.core.pm.PM;
 import foam.core.session.Session;
 import foam.util.SafetyUtil;
-import org.eclipse.jetty.server.Request;
 
 import java.util.StringTokenizer;
 import jakarta.servlet.http.HttpServletRequest;
@@ -137,11 +136,6 @@ public class SessionServerBox
       if ( authenticate && session.getUserId() == 0 ) {
         envelope.replyWithException(new AuthenticationException());
         return;
-      }
-
-      if ( session.getContext().get("localLocalSettingDAO") == null && session.getUserId() != 0 ) {
-        DAO localLocalSettingDAO = new foam.dao.MDAO(foam.core.session.LocalSetting.getOwnClassInfo());
-        session.setContext(session.getContext().put("localLocalSettingDAO", localLocalSettingDAO));
       }
 
       X effectiveContext = session.applyTo(x);

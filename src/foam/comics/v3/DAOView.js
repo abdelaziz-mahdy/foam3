@@ -31,7 +31,7 @@ foam.CLASS({
   ],
 
   css: `
-    ^ .foam-u2-borders-CardBorder {
+    << .foam-u2-borders-CardBorder {
       border: none;
       border-radius: 4px;
       box-sizing: border-box;
@@ -77,24 +77,24 @@ foam.CLASS({
               let createAction = createMenu;
               if ( ! createAction ) {
                 createAction = self.config.of.getAxiomByName('create');
-                
+
                 if ( createAction && foam.comics.v3.ComicsAction.isInstance(createAction) ) {
-                  createAction = self.CREATE.clone(self).copyFrom({ ...createAction })
+                  createAction = self.CREATE.clone(self).copyFrom(createAction)
                 } else {
                   createAction = self.CREATE;
                 }
               }
-              
+
               this
                 .startContext({ data: self })
                 .tag(createAction, { label$: self.config$.dot('createTitle'), buttonStyle: 'PRIMARY', size: 'LARGE' })
-                .tag(self.SELECT, { label$: self.config$.dot('selectTitle'), size: 'LARGE' })
+                .tag(self.CONFIRMSELECTION, { label$: self.config$.dot('selectTitle'), size: 'LARGE' })
                 .endContext()
             })))
       });
-      
+
       this
-        .addClass()  
+        .addClass()
         .start(this.config.browseBorder)
         .style({ position: 'relative', 'min-height': this.config.minHeight + 'px'})
             .add(self.slot(function(browseView) {
@@ -134,7 +134,7 @@ foam.CLASS({
     },
     {
       class: 'foam.comics.v3.ComicsAction',
-      name: 'select',
+      name: 'confirmSelection',
       buttonStyle: 'PRIMARY',
       internalIsAvailable: function(config) {
         return config.selectMode;

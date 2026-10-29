@@ -12,6 +12,10 @@ foam.CLASS({
   documentation: `Prepare notification per user then put to DAO decorated
 with RulerDAO which can perform further per user setup before user.doNotify.`,
 
+  mixins: [
+    'foam.core.notification.NotificationLocaleTemplateSupport'
+  ],
+
   javaImports: [
     'foam.dao.DAO',
     'foam.lang.X',
@@ -37,23 +41,23 @@ with RulerDAO which can perform further per user setup before user.doNotify.`,
       name: 'put',
       javaCode: `
       User user = (User) obj;
-      Notification notification = (Notification) getNotification().fclone();
+
+      try {
+        if ( getNotification().getPredicate() != null && ! getNotification().getPredicate().f(user) ) {
+          return; // Predicate is false, skip this user
+        }
+      } catch (Exception e) {
+        Loggers.logger(getX(), this).error("Error evaluating predicate for notification", e);
+        return; // Predicate evaluation failed, skip this user
+      }
+
+      Notification notification = (Notification) getNotification().fcloneIn(getX());
       Notification.ID.clear(notification);
       Notification.GROUP_ID.clear(notification);
       Notification.TEMPLATE.clear(notification);
       notification.setBroadcasted(false);
       notification.setUserId(user.getId());
-      var x = (X) getX();
-      try {
-        x = x.put("notification", notification);
-        notification.setX(x);
-        if ( notification.getPredicate() != null && ! notification.getPredicate().f(notification) ) {
-          return; // Predicate is false, skip this user
-        }
-      } catch (Exception e) {
-        Loggers.logger(x, this).error("Error evaluating predicate for notification", e);
-        return; // Predicate evaluation failed, skip this user
-      }
+      notification = applyLocaleTemplate(getX(), user, notification);
       getUserNotificationDAO().put(notification);
       `
     }

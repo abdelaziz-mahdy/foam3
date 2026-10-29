@@ -118,6 +118,12 @@ which provide CONTENT_SECURITY_POLICY as init parameters of CSPFilter.`,
           ((HttpServletResponse) response).setHeader("Content-Security-Policy", policy);
         }
 
+        // Enable the JS Self-Profiling API (window.Profiler) so the reflow Perf
+        // block can capture in-page CPU profiles without DevTools. Document-Policy
+        // is document-only (browsers ignore it on sub-resources), same-origin, and
+        // costs nothing unless a profiler is actively sampling.
+        ((HttpServletResponse) response).setHeader("Document-Policy", "js-profiling");
+
         chain.doFilter(request, response);
       `
     },
@@ -200,8 +206,13 @@ which provide CONTENT_SECURITY_POLICY as init parameters of CSPFilter.`,
         sb.append("; ");
       }
 
-      Loggers.logger(x, this).info("policy", domain, sb.toString().replaceAll(";", ";\\n"));
-      return sb.toString();
+      // Every directive ends with "; ", so the built policy ends in a space,
+      // for example "script-src 'self'; ". HTTP/2 refuses a header value that
+      // starts or ends with whitespace (RFC 9110), and Jetty 12 then resets the
+      // stream instead of sending the response, so the policy is trimmed.
+      String policy = sb.toString().trim();
+      Loggers.logger(x, this).info("policy", domain, policy.replaceAll(";", ";\\n"));
+      return policy;
       `
     }
   ]

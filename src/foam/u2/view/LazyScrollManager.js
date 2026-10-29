@@ -58,21 +58,21 @@ foam.CLASS({
   ],
 
   css: `
-    ^no-data {
+    <<no-data {
       display: flex;
       height: 100%;
       justify-content: center;
       align-items: center;
     }
-    ^scroll-host {
+    <<scroll-host {
       overflow-anchor: none;
     }
-    ^top-spacer, ^bottom-spacer {
+    <<top-spacer, <<bottom-spacer {
       width: 100%;
       pointer-events: none;
     }
 
-    ^table-page {
+    <<table-page {
       content-visibility: auto;
       contain-intrinsic-height: auto var(--avgPageHeight, 2400px);
       min-width: 100%;
@@ -413,7 +413,7 @@ foam.CLASS({
     },
     function safeScroll() {
       if ( ! this.scrollToIndex ) return;
-      var page = Math.floor(this.scrollToIndex / this.pageSize_);
+      var page = Math.floor((this.scrollToIndex - 1) / this.pageSize_);
       if ( this.renderedPages_[page] ) {
         var el = this.renderedPages_[page].element_.querySelector(`[data-idx='${this.scrollToIndex}']`);
         if ( ! el ) return;
@@ -773,6 +773,7 @@ foam.CLASS({
           if ( self.suspendObserver && self.scrollToIndex ) return;
 
           var index = Number(entry.target.dataset.idx);
+          if ( ! index ) return;
           if ( entry.boundingClientRect.top <= entry.rootBounds.top ) {
             // Recheck before setting since the intersection observer might have been delayed
             let bounds = entry.target.getBoundingClientRect();
@@ -786,8 +787,9 @@ foam.CLASS({
           }
         });
         if ( ! intersectingSet ) return;
+        let rowEntryCount = entries.filter(e => !! e.target?.dataset?.idx).length;
         if ( ! self.bottomRow && self.displayedRowCount_ <= 0 )
-          self.bottomRow = self.pageSize_ > entries.length ? entries.length : self.pageSize_;
+          self.bottomRow = self.pageSize_ > rowEntryCount ? rowEntryCount : self.pageSize_;
       }
     },
     {

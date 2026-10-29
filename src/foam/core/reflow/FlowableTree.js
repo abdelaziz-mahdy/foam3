@@ -9,19 +9,19 @@ foam.CLASS({
   name: 'FlowableTree',
   extends: 'foam.u2.View',
 
-  imports: [ 'moveFlowChild', 'moveFlowChildAfter', 'copyChild', 'selectFromTree' ],
+  imports: [ 'moveFlowChild', 'moveFlowChildAfter', 'copyChild', 'selectFromTree', 'isChildLocked?' ],
 
   css: `
-    ^ {
+    << {
       width: 100%;
     }
-    ^ table {
+    << table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       padding-top: 8px;
     }
-    ^ table td {
+    << table td {
       display: flex;
       justify-content: space-between;
       padding: 10px 8px;
@@ -32,7 +32,7 @@ foam.CLASS({
       border-spacing: 0!important;
     }
 
-    ^ table td .close button {
+    << table td .close button {
       padding: 4px;
     }
 
@@ -41,11 +41,11 @@ foam.CLASS({
       100% { transform: rotate(360deg); }
     }
 
-    ^selected {
+    <<selected {
       background: $backgroundTertiary;
       font-weight: $font-regular;
     }
-    ^left-header {
+    <<left-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -55,23 +55,20 @@ foam.CLASS({
       font-size: 16px;
     }
 
-    ^icon-holder {
+    <<icon-holder {
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    ^element-row {
+    <<element-row {
       padding: 10px;
     }
-    ^element-row-content {
+    <<element-row-content {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    ^element-row-icon {
-      color: $textBrand;
-    }
-    ^ table td^moveTarget {
+    << table td<<moveTarget {
       background: transparent;
       border: none;
       width: 100%;
@@ -79,25 +76,25 @@ foam.CLASS({
       padding: 0;
       margin: 0;
     }
-    ^ table td^activeTarget {
+    << table td<<activeTarget {
       background: $backgroundBrandTertiary;
     }
-    ^dragTarget {
+    <<dragTarget {
       transform: translate(0, 0);
       opacity: 0.95;
       background: $backgroundDefault;
     }
-    ^context-menu {
+    <<context-menu {
       position: fixed;
       background: $backgroundDefault;
       border: 1px solid $borderLight;
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      z-index: 1000;
+      z-index: $z-popup;
       padding: 4px 0;
       min-width: 120px;
     }
-    ^context-menu-item {
+    <<context-menu-item {
       padding: 8px 16px;
       cursor: pointer;
       display: flex;
@@ -105,7 +102,7 @@ foam.CLASS({
       gap: 8px;
       font-size: 14px;
     }
-    ^context-menu-item:hover {
+    <<context-menu-item:hover {
       background: $backgroundSecondary;
     }
   `,
@@ -113,9 +110,19 @@ foam.CLASS({
   properties: [
     'selected',
     {
+      name: 'softSelected'
+    },
+    {
       class: 'Boolean',
       name: 'isMenuOpen',
       value: true
+    },
+    {
+      class: 'Boolean',
+      name: 'childLocked_',
+      expression: function(isChildLocked) {
+        return !! isChildLocked;
+      }
     },
     'contextMenuData',
     'contextMenuVisible'
@@ -188,8 +195,10 @@ foam.CLASS({
       this.add(data.dynamic(function (flowName) {
         this.
         start('tr').
-          on('click',    () => self.selectFromTree(data)).
-          on('dblclick', () => data.expanded = ! data.expanded).
+          on('mouseover',   () => self.softSelected = data).
+          on('mouseout',    () => self.softSelected = null).
+          on('click',       () => self.selectFromTree(data)).
+          on('dblclick',    () => data.expanded = ! data.expanded).
           on('contextmenu', (e) => self.onContextMenu(e, data)).
           start('td').
             attrs({draggable: 'true'}).
@@ -198,7 +207,7 @@ foam.CLASS({
               on('dragstart', self.onDragStart.bind(self, data, this)).
               on('dragenter', self.onDragOver.bind(self, data, this)).
               on('dragleave', self.onDragLeave.bind(self, this)).
-                on('dragover',  self.onDragOver.bind(self, data, this)).
+              on('dragover',  self.onDragOver.bind(self, data, this)).
               on('drop',      self.onDrop.bind(self, data, this));
             }).
             addClass(self.myClass('element-row')).
@@ -206,21 +215,8 @@ foam.CLASS({
             enableClass(self.myClass('selected'), self.selected$.map(s => s === data)).
             start().
               addClass(self.myClass('element-row-content')).
-              // TODO: let the Flowable provide its own Image
-              callIfElse(data.cmd && data?.cmd?.includes('dao'), function() {
-                this.start(foam.u2.tag.Image, {
-                  glyph: 'grid',
-                  embedSVG: true
-                }).addClass(self.myClass('element-row-icon')).end()
-              }, function() {
-                this.start(foam.u2.tag.Image, {
-                  glyph: 'rectangle',
-                  embedSVG: true
-                }).addClass(self.myClass('element-row-icon')).end()
-              }).
-              call(function() {
-                data.treeRowRenderer(this);
-              }).
+              call(function() { data.treeCellFormatter(this); }).
+              call(function() { data.treeRowRenderer(this); }).
             end().
             add(data?.dynamic(function(value$loading) {
               if ( value$loading )
@@ -256,8 +252,14 @@ foam.CLASS({
     },
 
     function onDragStart(row, el, e) {
+      // Child lock disables this action
+      if ( this.childLocked_ ) {
+        e.preventDefault();
+        return;
+      }
+
       e.dataTransfer.setData('application/x-foam-obj-id', row.flowName);
-      console.log('onDragStart', e, row.flowName);
+      // console.log('onDragStart', e, row.flowName);
       el.addClass(this.myClass('dragTarget'));
       e.stopPropagation();
     },
@@ -270,8 +272,8 @@ foam.CLASS({
 
       var src = e.dataTransfer.getData('application/x-foam-obj-id');
 
-      console.log('onDragOver', e);
-      console.log('over', src, '->', row.flowName);
+      // console.log('onDragOver', e);
+      // console.log('over', src, '->', row.flowName);
 
       // if ( src === row.flowName ) return;
 
@@ -286,7 +288,7 @@ foam.CLASS({
     function onDrop(row, el, e) {
       /** Dropped on another row to cause a change of parent. **/
       el.removeClass(this.myClass('activeTarget'));
-      console.log('onDrop', e, row.flowName);
+      // console.log('onDrop', e, row.flowName);
       if ( ! e.dataTransfer.types.some(m => m === 'application/x-foam-obj-id') )
         return;
 
@@ -297,7 +299,7 @@ foam.CLASS({
       e.preventDefault();
       e.stopPropagation();
 
-      console.log('drop', src, '->', row.flowName);
+      // console.log('drop', src, '->', row.flowName);
 
       this.moveFlowChild(src, row);
     },
@@ -305,7 +307,7 @@ foam.CLASS({
     function onMove(row, el, e) {
       /** Dropped on a space after a row to cause a move. **/
       el.removeClass(this.myClass('activeTarget'));
-      console.log('onMove', e, row.flowName);
+      // console.log('onMove', e, row.flowName);
       if ( ! e.dataTransfer.types.some(m => m === 'application/x-foam-obj-id') )
         return;
 
@@ -314,12 +316,15 @@ foam.CLASS({
       e.preventDefault();
       e.stopPropagation();
 
-      console.log('move', src, '->', row.flowName);
+      // console.log('move', src, '->', row.flowName);
 
       this.moveFlowChildAfter(src, row);
     },
 
     function onContextMenu(e, data) {
+      // Child lock disables this
+      if ( this.childLocked_ ) return;
+
       e.preventDefault();
       e.stopPropagation();
 
@@ -339,7 +344,14 @@ foam.CLASS({
       themeIcon: 'close',
       buttonStyle: 'TERTIARY',
       size: 'SMALL',
-      code: function() { this.flowParent.removeFlowChild(this); }
+      isAvailable: function(isChildLocked) {
+        return ! isChildLocked;
+      },
+      code: function() { 
+        var root = this.flowRoot();
+        if ( root.isChildLocked_() ) return;
+        root.deleteFlowChild(this);
+      }
     },
     {
       name: 'menuControl',

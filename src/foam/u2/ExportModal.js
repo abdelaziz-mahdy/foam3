@@ -12,9 +12,11 @@ foam.CLASS({
   documentation: 'Export Modal',
 
   imports: [
+    'document',
     'exportDriverRegistryDAO',
     'filteredTableColumns',
-    'serviceName'
+    'serviceName',
+    'window'
   ],
 
   requires: [
@@ -24,37 +26,37 @@ foam.CLASS({
   ],
 
   css: `
-    ^{
+    <<{
       width: 448px;
       margin: auto;
     }
-    ^ > *, ^ .foam-u2-layout-Grid {
+    << > *, << .foam-u2-layout-Grid {
       gap: 12px;
     }
-    ^ .foam-u2-TextInputCSS {
+    << .foam-u2-TextInputCSS {
       border: 1px solid $borderLight;
 
     }
-    ^ .foam-u2-TextInputCSS option {
+    << .foam-u2-TextInputCSS option {
       padding: 10px;
     }
-    ^datatype-group {
+    <<datatype-group {
       display: flex;
       align-items: center;
       gap: 5px;
     }
-    ^dimmed-text {
+    <<dimmed-text {
       color: $textSecondary;
     }
-    ^datatype-text {
+    <<datatype-text {
       font-weight: bold;
       color: $textSecondary;
     }
-    ^divided-sec {
+    <<divided-sec {
       border-top: 1px solid $borderDefault;
       padding-top: 10px;
     }
-    ^ .foam-u2-borders-ExpandableBorder-container {
+    << .foam-u2-borders-ExpandableBorder-container {
       padding: 10px;
     }
 
@@ -161,7 +163,9 @@ foam.CLASS({
 
       this
       .addClass(this.myClass())
-      .startContext({ data: this })
+      // EXPORT modal is interactive GUI, so if opens up in VIEW context the user can not edit the form. So keeping it in EDIT mode makes more sense.
+      // If we really want to support VIEW context, we can make it configurable.
+      .startContext({ data: this, controllerMode: foam.u2.ControllerMode.EDIT })    
         .start(this.Rows)
           .tag(this.DATA_TYPE.__)
           .start().show(this.isDataTypeSelected$)
@@ -178,9 +182,13 @@ foam.CLASS({
 
           .start().show(this.isDataTypeSelected$).addClass(this.myClass('divided-sec'))
             .add(this.slot(function (exportDriver) {
+              // Built in a slot, so this.E() inherits the modal's base context (which may be VIEW).
+              // Force EDIT so the driver's option fields stay interactive.
               return this.E()
               .show(exportDriver && exportDriver.cls_.getAxiomsByClass(foam.lang.Property).some(p => ! p.hidden))
-              .start({class: 'foam.u2.detail.VerticalDetailView', data: exportDriver}).end();
+              .startContext({ controllerMode: foam.u2.ControllerMode.EDIT })
+                .start({class: 'foam.u2.detail.VerticalDetailView', data: exportDriver}).end()
+              .endContext();
            }))
           .end()
           .start()
@@ -191,7 +199,7 @@ foam.CLASS({
               .add(
                 self.slot(function(exportDriverReg$exportAllColumns) {
                   if ( exportDriverReg$exportAllColumns ) {
-                    return self.E().start().startContext({ data: self }).tag(self.EXPORT_ALL_COLUMNS.__).endContext().end();
+                    return self.E().start().startContext({ data: self, controllerMode: foam.u2.ControllerMode.EDIT }).tag(self.EXPORT_ALL_COLUMNS.__).endContext().end();
                   }
                 })
               )
@@ -272,7 +280,7 @@ foam.CLASS({
             result = await this.exportDriver.exportFObject(this.__context__, this.exportObj);
           }
           if ( result ) {
-            var link = document.createElement('a');
+            var link = this.document.createElement('a');
             var href = '';
             if ( this.exportDriverReg.mimeType && this.exportDriverReg.mimeType.length != 0 ) {
               var blob = new Blob([result], { type: this.exportDriverReg.mimeType });
@@ -284,12 +292,12 @@ foam.CLASS({
             }
             link.setAttribute('href', href);
             link.setAttribute('download', ( `${this.exportData?.of?.name}_Export_${(new Date()).toDateString().replaceAll(' ', '_')}.` || 'data.') + this.exportDriverReg.extension);
-            document.body.appendChild(link);
+            this.document.body.appendChild(link);
             link.click();
 
             // Cleanup data blob and link
             if ( blob ) URL.revokeObjectURL(link.href);
-            document.body.removeChild(link);
+            this.document.body.removeChild(link);
           }
         } catch (e) {
           console.error('Export failed:', e);
@@ -322,7 +330,7 @@ foam.CLASS({
             await this.exportDriver.exportFObject(this.__context__, this.exportObj);
 
           if ( url && url.length > 0 ) {
-            window.location.replace(url);
+            this.window.location.replace(url);
           } else {
             this.parentNode.close();
           }

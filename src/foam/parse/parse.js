@@ -88,8 +88,9 @@ foam.CLASS({
       class: 'String',
       name: 'category'
     },
-    { name: 'label',
+    {
       class: 'String',
+      name: 'label',
       documentation: 'Label to display in the UI. If not set, text will be used.',
       expression: function(text) { return text; }
     },
@@ -105,10 +106,23 @@ foam.CLASS({
       name: 'prependSpaceOnSelect',
       documentation: 'Adds a whitespace before appending suggestion.',
       value: true
+    },
+    {
+      class: 'Boolean',
+      name: 'showText',
+      documentation: 'If true the suggestion will show both the text and label.',
+      value: true
     }
   ],
 
   methods: [
+    // An optionally async function which adds Suggestions to an array.
+    // In the normal case it just adds 'this', but if gives the Suggestion
+    // to add a different Suggestion or Suggestions
+    // delta -- the remaining text
+    function expand(a, delta) {
+      if ( this.view || ! this.text || this.matches(delta) ) a.push(this);
+    },
     function matches(str) {
       /** Return true iff this suggestions matches the partially typed str input. **/
 
@@ -236,7 +250,7 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.parse',
   name: 'ParserDecorator',
-  implements: ['foam.parse.JSParser'],
+  extends: 'foam.parse.AbstractParser',
   abstract: true,
 
   properties: [
@@ -914,6 +928,96 @@ foam.CLASS({
 
 foam.CLASS({
   package: 'foam.parse',
+  name: 'UntilLiteral0',
+
+  documentation: `Optimized version of Until0 for literal string terminators. Uses
+String.indexOf() for O(n) native performance instead of per-character
+parser invocation. Discards matched content (value is null) and consumes
+the terminator — identical semantics to Until0 with a Literal parser.
+
+Returned transparently by the until0() factory when given a String or
+Literal argument. Users do not need to reference this class directly.`,
+
+  properties: [
+    {
+      name: 's',
+      class: 'Simple',
+      documentation: 'The literal string to search for'
+    }
+  ],
+
+  methods: [
+    function parse(ps) {
+      var str = ps.str[0];
+      var idx = str.indexOf(this.s, ps.pos);
+
+      if ( idx < 0 ) return undefined;
+
+      // Jump past the terminator (consumes it, same as Until0)
+      var target   = ps.cls_.create();
+      target.str   = ps.str;
+      target.pos   = idx + this.s.length;
+      target.apply = ps.apply;
+      return target.setValue(null);
+    },
+
+    function toString() {
+      return 'until0("' + this.s + '")';
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.parse',
+  name: 'UntilLiteral',
+
+  documentation: `Optimized version of Until for literal string terminators. Uses
+String.indexOf() to find the terminator in O(n) native time, then returns
+the characters before it as an array — identical semantics to Until with a
+Literal parser.
+
+Returned transparently by the until() factory when given a String or
+Literal argument. Users do not need to reference this class directly.`,
+
+  properties: [
+    {
+      name: 's',
+      class: 'Simple',
+      documentation: 'The literal string to search for'
+    }
+  ],
+
+  methods: [
+    function parse(ps) {
+      var str = ps.str[0];
+      var idx = str.indexOf(this.s, ps.pos);
+
+      if ( idx < 0 ) return undefined;
+
+      // Collect characters before the terminator (matching Until's return format)
+      var res = [];
+      for ( var i = ps.pos ; i < idx ; i++ ) {
+        res.push(str[i]);
+      }
+
+      // Position past the terminator (consumes it, same as Until)
+      var target   = ps.cls_.create();
+      target.str   = ps.str;
+      target.pos   = idx + this.s.length;
+      target.apply = ps.apply;
+      return target.setValue(res);
+    },
+
+    function toString() {
+      return 'until("' + this.s + '")';
+    }
+  ]
+});
+
+
+foam.CLASS({
+  package: 'foam.parse',
   name: 'Join',
   extends: 'foam.parse.ParserDecorator',
 
@@ -1110,8 +1214,7 @@ foam.CLASS({
     },
     {
       class: 'Boolean',
-      name: 'debug',
-//      value: true
+      name: 'debug'
     }
   ],
 
@@ -1176,6 +1279,8 @@ foam.CLASS({
     'foam.parse.Symbol',
     'foam.parse.Until',
     'foam.parse.Until0',
+    'foam.parse.UntilLiteral',
+    'foam.parse.UntilLiteral0',
     'foam.parse.Join',
     'foam.parse.ParserWithAction'
   ],
@@ -1311,15 +1416,23 @@ foam.CLASS({
     },
 
     function until(p) {
-      return this.Until.create({
-        p: p
-      });
+      if ( typeof p === 'string' ) {
+        return this.UntilLiteral.create({ s: p });
+      }
+      if ( foam.parse.Literal.isInstance(p) ) {
+        return this.UntilLiteral.create({ s: p.s });
+      }
+      return this.Until.create({ p: p });
     },
 
     function until0(p) {
-      return this.Until0.create({
-        p: p
-      });
+      if ( typeof p === 'string' ) {
+        return this.UntilLiteral0.create({ s: p });
+      }
+      if ( foam.parse.Literal.isInstance(p) ) {
+        return this.UntilLiteral0.create({ s: p.s });
+      }
+      return this.Until0.create({ p: p });
     },
 
     function join(p) {

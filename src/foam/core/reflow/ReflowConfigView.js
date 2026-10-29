@@ -9,17 +9,19 @@ foam.CLASS({
   name: 'ReflowConfigView',
   extends: 'foam.u2.Tabs',
   //TODO: reactions dont work for block properties
+
   requires: [
     'foam.core.reflow.ReactiveSectionedDetailView',
     'foam.core.reflow.Block',
     'foam.core.reflow.FlowMode',
     'foam.core.reflow.Flow'
   ],
-  css:` 
-    ^ {
+
+  css:`
+    << {
       gap: 10px;
     }
-    ^rightBar-title {
+    <<rightBar-title {
       border-bottom: 1px solid $borderLight;
       padding: 8px 16px;
     }
@@ -42,6 +44,7 @@ foam.CLASS({
       }
     }
   ],
+
   methods: [
     function render() {
       let self = this;

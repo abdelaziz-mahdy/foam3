@@ -9,6 +9,12 @@ foam.CLASS({
   name: 'DateSuggester',
   extends: 'foam.u2.View',
 
+  css:`
+    << {
+      padding: 4px 0px;
+    }
+  `,
+
   properties: [
     'suggestText',
     {
@@ -20,6 +26,7 @@ foam.CLASS({
 
   methods: [
     function render() {
+      this.addClass();
       this.startContext({data: this}).add(this.DATE);
       this.date$.sub(() => {
         this.suggestText(this.date.toISOString().substring(0,10) + ' ');
@@ -115,33 +122,42 @@ foam.CLASS({
 
 //  imports: [ 'suggestText' ],
 
-  constants: { MAX_WIDTH: 60 }, // Max label width in characters
+  constants: { MAX_WIDTH: 50 }, // Max label width in characters
 
   css: `
-    ^ {
+    << {
       color: $textDefault;
+      border-radius: 4px;
+      padding: 4px 8px;
     }
-    ^label {
+    <<label {
       font-style: normal;
       font-weight: $font-medium;
       line-height: 1.71;
       margin: 0;
     }
-    ^text {
+    <<text {
       color: $textSecondary;
     }
+    <<:hover{
+      background-color: $backgroundBrandTertiary;
+      cursor: pointer;
+    }
 
-    ^property { color: $green400; }
-    ^operator { color: $orange400; }
-    ^value    { color: $blue400; }
-    ^format   { color: $grey400; }
-
-    ^calculation { color: $orange400; }
-    ^chart    { color: $blue400; }
-    ^structure { color: $green400; }
+    <<property    { color: $green400; }
+    <<operator    { color: $orange400; }
+    <<value       { color: $blue400; }
+    <<format      { color: $grey400; }
+    <<standard    { color: $blue400; }
+    <<custom      { color: $orange400; }
+    <<function    { color: $purple400; }
+    <<calculation { color: $orange400; }
+    <<chart       { color: $blue400; }
+    <<structure   { color: $green400; }
   `,
 
   properties: [
+    { class: 'Boolean', name: 'showText', value: true },
     'suggestText'
   ],
 
@@ -150,18 +166,53 @@ foam.CLASS({
       const self  = this;
       const data  = this.data;
 
+      function summary(s) {
+        let trim = false;
+
+        let i = s.indexOf('.');
+
+        if ( i > 15 ) {
+          s = s.substring(0, i);
+          trim = true;
+        }
+
+        i = s.indexOf(', ');
+
+        if ( i > 15 ) {
+          s = s.substring(0, i);
+          trim = true;
+        }
+
+        if ( s.length > self.MAX_WIDTH ) {
+          s = s.substring(0, self.MAX_WIDTH);
+          i = s.lastIndexOf(' ');
+          if ( i > s.length - 10)
+            s = s.substring(0, i);
+          trim = true;
+        }
+
+        if ( trim ) s = s + ' ...';
+
+        return s;
+      }
+
       this.
         addClass().
         start().
           addClass(this.myClass('label')).
           callIfElse(data.tooltip,
             function() {
-              this.start('span').style({fontStyle: 'italic', color: 'gray'}).add(data.tooltip).end();
+              this.start('span').style({
+                fontStyle: 'italic',
+                color: foam.CSS.returnTokenValue('$textSecondary', this.cls_, this.__subContext__)
+              }).add(data.tooltip).end();
             },
             function() {
-              const label = data.label.substring(0, self.MAX_WIDTH) + (data.label.length > self.MAX_WIDTH ? ' ...' : '');
+
+              const label = summary(data.label);
               this.
                 style({cursor: 'pointer'}).
+                call(function() { this.tooltip = data.label; }).
                 add(label || data.text);
               self.on('click', () => self.suggestText(data.text));
             }
@@ -172,6 +223,14 @@ foam.CLASS({
             }
           ).
         end();
+
+      this.renderText();
+    },
+
+    function renderText() {
+      if ( ! this.showText ) return;
+
+      const data = this.data;
 
       if ( data.label !== data.text ) {
         this.start().
@@ -210,24 +269,16 @@ foam.CLASS({
   ],
 
   css: `
-    ^suggestions {
+    <<suggestions {
       display: flex;
       flex-direction: column;
       width: 100%;
       gap: 4px;
       overflow-y: auto;
-      z-index: 1000;
+      z-index: $z-popup;
     }
-    ^suggestions > :not(^suggestionSeparator) {
-      border-radius: 4px;
-      padding: 4px 8px;
-    }
-    ^suggestions > :not(^suggestionSeparator):hover {
-      background-color: $backgroundBrandTertiary;
-      cursor: pointer;
-    }
-    ^suggestionSeparator { border-bottom: 1px solid $borderLight; }
-    ^error { border: 1px solid red !important; }
+    <<suggestionSeparator { border-bottom: 1px solid $borderLight; }
+    <<error { border: 1px solid $destructive !important; }
   `,
 
   properties: [
@@ -246,7 +297,8 @@ foam.CLASS({
       }
     },
     {
-      name: 'parser'
+      name: 'parser',
+      documentation: 'A Parser instance or a factory that returns a Parser or a Promise of a Parser.'
     },
     {
       class: 'Boolean',
@@ -262,7 +314,14 @@ foam.CLASS({
     {
       name: 'suggestions',
       factory: function() { return {}; },
-      documentation: 'Current suggestions as a map of string keys to Suggestion objects.'
+      documentation: 'Current suggestions as a map of string keys to Suggestion objects.',
+      postSet: function() {
+        this.expandSuggestions();
+      }
+    },
+    {
+      name: 'expandedSuggestions',
+      factory: function() { return []; }
     },
     'field',
     {
@@ -285,12 +344,17 @@ foam.CLASS({
         let self = this;
 
         // Maybe add a suggestion
-        function maybeAdd(/* parser */ p) {
+        function maybeAdd(/* parser */ p, ps) {
           try {
-            if ( p.suggest ) {
+            if ( p.suggest && ps.pos >= self.maxPos ) {
               let s = p.suggest();
               if ( s ) {
                 let label = s.tooltip || s.text;
+                if ( ps.pos > self.maxPos ) {
+                  self.suggestions = {};
+                  self.maxPos      = ps.pos;
+                }
+                // To avoid duplicates
                 if ( ! self.suggestions[label] ) {
                   self.suggestions[label] = s;
                 }
@@ -303,16 +367,13 @@ foam.CLASS({
         // p is the parser
         // grammar with all the symbols
         return function(p, grammar) {
-          // 'this' is the JSPStream
-
-          if ( this.pos > self.maxPos ) {
-            self.suggestions = {};
-            self.maxPos      = this.pos;
-          }
-
-          if ( this.pos == self.maxPos ) maybeAdd(p);
+          // 'this' is the JSSPStream
+          maybeAdd(p, this);
 
           let result = p.parse(this, grammar);
+
+          // If we have a successful parse, then ignore suggestions
+          if ( result && result.pos > self.maxPos ) self.suggestions = {};
 
           if ( self.normalize && result && p.suggest ) {
             let s = p.suggest();
@@ -329,7 +390,7 @@ foam.CLASS({
     {
       name: 'prop',
       postSet: function(_, prop) {
-        if (prop?.onKey ) {
+        if ( prop?.onKey ) {
           this.data$.linkFrom(this.preview$);
         }
       }
@@ -386,14 +447,17 @@ foam.CLASS({
       // Search fields have a 'x' icon on the right which clears the field, but for
       // some reason if onPreviewChange runs too quickly then this doesn't work for
       // some unknown reason.
-      this.field.on('focus', () => this.setTimeout(this.onPreviewChange, 300));
+      if ( this.mode == foam.u2.DisplayMode.RW ) {
+        this.field.on('focus', () => this.setTimeout(this.onPreviewChange, 300));
+      }
       self.overlay_.parentEl = this.field.el_();
       self.overlay_.write();
       self.overlay_
         .start()
           .addClass(this.myClass('suggestions'))
-          .add(this.dynamic(function (suggestions) {
-            self.populateSuggestions(this, suggestions);
+          .add(this.dynamic(function (expandedSuggestions) {
+            if ( self.element_.parentNode.contains(document.activeElement) || ( self.overlay?.el_().contains(document.activeElement) ) )
+              self.populateSuggestions(this, expandedSuggestions);
           }))
         .end();
     },
@@ -401,38 +465,32 @@ foam.CLASS({
     function populateSuggestions(e, suggestions) {
       let self = this;
 
-      function compare(k1, k2) {
-        var o1 = self.suggestions[k1];
-        var o2 = self.suggestions[k2];
-
-        let c = foam.util.compare(o1.category, o2.category);
+      function compare(s1, s2) {
+        let c = foam.util.compare(s1.category, s2.category);
         if ( c ) return c;
-        return foam.util.compare(o1.label || o1.text, o2.label || o2.text);
+        return foam.util.compare(s1.label || s1.text, s2.label || s2.text);
       }
 
       let preview = self.preview;
       let delta   = preview.substring(self.maxPos);
-      let keys    = Object.keys(suggestions);
-      let ss      = keys.sort(compare); // Sort by section then (label or text)
-
-      if ( delta ) ss = ss.filter(k => suggestions[k].matches(delta));
-
-      let parent = e.parentNode;
+      let ss      = suggestions.sort(compare); // Sort by section then (label or text)
+      let parent  = e.parentNode;
 
       if ( ! ss.length ) { self.overlay_.close(); return; }
       self.overlay_.open();
 
-      e.forEach(ss, function(s, i, a) {
+      e.forEach(ss, function(sug, i, a) {
         if ( i !== 0 ) this.start().addClass(self.myClass('suggestionSeparator')).end();
-        let sug = self.suggestions[s];
         this.tag(sug.view || self.SuggestionView, {
           data: sug,
+          showText: sug.showText,
+          filter: sug.view ? delta.trim() : '',
           suggestText: (text) => {
             self.suggestText.call(self, text, sug);
           }
         });
       });
-   },
+    },
 
     function reset() {
       this.maxPos          = 0;
@@ -455,6 +513,27 @@ foam.CLASS({
   ],
 
   listeners: [
+    {
+      name: 'expandSuggestions',
+      isMerged: true,
+      delay: 16,
+      code: async function() {
+        let a     = [];
+        let ss    = this.suggestions;
+        let keys  = Object.keys(ss);
+        let delta = this.preview.substring(this.maxPos);
+
+        for ( let i = 0 ; i < keys.length ; i++ ) {
+          let key = keys[i];
+          let s   = ss[key];
+          s = s.clone(this.__subContext__);
+          s.filter = delta;
+          await s.expand(a, delta);
+        }
+
+        this.expandedSuggestions = a;
+      }
+    },
     {
       name: 'onKeyPress',
       code: function(e) {
@@ -495,6 +574,7 @@ foam.CLASS({
         let overlay = this?.overlay_;
         // Close the selections list when the user leaves the field (and descendents)
         if ( ! this.element_.parentNode.contains(document.activeElement) && ! ( overlay && overlay.el_().contains(document.activeElement) ) ) {
+          overlay?.close();
           this.reset();
           // Fire a manual change event since this will not have fired if the user
           // never changed the text field value and only used the completer.
@@ -508,7 +588,7 @@ foam.CLASS({
     {
       name: 'onPreviewChange',
       isFramed: true,
-      code: function() {
+      code: async function() {
         this.error = '';
 
         // Parse the preview text with our 'apply' callback so we can rebuild
@@ -517,14 +597,15 @@ foam.CLASS({
 
         let str = this.preview + String.fromCharCode(26) /* EOF */;
         let ps  = foam.parse.StringPStream.create({str: str, apply: this.apply});
-
-        ps = this.parser.parse(ps);
+        let parser = foam.Function.isInstance(this.parser) ? await this.parser() : this.parser;
+        ps = parser.parse(ps);
       }
     },
     {
       name: 'onDataChange',
-      isFramed: true,
-      code: function() {
+      isMerged: true,
+      delay: 350,
+      code: async function() {
         if ( ! this.data ) { this.error = ''; return; }
 
         this.preview = this.data;
@@ -537,7 +618,8 @@ foam.CLASS({
         let str    = this.data + String.fromCharCode(26) /* EOF */;
         let ps     = foam.parse.StringPStream.create({str: str, apply: apply});
 
-        ps = this.parser.parse(ps);
+        let parser = foam.Function.isInstance(this.parser) ? await this.parser() : this.parser;
+        ps = parser.parse(ps);
 
         if ( ps == null || maxPos < this.data.length ) {
           this.error = 'Error at: ' + (maxPos == this.data.length ? '<end of input>' : this.data.substring(maxPos));

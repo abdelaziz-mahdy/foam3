@@ -18,16 +18,16 @@ foam.CLASS({
   ],
 
   css: `
-  ^display {
+  <<display {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
   }
-  ^slash{
+  <<slash{
     padding: 8px;
     vertical-align: middle;
   }
-  ^breadCrumb > * {
+  <<breadCrumb > * {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -113,8 +113,8 @@ foam.CLASS({
   actions: [
     {
       name: 'back',
-      code: function(X) {
-        this.go();
+      code: async function(X) {
+        await this.go();
       }
     }
   ]

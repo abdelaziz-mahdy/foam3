@@ -28,148 +28,36 @@ foam.CLASS({
 
   methods: [
     function fillTimeGapKeys(existingKeys, groups, periods, prop) {
-      // Detect time granularity from the property expression
-      var granularity = null;
+      var dk    = foam.core.reflow.dashboard.DateKeys;
+      var entry = dk.entryFor(prop);
 
-      // Check if prop is a date transformation expression
-      if ( prop && prop.delegate && foam.lang.Date.isInstance(prop.delegate) ) {
-        if ( foam.mlang.expr.DateToWeekExpr.isInstance(prop) ) {
-          granularity = 'week';
-        } else if ( foam.mlang.expr.DateToQuarterExpr.isInstance(prop) ) {
-          granularity = 'quarter';
-        } else if ( foam.mlang.expr.DateToDayOfYearExpr.isInstance(prop) ) {
-          granularity = 'day';
-        } else if ( foam.mlang.expr.DateToYYYYMMExpr.isInstance(prop) ) {
-          granularity = 'month';
-        } else if ( foam.mlang.expr.DateToYYYYExpr.isInstance(prop) ) {
-          granularity = 'year';
-        } else if ( foam.mlang.expr.DateToYYYYMMDDExpr.isInstance(prop) ) {
-          granularity = 'date';
-        }
+      // Not a date grouping we know how to step through.
+      if ( ! entry || ! prop.delegate ) return existingKeys;
+
+      var range = entry.calculate(periods);
+      var end   = range.maxDate.getTime();
+      var d     = entry.periodStart(range.minDate);
+
+      // Render each period's key with the expression itself, so the
+      // synthesized keys are guaranteed to match the real ones.
+      var stub = {};
+      var name = prop.delegate.name;
+      var keys = [], seen = {};
+
+      for ( var guard = 0; guard < 5000 && d.getTime() <= end; guard++ ) {
+        stub[name] = d;
+        var k = prop.f(stub);
+        if ( k !== '' && ! seen[k] ) { seen[k] = true; keys.push(k); }
+
+        var nextD = entry.next(d);
+        if ( nextD.getTime() <= d.getTime() ) break;   // never spin
+        d = nextD;
       }
 
-      if ( ! granularity ) return existingKeys; // Not a supported time expression
+      // Keep real data that falls outside the computed window.
+      existingKeys.forEach(function(k) { if ( ! seen[k] ) keys.push(k); });
 
-      // Calculate range based on periods (e.g., last 12 months from today)
-      var now = new Date();
-      var minDate = new Date(now);
-      var maxDate = new Date(now);
-
-      // Calculate start date based on granularity and periods
-      // Subtract (periods - 1) to get the correct range including current period
-      // Example: periods=12 for months means current month + 11 previous = 12 total
-      if ( granularity === 'week' ) {
-        minDate.setDate(minDate.getDate() - ((periods - 1) * 7));
-      } else if ( granularity === 'quarter' ) {
-        minDate.setMonth(minDate.getMonth() - ((periods - 1) * 3));
-      } else if ( granularity === 'month' ) {
-        minDate.setMonth(minDate.getMonth() - (periods - 1));
-      } else if ( granularity === 'year' ) {
-        minDate.setFullYear(minDate.getFullYear() - (periods - 1));
-      } else if ( granularity === 'date' || granularity === 'day' ) {
-        minDate.setDate(minDate.getDate() - (periods - 1));
-      }
-
-      // Generate keys using the property expression
-      var minKey = prop.f({ [prop.delegate.name]: minDate });
-      var maxKey = prop.f({ [prop.delegate.name]: maxDate });
-
-      // Generate all keys between min and max based on granularity
-      var allKeys = [];
-
-      if ( granularity === 'week' ) {
-        // Format: YYYY-W##
-        var match = minKey.match(/^(\d{4})-W(\d{2})$/);
-        var minYear = parseInt(match[1]);
-        var minWeek = parseInt(match[2]);
-        match = maxKey.match(/^(\d{4})-W(\d{2})$/);
-        var maxYear = parseInt(match[1]);
-        var maxWeek = parseInt(match[2]);
-
-        for ( var y = minYear; y <= maxYear; y++ ) {
-          var startWeek = (y === minYear) ? minWeek : 1;
-          var endWeek = (y === maxYear) ? maxWeek : 52;
-          for ( var w = startWeek; w <= endWeek; w++ ) {
-            allKeys.push(y + '-W' + String(w).padStart(2, '0'));
-          }
-        }
-      } else if ( granularity === 'quarter' ) {
-        // Format: YYYY-Q#
-        var match = minKey.match(/^(\d{4})-Q(\d)$/);
-        var minYear = parseInt(match[1]);
-        var minQ = parseInt(match[2]);
-        match = maxKey.match(/^(\d{4})-Q(\d)$/);
-        var maxYear = parseInt(match[1]);
-        var maxQ = parseInt(match[2]);
-
-        for ( var y = minYear; y <= maxYear; y++ ) {
-          var startQ = (y === minYear) ? minQ : 1;
-          var endQ = (y === maxYear) ? maxQ : 4;
-          for ( var q = startQ; q <= endQ; q++ ) {
-            allKeys.push(y + '-Q' + q);
-          }
-        }
-      } else if ( granularity === 'month' ) {
-        // Format: YYYY/MM
-        var parts = minKey.split('/');
-        var minYear = parseInt(parts[0]);
-        var minMonth = parseInt(parts[1]);
-        parts = maxKey.split('/');
-        var maxYear = parseInt(parts[0]);
-        var maxMonth = parseInt(parts[1]);
-
-        for ( var y = minYear; y <= maxYear; y++ ) {
-          var startM = (y === minYear) ? minMonth : 1;
-          var endM = (y === maxYear) ? maxMonth : 12;
-          for ( var m = startM; m <= endM; m++ ) {
-            allKeys.push(y + '/' + String(m).padStart(2, '0'));
-          }
-        }
-      } else if ( granularity === 'year' ) {
-        // Format: YYYY
-        var minYear = parseInt(minKey);
-        var maxYear = parseInt(maxKey);
-        for ( var y = minYear; y <= maxYear; y++ ) {
-          allKeys.push(String(y));
-        }
-      } else if ( granularity === 'date' || granularity === 'day' ) {
-        // Format: YYYY/MM/DD or YYYY-###
-        if ( granularity === 'day' ) {
-          // Day of year: YYYY-###
-          var match = minKey.match(/^(\d{4})-(\d{3})$/);
-          var minYear = parseInt(match[1]);
-          var minDay = parseInt(match[2]);
-          match = maxKey.match(/^(\d{4})-(\d{3})$/);
-          var maxYear = parseInt(match[1]);
-          var maxDay = parseInt(match[2]);
-
-          for ( var y = minYear; y <= maxYear; y++ ) {
-            var daysInYear = (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 366 : 365;
-            var startD = (y === minYear) ? minDay : 1;
-            var endD = (y === maxYear) ? maxDay : daysInYear;
-            for ( var d = startD; d <= endD; d++ ) {
-              allKeys.push(y + '-' + String(d).padStart(3, '0'));
-            }
-          }
-        } else {
-          // Full date: YYYY/MM/DD
-          var parts = minKey.split('/');
-          var minDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-          parts = maxKey.split('/');
-          var maxDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-
-          var currentDate = new Date(minDate);
-          while ( currentDate <= maxDate ) {
-            var y = currentDate.getFullYear();
-            var m = String(currentDate.getMonth() + 1).padStart(2, '0');
-            var d = String(currentDate.getDate()).padStart(2, '0');
-            allKeys.push(y + '/' + m + '/' + d);
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
-        }
-      }
-
-      return allKeys;
+      return keys.sort();
     }
   ]
 });
@@ -181,12 +69,12 @@ foam.CLASS({
   mixins: [
     'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
   ],
-  
+
   requires: [
     'org.chartjs.Bar2',
     'foam.u2.layout.ContainerWidth'
   ],
-  
+
   properties: [
     // TopNGroupBy properties (inherited but exposed here for clarity)
     // IMPORTANT: groupLimit is inherited from GroupBy but should NOT be used with TopNGroupBy sinks
@@ -284,8 +172,8 @@ foam.CLASS({
           }
           index++;
         }
-        
-        
+
+
         var chartData = {
           labels: labels,
           datasets: [{
@@ -295,7 +183,7 @@ foam.CLASS({
             // Don't set barThickness if it's 0 or undefined, let Chart.js use defaults
           }]
         };
-        
+
         var chartJSOptions = {
           responsive: responsive,
           maintainAspectRatio: maintainAspectRatio,
@@ -312,7 +200,7 @@ foam.CLASS({
                   var bLabel = (b.text || '').toLowerCase();
                   var aIsOthers = aLabel.includes('others');
                   var bIsOthers = bLabel.includes('others');
-                  
+
                   if (aIsOthers && !bIsOthers) return 1;  // a goes after b
                   if (!aIsOthers && bIsOthers) return -1; // a goes before b
                   return 0; // maintain original order for non-Others items
@@ -356,7 +244,7 @@ foam.CLASS({
             }
           }
         };
-        
+
         // Configure time scale if dealing with RAW date/time properties (not transformed)
         // Only use Chart.js time scale for raw Date/DateTime properties, not for date transformation expressions
         // Date transformation expressions already format the dates as strings (e.g., "2024/10")
@@ -379,15 +267,15 @@ foam.CLASS({
             chartJSOptions.scales.x.time.tooltipFormat = timeUnit.tooltipFormat;
           }
         }
-        
+
         var barChart = this.Bar2.create({
           data: chartData,
           chartJSOptions: chartJSOptions,
           width$: this.width$,
           height$: this.height$
         });
-        
-        
+
+
         return barChart;
       }
     }
@@ -445,18 +333,20 @@ foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'DashboardPieSink',
   extends: 'foam.mlang.sink.TopNGroupBy',
-  
+
   requires: [
     'org.chartjs.Pie2',
-    'foam.u2.layout.ContainerWidth'
+    'foam.u2.layout.ContainerWidth',
+    'foam.core.reflow.dashboard.LegendPosition',
+    'foam.u2.Tooltip'
   ],
 
   css: `
-    ^graph-container {
+    <<graph-container {
       width: 100%;
     }
 
-    ^empty-value-message {
+    <<empty-value-message {
       width: 100%;
       display: flex;
       justify-content: center;
@@ -468,7 +358,7 @@ foam.CLASS({
       border-radius: 5px;
     }
   `,
-  
+
   properties: [
     // TopNGroupBy properties (inherited but exposed here for clarity)
     // IMPORTANT: groupLimit is inherited from GroupBy but should NOT be used with TopNGroupBy sinks
@@ -487,13 +377,15 @@ foam.CLASS({
     { class: 'Boolean', name: 'clockwise', value: true },
     { class: 'Int', name: 'rotation', value: -90 },
     { class: 'Boolean', name: 'disableLegendClick', help: 'Disable legend click to toggle slice visibility' },
+    { class: 'Int', name: 'legendMinWidthPercent', help: 'Forces the legend to be at least this percentage (0-100) of container width by padding the widest label with trailing non-breaking spaces. Short legends grow to match; longer labels are truncated with an ellipsis at this width (full text available in the hover tooltip) so a single long label can\'t push the legend wider than intended. 0 = no floor.' },
+    { class: 'Int', name: 'legendMaxWidthPercent', help: 'Caps the legend at this percentage (0-100) of container width; labels wider than the cap are truncated with an ellipsis (full text available in the hover tooltip). 0 = no cap. Setting min = max gives an exact fixed-width legend — arcs line up perfectly across stacked pies.' },
     // Display properties
     { class: 'Boolean', name: 'responsive', value: true },
     { class: 'Boolean', name: 'maintainAspectRatio', value: false },
     { class: 'Int', name: 'height', value: 300 },
     { class: 'Int', name: 'width', value: 400 },
     { class: 'Boolean', name: 'showLegend', value: true },
-    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.LegendPosition', name: 'legendPosition', value: 'TOP' },
     { class: 'Boolean', name: 'showTooltips', value: true },
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { class: 'Boolean', name: 'animate', value: true },
@@ -506,12 +398,13 @@ foam.CLASS({
       transient: true,
       expression: function(groups,groupKeys, colors, showPercentages, cutoutPercentage, clockwise, rotation,
                           responsive, maintainAspectRatio, showLegend,
-                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration, width, emptyValueMessage, disableLegendClick) {
+                          legendPosition, showTooltips, showTooltipSum, animate, animationDuration, width, emptyValueMessage, disableLegendClick, legendMinWidthPercent, legendMaxWidthPercent) {
         // Don't create chart until we have a valid width
         if ( ! width || width <= 0 ) {
           return null;
         }
 
+        var self = this;
         var labels = [];
         var data = [];
         var backgroundColors = [];
@@ -520,26 +413,25 @@ foam.CLASS({
         // Otherwise, use sortedKeys() for proper sorting
         var sortedKeys = this.topN > 0 ? (this.groupKeys || Object.keys(groups)) :
                         (this.sortedKeys ? this.sortedKeys() : Object.keys(groups));
-        
-        var index = 0;
+
+        // Index into `colors` by the key's original position so slice colors
+        // stay stable when Chart.js's built-in legend hides a slice.
         for ( var i = 0; i < sortedKeys.length; i++ ) {
           var key = sortedKeys[i];
           labels.push(key.toString());
           data.push(groups[key].value);
-          
-          // Only handle colors if they are defined
+
           if ( colors && colors.length > 0 ) {
-            var color = colors[index % colors.length];
+            var color = colors[i % colors.length];
             if ( color !== undefined && color !== null ) {
               color = foam.CSS.returnTokenValue(color, this.cls_, this.__context__);
               backgroundColors.push(color);
             }
           }
-          index++;
         }
-        
+
         this.hasData = data.length > 0;
-        
+
         var chartData = {
           labels: labels,
           datasets: [{
@@ -548,31 +440,116 @@ foam.CLASS({
           }]
         };
 
+        // Legend width is controlled entirely on the legend side — no
+        // `layout.padding` here, because padding stacks ON TOP of the
+        // legend area and would double-reserve space on right/left
+        // positions.
+        //
+        //   legendMaxWidthPercent — caps via Chart.js `legend.maxWidth` and
+        //     word-wraps long labels at the cap.
+        //   legendMinWidthPercent — forces legend ≥ this width by padding
+        //     the widest label with trailing NBSPs inside generateLabels
+        //     (Chart.js's legend has no native minWidth).
+        //
+        // When only min is set, it also acts as the wrap cap so an
+        // unboundedly long label can't push the legend wider than intended.
+        // Position side comes from the LegendPosition enum.
+        var legendPos = legendPosition || this.LegendPosition.TOP;
+        var legendMinPx = legendMinWidthPercent > 0 ? Math.round(width * legendMinWidthPercent / 100) : 0;
+        var legendMaxPx = legendMaxWidthPercent > 0 ? Math.round(width * legendMaxWidthPercent / 100) : 0;
+        var legendCapPx = legendMaxPx > 0 ? legendMaxPx : legendMinPx;
+
+        var legendOpts = {
+          display: showLegend,
+          position: legendPos.name.toLowerCase(),
+          onClick: disableLegendClick ? function() { /* no-op: prevent slice toggle */ } : undefined,
+          onHover: function(event, legendItem, legend) {
+            var chart = legend.chart;
+            var dataset = chart.data.datasets[0];
+            // Denominator and slice value both exclude hidden slices so
+            // hover stays consistent with the legend label (which shows
+            // `0.0%` on hidden items). If we divided the raw value by a
+            // hidden-exclusive denominator, the pct would blow up past
+            // 100% for the hidden item itself.
+            var isVisible = chart.getDataVisibility(legendItem.index);
+            var total = dataset.data.reduce(function(sum, val, idx) {
+              return chart.getDataVisibility(idx) ? sum + (val || 0) : sum;
+            }, 0);
+            var value = isVisible ? (dataset.data[legendItem.index] || 0) : 0;
+            var fullPct = total > 0 ? (value / total) * 100 : 0;
+            var label = chart.data.labels[legendItem.index] || '';
+            var native = event.native || event;
+
+            // The proxy target's el() returns a fake element whose
+            // getBoundingClientRect() tracks the cursor position, so
+            // Tooltip.setTooltip()'s flip logic works off the label
+            // location rather than the much-larger canvas bounding box.
+            if ( ! self.legendTooltip_ ) {
+              self.legendTooltip_ = self.Tooltip.create({
+                text: '',
+                target: {
+                  removeAttribute: function() {},
+                  on:              function() {},
+                  onDetach:        function() {},
+                  el: function() {
+                    return Promise.resolve({
+                      getBoundingClientRect: function() { return self.legendCursorRect_; }
+                    });
+                  }
+                }
+              });
+            } else {
+              self.legendTooltip_.close();
+            }
+
+            // Update cursor rect before setTooltip reads it via el()
+            self.legendCursorRect_ = {
+              top: native.clientY, left: native.clientX,
+              bottom: native.clientY, right: native.clientX,
+              width: 0, height: 0
+            };
+            self.legendTooltip_.text = foam.u2.Element.create({}, self)
+              .start().addClass('p-label').add(label, ':').end()
+              .start().addClass('p-legal')
+              .add(value.toLocaleString() + ' (' + fullPct + '%)')
+              .end();
+            self.legendTooltip_.setTooltip(native);
+          },
+          onLeave: function(event, legendItem, legend) {
+            if ( self.legendTooltip_ ) self.legendTooltip_.close();
+          }
+        };
+        if ( legendCapPx > 0 ) legendOpts.maxWidth = legendCapPx;
+
         var options = {
           responsive: responsive,
           maintainAspectRatio: maintainAspectRatio,
           cutout: cutoutPercentage + '%',
           rotation: rotation,
           circumference: clockwise ? 360 : -360,
+          layout: { padding: 0 },
           plugins: {
-            legend: {
-              display: showLegend,
-              position: legendPosition ? legendPosition.toString().toLowerCase() : 'top',
-              onClick: disableLegendClick ? function() { /* no-op: prevent slice toggle */ } : undefined,
-            },
+            legend: legendOpts,
             tooltip: {
               enabled: showTooltips,
               callbacks: (function() {
                 var callbacks = {};
 
-                // Add percentage display to individual tooltip labels
+                // Add percentage display to individual tooltip labels.
+                // Total excludes slices currently hidden via legend click,
+                // so the tooltip percentage stays consistent with the
+                // recomputed legend percentage. Pie/doughnut visibility
+                // lives in `chart._hiddenIndices` (exposed via
+                // `getDataVisibility`) — NOT `meta.data[i].hidden`, which
+                // is the bar/line controller's flag.
                 if ( showPercentages ) {
                   callbacks.label = function(context) {
-                    var label = context.label || '';
-                    var value = context.parsed || 0;
-                    var dataset = context.chart.data.datasets[0];
-                    var total = dataset.data.reduce(function(sum, val) { 
-                      return sum + val; 
+                    var label   = context.label || '';
+                    var value   = context.parsed || 0;
+                    var chart   = context.chart;
+                    var dataset = chart.data.datasets[0];
+                    var total   = dataset.data.reduce(function(sum, val, idx) {
+                      return chart.getDataVisibility(idx) ? sum + (val || 0) : sum;
                     }, 0);
                     var percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                     
@@ -583,7 +560,7 @@ foam.CLASS({
                     return label;
                   };
                 }
-                
+
                 // Add sum footer if requested
                 if ( showTooltipSum ) {
                   callbacks.footer = function(tooltipItems) {
@@ -594,13 +571,13 @@ foam.CLASS({
                     return 'Sum: ' + sum.toLocaleString();
                   };
                 }
-                
+
                 return Object.keys(callbacks).length > 0 ? callbacks : undefined;
               })()
             },
             datalabels: {
               display: true,
-              color: 'white',
+              color: foam.CSS.returnTokenValue('$white', this.cls_, this.__context__),
               font: {
                 weight: 'bold'
               }
@@ -613,29 +590,76 @@ foam.CLASS({
           } : false
         };
         
-        if ( showPercentages ) {
+        // generateLabels composes three optional label transforms:
+        //   1. percentage prefixing (showPercentages) — with '~' prefix
+        //      when the displayed value is rounded (e.g. 0.04 → ~0.0%),
+        //      so users know small slices survived rounding
+        //   2. single-line ellipsis truncation at the cap (legendCapPx —
+        //      from max, or min when max is unset, so a runaway label
+        //      can't push the legend wider). The hover tooltip still
+        //      surfaces the full label.
+        //   3. trailing-NBSP pad of the widest label up to legendMinPx so
+        //      short legends grow out to the reserved width (Chart.js has
+        //      no legend.minWidth; padding one item widens the whole legend
+        //      column since its width tracks the widest item)
+        var CanvasTextUtil = foam.core.reflow.dashboard.CanvasTextUtil;
+        if ( showPercentages || legendCapPx > 0 || legendMinPx > 0 ) {
           options.plugins.legend.labels = {
             generateLabels: function(chart) {
               var dataset = chart.data.datasets[0];
-              var total = dataset.data.reduce(function(sum, val) { return sum + val; }, 0);
-              
-              return chart.data.labels.map(function(label, i) {
-                var percentage = total > 0 ? ((dataset.data[i] / total) * 100).toFixed(1) : '0.0';
-                var style = chart.getDatasetMeta(0).controller ? 
-                           chart.getDatasetMeta(0).controller.getStyle(i) : 
-                           { backgroundColor: dataset.backgroundColor[i] };
-                
+              var meta    = chart.getDatasetMeta(0);
+              // Pie/doughnut slice visibility lives in `chart._hiddenIndices`
+              // (read via `getDataVisibility`), not `meta.data[i].hidden`
+              // (which only the bar/line controllers update). Using
+              // getDataVisibility is what Chart.js's own default
+              // doughnut generateLabels does.
+              var isVisible = function(i) { return chart.getDataVisibility(i); };
+
+              // Recompute the denominator against visible slices only so
+              // the remaining items sum to 100% when the user toggles a
+              // slice off via the legend click.
+              var total = showPercentages
+                ? dataset.data.reduce(function(sum, val, idx) {
+                    return isVisible(idx) ? sum + (val || 0) : sum;
+                  }, 0)
+                : 0;
+
+              var fontStr = CanvasTextUtil.legendLabelFont(chart);
+              var chrome  = CanvasTextUtil.legendLabelChromePx(chart);
+              var textMaxPx = legendCapPx > 0 ? Math.max(30, legendCapPx - chrome) : 0;
+              var textMinPx = legendMinPx > 0 ? Math.max(30, legendMinPx - chrome) : 0;
+
+              var items = chart.data.labels.map(function(label, i) {
+                var text = label.toString();
+                if ( showPercentages ) {
+                  var sliceVal = isVisible(i) ? dataset.data[i] : 0;
+                  var rawPct   = total > 0 ? (sliceVal / total) * 100 : 0;
+                  var pct      = rawPct.toFixed(1);
+                  var isApprox = parseFloat(pct) !== rawPct;
+                  text = (isApprox ? '~' : '') + pct + '% ' + text;
+                }
+                if ( textMaxPx > 0 ) text = CanvasTextUtil.truncate(chart.ctx, text, fontStr, textMaxPx);
+
+                var style = meta && meta.controller
+                  ? meta.controller.getStyle(i)
+                  : { backgroundColor: dataset.backgroundColor[i] };
+
+                // Forward per-slice hidden state so Chart.js's legend
+                // renderer draws strikethrough on toggled-off items.
                 return {
-                  text: percentage + '% ' + label,
+                  text: text,
                   fillStyle: style.backgroundColor,
                   fontColor: undefined,
+                  hidden: ! isVisible(i),
                   index: i
                 };
               });
+
+              return CanvasTextUtil.padWidestToMin(chart.ctx, items, fontStr, textMinPx);
             }
           };
         }
-        
+
         return this.Pie2.create({
           data: chartData,
           chartJSOptions: options,
@@ -645,7 +669,7 @@ foam.CLASS({
       }
     }
   ],
-  
+
   methods: [
     function toE(_, x) {
       return x.E().add(this.chart_$);
@@ -723,11 +747,13 @@ foam.CLASS({
     'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
   ],
 
+  imports: [ 'window' ],
+
   requires: [
     'org.chartjs.StackedBar2',
     'foam.u2.layout.ContainerWidth'
   ],
-  
+
   properties: [
     // Stacked bar-specific properties
     {
@@ -755,7 +781,7 @@ foam.CLASS({
     { class: 'Int', name: 'height', value: 300 },
     { class: 'Int', name: 'width', value: 400 },
     { class: 'Boolean', name: 'showLegend', value: true },
-    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.LegendPosition', name: 'legendPosition', value: 'TOP' },
     { class: 'Boolean', name: 'showTooltips', value: true },
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer' },
     { class: 'Boolean', name: 'animate', value: true },
@@ -768,6 +794,7 @@ foam.CLASS({
                           showGridLines, responsive, maintainAspectRatio,
                           showLegend, legendPosition, showTooltips, showTooltipSum, animate, animationDuration,
                           periodCount, width) {
+        var self = this;
         // Don't create chart until we have a valid width
         if ( ! width || width <= 0 ) {
           return null;
@@ -778,16 +805,16 @@ foam.CLASS({
 
         var labels = [];
         var datasets = [];
-        
+
         // The GridBy creates a 2D structure:
-        // cols.groups = x-axis categories  
+        // cols.groups = x-axis categories
         // rows.groups = stack groups (y-axis grouping)
         // Each intersection contains the aggregated value
-        
+
         // Get the actual groups from the GroupBy objects
         var colGroups = cols && cols.groups ? cols.groups : {};
         var rowGroups = rows && rows.groups ? rows.groups : {};
-        
+
         // Check if we're dealing with dates on x-axis - either xFunc is a date property,
         // or it's a date transformation expression with a date delegate
         var isDateAxis = false;
@@ -798,7 +825,7 @@ foam.CLASS({
             isDateAxis = true;
           }
         }
-        
+
         // Get sorted column keys using FOAM's sorting
         var sortedColKeys = [];
         if ( cols && cols.sortedKeys ) {
@@ -816,11 +843,11 @@ foam.CLASS({
         for ( var i = 0; i < sortedColKeys.length; i++ ) {
           var col = sortedColKeys[i];
           // Use chartJsFormatter if available on xFunc, otherwise use the key as-is
-          var label = this.xFunc && this.xFunc.chartJsFormatter ? 
+          var label = this.xFunc && this.xFunc.chartJsFormatter ?
                       this.xFunc.chartJsFormatter(col) : col;
           labels.push(label);
         }
-        
+
         // Get sorted row keys
         var sortedRowKeys = [];
         if ( rows && rows.sortedKeys ) {
@@ -828,7 +855,7 @@ foam.CLASS({
         } else {
           sortedRowKeys = Object.keys(rowGroups);
         }
-        
+
         // Build datasets - one for each row (stack group) using sorted keys
         var colorIndex = 0;
         for ( var j = 0; j < sortedRowKeys.length; j++ ) {
@@ -836,7 +863,7 @@ foam.CLASS({
           if ( rowGroups.hasOwnProperty(rowKey) ) {
             var data = [];
             var rowGroup = rowGroups[rowKey];
-            
+
             // For each sorted column, get the value for this row
             for ( var k = 0; k < sortedColKeys.length; k++ ) {
               var colKey = sortedColKeys[k];
@@ -849,13 +876,13 @@ foam.CLASS({
               }
               data.push(value);
             }
-            
+
             // Generate color for this dataset
             var datasetConfig = {
               label: rowKey.toString(),
               data: data
             };
-            
+
             // Only handle colors if they are defined
             if ( colors && colors.length > 0 ) {
               var color = colors[colorIndex % colors.length];
@@ -864,15 +891,15 @@ foam.CLASS({
                 datasetConfig.backgroundColor = color;
               }
             }
-            
-            
+
+
             datasets.push(datasetConfig);
-            
+
             colorIndex++;
           }
         }
-        
-        
+
+
         var chartJSOptions = {
           responsive: responsive,
           maintainAspectRatio: maintainAspectRatio,
@@ -898,7 +925,7 @@ foam.CLASS({
             },
             datalabels: {
               display: true,
-              color: 'white',
+              color: foam.CSS.returnTokenValue('$white', this.cls_, this.__context__),
               font: {
                 weight: 'bold'
               }
@@ -964,8 +991,8 @@ foam.CLASS({
                   var nativeEvt = evt && (evt.native || evt);
                   var clientX = nativeEvt && nativeEvt.clientX;
                   var clientY = nativeEvt && nativeEvt.clientY;
-                  var pageX   = nativeEvt && (nativeEvt.pageX !== undefined ? nativeEvt.pageX : (clientX != null ? clientX + window.scrollX : undefined));
-                  var pageY   = nativeEvt && (nativeEvt.pageY !== undefined ? nativeEvt.pageY : (clientY != null ? clientY + window.scrollY : undefined));
+                  var pageX   = nativeEvt && (nativeEvt.pageX !== undefined ? nativeEvt.pageX : (clientX != null ? clientX + self.window.scrollX : undefined));
+                  var pageY   = nativeEvt && (nativeEvt.pageY !== undefined ? nativeEvt.pageY : (clientY != null ? clientY + self.window.scrollY : undefined));
                   var canvas  = chart && chart.canvas;
                   var rect    = canvas && canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
                   var scaleX  = rect && rect.width  ? (canvas.width  / rect.width)  : 1;
@@ -981,29 +1008,29 @@ foam.CLASS({
             }
           } catch (_) { /* ignore */ }
         }
-        
+
         // Configure time scale if dealing with date/time properties
         // Check if xFunc is a date/time property
         var isTimeScale = this.xFunc && (foam.lang.Date.isInstance(this.xFunc) || foam.lang.DateTime.isInstance(this.xFunc));
-        
+
         if ( isTimeScale && timeUnit ) {
           chartJSOptions.scales.x.type = 'time';
           chartJSOptions.scales.x.time = {
             unit: timeUnit.chartJsUnit || 'day',
             displayFormats: {}
           };
-          
+
           // Set display format for the selected time unit
           if ( timeUnit.displayFormat ) {
             chartJSOptions.scales.x.time.displayFormats[timeUnit.chartJsUnit || 'day'] = timeUnit.displayFormat;
           }
-          
+
           // Configure tooltip format
           if ( timeUnit.tooltipFormat ) {
             chartJSOptions.scales.x.time.tooltipFormat = timeUnit.tooltipFormat;
           }
         }
-        
+
         return this.StackedBar2.create({
           data: {
             labels: labels,
@@ -1016,7 +1043,7 @@ foam.CLASS({
       }
     }
   ],
-  
+
   methods: [
     function toE(_, x) {
       return x.E().add(this.chart_$);
@@ -1067,12 +1094,12 @@ foam.CLASS({
 foam.CLASS({
   package: 'foam.core.reflow.dashboard',
   name: 'LineChartMixin',
-  
+
   requires: [
     'org.chartjs.Line2',
     'foam.u2.layout.ContainerWidth'
   ],
-  
+
   properties: [
     // Chart rendering properties
     {
@@ -1096,19 +1123,38 @@ foam.CLASS({
     { class: 'Int', name: 'height', value: 300 },
     { class: 'Int', name: 'width', value: 400 },
     { class: 'Boolean', name: 'showLegend', value: true },
-    { class: 'String', name: 'legendPosition', value: 'TOP' },
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.LegendPosition', name: 'legendPosition', value: 'TOP' },
     { class: 'Boolean', name: 'showTooltips', value: true },
     { class: 'Boolean', name: 'showTooltipSum', value: false, help: 'Show sum total in tooltip footer (for multiple lines)' },
     { class: 'Boolean', name: 'animate', value: true },
     { class: 'Int', name: 'animationDuration', value: 1000 },
-    { class: 'Enum', of: 'foam.core.reflow.dashboard.MetricAlignment', name: 'alignment', value: 'CENTER' }
+    { class: 'Enum', of: 'foam.core.reflow.dashboard.MetricAlignment', name: 'alignment', value: 'CENTER' },
+    { class: 'Boolean', name: 'toggleCustomXScale' },
+    { class: 'Boolean', name: 'toggleCustomYScale' },
+    { name: 'xAxisMaxScale' }, // untyped: null means "no bound" (says Claude)
+    { name: 'xAxisMinScale' },
+    { name: 'yAxisMaxScale' },
+    { name: 'yAxisMinScale' },
+    { class: 'Boolean', name: 'autoSkip' },
+    { class: 'DateTime', name: 'xDateAxisMinScale' },
+    { class: 'DateTime', name: 'xDateAxisMaxScale' },
+    { class: 'Boolean', name: 'isTimeScale' },
+    { class: 'DateTime', name: 'dataXMin_', transient: true, visibility: 'HIDDEN' },
+    { class: 'DateTime', name: 'dataXMax_', transient: true, visibility: 'HIDDEN' },
+    { name: 'xScaleType_',  transient: true, visibility: 'HIDDEN' },
+    { name: 'dataXNumMin_', transient: true, visibility: 'HIDDEN' },
+    { name: 'dataXNumMax_', transient: true, visibility: 'HIDDEN' },
+    { name: 'dataYNumMin_', transient: true, visibility: 'HIDDEN' },
+    { name: 'dataYNumMax_', transient: true, visibility: 'HIDDEN' },
   ],
 
   methods: [
-    function createChartOptions(datasets, isTimeScale, xAxisLabel, yAxisLabel, showGridLines, 
+    function createChartOptions(datasets, isTimeScale, xAxisLabel, yAxisLabel, showGridLines,
                                responsive, maintainAspectRatio, showLegend, legendPosition,
                                showTooltips, showTooltipSum, animate, animationDuration, timeUnit,
-                               xPropForLabels, yPropForLabels) {
+                               xPropForLabels, yPropForLabels, toggleCustomXScale, toggleCustomYScale,
+                               xAxisMinScale, xAxisMaxScale, yAxisMinScale, yAxisMaxScale, autoSkip,
+                               xDateAxisMinScale,xDateAxisMaxScale, labels) {
       var chartJSOptions = {
         responsive: responsive,
         maintainAspectRatio: maintainAspectRatio,
@@ -1137,26 +1183,31 @@ foam.CLASS({
         } : false,
         scales: {
           x: {
-            title: { 
+            title: {
               display: !!xAxisLabel || !!(xPropForLabels && xPropForLabels.label),
-              text: xAxisLabel || (xPropForLabels ? xPropForLabels.label : '')
+              text: xAxisLabel || (xPropForLabels ? xPropForLabels.label : ''),
             },
             grid: {
               display: showGridLines
+            },
+            ticks: {
+              autoSkip: autoSkip
             }
           },
           y: {
-            title: { 
+            title: {
               display: !!yAxisLabel || !!(yPropForLabels && yPropForLabels.label),
               text: yAxisLabel || (yPropForLabels ? yPropForLabels.label : '')
             },
             grid: {
               display: showGridLines
-            }
+            },
+            min: toggleCustomYScale && yAxisMinScale != null ? yAxisMinScale : undefined,
+            max: toggleCustomYScale && yAxisMaxScale != null ? yAxisMaxScale : undefined
           }
         }
       };
-      
+
       // Configure time scale if dealing with date/time properties
       if ( isTimeScale && timeUnit ) {
         chartJSOptions.scales.x.type = 'time';
@@ -1164,20 +1215,48 @@ foam.CLASS({
           unit: timeUnit.chartJsUnit || 'day',
           displayFormats: {}
         };
-        
+
         if ( timeUnit.displayFormat ) {
           chartJSOptions.scales.x.time.displayFormats[timeUnit.chartJsUnit || 'day'] = timeUnit.displayFormat;
         }
+
+        if ( toggleCustomXScale ) {
+          if ( xDateAxisMinScale ) chartJSOptions.scales.x.min = xDateAxisMinScale;
+          if ( xDateAxisMaxScale ) chartJSOptions.scales.x.max = xDateAxisMaxScale;
+        }
+
+      } else {
+        chartJSOptions.scales.x.type = this.xScaleType_ || 'category';
+
+        if ( toggleCustomXScale ) {
+          if ( xAxisMinScale != null ) chartJSOptions.scales.x.min = xAxisMinScale;
+          if ( xAxisMaxScale != null ) chartJSOptions.scales.x.max = xAxisMaxScale;
+        }
       }
-      
+
       return this.Line2.create({
-        data: { datasets: datasets },
+        data: { labels: labels || [], datasets: datasets },
         options: chartJSOptions,
         width$: this.width$,
         height$: this.height$
       });
     },
-    
+
+    function parseXValue(prop, xValue, isTimeScale) {
+      if ( ! isTimeScale ) {
+        return ( prop && prop.chartJsFormatter ) ? prop.chartJsFormatter(xValue) : xValue;
+      }
+      if ( xValue instanceof Date ) return xValue;
+
+      // Grouped keys ('2026-W06', '2026/07', '2026-059') aren't parseable
+      // by Date, so read them with the expression's own parser first.
+      var parsed = foam.core.reflow.dashboard.DateKeys.parse(prop, xValue);
+      if ( parsed ) return parsed;
+
+      var d = ( typeof xValue === 'number' ) ? new Date(xValue) : new Date(String(xValue));
+      return isNaN(d.getTime()) ? null : d;
+    },
+
     function addToE(e) {
       var self = this;
 
@@ -1229,18 +1308,18 @@ foam.CLASS({
     'foam.core.reflow.dashboard.LineChartMixin',
     'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
   ],
-  
+
   properties: [
     // Map GroupBy properties directly
-    { 
+    {
       name: 'arg1',
       label: 'X-Axis Property',
-      help: 'Property to group by (x-axis values)' 
+      help: 'Property to group by (x-axis values)'
     },
-    { 
+    {
       name: 'arg2',
-      label: 'Aggregation Sink', 
-      help: 'Sink to aggregate y-values for each x-value' 
+      label: 'Aggregation Sink',
+      help: 'Sink to aggregate y-values for each x-value'
     },
      {
     name: 'chart_',
@@ -1249,7 +1328,9 @@ foam.CLASS({
                         fill, tension, stepped, showPoints, pointRadius, showGridLines,
                         responsive, maintainAspectRatio, showLegend, legendPosition,
                         showTooltips, showTooltipSum, animate, animationDuration,
-                        periodCount, width) {
+                        periodCount, width, toggleCustomXScale, toggleCustomYScale,
+                        xAxisMinScale, xAxisMaxScale, yAxisMinScale, yAxisMaxScale, autoSkip,
+                        xDateAxisMinScale, xDateAxisMaxScale, isTimeScale) {
 
       if ( !arg1 || !arg2 ) return null;
 
@@ -1259,20 +1340,14 @@ foam.CLASS({
       }
 
       var data = [];
+      var labels = [];
+      var minX = null, maxX = null;
+      var minY = null, maxY = null;
+      var minXNum = null, maxXNum = null, allNumeric = true;
       var sortedKeys = this.sortedKeys ? this.sortedKeys() : Object.keys(groups);
 
-      // Check if arg1 is a date property for period range display
-      var isDateAxis = false;
-      if ( arg1 ) {
-        if ( foam.lang.Date.isInstance(arg1) || foam.lang.DateTime.isInstance(arg1) ) {
-          isDateAxis = true;
-        } else if ( arg1.delegate && (foam.lang.Date.isInstance(arg1.delegate) || foam.lang.DateTime.isInstance(arg1.delegate)) ) {
-          isDateAxis = true;
-        }
-      }
-
       // Apply period range if enabled (periodCount > 0) and x-axis is a date
-      if ( periodCount > 0 && isDateAxis ) {
+      if ( periodCount > 0 && isTimeScale ) {
         sortedKeys = this.fillTimeGapKeys(sortedKeys, groups, periodCount, arg1);
       }
 
@@ -1282,20 +1357,50 @@ foam.CLASS({
         var aggregatedSink = groups[xValue];
         var yValue = aggregatedSink ? aggregatedSink.value : 0;
 
-        // Format x value for Chart.js
-        var xVal = xValue;
-        if ( arg1 && arg1.chartJsFormatter ) {
-          xVal = arg1.chartJsFormatter(xValue);
-        } else if ( foam.lang.Date.isInstance(arg1) || foam.lang.DateTime.isInstance(arg1) ) {
-          if ( typeof xValue === 'number' ) {
-            xVal = new Date(xValue);
-          } else if ( typeof xValue === 'string' ) {
-            xVal = new Date(xValue);
+        // Taken from Claude -----------------------------------------
+        var xVal = this.parseXValue(arg1, xValue, isTimeScale);
+        if ( xVal === null ) continue;
+
+        if ( isTimeScale ) {
+          if ( ! minX || xVal.getTime() < minX.getTime() ) minX = xVal;
+          if ( ! maxX || xVal.getTime() > maxX.getTime() ) maxX = xVal;
+        } else {
+          var n = Number(xVal);
+          if ( xVal === '' || xVal == null || isNaN(n) ) {
+            allNumeric = false;
+          } else {
+            if ( minXNum === null || n < minXNum ) minXNum = n;
+            if ( maxXNum === null || n > maxXNum ) maxXNum = n;
           }
         }
+        // ------------------------------------------------------------
 
+        labels.push(xVal);
         data.push({ x: xVal, y: yValue });
+        var yn = Number(yValue);
+        if ( ! isNaN(yn) ) {
+          if ( minY === null || yn < minY ) minY = yn;
+          if ( maxY === null || yn > maxY ) maxY = yn;
+        }
       }
+
+      // Pre-set the date range
+      if ( isTimeScale ) {
+        this.xScaleType_ = 'time';
+        this.dataXMin_ = minX;
+        this.dataXMax_ = maxX;
+      } else if ( allNumeric && data.length ) {
+        this.xScaleType_ = 'linear';
+        this.dataXNumMin_ = minXNum;
+        this.dataXNumMax_ = maxXNum;
+      } else {
+        this.xScaleType_ = 'category';
+        this.dataXNumMin_ = 0;
+        this.dataXNumMax_ = Math.max(0, labels.length - 1);
+      }
+
+      this.dataYNumMin_ = minY;
+      this.dataYNumMax_ = maxY;
 
       // Create single dataset
       var datasetConfig = {
@@ -1322,18 +1427,19 @@ foam.CLASS({
       }
 
       var datasets = [datasetConfig];
-      var isTimeScale = arg1 && (foam.lang.Date.isInstance(arg1) || foam.lang.DateTime.isInstance(arg1));
 
       // Use the mixin method instead of duplicating chart options
       return this.createChartOptions(datasets, isTimeScale, xAxisLabel, yAxisLabel, showGridLines,
                                    responsive, maintainAspectRatio, showLegend, legendPosition,
                                    showTooltips, showTooltipSum, animate, animationDuration, timeUnit,
-                                   arg1, arg2);
+                                   arg1, arg2, toggleCustomXScale, toggleCustomYScale,
+                                   xAxisMinScale, xAxisMaxScale, yAxisMinScale, yAxisMaxScale, autoSkip, xDateAxisMinScale, xDateAxisMaxScale,
+                                   isTimeScale ? null : labels);
     }
 
   }
   ],
-  
+
   methods: [
     function toE(_, x) {
       return x.E().add(this.chart_$);
@@ -1389,23 +1495,23 @@ foam.CLASS({
     'foam.core.reflow.dashboard.LineChartMixin',
     'foam.core.reflow.dashboard.TimeSeriesGapFillingSinkMixin'
   ],
-  
+
   properties: [
-    // Map GridBy properties directly  
-    { 
+    // Map GridBy properties directly
+    {
       name: 'xFunc',
       label: 'X-Axis Property',
-      help: 'Property to group by (x-axis values)' 
+      help: 'Property to group by (x-axis values)'
     },
-    { 
+    {
       name: 'yFunc',
-      label: 'Line Group Property', 
-      help: 'Property to group by (different lines)' 
+      label: 'Line Group Property',
+      help: 'Property to group by (different lines)'
     },
-    { 
+    {
       name: 'acc',
       label: 'Aggregation Sink',
-      help: 'Sink to aggregate y-values for each x-value/line combination' 
+      help: 'Sink to aggregate y-values for each x-value/line combination'
     },
       {
     name: 'chart_',
@@ -1414,7 +1520,9 @@ foam.CLASS({
                         fill, tension, stepped, showPoints, pointRadius, showGridLines,
                         responsive, maintainAspectRatio, showLegend, legendPosition,
                         showTooltips, showTooltipSum, animate, animationDuration,
-                        periodCount, width) {
+                        periodCount, width, toggleCustomXScale, toggleCustomYScale,
+                        xAxisMinScale, xAxisMaxScale, yAxisMinScale, yAxisMaxScale, autoSkip,
+                        xDateAxisMinScale, xDateAxisMaxScale, isTimeScale) {
 
       if ( !xFunc || !yFunc || !acc ) return null;
 
@@ -1432,19 +1540,52 @@ foam.CLASS({
       var sortedColKeys = cols && cols.sortedKeys ? cols.sortedKeys() : Object.keys(colGroups);
       var sortedRowKeys = rows && rows.sortedKeys ? rows.sortedKeys() : Object.keys(rowGroups);
 
-      // Check if xFunc is a date property for period range display
-      var isDateAxis = false;
-      if ( xFunc ) {
-        if ( foam.lang.Date.isInstance(xFunc) || foam.lang.DateTime.isInstance(xFunc) ) {
-          isDateAxis = true;
-        } else if ( xFunc.delegate && (foam.lang.Date.isInstance(xFunc.delegate) || foam.lang.DateTime.isInstance(xFunc.delegate)) ) {
-          isDateAxis = true;
-        }
+      // Apply period range if enabled (periodCount > 0) and x-axis is a date
+      if ( periodCount > 0 && isTimeScale ) {
+        sortedColKeys = this.fillTimeGapKeys(sortedColKeys, colGroups, periodCount, xFunc);
       }
 
-      // Apply period range if enabled (periodCount > 0) and x-axis is a date
-      if ( periodCount > 0 && isDateAxis ) {
-        sortedColKeys = this.fillTimeGapKeys(sortedColKeys, colGroups, periodCount, xFunc);
+      // Parse the column keys once — they're shared by every line
+      var xVals = [], colKeys = [], labels = [];
+      var minX = null, maxX = null;
+      var minY = null, maxY = null;
+      var minXNum = null, maxXNum = null, allNumeric = true;
+
+      for ( var i = 0; i < sortedColKeys.length; i++ ) {
+        var xValue = sortedColKeys[i];
+        var xVal = this.parseXValue(xFunc, xValue, isTimeScale);
+        if ( xVal === null ) continue;
+
+        if ( isTimeScale ) {
+          if ( ! minX || xVal.getTime() < minX.getTime() ) minX = xVal;
+          if ( ! maxX || xVal.getTime() > maxX.getTime() ) maxX = xVal;
+        } else {
+          var n = Number(xVal);
+          if ( xVal === '' || xVal == null || isNaN(n) ) {
+            allNumeric = false;
+          } else {
+            if ( minXNum === null || n < minXNum ) minXNum = n;
+            if ( maxXNum === null || n > maxXNum ) maxXNum = n;
+          }
+        }
+
+        colKeys.push(xValue);   // original group key, for lookups
+        xVals.push(xVal);       // parsed value, for the chart
+        labels.push(xVal);
+      }
+
+      if ( isTimeScale ) {
+        this.xScaleType_ = 'time';
+        this.dataXMin_ = minX;
+        this.dataXMax_ = maxX;
+      } else if ( allNumeric && xVals.length ) {
+        this.xScaleType_ = 'linear';
+        this.dataXNumMin_ = minXNum;
+        this.dataXNumMax_ = maxXNum;
+      } else {
+        this.xScaleType_ = 'category';
+        this.dataXNumMin_ = 0;
+        this.dataXNumMax_ = Math.max(0, labels.length - 1);
       }
 
       // Create a dataset for each line (row group)
@@ -1453,27 +1594,18 @@ foam.CLASS({
         var rowGroup = rowGroups[lineKey];
         var data = [];
 
-        for ( var i = 0; i < sortedColKeys.length; i++ ) {
-          var xValue = sortedColKeys[i];
+        for ( var i = 0; i < xVals.length; i++ ) {
           var yValue = 0;
-
-          if ( rowGroup && rowGroup.groups && rowGroup.groups[xValue] ) {
-            yValue = rowGroup.groups[xValue].value || 0;
+          if ( rowGroup && rowGroup.groups && rowGroup.groups[colKeys[i]] ) {
+            yValue = rowGroup.groups[colKeys[i]].value || 0;
           }
+          data.push({ x: xVals[i], y: yValue });
 
-          // Format x value for Chart.js
-          var xVal = xValue;
-          if ( xFunc && xFunc.chartJsFormatter ) {
-            xVal = xFunc.chartJsFormatter(xValue);
-          } else if ( foam.lang.Date.isInstance(xFunc) || foam.lang.DateTime.isInstance(xFunc) ) {
-            if ( typeof xValue === 'number' ) {
-              xVal = new Date(xValue);
-            } else if ( typeof xValue === 'string' ) {
-              xVal = new Date(xValue);
-            }
+          var yn = Number(yValue);
+          if ( ! isNaN(yn) ) {
+            if ( minY === null || yn < minY ) minY = yn;
+            if ( maxY === null || yn > maxY ) maxY = yn;
           }
-
-          data.push({ x: xVal, y: yValue });
         }
 
         var datasetConfig = {
@@ -1503,18 +1635,21 @@ foam.CLASS({
         colorIndex++;
       }
 
-      var isTimeScale = xFunc && (foam.lang.Date.isInstance(xFunc) || foam.lang.DateTime.isInstance(xFunc));
+      this.dataYNumMin_ = minY;
+      this.dataYNumMax_ = maxY;
 
-      // Use the mixin method instead of duplicating chart options  
+      // Use the mixin method instead of duplicating chart options
       return this.createChartOptions(datasets, isTimeScale, xAxisLabel, yAxisLabel, showGridLines,
                                    responsive, maintainAspectRatio, showLegend, legendPosition,
                                    showTooltips, showTooltipSum, animate, animationDuration, timeUnit,
-                                   xFunc, yFunc);
+                                   xFunc, yFunc, toggleCustomXScale, toggleCustomYScale,
+                                   xAxisMinScale, xAxisMaxScale, yAxisMinScale, yAxisMaxScale, autoSkip,
+                                   xDateAxisMinScale, xDateAxisMaxScale, isTimeScale ? null : labels);
       }
     }
-      
+
   ],
-  
+
   methods: [
     function toE(_, x) {
       return x.E().add(this.chart_$);
@@ -1567,7 +1702,7 @@ foam.CLASS({
   name: 'DashboardMetricSink',
   extends: 'foam.dao.AbstractSink',
   implements: ['foam.lang.Serializable'],
-  
+
   requires: ['foam.u2.tag.Image'],
 
   imports: [
@@ -1609,28 +1744,28 @@ foam.CLASS({
   ],
 
   properties: [
-    { 
+    {
       class: 'Enum',
       of: 'foam.core.reflow.dashboard.MetricOperation',
       name: 'operation',
       value: 'COUNT'
     },
-    { 
+    {
       class: 'FObjectProperty',
       of: 'foam.lang.Property',
       generateJava: false,
       name: 'prop',
       label: 'Property',
       view: function(_, X) {
-        return { 
-          class: 'foam.core.reflow.PropertyChoiceView', 
+        return {
+          class: 'foam.core.reflow.PropertyChoiceView',
           forCls: X.dao ? X.dao.of : X.of
         };
       },
       visibility: function(operation) {
         // FOAM makes this reactive automatically when operation changes
-        return operation && operation.name !== 'COUNT' ? 
-          foam.u2.DisplayMode.RW : 
+        return operation && operation.name !== 'COUNT' ?
+          foam.u2.DisplayMode.RW :
           foam.u2.DisplayMode.HIDDEN;
       }
     },
@@ -1720,8 +1855,8 @@ foam.CLASS({
       name: 'convertToLocalString',
       value: true,
       visibility: function(decimalPlaces) {
-        return decimalPlaces === 0 ? 'RW' : 'HIDDEN'; 
-      } 
+        return decimalPlaces === 0 ? 'RW' : 'HIDDEN';
+      }
     },
     // Label font controls
     {
@@ -1780,7 +1915,7 @@ foam.CLASS({
       expression: function(sink, countSink, showCount, countOnClick, decimalPlaces, convertToLocalString, postfix, prefix) {
         var value = this.getComputedValue();
         var count = countSink ? countSink.value : null;
-        
+
         // Format value with decimal places
         if ( typeof value === 'number' ) {
           value = value.toFixed(decimalPlaces);
@@ -1793,17 +1928,17 @@ foam.CLASS({
             value = parseInt(value).toLocaleString();
           }
         }
-        
+
         // Add prefix and postfix if specified
         if ( prefix ) {
-          value = prefix.startsWith(' ') || prefix.endsWith(' ') ? 
+          value = prefix.startsWith(' ') || prefix.endsWith(' ') ?
                   prefix + value : prefix + ' ' + value;
         }
         if ( postfix ) {
-          value = postfix.startsWith(' ') || postfix.endsWith(' ') ? 
+          value = postfix.startsWith(' ') || postfix.endsWith(' ') ?
                   value + postfix : value + ' ' + postfix;
         }
-        
+
         return {
           value: value,
           count: count
@@ -1816,11 +1951,11 @@ foam.CLASS({
       hidden: true
     }
   ],
-  
+
   methods: [
     {
       name: 'put',
-      code: function put(obj, sub) { 
+      code: function put(obj, sub) {
         this.sink.put(obj, sub);
         this.countSink.put(obj, sub);
         this.lastEncounteredObj_ = obj;
@@ -1830,22 +1965,22 @@ foam.CLASS({
         getCountSink().put(obj, sub);
       `
     },
-    
+
     function getColorFromToken(token) {
       return foam.CSS.returnTokenValue(token, this.cls_, this.__context__);
     },
-    
+
     function getComputedValue() {
       return this.sink && this.sink.value !== undefined ? this.sink.value : 0;
     },
-    
+
     function toE(_, x) {
       var self = this;
       let e = x.E();
       this.addToE(e);
       return e;
     },
-    
+
     function addToE(e) {
       var self = this;
       /// force re-evaluation of metric_ on render
@@ -2068,4 +2203,3 @@ foam.CLASS({
     }
   ]
 });
-

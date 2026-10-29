@@ -37,16 +37,15 @@
     ],
 
     css: `
-      ^ {
+      << {
         background:$backgroundDefault;
         border: solid 1px $borderLight;
         border-radius: 3px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
         cursor: pointer;
         min-height: 50px;
         padding: 8px 16px;
       }
-      ^msg {
+      <<msg {
         display: -webkit-box;
         color: $textDefault;
         overflow: hidden;
@@ -55,7 +54,7 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
       }
-      ^notificationDiv {
+      <<notificationDiv {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -74,10 +73,10 @@
     ],
 
     messages: [
-      { name: 'MARK_AS_READ_MSG',          message: 'Successfully marked as read' },
-      { name: 'FAILED_MARK_AS_READ_MSG',   message: 'Failed to mark as read' },
-      { name: 'MARK_AS_UNREAD_MSG',        message: 'Successfully marked as unread' },
-      { name: 'FAILED_MARK_AS_UNREAD_MSG', message: 'Failed to mark as unread' },
+      { name: 'MARK_AS_READ_MSG',          messageMap: { en: 'Successfully marked as read.', fr: 'Marqué comme lu avec succès.' } },
+      { name: 'FAILED_MARK_AS_READ_MSG',   messageMap: { en: 'Failed to mark as read.', fr: 'Échec du marquage comme lu.' } },
+      { name: 'MARK_AS_UNREAD_MSG',        messageMap: { en: 'Successfully marked as unread.', fr: 'Marqué avec succès comme non lu.' } },
+      { name: 'FAILED_MARK_AS_UNREAD_MSG', messageMap: { en: 'Failed to mark as unread.', fr: 'Échec du marquage comme non lu.' } },
       { name: 'NOTIFICATION_MSG',          message: 'Notification' }
     ],
 
@@ -129,6 +128,7 @@
     actions: [
       {
         name: 'showDetails',
+        label: { en: 'Show Details', fr: 'Afficher les détails'},
         code: function(X) {
           X.rowView.openModal();
           X.rowView.markAsRead(X);
@@ -136,6 +136,7 @@
       },
       {
         name: 'removeNotification',
+        label: { en: 'Remove Notification', fr: 'Supprimer la notification'},
         code: function(X) {
           var self = X.rowView;
           X.notificationDAO.remove(self.data).then(_ => {
@@ -155,7 +156,7 @@
         code: function(X) {
           var self = X.rowView;
           var userClone = self.subject.user.clone();
-  
+
           // check if disabledTopic already exists
           userClone.disabledTopics.push(self.data.notificationType);
           self.userDAO.put(userClone).then(user => {
@@ -164,7 +165,7 @@
             X.myNotificationDAO.cmd(foam.dao.DAO.PURGE_CMD);
           }).catch(e => {
             self.throwError.pub(e);
-  
+
             if ( e.exception && e.exception.userFeedback  ) {
               var currentFeedback = e.exception.userFeedback;
               while ( currentFeedback ) {
@@ -179,6 +180,7 @@
       },
       {
         name: 'markAsRead',
+        label: { en: 'Mark As Read', fr: 'Marquer comme lu'},
         isAvailable: (read) => {
           return ! read;
         },
@@ -189,6 +191,7 @@
             self.notificationDAO.put(self.data).then(_ => {
               self.finished.pub();
               self.ctrl.notify(self.MARK_AS_READ_MSG, '', this.LogLevel.INFO, true);
+              X.myNotificationDAO.cmd(foam.dao.DAO.PURGE_CMD);
             }).catch((e) => {
               self.data.read = false;
               self.ctrl.notify(self.FAILED_MARK_AS_READ_MSG, e.message, this.LogLevel.ERROR, true);
@@ -198,6 +201,7 @@
       },
       {
         name: 'markAsUnread',
+        label: { en: 'Mark As Unread', fr: 'Marquer comme non lu'},
         isAvailable: (read) => {
           return read;
         },

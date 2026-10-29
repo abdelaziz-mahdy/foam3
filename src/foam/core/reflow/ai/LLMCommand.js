@@ -12,9 +12,10 @@ foam.CLASS({
   documentation: 'REFLOW command: prompt the LLMService and display results as markdown.',
 
   requires: [
-    'foam.core.ai.CompletionRequest',
-    'foam.core.ai.LLMOptions',
-    'foam.core.reflow.Markdown'
+    'foam.ai.llm.CompletionRequest',
+    'foam.ai.llm.LLMOptions',
+    'foam.core.reflow.Markdown',
+    'foam.log.LogLevel'
   ],
 
   imports: [
@@ -64,10 +65,8 @@ foam.CLASS({
           options: options
         });
 
-        debugger;
         var result = await this.llmService.complete(null, request);
 
-        debugger;
         this.out.tag(this.Markdown, {markdown: result.content});
       } catch (e) {
         this.notify('LLM error: ' + e.message, '', this.LogLevel.ERROR);

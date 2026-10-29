@@ -11,8 +11,10 @@ foam.CLASS({
 
   documentation: 'Just shows the value of data as a string.',
 
+  imports: [ 'translationService?' ],
+
   css: `
-    ^ {
+    << {
       display: block;
     }
   `,
@@ -49,11 +51,18 @@ foam.CLASS({
           })
         );
       } else {
+        // 'units' is a plain string on the property axiom, so translate at
+        // display time; flat key shared by all property types.
+        var units = prop?.units;
+        if ( units && this.translationService ) {
+          units = this.translationService.getTranslation(foam.locale, 'foam.units.' + units, units);
+        }
         this.add(this.data$.map(v => {
+          let ret = v;
           if ( prop?.name !== 'id' && foam.Number.isInstance(v) && foam.lang.Int.isSubClass(prop) && prop.formatValue ) {
-            return Number(v).toLocaleString(navigator.locale);
+            ret = Number(v).toLocaleString(foam.util.getClientLocale());
           }
-          return v;
+          return ret + (units ? ` ${units}` : '');
         }));
       }
     }

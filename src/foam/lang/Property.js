@@ -209,7 +209,7 @@ foam.CLASS({
       name: 'updatePermissionRequired',
       value: false,
       preSet: function(_, n) {
-        foam.assert(this.writePermissionRequired && n, 'Redundant updatePermissionRequired on prop', this.toString());
+        foam.assert(! ( this.writePermissionRequired && n ), 'Redundant updatePermissionRequired on prop', this.toString());
         return n;
       }
     },
@@ -322,7 +322,12 @@ foam.CLASS({
       value: []
     },
     'initObject',
-    'copyValueFrom'
+    'copyValueFrom',
+    {
+      // class: 'Integer',
+      name: 'order',
+      documentation: 'Default display order in detail views.'
+    }
   ],
 
   methods: [
@@ -712,7 +717,8 @@ foam.CLASS({
       if ( child.cls_ !== foam.lang.Property && child.cls_ !== this.cls_ )
       {
         if ( this.cls_ !== foam.lang.Property ) {
-          this.__context__.warn('Unsupported change of property type from', this.cls_.id, 'to', child.cls_.id, 'property name', this.name,'in model',child.sourceCls_.id);
+          if ( ! this.cls_.isSubClass(child.cls_) )
+            this.__context__.warn('Unsupported change of property type from', this.cls_.id, 'to', child.cls_.id, 'property name', this.name,'in model',child.sourceCls_.id);
         }
 
         return child;

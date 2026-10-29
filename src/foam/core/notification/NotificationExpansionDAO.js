@@ -15,6 +15,10 @@ foam.CLASS({
     'notificationTemplateDAO'
   ],
 
+  mixins: [
+    'foam.core.notification.NotificationLocaleTemplateSupport'
+  ],
+
   javaImports: [
     'foam.lang.Agency',
     'foam.lang.ContextAgent',
@@ -27,15 +31,17 @@ foam.CLASS({
     'foam.dao.ProxyDAO',
     'foam.dao.Sink',
     'foam.mlang.sink.Count',
+    'foam.mlang.predicate.Predicate',
     'foam.mlang.sink.Sequence',
     'foam.core.auth.Group',
+    'foam.core.auth.Language',
+    'foam.core.auth.LanguageId',
     'foam.core.auth.LifecycleState',
     'foam.core.auth.User',
     'foam.core.logger.Logger',
     'foam.core.logger.Loggers',
     'foam.core.pm.PM',
     'foam.util.SafetyUtil',
-    'foam.core.auth.Subject',
     'static foam.mlang.MLang.*'
   ],
 
@@ -44,23 +50,30 @@ foam.CLASS({
       name: 'put_',
       javaCode: `
         Logger logger = Loggers.logger(x, this);
-        DAO userDAO = (DAO) x.get("localUserDAO");
+        DAO userDAO = (DAO) x.get("userDAO");
         Notification notif = (Notification) obj;
-
         if (getDelegate().find(notif.getId()) != null)
           return getDelegate().put(notif);
 
         if ( notif.getBroadcasted() ) {
+          Predicate predicate = EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE);
+          if ( ! SafetyUtil.isEmpty(notif.getBroadcastSpid()) ) {
+            predicate = AND(
+              predicate,
+              EQ(User.SPID, notif.getBroadcastSpid())
+            );
+          }
+          final Predicate broadcastPredicate = predicate;
+          final Notification notification = (Notification) notif.fclone();
+          notification.setBroadcasted(false);
           Agency agency = (Agency) x.get("threadPool");
           agency.submit(x, new ContextAgent() {
             @Override
             public void execute(X x) {
               PM pm = PM.create(x, "Notification:broadcast");
-              userDAO.where(
-                AND(
-                  EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE),
-                  HAS(User.GROUP)
-              )).select(new UserNotificationSink(notif, (DAO) x.get("userNotificationDAO")));
+              userDAO.inX(x).where(
+                broadcastPredicate
+              ).select(new UserNotificationSink(x, notification, (DAO) x.get("userNotificationDAO")));
               pm.log(x);
             }
           }, "Notification Broadcast");
@@ -74,24 +87,24 @@ foam.CLASS({
             logger.debug("Notification group disabled", notif.getGroupId(), notif);
             return obj;
           }
+          final Notification notification = (Notification) notif.fclone();
           Agency agency = (Agency) x.get("threadPool");
           agency.submit(x, new ContextAgent() {
             @Override
             public void execute(X x) {
               PM pm = PM.create(x, "Notification:group");
               Count count = new Count();
-              UserNotificationSink userNotificationSink = new UserNotificationSink(notif, (DAO) x.get("userNotificationDAO"));
-              userNotificationSink.setX(x);
+              UserNotificationSink userNotificationSink = new UserNotificationSink(x, notification, (DAO) x.get("userNotificationDAO"));
               Sequence seq = new Sequence.Builder(x)
                 .setArgs(new Sink[] { count, userNotificationSink })
                 .build();
               userDAO.where(
                 AND(
-                  EQ(User.GROUP, notif.getGroupId()),
+                  EQ(User.GROUP, notification.getGroupId()),
                   EQ(User.LIFECYCLE_STATE, LifecycleState.ACTIVE)
               )).select(seq);
               if ( count.getValue() == 0 ) {
-                logger.info("WARN,Notification group empty", notif);
+                logger.info("WARN,Notification group empty", notification);
               }
               pm.log(x);
             }
@@ -101,6 +114,7 @@ foam.CLASS({
           if ( ! Notification.SPID.isSet(notif) ) {
             notif.setSpid(user.getSpid());
           }
+          notif = applyLocaleTemplate(x, user, notif);
           if ( user.getLifecycleState() == LifecycleState.ACTIVE ) {
             user.doNotify(x, notif);
           } else {

@@ -30,14 +30,14 @@ foam.CLASS({
   ],
 
   css: `
-  ^ {
+  << {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
     height: 100%;
   }
-  ^wrapper{
+  <<wrapper{
     /*Scroll*/
     flex: 1;
     max-height: 100%;
@@ -47,22 +47,22 @@ foam.CLASS({
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
   }
-  ^wrapper [data-page] > [data-idx] {
+  <<wrapper [data-page] > [data-idx] {
     padding: 4px 8px;
   }
-  ^wrapper [data-page] {
+  <<wrapper [data-page] {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
-  ^wrapper groupHeader {
+  <<wrapper groupHeader {
     width: 100%;
     display: flex;
     gap: 8px;
     align-items: center;
     justify-content: flex-start;
   }
-  ^nav{
+  <<nav{
     align-items: center;
     background: $backgroundDefault;
     border-radius: 0 0 4px 4px;
@@ -74,11 +74,11 @@ foam.CLASS({
     padding: 16px 24px;
     width: 100%;
   }
-  ^buttons svg{
+  <<buttons svg{
     width: 1em;
     height: 1em;
   }
-  ^counters > *:focus {
+  <<counters > *:focus {
     border: 0px;
     border-radius: 0px;
     padding: 0px;
@@ -116,6 +116,11 @@ foam.CLASS({
       class: 'foam.mlang.ExprProperty',
       name: 'groupBy'
     },
+    {
+      class: 'foam.u2.ViewSpec',
+      name: 'groupHeaderView', // Property to accept custom views for group headers
+      value: { class: 'foam.u2.DAOList.GroupHeader' }
+    },
     'order',
     ['invertGroupingOrder', false]
   ],
@@ -125,8 +130,10 @@ foam.CLASS({
       name: 'GroupHeader',
       extends: 'foam.u2.View',
 
+      exports: ['controllerMode'],
+
       css: `
-        ^ {
+        << {
           min-height: 20px;
           padding: 8px;
           border-radius: $inputBorderRadius;
@@ -139,18 +146,30 @@ foam.CLASS({
         {
           class: 'String',
           name: 'groupLabel'
+        },
+        {
+          name: 'groupBy'
+        },
+        {
+          name: 'controllerMode',
+          value: foam.u2.ControllerMode.VIEW
         }
       ],
 
       methods: [
         function render() {
-          this
-            .addClass(this.myClass(), 'h600')
-            .add(this.groupLabel)
-          .end();
+          this.addClass(this.myClass(), 'h600');
+          if ( foam.lang.Property.isInstance(this.groupBy) ) {
+            this
+              .startContext({ data: this.data })
+              .add(this.groupBy)
+              .endContext();
+          } else {
+            this.add(this.groupLabel);
+          }
         }
       ]
-    }
+    },
   ],
 
   messages: [
@@ -168,7 +187,7 @@ foam.CLASS({
             data$: this.data$,
             rowView: this.rowView_,
             rootElement: this.listEl_,
-            groupHeaderView: { class: 'foam.u2.DAOList.GroupHeader' },
+            groupHeaderView$: this.groupHeaderView$,
             groupBy$: this.groupBy$,
             order$: this.order$,
             invertGroupingOrder$: this.invertGroupingOrder$,
@@ -208,7 +227,7 @@ foam.CLASS({
     mixins: ['foam.comics.v2.Clickable'],
     imports: ['theme?', 'config'],
     css: `
-      ^ {
+      << {
         display: flex;
         padding: 8px;
         gap: 8px;
@@ -217,27 +236,27 @@ foam.CLASS({
         border: 1.5px solid $borderXLight;
         transition: all 0.2s ease;
       }
-      ^ > div {
+      << > div {
         padding: 0;
       }
-      ^ > :first-child {
+      << > :first-child {
         flex: 1;
       }
-      ^clickable:hover {
+      <<clickable:hover {
         background: $backgroundBrandTertiary;
         border-color: $borderBrandXLight;
         cursor: pointer;
       }
-      ^svg-wrapper{
+      <<svg-wrapper{
         display: flex;
         align-items: center;
       }
-      ^svg-wrapper svg {
+      <<svg-wrapper svg {
         width: 1.1em;
         height: 1.1em;
         fill: black;
       }
-      ^clickable:hover ^svg-wrapper svg {
+      <<clickable:hover <<svg-wrapper svg {
         fill: $textBrandSecondary;
       }
     `,

@@ -8,11 +8,17 @@ foam.CLASS({
   package: 'foam.core.u2.navigation',
   name: 'Stack',
   extends: 'foam.u2.View',
+
   documentation: `
     A simple stack view for use with nested dao controllers and detailViews
   `,
+
   exports: ['as controlBorder'],
-  requires: ['foam.u2.layout.Cols'],
+
+  requires: [
+    'foam.u2.layout.Cols',
+    'foam.u2.WrapperNode'
+  ],
 
   cssTokens: [
     {
@@ -22,7 +28,7 @@ foam.CLASS({
     }
   ],
   css:`
-    ^ {
+    << {
       height: 100%;
       width: 100%;
       display: flex;
@@ -31,60 +37,60 @@ foam.CLASS({
       position: relative;
       scroll-padding-top: var(--header-height, 50px);
     }
-    ^header-gap {
+    <<header-gap {
       gap: 1.6rem;
     }
-    ^content {
+    <<content {
       display: contents;
     }
-    ^content > * {
+    <<content > * {
       flex: 1;
       min-height: 0;
       height: 100%;
     }
-    ^padding ^content > * {
+    <<padding <<content > * {
       padding: 1.6rem;
       padding-top: 0;
     }
-    ^browse-title {
+    <<browse-title {
       transition: all 0.2s ease;
       font-weight: $font-semi-bold;
       text-wrap-mode: nowrap;
     }
-    ^header-container {
+    <<header-container {
       display: flex;
       flex-direction: column;
       gap: 1.6rem;
       z-index: 2;
-      // sort of a hack to make css think this element is not always at the top;
+      /* sort of a hack to make css think this element is not always at the top */
       position: sticky;
       top: -1px;
       transition: all 0.2s ease;
     }
-    ^header-container > .foam-u2-layout-Cols {
+    <<header-container > .foam-u2-layout-Cols {
       align-items: center;
     }
-    ^padding ^header-container {
+    <<padding <<header-container {
       padding: calc(1.6rem + 1px);
       padding-bottom: 0px;
     }
-    ^stuck {
+    <<stuck {
       background: $stickyBG;
       backdrop-filter: blur(3px) opacity(0.8);
       transition: all 0.2s ease;
       gap: 0.4rem;
     }
-    ^padding ^header-container^stuck {
+    <<padding <<header-container<<stuck {
       padding: 1rem;
     }
-    ^stuck ^browse-title {
+    <<stuck <<browse-title {
       font-size: 2.4rem;
     }
-    ^stuck .h600, ^stuck {
+    <<stuck .h600, <<stuck {
       font-size: 1.2rem;
     }
     @media only screen and (min-width:  /*%DISPLAYWIDTH.MD%*/ 768px) {
-      ^compact {
+      <<compact {
         width: clamp(32rem, 75%, 100rem);
         margin: auto;
       }
@@ -106,12 +112,12 @@ foam.CLASS({
     {
       name: 'current',
       expression: function(stack_, pos) {
-        return stack_[pos];
+        return stack_[pos] || null;
       }
     },
-    'trailingContainer', 
-    { 
-      class: 'Map', 
+    'trailingContainer',
+    {
+      class: 'Map',
       name: 'specMap_',
       description: 'stores a map of preferred visibility specs of various stack views at different postions, such as title and properties like compact'
     },
@@ -124,12 +130,13 @@ foam.CLASS({
       }
     },
     // If set, takes over stack operations, useful for overriding stack behaviour in routers
-    'delegate_', 
+    'delegate_',
     'header_', ['stuck_', false], 'headerVisibility'
     // TODO: add stack default
   ],
   methods: [
     function render() {
+      // this.trailingContainer = this.WrapperNode.create({ parentNode: this });
       this.addClass()
       .enableClass(this.myClass('compact'), this.compact_$)
       .enableClass(this.myClass('padding'), this.headerVisibility$)
@@ -145,7 +152,7 @@ foam.CLASS({
               this.add(specMap_[pos]?.title);
             }))
           .end()
-          .start('', {}, this.trailingContainer$).style({ display: 'contents'}).end()
+          .tag(foam.u2.WrapperNode, { parentNode: this }, this.trailingContainer$)
         .end()
       .end()
       .start('', {}, this.content$).addClass(this.myClass('content')).end();
@@ -155,7 +162,7 @@ foam.CLASS({
         // this.current.hide();
         if ( type == 'new' )
           this.content.add(this.current);
-        this.stack_.forEach(v => { 
+        this.stack_.forEach(v => {
           if ( v !== this.current ) {
             v.hide();
           } else {
@@ -219,11 +226,30 @@ foam.CLASS({
       this.resetStack();
       return this.push(...arguments);
     },
-    function jump(p) {
-      if ( this.delegate_ ) return this.delegate_.jump(...arguments);
-      this.stack_.splice(p + 1).forEach(v => v.remove());
+    async function jump(p) {
+      if ( this.delegate_ ) return await this.delegate_.jump(...arguments);
+      let aboutToRemove = this.stack_.slice(p+1);
+      for ( let v of aboutToRemove ) {
+        if ( foam.u2.Routable.isInstance(v) ) {
+          try {
+            await v.beforeRemove();
+            v.remove();
+          } catch(e) {
+            throw e;
+          }
+        } else {
+          v.remove();
+        }
+      }
+      this.stack_.splice(p + 1);
       this.pos = p;
       this.posUpdated.pub('jump');
+    },
+    function pop() {
+      // Convenience: remove the top view, revealing the one below it. The Stack models
+      // navigation by position, so a "pop" is just jumping one position back. Delegates
+      // through jump(), so the delegate_ case is handled there.
+      return this.jump(this.pos - 1);
     },
     function setTitle(title, view) {
       if ( this.delegate_ ) return this.delegate_.setTitle(...arguments);
@@ -240,9 +266,9 @@ foam.CLASS({
       this.specMap_[pos] = this.specMap_[pos] || {};
       this.specMap_[pos][spec] = value;
       if ( foam.lang.Slot.isInstance(value) ) {
-        view.onDetach(() => { 
-          if ( value == this.specMap_[this.pos]?.[spec] ) 
-            this.specMap_[this.pos][spec] = null; 
+        view.onDetach(() => {
+          if ( value == this.specMap_[this.pos]?.[spec] )
+            this.specMap_[this.pos][spec] = null;
         });
       }
       this.propertyChange.pub('specMap_', this.specMap_$);

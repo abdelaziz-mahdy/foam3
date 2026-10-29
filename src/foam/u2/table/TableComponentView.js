@@ -33,17 +33,6 @@ foam.CLASS({
           return foam.core.column.ColumnConfigToPropertyConverter.create();
         return this.importedColumnConfigConverter;
       }
-    },
-    {
-      name: 'subStack',
-      factory: function() {
-        // we export NoBackStack from table view,
-        // so that actions which have stack.back worked just fine from DAOSummaryView
-        // but had no effect on stack if the acction is called from context menu.
-        // so if such an action is called from DAOSummaryView we go back to TableView
-        // but if such an action is called from TableView we stay on the TableView screen
-        return foam.u2.view.NoBackStack.create({delegate: this.stack});
-      }
     }
   ],
 
@@ -78,7 +67,7 @@ foam.CLASS({
       const results = await Promise.all(arr.map( async p =>
         p.hidden ? false :
         (! this.auth) ? true : ! p.columnPermissionRequired ||
-        await this.auth.check(ctrl.__subContext__, `${this.of.name.toLowerCase()}.column.${p.name}`)));
+        await this.auth.check(ctrl.__subContext__, `${this.of.name.toLowerCase()}.column.${p.name.toLowerCase()}`)));
       return arr.filter((_v, index) => results[index]);
     },
 

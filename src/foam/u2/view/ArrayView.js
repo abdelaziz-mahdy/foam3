@@ -28,6 +28,7 @@ foam.CLASS({
   ],
 
   exports: [
+    'allowDuplicates',
     'enableRemoving',
     'mode',
     'updateData',
@@ -104,9 +105,9 @@ foam.CLASS({
       isAvailable: function(mode, enableAdding) {
         return enableAdding && mode === foam.u2.DisplayMode.RW;
       },
-      isEnabled: function(allowDuplicates, data, arrayLength_) {
+      isEnabled: function(allowDuplicates, data, arrayLength_, defaultNewItem) {
         // Disable adding if no duplicates and all uniques already assigned
-        return allowDuplicates || data.length !== arrayLength_;
+        return allowDuplicates || ! (data.length == arrayLength_ || data.includes(defaultNewItem));
       },
       code: function() {
         var newItem = this.defaultNewItem;
@@ -126,16 +127,17 @@ foam.CLASS({
         'foam.u2.layout.Cols'
       ],
       css: `
-        ^value-view {
+        <<value-view {
           flex: 1;
           max-width: 100%;
         }
-        ^value-view-container {
+        <<value-view-container {
           gap:4px;
         }
       `,
       imports: [
         'data',
+        'allowDuplicates',
         'enableRemoving',
         'mode',
         'updateData',
@@ -154,13 +156,23 @@ foam.CLASS({
           name: 'value',
           postSet: function(o, n) {
             if ( this.data[this.index] === n ) return;
-            if ( this.arrayView.dataViewMap[o.$UID] ) {
+
+            // Clean up old element mapping
+            if ( o && this.arrayView.dataViewMap[o.$UID] ) {
               delete this.arrayView.dataViewMap[o.$UID];
             }
+
+            // Check for duplication
+            if ( ! this.allowDuplicates && this.data.includes(n) ) {
+              return;
+            }
+
+            // Update data and new mapping
             var data = [...this.data];
             data[this.index] = n;
             if ( ! foam.util.isPrimitive(this.value) )
               this.arrayView.dataViewMap[n.$UID] = this;
+
             // Treat value updates as feedback to prevent rerendering the whole array since the values are already slotted
             this.arrayView.feedback_ = true;
             this.data = data;
@@ -217,14 +229,14 @@ foam.CLASS({
   ],
 
   css: `
-    ^ {
+    << {
       display: flex;
       flex-direction: column;
       align-items: stretch;
       justify-content: center;
       gap: 4px;
     }
-    ^addButton.foam-u2-ActionView {
+    <<addButton.foam-u2-ActionView {
       border: 1.5px dashed $borderDefault;
       justify-content: flex-start;
       text-align: left;
@@ -268,7 +280,11 @@ foam.CLASS({
     function buildRow(e, i, self) {
       var row = self.Row.create({ index: i, value: e });
       e && e.sub && e.sub(self.updateDataWithoutFeedback);
-      row.onDetach(row.sub(self.updateDataWithoutFeedback));
+      row.onDetach(row.sub(
+        'propertyChange',
+        'value',
+        self.updateDataWithoutFeedback
+      ));
       return row;
     },
     function addAction() {

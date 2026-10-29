@@ -90,7 +90,7 @@ foam.CLASS({
       updateVisibility: 'RO'
     },
     {
-      class: 'Long',
+      class: 'String',
       name: 'id',
       createVisibility: 'RW',
       updateVisibility: 'RO'
@@ -190,6 +190,17 @@ foam.CLASS({
       documentation: 'Determines if notification is sent to all users in a group or system.'
     },
     {
+      class: 'Reference',
+      of: 'foam.core.auth.ServiceProvider',
+      name: 'broadcastSpid',
+      section: 'systemInformation',
+      documentation: 'SPID scope used when broadcasting notifications.',
+      view: {
+        class: 'foam.u2.view.RichChoiceReferenceView',
+        choosePlaceholder: '- Everyone -'
+      }
+    },
+    {
       class: 'Boolean',
       name: 'inAppEnabled',
       documentation: 'Determines if notification is displayed in the application.',
@@ -219,7 +230,8 @@ foam.CLASS({
       },
       javaFactory: `
         return foam.mlang.MLang.TRUE;
-      `
+      `,
+      javaCloneProperty: 'set(dest, get(source));'
     },
     {
       class: 'Map',
@@ -275,6 +287,18 @@ foam.CLASS({
       class: 'FObjectProperty',
       of: 'foam.core.alarming.Alarm',
       name: 'alarm',
+      storageTransient: true,
+      visibility: 'HIDDEN'
+    },
+    {
+      class: 'String',
+      name: 'localeTemplateName',
+      storageTransient: true,
+      visibility: 'HIDDEN'
+    },
+    {
+      class: 'Map',
+      name: 'localeTranslationMappings',
       storageTransient: true,
       visibility: 'HIDDEN'
     }

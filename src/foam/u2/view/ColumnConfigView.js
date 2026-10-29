@@ -20,35 +20,35 @@ foam.CLASS({
   ],
 
   css: `
-    ^ {
+    << {
       max-width: 200px;
       overflow: auto;
     }
-    ^searchWrapper {
+    <<searchWrapper {
       padding: 0px 8px;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       width: 100%;
     }
-    ^searchBar{
+    <<searchBar{
       width: 100%
     }
-    ^ input[type='search']{
+    << input[type='search']{
       width: 100%;
     }
-    ^resetButton {
+    <<resetButton {
       float: right;
       background: none;
       color: $textBrand;
     }
-    ^resetButton:hover:not(:disabled) {
+    <<resetButton:hover:not(:disabled) {
       text-decoration: underline;
     }
-    ^resetButton:disabled {
+    <<resetButton:disabled {
       color: $textTertiary;
     }
-    ^colContainer {
+    <<colContainer {
       overflow-x: hidden;
       height: 100%;
       flex: 1;
@@ -92,9 +92,9 @@ foam.CLASS({
       class: 'String',
       name: 'menuSearch',
       view: {
-        class: 'foam.u2.SearchField',
+        class: 'foam.u2.ClearableSearchField',
         onKey: true,
-        autocomplete: false
+        autocomplete: 'off'
       },
       value: '',
       postSet: function() {
@@ -538,30 +538,30 @@ foam.CLASS({
   ],
 
   css: `
-  ^selected {
+  <<selected {
     background: $blue50;
   }
-  ^some-padding {
+  <<some-padding {
     text-align: left;
     padding: 4px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  ^some-padding:hover {
+  <<some-padding:hover {
     background-color: $backgroundBrandTertiary;
     border-radius: 4px;
   }
-  ^label {
+  <<label {
     display: flex;
     align-items: center;
     justify-content: start;
     width: 100%;
   }
-  ^selection-buttons + ^selection-buttons {
+  <<selection-buttons + <<selection-buttons {
     padding: 8px;
   }
-  ^labelText {
+  <<labelText {
     flex: 1;
     overflow: hidden;
     padding-left: 8px;
@@ -610,9 +610,9 @@ foam.CLASS({
                      this.add(self.slot(function( data$isPropertyGrouped ) {
                        var image;
                        if ( self.data.isPropertyGrouped ) {
-                         image = self.theme.glyphs.folderFill.getDataUrl({ fill: self.theme.primary3 });
+                         image = self.theme.glyphs.folderFill.getDataUrl({ fill: foam.CSS.returnTokenValue('$textBrand', self.cls_, self.__subContext__) });
                        } else {
-                         image = self.theme.glyphs.folderOutline.getDataUrl({ fill: self.theme.grey2 });
+                         image = self.theme.glyphs.folderOutline.getDataUrl({ fill: foam.CSS.returnTokenValue('$textTertiary', self.cls_, self.__subContext__) });
                        }
                        return this.E()
                        .start(self.Image, { data: image , displayHeight: '1.5em' , displayWidth: '1.5em' })
@@ -823,7 +823,7 @@ foam.CLASS({
         if ( ! this.of || ! this.of.getAxiomByName )
           return [];
         if ( prop && prop.of && prop.cls_ && ( foam.lang.FObjectProperty.isInstance(prop) || ( foam.lang.Reference.isInstance(prop) && prop.showSubColumns ) ) )
-          return prop.of.getAxiomsByClass(foam.lang.Property).map(p => { if ( ! foam.dao.DAOProperty.isInstance(p) )  return [p.name, this.columnHandler.returnAxiomHeader(p)] }).filter(e => e != undefined);
+          return prop.of.getAxiomsByClass(foam.lang.Property).map(p => { if ( ! foam.dao.DAOProperty.isInstance(p) && ! p.hidden )  return [p.name, this.columnHandler.returnAxiomHeader(p)] }).filter(e => e != undefined);
         return [];
       }
     },
@@ -912,21 +912,30 @@ foam.CLASS({
       }
       return [this.rootProperty[0]];
     },
-    function updateOnSearch(query) {
+    function updateOnSearch(query, parentMatched) {
       this.showOnSearch = false;
       this.expanded = false;
       if ( query.length == 0 ) { this.showOnSearch = true; this.expanded = false; return this.showOnSearch; }
-      this.showOnSearch = foam.Array.isInstance(this.rootProperty) ? this.rootProperty[1].toLowerCase().includes(query) : this.rootProperty.name.toLowerCase().includes(query);
+      var selfMatch = foam.Array.isInstance(this.rootProperty) ? this.rootProperty[1].toLowerCase().includes(query) : this.rootProperty.name.toLowerCase().includes(query);
+      this.showOnSearch = selfMatch || !! parentMatched;
       if ( this.hasSubProperties && this.level < 2 ) {
         this.expanded = false;
-        if ( this.subColumnSelectConfig.length == 0 )
-          this.subColumnSelectConfig = this.returnSubColumnSelectConfig(this.subProperties, this.level, this.expanded, true);
-        for ( var  i = 0 ; i < this.subColumnSelectConfig.length ; i++ ) {
-          if ( this.subColumnSelectConfig[i].updateOnSearch(query) ) {
+        // Snapshot the children locally: subColumnSelectConfig is an expression
+        // keyed on `expanded`, so toggling this.expanded inside the loop would
+        // regenerate fresh child objects (default showOnSearch=true) and discard
+        // the per-child results computed here.
+        var subs = this.subColumnSelectConfig.length == 0
+          ? this.returnSubColumnSelectConfig(this.subProperties, this.level, true, true)
+          : this.subColumnSelectConfig;
+        for ( var  i = 0 ; i < subs.length ; i++ ) {
+          if ( subs[i].updateOnSearch(query, selfMatch || parentMatched) ) {
             this.expanded = true;
             this.showOnSearch = true;
           }
         }
+        // Reassign after expanded is settled so the rendered children are the
+        // same instances we just scored, overriding any expression recompute.
+        this.subColumnSelectConfig = subs;
       }
       return this.showOnSearch;
     },

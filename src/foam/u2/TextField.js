@@ -22,8 +22,10 @@ foam.CLASS({
 
   mixins: [ 'foam.u2.TextInputCSS' ],
 
+  imports: [ 'translationService?' ],
+
   css: `
-    ^ {
+    << {
       height: $inputHeight;
     }
 
@@ -31,7 +33,7 @@ foam.CLASS({
       -webkit-appearance: textfield;
     }
 
-    ^:read-only:not(:disabled) {
+    <<:read-only:not(:disabled) {
       border: none;
       background: $backgroundDefault;
     }
@@ -69,14 +71,22 @@ foam.CLASS({
       this.SUPER();
 
       if ( this.units ) {
+        // 'units' is a plain string on the property axiom, so translate at
+        // display time; flat key shared by all property types.
+        var units  = this.translationService ?
+          this.translationService.getTranslation(foam.locale, 'foam.units.' + this.units, this.units) :
+          this.units;
         var parent = this.parentNode;
         var self   = this;
-        var span   = parent.start('span').style({display: 'inline-block', position: 'relative', 'font-weight': '300'}).add(self.units, ' ');
+        var span   = parent.start('span').style({display: 'inline-block', position: 'relative', 'font-weight': '300'}).add(units, ' ');
         var e      = span.el_();
-        var w      = Math.ceil(e.getBoundingClientRect().width);
-
-        span.style({left: '-' + (4) + 'px'});
-        self.style({'padding-right': (w+6) + 'px', 'margin-right': (-w) + 'px'});
+        let restyle = () => {
+          var w = Math.ceil(e.getBoundingClientRect().width);
+          span.style({left: '-' + (4) + 'px'});
+          self.style({'padding-right': (w+6) + 'px', 'margin-right': (-w) + 'px'});
+        };
+        restyle();
+        span.resizeObserver(restyle);
       }
     }
   ]

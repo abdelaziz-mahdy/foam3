@@ -62,6 +62,11 @@ foam.CLASS({
       value: false // TODO: Implement short names support.
     },
     {
+      // For use by sub-classes
+      name: 'extensionGrammar_',
+      value: function() { return {}; }
+    },
+    {
       name: 'baseGrammar_',
       value: function(alt, anyChar, chars, literal, literalIC, nop, notChars, optional, range, repeat, repeat0, seq, seq1, str, sug, sym) {
 
@@ -196,7 +201,9 @@ foam.CLASS({
           digits: sym('rawDigits'),
 
           // TODO replace '.' with an internationalized decimal point, or have the input preprocessed
-          float: seq1(1, sym('ws'), str(seq(optional('-'), sym('rawDigits'), optional(str(seq('.', optional(sym('rawDigits')))))))),
+          floatValue: seq1(1, sym('ws'), str(seq(optional('-'), sym('rawDigits'), optional(str(seq('.', optional(sym('rawDigits')))))))),
+
+          float: sym('floatValue'),
 
           numberArray: seq1(1, sym('ws'), sym('numbers'), sym('ws'), ')'),
 
@@ -291,7 +298,7 @@ foam.CLASS({
     },
     {
       name: 'propertiesGrammar_',
-      value: function(action, alt, nyChar, eof, join, literal, literalIC, not, notChars, optional, range,
+      value: function(action, alt, nop, nyChar, eof, join, literal, literalIC, not, notChars, optional, range,
         repeat, repeat0, seq, seq1, str, sug, sym, until) {
 
         let cls                 = this.of;
@@ -303,26 +310,46 @@ foam.CLASS({
         let property            = (prop) => seq1(1, sym('ws'), sug(literalIC(prop.name, prop), {text: prop.name, label: prop.label, category: 'property'}));
 
 
-        let innerProperty = (prop, innerProp) => {
-          // require the user to type the dot before offering innerProp suggestions
-          let expr = foam.mlang.expr.Dot.create({arg1: prop, arg2: innerProp});
-          return seq1(2,
-            sym('ws'),
-            sug(seq1(0, literalIC(prop.name), '.'), {text: prop.name + '.', label: prop.label, category: 'property'}),
-            sug(literal(innerProp.name, expr), {text: innerProp.name, label: innerProp.label, category: 'property', prependSpaceOnSelect: false })
-          );
+        // prefixNames: full path of names from root to the parent FObject prop
+        // (e.g. ['mid','leaf']). Builds a parser matching "mid.leaf." that
+        // suggests the prefix, followed by innerProp which yields the full
+        // Dot chain expr.
+        let innerProperty = (prefixNames, innerProp, expr) => {
+          // One suggestion per path segment, each anchored AFTER the prior segments match,
+          // so an intermediate folder surfaces at its own depth — competing equally with the
+          // scalar siblings at that level. A single whole-prefix suggestion anchored at the
+          // start loses the max-position race to those scalars and never shows.
+          // Each segment's text is just that segment (e.g. "pds0025."), NOT the cumulative
+          // path: the suggestor inserts the text at the current parse position and keeps what
+          // is already typed, so a cumulative text would duplicate the prefix.
+          let parts = [ sym('ws') ];
+          for ( let i = 0 ; i < prefixNames.length ; i++ ) {
+            parts.push(sug(seq1(0, literalIC(prefixNames[i]), '.'), {text: prefixNames[i] + '.', category: 'property', prependSpaceOnSelect: ( i > 0 ) ? false : undefined }));
+          }
+          parts.push(sug(literal(innerProp.name, expr), {text: innerProp.name, label: innerProp.label, category: 'property', prependSpaceOnSelect: false }));
+          return seq1.apply(null, [ parts.length - 1 ].concat(parts));
         };
 
         // process a property and add its predicates to the grammar
-        function processProp(prop, propertyParser) {
+        function processProp(prop, propertyParser, accExpr, prefixNames, visited) {
           if ( ! prop.searchable ) return;
 
           // Property or Referenced Property, the effective type of the Property
           let type = prop;
 
-          // TODO: It would be better to handle references with a custom view:
-          // which auto-completes based on DAO searches.
           if ( foam.lang.Reference.isInstance(prop) ) {
+            // Delegate to ReferenceSuggester for suggestions after = or !=
+            propPredicates.push(seq(propertyParser, seq1(1,
+              alt(operator('='), operator('!=')),
+              sym('ws'),
+              sug(nop(), {
+                class: 'foam.parse.auto.ReferenceSuggester',
+                targetDAOKey: prop.targetDAOKey,
+                of: prop.of
+              })
+            )));
+
+            // Resolve ID type and fall through to compareNumber/compareString.
             type = prop.of.ID;
             if ( foam.lang.IDAlias.isInstance(type) ) {
               type = prop.of.getAxiomByName(type.propName);
@@ -339,11 +366,26 @@ foam.CLASS({
             propPredicates.push(seq(propertyParser, sym('compareBoolean')));
           }
           else if ( foam.lang.Enum.isInstance(type) ) {
-            let value     = (v) => seq1(1, sym('ws'), sug(literalIC(v), {text: v, category: 'value'}));
+            // Delegate to EnumSuggester for a rich, color/glyph-aware dropdown after = or !=.
+            // Also handles class: 'StateMachine' (extends foam.lang.Enum).
+            propPredicates.push(seq(propertyParser, seq1(1,
+              alt(operator('='), operator('!=')),
+              sym('ws'),
+              sug(nop(), {
+                view: {
+                  class: 'foam.parse.auto.EnumSuggester',
+                  of:    prop.of
+                },
+                label:    prop.label + ' values',
+                category: 'value'
+              })
+            )));
+
+            // Keep per-value literal parsing so the grammar still accepts `status = ACTIVE`,
+            // but drop the per-value sug() to avoid duplicate suggestions (EnumSuggester owns those now).
+            let value     = (v) => seq1(1, sym('ws'), literalIC(v));
             let enumValue = alt.apply(null, prop.of.VALUES.map(v => value(v.name)));
             let enumArray = seq1(0, repeat(seq1(0, enumValue, sym('ws')), ',', 1), sym('ws'),')');
-
-            // TODO: Enums can have assigned colours. If they do, they should be provided to the suggestion.
 
             let compareEnum = action(
               alt(seq(operator('='), enumValue),
@@ -366,17 +408,22 @@ foam.CLASS({
           else if ( foam.lang.StringArray.isInstance(type) ) {
             propPredicates.push(seq(propertyParser, sym('compareStringArray')));
           } else if ( foam.lang.FObjectProperty.isInstance(type) && prop.name !== 'language' && prop.name !== 'next' ) {
+            if ( visited.has(prop.of) ) return; // cycle guard for self-referential graphs
+            let nextVisited = new Set(visited);
+            nextVisited.add(prop.of);
+            let nextPrefix = prefixNames.concat([prop.name]);
             let innerProps = prop.of.getAxiomsByClass(foam.lang.Property);
             for ( let i = 0 ; i < innerProps.length ; i++ ) {
               let innerProp = innerProps[i];
-              processProp(innerProp, innerProperty(prop, innerProp));
+              let childExpr = foam.mlang.expr.Dot.create({arg1: accExpr, arg2: innerProp});
+              processProp(innerProp, innerProperty(nextPrefix, innerProp, childExpr), childExpr, nextPrefix, nextVisited);
             }
           }
         }
 
         for ( let i = 0 ; i < props.length ; i++ ) {
           let prop = props[i];
-          processProp(prop, property(prop));
+          processProp(prop, property(prop), prop, [], new Set());
         }
 
         // return the properties grammar map
@@ -389,10 +436,12 @@ foam.CLASS({
         let parsers    = this.Parsers.create();
         let base       = foam.Function.withArgs(this.baseGrammar_,       parsers, this);
         let properties = foam.Function.withArgs(this.propertiesGrammar_, parsers, this);
+        let ext        = foam.Function.withArgs(this.extensionGrammar_,  parsers, this);
         let grammar    = {
           __proto__: base,
           propPredicates: properties.propPredicates,
-          rangePropPredicates: properties.rangePropPredicates
+          rangePropPredicates: properties.rangePropPredicates,
+          ...ext
         };
         let self       = this;
         // All dates are actually treated as ranges. These are arrays of Date
@@ -435,7 +484,7 @@ foam.CLASS({
           },
 
           or: function(v) {
-            return self.Or.create({ args: v });
+            return self.Or.create({ args: v }).partialEval();
           },
 
           and: function(v) {
@@ -454,8 +503,14 @@ foam.CLASS({
             return v[0] ? v[1] * -1 : v[1];
           },
 
+          // A single float value, like 3.14
+          floatValue: function(v) {
+            return parseFloat(v.trim());
+          },
+
+          // A float range, like [3.13, 3.15]
           float: function(v) {
-            let start = end = parseFloat(v.trim());
+            let start = v, end = v;
             // account for float's precision inconsistencies
             let EPSILON = 0.0000000001; // the built in Number.EPSILON is too small to be useful here
             start -= EPSILON;
@@ -617,6 +672,8 @@ foam.CLASS({
         });
 
         g.addActions(actions);
+        this.addExtActions(g);
+
         return g;
       }
     }
@@ -628,6 +685,9 @@ foam.CLASS({
     },
     function parseString(str, opt_name, opt_apply) {
       return this.grammar_.parseString(str, opt_name, opt_apply);
+    },
+    // Template Method to be used by Sub-classes
+    function addExtActions(grammar) {
     }
   ]
 });
